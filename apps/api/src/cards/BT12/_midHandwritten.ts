@@ -187,6 +187,21 @@ function inheritedSaveDp(cardId: string, source: CardSource): Effect {
   });
 }
 
+function opponentDigimonWasDeletedByDpZero(ctx: EffectContext, source: CardSource): boolean {
+  if (ctx.trigger.removalCause !== "byRule") return false;
+  const deleted = new Set(ctx.trigger.deletedInstanceIds ?? []);
+  return ctx.game.player(ctx.game.opponentOf(source.ownerSeat)).trash.some(
+    (instance) => deleted.has(instance.instanceId) && isDigimon(ctx.game.definitionOf(instance)),
+  );
+}
+
+function ownTamerWasDeleted(ctx: EffectContext, source: CardSource): boolean {
+  const deleted = new Set(ctx.trigger.deletedInstanceIds ?? []);
+  return ctx.game.player(source.ownerSeat).trash.some(
+    (instance) => deleted.has(instance.instanceId) && isTamer(ctx.game.definitionOf(instance)),
+  );
+}
+
 function endAttackMemory(cardId: string, source: CardSource): Effect {
   return turnTiming({
     source,
@@ -987,7 +1002,7 @@ export function midBt12Module(cardId: string): EffectModule {
                 source,
                 effectKey: `${cardId}/draw-zero-dp`,
                 description: "Draw when an opponent is deleted by reaching 0 DP.",
-                when: (ctx) => source.isOwnersTurn() && ctx.trigger.removalCause === "byRule",
+                when: (ctx) => source.isOwnersTurn() && opponentDigimonWasDeletedByDpZero(ctx, source),
                 resolve: async (ctx) => {
                   await ctx.fx.draw(source.ownerSeat, 1);
                 },
@@ -1018,6 +1033,7 @@ export function midBt12Module(cardId: string): EffectModule {
                 effectKey: `${cardId}/recover-marcus`,
                 description: "When your Tamer is deleted, place Marcus from trash atop security.",
                 maxPerTurn: 1,
+                canActivate: (ctx) => ownTamerWasDeleted(ctx, source),
                 resolve: async (ctx) => {
                   const [marcus] = await card(
                     ctx,
