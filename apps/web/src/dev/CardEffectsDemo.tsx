@@ -5,6 +5,7 @@ import {
   Permanent,
   Phase,
   PlayerState,
+  getCardDefinition,
   type DecisionRequest,
   type ServerEvent,
 } from "@aegis/shared";
@@ -19049,13 +19050,20 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         11000,
         "BeelStarmon reduces its play cost for each tamer and can play a cost-7 Option from trash when played.",
       );
-    if (/^BT(?:7|8|9|10)-\d{3}$/.test(cardId))
+    if (/^BT(?:7|8|9|10)-\d{3}$/.test(cardId)) {
+      const definition = getCardDefinition(cardId);
+      const printedText = [definition?.effectText, definition?.inheritedEffectText, definition?.securityEffectText]
+        .filter((text): text is string => Boolean(text))
+        .join(" ");
       return effectBt3Demo(
         cardId,
-        cardId,
-        0,
-        `${cardId} behavioral fixture loaded from the verified direct implementation.`,
+        definition?.nameEn ?? cardId,
+        definition?.dp ?? 0,
+        printedText.length > 0
+          ? `Printed effect under test: ${printedText}`
+          : `${definition?.nameEn ?? cardId} has no printed effect; catalog stats remain unchanged.`,
       );
+    }
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
