@@ -18224,6 +18224,53 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         11000,
         "MetalGarurumon Digi-Bursted 2 to delete a play-cost-6 Digimon, or trash the opponent's top security when no Digimon was deleted.",
       );
+    if (cardId === "BT5-071")
+      return effectBt3Demo(
+        cardId,
+        "Guilmon",
+        2000,
+        "Guilmon gained 1 memory when deleted by an effect, but not when deleted by a rule.",
+      );
+    if (cardId === "BT5-072")
+      return effectBt3Demo(
+        cardId,
+        "Fake Agumon Expert",
+        1000,
+        "Fake Agumon Expert returned a level 3 with a main On Deletion effect from trash.",
+      );
+    if (cardId === "BT5-073") return vanillaBt3Demo(cardId, "Pillomon", 4000);
+    if (cardId === "BT5-074")
+      return effectBt3Demo(cardId, "Troopmon", 3000, "Troopmon could play another Troopmon from hand when deleted.");
+    if (cardId === "BT5-075") return effectBt3Demo(cardId, "Musyamon", 4000, "Musyamon has Jamming.");
+    if (cardId === "BT5-076")
+      return effectBt3Demo(
+        cardId,
+        "BlackGrowlmon",
+        4000,
+        "BlackGrowlmon gave its host Security Attack +1 when another own Digimon was deleted.",
+      );
+    if (cardId === "BT5-077") return vanillaBt3Demo(cardId, "Vajramon", 8000);
+    if (cardId === "BT5-078")
+      return effectBt3Demo(
+        cardId,
+        "Jokermon",
+        7000,
+        "Jokermon played a purple level 3 from trash without activating its On Play effect.",
+      );
+    if (cardId === "BT5-079")
+      return effectBt3Demo(
+        cardId,
+        "BlackWarGrowlmon",
+        7000,
+        "BlackWarGrowlmon Digi-Bursted 3 to play a purple level 3 and can delete an own Digimon to unsuspend and attack again.",
+      );
+    if (cardId === "BT5-080")
+      return effectBt3Demo(
+        cardId,
+        "Zanbamon",
+        10000,
+        "Zanbamon deleted an opposing Digimon with Retaliation after losing a battle.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
