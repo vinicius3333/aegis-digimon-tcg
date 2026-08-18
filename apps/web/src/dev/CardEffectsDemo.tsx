@@ -18406,6 +18406,61 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         0,
         "Royal Nuts revealed five cards, added one Digisorption Digimon, and placed the rest at the bottom; it adds itself from security.",
       );
+    if (cardId === "BT6-001")
+      return effectBt3Demo(
+        cardId,
+        "DemiMeramon",
+        0,
+        "DemiMeramon gave its host +1000 DP when attacking a player, but not when attacking a Digimon.",
+      );
+    if (cardId === "BT6-002")
+      return effectBt3Demo(
+        cardId,
+        "Kyaromon",
+        0,
+        "Kyaromon drew once when an opponent's digivolution card was trashed on your turn.",
+      );
+    if (cardId === "BT6-003")
+      return effectBt3Demo(
+        cardId,
+        "Bibimon",
+        0,
+        "Bibimon gained 1 memory when attacking with exactly 3 security cards.",
+      );
+    if (cardId === "BT6-004")
+      return effectBt3Demo(cardId, "Pinamon", 0, "Pinamon drew when its host attacked an opposing Digimon.");
+    if (cardId === "BT6-005")
+      return effectBt3Demo(
+        cardId,
+        "Pagumon",
+        0,
+        "Pagumon added a revealed black Digimon to hand when its host was deleted.",
+      );
+    if (cardId === "BT6-006")
+      return effectBt3Demo(
+        cardId,
+        "Tsunomon",
+        0,
+        "Tsunomon drew once when one of your effects trashed a card in hand.",
+      );
+    if (cardId === "BT6-007")
+      return effectBt3Demo(
+        cardId,
+        "Agumon",
+        2000,
+        "Agumon gained memory when you played Tai Kamiya and grants Security Attack +1 to an inherited Bond of Bravery host.",
+      );
+    if (cardId === "BT6-008")
+      return effectBt3Demo(cardId, "Shoutmon", 2000, "Shoutmon drew when its Blitz host attacked.");
+    if (cardId === "BT6-009")
+      return effectBt3Demo(
+        cardId,
+        "Huckmon",
+        2000,
+        "Huckmon revealed cards and offered every unchosen card for explicit deck-bottom ordering.",
+      );
+    if (cardId === "BT6-010")
+      return effectBt3Demo(cardId, "Flamemon", 3000, "Flamemon granted Piercing to a Hybrid host during your turn.");
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
