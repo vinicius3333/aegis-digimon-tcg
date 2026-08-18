@@ -1,4 +1,5 @@
 // @ts-nocheck
+// HAND-FIXED IR — bottom-decking the target already trashes only that target's sources.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -6,50 +7,36 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              suspended: true,
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "to": "deckBottom"
+          to: "deckBottom",
         },
-        {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": "all"
-          }
-        }
-      ]
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT2-102", compiled);
