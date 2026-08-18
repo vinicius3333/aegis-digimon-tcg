@@ -18519,6 +18519,60 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         2000,
         "Lobomon gave its host +2000 DP while the opponent had no Digimon with sources.",
       );
+    if (cardId === "BT6-021")
+      return effectBt3Demo(
+        cardId,
+        "Tinkermon",
+        2000,
+        "Tinkermon blocked opponent memory gain except from Tamer effects.",
+      );
+    if (cardId === "BT6-022")
+      return effectBt3Demo(cardId, "Strabimon", 3000, "Strabimon gained 1 memory when its Hybrid host attacked.");
+    if (cardId === "BT6-023") return vanillaBt3Demo(cardId, "Octomon", 7000);
+    if (cardId === "BT6-024")
+      return effectBt3Demo(
+        cardId,
+        "AncientGarurumon",
+        5000,
+        "AncientGarurumon gains Jamming while the opponent has no Digimon with sources and trashes a bottom source when attacking.",
+      );
+    if (cardId === "BT6-025")
+      return effectBt3Demo(cardId, "Panjyamon", 6000, "Panjyamon gained 1 memory when its host attacked.");
+    if (cardId === "BT6-026")
+      return effectBt3Demo(
+        cardId,
+        "Dragomon",
+        7000,
+        "Dragomon returned a level 4 source-less opposing Digimon to hand when digivolving.",
+      );
+    if (cardId === "BT6-027")
+      return effectBt3Demo(
+        cardId,
+        "Majiramon",
+        7000,
+        "Majiramon trashed the top source when digivolving and permits one reattack while the opponent has no Digimon.",
+      );
+    if (cardId === "BT6-028")
+      return effectBt3Demo(
+        cardId,
+        "Pukumon",
+        11000,
+        "Pukumon Digi-Bursted 2 to prevent all own Digimon from being blocked for the turn.",
+      );
+    if (cardId === "BT6-029")
+      return effectBt3Demo(
+        cardId,
+        "Azulongmon",
+        13000,
+        "Azulongmon trashed each bottom source, gained memory for source-less opponents, and gains Security Attack +1 for each.",
+      );
+    if (cardId === "BT6-030")
+      return effectBt3Demo(
+        cardId,
+        "Gabumon - Bond of Friendship",
+        14000,
+        "Gabumon - Bond of Friendship unsuspended and bottom-decked a level 5 Digimon after trashing its sources.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
