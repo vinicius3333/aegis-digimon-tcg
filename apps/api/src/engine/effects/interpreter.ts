@@ -2700,6 +2700,9 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
       if (/this Digimon is suspended/i.test(cond.raw ?? "")) {
         return ctx.source.permanent()?.isSuspended === true;
       }
+      if (/deleted outside of a battle/i.test(cond.raw ?? "")) {
+        return ctx.trigger.removalCause !== "byBattle";
+      }
       {
         const m = /this Digimon has the \[([^\]]+)\] trait/i.exec(cond.raw ?? "");
         if (m) {
