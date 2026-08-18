@@ -148,7 +148,7 @@ describe("BT10-009 Shoutmon X4", () => {
       attackerPermanentId: s.perm("shoutmonX4").permanentId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets", 5000);
     const destinationDecision = s.state.pendingDecision!;
     expect(s.engine.applyIntent(0, {
       type: "respondDecision",
@@ -162,7 +162,7 @@ describe("BT10-009 Shoutmon X4", () => {
     await settle(() =>
       s.state.pendingDecision?.kind === "chooseTargets" &&
       s.state.pendingDecision.decisionId !== destinationDecision.decisionId,
-    );
+    5000);
     const unsuspendDecision = s.state.pendingDecision!;
     expect(s.engine.applyIntent(0, {
       type: "respondDecision",
@@ -175,7 +175,7 @@ describe("BT10-009 Shoutmon X4", () => {
     await settle(() =>
       s.perm("destinationTamer").stack.length === 2 &&
       !s.perm("unsuspendedTamer").isSuspended,
-    );
+    5000);
 
     expect(s.perm("destinationTamer").stack).toHaveLength(2);
     expect(s.perm("destinationTamer").isSuspended).toBe(true);

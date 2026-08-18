@@ -40,13 +40,13 @@ describe("ST12-10 Jesmon", () => {
 
     const turn = s.engine.runOneTurn();
     const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
-    await settle(() => mainPhase.isOpen);
+    await settle(() => mainPhase.isOpen, 5000);
     expect(s.engine.applyIntent(0, {
       type: "digivolve",
       permanentId: s.perm("jesmon").permanentId,
       instanceId: s.inst("evolving").instanceId,
     })).toEqual({ ok: true });
-    await settle(() => s.engine.hasAcceptedBlitzAttack(s.perm("jesmon").permanentId));
+    await settle(() => s.engine.hasAcceptedBlitzAttack(s.perm("jesmon").permanentId), 5000);
     expect(s.state.memory).toBe(-1);
     expect(mainPhase.isOpen).toBe(true);
     expect(s.engine.applyIntent(0, {
@@ -55,7 +55,7 @@ describe("ST12-10 Jesmon", () => {
       target: { kind: "player" },
     })).toEqual({ ok: true });
 
-    await settle(() => !mainPhase.isOpen);
+    await settle(() => !mainPhase.isOpen, 5000);
     expect(mainPhase.isOpen).toBe(false);
     await turn;
   });

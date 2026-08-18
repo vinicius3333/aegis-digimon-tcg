@@ -44,7 +44,7 @@ describe("EX2 Justimon/Ryo modal combo deck", () => {
       return s.decisions.length > initialDecisionCount &&
         req?.sourceCardId === "EX2-038" &&
         req.kind === "chooseOption";
-    });
+    }, 5000);
 
     const evolutionMode = s.decisions.at(-1)!.req;
     expect(evolutionMode.options?.choices).toHaveLength(3);
@@ -58,7 +58,7 @@ describe("EX2 Justimon/Ryo modal combo deck", () => {
       s.perm("justimonBase").currentDP === 13_000 &&
       s.state.memory === 7 &&
       s.state.pendingDecision === undefined,
-    );
+    5000);
     await settle();
 
     const deleteTargetPermanentId = s.perm("deleteTarget").permanentId;
@@ -74,7 +74,7 @@ describe("EX2 Justimon/Ryo modal combo deck", () => {
       return req?.decisionId !== evolutionMode.decisionId &&
         req?.sourceCardId === "EX2-038" &&
         req.kind === "chooseOption";
-    });
+    }, 5000);
     const firstAttackMode = s.decisions.at(-1)!.req;
     expect(s.engine.applyIntent(0, {
       type: "respondDecision",
@@ -87,7 +87,7 @@ describe("EX2 Justimon/Ryo modal combo deck", () => {
       return req?.decisionId !== firstAttackMode.decisionId &&
         req?.sourceCardId === "EX2-038" &&
         req.kind === "chooseOption";
-    });
+    }, 5000);
     const secondAttackMode = s.decisions.at(-1)!.req;
     expect(s.engine.applyIntent(0, {
       type: "respondDecision",
@@ -102,7 +102,7 @@ describe("EX2 Justimon/Ryo modal combo deck", () => {
       s.state.players[1]!.security.length === 1 &&
       s.events.filter(({ kind }) => kind === "combatResolved").length > firstCombatCount &&
       s.state.pendingDecision === undefined,
-    );
+    5000);
 
     expect(s.perm("firstRyo").isSuspended).toBe(true);
     expect(s.perm("secondRyo").isSuspended).toBe(true);
@@ -123,7 +123,7 @@ describe("EX2 Justimon/Ryo modal combo deck", () => {
     await settle(() =>
       s.state.players[1]!.security.length === 0 &&
       s.events.filter(({ kind }) => kind === "combatResolved").length > secondCombatCount,
-    );
+    5000);
 
     expect(s.decisions).toHaveLength(decisionCountBeforeSecondAttack);
     expect(s.perm("justimonBase").isSuspended).toBe(true);

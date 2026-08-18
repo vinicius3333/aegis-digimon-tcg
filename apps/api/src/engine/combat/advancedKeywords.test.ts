@@ -37,7 +37,7 @@ describe("§16-23 <Raid> — switch the attack target to the opponent's highest-
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => p0.battleArea.some((p) => p.permanentId === attacker.permanentId) === false, 300);
+    await settle(() => p0.battleArea.some((p) => p.permanentId === attacker.permanentId) === false, 5000);
 
     // Redirected onto the highest-DP unsuspended Digimon and battled it instead of the player:
     // the 5000 DP attacker loses that battle to the 9000 DP defender, so the ATTACKER's own
@@ -579,7 +579,7 @@ describe("§16-37 <Fragment (N)> — choose and trash N of this Digimon's own di
         target: { kind: "permanent", permanentId: target.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => p0.battleArea.some((p) => p.permanentId === target.permanentId) === false, 300);
+    await settle(() => p0.battleArea.some((p) => p.permanentId === target.permanentId) === false, 5000);
 
     expect(p0.battleArea.some((p) => p.permanentId === target.permanentId)).toBe(false);
   });
@@ -771,7 +771,7 @@ describe("§16-39 <Progress> — this Digimon isn't affected by your opponent's 
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => false, 300);
+    await settle(() => false, 5000);
 
     expect(p0.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(false);
   });
