@@ -16,9 +16,8 @@ const hasHybridOrTenWarriors = (def: CardDefinition): boolean =>
 const isRedTamerWithInherited = (def: CardDefinition): boolean =>
   (def.kinds as string[]).includes(CardKind.Tamer) &&
   (def.colors as string[]).includes("Red") &&
-  // Inherited effects appear in the printed effectText as bracketed clauses.
-  typeof def.effectText === "string" &&
-  def.effectText.includes("[");
+  typeof def.inheritedEffectText === "string" &&
+  def.inheritedEffectText.trim().length > 0;
 
 const isDigimonOrTamerDef = (def: CardDefinition): boolean =>
   (def.kinds as string[]).includes(CardKind.Digimon) ||

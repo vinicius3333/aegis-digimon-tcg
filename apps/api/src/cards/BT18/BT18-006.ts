@@ -14,7 +14,8 @@ const compiled: CompiledCard = {
           "kind": "Trash",
           "target": {
             "filter": {
-              "controller": "mine"
+              "controller": "mine",
+              "zone": "deck"
             },
             "count": 1
           },
