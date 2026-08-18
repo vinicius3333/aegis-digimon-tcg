@@ -17958,6 +17958,59 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         2000,
         "Gabumon revealed cards and added a Garurumon and an Omnimon to hand.",
       );
+    if (cardId === "BT5-021")
+      return effectBt3Demo(
+        cardId,
+        "Syakomon",
+        3000,
+        "Syakomon prevented the opponent from reducing digivolution costs on their turn.",
+      );
+    if (cardId === "BT5-022")
+      return effectBt3Demo(
+        cardId,
+        "Bulucomon",
+        3000,
+        "Bulucomon gained 1 memory when your effect trashed an opponent's digivolution card.",
+      );
+    if (cardId === "BT5-023") return vanillaBt3Demo(cardId, "Gesomon", 4000);
+    if (cardId === "BT5-024")
+      return effectBt3Demo(
+        cardId,
+        "Garurumon",
+        5000,
+        "Garurumon gained memory when digivolving with Gabumon in its sources and boosts its host.",
+      );
+    if (cardId === "BT5-025")
+      return effectBt3Demo(
+        cardId,
+        "Paledramon",
+        4000,
+        "Paledramon trashed up to two bottom sources from an opposing Digimon when digivolving.",
+      );
+    if (cardId === "BT5-026")
+      return effectBt3Demo(cardId, "Coelamon", 5000, "Coelamon has Blocker and loses 2 memory when attacking.");
+    if (cardId === "BT5-027") return vanillaBt3Demo(cardId, "MarineDevimon", 7000);
+    if (cardId === "BT5-028")
+      return effectBt3Demo(
+        cardId,
+        "CrysPaledramon",
+        7000,
+        "CrysPaledramon trashed the bottom source of every opposing Digimon and grants Security Attack +1 when one lacks sources.",
+      );
+    if (cardId === "BT5-029")
+      return effectBt3Demo(
+        cardId,
+        "WereGarurumon: Sagittarius Mode",
+        8000,
+        "Sagittarius Mode has Jamming with a WereGarurumon source and boosts its Garurumon host.",
+      );
+    if (cardId === "BT5-030")
+      return effectBt3Demo(
+        cardId,
+        "Neptunemon",
+        10000,
+        "Neptunemon cannot be targeted by an opponent's attack during their turn.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
