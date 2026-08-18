@@ -59,6 +59,7 @@ const compiled: CompiledCard = {
               "kind": [
                 "Digimon"
               ],
+              "zone": "underTamers",
               "nameOrTrait": [
                 {
                   "tokens": [
@@ -74,6 +75,7 @@ const compiled: CompiledCard = {
             },
             "count": 1
           },
+          "from": ["underTamers"],
           "payCost": false,
           "optional": true
         }

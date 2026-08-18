@@ -46,11 +46,13 @@ const compiled: CompiledCard = {
               "controllerDefault": "mine",
               "kind": [
                 "Tamer"
-              ]
+              ],
+              "countMax": 1
             },
             "raw": "you have 1 or fewer Tamers"
           },
-          "optional": true
+          "optional": true,
+          "abortOnDecline": true
         },
         {
           "kind": "PlaceUnder",
@@ -68,7 +70,7 @@ const compiled: CompiledCard = {
             ],
             "excludeToken": true
           },
-          "optional": true
+          "abortOnDecline": true
         }
       ]
     },

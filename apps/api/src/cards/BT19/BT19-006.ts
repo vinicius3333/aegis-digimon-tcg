@@ -30,7 +30,12 @@ const compiled: CompiledCard = {
           },
           "to": "hand",
           "condition": {
-            "kind": "raw",
+            "kind": "not",
+            "condition": {
+              "kind": "triggerRemovalCause",
+              "removalCause": "byBattle",
+              "raw": "deleted by battle"
+            },
             "raw": "deleted other than by battle"
           }
         }

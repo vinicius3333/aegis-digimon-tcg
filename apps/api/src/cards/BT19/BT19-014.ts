@@ -57,12 +57,10 @@ const compiled: CompiledCard = {
           "scaling": {
             "per": 1,
             "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+                "isSelfRef": true,
+                "zone": "digivolutionCards"
             },
-            "unit": "colors"
+              "unit": "digivolutionCardColors"
           }
         },
         {

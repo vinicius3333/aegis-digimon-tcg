@@ -11,9 +11,6 @@ const compiled: CompiledCard = {
       "condition": {
         "kind": "youHave",
         "filter": {
-          "kind": [
-            "Digimon"
-          ],
           "nameOrTrait": [
             {
               "tokens": [
@@ -41,9 +38,6 @@ const compiled: CompiledCard = {
       "condition": {
         "kind": "youHave",
         "filter": {
-          "kind": [
-            "Digimon"
-          ],
           "nameOrTrait": [
             {
               "tokens": [

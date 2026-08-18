@@ -37,7 +37,8 @@ const compiled: CompiledCard = {
             },
             "count": 1
           },
-          "optional": true
+          "optional": true,
+          "payCost": false
         }
       ]
     },
@@ -85,7 +86,7 @@ const compiled: CompiledCard = {
             ],
             "excludeToken": true
           },
-          "optional": true
+          "abortOnDecline": true
         }
       ]
     },
