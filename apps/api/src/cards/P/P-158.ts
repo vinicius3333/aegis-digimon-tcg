@@ -9,7 +9,10 @@ import { registerCard } from "../../engine/effects/registry.js";
 const cardId = "P-158";
 
 function hasDReaper(def: CardDefinition): boolean {
-  return (def.types ?? []).some((t) => t === "D-Reaper");
+  // The catalog stores card traits in `forms` (and some legacy entries in
+  // `types`); checking only `types` made every real D-Reaper card invisible.
+  return (def.forms ?? []).some((trait) => trait === "D-Reaper")
+    || (def.types ?? []).some((trait) => trait === "D-Reaper");
 }
 
 const module: EffectModule = {
@@ -37,6 +40,14 @@ const module: EffectModule = {
                 max: 1,
               });
               added = chosen;
+              if (added.length > 0) {
+                // The selected revealed card must leave the deck for the hand.
+                // `selectCards` only records the decision; it does not move the
+                // instance.  Without this explicit move the printed "add 1"
+                // clause silently discarded the selection when the remaining
+                // cards were returned to the bottom.
+                await ctx.fx.returnToHand(added);
+              }
             }
             const rest = deckCards.filter((c) => !added.includes(c.instanceId));
             if (rest.length > 0) {

@@ -51,6 +51,7 @@ const compiled: CompiledCard = {
               "count": 1
             },
             "destination": "security",
+            "position": "choice",
             "raw": "by placing 1 other Digimon or Tamer as the top or bottom security card"
           },
           "optional": true,

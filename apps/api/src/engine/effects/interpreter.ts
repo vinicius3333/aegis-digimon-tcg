@@ -3614,8 +3614,19 @@ export async function payCost(
             ctx.boundPlayed ??= new Map();
             ctx.boundPlayed.set(cost.bindResultAs, new Set(picked));
           }
+          // "top or bottom" is a controller choice, including when the
+          // destination is security (not only when placing under a Digimon).
+          // Without this branch, a `position: "choice"` cost silently always
+          // inserted at the top of security.
+          let toTop: boolean;
+          if (cost.position === "choice") {
+            const choice = await ctx.ask.chooseOption(ctx, ["top", "bottom"]);
+            toTop = choice === 0;
+          } else {
+            toTop = cost.position !== "bottom";
+          }
           await ctx.fx.addSecurity(ctx.source.ownerSeat, picked, {
-            toTop: cost.position !== "bottom",
+            toTop,
             faceUp: cost.faceDown !== true,
           });
           if (out) out.paidCount = picked.length;
