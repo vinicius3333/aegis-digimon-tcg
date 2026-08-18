@@ -127,7 +127,7 @@ describe("validateDecklist (decklist + banlist legality)", () => {
     futureSet.mainDeck.splice(dropIndex, 1);
     futureSet.mainDeck.push("BT13-007");
 
-    expect(validateDecklist(futureSet)).toEqual({
+    expect(validateDecklist(futureSet, { cardPoolCutoffDate: "2022-10-14" })).toEqual({
       ok: false,
       reason: "BT13-007 is not active yet (card pool: through BT10)",
     });
@@ -139,7 +139,7 @@ describe("validateDecklist (decklist + banlist legality)", () => {
     scenarioDeck.mainDeck.splice(dropIndex, 1);
     scenarioDeck.mainDeck.push("BT12-038");
 
-    expect(validateDecklist(scenarioDeck)).toEqual({
+    expect(validateDecklist(scenarioDeck, { cardPoolCutoffDate: "2022-10-14" })).toEqual({
       ok: false,
       reason: "BT12-038 is not active yet (card pool: through BT10)",
     });
@@ -158,7 +158,7 @@ describe("validateDecklist (decklist + banlist legality)", () => {
     };
 
     expect(() =>
-      makeEngine().engine.seatPlayer(0 as Seat, "attacker", forgedJoinOptions),
+      makeEngine({ cardPoolCutoffDate: "2022-10-14" }).engine.seatPlayer(0 as Seat, "attacker", forgedJoinOptions),
     ).toThrow("BT12-038 is not active yet (card pool: through BT10)");
     expect(() =>
       makeEngine({ cardPoolCutoffDate: "2023-04-28" }).engine.seatPlayer(

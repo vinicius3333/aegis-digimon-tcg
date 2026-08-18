@@ -17,39 +17,39 @@ function card(cardId: string) {
 }
 
 describe("active card pool", () => {
-  it("starts with the English BT10 release date as its single configurable cutoff", () => {
-    expect(CARD_POOL_CUTOFF_DATE).toBe("2022-10-14");
-    expect(cardPoolLabel()).toBe("BT10");
+  it("starts with the verified BT19/BT20 release date as its single configurable cutoff", () => {
+    expect(CARD_POOL_CUTOFF_DATE).toBe("2025-02-28");
+    expect(cardPoolLabel()).toBe("BT19");
   });
 
-  it("includes products released through BT10 and excludes later products", () => {
+  it("includes products released through BT19 and excludes later products", () => {
     expect(isCardInActivePool(card("BT10-001"))).toBe(true);
     expect(isCardInActivePool(card("ST13-01"))).toBe(true);
-    expect(isCardInActivePool(card("EX3-001"))).toBe(false);
-    expect(isCardInActivePool(card("BT11-001"))).toBe(false);
-    expect(isCardInActivePool(card("BT12-001"))).toBe(false);
+    expect(isCardInActivePool(card("BT19-001"))).toBe(true);
+    expect(isCardInActivePool(card("BT20-001"))).toBe(true);
+    expect(isCardInActivePool(card("EX9-001"))).toBe(false);
+    expect(isCardInActivePool(card("BT21-001"))).toBe(false);
   });
 
   it("lists the released products in release order", () => {
     const products = activeProductLabels();
     expect(products[0]).toBe("ST1");
-    // BT10, ST12 and ST13 all released on 2022-10-14, so the pool ends on three products,
-    // ordered by label within the shared date.
-    expect(products.slice(-3)).toEqual(["BT10", "ST12", "ST13"]);
-    expect(products).not.toContain("EX3");
+    // BT19 and BT20 share the Special Booster Ver.2.5 date; ordering is stable by label.
+    expect(products.slice(-2)).toEqual(["BT19", "BT20"]);
+    expect(products).not.toContain("EX9");
   });
 
   it("collapses the released promos into contiguous ranges", () => {
-    expect(activePromoRanges()).toEqual(["P-001–P-065", "P-072–P-078"]);
-    expect(activePromoCount()).toBe(72);
+    expect(activePromoRanges("2022-10-14")).toEqual(["P-001–P-065", "P-072–P-078"]);
+    expect(activePromoCount("2022-10-14")).toBe(72);
   });
 
   it("uses promo release dates instead of treating every P card as one set", () => {
     expect(releaseDateForCard(card("P-077"))).toBe("2022-07-29");
-    expect(isCardInActivePool(card("P-077"))).toBe(true);
+    expect(isCardInActivePool(card("P-077"), "2022-10-14")).toBe(true);
     expect(releaseDateForCard(card("P-078"))).toBe("2022-07-29");
-    expect(isCardInActivePool(card("P-078"))).toBe(true);
-    expect(isCardInActivePool(card("P-082"))).toBe(false);
+    expect(isCardInActivePool(card("P-078"), "2022-10-14")).toBe(true);
+    expect(isCardInActivePool(card("P-082"), "2022-10-14")).toBe(false);
   });
 
   it("can advance the pool with only a new cutoff date", () => {

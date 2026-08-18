@@ -5,7 +5,7 @@ import type { CardDefinition } from "./types.js";
  * a verified release block is ready to be enabled. Dates are English release
  * dates from the official Digimon Card Game product catalogue.
  */
-export const CARD_POOL_CUTOFF_DATE = "2022-10-14" as const; // BT10: Xros Encounter
+export const CARD_POOL_CUTOFF_DATE = "2025-02-28" as const; // BT19/BT20: Special Booster Ver.2.5
 
 type ReleaseDate = `${number}-${number}-${number}`;
 type CardReference = Readonly<Pick<CardDefinition, "cardId" | "set">>;

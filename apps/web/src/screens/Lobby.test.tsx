@@ -32,7 +32,8 @@ describe("famous deck selection", () => {
     expect(screen.getByRole("heading", { name: "BT1" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "EX2" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "BT10" })).toBeTruthy();
-    expect(screen.queryByRole("heading", { name: "EX3" })).toBeNull();
+    expect(screen.getByRole("heading", { name: "BT19" })).toBeTruthy();
+    expect(screen.queryByRole("heading", { name: "EX9" })).toBeNull();
   });
 
   it("selects a famous preset without adding it to personal decks", () => {
