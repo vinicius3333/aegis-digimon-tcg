@@ -17179,6 +17179,15 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         6000,
         "Etemon has Blocker and played a revealed level 6 Etemon on deletion.",
       );
+    if (cardId === "BT3-071")
+      return effectBt3Demo(
+        cardId,
+        "MetalMamemon",
+        7000,
+        "MetalMamemon has Reboot and returned a level 7 Virus Digimon from the trash to hand when digivolving.",
+      );
+    if (cardId === "BT3-076") return vanillaBt3Demo(cardId, "Candlemon", 3000);
+    if (cardId === "BT3-078") return vanillaBt3Demo(cardId, "Shamanmon", 4000);
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);

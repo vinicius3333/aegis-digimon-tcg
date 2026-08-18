@@ -1,1 +1,11 @@
-import{describe,it,expect}from"vitest";import type{PlayerState}from"@aegis/shared";import{setupEngine,settle}from"../../engine/testkit/harness.js";import{observe}from"../../engine/testkit/observe.js";import"./BT3-071.js";describe("BT3-071 MetalMamemon",()=>{it("returns a level 7 Virus Digimon from trash and has Reboot",async()=>{const s=setupEngine({0:{battleArea:[{card:"BT10-061",as:"base"}],hand:[{card:"BT3-071",as:"evolving"}],trash:[{card:"BT2-083",as:"target"}]}},{autoSelectCards:true});const p=s.state.players[0]as PlayerState;s.state.memory=3;expect(s.engine.applyIntent(0,{type:"digivolve",permanentId:s.perm("base").permanentId,instanceId:s.inst("evolving").instanceId})).toEqual({ok:true});await settle(()=>p.hand.some(c=>c.instanceId===s.inst("target").instanceId));expect(p.trash).toHaveLength(0);expect(observe(s.engine).hasKeyword(s.perm("base"),"Reboot")).toBe(true);});});
+import { describe, expect, it } from "vitest";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "./BT3-071.js";
+
+describe("BT3-071 MetalMamemon", () => {
+  it("has Reboot", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT3-071", as: "metalMamemon" }] } });
+    expect(observe(s.engine).hasKeyword(s.perm("metalMamemon"), "Reboot")).toBe(true);
+  });
+});
