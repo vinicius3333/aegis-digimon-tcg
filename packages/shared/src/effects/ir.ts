@@ -752,6 +752,8 @@ export interface Filter {
    * cards" — EX9-073), rather than the single bottom card `position: "bottom"` selects.
    */
   withinBottomN?: number;
+  /** Cost-only: all selected digivolution cards must come from one host permanent. */
+  sameHost?: boolean;
   /** False when self is allowed. */
   type?: { kind: string };
   /** Count constraint (used in or-filter groups). */
