@@ -8,7 +8,10 @@ describe("BT11-022 Dracomon", () => {
       0: {
         battleArea: [{ card: "BT11-022", as: "dracomon" }],
         hand: [{ card: "BT10-019", as: "qualifier" }],
-        deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", { card: "BT1-001", as: "drawn" }],
+        // Keep the expected draw on top: BT10-019's own On Play module is not
+        // imported by this focused test, so no separate reveal effect consumes
+        // the initial deck cards.
+        deck: [{ card: "BT1-001", as: "drawn" }, "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
       },
     });
     s.state.memory = 10;
