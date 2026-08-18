@@ -30,6 +30,7 @@ const module: EffectModule = {
           effectKey: `${cardId}/blocked-draw`,
           description: "[When Blocked] Draw 1.",
           isInherited: true,
+          when: () => source.isOwnersTurn(),
           resolve: async (ctx) => {
             await ctx.fx.draw(source.ownerSeat, 1);
           },
