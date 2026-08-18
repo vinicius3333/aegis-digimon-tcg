@@ -12,36 +12,33 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // See LANE_G.md.
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "excludeSelf": true,
-            "isSameName": true,
-            "sameNameAs": "sourceTopCard"
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            excludeSelf: true,
+            nameMatchesInheritedHost: true,
           },
-          "oncePerTiming": true,
-          "actions": [
+          oncePerTiming: true,
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "GainMemory",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT2-059", compiled);
