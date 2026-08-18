@@ -17125,6 +17125,60 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
       );
     if (cardId === "BT3-059") return vanillaBt3Demo(cardId, "Commandramon", 3000);
     if (cardId === "BT3-060") return vanillaBt3Demo(cardId, "Psychemon", 5000);
+    if (cardId === "BT3-061")
+      return effectBt3Demo(
+        cardId,
+        "Chuumon",
+        2000,
+        "Chuumon prevented the opponent from gaining memory except by Tamer effects.",
+      );
+    if (cardId === "BT3-062")
+      return effectBt3Demo(
+        cardId,
+        "Ludomon",
+        3000,
+        "Ludomon revealed cards and added a RagnaLoardmon and a Legend-Arms Digimon to hand.",
+      );
+    if (cardId === "BT3-063")
+      return effectBt3Demo(
+        cardId,
+        "Sukamon",
+        2000,
+        "Sukamon revealed 3 cards on deletion, played a Chuumon, and placed the rest at the bottom of the deck.",
+      );
+    if (cardId === "BT3-064")
+      return effectBt3Demo(
+        cardId,
+        "TiaLudomon",
+        5000,
+        "TiaLudomon De-Digivolved 1 from an opposing Digimon when its level 7 host attacked.",
+      );
+    if (cardId === "BT3-065")
+      return effectBt3Demo(
+        cardId,
+        "Gururumon",
+        5000,
+        "Gururumon was played without paying its cost after battling as a Security Digimon.",
+      );
+    if (cardId === "BT3-066")
+      return effectBt3Demo(cardId, "Clockmon", 4000, "Clockmon gave its host +1000 DP during the opponent's turn.");
+    if (cardId === "BT3-067") return vanillaBt3Demo(cardId, "Hagurumon", 1000);
+    if (cardId === "BT3-068")
+      return effectBt3Demo(cardId, "Giromon", 6000, "Giromon gave its host +1000 DP during the opponent's turn.");
+    if (cardId === "BT3-069")
+      return effectBt3Demo(
+        cardId,
+        "RaijiLudomon",
+        6000,
+        "RaijiLudomon De-Digivolved 1 from an opposing Digimon when its level 7 host attacked.",
+      );
+    if (cardId === "BT3-070")
+      return effectBt3Demo(
+        cardId,
+        "Etemon",
+        6000,
+        "Etemon has Blocker and played a revealed level 6 Etemon on deletion.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
