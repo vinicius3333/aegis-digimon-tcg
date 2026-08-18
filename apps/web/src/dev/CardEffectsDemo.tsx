@@ -17588,6 +17588,54 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         "Varodurumon Digi-Bursted 3 to give all opposing Digimon -4000 DP.",
       );
     if (cardId === "BT4-050") return vanillaBt3Demo(cardId, "Liollmon", 5000);
+    if (cardId === "BT4-051")
+      return effectBt3Demo(
+        cardId,
+        "DoKunemon",
+        2000,
+        "DoKunemon revealed cards and added a Digimon with Digi-Burst to hand.",
+      );
+    if (cardId === "BT4-052")
+      return effectBt3Demo(
+        cardId,
+        "Lalamon",
+        2000,
+        "Lalamon returned itself to hand after being trashed for Digi-Burst.",
+      );
+    if (cardId === "BT4-053") return vanillaBt3Demo(cardId, "Roachmon", 3000);
+    if (cardId === "BT4-054")
+      return effectBt3Demo(
+        cardId,
+        "Sunflowmon",
+        5000,
+        "Sunflowmon Digi-Bursted 2 to stop a suspended opposing Digimon from unsuspending.",
+      );
+    if (cardId === "BT4-055")
+      return effectBt3Demo(
+        cardId,
+        "Leomon",
+        5000,
+        "Leomon suspended an opposing Digimon with 3000 DP or less when digivolving.",
+      );
+    if (cardId === "BT4-056") return vanillaBt3Demo(cardId, "SkullScorpiomon", 6000);
+    if (cardId === "BT4-057")
+      return effectBt3Demo(cardId, "GrapLeomon", 6000, "GrapLeomon gained 1 memory when attacking.");
+    if (cardId === "BT4-058")
+      return effectBt3Demo(cardId, "Orochimon", 8000, "Orochimon gave one of your Digimon Piercing for the turn.");
+    if (cardId === "BT4-059")
+      return effectBt3Demo(
+        cardId,
+        "Lilamon",
+        7000,
+        "Lilamon Digi-Bursted 2 to suspend an opposing Digimon and suspended one when its host attacked with a Tamer.",
+      );
+    if (cardId === "BT4-060")
+      return effectBt3Demo(
+        cardId,
+        "Lotosmon",
+        12000,
+        "Lotosmon suspended a level 4 or lower Digimon played by either player.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
