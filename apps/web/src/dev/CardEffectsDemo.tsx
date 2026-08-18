@@ -10456,6 +10456,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
   const effect = params.get("effect");
   const step = params.get("step");
   const fixture = useMemo<CardEffectsFixture | undefined>(() => {
+    if (cardId === "BT2-027") return vanillaPlayDemo(cardId, 9000, 6, effect);
     if (cardId === "BT2-026") return veedramonJammingBt2Demo(effect);
     if (cardId === "BT2-025") return ikkakumonBt2Demo(effect);
     if (cardId === "BT2-024") return vanillaPlayDemo(cardId, 4000, 3, effect);
