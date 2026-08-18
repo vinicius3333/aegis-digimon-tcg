@@ -1198,13 +1198,14 @@ export function midBt12Module(cardId: string): EffectModule {
                 source,
                 effectKey: `${cardId}/dna-attack`,
                 description: "When DNA digivolving, suspend an opponent, gain +3000 DP, then may attack it.",
-                when: (ctx) => ctx.trigger.isDnaDigivolve === true,
                 resolve: async (ctx) => {
                   const [target] = await permanent(ctx, foes(ctx, source));
-                  if (target) await ctx.fx.suspend([target], { byEffectSeat: source.ownerSeat });
                   const self = source.permanent();
                   if (self) {
-                    ctx.fx.modifyDP(self.permanentId, 3000, EffectDuration.UntilEachTurnEnd);
+                    if (ctx.trigger.isDnaDigivolve === true) {
+                      if (target) await ctx.fx.suspend([target], { byEffectSeat: source.ownerSeat });
+                      ctx.fx.modifyDP(self.permanentId, 3000, EffectDuration.UntilEachTurnEnd);
+                    }
                     if (target) await ctx.fx.forceAttack(self.permanentId);
                   }
                 },
@@ -1218,6 +1219,13 @@ export function midBt12Module(cardId: string): EffectModule {
                 description: "After qualifying ally deletes in battle, trash opposing security.",
                 isInherited: true,
                 maxPerTurn: 1,
+                when: (ctx) => {
+                  const host = source.permanent()?.topCard;
+                  if (host === undefined || !source.isOwnersTurn()) return false;
+                  const definition = ctx.game.definitionOf(host);
+                  return isDigimon(definition) &&
+                    (definition.nameEn.includes("Imperialdramon") || contains(definition, "free"));
+                },
                 resolve: async (ctx) => {
                   await ctx.fx.trashFromSecurity(ctx.game.opponentOf(source.ownerSeat), 1, { fromTop: true });
                 },

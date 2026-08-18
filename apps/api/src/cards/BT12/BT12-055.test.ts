@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import "./BT12-055.js";
 
 describe("BT12-055 handwritten module", () => {
@@ -18,4 +20,19 @@ describe("BT12-055 handwritten module", () => {
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.WhenDigivolving, source).length).toBeGreaterThan(0);
   });
+});
+
+it("still permits the follow-up attack when the digivolution was not DNA", async () => {
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: "BT12-055", as: "dino" }] },
+      1: { battleArea: [{ card: "BT12-043", as: "target", dp: 15000 }] },
+    },
+    { autoSelectCards: true, autoAcceptOptional: true },
+  );
+  await s.ready();
+  const before = s.perm("dino").currentDP;
+  await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("dino"));
+  expect(s.perm("dino").currentDP).toBe(before);
+  expect(s.perm("target").isSuspended).toBe(false);
 });
