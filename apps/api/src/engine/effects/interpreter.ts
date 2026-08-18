@@ -2741,6 +2741,11 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
         const target = targetId !== undefined ? ctx.game.permanentById(targetId) : undefined;
         return self?.currentDP !== undefined && target?.currentDP !== undefined && target.currentDP > self.currentDP;
       }
+      // Counter-window gate: "one of their Digimon is attacking" is true only while the
+      // combat controller has an in-flight attacker bound to the trigger context (BT15-049).
+      if (/one of their Digimon is attacking/i.test(cond.raw ?? "")) {
+        return ctx.trigger.attackerPermanentId !== undefined;
+      }
       {
         const m = /this Digimon has the \[([^\]]+)\] trait/i.exec(cond.raw ?? "");
         if (m) {
