@@ -1198,12 +1198,13 @@ export interface Cost {
    *   - "security": onto the controller's security stack (BT23-045, BT24-040, BT25-044).
    *   - "digivolutionStack": under a host's digivolution stack at `position`
    *     (EX9-055 "as this Digimon's top digivolution card"; EX9-064 bottom, face down).
+   *   - "battleArea": as an Option permanent in its owner's battle area (P-179).
    * `position` picks the end ("top"/"bottom"); `host` selects whose stack
    * ("self" = the source permanent, "target" = the `underFilter` host). `faceDown`
    * forces a face-down placement for the "security" destination (digivolution cards
    * are always face-down regardless). Absent => the legacy placeUnder behavior.
    */
-  destination?: "security" | "digivolutionStack";
+  destination?: "security" | "digivolutionStack" | "battleArea";
   /**
    * Which end of the target to place at: "top", "bottom", or "choice"
    * (prompt the controller to choose top or bottom per placed card). EX12-077's

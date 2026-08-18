@@ -21,7 +21,7 @@ const compiled: CompiledCard = {
           "amount": 3000,
           "duration": "untilOpponentTurnEnd",
           "cost": {
-            "kind": "placeIntoBattleArea",
+            "kind": "place",
             "target": {
               "filter": {
                 "controller": "mine",
@@ -33,6 +33,7 @@ const compiled: CompiledCard = {
               "count": 1,
               "from": ["hand", "trash"]
             },
+            "destination": "battleArea",
             "raw": "By placing 1 Option card with the [Device] trait from your hand or trash into the battle area"
           },
           "optional": true,
@@ -109,9 +110,7 @@ const compiled: CompiledCard = {
     }
   ],
   "coverage": "full",
-  "residual": [
-    "placeIntoBattleArea cost kind requires engine support (LANE_E: PlaceIntoBattleAreaCost)"
-  ],
+  "residual": [],
   "digivolutionRequirement": [
     {
       "names": ["Justimon: Blitz Arm", "Justimon: Accel Arm"],

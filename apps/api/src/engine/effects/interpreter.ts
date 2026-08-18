@@ -2920,7 +2920,7 @@ function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
     if (required <= 0 || (!cost.target.upTo && candidates.length < required)) return false;
 
-    if (cost.destination === "security") return true;
+    if (cost.destination === "security" || cost.destination === "battleArea") return true;
     if (cost.underFilter !== undefined) {
       return (
         candidatePermanents(ctx, {
@@ -3631,6 +3631,16 @@ export async function payCost(
             faceUp: cost.faceDown !== true,
           });
           if (out) out.paidCount = picked.length;
+          return true;
+        }
+        if (cost.destination === "battleArea") {
+          const placed: string[] = [];
+          for (const instanceId of picked) {
+            const permanent = await ctx.fx.placeOptionAsPermanent?.(instanceId);
+            if (permanent !== undefined) placed.push(permanent.permanentId);
+          }
+          if (placed.length !== picked.length) return false;
+          if (out) out.paidCount = placed.length;
           return true;
         }
         // digivolutionStack: resolve the host (self or the underFilter target) and
