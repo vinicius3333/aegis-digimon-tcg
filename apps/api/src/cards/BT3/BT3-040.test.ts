@@ -5,9 +5,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./BT3-040.js";
 
 function effectiveColors(s: EngineSetup, permanent: Permanent): string[] {
-  return (
-    s.engine as unknown as { effectiveColorsOf(target: Permanent): string[] }
-  ).effectiveColorsOf(permanent);
+  return (s.engine as unknown as { effectiveColorsOf(target: Permanent): string[] }).effectiveColorsOf(permanent);
 }
 
 describe("BT3-040 Shakkoumon", () => {
@@ -16,9 +14,7 @@ describe("BT3-040 Shakkoumon", () => {
 
     await s.engine.recomputeContinuousEffects();
 
-    expect(effectiveColors(s, s.perm("shakkoumon"))).toEqual(
-      expect.arrayContaining(["Yellow", "Blue"]),
-    );
+    expect(effectiveColors(s, s.perm("shakkoumon"))).toEqual(expect.arrayContaining(["Yellow", "Blue"]));
   });
 
   it("Q1076 does not grant blue while Shakkoumon is in breeding", async () => {
