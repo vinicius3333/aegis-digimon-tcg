@@ -24,15 +24,36 @@ describe("BT3-041 Cherubimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () => s.state.players[0]!.security.some((card) => card.instanceId === recoveredId),
-      5000,
-    );
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === recoveredId), 5000);
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === recoveredId)).toBe(false);
     expect(s.state.players[0]!.security[0]).toMatchObject({
       instanceId: recoveredId,
       faceUp: false,
     });
+  });
+
+  it("does not recover from trash when you have more than 3 security cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT3-041", as: "cherubimon" }],
+          security: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          trash: [{ card: "BT3-033", as: "salmon" }],
+        },
+        1: { security: ["BT1-011"] },
+      },
+      { autoSelectCards: true },
+    );
+    const recoveredId = s.inst("salmon").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("cherubimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === recoveredId)).toBe(true);
   });
 });
