@@ -4,10 +4,15 @@ import "./BT2-023.js";
 
 describe("BT2-023 Gomamon", () => {
   it("reduces its play cost for each opposing Digimon without sources", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT2-023", as: "gomamon" }] }, 1: { battleArea: ["BT1-010", "BT1-011"] } });
+    const s = setupEngine({
+      0: { hand: [{ card: "BT2-023", as: "gomamon" }] },
+      1: { battleArea: ["BT1-010", "BT1-011"] },
+    });
     await s.ready();
     s.state.memory = 4;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gomamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gomamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT2-023"));
     expect(s.state.memory).toBe(2);
   });
@@ -19,7 +24,46 @@ describe("BT2-023 Gomamon", () => {
     });
     await s.ready();
     s.state.memory = 0;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gomamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gomamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT2-023"));
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("counts only opposing battle-area Digimon with no digivolution cards", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: ["BT1-010"],
+        hand: [{ card: "BT2-023", as: "gomamon" }],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-010", as: "sourceLess" },
+          { card: "BT1-011", under: ["BT1-001"], as: "withSource" },
+        ],
+        breeding: "BT1-012",
+      },
+    });
+    await s.ready();
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gomamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT2-023"));
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("pays the printed cost when there are no qualifying opposing Digimon", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT2-023", as: "gomamon" }] },
+      1: { battleArea: [{ card: "BT1-011", under: ["BT1-001"] }] },
+    });
+    await s.ready();
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gomamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT2-023"));
     expect(s.state.memory).toBe(0);
   });
