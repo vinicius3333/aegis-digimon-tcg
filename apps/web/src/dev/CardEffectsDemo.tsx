@@ -18011,6 +18011,70 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         10000,
         "Neptunemon cannot be targeted by an opponent's attack during their turn.",
       );
+    if (cardId === "BT5-031")
+      return effectBt3Demo(
+        cardId,
+        "MetalGarurumon",
+        11000,
+        "MetalGarurumon bottom-decked an On Deletion Digimon and trashed its sources, and gains memory when its host attacks.",
+      );
+    if (cardId === "BT5-032")
+      return effectBt3Demo(
+        cardId,
+        "Hexeblaumon",
+        11000,
+        "Hexeblaumon trashed two bottom sources when attacking, gains Jamming, and restricts source-less opponents.",
+      );
+    if (cardId === "BT5-033")
+      return effectBt3Demo(
+        cardId,
+        "Cutemon",
+        3000,
+        "Cutemon prevented the opponent from reducing digivolution costs on their turn.",
+      );
+    if (cardId === "BT5-034")
+      return effectBt3Demo(
+        cardId,
+        "Kotemon",
+        2000,
+        "Kotemon revealed cards and added up to two yellow Warrior or Holy Warrior Digimon.",
+      );
+    if (cardId === "BT5-035")
+      return effectBt3Demo(
+        cardId,
+        "Starmons",
+        1000,
+        "Starmons gave an opposing Digimon -1000 DP for each own Digimon in play.",
+      );
+    if (cardId === "BT5-036")
+      return effectBt3Demo(
+        cardId,
+        "Renamon",
+        3000,
+        "Renamon gave an opposing Digimon Security Attack -1 until the next turn ended.",
+      );
+    if (cardId === "BT5-037")
+      return effectBt3Demo(
+        cardId,
+        "Gladimon",
+        4000,
+        "Gladimon added a Warrior from security and recovered one card while preserving security size.",
+      );
+    if (cardId === "BT5-038")
+      return effectBt3Demo(
+        cardId,
+        "Kyubimon",
+        4000,
+        "Kyubimon gave all opposing Security Digimon -1000 DP during your turn.",
+      );
+    if (cardId === "BT5-039")
+      return effectBt3Demo(
+        cardId,
+        "ShootingStarmon",
+        4000,
+        "ShootingStarmon gave an opposing Digimon -3000 DP when deleted.",
+      );
+    if (cardId === "BT5-040") return vanillaBt3Demo(cardId, "SuperStarmon", 7000);
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
