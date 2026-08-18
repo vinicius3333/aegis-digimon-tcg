@@ -18,7 +18,10 @@ const playFromTrashOrBreeding = () => [
             "nameOrTrait": [{ "tokens": ["Sistermon"], "match": "name" }]
           },
           {
-            "trait": "Royal Knight"
+            "trait": "Royal Knight",
+            "hostFilter": {
+              "zone": "breeding"
+            }
           }
         ]
       },

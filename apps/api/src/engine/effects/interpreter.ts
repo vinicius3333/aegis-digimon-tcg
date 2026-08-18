@@ -1649,13 +1649,17 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
         // hostFilter: when sourcing from digivolutionCards, gate on the host permanent's kind
         // (e.g. "from under your Tamers" — BT10-093), OR require the host to BE the source's
         // own permanent ("this Digimon's digivolution cards" — BT9-111, hostFilter.isSelfRef).
-        if (zone === "digivolutionCards" && target.filter.hostFilter && cand.hostPermanentId) {
-          if (target.filter.hostFilter.isSelfRef === true) {
+        // Resolve it from the matching OR branch as well; cards such as BT13-019 combine
+        // trash and breeding-area digivolution-card sources in one target.
+        const matchedFilter = allFilters.find((filter) => definitionMatches(filter, def));
+        const hostFilter = matchedFilter?.hostFilter;
+        if (zone === "digivolutionCards" && hostFilter && cand.hostPermanentId) {
+          if (hostFilter.isSelfRef === true) {
             const self = ctx.source.permanent();
             if (self === undefined || self.permanentId !== cand.hostPermanentId) continue;
           } else {
             const host = ctx.game.permanentById(cand.hostPermanentId);
-            if (host && !permanentMatchesFilter(ctx, host, target.filter.hostFilter, ctx.source)) continue;
+            if (host && !permanentMatchesFilter(ctx, host, hostFilter, ctx.source)) continue;
           }
         }
         if (cand.hostPermanentId && target.filter.position === "top") {
