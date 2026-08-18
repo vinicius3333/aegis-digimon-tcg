@@ -2700,6 +2700,14 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
       if (/this Digimon is suspended/i.test(cond.raw ?? "")) {
         return ctx.source.permanent()?.isSuspended === true;
       }
+      {
+        const m = /this Digimon has the \[([^\]]+)\] trait/i.exec(cond.raw ?? "");
+        if (m) {
+          const self = ctx.source.permanent();
+          if (self === undefined) return false;
+          return self.stack.some((card) => matchNameOrTrait(ctx.game.definitionOf(card), { tokens: [m[1]!], match: "trait" }));
+        }
+      }
       // "this Digimon had [X] or [Y] in its name" (BT13-062/EX5-045): on-deletion
       // inherited effects must inspect the deleted host's top card, not the inherited
       // source card that remains as the trigger owner.
