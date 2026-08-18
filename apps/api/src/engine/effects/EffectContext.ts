@@ -173,6 +173,8 @@ export interface TriggerInfo {
   deletedByDpZero?: boolean;
   /** Security card currently being checked. */
   securityInstanceId?: string;
+  /** The checked security card was face-up before the check revealed it. */
+  securityWasFaceUp?: boolean;
   /** Permanent that was suspended (OnTappedAnyone). */
   suspendedPermanentId?: string;
   /**

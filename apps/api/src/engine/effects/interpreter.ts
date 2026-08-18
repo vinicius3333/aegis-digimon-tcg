@@ -2547,6 +2547,8 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
       const self = ctx.source.permanent();
       return self !== undefined && self.enterFieldTurnCount !== ctx.game.state.turnCount;
     }
+    case "sourceWasFaceUpSecurity":
+      return ctx.trigger.securityWasFaceUp === true;
     case "allOf":
       // Logical AND: every conjunct must hold (P-116: three distinct named Digimon in
       // play). An empty/missing list never passes (we do not guess an unparsed gate).

@@ -2890,7 +2890,8 @@ export class GameEngine {
           addedToSecuritySeat: info.seat,
           addedToSecurityInstanceIds: [info.instanceId],
         }),
-      resolveSecurityEffect: async (card, attackerPermanentId) => this.resolveSecurityEffect(card, attackerPermanentId),
+      resolveSecurityEffect: async (card, attackerPermanentId, wasFaceUp) =>
+        this.resolveSecurityEffect(card, attackerPermanentId, wasFaceUp),
       dpOf: (permanentId) => this.access.permanentById(permanentId)?.currentDP ?? 0,
       hasKeyword: (permanentId, keyword) => this.continuous.hasKeyword(permanentId, keyword),
       securityCardDp: (card) => {
@@ -2939,10 +2940,14 @@ export class GameEngine {
    * security skill), and the card leaves the security zone as part of resolving, so
    * a re-collection of the same instance must not re-offer it.
    */
-  private async resolveSecurityEffect(card: CardInstance, attackerPermanentId: string): Promise<boolean> {
+  private async resolveSecurityEffect(
+    card: CardInstance,
+    attackerPermanentId: string,
+    securityWasFaceUp?: boolean,
+  ): Promise<boolean> {
     const source = this.cardSourceOf(card);
     const securityEffects = effectsOf(EffectTiming.SecuritySkill, source).filter((effect) => {
-      const ctx = this.buildEffectContext(source, {});
+      const ctx = this.buildEffectContext(source, { securityWasFaceUp });
       return canTrigger(effect, ctx, this.tracker);
     });
     log(
@@ -2964,7 +2969,7 @@ export class GameEngine {
     }
 
     for (const effect of securityEffects) {
-      const ctx = this.buildEffectContext(source, {});
+      const ctx = this.buildEffectContext(source, { securityWasFaceUp });
       if (!canActivate(effect, ctx, this.tracker)) {
         log("[resolveSecurityEffect]", card.cardId, `canActivate=false for ${effect.effectKey}, skipping`);
         continue;

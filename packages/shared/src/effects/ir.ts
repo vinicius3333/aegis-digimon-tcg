@@ -1048,6 +1048,7 @@ export interface Condition {
     | "zoneColorCount" // "if your Tamers have N or more total colors" — counts distinct printed colors among battle-area permanents of `cardType` (ST20-10/ST21-10; KB Q4456).
     | "securityCompare" // "if you have fewer/more security cards than your opponent" — cross-player relative comparison of YOUR security-stack size vs the OPPONENT's (P-127 fewer → documented behavior Owner.SecurityCards.Count < Enemy; P-129 more → >). `op` is "lt" (fewer) or "gt" (more); no fixed `value`.
     | "securityAtMostSelfFaceDownDigivolutionCards" // "if you have as many or fewer security cards as this Digimon has face-down digivolution cards" — compares the watcher's security-stack size against the SOURCE permanent's face-down (faceUp !== true) stack-card count (EX9-029, KB Q4783).
+    | "sourceWasFaceUpSecurity"
     | "totalSecurityCount" // "there are N or fewer/more total cards in both players' security stacks" — sums both security stacks then compares with `op`/`value`.
     | "totalDigimonCount" // total battle-area Digimon controlled by both players, compared with `op`/`value` (BT9-110).
     | "totalDigimonGte" // legacy alias for totalDigimonCount with an implicit gte comparison (ST19-11).
