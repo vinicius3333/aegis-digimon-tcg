@@ -6756,6 +6756,46 @@ function rosemonDemo(effect: string | null): CardEffectsFixture {
   };
 }
 
+function granKuwagamonDemo(effect: string | null): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 5;
+  state.turnSeat = effect === "opponent-turn" ? 1 : 0;
+  state.memory = 0;
+
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  const granKuwagamon = permanent("demo-gran-kuwagamon", "BT1-083", 0, effect === "opponent-turn" ? 11000 : 15000);
+  granKuwagamon.keywords.push("Piercing");
+  granKuwagamon.isSuspended = effect === "piercing";
+  you.battleArea.push(granKuwagamon);
+  opponent.handCount = 5;
+  if (effect === "piercing") {
+    opponent.securityCount = 4;
+    opponent.trash.push(card("demo-gran-kuwagamon-defender", "BT1-016", 1));
+  }
+  state.players.push(you, opponent);
+
+  if (effect === "opponent-turn") return { state };
+  return {
+    state,
+    events: [
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: "BT1-083",
+        effectKey: effect === "piercing" ? "BT1-083/piercing" : "BT1-083/dp",
+        description:
+          effect === "piercing"
+            ? "Piercing performed a security check after GranKuwagamon won the battle and survived."
+            : "During its controller's turn, GranKuwagamon gets +4000 DP and reaches 15000 DP.",
+        timing: effect === "piercing" ? "After Battle" : "Your Turn",
+      },
+    ],
+  };
+}
+
 function palmonDemo(effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
@@ -7119,6 +7159,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
   const effect = params.get("effect");
   const step = params.get("step");
   const fixture = useMemo<CardEffectsFixture | undefined>(() => {
+    if (cardId === "BT1-083") return granKuwagamonDemo(effect);
     if (cardId === "BT1-082") return rosemonDemo(effect);
     if (cardId === "BT1-081") return herculesKabuterimonDemo(effect);
     if (cardId === "BT1-080") return vanillaPlayDemo(cardId, 12000, 10, effect);
