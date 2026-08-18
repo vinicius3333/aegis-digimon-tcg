@@ -870,7 +870,6 @@ export function lateBt12Module(cardId: string): EffectModule {
                 resolve,
               }),
             ];
-          if (timing === EffectTiming.SecuritySkill) return [optionMainInSecurity(cardId, source, resolve)];
           return [];
         }
         case "BT12-102": {
@@ -916,7 +915,6 @@ export function lateBt12Module(cardId: string): EffectModule {
                 resolve,
               }),
             ];
-          if (timing === EffectTiming.SecuritySkill) return [optionMainInSecurity(cardId, source, resolve)];
           return [];
         }
         case "BT12-103": {
@@ -949,7 +947,6 @@ export function lateBt12Module(cardId: string): EffectModule {
                 resolve,
               }),
             ];
-          if (timing === EffectTiming.SecuritySkill) return [optionMainInSecurity(cardId, source, resolve)];
           return [];
         }
         case "BT12-104": {
@@ -984,7 +981,6 @@ export function lateBt12Module(cardId: string): EffectModule {
                 resolve,
               }),
             ];
-          if (timing === EffectTiming.SecuritySkill) return [optionMainInSecurity(cardId, source, resolve)];
           return [];
         }
         case "BT12-105": {
@@ -1026,7 +1022,6 @@ export function lateBt12Module(cardId: string): EffectModule {
                 resolve,
               }),
             ];
-          if (timing === EffectTiming.SecuritySkill) return [optionMainInSecurity(cardId, source, resolve)];
           return [];
         }
         case "BT12-106": {
@@ -1063,25 +1058,6 @@ export function lateBt12Module(cardId: string): EffectModule {
                 resolve,
               }),
             ];
-          if (timing === EffectTiming.SecuritySkill)
-            return [
-              security({
-                source,
-                effectKey: `${cardId}/security`,
-                description: "Suspend all opposing Digimon and Tamers.",
-                resolve: async (ctx) => {
-                  const ids = ctx.game
-                    .player(ctx.game.opponentOf(source.ownerSeat))
-                    .battleArea.filter(
-                      (p) =>
-                        p.topCard &&
-                        (isDigimon(ctx.game.definitionOf(p.topCard)) || isTamer(ctx.game.definitionOf(p.topCard))),
-                    )
-                    .map(({ permanentId }) => permanentId);
-                  if (ids.length) await ctx.fx.suspend(ids, { byEffectSeat: source.ownerSeat });
-                },
-              }),
-            ];
           return [];
         }
         case "BT12-107": {
@@ -1104,7 +1080,6 @@ export function lateBt12Module(cardId: string): EffectModule {
                 },
               }),
             ];
-          if (timing === EffectTiming.SecuritySkill) return [addSelfSecurity(source, cardId)];
           return [];
         }
         case "BT12-108": {
@@ -1142,37 +1117,6 @@ export function lateBt12Module(cardId: string): EffectModule {
                   );
                   if (target) await ctx.fx.deletePermanent([target], "byEffect");
                   await ctx.fx.deletePermanent([ownPermanent.permanentId], "byEffect");
-                },
-              }),
-            ];
-          if (timing === EffectTiming.SecuritySkill)
-            return [
-              security({
-                source,
-                effectKey: `${cardId}/security`,
-                description:
-                  "Trash a Machine/Cyborg card from hand to delete an opposing Digimon with no greater play cost.",
-                resolve: async (ctx) => {
-                  const discarded = await chooseCard(
-                    ctx,
-                    ctx.game.player(source.ownerSeat).hand.filter((card) => {
-                      const definition = ctx.game.definitionOf(card);
-                      return hasText(definition, "machine") || hasText(definition, "cyborg");
-                    }),
-                    true,
-                  );
-                  if (!discarded) return;
-                  const instance = ctx.game
-                    .player(source.ownerSeat)
-                    .hand.find(({ instanceId }) => instanceId === discarded);
-                  const limit = instance ? (ctx.game.definitionOf(instance).playCost ?? -1) : -1;
-                  const moved = await ctx.fx.trash([discarded], { byEffectSeat: source.ownerSeat });
-                  if (moved.length !== 1) return;
-                  const target = await choosePermanent(
-                    ctx,
-                    opposingDigimon(ctx, source, (d) => (d.playCost ?? Infinity) <= limit),
-                  );
-                  if (target) await ctx.fx.deletePermanent([target], "byEffect");
                 },
               }),
             ];
@@ -1214,7 +1158,6 @@ export function lateBt12Module(cardId: string): EffectModule {
                 },
               }),
             ];
-          if (timing === EffectTiming.SecuritySkill) return [addSelfSecurity(source, cardId)];
           return [];
         }
         case "BT12-110": {
@@ -1231,7 +1174,6 @@ export function lateBt12Module(cardId: string): EffectModule {
                 resolve,
               }),
             ];
-          if (timing === EffectTiming.SecuritySkill) return [optionMainInSecurity(cardId, source, resolve)];
           if (timing === EffectTiming.None)
             return [
               inTrash({
