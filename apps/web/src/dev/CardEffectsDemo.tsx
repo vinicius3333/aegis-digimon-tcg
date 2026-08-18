@@ -10379,6 +10379,32 @@ function imperialdramonBt3Demo(effect: string | null): CardEffectsFixture {
   };
 }
 
+function armadillomonBt3Demo(_effect: string | null): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 7;
+  state.turnSeat = 0;
+  state.memory = 0;
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  you.battleArea.push(permanent("demo-bt3-032-armadillomon", "BT3-032", 0, 4000));
+  state.players.push(you, opponent);
+  return {
+    state,
+    events: [
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: "BT3-032",
+        effectKey: "BT3-032/vanilla",
+        description: "BT3-032 Armadillomon has no printed effect: the 4000 DP Digimon remains unchanged.",
+        timing: "OnPlay",
+      },
+    ],
+  };
+}
+
 function silphymonBt3Demo(effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
@@ -16346,6 +16372,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
     if (cardId === "BT3-029") return goldramonBt3Demo(effect);
     if (cardId === "BT3-030") return leopardmonBt3Demo(effect);
     if (cardId === "BT3-031") return imperialdramonBt3Demo(effect);
+    if (cardId === "BT3-032") return armadillomonBt3Demo(effect);
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
