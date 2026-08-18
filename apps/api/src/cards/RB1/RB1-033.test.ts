@@ -50,6 +50,7 @@ describe("RB1-033 [All Turns] suspend self + Draw 1 when Jellymon-text own Digim
     const attacker = s.perm("attacker");
     const handBefore = p0.hand.length;
     s.state.phase = Phase.Main;
+    await s.ready();
 
     s.engine.applyIntent(0, {
       type: "attack",
@@ -112,9 +113,11 @@ describe("RB1-033 [All Turns] suspend self + Draw 1 when opponent's Lv.5+ Digimo
     );
     // Opponent (seat-1) attacks this turn.
     s.state.turnSeat = 1;
+    s.state.phase = Phase.Main;
     const p0 = s.state.players[0]!;
     const oppAttacker = s.perm("oppAttacker");
     const handBefore = p0.hand.length;
+    await s.ready();
 
     s.engine.applyIntent(1, {
       type: "attack",

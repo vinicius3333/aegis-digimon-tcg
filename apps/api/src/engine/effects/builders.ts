@@ -24,7 +24,7 @@ export interface BuilderOptions {
    * this effect; `ally` is for observers such as Tamers whose text says "one of
    * your Digimon attacks". Defaults to the overwhelmingly common self scope.
    */
-  attackScope?: "self" | "ally";
+  attackScope?: "self" | "ally" | "opponent";
   when?: (ctx: EffectContext) => boolean; // EXTRA trigger condition (ANDed with the timing guard)
   canActivate?: (ctx: EffectContext) => boolean; // optional extra activation guard
   /**
@@ -75,9 +75,7 @@ function build(opts: BuilderOptions, flags: BuilderFlags): Effect {
     isLinked: opts.isLinked ?? false,
     maxPerTurn: opts.maxPerTurn ?? -1,
     ...(flags.costWindow !== undefined ? { costWindow: flags.costWindow } : {}),
-    ...(opts.continuousPriority !== undefined
-      ? { continuousPriority: opts.continuousPriority }
-      : {}),
+    ...(opts.continuousPriority !== undefined ? { continuousPriority: opts.continuousPriority } : {}),
     canTrigger: (ctx) => baseGuard(ctx) && (extra ? extra(ctx) : true),
     canActivate: (ctx) => (activate ? activate(ctx) : true),
     resolve: opts.resolve,
@@ -132,6 +130,10 @@ export const whenAttacking = (opts: BuilderOptions): Effect =>
         const attacker = ctx.game.permanentById(attackerId);
         return attacker?.controllerSeat === opts.source.ownerSeat;
       }
+      if (opts.attackScope === "opponent") {
+        const attacker = ctx.game.permanentById(attackerId);
+        return attacker?.controllerSeat !== opts.source.ownerSeat;
+      }
       return ctx.source.permanent()?.permanentId === attackerId;
     },
   });
@@ -154,8 +156,7 @@ export const onDeletion = (opts: BuilderOptions): Effect =>
   });
 
 /** "Security" effects (source rule implementation / PlaySelfTamerSecurityEffect). */
-export const security = (opts: BuilderOptions): Effect =>
-  build(opts, { isSecurity: true, baseGuard: () => true });
+export const security = (opts: BuilderOptions): Effect => build(opts, { isSecurity: true, baseGuard: () => true });
 
 /**
  * "When an effect trashes THIS card specifically from the security stack" (EffectTiming.
@@ -317,8 +318,7 @@ export const staticModifier = (opts: BuilderOptions): Effect => {
   return build({ ...opts, resolve: scopedResolve }, {});
 };
 
-export const digivolveCostStatic = (opts: BuilderOptions): Effect =>
-  build(opts, { baseGuard: () => true });
+export const digivolveCostStatic = (opts: BuilderOptions): Effect => build(opts, { baseGuard: () => true });
 
 /**
  * Static modifier whose source must still be in hand. This is used by printed clauses that
@@ -327,8 +327,7 @@ export const digivolveCostStatic = (opts: BuilderOptions): Effect =>
  * and would therefore make such a clause inert; an unguarded static would incorrectly survive
  * after the source moved to another zone.
  */
-export const handResidentStatic = (opts: BuilderOptions): Effect =>
-  build(opts, { baseGuard: inHandZone });
+export const handResidentStatic = (opts: BuilderOptions): Effect => build(opts, { baseGuard: inHandZone });
 
 /**
  * Color-requirement waiver statics (source UseRequirements / "ignore this card's color
@@ -351,8 +350,7 @@ export const handResidentStatic = (opts: BuilderOptions): Effect =>
  * something else (a keyword grant, a DP modifier, ...) keeps the on-field guard
  * untouched, so this does not let unrelated statics leak off the battle area.
  */
-export const colorWaiverStatic = (opts: BuilderOptions): Effect =>
-  build(opts, { baseGuard: () => true });
+export const colorWaiverStatic = (opts: BuilderOptions): Effect => build(opts, { baseGuard: () => true });
 
 /**
  * `[Breeding]`-region resident effects (source effects gated on
@@ -361,5 +359,4 @@ export const colorWaiverStatic = (opts: BuilderOptions): Effect =>
  * RAISING area — a breeding-area card's resident effect fires while in breeding (and a
  * battle-area card does NOT trigger its [Breeding] effect).
  */
-export const breeding = (opts: BuilderOptions): Effect =>
-  build(opts, { baseGuard: inBreedingArea });
+export const breeding = (opts: BuilderOptions): Effect => build(opts, { baseGuard: inBreedingArea });

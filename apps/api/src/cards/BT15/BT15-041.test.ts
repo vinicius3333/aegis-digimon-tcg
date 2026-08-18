@@ -106,6 +106,8 @@ describe("BT15-041 [End of Opponent's Turn] delete self to play Rosemon/Jijimon,
     expect(s.state.players[0]?.battleArea.some((p) => p.topCard?.cardId === PLAYED_CARD)).toBe(true);
     // Its [When Digivolving] effect re-fired exactly once.
     expect(fired).toBe(1);
-    expect(s.state.memory).toBe(6);
+    // The owner is seat 0 while seat 1's turn is ending, so gaining one memory
+    // for seat 0 moves the turn-relative gauge from 5 to 4.
+    expect(s.state.memory).toBe(4);
   });
 });

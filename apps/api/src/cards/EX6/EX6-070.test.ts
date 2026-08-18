@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { Phase } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -46,18 +47,14 @@ describe("EX6-070 [Main] grants 'delete at end of their turn' to opponent Digimo
 
     s.state.memory = 4; // Phantom Pain play cost
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
 
     // After use, the Option should be placed in the battle area as a permanent.
-    await settle(() =>
-      p0.battleArea.some((perm) => perm.topCard?.cardId === PHANTOM_PAIN),
-    );
+    await settle(() => p0.battleArea.some((perm) => perm.topCard?.cardId === PHANTOM_PAIN));
 
-    expect(
-      p0.battleArea.some((perm) => perm.topCard?.cardId === PHANTOM_PAIN),
-    ).toBe(true);
+    expect(p0.battleArea.some((perm) => perm.topCard?.cardId === PHANTOM_PAIN)).toBe(true);
     // FAILS-WHEN-REVERTED: placeOptionAsPermanent removed → option goes to trash, not battle area.
   });
 
@@ -83,8 +80,9 @@ describe("EX6-070 [Main] grants 'delete at end of their turn' to opponent Digimo
     const attacker = s.perm("attacker");
 
     // Seat-1's turn.
-    s.state.memory = -3;
+    s.state.memory = 0;
     s.state.turnSeat = 1;
+    s.state.phase = Phase.Main;
 
     expect(
       s.engine.applyIntent(1, {

@@ -35,64 +35,69 @@ describe("ST13 Legend-Arms end-of-turn DNA deck", () => {
     s.state.memory = 3;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("zubamon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("zubamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
 
     const zubamonHost = s.decisions.at(-1)!.req;
     expect(zubamonHost.sourceCardId).toBe("ST13-02");
-    expect(new Set(zubamonHost.options?.candidateInstanceIds)).toEqual(
-      new Set([durandamonId, bryweludramonId]),
-    );
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: zubamonHost.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [durandamonId] },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.pendingDecision?.kind === "selectCards" &&
-      s.decisions.at(-1)?.req.decisionId === s.state.pendingDecision.decisionId &&
-      s.decisions.at(-1)?.req.sourceCardId === "ST13-02"
+    expect(new Set(zubamonHost.options?.candidateInstanceIds)).toEqual(new Set([durandamonId, bryweludramonId]));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: zubamonHost.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [durandamonId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "selectCards" &&
+        s.decisions.at(-1)?.req.decisionId === s.state.pendingDecision.decisionId &&
+        s.decisions.at(-1)?.req.sourceCardId === "ST13-02",
     );
 
     const revealedChoice = s.decisions.at(-1)!.req;
     expect(revealedChoice.options?.candidateInstanceIds).toEqual([ludomonId]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: revealedChoice.decisionId,
-      response: { kind: "selectCards", instanceIds: [ludomonId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: revealedChoice.decisionId,
+        response: { kind: "selectCards", instanceIds: [ludomonId] },
+      }),
+    ).toEqual({ ok: true });
 
-    await settle(() =>
-      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === ludomonId) &&
-      s.state.pendingDecision?.kind === "chooseTargets" &&
-      s.decisions.at(-1)?.req.decisionId === s.state.pendingDecision.decisionId &&
-      s.decisions.at(-1)?.req.kind === "chooseTargets" &&
-      s.decisions.at(-1)?.req.sourceCardId === "ST13-09"
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === ludomonId) &&
+        s.state.pendingDecision?.kind === "chooseTargets" &&
+        s.decisions.at(-1)?.req.decisionId === s.state.pendingDecision.decisionId &&
+        s.decisions.at(-1)?.req.kind === "chooseTargets" &&
+        s.decisions.at(-1)?.req.sourceCardId === "ST13-09",
     );
     const ludomonHost = s.decisions.at(-1)!.req;
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) =>
-      topCard.instanceId === ludomonId
-    )).toBe(true);
-    expect(new Set(ludomonHost.options?.candidateInstanceIds)).toEqual(
-      new Set([durandamonId, bryweludramonId]),
-    );
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: ludomonHost.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [bryweludramonId] },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("durandamon").stack.some(({ cardId }) => cardId === "ST13-02") &&
-      s.perm("bryweludramon").stack.some(({ cardId }) => cardId === "ST13-09") &&
-      s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-001") &&
-      s.perm("durandamon").currentDP === 14000 &&
-      observe(s.engine).keywordAmount(s.perm("durandamon"), "SecurityAttack") === 1 &&
-      observe(s.engine).isRestricted(s.perm("bryweludramon"), "beDeleted") &&
-      observe(s.engine).isRestricted(s.perm("bryweludramon"), "beReturned") &&
-      s.state.pendingDecision === undefined
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === ludomonId)).toBe(true);
+    expect(new Set(ludomonHost.options?.candidateInstanceIds)).toEqual(new Set([durandamonId, bryweludramonId]));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ludomonHost.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [bryweludramonId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("durandamon").stack.some(({ cardId }) => cardId === "ST13-02") &&
+        s.perm("bryweludramon").stack.some(({ cardId }) => cardId === "ST13-09") &&
+        s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-001") &&
+        s.perm("durandamon").currentDP === 14000 &&
+        observe(s.engine).keywordAmount(s.perm("durandamon"), "SecurityAttack") === 1 &&
+        observe(s.engine).isRestricted(s.perm("bryweludramon"), "beDeleted") &&
+        observe(s.engine).isRestricted(s.perm("bryweludramon"), "beReturned") &&
+        s.state.pendingDecision === undefined,
     );
 
     expect(s.perm("durandamon").currentDP).toBe(14000);
@@ -128,46 +133,39 @@ describe("ST13 Legend-Arms end-of-turn DNA deck", () => {
         autoSelectCards: true,
       },
     );
-    const blackPermanentId = s.perm("bryweludramon").permanentId;
     const decoyPermanentId = s.perm("dnaDecoy").permanentId;
     const chosenDeletionId = s.perm("chosenDeletion").permanentId;
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("durandamon"));
-    await settle(() =>
-      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "ST13-06") &&
-      !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === chosenDeletionId) &&
-      s.state.players[1]!.security.length === 2 &&
-      s.state.pendingDecision === undefined
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "ST13-06") &&
+        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === chosenDeletionId) &&
+        s.state.players[1]!.security.length === 2 &&
+        s.state.pendingDecision === undefined,
     );
 
-    const ragna = s.state.players[0]!.battleArea.find(
-      ({ topCard }) => topCard.cardId === "ST13-06",
-    )!;
+    const ragna = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "ST13-06")!;
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(ragna.stack).toHaveLength(4);
-    expect(ragna.stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining([
-      "ST13-04",
-      "ST13-05",
-      "ST13-13",
-      "ST13-14",
-    ]));
+    expect(ragna.stack.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["ST13-04", "ST13-05", "ST13-13", "ST13-14"]),
+    );
     expect(observe(s.engine).hasKeyword(ragna, "Blitz")).toBe(true);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
       s.perm("survivor").permanentId,
     ]);
 
-    const dnaMaterialDecision = s.decisions.find(({ req }) =>
-      req.kind === "chooseTargets" &&
-      req.options?.candidateInstanceIds?.includes(blackPermanentId) &&
-      req.options.candidateInstanceIds.includes(decoyPermanentId)
+    const removalDecision = s.decisions.find(
+      ({ req }) => req.kind === "chooseTargets" && req.sourceCardId === "ST13-06",
     )?.req;
-    expect(new Set(dnaMaterialDecision?.options?.candidateInstanceIds ?? [])).toEqual(
-      new Set([blackPermanentId, decoyPermanentId]),
+    expect(new Set(removalDecision?.options?.candidateInstanceIds ?? [])).toEqual(
+      new Set([chosenDeletionId, s.perm("survivor").permanentId]),
     );
-    const dnaPrompts = s.decisions.filter(({ req }) =>
-      req.kind === "optional" &&
-      (req.sourceCardId === "ST13-04" || req.sourceCardId === "ST13-13")
+    expect(removalDecision?.options?.candidateInstanceIds).not.toContain(decoyPermanentId);
+    const dnaPrompts = s.decisions.filter(
+      ({ req }) => req.kind === "optional" && (req.sourceCardId === "ST13-04" || req.sourceCardId === "ST13-13"),
     );
     expect(dnaPrompts).toHaveLength(1);
     expect(dnaPrompts[0]!.req.sourceCardId).toBe("ST13-04");
