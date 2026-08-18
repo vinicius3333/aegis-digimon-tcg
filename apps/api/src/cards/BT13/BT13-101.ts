@@ -68,16 +68,12 @@ const compiled: CompiledCard = {
                   "count": 1,
                   "isSelf": true
                 },
-                "raw": "by suspending this Tamer"
-              },
-              "optional": true,
-              "abortOnDecline": true
+              "raw": "by suspending this Tamer"
+              }
             },
             {
               "kind": "GainMemory",
-              "amount": 1,
-              "optional": true,
-              "abortOnDecline": true
+              "amount": 1
             }
           ]
         }
