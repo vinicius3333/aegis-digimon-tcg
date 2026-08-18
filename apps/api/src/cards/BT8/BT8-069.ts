@@ -1,0 +1,119 @@
+// @ts-nocheck
+// HAND-FIXED IR for BT8-069 — do not regenerate.
+// WhenDigivolving: added from:hand, underFilter:self, position:bottom; added Delete gated
+// action. YourTurn SubTrigger: added Restrict("can't be deleted") action. The printed
+// inherited EndOfAttack effect belongs to Ouryumon and unsuspends an Alphamon host.
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+const compiled: CompiledCard = {
+  "effects": [
+    {
+      "trigger": "WhenDigivolving",
+      "actions": [
+        {
+          "kind": "PlaceUnder",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "nameOrTrait": [
+                {
+                  "tokens": ["X-Antibody"],
+                  "match": "trait"
+                }
+              ]
+            },
+            "from": ["hand"],
+            "count": 1
+          },
+          "underFilter": {
+            "isSelfRef": true
+          },
+          "position": "bottom",
+          "optional": true
+        },
+        {
+          "kind": "Delete",
+          "target": {
+            "filter": {
+              "controller": "opponent",
+              "kind": ["Digimon"],
+              "playCostLte": 7
+            },
+            "count": 1
+          },
+          "condition": {
+            "kind": "ifThisEffectActed",
+            "raw": "PlaceUnder resolved"
+          }
+        }
+      ]
+    },
+    {
+      "trigger": "YourTurn",
+      "actions": [
+        {
+          "kind": "SubTrigger",
+          "event": "onAddDigivolutionCards",
+          "sourceFilter": {
+            "controller": "mine",
+            "kind": [
+              "Digimon"
+            ]
+          },
+          "actions": [
+            {
+              "kind": "ModifyDP",
+              "target": {
+                "filter": {
+                  "isSelfRef": true
+                },
+                "count": 1,
+                "isSelf": true
+              },
+              "amount": 2000,
+              "duration": "untilOpponentTurnEnd"
+            },
+            {
+              "kind": "Restrict",
+              "target": {
+                "filter": {
+                  "isSelfRef": true
+                },
+                "count": 1,
+                "isSelf": true
+              },
+              "restriction": "beDeletedByOpponent",
+              "duration": "untilOpponentTurnEnd"
+            }
+          ]
+        }
+      ],
+      "frequency": "OncePerTurn"
+    },
+    {
+      "trigger": "EndOfAttack",
+      "actions": [
+        {
+          "kind": "Unsuspend",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          },
+          "condition": {
+            "kind": "selfHasNameContaining",
+            "names": ["Alphamon"]
+          }
+        }
+      ],
+      "frequency": "OncePerTurn",
+      "isInherited": true
+    }
+  ],
+  "coverage": "full",
+  "residual": []
+};
+
+registerIrCard("BT8-069", compiled);

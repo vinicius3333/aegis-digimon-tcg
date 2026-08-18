@@ -1,0 +1,88 @@
+// @ts-nocheck
+// HAND-FIXED IR for BT21-099 — do not regenerate.
+// Main PlaceUnder: added from:["hand","trash"] (text: "from your hand or trash").
+// Digivolve 'into' zone restriction is a residual interpreter gap.
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+const compiled: CompiledCard = {
+  "effects": [
+    {
+      "trigger": "Main",
+      "actions": [
+        {
+          "kind": "PlaceUnder",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ],
+              "keywords": [
+                "Save"
+              ]
+            },
+            "count": 1
+          },
+          "from": [
+            "hand",
+            "trash"
+          ],
+          "optional": true
+        },
+        {
+          "kind": "Digivolve",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ]
+            },
+            "count": 1
+          },
+          "into": {
+            "controllerDefault": "mine",
+            "kind": [
+              "Digimon"
+            ],
+            "keywords": [
+              "Save"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "trigger": "Security",
+      "actions": [
+        {
+          "kind": "PlayWithoutCost",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "playCostLte": 5,
+              "keywords": [
+                "Save"
+              ]
+            },
+            "count": 1
+          },
+          "from": [
+            "hand",
+            "trash"
+          ],
+          "payCost": false,
+          "optional": true
+        },
+        {
+          "kind": "AddToHandSelf"
+        }
+      ],
+      "isSecurity": true
+    }
+  ],
+  "coverage": "full",
+  "residual": []
+};
+
+registerIrCard("BT21-099", compiled);

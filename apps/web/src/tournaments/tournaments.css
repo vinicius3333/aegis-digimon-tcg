@@ -1,0 +1,435 @@
+/* Tournaments area. Layout only — every color, radius and spacing comes from the design tokens
+   the rest of the client already uses. Shell metrics mirror home.css so the screen scrolls under
+   the top nav on desktop and clears the bottom nav on phones. */
+
+.tournaments-page {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-6);
+  height: calc(100% - var(--ds-nav-height-wide));
+  overflow-y: auto;
+  padding: var(--ds-space-8) var(--ds-gutter-desktop) var(--ds-space-12);
+}
+
+.tournaments-page > * {
+  width: min(100%, var(--ds-container-max));
+  margin-inline: auto;
+}
+
+.tournaments-page__head h1 {
+  color: var(--ds-fg);
+  font: 800 clamp(1.7rem, 3vw, 2.5rem)/1.08 var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-display);
+  text-transform: uppercase;
+}
+
+.tournaments-page__head p {
+  max-width: 52ch;
+  margin-top: var(--ds-space-2);
+  color: var(--ds-fg-muted);
+}
+
+.tournaments-page__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-3);
+  margin-bottom: var(--ds-space-4);
+}
+
+.tournaments-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-8) var(--ds-space-5);
+  text-align: center;
+  border: 1.5px dashed var(--ds-border);
+  border-radius: var(--ds-radius-md);
+}
+
+.tournaments-empty__icon {
+  display: grid;
+  width: 52px;
+  height: 52px;
+  place-items: center;
+  color: var(--ds-accent);
+  border: 1px solid var(--ds-info-border);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-accent-surface);
+  margin-bottom: var(--ds-space-1);
+}
+
+.tournaments-empty__title {
+  color: var(--ds-fg);
+  font: 700 var(--ds-text-lg)/1.2 var(--ds-font-display);
+}
+
+.tournaments-empty__copy {
+  max-width: 34rem;
+  margin: 0 0 var(--ds-space-2);
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-sm);
+  line-height: 1.5;
+}
+
+/* ---- Catalog ---- */
+
+.tournaments-catalog {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+  gap: var(--ds-space-4);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tournaments-catalog > li {
+  display: flex;
+  min-width: 0;
+}
+
+.tournaments-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+  width: 100%;
+  transition: border-color var(--ds-motion-fast) var(--ds-ease-standard), box-shadow var(--ds-motion-fast) var(--ds-ease-standard);
+}
+
+.tournaments-card:hover {
+  border-color: var(--ds-border-strong);
+  box-shadow: var(--ds-elev-raised);
+}
+
+.tournaments-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+}
+
+.tournaments-card__head h2 {
+  margin: 0;
+  font: 700 var(--ds-text-lg)/1.2 var(--ds-font-display);
+  overflow-wrap: anywhere;
+}
+
+.tournaments-card__head .aegis-badge {
+  flex: none;
+}
+
+.tournaments-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-1) var(--ds-space-4);
+  margin: 0;
+  color: var(--ds-fg-muted);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
+}
+
+.tournaments-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-2);
+}
+
+.tournaments-card > .aegis-button {
+  align-self: flex-start;
+  margin-top: auto;
+}
+
+.tournaments-empty {
+  color: var(--ds-fg-muted);
+}
+
+/* ---- Detail ---- */
+
+/* Wide desktop reads as an authored two-column grid; the loading/error fallback is a single
+   Panel carrying the same class, so the grid only applies to the real layout wrapper. */
+.tournaments-detail:not(.aegis-panel) {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--ds-space-4);
+  align-items: start;
+}
+
+.tournaments-detail.aegis-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-4);
+}
+
+.tournaments-detail__head,
+.tournaments-bracket,
+.tournaments-my-match {
+  grid-column: 1 / -1;
+}
+
+.tournaments-detail__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-3);
+}
+
+.tournaments-detail__head h2 {
+  margin: 0;
+  font: 800 var(--ds-text-2xl)/1.1 var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-display);
+  text-transform: uppercase;
+  overflow-wrap: anywhere;
+}
+
+.tournaments-detail__head .tournaments-badges {
+  width: 100%;
+}
+
+/* Panel section labels share one quiet grammar across the detail and the form previews. */
+.tournaments-detail .aegis-panel > h3,
+.tournaments-preview h3,
+.tournaments-estimates h3 {
+  margin: 0 0 var(--ds-space-3);
+  color: var(--ds-fg-secondary);
+  font-size: var(--ds-text-xs);
+  font-weight: 700;
+  letter-spacing: var(--ds-tracking-label);
+  text-transform: uppercase;
+}
+
+.tournaments-detail__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-3);
+}
+
+.tournaments-detail dl,
+.tournaments-my-match dl {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: var(--ds-space-2) var(--ds-space-4);
+  margin: 0;
+}
+
+.tournaments-detail dt,
+.tournaments-my-match dt {
+  align-self: center;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+}
+
+.tournaments-detail dd,
+.tournaments-my-match dd {
+  margin: 0;
+  font-size: var(--ds-text-sm);
+}
+
+/* ---- Form ---- */
+
+.tournaments-form {
+  width: min(100%, 640px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-4);
+}
+
+.tournaments-form h2 {
+  margin: 0;
+  font: 800 var(--ds-text-2xl)/1.1 var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-display);
+  text-transform: uppercase;
+}
+
+.tournaments-form form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-3);
+}
+
+.tournaments-form__actions {
+  display: flex;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-2);
+}
+
+.tournaments-note {
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+}
+
+.tournaments-reasons {
+  color: var(--ds-danger);
+  font-size: var(--ds-text-sm);
+  margin: 0;
+  padding-left: 18px;
+}
+
+.tournaments-organizer__danger {
+  border-top: 1px solid var(--ds-border);
+  margin-top: var(--ds-space-3);
+  padding-top: var(--ds-space-3);
+}
+
+/* ---- Row lists (participants, banlist, matches, standings) ---- */
+
+.tournaments-banlist,
+.tournaments-participants,
+.tournaments-matches,
+.tournaments-standings {
+  display: flex;
+  flex-direction: column;
+  list-style: none;
+  margin: var(--ds-space-2) 0 0;
+  max-height: 320px;
+  overflow-y: auto;
+  padding: 0;
+}
+
+.tournaments-banlist li,
+.tournaments-participants li,
+.tournaments-matches li,
+.tournaments-standings li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-1) var(--ds-space-2);
+  padding: var(--ds-space-2) 0;
+  border-top: 1px solid var(--ds-border-soft);
+  font-size: var(--ds-text-sm);
+}
+
+.tournaments-banlist li:first-child,
+.tournaments-participants li:first-child,
+.tournaments-matches li:first-child,
+.tournaments-standings li:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.tournaments-standings li > span:first-child {
+  min-width: 3ch;
+  color: var(--ds-fg-muted);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
+}
+
+.tournaments-banlist__id,
+.tournaments-banlist__copies,
+.tournaments-banlist__pair,
+.tournaments-seed {
+  color: var(--ds-fg-muted);
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
+}
+
+.tournaments-my-match__clock {
+  margin-left: var(--ds-space-2);
+  font-family: var(--ds-font-mono);
+}
+
+.tournaments-preview,
+.tournaments-estimates {
+  border-top: 1px solid var(--ds-border);
+  padding-top: var(--ds-space-3);
+}
+
+/* ---- Top Cut bracket ---- */
+
+/* One column per round, so a Top 8 reads left to right as quarters, semis, final.
+   Scrolls horizontally rather than wrapping — a bracket that wraps stops being a bracket. */
+.tournaments-bracket__rounds {
+  display: flex;
+  gap: var(--ds-space-4);
+  list-style: none;
+  margin: var(--ds-space-3) 0 0;
+  overflow-x: auto;
+  padding: 0 0 var(--ds-space-2);
+}
+
+.tournaments-bracket__round {
+  flex: 0 0 auto;
+  min-width: 230px;
+}
+
+.tournaments-bracket__round h4 {
+  margin: 0 0 var(--ds-space-2);
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+  letter-spacing: var(--ds-tracking-label);
+  text-transform: uppercase;
+}
+
+.tournaments-bracket__round ul {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tournaments-bracket__match {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-1) var(--ds-space-2);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+  font-size: var(--ds-text-sm);
+}
+
+.tournaments-bracket__seat--winner {
+  color: var(--ds-success);
+  font-weight: 700;
+}
+
+.tournaments-bracket__score {
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
+}
+
+/* ---- Responsive composition ---- */
+
+@media (max-width: 959px) {
+  .tournaments-page {
+    height: 100%;
+    gap: var(--ds-space-5);
+    padding: var(--ds-space-6) var(--ds-gutter-tablet) calc(var(--ds-nav-height-narrow) + var(--ds-space-8) + env(safe-area-inset-bottom));
+  }
+
+  .tournaments-detail:not(.aegis-panel) {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 599px) {
+  .tournaments-page {
+    gap: var(--ds-space-4);
+    padding: var(--ds-space-4) var(--ds-gutter-phone) calc(var(--ds-nav-height-narrow) + var(--ds-space-6) + env(safe-area-inset-bottom));
+  }
+
+  .tournaments-page__actions .aegis-button,
+  .tournaments-card > .aegis-button,
+  .tournaments-form__actions .aegis-button {
+    align-self: stretch;
+    width: 100%;
+  }
+
+  .tournaments-form__actions {
+    flex-direction: column;
+  }
+
+  .tournaments-detail dl,
+  .tournaments-my-match dl {
+    grid-template-columns: 1fr;
+    gap: var(--ds-space-1);
+  }
+
+  .tournaments-detail dd,
+  .tournaments-my-match dd {
+    margin-bottom: var(--ds-space-2);
+  }
+}

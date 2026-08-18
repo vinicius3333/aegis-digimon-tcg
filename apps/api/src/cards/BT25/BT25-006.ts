@@ -1,0 +1,56 @@
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const compiled: CompiledCard = {
+  "effects": [
+    {
+      "trigger": "OpponentsTurn",
+      "actions": [
+        {
+          "kind": "SubTrigger",
+          "event": "whenOpponentAttacks",
+          "actions": [
+            {
+              "kind": "Unsuspend",
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "kind": [
+                    "Digimon"
+                  ],
+                  "nameOrTrait": [
+                    {
+                      "tokens": [
+                        "Titan"
+                      ],
+                      "match": "trait"
+                    }
+                  ]
+                },
+                "count": 1
+              }
+            }
+          ],
+          "cost": {
+            "kind": "trash",
+            "target": {
+              "filter": {
+                "zone": "hand",
+                "controller": "mine"
+              },
+              "count": 1
+            },
+            "raw": "by trashing 1 card in your hand"
+          }
+        }
+      ],
+      "isInherited": true,
+      "frequency": "OncePerTurn"
+    }
+  ],
+  "coverage": "full",
+  "residual": []
+};
+
+registerIrCard("BT25-006", compiled);

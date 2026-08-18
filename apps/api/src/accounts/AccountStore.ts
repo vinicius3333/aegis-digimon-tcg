@@ -1,0 +1,215 @@
+import { createHash, randomBytes, randomUUID } from "node:crypto";
+import type { BanlistPolicy, DigimonWorldAvatarId, TournamentBanlistCard, TournamentRules, TournamentStructure } from "@aegis/shared";
+import { Pool, type PoolClient, type PoolConfig } from "pg";
+import { migrations } from "../db/migrations/index.js";
+import { type Queryable, runMigrations } from "../db/migrator.js";
+
+export type Account = { id: string; displayName: string; avatarUrl: string | null; avatarId: DigimonWorldAvatarId | null; isAdmin: boolean };
+export type Deck = { id: string; name: string; mainDeck: string[]; eggDeck: string[]; revision: number };
+export type AuthSession = { id: string; account: Account; expiresAt: number };
+export type RoomTicket = { account: Account; tournamentMatchId: string | null };
+export type PlayerStats = { rankedWins: number; rankedLosses: number; rankedDraws: number; rankedDodges: number; tournamentWins: number; tournamentLosses: number; tournamentDraws: number; tournamentsPlayed: number; tournamentsWon: number };
+export type DeckSnapshot = { deckId: string | null; deckName: string; mainDeck: string[]; eggDeck: string[] };
+export type DeckStat = DeckSnapshot & { snapshotId: string; wins: number; losses: number; draws: number; matches: number };
+// Which SEAT won, rather than which account. A person who loses to a bot leaves
+// `winner_account_id` null — the winner has no account — so a reader that infers the result from
+// that column alone reports the loss as a draw. This says it outright.
+export type MatchOutcomeSeat = "player0" | "player1" | "draw";
+export type MatchRecord = { id: string; mode: "ranked" | "tournament"; opponentName: string; opponentKind: "human" | "bot"; result: "win" | "loss" | "draw"; reason: string; finishedAt: number };
+export type Tournament = { id: string; name: string; block: string; status: "registration" | "in_progress" | "finished"; startsAt: number; maxPlayers: number; createdBy: string; winnerAccountId: string | null; registrations: number } & TournamentProgram;
+// The tournament-program columns (migrations 002 and 003), read back as the shared contract shapes.
+// Legacy rows carry exactly what the backfills gave them, so this is never partially populated.
+export type TournamentProgram = { structure: TournamentStructure; bestOf: 1 | 3; topCutEnabled: boolean; topCutSize: number | null; allowBots: boolean; rulesetPreset: string; rulesetVersion: string | null; rules: TournamentRules | null; banlistPolicy: BanlistPolicy; banlistCards: TournamentBanlistCard[] };
+// The program fields are optional and default to the pre-program bracket — single elimination,
+// best-of-one, no Top Cut, no bots, no banlist enforcement — which is also what migration 003
+// backfills legacy rows to. A caller that omits them creates exactly what it always created.
+export type CreateTournamentRecord = { name: string; block: string; startsAt: number; maxPlayers: number } & Partial<Omit<TournamentProgram, "topCutSize" | "rulesetVersion">>;
+export const LEGACY_TOURNAMENT_PROGRAM: Omit<TournamentProgram, "topCutSize" | "rulesetVersion"> = { structure: "single_elimination", bestOf: 1, topCutEnabled: false, allowBots: false, rulesetPreset: "aegis_lightning", rules: null, banlistPolicy: { mode: "none" }, banlistCards: [] };
+export type TournamentMatch = { id: string; round: number; position: number; player0AccountId: string | null; player1AccountId: string | null; winnerAccountId: string | null; status: "waiting" | "pending" | "finished" | "bye" };
+export const MAX_SAVED_DECKS = 100;
+export class DeckLimitError extends Error {}
+export class DisplayNameTakenError extends Error {}
+export class InvalidDisplayNameError extends Error {}
+
+type AccountRow = { id: string; display_name: string; avatar_url: string | null; avatar_id: DigimonWorldAvatarId | null; is_admin: boolean };
+
+export class AccountStore {
+  // Exposed so sibling domain stores (see src/tournaments/participants) can share one connection
+  // pool and one migration run instead of opening a second pool against the same database.
+  readonly pool: Pool;
+  private ready: Promise<void> | undefined;
+
+  constructor(input: Pool | PoolConfig | string = process.env.DATABASE_URL ?? {}) {
+    this.pool = typeof input === "object" && "connect" in input && "query" in input ? input as Pool : new Pool(typeof input === "string" ? { connectionString: input } : input);
+  }
+
+  async close(): Promise<void> { await this.pool.end(); }
+  async healthCheck(): Promise<boolean> { await this.pool.query("SELECT 1"); return true; }
+
+  // Discards the cached promise on failure so a transient error (database still starting, lock
+  // contention, dropped connection) is retried by the next caller instead of poisoning the store
+  // for the lifetime of the process.
+  ensureReady(): Promise<void> {
+    this.ready ??= runMigrations(this.pool, migrations).then(() => undefined).catch((error: unknown) => { this.ready = undefined; throw error; });
+    return this.ready;
+  }
+
+  private async transaction<T>(work: (client: PoolClient) => Promise<T>): Promise<T> {
+    await this.ensureReady();
+    const client = await this.pool.connect();
+    try { await client.query("BEGIN"); const result = await work(client); await client.query("COMMIT"); return result; }
+    catch (error) { await client.query("ROLLBACK"); throw error; }
+    finally { client.release(); }
+  }
+
+  async accountForIdentity(provider: "discord" | "email", subject: string, displayName: string, avatarUrl: string | null = null): Promise<Account> {
+    const normalized = provider === "email" ? subject.trim().toLowerCase() : subject;
+    for (let attempt=0;attempt<3;attempt++) {
+      try { return await this.transaction(async (client) => { const existing = await client.query<AccountRow>("SELECT a.id, a.display_name, a.avatar_url, a.avatar_id, a.is_admin FROM accounts a JOIN login_identities i ON i.account_id=a.id WHERE i.provider=$1 AND i.subject=$2", [provider, normalized]); if (existing.rows[0]) return toAccount(existing.rows[0]); const account: Account = { id: randomUUID(), displayName: await this.uniqueName(client, displayName), avatarUrl, avatarId: null, isAdmin: false }; await client.query("INSERT INTO accounts (id, display_name, avatar_url, created_at) VALUES ($1,$2,$3,$4)", [account.id, account.displayName, account.avatarUrl, Date.now()]); await client.query("INSERT INTO login_identities (provider, subject, account_id) VALUES ($1,$2,$3)", [provider, normalized, account.id]); return account; }); }
+      catch (error) { if (!isUniqueViolation(error) || attempt===2) throw error; }
+    }
+    throw new Error("could not allocate account identity");
+  }
+
+  async issueSession(account: Account): Promise<AuthSession> { await this.ensureReady(); const id = randomBytes(32).toString("base64url"); const expiresAt = Date.now() + 2_592_000_000; await this.pool.query("INSERT INTO sessions (id, account_id, expires_at) VALUES ($1,$2,$3)", [id, account.id, expiresAt]); return { id, account, expiresAt }; }
+  async session(id: string | undefined): Promise<AuthSession | undefined> { if (!id) return undefined; await this.ensureReady(); const result = await this.pool.query<AccountRow & { session_id: string; expires_at: string }>("SELECT s.id session_id, s.expires_at, a.id, a.display_name, a.avatar_url, a.avatar_id, a.is_admin FROM sessions s JOIN accounts a ON a.id=s.account_id WHERE s.id=$1 AND s.revoked_at IS NULL AND s.expires_at>$2", [id, Date.now()]); const row = result.rows[0]; return row ? { id: row.session_id, expiresAt: Number(row.expires_at), account: toAccount(row) } : undefined; }
+  async revokeSession(id: string | undefined): Promise<void> { if (id) { await this.ensureReady(); await this.pool.query("UPDATE sessions SET revoked_at=$1 WHERE id=$2", [Date.now(), id]); } }
+
+  async createRoomTicket(accountId: string, tournamentMatchId: string | null = null): Promise<string> { await this.ensureReady(); const token = randomBytes(32).toString("base64url"); await this.pool.query("INSERT INTO room_tickets (token_hash, account_id, tournament_match_id, expires_at) VALUES ($1,$2,$3,$4)", [hash(token), accountId, tournamentMatchId, Date.now() + 60_000]); return token; }
+  async createTournamentMatchTicket(accountId: string, tournamentId: string, matchId: string): Promise<string | undefined> { const match = (await this.tournamentMatches(tournamentId)).find((item) => item.id === matchId); if (!match || match.status !== "pending" || ![match.player0AccountId, match.player1AccountId].includes(accountId)) return undefined; return this.createRoomTicket(accountId, matchId); }
+  async consumeRoomTicket(token: string | undefined): Promise<RoomTicket | undefined> { if (!token) return undefined; return this.transaction(async (client) => { const now=Date.now();const ticket=(await client.query<{account_id:string;tournament_match_id:string|null}>("SELECT account_id,tournament_match_id FROM room_tickets WHERE token_hash=$1 AND consumed_at IS NULL AND expires_at>$2 FOR UPDATE",[hash(token),now])).rows[0];if(!ticket)return undefined;await client.query("UPDATE room_tickets SET consumed_at=$1 WHERE token_hash=$2",[now,hash(token)]);const row=(await client.query<AccountRow>("SELECT id,display_name,avatar_url,avatar_id,is_admin FROM accounts WHERE id=$1",[ticket.account_id])).rows[0];return row ? { account: toAccount(row), tournamentMatchId: ticket.tournament_match_id } : undefined; }); }
+
+  async updateAvatar(accountId: string, avatarId: DigimonWorldAvatarId): Promise<Account | undefined> {
+    await this.ensureReady();
+    const row = (
+      await this.pool.query<AccountRow>(
+        "UPDATE accounts SET avatar_id=$1 WHERE id=$2 RETURNING id,display_name,avatar_url,avatar_id,is_admin",
+        [avatarId, accountId],
+      )
+    ).rows[0];
+    return row ? toAccount(row) : undefined;
+  }
+
+  async updateDisplayName(accountId: string, input: string): Promise<Account | undefined> {
+    const displayName = normalizeDisplayName(input);
+    return this.transaction(async (client) => {
+      const current = (
+        await client.query<AccountRow>(
+          "SELECT id,display_name,avatar_url,avatar_id,is_admin FROM accounts WHERE id=$1 FOR UPDATE",
+          [accountId],
+        )
+      ).rows[0];
+      if (!current) return undefined;
+      try {
+        const updated = (
+          await client.query<AccountRow>(
+            "UPDATE accounts SET display_name=$1 WHERE id=$2 RETURNING id,display_name,avatar_url,avatar_id,is_admin",
+            [displayName, accountId],
+          )
+        ).rows[0];
+        await client.query(
+          "UPDATE tournament_participants SET display_name=$1 WHERE account_id=$2 AND tournament_id IN (SELECT id FROM tournaments WHERE status='registration')",
+          [displayName, accountId],
+        );
+        return updated ? toAccount(updated) : undefined;
+      } catch (error) {
+        if (isUniqueViolation(error)) throw new DisplayNameTakenError("display name is already taken");
+        throw error;
+      }
+    });
+  }
+
+  async createMagicLink(email: string): Promise<{ token: string; expiresAt: number }> { await this.ensureReady(); const token = randomBytes(32).toString("base64url"); const expiresAt = Date.now() + 900_000; await this.pool.query("INSERT INTO magic_links (token_hash,email,expires_at) VALUES ($1,$2,$3)", [hash(token), email.trim().toLowerCase(), expiresAt]); return { token, expiresAt }; }
+  async consumeMagicLink(token: string): Promise<Account | undefined> { const email = await this.transaction(async (client) => (await client.query<{ email: string }>("UPDATE magic_links SET consumed_at=$1 WHERE token_hash=$2 AND consumed_at IS NULL AND expires_at>$1 RETURNING email", [Date.now(), hash(token)])).rows[0]?.email); return email ? this.accountForIdentity("email", email, email.split("@")[0] ?? "Player") : undefined; }
+
+  async decks(accountId: string): Promise<Deck[]> { await this.ensureReady(); const result = await this.pool.query<{ id: string; name: string; main_deck: string[]; egg_deck: string[]; revision: number }>("SELECT id,name,main_deck,egg_deck,revision FROM saved_decks WHERE account_id=$1 ORDER BY updated_at DESC", [accountId]); return result.rows.map((row) => ({ id: row.id, name: row.name, mainDeck: row.main_deck, eggDeck: row.egg_deck, revision: row.revision })); }
+  async saveDeck(accountId: string, input: Omit<Deck, "id" | "revision"> & { id?: string }): Promise<Deck> { return this.transaction(async (client) => { await client.query("SELECT 1 FROM accounts WHERE id=$1 FOR UPDATE", [accountId]); const id = input.id ?? randomUUID(); const current = await client.query<{ revision: number }>("SELECT revision FROM saved_decks WHERE account_id=$1 AND id=$2 FOR UPDATE", [accountId, id]); const revision = (current.rows[0]?.revision ?? 0) + 1; if (current.rows[0]) await client.query("UPDATE saved_decks SET name=$1,main_deck=$2,egg_deck=$3,revision=$4,updated_at=$5 WHERE account_id=$6 AND id=$7", [input.name, JSON.stringify(input.mainDeck), JSON.stringify(input.eggDeck), revision, Date.now(), accountId, id]); else { const count = await client.query<{ count: string }>("SELECT COUNT(*) count FROM saved_decks WHERE account_id=$1", [accountId]); if (Number(count.rows[0]?.count) >= MAX_SAVED_DECKS) throw new DeckLimitError(`accounts may save at most ${MAX_SAVED_DECKS} decks`); await client.query("INSERT INTO saved_decks (id,account_id,name,main_deck,egg_deck,revision,updated_at) VALUES ($1,$2,$3,$4,$5,$6,$7)", [id, accountId, input.name, JSON.stringify(input.mainDeck), JSON.stringify(input.eggDeck), revision, Date.now()]); } return { id, name: input.name, mainDeck: input.mainDeck, eggDeck: input.eggDeck, revision }; }); }
+  async deleteDeck(accountId: string, id: string): Promise<boolean> { await this.ensureReady(); return (await this.pool.query("DELETE FROM saved_decks WHERE account_id=$1 AND id=$2", [accountId, id])).rowCount === 1; }
+
+  /**
+   * Records one authoritative result and the stats that follow from it.
+   *
+   * A bot opponent is written as the human in seat 0 and a NULL seat 1, flagged `opponentKind:
+   * "bot"`. Those rows are history, not competitive record: `player_stats` is deliberately left
+   * untouched for them, so a bot win never lands in a ranked or tournament counter. The flag is
+   * what lets a reader tell "no bot matches" apart from "bot matches excluded".
+   */
+  async recordMatch(input: { roomId: string; mode: "ranked" | "tournament"; playerAccountIds: [string,string|null]; winnerAccountId?: string; outcome?: MatchOutcomeSeat; reason: string; opponentKind?: "human" | "bot"; opponentDisplayName?: string | null; deckSnapshots?: [DeckSnapshot,DeckSnapshot] }, queryable?: PoolClient): Promise<boolean> {
+    const work = async (client: PoolClient) => { if((await client.query("SELECT 1 FROM match_records WHERE room_id=$1",[input.roomId])).rowCount)return false;const matchId = randomUUID(); const opponentKind=input.opponentKind ?? "human"; const outcome=input.outcome ?? seatOutcome(input.playerAccountIds,input.winnerAccountId); const winnerAccountId=input.winnerAccountId ?? (outcome==="draw"?null:input.playerAccountIds[outcome==="player0"?0:1]); const inserted=await client.query<{id:string}>("INSERT INTO match_records (id,room_id,mode,player0_account_id,player1_account_id,winner_account_id,reason,finished_at,opponent_kind,outcome,opponent_display_name) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11) ON CONFLICT (room_id) DO NOTHING RETURNING id", [matchId,input.roomId,input.mode,input.playerAccountIds[0],input.playerAccountIds[1],winnerAccountId,input.reason,Date.now(),opponentKind,outcome,input.opponentDisplayName ?? null]);if(!inserted.rows[0])return false; const rated=opponentKind==="human"?input.playerAccountIds.filter((id):id is string=>id!==null):[]; for (const accountId of rated) await client.query("INSERT INTO player_stats (account_id) VALUES ($1) ON CONFLICT DO NOTHING", [accountId]); for (const accountId of rated) { const result = outcome==="draw" ? "draws" : accountId === winnerAccountId ? "wins" : "losses"; await client.query(`UPDATE player_stats SET ${input.mode}_${result}=${input.mode}_${result}+1 WHERE account_id=$1`, [accountId]); } for (const [index,deck] of (input.deckSnapshots ?? []).entries()) { const accountId=input.playerAccountIds[index]; if(!accountId)continue; const result=outcome==="draw"?"draw":accountId===winnerAccountId?"win":"loss"; await client.query("INSERT INTO match_deck_snapshots (match_id,account_id,snapshot_id,deck_id,deck_name,main_deck,egg_deck,result) VALUES ($1,$2,$3,$4,$5,$6,$7,$8)",[matchId,accountId,hash(JSON.stringify([deck.mainDeck,deck.eggDeck])),deck.deckId,deck.deckName,JSON.stringify(deck.mainDeck),JSON.stringify(deck.eggDeck),result]); } return true; };
+    return queryable ? work(queryable) : this.transaction(work);
+  }
+  async recordRankedDodge(roomId:string,accountId:string):Promise<boolean>{return this.transaction(async(client)=>{if((await client.query("SELECT 1 FROM ranked_dodge_records WHERE room_id=$1 AND account_id=$2",[roomId,accountId])).rowCount)return false;const inserted=await client.query<{room_id:string}>("INSERT INTO ranked_dodge_records (room_id,account_id,created_at) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING RETURNING room_id",[roomId,accountId,Date.now()]);if(!inserted.rows[0])return false;await client.query("INSERT INTO player_stats (account_id,ranked_dodges) VALUES ($1,1) ON CONFLICT (account_id) DO UPDATE SET ranked_dodges=player_stats.ranked_dodges+1",[accountId]);return true;});}
+
+  async profile(accountId:string):Promise<{stats:PlayerStats;matches:MatchRecord[];decks:DeckStat[]}>{await this.ensureReady();const statsResult=await this.pool.query<Record<string,string|number>>("SELECT * FROM player_stats WHERE account_id=$1",[accountId]);const r=statsResult.rows[0];const stats:PlayerStats={rankedWins:Number(r?.ranked_wins??0),rankedLosses:Number(r?.ranked_losses??0),rankedDraws:Number(r?.ranked_draws??0),rankedDodges:Number(r?.ranked_dodges??0),tournamentWins:Number(r?.tournament_wins??0),tournamentLosses:Number(r?.tournament_losses??0),tournamentDraws:Number(r?.tournament_draws??0),tournamentsPlayed:Number(r?.tournaments_played??0),tournamentsWon:Number(r?.tournaments_won??0)};const matchesResult=await this.pool.query<{id:string;mode:"ranked"|"tournament";winner_account_id:string|null;outcome:MatchOutcomeSeat|null;opponent_kind:"human"|"bot";player0_account_id:string;reason:string;finished_at:string;opponent_name:string}>("SELECT m.id,m.mode,m.winner_account_id,m.outcome,m.opponent_kind,m.player0_account_id,m.reason,m.finished_at,COALESCE(a.display_name,m.opponent_display_name,'Bot') opponent_name FROM match_records m LEFT JOIN accounts a ON a.id=CASE WHEN m.player0_account_id=$1 THEN m.player1_account_id ELSE m.player0_account_id END WHERE m.player0_account_id=$1 OR m.player1_account_id=$1 ORDER BY m.finished_at DESC LIMIT 50",[accountId]);const snapshotResult=await this.pool.query<{snapshot_id:string;deck_id:string|null;deck_name:string;main_deck:string[];egg_deck:string[];result:"win"|"loss"|"draw"}>("SELECT snapshot_id,deck_id,deck_name,main_deck,egg_deck,result FROM match_deck_snapshots WHERE account_id=$1",[accountId]);const deckMap=new Map<string,DeckStat>();for(const row of snapshotResult.rows){const stat=deckMap.get(row.snapshot_id)??{snapshotId:row.snapshot_id,deckId:row.deck_id,deckName:row.deck_name,mainDeck:row.main_deck,eggDeck:row.egg_deck,wins:0,losses:0,draws:0,matches:0};stat.matches++;if(row.result==="win")stat.wins++;else if(row.result==="loss")stat.losses++;else stat.draws++;deckMap.set(row.snapshot_id,stat);}const decks=[...deckMap.values()].sort((a,b)=>b.matches-a.matches||a.deckName.localeCompare(b.deckName));return{stats,matches:matchesResult.rows.map(m=>({id:m.id,mode:m.mode,opponentName:m.opponent_name,opponentKind:m.opponent_kind,result:resultFor(m,accountId),reason:m.reason,finishedAt:Number(m.finished_at)})),decks};}
+
+  // topCutSize stays NULL here on purpose: the official cut is computed from the confirmed field
+  // when check-in closes, not from maxPlayers at creation.
+  async createTournament(createdBy:string,record:CreateTournamentRecord):Promise<Tournament>{await this.ensureReady();const input={...LEGACY_TOURNAMENT_PROGRAM,...record};const id=randomUUID();await this.pool.query("INSERT INTO tournaments (id,name,block,status,starts_at,max_players,created_by,created_at,structure,best_of,top_cut_enabled,allow_bots,ruleset_preset,ruleset_version,rules_snapshot,banlist_policy,banlist_cards) VALUES ($1,$2,$3,'registration',$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16)",[id,input.name,input.block,input.startsAt,input.maxPlayers,createdBy,Date.now(),input.structure,input.bestOf,input.topCutEnabled,input.allowBots,input.rulesetPreset,input.rules?.version??null,JSON.stringify(input.rules),JSON.stringify(input.banlistPolicy),JSON.stringify(input.banlistCards)]);return (await this.tournament(id))!;}
+  async tournaments():Promise<Tournament[]>{await this.ensureReady();const result=await this.pool.query<TournamentRow>("SELECT * FROM tournaments ORDER BY starts_at DESC");return Promise.all(result.rows.map(async row=>toTournament({...row,registrations:(await this.pool.query<{count:string}>("SELECT COUNT(*) count FROM tournament_registrations WHERE tournament_id=$1",[row.id])).rows[0]?.count??0})));}
+  async tournament(id:string):Promise<Tournament|undefined>{await this.ensureReady();const row=(await this.pool.query<TournamentRow>("SELECT * FROM tournaments WHERE id=$1",[id])).rows[0];if(!row)return undefined;const registrations=(await this.pool.query<{count:string}>("SELECT COUNT(*) count FROM tournament_registrations WHERE tournament_id=$1",[id])).rows[0]?.count??0;return toTournament({...row,registrations});}
+  async registerTournament(id:string,accountId:string):Promise<boolean>{return this.transaction(async client=>{const t=(await client.query<{status:string;max_players:number}>("SELECT status,max_players FROM tournaments WHERE id=$1 FOR UPDATE",[id])).rows[0];if(!t||t.status!=="registration")return false;const registrations=await client.query<{count:string}>("SELECT COUNT(*) count FROM tournament_registrations WHERE tournament_id=$1",[id]);if(Number(registrations.rows[0]?.count)>=t.max_players)return false;return(await client.query("INSERT INTO tournament_registrations (tournament_id,account_id,created_at) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING",[id,accountId,Date.now()])).rowCount===1;});}
+  // Hard delete, allowed only to the creator and only before the event starts: once it is running
+  // or finished the tournament is a record other players appear in, not a draft. Children go first,
+  // deepest FK first, so a stray row in any child table cannot leave the transaction half-applied.
+  async deleteTournament(id:string,organizerId:string,canDeleteAny=false):Promise<"deleted"|"not_found"|"forbidden"|"already_started">{return this.transaction(async client=>{
+    const t=(await client.query<{created_by:string;status:string}>("SELECT created_by,status FROM tournaments WHERE id=$1 FOR UPDATE",[id])).rows[0];
+    if(!t)return "not_found";
+    if(!canDeleteAny&&t.created_by!==organizerId)return "forbidden";
+    if(!["draft","registration","check_in"].includes(t.status))return "already_started";
+    await client.query("DELETE FROM tournament_game_authorizations WHERE game_id IN (SELECT g.id FROM tournament_games g JOIN match_series s ON s.id=g.series_id JOIN tournament_matches m ON m.id=s.tournament_match_id WHERE m.tournament_id=$1)",[id]);
+    await client.query("DELETE FROM tournament_games WHERE series_id IN (SELECT s.id FROM match_series s JOIN tournament_matches m ON m.id=s.tournament_match_id WHERE m.tournament_id=$1)",[id]);
+    await client.query("DELETE FROM match_series WHERE tournament_match_id IN (SELECT id FROM tournament_matches WHERE tournament_id=$1)",[id]);
+    await client.query("DELETE FROM tournament_standings_snapshots WHERE tournament_id=$1",[id]);
+    await client.query("DELETE FROM tournament_result_ledger WHERE tournament_id=$1",[id]);
+    await client.query("DELETE FROM tournament_matches WHERE tournament_id=$1",[id]);
+    await client.query("DELETE FROM tournament_rounds WHERE phase_id IN (SELECT id FROM tournament_phases WHERE tournament_id=$1)",[id]);
+    await client.query("DELETE FROM tournament_phases WHERE tournament_id=$1",[id]);
+    await client.query("DELETE FROM tournament_deadlines WHERE tournament_id=$1",[id]);
+    await client.query("DELETE FROM tournament_events WHERE tournament_id=$1",[id]);
+    await client.query("DELETE FROM tournament_event_sequences WHERE tournament_id=$1",[id]);
+    await client.query("DELETE FROM tournament_participants WHERE tournament_id=$1",[id]);
+    await client.query("DELETE FROM tournament_registrations WHERE tournament_id=$1",[id]);
+    await client.query("DELETE FROM tournaments WHERE id=$1",[id]);
+    return "deleted";});}
+  async startTournament(id:string,organizerId:string):Promise<boolean>{return this.transaction(async client=>{const t=(await client.query<{created_by:string;status:string}>("SELECT created_by,status FROM tournaments WHERE id=$1 FOR UPDATE",[id])).rows[0];const players=(await client.query<{account_id:string}>("SELECT account_id FROM tournament_registrations WHERE tournament_id=$1 ORDER BY created_at,account_id",[id])).rows;if(!t||t.created_by!==organizerId||t.status!=="registration"||players.length<2)return false;const size=2**Math.ceil(Math.log2(players.length));const rounds=Math.log2(size);for(let round=1;round<=rounds;round++)for(let position=0;position<size/2**round;position++)await client.query("INSERT INTO tournament_matches (id,tournament_id,round,position,status) VALUES ($1,$2,$3,$4,'waiting')",[randomUUID(),id,round,position]);for(let position=0;position<size/2;position++){const p0=players[position]?.account_id??null,p1=players[size-1-position]?.account_id??null;await client.query("UPDATE tournament_matches SET player0_account_id=$1,player1_account_id=$2,status=$3 WHERE tournament_id=$4 AND round=1 AND position=$5",[p0,p1,p0&&p1?"pending":"bye",id,position]);}await client.query("UPDATE tournaments SET status='in_progress' WHERE id=$1",[id]);for(const p of players)await client.query("INSERT INTO player_stats (account_id,tournaments_played) VALUES ($1,1) ON CONFLICT (account_id) DO UPDATE SET tournaments_played=player_stats.tournaments_played+1",[p.account_id]);const byes=(await this.tournamentMatches(id,client)).filter(m=>m.status==="bye");for(const match of byes)await this.advanceTournamentWinner(id,match,match.player0AccountId??match.player1AccountId!,client);return true;});}
+  async tournamentMatches(id:string,q:Queryable=this.pool):Promise<TournamentMatch[]>{await this.ensureReady();const result=await q.query<Record<string,string|number|null>>("SELECT id,round,position,player0_account_id,player1_account_id,winner_account_id,status FROM tournament_matches WHERE tournament_id=$1 ORDER BY round,position",[id]);return result.rows.map(row=>({id:String(row.id),round:Number(row.round),position:Number(row.position),player0AccountId:row.player0_account_id?String(row.player0_account_id):null,player1AccountId:row.player1_account_id?String(row.player1_account_id):null,winnerAccountId:row.winner_account_id?String(row.winner_account_id):null,status:String(row.status) as TournamentMatch["status"]}));}
+  async claimTournamentRoom(matchId:string,roomId:string):Promise<boolean>{await this.ensureReady();return(await this.pool.query("UPDATE tournament_matches SET room_id=$1 WHERE id=$2 AND status='pending' AND (room_id IS NULL OR room_id=$1)",[roomId,matchId])).rowCount===1;}
+  async releaseTournamentRoom(matchId:string,roomId:string):Promise<void>{await this.ensureReady();await this.pool.query("UPDATE tournament_matches SET room_id=NULL WHERE id=$1 AND room_id=$2 AND status='pending'",[matchId,roomId]);}
+  async recordTournamentRoomDraw(matchId:string,roomId:string,ids:[string,string],reason:string,decks?:[DeckSnapshot,DeckSnapshot]):Promise<boolean>{return this.transaction(async client=>{const valid=(await client.query("SELECT 1 FROM tournament_matches WHERE id=$1 AND room_id=$2 AND status='pending' AND ((player0_account_id=$3 AND player1_account_id=$4) OR (player0_account_id=$4 AND player1_account_id=$3)) FOR UPDATE",[matchId,roomId,...ids])).rowCount===1;if(!valid)return false;const recorded=await this.recordMatch({roomId,mode:"tournament",playerAccountIds:ids,reason,deckSnapshots:decks},client);if(recorded)await client.query("UPDATE tournament_matches SET room_id=NULL WHERE id=$1",[matchId]);return recorded;});}
+  async recordTournamentRoomResult(matchId:string,roomId:string,ids:[string,string],winner:string|undefined,reason:string,decks?:[DeckSnapshot,DeckSnapshot]):Promise<boolean>{if(!winner)return false;return this.transaction(async client=>{const row=(await client.query<{tournament_id:string}>("SELECT tournament_id FROM tournament_matches WHERE id=$1 AND room_id=$2 AND status='pending' AND ((player0_account_id=$3 AND player1_account_id=$4) OR (player0_account_id=$4 AND player1_account_id=$3)) FOR UPDATE",[matchId,roomId,...ids])).rows[0];if(!row)return false;const match=(await this.tournamentMatches(row.tournament_id,client)).find(m=>m.id===matchId)!;if(!await this.recordMatch({roomId,mode:"tournament",playerAccountIds:ids,winnerAccountId:winner,reason,deckSnapshots:decks},client))return false;await client.query("UPDATE tournament_matches SET winner_account_id=$1,status='finished' WHERE id=$2",[winner,matchId]);await this.advanceTournamentWinner(row.tournament_id,match,winner,client);return true;});}
+  private async advanceTournamentWinner(tournamentId:string,match:TournamentMatch,winner:string,client:PoolClient):Promise<void>{const next=(await client.query<{id:string}>("SELECT id FROM tournament_matches WHERE tournament_id=$1 AND round=$2 AND position=$3",[tournamentId,match.round+1,Math.floor(match.position/2)])).rows[0];if(!next){await client.query("UPDATE tournaments SET status='finished',winner_account_id=$1 WHERE id=$2",[winner,tournamentId]);await client.query("UPDATE player_stats SET tournaments_won=tournaments_won+1 WHERE account_id=$1",[winner]);return;}const column=match.position%2===0?"player0_account_id":"player1_account_id";await client.query(`UPDATE tournament_matches SET ${column}=$1 WHERE id=$2`,[winner,next.id]);await client.query("UPDATE tournament_matches SET status='pending' WHERE id=$1 AND player0_account_id IS NOT NULL AND player1_account_id IS NOT NULL",[next.id]);}
+  private async uniqueName(q:Queryable,name:string):Promise<string>{const base=name.trim().slice(0,32)||"Player";let candidate=base,suffix=2;while((await q.query("SELECT 1 FROM accounts WHERE lower(display_name)=lower($1)",[candidate])).rowCount){const tail=`-${suffix++}`;candidate=`${base.slice(0,32-tail.length)}${tail}`;}return candidate;}
+}
+
+function hash(value:string):string{return createHash("sha256").update(value).digest("hex");}
+/** The seat outcome a caller that only named a winning ACCOUNT meant. Both seats are people there. */
+function seatOutcome(playerAccountIds:[string,string|null],winnerAccountId:string|undefined):MatchOutcomeSeat{
+  if(!winnerAccountId)return "draw";
+  return winnerAccountId===playerAccountIds[0]?"player0":"player1";
+}
+/**
+ * What one match meant for one account. `outcome` is authoritative where it exists; rows written
+ * before it did fall back to the old winner-account comparison, which was correct for them because
+ * every one of them had two human seats.
+ */
+function resultFor(row:{outcome:MatchOutcomeSeat|null;winner_account_id:string|null;player0_account_id:string},accountId:string):"win"|"loss"|"draw"{
+  if(row.outcome===null)return row.winner_account_id===null?"draw":row.winner_account_id===accountId?"win":"loss";
+  if(row.outcome==="draw")return "draw";
+  const seat=row.player0_account_id===accountId?"player0":"player1";
+  return row.outcome===seat?"win":"loss";
+}
+function isUniqueViolation(error:unknown):boolean{return typeof error==="object"&&error!==null&&"code" in error&&(error as {code?:unknown}).code==="23505";}
+function toAccount(row:AccountRow):Account{return{id:row.id,displayName:row.display_name,avatarUrl:row.avatar_url,avatarId:row.avatar_id,isAdmin:row.is_admin};}
+function normalizeDisplayName(input:string):string{
+  const value=input.normalize("NFKC").trim().replace(/\s+/gu," ");
+  if(value.length<3||value.length>32||!/[\p{L}\p{N}]/u.test(value)||!/^[\p{L}\p{N}_ -]+$/u.test(value))throw new InvalidDisplayNameError("invalid display name");
+  return value;
+}
+type TournamentRow=Record<string,unknown>;
+function toTournament(row:TournamentRow):Tournament{return{id:String(row.id),name:String(row.name),block:String(row.block),status:String(row.status) as Tournament["status"],startsAt:Number(row.starts_at),maxPlayers:Number(row.max_players),createdBy:String(row.created_by),winnerAccountId:row.winner_account_id==null?null:String(row.winner_account_id),registrations:Number(row.registrations),...toTournamentProgram(row)};}
+// Defaults here mirror the migration backfills rather than inventing a second source of truth: a row
+// that predates a column reads back as what that backfill would have written.
+function toTournamentProgram(row:TournamentRow):TournamentProgram{return{structure:(row.structure==null?"single_elimination":String(row.structure)) as TournamentStructure,bestOf:Number(row.best_of??1)===3?3:1,topCutEnabled:row.top_cut_enabled===true,topCutSize:row.top_cut_size==null?null:Number(row.top_cut_size),allowBots:row.allow_bots===true,rulesetPreset:row.ruleset_preset==null?"aegis_lightning":String(row.ruleset_preset),rulesetVersion:row.ruleset_version==null?null:String(row.ruleset_version),rules:parseJson<TournamentRules>(row.rules_snapshot)??null,banlistPolicy:parseJson<BanlistPolicy>(row.banlist_policy)??{mode:"none"},banlistCards:parseJson<TournamentBanlistCard[]>(row.banlist_cards)??[]};}
+// pg returns jsonb already parsed, but a driver or fake that hands back the raw text must not turn
+// a frozen snapshot into a string silently.
+function parseJson<T>(value:unknown):T|undefined{if(value==null)return undefined;if(typeof value!=="string")return value as T;try{return JSON.parse(value) as T;}catch{return undefined;}}

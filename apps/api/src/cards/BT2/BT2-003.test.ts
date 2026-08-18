@@ -1,0 +1,2 @@
+import { describe,expect,it } from "vitest";import { setupEngine } from "../../engine/testkit/harness.js";import { observe } from "../../engine/testkit/observe.js";import "./BT2-003.js";
+describe("BT2-003 Nyaromon",()=>{it("gives own Security Digimon +1000 DP on the opponent's turn while its host is suspended",async()=>{const s=setupEngine({0:{battleArea:[{card:"BT2-034",as:"host",under:["BT2-003"],suspended:true}]}});s.state.turnSeat=1;await s.engine.recomputeContinuousEffects();expect(observe(s.engine).securityDp(0)).toBe(1000);});});

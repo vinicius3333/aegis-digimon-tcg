@@ -1,0 +1,155 @@
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const compiled: CompiledCard = {
+  "effects": [
+    {
+      "trigger": "Static",
+      "actions": [
+        {
+          "kind": "Replacement",
+          "event": "wouldBePlayed",
+          "sourceFilter": {
+            "controllerDefault": "mine"
+          },
+          "actions": [
+            {
+              "kind": "Replacement",
+              "event": "wouldBePlayed",
+              "mode": "reduceCost",
+              "amount": 2,
+              "raw": "reduce the play cost by 2",
+              "condition": {
+                "kind": "youHaveNone",
+                "filter": {
+                  "controllerDefault": "mine",
+                  "kind": ["Digimon"]
+                },
+                "raw": "you have no Digimon"
+              }
+            }
+          ],
+          "scaling": {
+            "per": 5,
+            "filter": {
+              "controllerDefault": "both",
+              "zone": "trash"
+            },
+            "unit": "cards"
+          }
+        },
+        {
+          "kind": "GainKeyword",
+          "target": {
+            "filter": { "isSelfRef": true },
+            "count": 1,
+            "isSelf": true
+          },
+          "keyword": {
+            "keyword": "Rush",
+            "raw": "＜Rush＞"
+          },
+          "duration": "permanent"
+        }
+      ]
+    },
+    {
+      "trigger": "OnPlay",
+      "actions": [
+        {
+          "kind": "Delete",
+          "target": {
+            "filter": {
+              "controller": "opponent",
+              "kind": ["Digimon"],
+              "dp": { "op": "lte", "value": 6000 }
+            },
+            "count": 1
+          }
+        },
+        {
+          "kind": "Delete",
+          "target": {
+            "filter": {
+              "controller": "opponent",
+              "kind": ["Digimon"],
+              "dp": { "op": "gte", "value": 13000 }
+            },
+            "count": 1
+          },
+          "condition": {
+            "kind": "ifThisEffectDidNotDelete",
+            "raw": "no opponent's Digimon was deleted by this effect"
+          }
+        }
+      ]
+    },
+    {
+      "trigger": "WhenDigivolving",
+      "actions": [
+        {
+          "kind": "Delete",
+          "target": {
+            "filter": {
+              "controller": "opponent",
+              "kind": ["Digimon"],
+              "dp": { "op": "lte", "value": 6000 }
+            },
+            "count": 1
+          }
+        },
+        {
+          "kind": "Delete",
+          "target": {
+            "filter": {
+              "controller": "opponent",
+              "kind": ["Digimon"],
+              "dp": { "op": "gte", "value": 13000 }
+            },
+            "count": 1
+          },
+          "condition": {
+            "kind": "ifThisEffectDidNotDelete",
+            "raw": "no opponent's Digimon was deleted by this effect"
+          }
+        }
+      ]
+    },
+    {
+      "trigger": "WhenAttacking",
+      "actions": [
+        {
+          "kind": "Delete",
+          "target": {
+            "filter": {
+              "controller": "opponent",
+              "kind": ["Digimon"],
+              "dp": { "op": "lte", "value": 6000 }
+            },
+            "count": 1
+          }
+        },
+        {
+          "kind": "Delete",
+          "target": {
+            "filter": {
+              "controller": "opponent",
+              "kind": ["Digimon"],
+              "dp": { "op": "gte", "value": 13000 }
+            },
+            "count": 1
+          },
+          "condition": {
+            "kind": "ifThisEffectDidNotDelete",
+            "raw": "no opponent's Digimon was deleted by this effect"
+          }
+        }
+      ]
+    }
+  ],
+  "coverage": "full",
+  "residual": []
+};
+
+registerIrCard("BT13-111", compiled);

@@ -1,0 +1,10 @@
+import { CardColor, EffectTiming, isOption } from "@aegis/shared";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import { onPlay } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
+const cardId = "ST6-04";
+const module: EffectModule = { cardId, effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] { if (timing !== EffectTiming.OnPlay) return []; return [onPlay({ source, effectKey: `${cardId}/recover-option`, description: "[On Play] Return a purple Option costing 1 or 7 from trash to hand.", optional: true, resolve: async (ctx) => { const candidates = ctx.game.player(source.ownerSeat).trash.filter((card) => { const def = ctx.game.definitionOf(card); return isOption(def) && def.colors.includes(CardColor.Purple) && (def.playCost === 1 || def.playCost === 7); }).map((card) => card.instanceId); if (!candidates.length) return; const chosen = await ctx.ask.selectCards(ctx, { candidates, min: 1, max: 1 }); if (chosen.length) await ctx.fx.returnToHand(chosen); } })]; } };
+registerCard(module);
+export default module;

@@ -1,0 +1,94 @@
+name: aegis-blue-green
+
+x-api-common: &api-common
+  restart: unless-stopped
+  env_file:
+    - ${AEGIS_API_ENV_FILE:-/etc/aegis-deploy/api.env}
+  environment: &api-environment
+    NODE_ENV: production
+    PORT: "2567"
+    PGHOST: postgres
+    PGPORT: "5432"
+    PGDATABASE: aegis
+    PGUSER: aegis
+    AEGIS_WEB_URL: https://aegis-digi.online
+    AEGIS_API_URL: https://aegis-digi.online
+    AEGIS_DEPLOYMENT_START_DRAINING: "true"
+    DISCORD_REDIRECT_URI: https://aegis-digi.online/auth/discord/callback
+  healthcheck:
+    test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:2567/ready').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+    interval: 5s
+    timeout: 3s
+    retries: 12
+    start_period: 10s
+  networks:
+    - default
+
+x-web-common: &web-common
+  restart: unless-stopped
+  healthcheck:
+    test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:80/"]
+    interval: 5s
+    timeout: 3s
+    retries: 12
+    start_period: 5s
+  networks:
+    - default
+
+services:
+  router:
+    image: caddy:2.10-alpine
+    container_name: aegis-router
+    restart: unless-stopped
+    volumes:
+      - ${AEGIS_DEPLOY_STATE_DIR:-/var/lib/aegis-deploy}/router:/etc/caddy:ro
+      - ${AEGIS_DEPLOY_STATE_DIR:-/var/lib/aegis-deploy}/public:/srv/deployment:ro
+      - router_data:/data
+      - router_config:/config
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1:80/deployment/manifest.json"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+      start_period: 5s
+    networks:
+      default:
+        aliases:
+          - aegis-router
+
+  api-blue:
+    <<: *api-common
+    image: ${AEGIS_API_BLUE_IMAGE:?AEGIS_API_BLUE_IMAGE is required}
+    container_name: aegis-api-blue
+    environment:
+      <<: *api-environment
+      AEGIS_DEPLOYMENT_SLOT: blue
+      AEGIS_REVISION: ${AEGIS_BLUE_REVISION:?AEGIS_BLUE_REVISION is required}
+
+  api-green:
+    <<: *api-common
+    image: ${AEGIS_API_GREEN_IMAGE:?AEGIS_API_GREEN_IMAGE is required}
+    container_name: aegis-api-green
+    environment:
+      <<: *api-environment
+      AEGIS_DEPLOYMENT_SLOT: green
+      AEGIS_REVISION: ${AEGIS_GREEN_REVISION:?AEGIS_GREEN_REVISION is required}
+
+  web-blue:
+    <<: *web-common
+    image: ${AEGIS_WEB_BLUE_IMAGE:?AEGIS_WEB_BLUE_IMAGE is required}
+    container_name: aegis-web-blue
+
+  web-green:
+    <<: *web-common
+    image: ${AEGIS_WEB_GREEN_IMAGE:?AEGIS_WEB_GREEN_IMAGE is required}
+    container_name: aegis-web-green
+
+networks:
+  default:
+    external: true
+    name: aegis_default
+
+volumes:
+  router_data:
+  router_config:

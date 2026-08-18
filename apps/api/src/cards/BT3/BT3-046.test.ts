@@ -1,0 +1,30 @@
+import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT3-046.js";
+import "../ST2/ST2-13.js";
+
+describe("BT3-046 Terriermon", () => {
+  it("prevents the opponent from gaining memory through a security Option effect", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT3-046", as: "terriermon" },
+          { card: "BT1-019", as: "attacker" },
+        ],
+      },
+      1: { security: [{ card: "ST2-13", as: "hammerSpark" }] },
+    });
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0, 5000);
+
+    expect(s.state.memory).toBe(0);
+  });
+});

@@ -1,0 +1,169 @@
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const compiled: CompiledCard = {
+  "effects": [
+    {
+      "trigger": "Main",
+      "actions": [
+        {
+          "kind": "PlaceAsDigivolutionCard",
+          "source": {
+            "filter": {
+              "controller": "mine",
+              "zone": "trash",
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "Bakemon"
+                  ],
+                  "match": "name"
+                }
+              ]
+            },
+            "count": 1
+          },
+          "onto": {
+            "filter": {
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ],
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "Ghostmon"
+                  ],
+                  "match": "name"
+                }
+              ]
+            },
+            "count": 1
+          },
+          "position": "bottom"
+        },
+        {
+          "kind": "Digivolve",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ],
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "Ghostmon"
+                  ],
+                  "match": "name"
+                }
+              ]
+            },
+            "count": 1
+          },
+          "into": {
+            "filter": {
+              "isSelfRef": true
+            }
+          },
+          "from": [
+            "hand"
+          ],
+          "cost": 3,
+          "ignoreRequirements": true,
+          "payCost": true
+        }
+      ],
+      "isFromHand": true,
+      "condition": {
+        "kind": "youHave",
+        "filter": {
+          "controllerDefault": "mine",
+          "nameOrTrait": [
+            {
+              "tokens": [
+                "Violet Inboots"
+              ],
+              "match": "name"
+            }
+          ]
+        },
+        "raw": "you have [Violet Inboots]"
+      }
+    },
+    {
+      "trigger": "OnDeletion",
+      "actions": [
+        {
+          "kind": "PlayWithoutCost",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ],
+              "levelComparison": {
+                "op": "lte",
+                "value": 4
+              },
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "Ghost"
+                  ],
+                  "match": "trait"
+                }
+              ]
+            },
+            "count": 1
+          },
+          "from": [
+            "trash"
+          ],
+          "payCost": false,
+          "optional": true
+        }
+      ]
+    },
+    {
+      "trigger": "OnDeletion",
+      "actions": [
+        {
+          "kind": "PlayWithoutCost",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ],
+              "levelComparison": {
+                "op": "lte",
+                "value": 4
+              },
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "Ghost"
+                  ],
+                  "match": "trait"
+                }
+              ]
+            },
+            "count": 1
+          },
+          "from": [
+            "trash"
+          ],
+          "payCost": false,
+          "optional": true
+        }
+      ],
+      "isInherited": true
+    }
+  ],
+  "coverage": "full",
+  "residual": []
+};
+
+registerIrCard("BT23-065", compiled);

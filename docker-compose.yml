@@ -1,0 +1,51 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    environment:
+      NODE_ENV: "production"
+      PORT: "2567"
+      DATABASE_URL: postgresql://aegis:aegis@postgres:5432/aegis
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: aegis
+      POSTGRES_USER: aegis
+      POSTGRES_PASSWORD: aegis
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U aegis -d aegis"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        VITE_AEGIS_API_URL: wss://aegis-digi.online
+    restart: unless-stopped
+    depends_on:
+      - api
+    # No host ports: the dedicated edge Caddy on the host owns :80/:443 and
+    # reverse-proxies aegis-digi.online to this container as `aegis-web:80`
+    # over the aegis_default network. TLS is terminated at the edge, so the
+    # caddy_data/config volumes (ACME state) are no longer needed here.
+    expose:
+      - "80"
+    networks:
+      default:
+        aliases:
+          - aegis-web
+
+volumes:
+  postgres_data:

@@ -1,0 +1,17 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript", "vitest"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "warn",
+    "pedantic": "off",
+    "style": "off",
+    "restriction": "off"
+  },
+  "rules": {
+    "no-debugger": "error",
+    "no-unused-vars": "error",
+    "typescript/no-explicit-any": "warn"
+  },
+  "ignorePatterns": ["**/dist/**", "**/coverage/**", "**/node_modules/**"]
+}

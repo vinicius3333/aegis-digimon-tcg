@@ -1,0 +1,3037 @@
+/* In-game overlays, driven by real server state — mulligan window, block window,
+   security-check reveal, effect decision, game over, and the pre-match waiting
+   panel. Each maps user choices to the typed intent callbacks GameScreen passes. */
+
+import { useState, useEffect, useId, useRef, type KeyboardEvent as ReactKeyboardEvent, type ReactNode } from "react";
+import { createPortal } from "react-dom";
+import {
+  cardImageUrls,
+  getCardDefinition,
+  type CombatPromptEvent,
+  type DecisionKind,
+  type DecisionRequest,
+  type DecisionResponse,
+  type DigiXrosRequirement,
+} from "@aegis/shared";
+import { Badge, Button, Dialog } from "../design/primitives";
+import { CardBack, CardFull, Sigil } from "../design/cards";
+import { COLORS, colorKey } from "../design/theme";
+import { Icons } from "../design/icons";
+import { triggerCardId, triggerLabels } from "./boardModel";
+import { formatKeyword } from "./keywordDisplay";
+import { useTranslation, type Translate } from "../i18n";
+import { eligibleDigiXrosCandidateIds } from "./digiXrosMaterialSelection";
+
+const dp = (cardId: string) => getCardDefinition(cardId)?.dp ?? 0;
+const name = (cardId: string) => getCardDefinition(cardId)?.nameEn ?? cardId;
+
+function Scrim({
+  children,
+  onClick,
+  align = "center",
+  className,
+}: {
+  children: ReactNode;
+  onClick?: () => void;
+  align?: "center" | "flex-end";
+  className?: string;
+}) {
+  return (
+    <div
+      onClick={onClick}
+      className={className}
+      style={{
+        position: "absolute",
+        inset: 0,
+        zIndex: 80,
+        background: "var(--ds-scrim)",
+        display: "flex",
+        alignItems: align,
+        justifyContent: "center",
+        animation: "aegis-rise 180ms ease-out",
+      }}
+    >
+      {children}
+    </div>
+  );
+}
+
+/* ---------------- WAITING / CONNECTION ---------------- */
+export function WaitingOverlay({
+  title,
+  detail,
+  spinner = true,
+  actionLabel,
+  onAction,
+}: {
+  title: string;
+  detail: string;
+  spinner?: boolean;
+  actionLabel?: string;
+  onAction?: () => void;
+}) {
+  return (
+    <Dialog className="waiting-dialog" labelledBy="aegis-waiting-title">
+      {spinner ? (
+        <div className="waiting-dialog__spinner" />
+      ) : (
+        <div className="waiting-dialog__error">
+          <Icons.CircleAlert size={30} />
+        </div>
+      )}
+      <h2 id="aegis-waiting-title">{title}</h2>
+      <p>{detail}</p>
+      {actionLabel && onAction ? (
+        <Button full variant="secondary" onClick={onAction}>
+          {actionLabel}
+        </Button>
+      ) : null}
+    </Dialog>
+  );
+}
+
+/* ---------------- MULLIGAN ---------------- */
+export function MulliganOverlay({
+  handCardIds,
+  onKeep,
+  onMulligan,
+}: {
+  handCardIds: string[];
+  onKeep: () => void;
+  onMulligan: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <Scrim className="mulligan-scrim">
+      <section className="mulligan-sheet" aria-labelledby="mulligan-title" onClick={(e) => e.stopPropagation()}>
+        <Badge className="mulligan-badge" tone="primary">
+          <Icons.Dices size={13} />
+          {t("overlay.openingHand")}
+        </Badge>
+        <h2 id="mulligan-title" className="mulligan-title">
+          {t("overlay.keepHand")}
+        </h2>
+        <p className="mulligan-detail">{t("overlay.mulliganDetail", { count: handCardIds.length })}</p>
+        <div className="mulligan-cards" aria-label={t("overlay.openingHand")}>
+          {handCardIds.map((id, i) => (
+            <div className="mulligan-card" key={`${id}-${i}`} style={{ animationDelay: `${i * 70}ms` }}>
+              <CardFull cardId={id} width={150} />
+            </div>
+          ))}
+        </div>
+        <div className="mulligan-actions">
+          <Button size="lg" variant="secondary" icon={Icons.Dices} onClick={onMulligan}>
+            {t("overlay.mulligan")}
+          </Button>
+          <Button size="lg" icon={Icons.Check} onClick={onKeep}>
+            {t("overlay.keep")}
+          </Button>
+        </div>
+      </section>
+    </Scrim>
+  );
+}
+
+/* ---------------- BLOCK WINDOW ---------------- */
+export function BlockOverlay({
+  attackerCardId,
+  blockers,
+  onBlock,
+  onDecline,
+}: {
+  attackerCardId?: string;
+  blockers: { permanentId: string; cardId: string; currentDP: number; sourceCount: number }[];
+  onBlock: (permanentId: string) => void;
+  onDecline: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div
+      className="combat-prompt"
+      role="dialog"
+      aria-modal="true"
+      aria-label={t("overlay.blockWindow")}
+      style={{
+        position: "absolute",
+        left: "50%",
+        bottom: 232,
+        transform: "translateX(-50%)",
+        zIndex: 80,
+        width: 460,
+        background: "var(--ds-surface)",
+        border: "2px solid var(--ds-warning)",
+        borderRadius: 18,
+        boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
+        padding: 20,
+        animation: "aegis-rise 200ms ease-out",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+        <span
+          style={{
+            display: "grid",
+            placeItems: "center",
+            width: 34,
+            height: 34,
+            borderRadius: 10,
+            background: "var(--ds-warning-surface)",
+            color: "var(--ds-warning)",
+          }}
+        >
+          <Icons.Swords size={18} />
+        </span>
+        <div>
+          <div style={{ fontFamily: "var(--ds-font-display)", fontWeight: 700, fontSize: 17, color: "var(--ds-fg)" }}>
+            {t("overlay.blockWindow")}
+          </div>
+          <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)" }}>
+            {attackerCardId ? t("overlay.isAttacking", { name: name(attackerCardId) }) : t("overlay.attackIncoming")}
+          </div>
+        </div>
+      </div>
+      <div style={{ fontSize: 12.5, color: "var(--ds-fg-secondary)", marginBottom: 12 }}>
+        {t("overlay.blockPrompt")}
+      </div>
+      {blockers.length ? (
+        <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap" }}>
+          {blockers.map((b) => {
+            const def = getCardDefinition(b.cardId);
+            const sourceLabel = t(b.sourceCount === 1 ? "overlay.sourceCountOne" : "overlay.sourceCountMany", {
+              count: b.sourceCount,
+            });
+            return (
+              <button
+                aria-label={`${name(b.cardId)}, ${b.currentDP.toLocaleString()} DP, ${sourceLabel}`}
+                key={b.permanentId}
+                onClick={() => onBlock(b.permanentId)}
+                style={{
+                  flex: "1 1 45%",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 9,
+                  padding: 9,
+                  borderRadius: 12,
+                  cursor: "pointer",
+                  background: "var(--ds-surface-muted)",
+                  border: "1.5px solid var(--ds-warning)",
+                  textAlign: "left",
+                }}
+              >
+                <Sigil cardId={b.cardId} color={colorKey(def?.colors[0])} size={26} />
+                <div>
+                  <div style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ds-fg)" }}>{name(b.cardId)}</div>
+                  <div style={{ fontFamily: "var(--ds-font-mono)", fontSize: 11, color: "var(--ds-fg-muted)" }}>
+                    {b.currentDP.toLocaleString()} DP
+                  </div>
+                  <div style={{ fontFamily: "var(--ds-font-mono)", fontSize: 10.5, color: "var(--ds-fg-muted)" }}>
+                    {sourceLabel}
+                  </div>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div style={{ fontSize: 12, color: "var(--ds-fg-muted)", marginBottom: 16 }}>{t("overlay.noBlockers")}</div>
+      )}
+      <Button full variant="secondary" icon={Icons.Shield} onClick={onDecline}>
+        {t("overlay.takeAttack")}
+      </Button>
+    </div>
+  );
+}
+
+/* ---------------- ALLIANCE / EVADE / BARRIER ---------------- */
+
+/**
+ * ＜Alliance＞ (Comprehensive Rules §16-24): when this Digimon attacks, its controller
+ * may suspend one of their OTHER Digimon to add its DP (and ＜Security A. +1＞) to the
+ * attacker for the battle — an optional processing condition (§16-24-3).
+ */
+export function AllianceOverlay({
+  triggerCardId,
+  allies,
+  onChoose,
+  onPass,
+}: {
+  triggerCardId?: string;
+  allies: { permanentId: string; cardId: string; currentDP: number; sourceCount: number }[];
+  onChoose: (allyPermanentId: string) => void;
+  onPass: () => void;
+}) {
+  const { t } = useTranslation();
+  const triggerName = triggerCardId ? name(triggerCardId) : t("overlay.yourDigimon");
+  const kw = { label: "＜Alliance＞", icon: Icons.Users, action: t("overlay.allianceAction") };
+  const sourceKey = colorKey(getCardDefinition(triggerCardId ?? "")?.colors[0]);
+
+  return (
+    <div
+      className="combat-prompt"
+      style={{
+        position: "absolute",
+        left: "50%",
+        bottom: 232,
+        transform: "translateX(-50%)",
+        zIndex: 80,
+        width: 520,
+        maxWidth: "calc(100% - 32px)",
+        background: "var(--ds-surface)",
+        border: `2px solid ${COLORS[sourceKey].base}`,
+        borderRadius: 18,
+        boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
+        padding: 20,
+        animation: "aegis-rise 200ms ease-out",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 11, marginBottom: 12 }}>
+        <span
+          style={{
+            display: "grid",
+            placeItems: "center",
+            width: 38,
+            height: 38,
+            borderRadius: 11,
+            flexShrink: 0,
+            background: COLORS[sourceKey].soft,
+            color: COLORS[sourceKey].base,
+          }}
+        >
+          <kw.icon size={20} />
+        </span>
+        <div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span
+              style={{ fontFamily: "var(--ds-font-display)", fontWeight: 800, fontSize: 17, color: "var(--ds-fg)" }}
+            >
+              {kw.label}
+            </span>
+            <Badge tone="primary">
+              <Icons.Plus size={11} />
+              {t("overlay.dpBoost")}
+            </Badge>
+          </div>
+          <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)", marginTop: 1 }}>
+            {triggerName} {kw.action}
+          </div>
+        </div>
+      </div>
+      <div style={{ fontSize: 12.5, color: "var(--ds-fg-secondary)", lineHeight: 1.5, marginBottom: 14 }}>
+        {t("overlay.alliancePrompt")}
+      </div>
+      {allies.length ? (
+        <div style={{ display: "flex", gap: 12, marginBottom: 16, flexWrap: "wrap" }}>
+          {allies.map((ally) => {
+            const sourceLabel = t(ally.sourceCount === 1 ? "overlay.sourceCountOne" : "overlay.sourceCountMany", {
+              count: ally.sourceCount,
+            });
+            return (
+              <button
+                key={ally.permanentId}
+                onClick={() => onChoose(ally.permanentId)}
+                aria-label={`${t("overlay.suspendAlly", { name: name(ally.cardId), dp: ally.currentDP.toLocaleString() })}, ${sourceLabel}`}
+                style={{
+                  position: "relative",
+                  padding: 0,
+                  border: "none",
+                  borderRadius: 12,
+                  background: "transparent",
+                  cursor: "pointer",
+                }}
+              >
+                <CardFull cardId={ally.cardId} width={104} />
+                <span
+                  style={{
+                    position: "absolute",
+                    left: 6,
+                    right: 6,
+                    bottom: 6,
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 3,
+                    padding: "3px 0",
+                    borderRadius: 8,
+                    background: "var(--ds-accent)",
+                    color: "#fff",
+                    fontFamily: "var(--ds-font-mono)",
+                    fontSize: 12,
+                    fontWeight: 700,
+                    boxShadow: "0 2px 8px rgba(15,23,42,0.35)",
+                  }}
+                >
+                  <Icons.Plus size={12} />
+                  {ally.currentDP.toLocaleString()} DP · {sourceLabel}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div style={{ fontSize: 12, color: "var(--ds-fg-muted)", marginBottom: 16 }}>{t("overlay.noAllies")}</div>
+      )}
+      <Button full variant="secondary" icon={Icons.ChevronRight} onClick={onPass}>
+        {t("overlay.passAlliance")}
+      </Button>
+    </div>
+  );
+}
+
+/**
+ * §11-3 Counter Timing: the non-turn (defending) player may activate at most 1
+ * [Counter] effect for this attack (§11-3-2). Unlike ＜Alliance＞'s "choose one of
+ * these permanents", the choice here is a (source card, effect) pair — a Digimon
+ * can carry more than one [Counter] effect.
+ */
+export function CounterOverlay({
+  attackerCardId,
+  eligibleCounters,
+  getCardId,
+  onActivate,
+  onPass,
+}: {
+  attackerCardId?: string;
+  eligibleCounters: { instanceId: string; effectKey: string; description: string }[];
+  getCardId: (instanceId: string) => string | undefined;
+  onActivate: (instanceId: string, effectKey: string) => void;
+  onPass: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div
+      className="combat-prompt"
+      style={{
+        position: "absolute",
+        left: "50%",
+        bottom: 232,
+        transform: "translateX(-50%)",
+        zIndex: 80,
+        width: 460,
+        background: "var(--ds-surface)",
+        border: "2px solid var(--ds-warning)",
+        borderRadius: 18,
+        boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
+        padding: 20,
+        animation: "aegis-rise 200ms ease-out",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+        <span
+          style={{
+            display: "grid",
+            placeItems: "center",
+            width: 34,
+            height: 34,
+            borderRadius: 10,
+            background: "var(--ds-warning-surface)",
+            color: "var(--ds-warning)",
+          }}
+        >
+          <Icons.Shield size={18} />
+        </span>
+        <div>
+          <div style={{ fontFamily: "var(--ds-font-display)", fontWeight: 700, fontSize: 17, color: "var(--ds-fg)" }}>
+            {t("overlay.counterTiming")}
+          </div>
+          <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)" }}>
+            {attackerCardId ? t("overlay.isAttacking", { name: name(attackerCardId) }) : t("overlay.attackIncoming")}
+          </div>
+        </div>
+      </div>
+      <div style={{ fontSize: 12.5, color: "var(--ds-fg-secondary)", marginBottom: 12 }}>
+        {t("overlay.counterPrompt")}
+      </div>
+      {eligibleCounters.length ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 16 }}>
+          {eligibleCounters.map((c) => {
+            const cardId = getCardId(c.instanceId);
+            return (
+              <button
+                key={`${c.instanceId}-${c.effectKey}`}
+                onClick={() => onActivate(c.instanceId, c.effectKey)}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 3,
+                  padding: 9,
+                  borderRadius: 12,
+                  cursor: "pointer",
+                  background: "var(--ds-surface-muted)",
+                  border: "1.5px solid var(--ds-warning)",
+                  textAlign: "left",
+                }}
+              >
+                <span style={{ fontSize: 12.5, fontWeight: 600, color: "var(--ds-fg)" }}>
+                  {cardId ? name(cardId) : c.instanceId}
+                </span>
+                <span style={{ fontSize: 11.5, color: "var(--ds-fg-muted)" }}>{c.description}</span>
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div style={{ fontSize: 12, color: "var(--ds-fg-muted)", marginBottom: 16 }}>{t("overlay.noCounters")}</div>
+      )}
+      <Button full variant="secondary" icon={Icons.ChevronRight} onClick={onPass}>
+        {t("overlay.passCounter")}
+      </Button>
+    </div>
+  );
+}
+
+export function EvadeOverlay({
+  permanentId,
+  getCardId,
+  onAccept,
+  onDecline,
+}: {
+  permanentId: string;
+  getCardId: (permanentId: string) => string | undefined;
+  onAccept: () => void;
+  onDecline: () => void;
+}) {
+  const { t } = useTranslation();
+  const cardId = getCardId(permanentId);
+  return (
+    <div
+      className="combat-prompt"
+      style={{
+        position: "absolute",
+        left: "50%",
+        bottom: 232,
+        transform: "translateX(-50%)",
+        zIndex: 80,
+        width: 400,
+        background: "var(--ds-surface)",
+        border: "2px solid var(--ds-warning)",
+        borderRadius: 18,
+        boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
+        padding: 20,
+        animation: "aegis-rise 200ms ease-out",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+        <span
+          style={{
+            display: "grid",
+            placeItems: "center",
+            width: 34,
+            height: 34,
+            borderRadius: 10,
+            background: "var(--ds-warning-surface)",
+            color: "var(--ds-warning)",
+          }}
+        >
+          <Icons.Shield size={18} />
+        </span>
+        <div>
+          <div style={{ fontFamily: "var(--ds-font-display)", fontWeight: 700, fontSize: 17, color: "var(--ds-fg)" }}>
+            ＜Evade＞
+          </div>
+          <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)" }}>
+            {t("overlay.wouldBeDeleted", { name: cardId ? name(cardId) : t("overlay.yourDigimon") })}
+          </div>
+        </div>
+      </div>
+      <div style={{ fontSize: 12.5, color: "var(--ds-fg-secondary)", marginBottom: 18, lineHeight: 1.5 }}>
+        {t("overlay.evadePrompt", { name: cardId ? name(cardId) : t("overlay.thisDigimon") })}
+      </div>
+      <div style={{ display: "flex", gap: 10 }}>
+        <Button full variant="secondary" onClick={onDecline}>
+          {t("overlay.letDeleted")}
+        </Button>
+        <Button full icon={Icons.Shield} onClick={onAccept}>
+          {t("overlay.suspendToEvade")}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+export function BarrierOverlay({
+  permanentId,
+  getCardId,
+  onAccept,
+  onDecline,
+}: {
+  permanentId: string;
+  getCardId: (permanentId: string) => string | undefined;
+  onAccept: () => void;
+  onDecline: () => void;
+}) {
+  const { t } = useTranslation();
+  const cardId = getCardId(permanentId);
+  return (
+    <div
+      className="combat-prompt"
+      style={{
+        position: "absolute",
+        left: "50%",
+        bottom: 232,
+        transform: "translateX(-50%)",
+        zIndex: 80,
+        width: 400,
+        background: "var(--ds-surface)",
+        border: "2px solid var(--ds-warning)",
+        borderRadius: 18,
+        boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
+        padding: 20,
+        animation: "aegis-rise 200ms ease-out",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 14 }}>
+        <span
+          style={{
+            display: "grid",
+            placeItems: "center",
+            width: 34,
+            height: 34,
+            borderRadius: 10,
+            background: "var(--ds-warning-surface)",
+            color: "var(--ds-warning)",
+          }}
+        >
+          <Icons.Shield size={18} />
+        </span>
+        <div>
+          <div style={{ fontFamily: "var(--ds-font-display)", fontWeight: 700, fontSize: 17, color: "var(--ds-fg)" }}>
+            ＜Barrier＞
+          </div>
+          <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)" }}>
+            {t("overlay.wouldBeDeleted", { name: cardId ? name(cardId) : t("overlay.yourDigimon") })}
+          </div>
+        </div>
+      </div>
+      <div style={{ fontSize: 12.5, color: "var(--ds-fg-secondary)", marginBottom: 18, lineHeight: 1.5 }}>
+        {t("overlay.barrierPrompt", { name: cardId ? name(cardId) : t("overlay.thisDigimon") })}
+      </div>
+      <div style={{ display: "flex", gap: 10 }}>
+        <Button full variant="secondary" onClick={onDecline}>
+          {t("overlay.letDeleted")}
+        </Button>
+        <Button full icon={Icons.Shield} onClick={onAccept}>
+          {t("overlay.trashSecurity")}
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Combat prompts BlockOverlay/CounterOverlay/AllianceOverlay/EvadeOverlay/
+ * BarrierOverlay above dispatch on GameScreen.tsx's `blockWindow`/
+ * `counterWindow`/`allianceWindow`/`evadeWindow`/`barrierWindow` state; this pins
+ * that coverage against COMBAT_PROMPT_EVENTS so a new prompt event fails
+ * typecheck instead of shipping unhandled.
+ */
+export const SUPPORTED_COMBAT_PROMPTS = [
+  "blockWindowOpened",
+  "counterWindowOpened",
+  "alliancePrompt",
+  "evadePrompt",
+  "barrierPrompt",
+] as const satisfies readonly CombatPromptEvent[];
+
+type _SupportedCombatPromptsComplete =
+  Exclude<CombatPromptEvent, (typeof SUPPORTED_COMBAT_PROMPTS)[number]> extends never ? true : never;
+const _supportedCombatPromptsComplete: _SupportedCombatPromptsComplete = true;
+void _supportedCombatPromptsComplete;
+
+/* ---------------- SECURITY CHECK ---------------- */
+export function SecurityOverlay({
+  cardId,
+  resolution,
+  onContinue,
+}: {
+  cardId: string;
+  resolution: string;
+  onContinue: () => void;
+}) {
+  const { t } = useTranslation();
+  const def = getCardDefinition(cardId);
+  const variants: Record<string, { label: string; icon: typeof Icons.Swords; detail: string }> = {
+    battle: {
+      label: t("overlay.securityBattle"),
+      icon: Icons.Swords,
+      detail: t("overlay.securityBattleDetail", { name: name(cardId), dp: dp(cardId).toLocaleString() }),
+    },
+    effect: {
+      label: t("overlay.securityEffect"),
+      icon: Icons.Sparkles,
+      detail: def?.securityEffectText || t("overlay.securityEffectDetail"),
+    },
+    trashed: { label: t("overlay.securityTrashed"), icon: Icons.FileText, detail: t("overlay.securityTrashedDetail") },
+  };
+  const res = variants[resolution] ?? variants.trashed!;
+  return (
+    <div className="security-check-toast" role="status" aria-live="assertive">
+      <div className="security-check-toast__card">
+        <CardFull cardId={cardId} width={92} />
+      </div>
+      <div className="security-check-toast__content">
+        <Badge>
+          <Icons.Shield size={13} />
+          {t("overlay.securityCheck")}
+        </Badge>
+        <strong>
+          <res.icon size={16} />
+          {res.label}
+        </strong>
+        <p>{res.detail}</p>
+      </div>
+      <button
+        className="security-check-toast__close"
+        aria-label={`${t("common.close")} — ${t("overlay.continue")}`}
+        onClick={onContinue}
+      >
+        ×
+      </button>
+    </div>
+  );
+}
+
+export function RecoveryToast({
+  amount,
+  mine,
+  anchor,
+}: {
+  amount: number;
+  mine: boolean;
+  anchor?: HTMLElement | null;
+}) {
+  const { t } = useTranslation();
+  const rect = anchor?.getBoundingClientRect();
+  return createPortal(
+    <div
+      className={`recovery-toast recovery-toast--${mine ? "you" : "opp"}`}
+      role="status"
+      aria-live="polite"
+      style={
+        rect
+          ? {
+              left: mine ? rect.right + 8 : rect.left - 8,
+              top: rect.top + rect.height / 2,
+            }
+          : { left: "50%", top: 12, transform: "translateX(-50%)" }
+      }
+    >
+      <span>
+        <Icons.ShieldCheck size={19} />
+      </span>
+      <div>
+        <strong>{t("overlay.recovery", { count: amount })}</strong>
+        <small>{t(mine ? "overlay.recoveryYou" : "overlay.recoveryOpp")}</small>
+      </div>
+    </div>,
+    document.body,
+  );
+}
+
+/** Read-only public-information preview shown for opponent permanents on hover/focus. */
+export function OpponentPermanentInspector({
+  cards,
+  title,
+  x,
+  y,
+  onInteractStart,
+  onInteractEnd,
+}: {
+  cards: StackCard[];
+  title: string;
+  x: number;
+  y: number;
+  onInteractStart?: () => void;
+  onInteractEnd?: () => void;
+}) {
+  const { t } = useTranslation();
+  const top = cards.find((card) => card.role === "top");
+  const topDef = top ? getCardDefinition(top.cardId) : undefined;
+  const supporting = cards.filter((card) => card.role !== "top");
+  const viewportWidth = typeof window === "undefined" ? 1280 : window.innerWidth;
+  const viewportHeight = typeof window === "undefined" ? 800 : window.innerHeight;
+  const left = Math.max(12, Math.min(x + 14, viewportWidth - 434));
+  const topPosition = Math.max(12, Math.min(y - 24, viewportHeight - 500));
+
+  return createPortal(
+    <aside
+      id="opponent-permanent-inspector"
+      className="opponent-permanent-inspector"
+      role="tooltip"
+      tabIndex={0}
+      onMouseEnter={onInteractStart}
+      onMouseLeave={onInteractEnd}
+      onFocus={onInteractStart}
+      onBlur={onInteractEnd}
+      style={{ left, top: topPosition }}
+    >
+      <header>
+        <div>
+          <strong>{title}</strong>
+          <span>{topDef?.dp ? `${topDef.dp.toLocaleString()} DP` : top?.cardId}</span>
+        </div>
+        <Badge>
+          {t("game.stack")} · {cards.length}
+        </Badge>
+      </header>
+      <section className="opponent-permanent-inspector__effect">
+        <span>{t("overlay.printedEffect")}</span>
+        <p>{topDef?.effectText || t("overlay.noPrintedEffect")}</p>
+      </section>
+      {supporting.length ? (
+        <section className="opponent-permanent-inspector__stack" aria-label={t("game.stack")}>
+          {supporting.map((card, index) => {
+            const def = getCardDefinition(card.cardId);
+            const effect = card.role === "linked" ? def?.linkEffect : def?.inheritedEffectText;
+            return (
+              <div key={`${card.cardId}-${index}`}>
+                <CardArt cardId={card.cardId} width={38} />
+                <div>
+                  <strong>{def?.nameEn ?? card.cardId}</strong>
+                  <span>{t(ROLE_LABEL_KEYS[card.role])}</span>
+                  <p>{effect || t("overlay.noPrintedEffect")}</p>
+                </div>
+              </div>
+            );
+          })}
+        </section>
+      ) : null}
+    </aside>,
+    document.body,
+  );
+}
+
+/* ---------------- EFFECT DECISION ---------------- */
+/** IR effect-trigger -> the printed bracket label it appears under on the card. */
+const TIMING_LABELS: Record<string, string> = {
+  OnPlay: "On Play",
+  WhenDigivolving: "When Digivolving",
+  WhenAttacking: "When Attacking",
+  OnAllyAttack: "When Attacking",
+  OnDeletion: "On Deletion",
+  OnDestroyedAnyone: "On Deletion",
+  EndOfAttack: "End of Attack",
+  AllTurns: "All Turns",
+  YourTurn: "Your Turn",
+  OpponentsTurn: "Opponent's Turn",
+  StartOfYourTurn: "Start of Your Turn",
+  EndOfYourTurn: "End of Your Turn",
+  StartOfOpponentsTurn: "Start of Opponent's Turn",
+  EndOfOpponentsTurn: "End of Opponent's Turn",
+  StartOfYourMainPhase: "Start of Your Main Phase",
+  StartOfOpponentsMainPhase: "Start of Opponent's Main Phase",
+  Main: "Main",
+  Security: "Security",
+  Counter: "Counter",
+};
+
+const GENERIC_TIMING_VARIANTS: Record<string, string[]> = {
+  OnStartTurn: ["StartOfYourTurn", "StartOfOpponentsTurn"],
+  OnStartMainPhase: ["StartOfYourMainPhase", "StartOfOpponentsMainPhase"],
+  OnEndTurn: ["EndOfYourTurn", "EndOfOpponentsTurn"],
+};
+
+const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+/**
+ * Slice the single printed clause for the resolving `timing` out of the card's full
+ * effect text (dropping the [Digivolve]/cost preamble and any sibling clauses). The
+ * printed timing brackets act as clause boundaries. Falls back to the full text when
+ * the timing is unknown or its bracket is not present.
+ *
+ * Adjacent timing brackets share one clause body: cards like AD1-001 print
+ * "[On Play] [When Digivolving] You may return ..." — a single clause that fires under
+ * either timing. Such a run of brackets separated only by whitespace is treated as one
+ * clause header, so BOTH timings return the full "[On Play] [When Digivolving] ..." body
+ * instead of the On Play slice collapsing to an empty "[On Play]".
+ */
+export function effectClauseForTiming(effectText: string | undefined, timing: string | undefined): string | undefined {
+  const label = timing ? TIMING_LABELS[timing] : undefined;
+  if (!effectText) return effectText;
+  const boundary = new RegExp(`\\[(${Object.values(TIMING_LABELS).map(escapeRegExp).join("|")})\\]`, "g");
+  const marks: { label: string; index: number; end: number }[] = [];
+  for (let m = boundary.exec(effectText); m !== null; m = boundary.exec(effectText)) {
+    // A timing label can be mentioned inside a sentence rather than opening a new clause
+    // (EX3-026: "activate 1 of this Digimon's [When Digivolving] effects"). Do not split
+    // before the noun "effect(s)"; only bracket labels that introduce effect text are bounds.
+    if (/^\s+effects?\b/i.test(effectText.slice(m.index + m[0].length))) continue;
+    marks.push({ label: m[1] ?? "", index: m.index, end: m.index + m[0].length });
+  }
+  // Intrinsic pay-time reducers are represented as Static IR but their printed sentence has
+  // no [Static] label. When it precedes a bracketed sibling clause (EX3-054), the prefix is
+  // the exact player-facing clause; do not show the unrelated watcher beside the payment UI.
+  if (timing === "Static") {
+    const prefix = effectText.slice(0, marks[0]?.index ?? effectText.length).trim();
+    if (prefix.length > 0) return prefix;
+  }
+  if (!label) return effectText;
+  // Group brackets whose gap is whitespace-only into one shared clause header.
+  const groups: { labels: Set<string>; start: number }[] = [];
+  for (let i = 0; i < marks.length; i++) {
+    const mark = marks[i]!;
+    const prev = groups[groups.length - 1];
+    const gap = i > 0 ? effectText.slice(marks[i - 1]!.end, mark.index) : "|";
+    if (prev !== undefined && gap.trim() === "") prev.labels.add(mark.label);
+    else groups.push({ labels: new Set([mark.label]), start: mark.index });
+  }
+  const groupIdx = groups.findIndex((g) => g.labels.has(label));
+  const group = groups[groupIdx];
+  if (group === undefined) return effectText;
+  const end = groups[groupIdx + 1]?.start ?? effectText.length;
+  return effectText.slice(group.start, end).trim();
+}
+
+/** Select the matching printed clause across a card's main, inherited, and Security text boxes. */
+export function cardEffectClauseForTiming(cardId: string, timing: string | undefined): string | undefined {
+  const definition = getCardDefinition(cardId);
+  const texts = [definition?.effectText, definition?.inheritedEffectText, definition?.securityEffectText].filter(
+    (text): text is string => Boolean(text),
+  );
+  const label = timing ? TIMING_LABELS[timing] : undefined;
+  const matching = label ? texts.find((text) => new RegExp(`\\[${escapeRegExp(label)}\\]`).test(text)) : undefined;
+  if (matching === undefined && timing !== undefined) {
+    const variants = GENERIC_TIMING_VARIANTS[timing] ?? [];
+    const present = variants.flatMap((variant) => {
+      const variantLabel = TIMING_LABELS[variant];
+      if (variantLabel === undefined) return [];
+      const text = texts.find((candidate) => new RegExp(`\\[${escapeRegExp(variantLabel)}\\]`).test(candidate));
+      return text === undefined ? [] : [{ text, variant }];
+    });
+    if (present.length === 1) return effectClauseForTiming(present[0]!.text, present[0]!.variant);
+  }
+  return effectClauseForTiming(matching ?? texts[0], timing);
+}
+
+/** The printed clause to surface for a resolved effect, or undefined when there is nothing worth showing. */
+export function resolvedEffectClause(cardId: string, timing: string | undefined): string | undefined {
+  const clause = cardEffectClauseForTiming(cardId, timing);
+  const trimmed = clause?.trim();
+  if (!trimmed) return undefined;
+  // A bare "[On Play] [When Digivolving]" header with no body carries nothing to read.
+  return trimmed.replace(/\[[^\]]*\]/g, "").trim() ? trimmed : undefined;
+}
+
+// Declarative effects use their action-kind list as a fallback description,
+// e.g. "[Main] RevealAdd, PlaceInBattleAreaSelf". That is useful in diagnostics but is not
+// player-facing card text. Keep accepting explicit handwritten descriptions while replacing
+// this recognizable fallback shape with the printed clause from the card catalog.
+const INTERNAL_IR_DESCRIPTION = /^\[[^\]]+\](?:\s+＜[^＞]+＞)?\s+[A-Z][A-Za-z0-9 -]*(?:,\s*[A-Z][A-Za-z0-9 -]*)*$/;
+
+// An "activate this?" prompt built from an unmapped IR action kind arrives as a bare
+// identifier ("GainMemory", "gainMemory"): readable in a log, meaningless in a modal. Drop
+// it so the overlay falls back to its generic prompt and the printed clause carries the
+// meaning. Other decision kinds prompt with a card name, which is single-token by nature.
+const INTERNAL_IDENTIFIER_PROMPT = /^[A-Za-z][a-z0-9]*(?:[A-Z][a-z0-9]*)+$/;
+const INTERNAL_ACTION_PROMPT = /^(?:attack|delete|digivolve|draw|play|return|suspend|trash|unsuspend)$/i;
+
+/** The prompt to show above a decision, or undefined when the engine sent an internal identifier. */
+export function playerFacingPromptText(promptText: string | undefined, kind: DecisionKind): string | undefined {
+  const trimmed = promptText?.trim();
+  if (!trimmed) return undefined;
+  if (/^select bind$/i.test(trimmed)) return undefined;
+  // Generic engine verbs add no guidance beyond the decision kind and leak English into
+  // localized matches. Let the modal use its translated fallback while the printed effect
+  // clause explains what is being selected.
+  if (/^(?:choose targets?|select cards?|choose one effect to activate)$/i.test(trimmed)) return undefined;
+  if (kind !== "optional") return trimmed;
+  return INTERNAL_IDENTIFIER_PROMPT.test(trimmed) || INTERNAL_ACTION_PROMPT.test(trimmed) ? undefined : trimmed;
+}
+
+export function playerFacingEffectClause({
+  cardId,
+  timing,
+  description,
+}: {
+  cardId: string;
+  timing: string | undefined;
+  description: string | undefined;
+}): string | undefined {
+  const supplied = description?.trim();
+  if (supplied && !INTERNAL_IR_DESCRIPTION.test(supplied)) {
+    const definition = getCardDefinition(cardId);
+    const isFullMainText = definition?.effectText?.trim() === supplied;
+    return isFullMainText && timing !== undefined ? effectClauseForTiming(supplied, timing) : supplied;
+  }
+  // Without timing provenance, choosing the first printed text box can attribute a
+  // main effect to an inherited decision. Prefer showing nothing over a wrong clause.
+  if (timing === undefined) return undefined;
+  return resolvedEffectClause(cardId, timing);
+}
+
+/**
+ * Transient left-side overlay that names a triggered effect and shows the printed clause
+ * that just resolved (e.g. the [On Play] body of a shared [On Play]/[When Digivolving]
+ * clause). Auto-dismiss is the caller's concern; this renders the current toast only.
+ */
+export function EffectClauseToast({
+  cardId,
+  timing,
+  description,
+}: {
+  cardId: string;
+  timing?: string;
+  description?: string;
+}) {
+  const { t } = useTranslation();
+  const clause = playerFacingEffectClause({ cardId, timing, description });
+  if (!clause) return null;
+  const sourceKey = colorKey(getCardDefinition(cardId)?.colors[0]);
+  const label = timing ? TIMING_LABELS[timing] : undefined;
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      style={{
+        position: "absolute",
+        left: 16,
+        top: "50%",
+        transform: "translateY(-50%)",
+        zIndex: 78,
+        width: 280,
+        maxWidth: "calc(100% - 32px)",
+        pointerEvents: "none",
+        background: "var(--ds-surface)",
+        border: `2px solid ${COLORS[sourceKey].base}`,
+        borderRadius: 16,
+        boxShadow: "0 18px 40px rgba(15,23,42,0.28)",
+        padding: 16,
+        animation: "aegis-rise 200ms ease-out",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 8 }}>
+        <div
+          style={{
+            width: 36,
+            height: 36,
+            borderRadius: 10,
+            display: "grid",
+            placeItems: "center",
+            flexShrink: 0,
+            background: COLORS[sourceKey].soft,
+          }}
+        >
+          <Sigil cardId={cardId} color={sourceKey} size={24} />
+        </div>
+        <div>
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: COLORS[sourceKey].base,
+            }}
+          >
+            {label ?? t("overlay.effect")}
+          </div>
+          <div
+            style={{
+              fontFamily: "var(--ds-font-display)",
+              fontWeight: 700,
+              fontSize: 14,
+              color: "var(--ds-fg)",
+              marginTop: 1,
+            }}
+          >
+            {name(cardId)}
+          </div>
+        </div>
+      </div>
+      <div
+        style={{ fontSize: 12, color: "var(--ds-fg-secondary)", lineHeight: 1.5, maxHeight: 140, overflowY: "auto" }}
+      >
+        {clause}
+      </div>
+    </div>
+  );
+}
+
+/**
+ * DecisionOverlay below branches on request.kind via isOptional/isChoose/
+ * isSelect/isOrderTriggers (mulligan is handled separately by
+ * MulliganOverlay). This pins that coverage against DECISION_KINDS so a new
+ * DecisionRequest.kind fails typecheck instead of rendering nothing.
+ */
+export const SUPPORTED_DECISION_KINDS = [
+  "optional",
+  "chooseTargets",
+  "selectCards",
+  "orderCards",
+  "orderTriggers",
+  "chooseOption",
+  "mulligan",
+] as const satisfies readonly DecisionKind[];
+
+type _SupportedDecisionKindsComplete =
+  Exclude<DecisionKind, (typeof SUPPORTED_DECISION_KINDS)[number]> extends never ? true : never;
+const _supportedDecisionKindsComplete: _SupportedDecisionKindsComplete = true;
+void _supportedDecisionKindsComplete;
+
+export function DecisionOverlay({
+  request,
+  sourceCardId,
+  candidates,
+  picks,
+  onTogglePick,
+  onRespond,
+}: {
+  request: DecisionRequest;
+  sourceCardId?: string;
+  candidates: {
+    instanceId: string;
+    cardId?: string;
+    selectable?: boolean;
+    sourceCount?: number;
+    currentDP?: number;
+    isSuspended?: boolean;
+  }[];
+  picks: string[];
+  onTogglePick: (instanceId: string) => void;
+  onRespond: (response: DecisionResponse) => void;
+}) {
+  const { t } = useTranslation();
+  const min = request.options?.min ?? 1;
+  const max = request.options?.max ?? 1;
+  const choices = request.options?.choices ?? [];
+  const isOptional = request.kind === "optional";
+  const isChoose = request.kind === "chooseOption";
+  const isSelect = request.kind === "chooseTargets" || request.kind === "selectCards";
+  const isOrderCards = request.kind === "orderCards";
+  const isOrderTriggers = request.kind === "orderTriggers";
+  const triggerKeys = request.options?.triggerKeys ?? [];
+  const triggerCardIds = request.options?.triggerCardIds ?? [];
+  const triggerKeyLabels = triggerLabels(triggerKeys, t, triggerCardIds);
+  const maxTotalPlayCost = request.options?.maxTotalPlayCost;
+  const selectedPlayCost = picks.reduce((total, instanceId) => {
+    const cardId = candidates.find((candidate) => candidate.instanceId === instanceId)?.cardId;
+    return total + (getCardDefinition(cardId ?? "")?.playCost ?? 0);
+  }, 0);
+  const withinPlayCostBudget = maxTotalPlayCost === undefined || selectedPlayCost <= maxTotalPlayCost;
+  const canConfirm = picks.length >= min && picks.length <= max && withinPlayCostBudget;
+  const cardIdTotals = new Map<string, number>();
+  for (const candidate of candidates) {
+    if (candidate.cardId) cardIdTotals.set(candidate.cardId, (cardIdTotals.get(candidate.cardId) ?? 0) + 1);
+  }
+  const cardIdSeen = new Map<string, number>();
+  const cardCopyLabels = new Map<string, string>();
+  for (const candidate of candidates) {
+    if (!candidate.cardId) continue;
+    const total = cardIdTotals.get(candidate.cardId) ?? 0;
+    const index = (cardIdSeen.get(candidate.cardId) ?? 0) + 1;
+    cardIdSeen.set(candidate.cardId, index);
+    if (total > 1) cardCopyLabels.set(candidate.instanceId, t("overlay.cardCopy", { index, total }));
+  }
+  const sourceKey = colorKey(getCardDefinition(sourceCardId ?? "")?.colors[0]);
+  const abstractTargetLabel = (instanceId: string): string | undefined => {
+    if (instanceId === "mine") return t("overlay.yourSecurity");
+    if (instanceId === "player" || instanceId === "opponent") return t("overlay.opponentSecurity");
+    return undefined;
+  };
+  const choiceLabel = (choice: string): string => {
+    if (choice === "top") return t("overlay.deckTop");
+    if (choice === "bottom") return t("overlay.deckBottom");
+    return choice;
+  };
+
+  const [isViewingBoard, setIsViewingBoard] = useState(false);
+  const [selectedTriggerKeys, setSelectedTriggerKeys] = useState<string[]>([]);
+  const [cardOrder, setCardOrder] = useState<string[]>([]);
+  const panelRef = useRef<HTMLDivElement>(null);
+  const returnControlRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    setIsViewingBoard(false);
+  }, [request.decisionId]);
+  useEffect(() => {
+    setSelectedTriggerKeys([]);
+  }, [request.decisionId]);
+  useEffect(() => {
+    setCardOrder(candidates.map((candidate) => candidate.instanceId));
+  }, [request.decisionId]);
+  useEffect(() => {
+    if (isViewingBoard) returnControlRef.current?.querySelector("button")?.focus();
+    else panelRef.current?.focus();
+  }, [isViewingBoard]);
+
+  const moveOrderedCard = (index: number, delta: -1 | 1) => {
+    setCardOrder((current) => {
+      const destination = index + delta;
+      if (destination < 0 || destination >= current.length) return current;
+      const next = [...current];
+      [next[index], next[destination]] = [next[destination]!, next[index]!];
+      return next;
+    });
+  };
+
+  const toggleTrigger = (key: string) => {
+    setSelectedTriggerKeys((prev) => (prev[0] === key ? [] : [key]));
+  };
+
+  const containDialogFocus = (event: ReactKeyboardEvent<HTMLDivElement>) => {
+    if (event.key !== "Tab") return;
+    const focusable = panelRef.current?.querySelectorAll<HTMLElement>(
+      'button:not(:disabled), [href], input:not(:disabled), select:not(:disabled), textarea:not(:disabled), [tabindex]:not([tabindex="-1"])',
+    );
+    if (!focusable?.length) {
+      event.preventDefault();
+      panelRef.current?.focus();
+      return;
+    }
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    if (event.shiftKey && (document.activeElement === first || document.activeElement === panelRef.current)) {
+      event.preventDefault();
+      last?.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first?.focus();
+    }
+  };
+
+  const confirmSelect = () => {
+    if (request.kind === "selectCards") onRespond({ kind: "selectCards", instanceIds: picks });
+    else onRespond({ kind: "chooseTargets", instanceIds: picks });
+  };
+
+  const sourceEffectText = sourceCardId
+    ? playerFacingEffectClause({
+        cardId: sourceCardId,
+        timing: request.options?.timing,
+        description: request.options?.effectText,
+      })
+    : request.options?.effectText;
+  const promptText =
+    request.options?.promptKey === "activateBlitz"
+      ? t("overlay.activateBlitzPrompt")
+      : playerFacingPromptText(request.promptText, request.kind) ||
+        t(isOptional ? "overlay.useEffectPrompt" : isChoose ? "overlay.chooseEffectPrompt" : "overlay.resolveEffect");
+
+  if (isViewingBoard) {
+    const returnControl = (
+      <div
+        ref={returnControlRef}
+        className="decision-board-return"
+        style={{
+          position: "fixed",
+          zIndex: "calc(var(--ds-z-toast, 110) - 1)",
+          right: 16,
+          top: "calc(env(safe-area-inset-top, 0px) + 64px)",
+          bottom: "auto",
+        }}
+      >
+        <span className="decision-board-return__status" aria-live="polite">
+          {t("overlay.decisionPending")}
+        </span>
+        <Button icon={Icons.ArrowLeft} onClick={() => setIsViewingBoard(false)}>
+          {t("overlay.returnToDecision")}
+        </Button>
+      </div>
+    );
+    // The game overlays normally live inside #aegis-stage, which is itself a
+    // fixed, overflow-clipped viewport. Mobile browsers can therefore clip a
+    // fixed descendant after the board fills 100dvh. Keep the only route back
+    // to the pending decision in the document viewport, below the opponent bar
+    // instead of beside browser chrome at the bottom edge.
+    return typeof document === "undefined" ? returnControl : createPortal(returnControl, document.body);
+  }
+
+  return (
+    <div
+      ref={panelRef}
+      tabIndex={-1}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="aegis-decision-title"
+      className="game-modal__panel game-modal__panel--bare"
+      onKeyDown={containDialogFocus}
+      style={{
+        position: "absolute",
+        left: "50%",
+        top: 96,
+        transform: "translateX(-50%)",
+        zIndex: 80,
+        width: 600,
+        maxWidth: "calc(100% - 32px)",
+        maxHeight: "calc(100% - 112px)",
+        overflowY: "auto",
+        background: "var(--ds-surface)",
+        border: "2px solid var(--ds-accent)",
+        borderRadius: 20,
+        boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
+        padding: 22,
+        animation: "aegis-rise 200ms ease-out",
+      }}
+    >
+      <div
+        className="decision-overlay__header"
+        style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: sourceEffectText ? 10 : 14 }}
+      >
+        <div
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 12,
+            display: "grid",
+            placeItems: "center",
+            flexShrink: 0,
+            background: COLORS[sourceKey].soft,
+          }}
+        >
+          <Sigil cardId={sourceCardId} color={sourceKey} size={28} />
+        </div>
+        <div className="decision-overlay__heading">
+          <div
+            id="aegis-decision-title"
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "var(--ds-accent)",
+            }}
+          >
+            {sourceCardId ? t("overlay.cardEffect", { name: name(sourceCardId) }) : t("overlay.effect")}
+          </div>
+          <div
+            style={{
+              fontFamily: "var(--ds-font-display)",
+              fontWeight: 700,
+              fontSize: 18,
+              color: "var(--ds-fg)",
+              marginTop: 2,
+            }}
+          >
+            {promptText}
+          </div>
+        </div>
+        <Button
+          className="decision-overlay__view-board"
+          size="sm"
+          variant="secondary"
+          icon={Icons.Map}
+          onClick={() => setIsViewingBoard(true)}
+        >
+          {t("overlay.viewBoard")}
+        </Button>
+      </div>
+
+      {sourceEffectText ? (
+        <div
+          style={{
+            fontSize: 12,
+            color: "var(--ds-fg-secondary)",
+            lineHeight: 1.55,
+            background: "var(--ds-surface-muted)",
+            borderRadius: 10,
+            padding: "8px 12px",
+            marginBottom: 14,
+            maxHeight: 72,
+            overflowY: "auto",
+          }}
+        >
+          {sourceEffectText}
+        </div>
+      ) : null}
+
+      {isSelect ? (
+        <div style={{ marginBottom: 18 }}>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "var(--ds-fg-muted)",
+              marginBottom: 10,
+            }}
+          >
+            {t("overlay.selectTargets", { range: min === max ? max : `${min}–${max}` })}
+            <span style={{ float: "right", color: picks.length ? "var(--ds-accent)" : "inherit" }}>
+              {t("overlay.chosen", { count: picks.length })}
+            </span>
+          </div>
+          {maxTotalPlayCost !== undefined ? (
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: withinPlayCostBudget ? "var(--ds-fg-secondary)" : "var(--ds-danger)",
+                marginBottom: 10,
+              }}
+            >
+              {t("overlay.playCostBudget", { selected: selectedPlayCost, max: maxTotalPlayCost })}
+            </div>
+          ) : null}
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            {candidates.map((cand) => {
+              const selectable = cand.selectable !== false;
+              const on = picks.includes(cand.instanceId);
+              const abstractLabel = abstractTargetLabel(cand.instanceId);
+              const copyLabel = cardCopyLabels.get(cand.instanceId);
+              const sourceLabel =
+                cand.sourceCount === undefined
+                  ? undefined
+                  : t(cand.sourceCount === 1 ? "overlay.sourceCountOne" : "overlay.sourceCountMany", {
+                      count: cand.sourceCount,
+                    });
+              const liveLabels = [
+                cand.currentDP === undefined ? undefined : `${cand.currentDP.toLocaleString()} DP`,
+                cand.isSuspended === true ? t("overlay.suspended") : undefined,
+                sourceLabel,
+              ].filter((label): label is string => label !== undefined);
+              const liveLabel = liveLabels.join(" · ");
+              return (
+                <button
+                  type="button"
+                  aria-label={`${abstractLabel ?? (cand.cardId ? name(cand.cardId) : t("overlay.card"))}${liveLabels.length ? `, ${liveLabels.join(", ")}` : ""}${copyLabel ? `, ${copyLabel}` : ""}${on ? t("overlay.selected") : ""}`}
+                  aria-pressed={on}
+                  disabled={!selectable}
+                  key={cand.instanceId}
+                  style={{
+                    position: "relative",
+                    padding: 0,
+                    border: "none",
+                    borderRadius: 10,
+                    background: "transparent",
+                    cursor: selectable ? "pointer" : "not-allowed",
+                    opacity: selectable ? 1 : 0.4,
+                    filter: selectable ? "none" : "grayscale(0.85)",
+                  }}
+                  onClick={() => selectable && onTogglePick(cand.instanceId)}
+                >
+                  {abstractLabel ? (
+                    <span
+                      style={{
+                        width: 110,
+                        minHeight: 154,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        gap: 10,
+                        padding: 12,
+                        borderRadius: 10,
+                        border: `2px solid ${on ? "var(--ds-accent)" : "var(--ds-border)"}`,
+                        background: "var(--ds-surface-muted)",
+                        color: on ? "var(--ds-accent)" : "var(--ds-fg-secondary)",
+                        fontSize: 12,
+                        fontWeight: 700,
+                        textAlign: "center",
+                      }}
+                    >
+                      <Icons.Shield size={30} />
+                      {abstractLabel}
+                    </span>
+                  ) : (
+                    <CardFull cardId={cand.cardId ?? ""} width={110} selected={on} />
+                  )}
+                  {liveLabel ? (
+                    <span
+                      style={{
+                        position: "absolute",
+                        left: 6,
+                        bottom: 6,
+                        padding: "3px 7px",
+                        borderRadius: 7,
+                        background: "var(--ds-surface)",
+                        color: "var(--ds-fg)",
+                        fontFamily: "var(--ds-font-mono)",
+                        fontSize: 10,
+                        fontWeight: 700,
+                        boxShadow: "var(--ds-shadow-sm)",
+                      }}
+                    >
+                      {liveLabel}
+                    </span>
+                  ) : null}
+                  {on ? (
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: 6,
+                        right: 6,
+                        color: "var(--ds-accent)",
+                        background: "var(--ds-surface)",
+                        borderRadius: "50%",
+                      }}
+                    >
+                      <Icons.CircleCheck size={18} />
+                    </span>
+                  ) : null}
+                  {!selectable ? (
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: 6,
+                        right: 6,
+                        color: "var(--ds-fg-muted)",
+                        background: "var(--ds-surface)",
+                        borderRadius: "50%",
+                      }}
+                    >
+                      <Icons.Ban size={16} />
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
+      {isOrderCards ? (
+        <div style={{ marginBottom: 18 }}>
+          <div style={{ fontSize: 12, color: "var(--ds-fg-secondary)", marginBottom: 10 }}>
+            {t(
+              request.options?.orderDestination === "stackBottom"
+                ? "overlay.orderStackBottomHint"
+                : "overlay.orderCardsHint",
+            )}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            {cardOrder.map((instanceId, index) => {
+              const card = candidates.find((candidate) => candidate.instanceId === instanceId);
+              return (
+                <div
+                  key={instanceId}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: 8,
+                    borderRadius: 12,
+                    background: "var(--ds-surface-muted)",
+                    animation: "aegis-rise 160ms ease-out",
+                  }}
+                >
+                  <strong style={{ width: 24, textAlign: "center" }}>{index + 1}</strong>
+                  <CardFull cardId={card?.cardId ?? ""} width={62} />
+                  <span style={{ flex: 1, fontWeight: 600 }}>
+                    {card?.cardId ? name(card.cardId) : t("overlay.card")}
+                  </span>
+                  <Button
+                    variant="ghost"
+                    disabled={index === 0}
+                    onClick={() => moveOrderedCard(index, -1)}
+                    aria-label={`${t("overlay.moveUp")} — ${card?.cardId ? name(card.cardId) : t("overlay.card")}, ${index + 1}`}
+                  >
+                    <Icons.ChevronUp size={18} />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    disabled={index === cardOrder.length - 1}
+                    onClick={() => moveOrderedCard(index, 1)}
+                    aria-label={`${t("overlay.moveDown")} — ${card?.cardId ? name(card.cardId) : t("overlay.card")}, ${index + 1}`}
+                  >
+                    <Icons.ChevronDown size={18} />
+                  </Button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
+
+      {isChoose ? (
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {choices.map((label, i) => (
+            <Button
+              key={i}
+              full
+              variant={i === 0 ? "primary" : "secondary"}
+              onClick={() => onRespond({ kind: "chooseOption", optionIndex: i })}
+            >
+              {choiceLabel(label)}
+            </Button>
+          ))}
+        </div>
+      ) : null}
+
+      {isOptional ? (
+        <div style={{ display: "flex", gap: 10 }}>
+          <Button full variant="secondary" onClick={() => onRespond({ kind: "optional", accept: false })}>
+            {t("overlay.decline")}
+          </Button>
+          <Button full icon={Icons.Sparkles} onClick={() => onRespond({ kind: "optional", accept: true })}>
+            {t("overlay.activate")}
+          </Button>
+        </div>
+      ) : null}
+
+      {isSelect ? (
+        <div style={{ display: "flex", gap: 10 }}>
+          {min === 0 ? (
+            <Button
+              full
+              variant="ghost"
+              onClick={() =>
+                onRespond({ kind: request.kind === "selectCards" ? "selectCards" : "chooseTargets", instanceIds: [] })
+              }
+            >
+              {t("common.none")}
+            </Button>
+          ) : null}
+          <Button full icon={Icons.Check} disabled={!canConfirm} onClick={confirmSelect}>
+            {t("overlay.confirmTargets")}
+          </Button>
+        </div>
+      ) : null}
+
+      {isOrderTriggers ? (
+        <div>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "var(--ds-fg-muted)",
+              marginBottom: 10,
+            }}
+          >
+            {t(triggerKeys.length === 1 ? "overlay.confirmPendingEffect" : "overlay.chooseNextEffect")}
+          </div>
+          <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 14 }}>
+            {triggerKeys.map((key, i) => {
+              const position = selectedTriggerKeys.indexOf(key);
+              const chosen = position !== -1;
+              const cardId = triggerCardIds[i] ?? triggerCardId(key);
+              return (
+                <button
+                  type="button"
+                  key={key}
+                  aria-label={triggerKeyLabels[i]}
+                  aria-pressed={chosen}
+                  onClick={() => toggleTrigger(key)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 10,
+                    padding: "9px 12px",
+                    borderRadius: 12,
+                    cursor: "pointer",
+                    textAlign: "left",
+                    background: chosen ? "var(--ds-accent-surface)" : "var(--ds-surface-muted)",
+                    border: `1.5px solid ${chosen ? "var(--ds-accent)" : "var(--ds-border)"}`,
+                    transition: "background 120ms, border-color 120ms",
+                  }}
+                >
+                  <CardFull cardId={cardId} width={58} selected={chosen} />
+                  <span style={{ fontSize: 13, color: "var(--ds-fg)", fontWeight: chosen ? 600 : 400 }}>
+                    {triggerKeyLabels[i]}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+          <Button
+            full
+            icon={Icons.Check}
+            disabled={selectedTriggerKeys.length !== 1}
+            onClick={() => onRespond({ kind: "orderTriggers", order: selectedTriggerKeys })}
+          >
+            {t(triggerKeys.length === 1 ? "overlay.resolveEffect" : "overlay.resolveNextEffect")}
+          </Button>
+        </div>
+      ) : null}
+      {isOrderCards ? (
+        <Button full icon={Icons.Check} onClick={() => onRespond({ kind: "orderCards", order: cardOrder })}>
+          {t("overlay.confirmOrder")}
+        </Button>
+      ) : null}
+    </div>
+  );
+}
+
+/* ---------------- BREEDING PHASE ---------------- */
+export function BreedingOverlay({
+  canHatch,
+  canMove,
+  onHatch,
+  onMove,
+  onSkip,
+}: {
+  canHatch: boolean;
+  canMove: boolean;
+  onHatch: () => void;
+  onMove: () => void;
+  onSkip: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <Scrim className="game-modal">
+      <div
+        className="game-modal__panel"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          textAlign: "center",
+          maxWidth: 420,
+          padding: 32,
+          background: "var(--ds-surface)",
+          borderRadius: 24,
+          border: "1px solid var(--ds-border)",
+          boxShadow: "var(--ds-shadow-summary)",
+        }}
+      >
+        <Badge tone="primary" style={{ marginBottom: 14 }}>
+          <Icons.Hexagon size={13} />
+          {t("overlay.breedingPhase")}
+        </Badge>
+        <h2
+          style={{
+            fontFamily: "var(--ds-font-display)",
+            fontWeight: 800,
+            fontSize: 26,
+            color: "var(--ds-fg)",
+            margin: "0 0 8px",
+          }}
+        >
+          {t("overlay.breedingArea")}
+        </h2>
+        <p style={{ color: "var(--ds-fg-secondary)", fontSize: 14, margin: "0 0 26px", lineHeight: 1.5 }}>
+          {canHatch ? t("overlay.hatchHint") : canMove ? t("overlay.moveHint") : t("overlay.noBreedingActions")}
+        </p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {canHatch ? (
+            <Button size="lg" full icon={Icons.Dices} onClick={onHatch}>
+              {t("overlay.hatchDigiEgg")}
+            </Button>
+          ) : null}
+          {canMove ? (
+            <Button size="lg" full icon={Icons.ChevronRight} onClick={onMove}>
+              {t("overlay.moveToBattleArea")}
+            </Button>
+          ) : null}
+          <Button size="lg" full variant="secondary" icon={Icons.ChevronRight} onClick={onSkip}>
+            {t("overlay.endPhase")}
+          </Button>
+        </div>
+      </div>
+    </Scrim>
+  );
+}
+
+/* ---------------- GAME OVER ---------------- */
+export function GameOverOverlay({
+  result,
+  reason,
+  stats,
+  onMenu,
+  onRematch,
+}: {
+  result: "win" | "loss" | "draw";
+  reason: string;
+  stats: { value: number | string; label: string }[];
+  onMenu: () => void;
+  onRematch: () => void;
+}) {
+  const { t } = useTranslation();
+  const won = result === "win";
+  const isDraw = result === "draw";
+  const accent = won ? "var(--ds-success)" : isDraw ? "var(--ds-fg-muted)" : "var(--ds-danger)";
+  const accentLight = won
+    ? "var(--ds-success-surface)"
+    : isDraw
+      ? "var(--ds-surface-muted)"
+      : "var(--ds-danger-surface)";
+  const title = won ? t("overlay.victory") : isDraw ? t("overlay.draw") : t("overlay.defeat");
+  return (
+    <Scrim className="game-modal">
+      <Dialog className="game-over-dialog game-modal__panel" labelledBy="aegis-game-over-title">
+        <div
+          style={{
+            width: 84,
+            height: 84,
+            borderRadius: "50%",
+            margin: "0 auto 20px",
+            display: "grid",
+            placeItems: "center",
+            background: accentLight,
+            color: accent,
+          }}
+        >
+          {won ? <Icons.ShieldCheck size={44} /> : <Icons.Shield size={44} />}
+        </div>
+        <div
+          style={{
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: "0.2em",
+            textTransform: "uppercase",
+            color: "var(--ds-fg-muted)",
+            marginBottom: 8,
+          }}
+        >
+          {t("overlay.matchComplete")}
+        </div>
+        <h1
+          id="aegis-game-over-title"
+          style={{
+            fontFamily: "var(--ds-font-display)",
+            fontWeight: 800,
+            fontSize: 44,
+            margin: "0 0 8px",
+            color: won ? "var(--ds-success)" : "var(--ds-fg)",
+          }}
+        >
+          {title}
+        </h1>
+        <p style={{ color: "var(--ds-fg-secondary)", fontSize: 14.5, margin: "0 0 24px" }}>
+          {won
+            ? t("overlay.wonBy", { reason })
+            : isDraw
+              ? t("overlay.drawBy", { reason })
+              : t("overlay.lostBy", { reason })}
+        </p>
+        <div style={{ display: "flex", gap: 10, marginBottom: 26 }}>
+          {stats.map((s) => (
+            <div
+              key={s.label}
+              style={{ flex: 1, padding: "12px 8px", borderRadius: 14, background: "var(--ds-surface-muted)" }}
+            >
+              <div style={{ fontFamily: "var(--ds-font-mono)", fontWeight: 600, fontSize: 22, color: "var(--ds-fg)" }}>
+                {s.value}
+              </div>
+              <div style={{ fontSize: 11, color: "var(--ds-fg-muted)", marginTop: 3 }}>{s.label}</div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: 10 }}>
+          <Button full variant="secondary" icon={Icons.LayoutDashboard} onClick={onMenu}>
+            {t("overlay.mainMenu")}
+          </Button>
+          <Button full icon={Icons.Swords} onClick={onRematch}>
+            {t("overlay.findRematch")}
+          </Button>
+        </div>
+      </Dialog>
+    </Scrim>
+  );
+}
+
+/* ---------------- EVO COST CHOICE ---------------- */
+
+export function ActionConfirmationOverlay({
+  cardId,
+  title,
+  detail,
+  confirmLabel,
+  alternateLabel,
+  onConfirm,
+  onAlternate,
+  onCancel,
+}: {
+  cardId: string;
+  title: string;
+  detail: string;
+  confirmLabel: string;
+  alternateLabel?: string;
+  onConfirm: () => void;
+  onAlternate?: () => void;
+  onCancel: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div
+      className="game-modal"
+      onClick={(event) => event.stopPropagation()}
+      style={{
+        position: "absolute",
+        inset: 0,
+        zIndex: 86,
+        display: "grid",
+        placeItems: "center",
+        background: "rgba(15,23,42,0.42)",
+        backdropFilter: "blur(3px)",
+      }}
+    >
+      <div
+        className="game-modal__panel action-confirmation"
+        style={{
+          width: 440,
+          maxWidth: "calc(100% - 32px)",
+          padding: 22,
+          borderRadius: 20,
+          background: "var(--ds-surface)",
+          border: "2px solid var(--ds-accent)",
+          boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
+        }}
+      >
+        <div style={{ display: "flex", gap: 16, alignItems: "center", marginBottom: 18 }}>
+          <CardFull cardId={cardId} width={92} />
+          <div>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 800,
+                color: "var(--ds-accent)",
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+              }}
+            >
+              {title}
+            </div>
+            <div style={{ marginTop: 7, color: "var(--ds-fg)", lineHeight: 1.45 }}>{detail}</div>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 10 }}>
+          <Button full variant="ghost" onClick={onCancel}>
+            {t("common.cancel")}
+          </Button>
+          {alternateLabel && onAlternate ? (
+            <Button full variant="secondary" onClick={onAlternate}>
+              {alternateLabel}
+            </Button>
+          ) : null}
+          <Button full onClick={onConfirm}>
+            {confirmLabel}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function EvoCostChoiceOverlay({
+  evolvingCardId,
+  baseName,
+  options,
+  onConfirm,
+  onCancel,
+}: {
+  evolvingCardId: string;
+  baseName: string;
+  options: Array<{ type: "normal" | "alternate"; label: string; cost: number }>;
+  onConfirm: (useAlternate: boolean) => void;
+  onCancel: () => void;
+}) {
+  const { t } = useTranslation();
+  const def = getCardDefinition(evolvingCardId);
+  const key = colorKey(def?.colors[0]);
+
+  return (
+    <div
+      className="combat-prompt evo-cost-prompt"
+      onClick={(e) => e.stopPropagation()}
+      style={{
+        position: "absolute",
+        left: "50%",
+        top: 120,
+        transform: "translateX(-50%)",
+        zIndex: 85,
+        width: 420,
+        background: "var(--ds-surface)",
+        border: "2px solid var(--ds-accent)",
+        borderRadius: 20,
+        boxShadow: "0 24px 50px rgba(15,23,42,0.3)",
+        padding: 22,
+        animation: "aegis-rise 200ms ease-out",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 16 }}>
+        <div
+          style={{
+            width: 44,
+            height: 44,
+            borderRadius: 12,
+            display: "grid",
+            placeItems: "center",
+            flexShrink: 0,
+            background: COLORS[key].soft,
+          }}
+        >
+          <Sigil cardId={evolvingCardId} color={key} size={28} />
+        </div>
+        <div>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.1em",
+              textTransform: "uppercase",
+              color: "var(--ds-accent)",
+            }}
+          >
+            {t("overlay.digivolveCost")}
+          </div>
+          <div
+            style={{
+              fontFamily: "var(--ds-font-display)",
+              fontWeight: 700,
+              fontSize: 17,
+              color: "var(--ds-fg)",
+              marginTop: 2,
+            }}
+          >
+            {name(evolvingCardId)} → {baseName}
+          </div>
+        </div>
+      </div>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 10 }}>
+        {[...options]
+          .sort((a, b) => a.cost - b.cost)
+          .map((opt) => (
+            <Button
+              key={opt.type}
+              full
+              variant={opt.type === "alternate" ? "secondary" : "primary"}
+              onClick={() => onConfirm(opt.type === "alternate")}
+            >
+              {t("overlay.costMemory", { label: opt.label, cost: opt.cost })}
+            </Button>
+          ))}
+      </div>
+
+      <Button full variant="ghost" onClick={onCancel}>
+        {t("common.cancel")}
+      </Button>
+    </div>
+  );
+}
+
+/* ---------------- CARD ACTION MENU ---------------- */
+
+/**
+ * Small popup anchored above a clicked field card. Always offers "View stack";
+ * offers "Attack" only when the caller deems the card eligible (your Digimon, your
+ * Main phase, unsuspended). Closes on any outside click via a full-screen backdrop.
+ */
+export function CardActionMenu({
+  x,
+  y,
+  cardId,
+  sheet,
+  dp,
+  baseDP,
+  keywords,
+  stackCards,
+  suspended,
+  promote,
+  canAttack,
+  canVortex,
+  onViewStack,
+  onAttack,
+  onVortex,
+  onClose,
+}: {
+  x: number;
+  y: number;
+  /** Card shown alongside the actions in `sheet` mode. */
+  cardId?: string;
+  /** Render as a bottom sheet (touch layouts) instead of a menu anchored to the card. */
+  sheet?: boolean;
+  /** Live permanent stats, shown in `sheet` mode. */
+  dp?: number;
+  baseDP?: number;
+  keywords?: readonly string[];
+  stackCards?: StackCard[];
+  suspended?: boolean;
+  /** Extra action for a breeding-area card (hatch / move to the battle area). */
+  promote?: { label: string; onPromote: () => void };
+  canAttack: boolean;
+  canVortex?: boolean;
+  onViewStack: () => void;
+  onAttack: () => void;
+  onVortex?: () => void;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const [zoomed, setZoomed] = useState<string | null>(null);
+  useEffect(() => {
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", closeOnEscape);
+    return () => window.removeEventListener("keydown", closeOnEscape);
+  }, [onClose]);
+  if (sheet) {
+    const def = getCardDefinition(cardId ?? "");
+    const dpDelta = dp != null && baseDP != null ? dp - baseDP : 0;
+    const beneath = (stackCards ?? []).filter((c) => c.role !== "top");
+    return createPortal(
+      <div
+        className="card-action-sheet"
+        role="dialog"
+        aria-modal="true"
+        aria-label={def?.nameEn ?? t("game.actions")}
+        onClick={onClose}
+      >
+        <div className="card-action-sheet__panel" onClick={(e) => e.stopPropagation()}>
+          <div className="card-action-sheet__grip" aria-hidden />
+          <div className="card-action-sheet__body">
+            {cardId ? (
+              <button
+                type="button"
+                className="card-action-sheet__zoom"
+                onClick={() => setZoomed(cardId)}
+                aria-label={t("overlay.zoomCard")}
+              >
+                <CardFull cardId={cardId} width={190} />
+              </button>
+            ) : null}
+            <div className="card-action-sheet__info">
+              <strong>{def?.nameEn ?? cardId}</strong>
+              <div className="card-action-sheet__stats">
+                {def?.level ? <span>Lv.{def.level}</span> : null}
+                {dp != null ? (
+                  <span>
+                    {dp.toLocaleString()} DP
+                    {dpDelta !== 0 ? (
+                      <em data-sign={dpDelta > 0 ? "up" : "down"}>
+                        {dpDelta > 0 ? "+" : "−"}
+                        {Math.abs(dpDelta).toLocaleString()}
+                      </em>
+                    ) : null}
+                  </span>
+                ) : null}
+                {suspended ? <span data-state="suspended">{t("overlay.suspended")}</span> : null}
+              </div>
+              {keywords?.length ? (
+                <div className="card-action-sheet__keywords">
+                  {keywords.map((k) => (
+                    <span key={k}>{formatKeyword(k)}</span>
+                  ))}
+                </div>
+              ) : null}
+              <div className="card-action-sheet__actions">
+                <Button size="md" full variant="secondary" icon={Icons.Search} onClick={onViewStack}>
+                  {t("overlay.viewStack")}
+                </Button>
+                {canAttack ? (
+                  <Button size="md" full variant="danger" icon={Icons.Swords} onClick={onAttack} autoFocus>
+                    {t("overlay.attack")}
+                  </Button>
+                ) : null}
+                {canVortex && onVortex ? (
+                  <Button size="md" full variant="danger" icon={Icons.Swords} onClick={onVortex}>
+                    {t("overlay.vortexAttack")}
+                  </Button>
+                ) : null}
+                {promote ? (
+                  <Button
+                    size="md"
+                    full
+                    variant="secondary"
+                    icon={Icons.ChevronUp}
+                    onClick={promote.onPromote}
+                    autoFocus={!canAttack}
+                  >
+                    {promote.label}
+                  </Button>
+                ) : null}
+                <Button
+                  size="sm"
+                  full
+                  variant="ghost"
+                  onClick={onClose}
+                  autoFocus={!canAttack && !canVortex && !promote}
+                >
+                  {t("common.cancel")}
+                </Button>
+              </div>
+            </div>
+          </div>
+          {beneath.length ? (
+            <div className="card-action-sheet__stack">
+              {(["stack", "linked"] as const).map((role) => {
+                const group = beneath.filter((c) => c.role === role);
+                if (!group.length) return null;
+                return (
+                  <div key={role}>
+                    <span>{t(ROLE_LABEL_KEYS[role])}</span>
+                    <div>
+                      {group.map((c, i) => (
+                        <button type="button" key={`${c.cardId}-${i}`} onClick={() => setZoomed(c.cardId)}>
+                          <CardArt cardId={c.cardId} width={54} />
+                          <figcaption>{getCardDefinition(c.cardId)?.nameEn ?? c.cardId}</figcaption>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : null}
+        </div>
+        {zoomed ? <CardZoomOverlay cardId={zoomed} onClose={() => setZoomed(null)} /> : null}
+      </div>,
+      document.body,
+    );
+  }
+  const item: React.CSSProperties = {
+    display: "flex",
+    alignItems: "center",
+    gap: 8,
+    padding: "8px 14px",
+    border: "none",
+    background: "transparent",
+    color: "var(--ds-fg)",
+    fontSize: 13,
+    fontWeight: 600,
+    cursor: "pointer",
+    textAlign: "left",
+    whiteSpace: "nowrap",
+  };
+  return createPortal(
+    <>
+      <div onClick={onClose} style={{ position: "fixed", inset: 0, zIndex: 9000 }} />
+      <div
+        className="card-inspector-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("game.actions")}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          position: "fixed",
+          left: x,
+          top: y,
+          transform: "translate(-50%, calc(-100% - 10px))",
+          zIndex: 9001,
+          minWidth: 150,
+          background: "var(--ds-surface)",
+          border: "1px solid var(--ds-border-strong)",
+          borderRadius: 12,
+          boxShadow: "0 16px 40px rgba(15,23,42,0.4)",
+          padding: 5,
+          display: "flex",
+          flexDirection: "column",
+          animation: "aegis-pop 120ms ease-out",
+        }}
+      >
+        <button
+          autoFocus
+          style={item}
+          onClick={onViewStack}
+          onMouseEnter={(e) => (e.currentTarget.style.background = "var(--ds-surface-muted)")}
+          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+        >
+          <Icons.Search size={15} /> {t("overlay.viewStack")}
+        </button>
+        {canAttack ? (
+          <button
+            style={{ ...item, color: "var(--ds-danger)" }}
+            onClick={onAttack}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--ds-danger-surface)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            <Icons.Swords size={15} /> {t("overlay.attack")}
+          </button>
+        ) : null}
+        {canVortex && onVortex ? (
+          <button
+            style={{ ...item, color: "var(--ds-danger)" }}
+            onClick={onVortex}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "var(--ds-danger-surface)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          >
+            <Icons.Swords size={15} /> {t("overlay.vortexAttack")}
+          </button>
+        ) : null}
+      </div>
+    </>,
+    document.body,
+  );
+}
+
+/* ---------------- STACK VIEWER ---------------- */
+
+export interface StackCard {
+  cardId: string;
+  role: "top" | "stack" | "linked";
+}
+
+/** Full-screen blow-up of a single card; tap anywhere (or Escape) to dismiss. */
+export function CardZoomOverlay({ cardId, onClose }: { cardId: string; onClose: () => void }) {
+  const { t } = useTranslation();
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [onClose]);
+  return createPortal(
+    <div
+      className="card-zoom"
+      role="dialog"
+      aria-modal="true"
+      aria-label={getCardDefinition(cardId)?.nameEn ?? cardId}
+      onClick={onClose}
+    >
+      <CardFull cardId={cardId} width={340} />
+      <button type="button" onClick={onClose} autoFocus>
+        {t("common.close")}
+      </button>
+    </div>,
+    document.body,
+  );
+}
+
+/**
+ * Turns a synced keyword into its printed spelling. The server normalizes printed
+ * keyword icons to a parameterless base name (＜Security Attack +1＞ → "SecurityAttack"),
+ * so the numeric parameter is not available here — only the keyword itself.
+ */
+const ROLE_LABEL_KEYS: Record<StackCard["role"], "overlay.role.top" | "overlay.role.stack" | "overlay.role.linked"> = {
+  top: "overlay.role.top",
+  stack: "overlay.role.stack",
+  linked: "overlay.role.linked",
+};
+
+/** Self-contained card art with image fallback to the color Sigil (no hover zoom). */
+function CardArt({ cardId, width }: { cardId: string; width: number }) {
+  const def = getCardDefinition(cardId);
+  const urls = cardImageUrls(def?.imageId ?? cardId);
+  const [idx, setIdx] = useState(0);
+  const h = Math.round(width * 1.4);
+  if (!def) return <CardBack width={width} label={cardId} />;
+  if (idx >= urls.length) {
+    return (
+      <div
+        style={{
+          width,
+          height: h,
+          borderRadius: 10,
+          background: `radial-gradient(${COLORS[colorKey(def.colors[0])].soft}, var(--ds-surface-muted))`,
+          display: "grid",
+          placeItems: "center",
+          flexShrink: 0,
+        }}
+      >
+        <Sigil cardId={def.cardId} color={colorKey(def.colors[0])} size={Math.round(h * 0.4)} />
+      </div>
+    );
+  }
+  return (
+    <img
+      src={urls[idx]}
+      alt={def.nameEn}
+      onError={() => setIdx((i) => i + 1)}
+      style={{ width, height: h, borderRadius: 10, objectFit: "cover", objectPosition: "top", flexShrink: 0 }}
+    />
+  );
+}
+
+/**
+ * Modal that lays out the cards making up a field permanent: thumbnails on the
+ * left (active card, its digivolution stack, then linked cards), and a large
+ * preview of the last-hovered thumbnail on the right. Surfaces an "Attack" action
+ * when the caller deems the permanent eligible.
+ */
+export function StackViewerOverlay({
+  cards,
+  title,
+  canAttack,
+  canVortex,
+  onAttack,
+  onVortex,
+  onClose,
+}: {
+  cards: StackCard[];
+  title: string;
+  canAttack: boolean;
+  canVortex?: boolean;
+  onAttack: () => void;
+  onVortex?: () => void;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const [activeIndex, setActiveIndex] = useState(0);
+  const [previewZoomed, setPreviewZoomed] = useState(false);
+  const preview = (cards[activeIndex] ?? cards[0])?.cardId;
+
+  return (
+    <Scrim onClick={onClose} className="game-modal">
+      <div
+        className="trash-viewer-dialog game-modal__panel"
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          display: "flex",
+          gap: 22,
+          maxWidth: 820,
+          maxHeight: "86%",
+          padding: 24,
+          background: "var(--ds-surface)",
+          borderRadius: 20,
+          border: "1px solid var(--ds-border)",
+          boxShadow: "var(--ds-shadow-summary)",
+        }}
+      >
+        {/* left: thumbnails grouped by role */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+            overflowY: "auto",
+            paddingRight: 4,
+            minWidth: 200,
+          }}
+        >
+          <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ds-fg)", fontFamily: "var(--ds-font-display)" }}>
+            {title}
+          </div>
+          {(["top", "stack", "linked"] as const).map((role) => {
+            const group = cards.map((c, index) => ({ c, index })).filter(({ c }) => c.role === role);
+            if (group.length === 0) return null;
+            return (
+              <div key={role} style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                <div
+                  style={{
+                    fontSize: 10,
+                    fontWeight: 700,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    color: "var(--ds-fg-muted)",
+                  }}
+                >
+                  {t(ROLE_LABEL_KEYS[role])}
+                </div>
+                {group.map(({ c, index }) => {
+                  const def = getCardDefinition(c.cardId);
+                  const sel = activeIndex === index;
+                  return (
+                    <button
+                      key={index}
+                      onMouseEnter={() => setActiveIndex(index)}
+                      onClick={() => setActiveIndex(index)}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 10,
+                        padding: 6,
+                        borderRadius: 10,
+                        cursor: "pointer",
+                        textAlign: "left",
+                        background: sel ? "var(--ds-accent-surface)" : "var(--ds-surface-muted)",
+                        border: `1.5px solid ${sel ? "var(--ds-accent)" : "transparent"}`,
+                        transition: "background 120ms, border-color 120ms",
+                      }}
+                    >
+                      <CardArt cardId={c.cardId} width={42} />
+                      <div style={{ overflow: "hidden" }}>
+                        <div
+                          style={{
+                            fontSize: 12.5,
+                            fontWeight: 600,
+                            color: "var(--ds-fg)",
+                            whiteSpace: "nowrap",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                          }}
+                        >
+                          {def?.nameEn ?? c.cardId}
+                        </div>
+                        <div style={{ fontFamily: "var(--ds-font-mono)", fontSize: 10.5, color: "var(--ds-fg-muted)" }}>
+                          {def?.dp ? `${def.dp.toLocaleString()} DP` : c.cardId}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* right: large preview of the hovered card */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+            alignItems: "center",
+            justifyContent: "space-between",
+          }}
+        >
+          {preview ? (
+            <div
+              onMouseEnter={() => setPreviewZoomed(true)}
+              onMouseLeave={() => setPreviewZoomed(false)}
+              style={{
+                transform: previewZoomed ? "scale(1.35)" : "scale(1)",
+                transformOrigin: "center",
+                transition: "transform 160ms ease",
+                cursor: "zoom-in",
+              }}
+            >
+              <CardArt cardId={preview} width={260} />
+            </div>
+          ) : null}
+          <div style={{ display: "flex", gap: 10, width: "100%" }}>
+            {canAttack ? (
+              <Button size="md" variant="danger" full icon={Icons.Swords} onClick={onAttack}>
+                {t("overlay.attack")}
+              </Button>
+            ) : null}
+            {canVortex && onVortex ? (
+              <Button size="md" variant="danger" full icon={Icons.Swords} onClick={onVortex}>
+                {t("overlay.vortexAttack")}
+              </Button>
+            ) : null}
+            <Button size="md" variant="ghost" full onClick={onClose}>
+              {t("common.close")}
+            </Button>
+          </div>
+        </div>
+      </div>
+    </Scrim>
+  );
+}
+
+/* ---------------- TRASH VIEWER ---------------- */
+
+/**
+ * Modal listing every card in a player's trash (public information). Cards are
+ * laid out newest-first in a wrapped grid of thumbnails; hovering one shows a
+ * large preview on the right. Read-only — the trash stays server-owned.
+ */
+export function TrashViewerOverlay({
+  cardIds,
+  title,
+  sheet,
+  onClose,
+}: {
+  cardIds: string[];
+  title: string;
+  /** Render as a bottom sheet with one scrollable row (touch layouts). */
+  sheet?: boolean;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  const ordered = [...cardIds].reverse();
+  const [activeCardId, setActiveCardId] = useState(ordered[0]);
+  const [zoomed, setZoomed] = useState<string | null>(null);
+  const preview = activeCardId ?? ordered[0];
+
+  if (sheet) {
+    return createPortal(
+      <div className="card-action-sheet" role="dialog" aria-modal="true" aria-label={title} onClick={onClose}>
+        <div className="card-action-sheet__panel" onClick={(e) => e.stopPropagation()}>
+          <div className="card-action-sheet__grip" aria-hidden />
+          <div className="trash-sheet__header">
+            <strong>{title}</strong>
+            <span>{t("overlay.trashCount", { count: cardIds.length })}</span>
+          </div>
+          {ordered.length === 0 ? (
+            <p className="trash-sheet__empty">{t("overlay.trashEmpty")}</p>
+          ) : (
+            <div className="trash-sheet__row">
+              {ordered.map((cardId, i) => (
+                <button type="button" key={`${cardId}-${i}`} onClick={() => setZoomed(cardId)}>
+                  <CardArt cardId={cardId} width={96} />
+                  <figcaption>{getCardDefinition(cardId)?.nameEn ?? cardId}</figcaption>
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="card-action-sheet__actions">
+            <Button size="sm" full variant="ghost" onClick={onClose} autoFocus>
+              {t("common.close")}
+            </Button>
+          </div>
+        </div>
+        {zoomed ? <CardZoomOverlay cardId={zoomed} onClose={() => setZoomed(null)} /> : null}
+      </div>,
+      document.body,
+    );
+  }
+
+  return (
+    <Scrim onClick={onClose} className="game-modal">
+      <div
+        className="game-modal__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-label={title}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          display: "flex",
+          gap: 22,
+          width: 820,
+          maxWidth: "92%",
+          maxHeight: "86%",
+          padding: 24,
+          background: "var(--ds-surface)",
+          borderRadius: 20,
+          border: "1px solid var(--ds-border)",
+          boxShadow: "var(--ds-shadow-summary)",
+        }}
+      >
+        {/* left: header + wrapped thumbnail grid */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, flex: 1, minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between" }}>
+            <div style={{ fontSize: 14, fontWeight: 800, color: "var(--ds-fg)", fontFamily: "var(--ds-font-display)" }}>
+              {title}
+            </div>
+            <div style={{ fontFamily: "var(--ds-font-mono)", fontSize: 11, color: "var(--ds-fg-muted)" }}>
+              {t("overlay.trashCount", { count: cardIds.length })}
+            </div>
+          </div>
+          {ordered.length === 0 ? (
+            <div
+              style={{
+                flex: 1,
+                display: "grid",
+                placeItems: "center",
+                color: "var(--ds-fg-disabled)",
+                fontFamily: "var(--ds-font-mono)",
+                fontSize: 12,
+              }}
+            >
+              {t("overlay.trashEmpty")}
+            </div>
+          ) : (
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 8,
+                overflowY: "auto",
+                alignContent: "flex-start",
+                paddingRight: 4,
+              }}
+            >
+              {ordered.map((cardId, i) => {
+                const def = getCardDefinition(cardId);
+                const sel = preview === cardId;
+                return (
+                  <button
+                    key={`${cardId}-${i}`}
+                    onMouseEnter={() => setActiveCardId(cardId)}
+                    onClick={() => setActiveCardId(cardId)}
+                    title={def?.nameEn ?? cardId}
+                    style={{
+                      padding: 3,
+                      borderRadius: 9,
+                      cursor: "pointer",
+                      background: sel ? "var(--ds-accent-surface)" : "transparent",
+                      border: `1.5px solid ${sel ? "var(--ds-accent)" : "transparent"}`,
+                      transition: "background 120ms, border-color 120ms",
+                    }}
+                  >
+                    <CardArt cardId={cardId} width={64} />
+                  </button>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* right: large preview of the hovered card */}
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 12,
+            alignItems: "center",
+            justifyContent: "space-between",
+            flexShrink: 0,
+          }}
+        >
+          {preview ? <CardArt cardId={preview} width={260} /> : null}
+          <Button size="md" variant="ghost" full onClick={onClose}>
+            {t("common.close")}
+          </Button>
+        </div>
+      </div>
+    </Scrim>
+  );
+}
+
+/* ---------------- DIGIXROS MATERIAL PICKER ---------------- */
+
+/** A selectable DigiXros material entry. */
+export interface DigiXrosCandidate {
+  instanceId: string;
+  cardId: string;
+  zone: "hand" | "battle" | "trash" | "underTamer";
+  digiXrosNames?: readonly string[];
+  canSubstitute?: boolean;
+}
+
+export interface DigiXrosEligibleExpander {
+  permanentId: string;
+  cardId: string;
+  underTamerMax: number;
+  trashMax: number;
+}
+
+/** Human-readable label for one DigiXros material slot. */
+function materialSlotLabel(mat: DigiXrosRequirement["materials"][number], t: Translate): string {
+  if (mat.desc) return mat.desc;
+  const parts: string[] = [];
+  if (mat.names?.length) parts.push(mat.names.join("/"));
+  if (mat.traits?.length) parts.push(`[${mat.traits.join("/")}]`);
+  if (mat.traitContains?.length) parts.push(t("overlay.xrosTraitContains", { traits: mat.traitContains.join("/") }));
+  if (mat.colors?.length) parts.push(mat.colors.join("/"));
+  if (mat.level !== undefined) parts.push(`Lv.${mat.level}`);
+  else if (mat.levelMin !== undefined || mat.levelMax !== undefined)
+    parts.push(`Lv.${mat.levelMin ?? "?"}–${mat.levelMax ?? "?"}`);
+  if (mat.nameOrTrait?.length) parts.push(mat.nameOrTrait.map((r) => r.tokens.join("/")).join(" or "));
+  if (mat.differentNames) parts.push(t("overlay.xrosDifferentNames"));
+  return parts.length ? parts.join(" ") : t("overlay.xrosAnyCard");
+}
+
+/**
+ * Overlay shown when the player initiates play of a card with a DigiXros requirement.
+ * The player picks material instance ids from unlocked source zones, then confirms.
+ * Skipping sends an empty material list (plain play at full cost — server validates).
+ * The server is the sole authority on legality; this is best-effort client-side filtering.
+ */
+export function DigiXrosMaterialOverlay({
+  playingCardId,
+  requirements,
+  candidates,
+  lockedCandidates,
+  eligibleExpanders,
+  onConfirm,
+  onSkip,
+  onCancel,
+}: {
+  /** The card about to be played. */
+  playingCardId: string;
+  /** DigiXros requirements for the card (at least one entry). */
+  requirements: DigiXrosRequirement[];
+  /** Eligible material candidates (hand + battle area top cards). */
+  candidates: DigiXrosCandidate[];
+  /** Material candidates in zones locked behind selected expander Tamers. */
+  lockedCandidates: DigiXrosCandidate[];
+  /** Unsuspended expander Tamers that can be suspended for this DigiXros play. */
+  eligibleExpanders: DigiXrosEligibleExpander[];
+  /** Confirm with the chosen materials and expander Tamers to suspend. */
+  onConfirm: (materialInstanceIds: string[], expanderPermanentIds: string[]) => void;
+  /** Play the card normally without DigiXros (full cost, no materials). */
+  onSkip: () => void;
+  /** Cancel: go back without playing. */
+  onCancel: () => void;
+}) {
+  const { t } = useTranslation();
+  const titleId = useId();
+  const [picks, setPicks] = useState<string[]>([]);
+  const [chosenExpanderPermanentIds, setChosenExpanderPermanentIds] = useState<string[]>([]);
+
+  const req = requirements[0]!;
+  const reductionLabel =
+    req.count === "∞"
+      ? req.costReduction !== undefined
+        ? t("overlay.xrosReductionPerCard", { count: req.costReduction })
+        : t("overlay.xrosReductionVariable")
+      : t("overlay.xrosReductionPerPlaced", { count: req.count });
+
+  const slotLabels = req.materials.map((material) => materialSlotLabel(material, t));
+  const chosenExpanders = eligibleExpanders.filter((e) => chosenExpanderPermanentIds.includes(e.permanentId));
+  const underTamerMax = chosenExpanders.reduce((max, e) => Math.max(max, e.underTamerMax), 0);
+  const trashMax = chosenExpanders.reduce((max, e) => Math.max(max, e.trashMax), 0);
+  const trashCandidates = lockedCandidates.filter((c) => c.zone === "trash");
+  const underTamerCandidates = lockedCandidates.filter((c) => c.zone === "underTamer");
+  const availableCandidates = [
+    ...candidates,
+    ...(trashMax > 0 ? trashCandidates : []),
+    ...(underTamerMax > 0 ? underTamerCandidates : []),
+  ];
+  const candidateById = new Map(availableCandidates.map((c) => [c.instanceId, c]));
+  const candidateDefinitions = availableCandidates.flatMap((candidate) => {
+    const definition = getCardDefinition(candidate.cardId);
+    return definition === undefined
+      ? []
+      : [
+          {
+            instanceId: candidate.instanceId,
+            definition,
+            digiXrosNames: candidate.digiXrosNames,
+            canSubstitute: candidate.canSubstitute,
+          },
+        ];
+  });
+  const eligibleCandidateIds = eligibleDigiXrosCandidateIds(req, candidateDefinitions, picks);
+  for (const picked of picks) eligibleCandidateIds.add(picked);
+  const pickedTrash = picks.filter((id) => candidateById.get(id)?.zone === "trash").length;
+  const pickedUnderTamer = picks.filter((id) => candidateById.get(id)?.zone === "underTamer").length;
+
+  useEffect(() => {
+    setPicks((prev) => {
+      let nextTrash = 0;
+      let nextUnderTamer = 0;
+      const next = prev.filter((id) => {
+        const zone = lockedCandidates.find((c) => c.instanceId === id)?.zone;
+        if (zone === "trash") {
+          nextTrash += 1;
+          return nextTrash <= trashMax;
+        }
+        if (zone === "underTamer") {
+          nextUnderTamer += 1;
+          return nextUnderTamer <= underTamerMax;
+        }
+        return true;
+      });
+      return next.length === prev.length ? prev : next;
+    });
+  }, [lockedCandidates, trashMax, underTamerMax]);
+
+  const toggleExpander = (permanentId: string) => {
+    setChosenExpanderPermanentIds((prev) =>
+      prev.includes(permanentId) ? prev.filter((id) => id !== permanentId) : [...prev, permanentId],
+    );
+  };
+
+  const toggle = (candidate: DigiXrosCandidate) => {
+    const { instanceId, zone } = candidate;
+    setPicks((prev) => {
+      if (prev.includes(instanceId)) return prev.filter((id) => id !== instanceId);
+      const trashCount = prev.filter((id) => candidateById.get(id)?.zone === "trash").length;
+      const underTamerCount = prev.filter((id) => candidateById.get(id)?.zone === "underTamer").length;
+      if (zone === "trash" && trashCount >= trashMax) return prev;
+      if (zone === "underTamer" && underTamerCount >= underTamerMax) return prev;
+      return [...prev, instanceId];
+    });
+  };
+
+  const zoneLabel = (zone: DigiXrosCandidate["zone"]): string => t(`overlay.zone.${zone}` as const);
+
+  const renderCandidates = (items: DigiXrosCandidate[], emptyText: string) => {
+    const eligibleItems = items.filter((candidate) => eligibleCandidateIds.has(candidate.instanceId));
+    return eligibleItems.length === 0 ? (
+      <div style={{ padding: "14px 0", textAlign: "center", fontSize: 13, color: "var(--ds-fg-disabled)" }}>
+        {emptyText}
+      </div>
+    ) : (
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, maxHeight: 280, overflowY: "auto" }}>
+        {eligibleItems.map((c) => {
+          const selected = picks.includes(c.instanceId);
+          const def = getCardDefinition(c.cardId);
+          const accessibleName = t("overlay.xrosMaterialLabel", {
+            name: def?.nameEn ?? c.cardId,
+            zone: zoneLabel(c.zone),
+          });
+          const zoneCount = c.zone === "trash" ? pickedTrash : c.zone === "underTamer" ? pickedUnderTamer : 0;
+          const zoneMax = c.zone === "trash" ? trashMax : c.zone === "underTamer" ? underTamerMax : Infinity;
+          const disabled = !selected && zoneCount >= zoneMax;
+          return (
+            <button
+              key={c.instanceId}
+              onClick={() => !disabled && toggle(c)}
+              disabled={disabled}
+              aria-label={accessibleName}
+              aria-pressed={selected}
+              title={accessibleName}
+              style={{
+                padding: 4,
+                borderRadius: 10,
+                cursor: disabled ? "not-allowed" : "pointer",
+                opacity: disabled ? 0.45 : 1,
+                filter: disabled ? "grayscale(0.6)" : "none",
+                background: selected ? "var(--ds-accent-surface)" : "var(--ds-surface-muted)",
+                border: `2px solid ${selected ? "var(--ds-accent)" : "transparent"}`,
+                transition: "background 100ms, border-color 100ms",
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                gap: 3,
+              }}
+            >
+              <CardArt cardId={c.cardId} width={72} />
+              <span
+                style={{
+                  fontSize: 9.5,
+                  fontWeight: 600,
+                  color: selected ? "var(--ds-accent)" : "var(--ds-fg-muted)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
+                }}
+              >
+                {zoneLabel(c.zone)}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    );
+  };
+
+  const renderLockedZone = (label: string, items: DigiXrosCandidate[], max: number) => {
+    if (items.length === 0) return null;
+    return (
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
+          <div
+            style={{
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: max > 0 ? "var(--ds-accent)" : "var(--ds-fg-muted)",
+            }}
+          >
+            {label}
+          </div>
+          <div
+            style={{
+              fontFamily: "var(--ds-font-mono)",
+              fontSize: 11,
+              color: max > 0 ? "var(--ds-accent)" : "var(--ds-fg-muted)",
+            }}
+          >
+            {max > 0 ? t("overlay.xrosZoneMax", { count: max }) : t("overlay.xrosZoneLocked")}
+          </div>
+        </div>
+        {max > 0 ? (
+          renderCandidates(items, t("overlay.xrosNoZoneMaterials", { zone: label.toLowerCase() }))
+        ) : (
+          <div
+            style={{
+              padding: "10px 12px",
+              borderRadius: 10,
+              background: "var(--ds-surface-muted)",
+              color: "var(--ds-fg-muted)",
+              fontSize: 12.5,
+            }}
+          >
+            {t("overlay.xrosUnlockHint")}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  return (
+    <Scrim className="game-modal">
+      <div
+        className="game-modal__panel"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby={titleId}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          maxWidth: 640,
+          width: "100%",
+          background: "var(--ds-surface)",
+          borderRadius: 20,
+          border: "1px solid var(--ds-border)",
+          boxShadow: "var(--ds-shadow-summary)",
+          padding: 24,
+          display: "flex",
+          flexDirection: "column",
+          gap: 16,
+        }}
+      >
+        {/* header */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <div
+            style={{
+              display: "grid",
+              placeItems: "center",
+              width: 38,
+              height: 38,
+              borderRadius: 11,
+              background: "var(--ds-accent-surface)",
+              color: "var(--ds-accent)",
+              flexShrink: 0,
+            }}
+          >
+            <Icons.Sparkles size={20} />
+          </div>
+          <div>
+            <div
+              id={titleId}
+              style={{ fontFamily: "var(--ds-font-display)", fontWeight: 800, fontSize: 18, color: "var(--ds-fg)" }}
+            >
+              {t("overlay.xrosTitle", { name: name(playingCardId) })}
+            </div>
+            <div style={{ fontSize: 12.5, color: "var(--ds-fg-muted)", marginTop: 2 }}>
+              {t("overlay.xrosDetail", { reduction: reductionLabel })}
+              {slotLabels.length > 0 ? t("overlay.xrosAccepted", { slots: slotLabels.join(" × ") }) : null}
+            </div>
+          </div>
+        </div>
+
+        {eligibleExpanders.length > 0 ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <div
+              style={{
+                fontSize: 11,
+                fontWeight: 700,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                color: "var(--ds-fg-muted)",
+              }}
+            >
+              {t("overlay.xrosExpanders")}
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              {eligibleExpanders.map((e) => {
+                const chosen = chosenExpanderPermanentIds.includes(e.permanentId);
+                const maxParts = [
+                  e.trashMax > 0 ? t("overlay.xrosTrashMax", { count: e.trashMax }) : undefined,
+                  e.underTamerMax > 0 ? t("overlay.xrosUnderTamersMax", { count: e.underTamerMax }) : undefined,
+                ].filter(Boolean);
+                return (
+                  <button
+                    key={e.permanentId}
+                    onClick={() => toggleExpander(e.permanentId)}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 10,
+                      padding: "8px 10px",
+                      borderRadius: 10,
+                      cursor: "pointer",
+                      textAlign: "left",
+                      background: chosen ? "var(--ds-accent-surface)" : "var(--ds-surface-muted)",
+                      border: `1.5px solid ${chosen ? "var(--ds-accent)" : "var(--ds-border)"}`,
+                    }}
+                  >
+                    <span
+                      style={{
+                        display: "grid",
+                        placeItems: "center",
+                        width: 20,
+                        height: 20,
+                        borderRadius: 6,
+                        background: chosen ? "var(--ds-accent)" : "var(--ds-border)",
+                        color: chosen ? "#fff" : "var(--ds-fg-muted)",
+                        flexShrink: 0,
+                      }}
+                    >
+                      {chosen ? <Icons.Check size={14} /> : null}
+                    </span>
+                    <span style={{ flex: 1, minWidth: 0, fontSize: 12.5, fontWeight: 600, color: "var(--ds-fg)" }}>
+                      {t("overlay.xrosSuspendToUnlock", {
+                        name: name(e.cardId),
+                        limits: maxParts.length ? t("overlay.xrosLimits", { limits: maxParts.join(", ") }) : "",
+                      })}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
+
+        {renderCandidates(candidates, t("overlay.xrosNoMaterials"))}
+        {renderLockedZone(t("overlay.xrosZoneTrash"), trashCandidates, trashMax)}
+        {renderLockedZone(t("overlay.xrosZoneUnderTamers"), underTamerCandidates, underTamerMax)}
+
+        <div style={{ fontSize: 12, color: "var(--ds-fg-muted)" }}>
+          {picks.length === 0 ? t("overlay.xrosNoneSelected") : t("overlay.xrosSelected", { count: picks.length })}
+        </div>
+
+        {/* actions */}
+        <div style={{ display: "flex", gap: 10 }}>
+          <Button full variant="ghost" onClick={onCancel}>
+            {t("common.cancel")}
+          </Button>
+          <Button full variant="secondary" onClick={onSkip}>
+            {t("overlay.xrosPlayWithout")}
+          </Button>
+          <Button
+            full
+            icon={Icons.Sparkles}
+            disabled={picks.length === 0}
+            onClick={() => onConfirm(picks, chosenExpanderPermanentIds)}
+          >
+            {picks.length === 1 ? t("overlay.xrosConfirmOne") : t("overlay.xrosConfirm", { count: picks.length })}
+          </Button>
+        </div>
+      </div>
+    </Scrim>
+  );
+}

@@ -1,0 +1,180 @@
+import { describe, it, expect, vi } from "vitest";
+import { EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
+import { getEffectModule } from "../../engine/effects/registry.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import "./BT26-079.js";
+
+// A3 for BT26-079 (ZombiePlutomon, BT26):
+//   "[On Play] [When Digivolving] [When Attacking] By trashing 1 card in your hand,
+//    delete 1 of your opponent's level 6 or lower Digimon."
+//   "[Trash] [Main] If your hand has 5 or fewer cards, play this card with the cost
+//    reduced by 4."
+//
+// FAILS-WHEN-REVERTED: dropping the `(def.level ?? 99) <= 6` filter (or skipping the
+// trash cost) either deletes an over-level target or deletes for free; this test asserts
+// the hand card is trashed before the correct opponent target is deleted, and that
+// declining the cost blocks the delete entirely. The third test asserts the
+// [Trash][Main] activated clause plays the source instance from the trash with the
+// costDelta -4 reduction and is gated on hand size <= 5.
+
+const CARD_ID = "BT26-079";
+
+function fakeDef(over: Partial<CardDefinition> = {}): CardDefinition {
+  return {
+    cardId: over.cardId ?? "AD1-001",
+    set: "BT26",
+    nameEn: over.nameEn ?? "Test",
+    kinds: (over.kinds as never) ?? (["Digimon"] as never),
+    colors: (over.colors as never) ?? ([] as never),
+    playCost: over.playCost ?? 0,
+    dp: over.dp ?? 0,
+    level: over.level,
+    evoCosts: [],
+    maxCountInDeck: 4,
+    ...over,
+  };
+}
+
+function makeSource(opts?: { isInTrash?: boolean }): CardSource {
+  return {
+    instanceId: "zombieplutomon-top",
+    cardId: CARD_ID,
+    ownerSeat: 0 as Seat,
+    definition: fakeDef({ cardId: CARD_ID }),
+    permanent: () => ({ permanentId: "self-perm" }) as never,
+    isOnBattleArea: () => true,
+    isOwnersTurn: () => true,
+    hasColor: () => false,
+    isInTrash: () => opts?.isInTrash ?? false,
+  };
+}
+
+describe("BT26-079 [On Play]/[When Digivolving]/[When Attacking]: trash-cost delete a level<=6 opponent Digimon", () => {
+  it("trashes the chosen hand card, then deletes only the eligible opponent target", async () => {
+    const handCard = { instanceId: "hand-1", cardId: "H-1" };
+    const oppLow = { permanentId: "opp-low", topCard: { cardId: "AD1-001" }, inBreeding: false };
+    const oppHigh = { permanentId: "opp-high", topCard: { cardId: "AD1-002" }, inBreeding: false };
+    const players = [
+      { seat: 0 as Seat, hand: [handCard] },
+      { seat: 1 as Seat, battleArea: [oppHigh, oppLow] },
+    ];
+
+    const game: GameAccess = {
+      player: (seat: Seat) => players[seat] as never,
+      opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
+      definitionOf: (card: { cardId: string }) =>
+        fakeDef({ cardId: card.cardId, level: card.cardId === "AD1-001" ? 6 : 7 }),
+    } as unknown as GameAccess;
+
+    const trashed: string[][] = [];
+    const deleted: string[][] = [];
+    const fx = {
+      trash: vi.fn(async (ids: string[]) => {
+        trashed.push(ids);
+        return ids;
+      }),
+      deletePermanent: vi.fn(async (ids: string[]) => {
+        deleted.push(ids);
+        return ids.length;
+      }),
+    } as unknown as Primitives;
+
+    const ask = {
+      selectCards: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!]),
+      chooseTargets: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!]),
+    } as unknown as EffectContext["ask"];
+
+    const source = makeSource();
+    const ctx = { source, trigger: {}, game, fx, ask } as unknown as EffectContext;
+
+    const module = getEffectModule(CARD_ID);
+    expect(module).toBeDefined();
+    const effects = module!.effectsForTiming(EffectTiming.OnPlay, source);
+    const effect = effects.find((e) => e.effectKey === `${CARD_ID}/on-play-trash-cost-delete`);
+    expect(effect).toBeDefined();
+
+    await effect!.resolve(ctx);
+
+    expect(trashed).toEqual([["hand-1"]]);
+    expect(deleted).toEqual([["opp-low"]]);
+  });
+
+  it("does not delete when the player declines to pay the trash cost", async () => {
+    const oppLow = { permanentId: "opp-low", topCard: { cardId: "AD1-001" }, inBreeding: false };
+    const players = [{ seat: 0 as Seat, hand: [{ instanceId: "hand-1", cardId: "H-1" }] }, { seat: 1 as Seat, battleArea: [oppLow] }];
+
+    const game: GameAccess = {
+      player: (seat: Seat) => players[seat] as never,
+      opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
+      definitionOf: () => fakeDef({ level: 6 }),
+    } as unknown as GameAccess;
+
+    const deleted: unknown[] = [];
+    const fx = {
+      trash: vi.fn(async () => []),
+      deletePermanent: vi.fn(async () => deleted.push(1)),
+    } as unknown as Primitives;
+    const ask = { selectCards: vi.fn(async () => []) } as unknown as EffectContext["ask"];
+
+    const source = makeSource();
+    const ctx = { source, trigger: {}, game, fx, ask } as unknown as EffectContext;
+    const module = getEffectModule(CARD_ID);
+    const effects = module!.effectsForTiming(EffectTiming.OnPlay, source);
+    const effect = effects.find((e) => e.effectKey === `${CARD_ID}/on-play-trash-cost-delete`);
+
+    await effect!.resolve(ctx);
+
+    expect(deleted).toEqual([]);
+  });
+});
+
+describe("BT26-079 [Trash][Main]: play this card from the trash with the cost reduced by 4", () => {
+  it("is only activatable while the source sits in the trash, gated on hand size <= 5", () => {
+    const inTrashSource = makeSource({ isInTrash: true });
+    const onFieldSource = makeSource({ isInTrash: false });
+
+    const module = getEffectModule(CARD_ID);
+    expect(module).toBeDefined();
+
+    const trashEffects = module!.effectsForTiming(EffectTiming.OnDeclaration, inTrashSource);
+    const playFromTrash = trashEffects.find((e) => e.effectKey === `${CARD_ID}/trash-main-play-with-cost-reduced`);
+    expect(playFromTrash).toBeDefined();
+
+    const players = [{ seat: 0 as Seat, hand: [1, 2, 3, 4, 5] }];
+    const game = { player: () => players[0] as never } as unknown as GameAccess;
+
+    // Eligible: hand has exactly 5 cards (<= 5).
+    expect(playFromTrash!.canActivate({ source: inTrashSource, game } as unknown as EffectContext)).toBe(true);
+
+    // The `activated` builder's baseGuard requires trash residency for an isFromTrash effect.
+    const onFieldEffects = module!.effectsForTiming(EffectTiming.OnDeclaration, onFieldSource);
+    const onFieldClause = onFieldEffects.find((e) => e.effectKey === `${CARD_ID}/trash-main-play-with-cost-reduced`);
+    expect(onFieldClause!.canTrigger({ source: onFieldSource } as unknown as EffectContext)).toBe(false);
+  });
+
+  it("plays the source instance from the trash with the cost reduced by 4", async () => {
+    const source = makeSource({ isInTrash: true });
+    const players = [{ seat: 0 as Seat, hand: [1, 2, 3, 4, 5] }];
+    const game = { player: () => players[0] as never } as unknown as GameAccess;
+
+    const played: Array<[string[], unknown]> = [];
+    const fx = {
+      playInstances: vi.fn(async (ids: string[], opts: unknown) => {
+        played.push([ids, opts]);
+        return [];
+      }),
+    } as unknown as Primitives;
+
+    const ctx = { source, trigger: {}, game, fx, ask: {} } as unknown as EffectContext;
+
+    const module = getEffectModule(CARD_ID);
+    const effects = module!.effectsForTiming(EffectTiming.OnDeclaration, source);
+    const playFromTrash = effects.find((e) => e.effectKey === `${CARD_ID}/trash-main-play-with-cost-reduced`);
+    expect(playFromTrash).toBeDefined();
+
+    await playFromTrash!.resolve(ctx);
+
+    expect(played).toEqual([[["zombieplutomon-top"], { payCost: true, costDelta: 4 }]]);
+  });
+});

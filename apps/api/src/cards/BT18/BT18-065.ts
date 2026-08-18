@@ -1,0 +1,126 @@
+// @ts-nocheck
+// HAND-FIXED IR for BT18-065 — do not regenerate.
+// WhenDigivolving PlaceUnder: added from:["hand","trash"], underFilter:{mine Digimon},
+// position:bottom, controller:mine to target filter.
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+const compiled: CompiledCard = {
+  "effects": [
+    {
+      "trigger": "Static",
+      "actions": [
+        {
+          "kind": "GrantStatic",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          },
+          "grant": "digixrosFromTrash",
+          "tokens": [],
+          "condition": {
+            "kind": "youHave",
+            "filter": {
+              "excludeNames": ["Vemmon"],
+              "controllerDefault": "mine",
+              "kind": ["Digimon"]
+            },
+            "raw": "you have no Digimon other than [Vemmon]"
+          }
+        }
+      ]
+    },
+    {
+      "trigger": "WhenDigivolving",
+      "actions": [
+        {
+          "kind": "PlaceUnder",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "nameOrTrait": [
+                {
+                  "tokens": ["Vemmon"],
+                  "match": "name"
+                }
+              ]
+            },
+            "from": ["hand", "trash"],
+            "count": 2,
+            "upTo": true
+          },
+          "underFilter": {
+            "controller": "mine",
+            "kind": ["Digimon"]
+          },
+          "position": "bottom",
+          "optional": true
+        }
+      ]
+    },
+    {
+      "trigger": "EndOfYourTurn",
+      "actions": [
+        {
+          "kind": "Digivolve",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          },
+          "into": {
+            "controllerDefault": "mine",
+            "kind": ["Digimon"],
+            "nameOrTrait": [
+              {
+                "tokens": ["Vemmon"],
+                "match": "text"
+              }
+            ]
+          },
+          "condition": {
+            "kind": "selfDigivolutionCountAtLeast",
+            "value": 4,
+            "raw": "this Digimon has 4 or more digivolution cards"
+          }
+        }
+      ]
+    },
+    {
+      "trigger": "AllTurns",
+      "actions": [
+        {
+          "kind": "GainKeyword",
+          "target": {
+            "filter": {
+              "controllerDefault": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [
+                {
+                  "tokens": ["Vemmon"],
+                  "match": "name"
+                }
+              ]
+            },
+            "count": 1
+          },
+          "keyword": {
+            "keyword": "Blocker",
+            "raw": "＜Blocker＞"
+          },
+          "duration": "untilOpponentTurnEnd"
+        }
+      ],
+      "isInherited": true,
+      "frequency": "OncePerTurn"
+    }
+  ],
+  "coverage": "full",
+  "residual": []
+};
+
+registerIrCard("BT18-065", compiled);

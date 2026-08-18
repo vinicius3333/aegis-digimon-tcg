@@ -1,0 +1,10 @@
+import { CardColor, EffectTiming, isDigimon } from "@aegis/shared";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import { onPlay } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
+const cardId = "ST4-03";
+const module: EffectModule = { cardId, effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] { if (timing !== EffectTiming.OnPlay) return []; return [onPlay({ source, effectKey: `${cardId}/reveal-green`, description: "[On Play] Reveal the top card; add it if it is a green Digimon.", resolve: async (ctx) => { const revealed = await ctx.fx.reveal(source.ownerSeat, 1); const card = revealed[0]; if (!card) return; const definition = ctx.game.definitionOf(card); if (isDigimon(definition) && definition.colors.includes(CardColor.Green)) await ctx.fx.returnToHand([card.instanceId]); else await ctx.fx.returnToDeck([card.instanceId], { toTop: false }); } })]; } };
+registerCard(module);
+export default module;

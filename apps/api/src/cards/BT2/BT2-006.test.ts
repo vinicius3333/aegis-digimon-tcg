@@ -1,0 +1,2 @@
+import { describe,expect,it } from "vitest";import { setupEngine } from "../../engine/testkit/harness.js";import "./BT2-006.js";
+describe("BT2-006 Tsumemon",()=>{it("gives +2000 DP while another Digimon has the host's name",async()=>{const s=setupEngine({0:{battleArea:[{card:"BT2-009",as:"host",under:["BT2-006"]},{card:"BT2-009",as:"other"}]}});await s.engine.recomputeContinuousEffects();expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP+2000);});});

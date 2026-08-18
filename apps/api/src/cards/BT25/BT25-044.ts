@@ -1,0 +1,156 @@
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+// Behavior is executed by the shared interpreter; this file only carries the IR and
+// registers it. To override with a hand-written module, delete the AUTO-GENERATED
+// header line above and replace the body — the generator will then preserve this file.
+const compiled: CompiledCard = {
+  "effects": [
+    {
+      "trigger": "Static",
+      "actions": [
+        {
+          "kind": "Replacement",
+          "event": "wouldBePlayed",
+          "sourceFilter": {
+            "isSelfRef": true
+          },
+          "actions": [
+            {
+              "kind": "Replacement",
+              "event": "wouldBePlayed",
+              "mode": "reduceCost",
+              "amount": 5,
+              "raw": "reduce the cost by 5",
+              "condition": {
+                "kind": "raw",
+                "raw": "there are 6 or fewer total cards in both players' security stacks"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "trigger": "OnPlay",
+      "actions": [
+        {
+          "kind": "Trash",
+          "target": {
+            "filter": {
+              "controllerDefault": "mine"
+            },
+            "count": 1
+          },
+          "cost": {
+            "kind": "place",
+            "target": {
+              "filter": {
+                "controllerDefault": "mine",
+                "excludeSelf": true,
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "count": 1
+            },
+            "raw": "By placing 1 other Digimon as the top security card",
+            "destination": "security",
+            "position": "top",
+            "faceDown": true
+          },
+          "optional": true,
+          "abortOnDecline": true
+        }
+      ]
+    },
+    {
+      "trigger": "WhenDigivolving",
+      "actions": [
+        {
+          "kind": "Trash",
+          "target": {
+            "filter": {
+              "controllerDefault": "mine"
+            },
+            "count": 1
+          },
+          "cost": {
+            "kind": "place",
+            "target": {
+              "filter": {
+                "controllerDefault": "mine",
+                "excludeSelf": true,
+                "kind": [
+                  "Digimon"
+                ]
+              },
+              "count": 1
+            },
+            "raw": "By placing 1 other Digimon as the top security card",
+            "destination": "security",
+            "position": "top",
+            "faceDown": true
+          },
+          "optional": true,
+          "abortOnDecline": true
+        }
+      ]
+    },
+    {
+      "trigger": "AllTurns",
+      "actions": [
+        {
+          "kind": "SubTrigger",
+          "event": "whenSecurityRemoved",
+          "actions": [
+            {
+              "kind": "PlayWithoutCost",
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "playCostLte": 8,
+                  "nameOrTrait": [
+                    {
+                      "tokens": [
+                        "Angel",
+                        "Archangel",
+                        "Iliad"
+                      ],
+                      "match": "trait"
+                    }
+                  ]
+                },
+                "count": 1
+              },
+              "from": [
+                "hand",
+                "trash"
+              ],
+              "payCost": false,
+              "optional": true
+            }
+          ]
+        }
+      ],
+      "frequency": "OncePerTurn"
+    }
+  ],
+  "coverage": "full",
+  "residual": [],
+  "digivolutionRequirement": [
+    {
+      "level": 5,
+      "traits": [
+        "Angel",
+        "Archangel",
+        "TS"
+      ],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ]
+};
+
+registerIrCard("BT25-044", compiled);

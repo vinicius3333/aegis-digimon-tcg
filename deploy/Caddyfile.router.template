@@ -1,0 +1,61 @@
+:80 {
+	encode gzip
+
+	@stale_web_revision {
+		not header X-Aegis-Web-Revision {{ACTIVE_REVISION}}
+		not header_regexp Cookie "(?:^|;[[:space:]]*)aegis_web_revision={{ACTIVE_REVISION}}(?:;|$)"
+	}
+
+	handle /deployment/manifest.json {
+		header @stale_web_revision Clear-Site-Data "\"cache\""
+		header @stale_web_revision Set-Cookie "aegis_web_revision={{ACTIVE_REVISION}}; Path=/; Max-Age=31536000; Secure; HttpOnly; SameSite=Lax"
+		header Cache-Control "no-store, max-age=0"
+		header Content-Type "application/json"
+		root * /srv/deployment
+		rewrite * /manifest.json
+		file_server
+	}
+
+	handle_path /api/blue/* {
+		reverse_proxy aegis-api-blue:2567
+	}
+
+	handle_path /api/green/* {
+		reverse_proxy aegis-api-green:2567
+	}
+
+	# Expand/contract compatibility for already-open web bundles. Those clients
+	# create their room on the current slot but still call the unscoped endpoint.
+	@legacy_bot_join {
+		method POST
+		path /bot/join
+	}
+	handle @legacy_bot_join {
+		reverse_proxy aegis-api-{{ACTIVE_SLOT}}:2567 {
+			request_buffers 64KB
+{{LEGACY_BOT_FALLBACK}}
+		}
+	}
+
+	@legacy_gameplay path /matchmake/* /bot/* /room/*
+	handle @legacy_gameplay {
+		respond `{"code":"AEGIS_CLIENT_REFRESH_REQUIRED","error":"Refresh the page before starting or reconnecting a game."}` 426
+	}
+
+	@active_api path /health /ready /auth/* /account/*
+	handle @active_api {
+		reverse_proxy aegis-api-{{ACTIVE_SLOT}}:2567
+	}
+
+	@tournament_api {
+		path /tournaments*
+		not header Accept *text/html*
+	}
+	handle @tournament_api {
+		reverse_proxy aegis-api-{{ACTIVE_SLOT}}:2567
+	}
+
+	handle {
+		reverse_proxy aegis-web-{{ACTIVE_SLOT}}:80
+	}
+}

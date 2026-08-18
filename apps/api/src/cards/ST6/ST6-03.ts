@@ -1,0 +1,10 @@
+import { EffectTiming } from "@aegis/shared";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import { whenAttacking } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
+const cardId = "ST6-03";
+const module: EffectModule = { cardId, effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] { if (timing !== EffectTiming.OnUseAttack) return []; return [whenAttacking({ source, effectKey: `${cardId}/draw-trash`, description: "[When Attacking] Draw 1, then trash 1 card in your hand.", isInherited: true, resolve: async (ctx) => { await ctx.fx.draw(source.ownerSeat, 1); const candidates = ctx.game.player(source.ownerSeat).hand.map((card) => card.instanceId); if (!candidates.length) return; const chosen = await ctx.ask.selectCards(ctx, { candidates, min: 1, max: 1 }); if (chosen.length) await ctx.fx.trash(chosen, { byEffectSeat: source.ownerSeat }); } })]; } };
+registerCard(module);
+export default module;

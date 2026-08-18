@@ -1,0 +1,15 @@
+import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT8-068.js";
+
+describe("BT8-068 BanchoMamemon", () => {
+  it("plays one revealed cost-10-or-less Mamemon per opposing Digimon and trashes the rest", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT10-013", as: "base" }], hand: [{ card: "BT8-068", as: "evolving" }], deck: ["BT1-009", { card: "BT6-064", as: "first" }, { card: "BT3-071", as: "second" }, { card: "BT1-010", as: "rest" }] }, 1: { battleArea: ["BT1-015", "BT1-016"] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    await settle(() => s.events.some(event => event.kind === "effectResolved" && event.sourceCardId === "BT8-068"));
+    expect(s.state.players[0]!.battleArea.some(permanent => permanent.topCard?.instanceId === s.inst("first").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some(permanent => permanent.topCard?.instanceId === s.inst("second").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some(card => card.instanceId === s.inst("rest").instanceId)).toBe(true);
+  });
+});

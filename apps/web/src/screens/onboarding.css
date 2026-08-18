@@ -1,0 +1,78 @@
+.onboarding-page {
+  position: relative;
+  display: grid;
+  min-height: 100%;
+  overflow-y: auto;
+  place-items: center;
+  padding: var(--ds-space-8) var(--ds-gutter-phone) var(--ds-space-12);
+  background: var(--ds-bg) !important;
+}
+
+.onboarding-card {
+  width: min(100%, 900px) !important;
+  padding: 42px 72px !important;
+  border-radius: var(--ds-radius-lg) !important;
+  border-color: var(--ds-border-strong) !important;
+  box-shadow: none !important;
+}
+
+.onboarding-sigil {
+  display: none;
+}
+
+.onboarding-card h1 {
+  font-size: clamp(2rem, 4vw, 3rem) !important;
+  letter-spacing: .04em !important;
+  text-transform: uppercase;
+}
+
+.onboarding-colors > button {
+  position: relative;
+  height: 78px !important;
+  border-radius: 0 !important;
+  clip-path: polygon(25% 0, 75% 0, 100% 24%, 100% 76%, 75% 100%, 25% 100%, 0 76%, 0 24%);
+}
+
+.onboarding-color-label {
+  color: currentColor;
+  font: 700 9px/1 var(--ds-font-body);
+  text-transform: uppercase;
+}
+
+.onboarding-color-check {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+}
+
+@media (width < 600px) {
+  .onboarding-page {
+    align-items: start;
+    padding-top: max(var(--ds-space-6), env(safe-area-inset-top));
+  }
+
+  .onboarding-card {
+    width: min(100%, 460px) !important;
+    padding: var(--ds-space-6) var(--ds-space-5) !important;
+    border-radius: var(--ds-radius-lg) !important;
+  }
+
+  .onboarding-sigil {
+    opacity: .18 !important;
+    transform: scale(.65);
+  }
+
+  .onboarding-colors {
+    display: grid !important;
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .onboarding-colors > button {
+    min-width: 0;
+    min-height: var(--ds-touch-target);
+  }
+
+  .onboarding-card h1 {
+    font-size: var(--ds-text-2xl) !important;
+  }
+}

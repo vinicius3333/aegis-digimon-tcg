@@ -1,0 +1,30 @@
+import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../ST2/ST2-13.js";
+import "./BT1-054.js";
+
+describe("BT1-054 Liamon", () => {
+  it("gives an opposing Digimon -2000 DP when attacking with at least 3 memory", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-054", as: "attacker" }] }, 1: { battleArea: [{ card: "BT1-016", as: "target", dp: 5000 }], security: ["BT1-010"] } }, { autoSelectCards: true });
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 3000);
+    expect(s.perm("target").currentDP).toBe(3000);
+  });
+
+  it("keeps the activated DP reduction after security lowers memory below 3", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-054", as: "attacker" }] },
+      1: { battleArea: [{ card: "BT1-016", as: "target", dp: 5000 }], security: ["ST2-13"] },
+    }, { autoSelectCards: true });
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.memory === 1);
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("target").currentDP).toBe(3000);
+  });
+});

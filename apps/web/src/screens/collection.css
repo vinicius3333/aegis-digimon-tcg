@@ -1,0 +1,99 @@
+.collection-page {
+  position: relative;
+  flex-direction: column;
+}
+
+.collection-header {
+  display: flex;
+  flex: none;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--ds-space-6);
+  padding: var(--ds-space-6) var(--ds-gutter-desktop) var(--ds-space-4);
+}
+
+.collection-header h1 {
+  margin: var(--ds-space-2) 0 0;
+  color: var(--ds-fg);
+  font: 800 clamp(2rem, 3vw, 2.75rem)/1 var(--ds-font-display);
+  letter-spacing: .01em;
+  text-transform: uppercase;
+}
+
+.collection-header > span {
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-sm);
+}
+
+.collection-page > .card-filter-rail {
+  width: 100% !important;
+  min-height: 0;
+  max-height: none;
+  flex-direction: row !important;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: var(--ds-space-6) !important;
+  overflow: visible !important;
+  padding: var(--ds-space-4) var(--ds-gutter-desktop) !important;
+  border-right: 0 !important;
+  border-bottom: 1px solid var(--ds-border);
+  background: var(--ds-surface) !important;
+  box-shadow: none;
+}
+
+.collection-page > .card-filter-rail > div {
+  min-width: min(100%, 178px);
+  flex: 1 1 178px;
+}
+
+.collection-page > .card-filter-rail > div:first-child {
+  flex: 0 1 220px;
+}
+
+.collection-results {
+  background: transparent;
+  padding: var(--ds-space-6) var(--ds-gutter-desktop) !important;
+}
+
+.collection-grid {
+  grid-template-columns: repeat(auto-fill, minmax(150px, 170px)) !important;
+  justify-content: space-between;
+  gap: var(--ds-space-5) var(--ds-space-4) !important;
+}
+
+.collection-grid > * {
+  filter: none;
+}
+
+/* The page stacks header/filters/results vertically, so the drawer cannot sit in
+   the flex flow like it does in the deck builder's row layout — overlay it on the
+   right edge instead. Below 960px cardLibrary.css turns it into a bottom sheet. */
+@media (width >= 960px) {
+  .collection-page > .card-detail-drawer {
+    position: absolute;
+    z-index: var(--ds-z-sheet);
+    top: 0;
+    right: 0;
+    bottom: 0;
+    box-shadow: var(--ds-elev-overlay);
+  }
+}
+
+@media (width < 960px) {
+  .collection-page { height: 100% !important; padding-bottom: calc(var(--ds-nav-height-narrow) + env(safe-area-inset-bottom)); }
+  .collection-header { padding: var(--ds-space-5) var(--ds-gutter-tablet) var(--ds-space-3); }
+  .collection-page > .card-filter-rail { width: 100% !important; padding-inline: var(--ds-gutter-tablet) !important; }
+  .collection-results { padding: var(--ds-space-5) var(--ds-gutter-tablet) !important; }
+  .collection-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important; gap: var(--ds-space-3) !important; }
+}
+
+@media (width < 600px) {
+  .collection-page { flex-direction: column; }
+  .collection-header { align-items: start; flex-direction: column; gap: var(--ds-space-2); padding: var(--ds-space-4) var(--ds-gutter-phone) var(--ds-space-3); }
+  .collection-header h1 { font-size: var(--ds-text-3xl); }
+  .collection-page > .card-filter-trigger { width: calc(100% - (2 * var(--ds-gutter-phone))); margin-inline: var(--ds-gutter-phone); }
+  .collection-results { padding: var(--ds-space-4) var(--ds-gutter-phone) !important; }
+  .collection-results h1 { font-size: var(--ds-text-3xl) !important; }
+  .collection-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; justify-content: stretch; }
+  .collection-grid > * { max-width: 100%; }
+}

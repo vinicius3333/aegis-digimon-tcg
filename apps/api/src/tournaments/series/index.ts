@@ -1,0 +1,20 @@
+export {
+  AUTHORIZATION_TTL_MS,
+  ConflictingGameResultError,
+  SeriesStore,
+  type ClaimedGame,
+  type GameEntry,
+  type GameRecord,
+  type GameResult,
+  type MatchPresence,
+  type SeatHolderInput,
+  type SeriesFailure,
+  type SeriesSeatHolder,
+  type SeriesOfficialResult,
+  type SeriesRecord,
+  type SeriesResolutionListener,
+  type SeriesResult,
+  type SeriesStatus,
+  type SeriesTimeoutPolicy,
+} from "./SeriesStore.js";
+export { matchClockContext } from "./matchClock.js";

@@ -1,0 +1,682 @@
+.game-layout {
+  background:
+    linear-gradient(135deg, transparent 0 67%, rgb(7 95 247 / 4%) 67% 67.2%, transparent 67.2%),
+    var(--ds-game-bg);
+}
+
+.game-board {
+  min-width: 0;
+  color: var(--ds-fg);
+  background: var(--ds-game-surface);
+}
+
+.game-sidebar {
+  background: var(--ds-game-surface) !important;
+  box-shadow: -8px 0 28px rgb(28 67 127 / 8%);
+}
+
+.game-field,
+.game-player-dock {
+  border-color: var(--ds-border) !important;
+}
+
+.game-battle-zones > div:first-child,
+.game-battle-zones > div:last-child {
+  margin: var(--ds-space-2) var(--ds-space-3);
+  border: 1px solid var(--ds-game-border);
+  border-radius: var(--ds-radius-md);
+  background:
+    linear-gradient(135deg, transparent 0 72%, rgb(7 95 247 / 4%) 72% 72.4%, transparent 72.4%),
+    var(--ds-game-surface-soft);
+}
+
+.game-mobile-turn,
+.game-mobile-surrender {
+  display: none;
+}
+
+.opponent-action-feed {
+  position: absolute;
+  z-index: calc(var(--ds-z-toast) - 3);
+  top: calc(7.5rem + env(safe-area-inset-top, 0px));
+  right: max(var(--ds-space-4), env(safe-area-inset-right, 0px));
+  width: min(22rem, calc(100% - var(--ds-space-8)));
+  pointer-events: none;
+}
+.opponent-action-feed__current,
+.opponent-action-feed__trail-item {
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--ds-space-3);
+  align-items: center;
+  color: var(--ds-fg);
+  text-align: left;
+  border: 1px solid color-mix(in srgb, var(--ds-danger) 36%, var(--ds-border));
+  border-radius: var(--ds-radius-md);
+  background: color-mix(in srgb, var(--ds-surface) 96%, var(--ds-danger));
+  box-shadow: var(--ds-shadow-lg);
+}
+.opponent-action-feed__current {
+  position: relative;
+  min-height: 3.5rem;
+  padding: var(--ds-space-3);
+  font: inherit;
+  pointer-events: none;
+  animation: aegis-rise 180ms ease-out;
+}
+button.opponent-action-feed__current { cursor: pointer; pointer-events: auto; }
+button.opponent-action-feed__current:hover { border-color: color-mix(in srgb, var(--ds-danger) 62%, var(--ds-border)); }
+button.opponent-action-feed__current:focus-visible { outline: 2px solid var(--ds-accent); outline-offset: 2px; }
+.opponent-action-feed__icon {
+  display: grid;
+  width: 2rem;
+  height: 2rem;
+  place-items: center;
+  color: var(--ds-danger);
+  border-radius: var(--ds-radius-sm);
+  background: color-mix(in srgb, var(--ds-danger) 12%, var(--ds-surface));
+}
+.opponent-action-feed__copy { min-width: 0; }
+.opponent-action-feed__copy strong,
+.opponent-action-feed__copy small { display: block; overflow-wrap: anywhere; }
+.opponent-action-feed__copy strong { font-size: var(--ds-text-sm); line-height: 1.25; }
+.opponent-action-feed__copy small {
+  display: -webkit-box;
+  margin-top: 2px;
+  overflow: hidden;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+  line-height: 1.35;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+.opponent-action-feed__pending {
+  align-self: start;
+  padding: 2px var(--ds-space-2);
+  color: var(--ds-danger);
+  font: 700 0.625rem var(--ds-font-mono);
+  white-space: nowrap;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--ds-danger) 10%, var(--ds-surface));
+}
+.opponent-action-feed__trail { position: absolute; inset: 0; }
+.opponent-action-feed__trail-item {
+  position: absolute;
+  right: var(--ds-space-2);
+  bottom: calc(100% + var(--ds-space-2));
+  left: var(--ds-space-2);
+  min-height: 2.5rem;
+  padding: var(--ds-space-2) var(--ds-space-3);
+  grid-template-columns: minmax(0, 1fr);
+  opacity: 0.72;
+  transform: scale(0.97);
+}
+.opponent-action-feed__trail-item[data-depth="2"] {
+  bottom: calc(100% + 3.25rem);
+  opacity: 0.48;
+  transform: scale(0.94);
+}
+.opponent-action-feed__trail-item .opponent-action-feed__copy small { display: none; }
+
+.match-history-sheet {
+  width: min(34rem, calc(100% - var(--ds-space-6)));
+  max-height: min(42rem, calc(100dvh - var(--ds-space-8)));
+  padding: var(--ds-space-5);
+  overflow: hidden;
+}
+.match-history-sheet__header { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-space-3); }
+.match-history-sheet__header span { color: var(--ds-fg-muted); font-size: var(--ds-text-xs); font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.match-history-sheet__header h2 { margin: 2px 0 0; color: var(--ds-fg); font: 800 var(--ds-text-xl) var(--ds-font-display); }
+.match-history-sheet__list { display: grid; gap: var(--ds-space-2); margin-top: var(--ds-space-4); overflow-y: auto; overscroll-behavior: contain; }
+.match-history-sheet__list > p { color: var(--ds-fg-muted); font-size: var(--ds-text-sm); }
+.match-history-sheet__line { display: grid; grid-template-columns: 6px minmax(0, 1fr); gap: var(--ds-space-2); align-items: start; }
+.match-history-sheet__line > span { width: 6px; height: 6px; margin-top: 0.45rem; border-radius: 50%; background: var(--ds-fg-disabled); }
+.match-history-sheet__line[data-kind="you"] > span { background: var(--ds-accent); }
+.match-history-sheet__line[data-kind="opp"] > span { background: var(--ds-danger); }
+.match-history-sheet__line p { margin: 0; color: var(--ds-fg-secondary); font-size: var(--ds-text-sm); line-height: 1.4; }
+
+.card-action-sheet,
+.card-zoom { display: none; }
+
+.mulligan-sheet {
+  width: min(100%, 1080px);
+  padding: var(--ds-space-6);
+  color: var(--ds-brand-on-ink);
+  text-align: center;
+}
+
+.mulligan-badge { margin-bottom: var(--ds-space-3); }
+.mulligan-title {
+  margin: 0 0 var(--ds-space-1);
+  font-family: var(--ds-font-display);
+  font-size: 1.875rem;
+  font-weight: 800;
+}
+.mulligan-detail { margin: 0 0 var(--ds-space-6); color: var(--ds-brand-on-ink-muted); font-size: var(--ds-text-sm); }
+.mulligan-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--ds-space-4); margin-bottom: var(--ds-space-7); }
+.mulligan-card { flex: none; animation: aegis-pop 360ms ease-out both; }
+.mulligan-actions { display: flex; justify-content: center; gap: var(--ds-space-3); }
+.combat-prompt { max-width: calc(100% - var(--ds-space-6)); }
+.decision-overlay__heading { min-width: 0; flex: 1; }
+.decision-overlay__view-board { flex: none; }
+.decision-board-return {
+  position: fixed;
+  /* Keep the pending decision's only exit away from mobile browser chrome and
+     below the opponent bar so it remains reachable while inspecting the board. */
+  z-index: calc(var(--ds-z-toast) - 1);
+  top: calc(env(safe-area-inset-top, 0px) + 4rem);
+  right: var(--ds-space-4);
+  bottom: auto;
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-2);
+  color: var(--ds-fg);
+  border: 1px solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-lg);
+  animation: aegis-rise 180ms ease-out;
+}
+.decision-board-return__status { padding-left: var(--ds-space-2); color: var(--ds-fg-muted); font-size: var(--ds-text-xs); font-weight: 700; }
+.waiting-dialog { width: min(100%, 460px); padding: 36px; text-align: center; }
+.waiting-dialog__spinner { width: 46px; height: 46px; margin: 0 auto 18px; border: 3px solid var(--ds-border); border-top-color: var(--ds-accent); border-radius: 50%; animation: aegis-spin 900ms linear infinite; }
+.waiting-dialog__error { display: grid; width: 56px; height: 56px; margin: 0 auto 18px; place-items: center; color: var(--ds-danger); border-radius: 50%; background: var(--ds-danger-surface); }
+.waiting-dialog h2 { margin: 0 0 var(--ds-space-2); color: var(--ds-fg); font: 800 var(--ds-text-2xl)/1.2 var(--ds-font-display); }
+.waiting-dialog p { margin: 0; color: var(--ds-fg-muted); font-size: var(--ds-text-sm); line-height: 1.55; }
+.game-over-dialog { width: min(100%, 440px); max-width: calc(100% - var(--ds-space-6)); padding: 40px var(--ds-space-8); text-align: center; }
+
+.security-check-toast {
+  position: absolute;
+  z-index: var(--ds-z-toast);
+  top: var(--ds-space-4);
+  left: 50%;
+  display: grid;
+  width: min(480px, calc(100% - var(--ds-space-6)));
+  padding: var(--ds-space-3);
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: var(--ds-space-3);
+  color: var(--ds-fg);
+  border: 1px solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-summary);
+  transform: translateX(-50%);
+  animation: aegis-rise 180ms ease-out;
+}
+.security-check-toast__card { overflow: hidden; border-radius: var(--ds-radius-sm); animation: aegis-flip 420ms ease-out both; }
+.security-check-toast__content { min-width: 0; }
+.security-check-toast__content > strong { display: flex; align-items: center; gap: var(--ds-space-2); margin-top: var(--ds-space-2); color: var(--ds-fg); font-size: var(--ds-text-sm); }
+.security-check-toast__content p { display: -webkit-box; margin: var(--ds-space-1) 0 0; overflow: hidden; color: var(--ds-fg-muted); font-size: var(--ds-text-xs); line-height: 1.45; -webkit-box-orient: vertical; -webkit-line-clamp: 5; }
+.security-check-toast__close { width: 32px; height: 32px; color: var(--ds-fg-muted); font-size: 1.25rem; border: 0; border-radius: 50%; background: transparent; cursor: pointer; }
+.security-check-toast__close:hover,
+.security-check-toast__close:focus-visible { color: var(--ds-fg); background: var(--ds-surface-muted); outline: 2px solid var(--ds-accent); outline-offset: 1px; }
+
+.recovery-toast {
+  position: fixed;
+  z-index: var(--ds-z-toast);
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  color: var(--ds-fg);
+  border: 1px solid color-mix(in srgb, var(--ds-success) 45%, var(--ds-border));
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-lg);
+  pointer-events: none;
+  animation: aegis-pop 180ms ease-out;
+}
+.recovery-toast--you { transform: translateY(-50%); }
+.recovery-toast--opp { transform: translate(-100%, -50%); }
+.recovery-toast > span { display: grid; width: 34px; height: 34px; place-items: center; color: var(--ds-success); border-radius: 50%; background: color-mix(in srgb, var(--ds-success) 12%, var(--ds-surface)); }
+.recovery-toast strong,
+.recovery-toast small { display: block; }
+.recovery-toast strong { font-size: var(--ds-text-sm); }
+.recovery-toast small { margin-top: 1px; color: var(--ds-fg-muted); font-size: var(--ds-text-xs); }
+
+.opponent-permanent-inspector {
+  position: fixed;
+  z-index: calc(var(--ds-z-toast) - 1);
+  width: 420px;
+  max-height: calc(100dvh - 24px);
+  padding: var(--ds-space-4);
+  overflow: hidden auto;
+  color: var(--ds-fg);
+  border: 1px solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-summary);
+  pointer-events: auto;
+  animation: aegis-pop 140ms ease-out;
+}
+.opponent-permanent-inspector header { display: flex; align-items: center; justify-content: space-between; gap: var(--ds-space-3); padding-bottom: var(--ds-space-3); border-bottom: 1px solid var(--ds-border); }
+.opponent-permanent-inspector header strong,
+.opponent-permanent-inspector header span { display: block; }
+.opponent-permanent-inspector header strong { font-family: var(--ds-font-display); font-size: var(--ds-text-lg); }
+.opponent-permanent-inspector header span { margin-top: 2px; color: var(--ds-fg-muted); font: 600 var(--ds-text-xs) var(--ds-font-mono); }
+.opponent-permanent-inspector__effect { padding: var(--ds-space-3) 0; }
+.opponent-permanent-inspector__effect > span { color: var(--ds-fg-muted); font-size: 0.625rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.opponent-permanent-inspector p { margin: var(--ds-space-1) 0 0; color: var(--ds-fg-secondary); font-size: var(--ds-text-xs); line-height: 1.45; white-space: pre-line; }
+.opponent-permanent-inspector__stack { display: flex; flex-direction: column; gap: var(--ds-space-2); padding-top: var(--ds-space-3); border-top: 1px solid var(--ds-border); }
+.opponent-permanent-inspector__stack > div { display: flex; align-items: flex-start; gap: var(--ds-space-2); padding: var(--ds-space-2); border-radius: var(--ds-radius-sm); background: var(--ds-surface-muted); }
+.opponent-permanent-inspector__stack > div > div:last-child { min-width: 0; }
+.opponent-permanent-inspector__stack strong,
+.opponent-permanent-inspector__stack span { display: block; }
+.opponent-permanent-inspector__stack strong { font-size: var(--ds-text-xs); }
+.opponent-permanent-inspector__stack span { color: var(--ds-fg-muted); font-size: 0.625rem; text-transform: uppercase; }
+.opponent-permanent-inspector__stack p { overflow-wrap: anywhere; }
+
+/* A wide board (many Digimon in play) scrolls sideways inside its own row. The
+   field clips its overflow, so without this the outer cards were unreachable. */
+.game-battle-row {
+  overflow-x: auto;
+  overflow-y: hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: thin;
+}
+
+.game-memory-gauge__side { overflow: hidden; white-space: nowrap; }
+
+/* The memory gauge is a row of numbered coins. The track is a size container, so
+   the coins drop their digits by how much room the gauge itself has rather than by
+   viewport width — the same rules then hold on a phone and in a squeezed column. */
+.game-memory-gauge__track {
+  position: relative;
+  display: flex;
+  /* Grow into the space the labels leave, up to the width 21 full-size coins want.
+     The track must be sized by the layout, not by its contents: `container-type`
+     contains its inline size, so a content-derived basis would collapse to zero. */
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: 940px;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(2px, 0.55vw, 6px);
+  padding: clamp(6px, 0.9vw, 12px) clamp(10px, 1.6vw, 22px);
+  background: var(--ds-surface);
+  border: 1px solid var(--ds-border);
+  border-radius: 999px;
+  box-shadow: var(--ds-shadow-sm);
+  container-type: inline-size;
+}
+
+.game-memory-coin {
+  /* The coins share the track evenly and stop growing at full size, so the row
+     stays centred instead of stretching into ovals on a wide board. */
+  flex: 1 1 0;
+  min-width: 0;
+  max-width: 38px;
+  aspect-ratio: 1;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  font-family: var(--ds-font-mono);
+  font-size: clamp(9px, 1.15vw, 15px);
+  font-weight: 700;
+  line-height: 1;
+  transition: background 220ms, color 220ms, box-shadow 220ms, transform 220ms;
+}
+
+/* The marker is the readout: it never shrinks below a legible three characters
+   ("+10"), and it sits above its neighbours so its ring is not clipped. */
+.game-memory-coin--marker {
+  flex: 1.25 1 0;
+  min-width: 26px;
+  max-width: 46px;
+  z-index: 1;
+  font-size: clamp(11px, 1.3vw, 17px);
+}
+
+.game-memory-gauge--compact .game-memory-gauge__track {
+  flex: 1;
+  gap: 2px;
+  padding: 4px 7px;
+}
+
+.game-memory-gauge--compact .game-memory-coin { max-width: 24px; font-size: clamp(7px, 1.7vw, 11px); }
+.game-memory-gauge--compact .game-memory-coin--marker { min-width: 22px; max-width: 28px; font-size: clamp(9px, 2vw, 13px); }
+
+/* Below these widths a coin is narrower than its own digits, so the numbering
+   thins out to the multiples of five and finally to the marker alone. The coins
+   themselves stay: the filled run is what reads the gauge at a glance. */
+@container (width < 460px) {
+  .game-memory-coin:not(.game-memory-coin--marker, .game-memory-coin--five) .game-memory-coin__n { display: none; }
+}
+
+@container (width < 300px) {
+  .game-memory-coin:not(.game-memory-coin--marker) .game-memory-coin__n { display: none; }
+}
+
+/* A short board leaves the rails taller than the field they sit in, so they
+   scroll rather than hiding whichever pile falls off the bottom. */
+.game-pile-column { overflow: hidden auto; scrollbar-width: thin; }
+
+/* Split-screen and small laptop widths: the board keeps its desktop shape, but
+   every fixed-width piece of chrome gives ground so the field stays whole. */
+@media (width < 1240px) {
+  .game-sidebar { width: 248px !important; }
+  .game-pile-column { width: 104px !important; }
+  /* Content-sized, so the egg pile and the raising slot are never cut off. */
+  .game-breeding-dock { width: auto !important; }
+  .game-hand-dock { padding-right: var(--ds-space-3) !important; padding-left: var(--ds-space-3) !important; }
+  .game-memory-gauge { gap: var(--ds-space-3) !important; padding: 0 var(--ds-space-3) !important; }
+  .game-memory-gauge__side { display: none; }
+  .game-memory-gauge__track { padding: 10px 14px !important; }
+}
+
+@media (width < 960px) {
+  /* Rows instead of a column: the strip is the `auto` track, so the board above it
+     absorbs a short viewport rather than pushing the actions past the bottom edge. */
+  .game-layout { display: grid !important; grid-template-rows: minmax(0, 1fr) auto; overflow: hidden !important; }
+  .game-board { min-height: 0; overflow: hidden; }
+  .game-field { min-height: 0; }
+  /* Visible overflow: a picked-up hand card lifts above the dock, and clipping it
+     there cut the card in half. Painting over the field costs the layout nothing. */
+  .game-player-dock { min-height: 0; overflow: visible; }
+  /* The drag hint and the viewer's own name repeat what the board already shows,
+     and cost the dock two lines it needs for the hand. */
+  .game-action-bar--idle { display: none !important; }
+  .game-breeding-dock { padding: var(--ds-space-1) var(--ds-space-2) !important; }
+  .game-breeding-dock > div:first-child { font-size: 0.5rem; }
+  .game-sidebar {
+    width: 100% !important;
+    height: clamp(6.5rem, 16dvh, 9.5rem);
+    max-height: none;
+    flex-direction: row !important;
+    border-top: 1px solid var(--ds-border);
+    border-left: 0 !important;
+  }
+  /* The row is the only place the log and the actions live at this size, so it
+     scrolls sideways instead of clipping whatever does not fit, and each panel
+     scrolls on its own rather than cutting its last line in half. */
+  .game-sidebar { overflow: auto hidden !important; }
+  .game-sidebar > div { min-width: 170px; padding: var(--ds-space-2) var(--ds-space-3) !important; overflow: hidden auto; border-right: 1px solid var(--ds-border); border-bottom: 0 !important; }
+  /* The turn panel has to fit the strip whole: it is the one panel whose content
+     cannot be scrolled to without hiding the phase the player is in. Its width is
+     set by the five phase chips. */
+  .game-sidebar > div:first-child { min-width: 220px; }
+  .game-sidebar > div:first-child > div:first-child { margin-bottom: var(--ds-space-1) !important; }
+  .game-sidebar > div:first-child > div:nth-child(2) > div { padding: 4px 1px !important; font-size: 8.5px !important; }
+  /* Side by side, so the strip costs one button's height instead of two. */
+  .game-sidebar > div:nth-child(2) { min-width: 250px; flex-direction: row !important; align-items: center; gap: var(--ds-space-2) !important; }
+  .game-sidebar > div:nth-child(2) > div { display: none; }
+  .game-sidebar > div:nth-child(2) > button { flex: 1; min-width: 0; min-height: 44px; }
+  /* The log scrolls; the fade tells the reader the last line continues below. */
+  .game-sidebar > div:nth-child(3) { flex: 1; min-width: 190px; mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), transparent); }
+  /* Surrender needs no column of its own. */
+  .game-sidebar > div:last-child { min-width: 0; flex: 0 0 auto; }
+  /* The rails hold compact piles at this size, so they need only the pile width. */
+  .game-pile-column { width: 72px !important; padding: var(--ds-space-2) !important; }
+
+  /* The mulligan becomes a full-screen takeover: below this width the sheet is
+     wider than the board, and a translucent scrim left the opening hand reading
+     as part of the board behind it. */
+  .mulligan-scrim { background: var(--ds-brand-ink) !important; }
+  .mulligan-sheet {
+    display: grid;
+    width: 100%;
+    height: 100%;
+    padding: max(var(--ds-space-4), env(safe-area-inset-top)) var(--ds-space-3) max(var(--ds-space-4), env(safe-area-inset-bottom));
+    /* Without minmax(0, …) the column takes the widest item's max-content, and the
+       detail paragraph pushed past the sheet's padding instead of wrapping. */
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+    align-content: start;
+    overflow: hidden;
+  }
+  .mulligan-badge { margin-bottom: var(--ds-space-2); justify-self: center; }
+  .mulligan-title { font-size: 1.55rem; }
+  .mulligan-detail { margin-bottom: var(--ds-space-3); font-size: var(--ds-text-xs); }
+  /* The opening hand wraps onto as many rows as it needs, so the whole hand is
+     visible at once — a horizontal scroll hid two of the five cards behind an
+     edge the player had no reason to expect. */
+  .mulligan-cards {
+    min-height: 0;
+    margin-bottom: var(--ds-space-3);
+    padding: var(--ds-space-1) 0;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: center;
+    gap: var(--ds-space-2);
+    overflow: hidden auto;
+    overscroll-behavior-y: contain;
+  }
+  .mulligan-card { flex: 0 1 calc((100% - var(--ds-space-2) * 4) / 5); max-width: 168px; }
+  .mulligan-card > div { width: 100% !important; height: auto !important; aspect-ratio: 5 / 7; }
+  .mulligan-actions { padding-top: var(--ds-space-3); border-top: 1px solid rgb(255 255 255 / 18%); }
+  .mulligan-actions > button { flex: 1; min-width: 0; }
+}
+
+@media (width < 600px) {
+  .security-check-toast { position: fixed; top: max(var(--ds-space-3), env(safe-area-inset-top)); }
+  .security-check-toast__card > div { width: 72px !important; height: auto !important; aspect-ratio: 5 / 7; }
+  .opponent-permanent-inspector { display: none; }
+  /* Three per row keeps each card big enough to read at phone widths. */
+  .mulligan-card { flex: 0 1 calc((100% - var(--ds-space-2) * 2) / 3); max-width: 128px; }
+  .combat-prompt {
+    position: fixed !important;
+    right: var(--ds-space-3) !important;
+    bottom: max(var(--ds-space-3), env(safe-area-inset-bottom)) !important;
+    left: var(--ds-space-3) !important;
+    width: auto !important;
+    max-width: none !important;
+    max-height: calc(100dvh - var(--ds-space-6)) !important;
+    padding: var(--ds-space-4) !important;
+    overflow-y: auto;
+    transform: none !important;
+  }
+  .game-over-dialog {
+    max-height: calc(100dvh - var(--ds-space-6));
+    padding: var(--ds-space-6) var(--ds-space-4) !important;
+    overflow-y: auto;
+  }
+  .card-inspector-dialog,
+  .trash-viewer-dialog {
+    width: calc(100% - var(--ds-space-6)) !important;
+    max-width: none !important;
+    max-height: calc(100dvh - var(--ds-space-6)) !important;
+    padding: var(--ds-space-4) !important;
+    flex-direction: column;
+    overflow-y: auto;
+  }
+  .card-inspector-dialog > div:first-child,
+  .trash-viewer-dialog > div:first-child { width: 100%; min-width: 0 !important; max-height: 52dvh; }
+  .card-inspector-dialog > div:last-child,
+  .trash-viewer-dialog > div:last-child { width: 100%; }
+  /* Mobile board metrics. The rail width matches the compact pile (42px card +
+     column padding) that boardPieces renders when `compact` is set. */
+  .game-layout { --game-rail: 3.5rem; --game-sidebar-h: 3.25rem; }
+  .game-layout { height: 100dvh !important; display: grid !important; grid-template-rows: minmax(0, 1fr) auto; overflow: hidden !important; background: var(--ds-brand-ink); }
+  .game-board { min-height: 0; display: grid !important; grid-template-rows: auto minmax(0, 1fr) auto; flex: 1 1 auto !important; overflow: hidden; background: var(--ds-game-surface) !important; }
+  .game-opponent-bar { min-height: 56px; padding: var(--ds-space-2) var(--ds-space-3) !important; border-bottom: 0 !important; background: var(--ds-brand-ink) !important; }
+  .game-opponent-bar { display: grid !important; grid-template-columns: 1fr auto auto; gap: var(--ds-space-2); }
+  .game-opponent-identity > div:last-child > div:first-child { color: var(--ds-brand-on-ink) !important; }
+  .game-opponent-identity > div:last-child > div:last-child { display: none !important; }
+  .game-opponent-hand { display: none !important; }
+  .game-mobile-turn { display: flex; align-items: center; flex-direction: column; color: var(--ds-brand-on-ink); font-size: 0.625rem; text-align: center; text-transform: uppercase; }
+  .game-mobile-turn strong { font-family: var(--ds-font-display); }
+  .game-mobile-turn span { color: var(--ds-accent); font-weight: 700; }
+  .game-mobile-surrender { display: block; min-width: 44px; min-height: 44px; padding-inline: var(--ds-space-2); color: var(--ds-brand-on-ink); font-size: 0.625rem; font-weight: 700; text-transform: uppercase; border: 1px solid color-mix(in srgb, var(--ds-brand-on-ink) 42%, transparent); border-radius: var(--ds-radius-sm); background: color-mix(in srgb, var(--ds-brand-on-ink) 8%, transparent); }
+  .game-opponent-bar > div:last-child > div { width: 22px !important; height: 32px !important; margin-left: -17px !important; }
+  .opponent-action-feed {
+    top: calc(6.75rem + env(safe-area-inset-top, 0px));
+    right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
+    left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+    width: auto;
+  }
+  .opponent-action-feed__current { min-height: 3.25rem; padding: var(--ds-space-2) var(--ds-space-3); gap: var(--ds-space-2); }
+  .opponent-action-feed__copy strong { display: -webkit-box; overflow: hidden; -webkit-box-orient: vertical; -webkit-line-clamp: 2; }
+  .opponent-action-feed__trail-item { right: var(--ds-space-3); left: var(--ds-space-3); }
+  .match-history-sheet__list { max-height: calc(78dvh - 6rem); }
+  .game-field { width: 100%; min-height: 0; display: grid !important; grid-template-columns: var(--game-rail) minmax(0, 1fr) var(--game-rail); flex: 1 1 auto !important; overflow: hidden !important; border: 0 !important; background: var(--ds-game-surface-strong); }
+
+  /* Rails hold the compact piles at their real (prop-driven) size — no transform
+     scaling, so their layout boxes match what is painted and nothing is clipped. */
+  .game-pile-column { width: auto !important; min-width: 0; padding: var(--ds-space-2) var(--ds-space-1) !important; gap: var(--ds-space-1) !important; justify-content: space-between; overflow: hidden; }
+  .game-pile-column > div { gap: var(--ds-space-2) !important; }
+  .game-pile-column > div[style*="flex: 1"] { display: none; }
+
+  .game-battle-zones { min-width: 0; display: grid !important; grid-template-rows: minmax(0, 1fr) auto minmax(0, 1fr); overflow: hidden; }
+  .game-battle-zones > div { min-width: 0; min-height: 0 !important; gap: var(--ds-space-2) !important; padding: var(--ds-space-1) var(--ds-space-2) !important; }
+  .game-battle-zones > div:first-child,
+  .game-battle-zones > div:last-child { margin: 3px; justify-content: flex-start !important; align-items: center; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: thin; border: 1px solid var(--ds-game-border); border-radius: var(--ds-radius-sm); background: var(--ds-game-surface-soft); }
+  .game-battle-zones > div:first-child > div,
+  .game-battle-zones > div:last-child > div { flex: 0 0 auto; scroll-snap-align: center; touch-action: pan-x !important; }
+  .game-battle-zones > div:nth-child(2) { display: block; padding: 0 !important; overflow: visible; }
+
+  .game-player-dock { display: grid !important; max-height: none; flex: none; grid-template-rows: auto auto; overflow: hidden; }
+  .game-breeding-dock { display: grid !important; width: 100% !important; height: auto; padding: var(--ds-space-2) var(--ds-space-3) !important; grid-template-columns: auto minmax(0, 1fr); gap: var(--ds-space-3); align-items: center; overflow: hidden; border-right: 0 !important; border-bottom: 1px solid var(--ds-border); }
+  .game-breeding-dock > div:first-child { width: auto; min-width: 0; writing-mode: vertical-rl; rotate: 180deg; font-size: 0.5rem; text-align: center; }
+  .game-breeding-dock > div:last-child { min-width: 0; flex: none !important; justify-content: flex-start; gap: var(--ds-space-4) !important; }
+
+  .game-hand-dock { min-width: 0 !important; height: auto; padding: 2px var(--ds-space-2) max(4px, env(safe-area-inset-bottom)) !important; overflow: hidden; }
+  /* The idle bar only repeats the viewer's own name and hand count, both of which
+     are already on screen. Drop it and give the room to the hand. */
+  .game-action-bar--idle { display: none !important; }
+  .game-action-bar--contextual { position: fixed; z-index: calc(var(--ds-z-toast) - 2); right: var(--ds-space-2); bottom: calc(var(--game-sidebar-h) + env(safe-area-inset-bottom) + var(--ds-space-2)); left: var(--ds-space-2); min-height: 56px; max-height: 132px; padding: var(--ds-space-2) !important; flex-wrap: wrap; overflow: auto; color: var(--ds-fg); border: 1px solid var(--ds-border-strong); border-radius: var(--ds-radius-md); background: var(--ds-surface); box-shadow: var(--ds-shadow-lg); }
+
+  /* The row is sized to the card plus its own padding, and the padding needs
+     !important to beat the inline fan-room padding — the desktop arc it reserves
+     is disabled here, and it pushed the card tops past the clipped row. */
+  .game-player-dock [data-testid="hand"] { --hand-card-width: clamp(4.75rem, 21vw, 5.75rem); height: calc(var(--hand-card-width) * 1.4 + var(--ds-space-2)) !important; padding: 0 var(--ds-space-2) var(--ds-space-2) !important; justify-content: flex-start !important; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: thin; scrollbar-color: var(--ds-accent) var(--ds-surface-muted); }
+  .game-player-dock [data-testid="hand"] > div { flex: 0 0 auto; margin-left: -18px !important; transform: none !important; scroll-snap-align: center; touch-action: pan-x !important; }
+  .game-player-dock [data-testid="hand"] > div:first-child { margin-left: 0 !important; }
+  .game-player-dock [data-testid="hand"] > div > div { width: var(--hand-card-width) !important; height: auto !important; aspect-ratio: 5 / 7; }
+
+  /* height: auto overrides the tablet strip's 16dvh clamp — only the action row
+     survives on a phone, and the clamp left a dead ink band under it. */
+  .game-sidebar { width: 100% !important; height: auto; max-height: none; flex: none !important; overflow: hidden !important; border-top: 1px solid var(--ds-border); background: var(--ds-brand-ink) !important; }
+  .game-sidebar > div:first-child,
+  .game-sidebar > div:nth-child(3),
+  .game-sidebar > div:last-child { display: none; }
+  .game-sidebar > div:nth-child(2) { width: 100%; min-width: 0; height: var(--game-sidebar-h); padding: var(--ds-space-2) !important; flex-direction: row !important; align-items: stretch; gap: var(--ds-space-2) !important; border: 0 !important; }
+  .game-sidebar > div:nth-child(2) > div { display: none; }
+  .game-sidebar > div:nth-child(2) > button { min-width: 0; flex: 1; }
+
+  .game-breeding-dock::-webkit-scrollbar,
+  .game-battle-zones > div::-webkit-scrollbar,
+  .game-player-dock [data-testid="hand"]::-webkit-scrollbar { width: 5px; height: 5px; }
+  .game-breeding-dock::-webkit-scrollbar-thumb,
+  .game-battle-zones > div::-webkit-scrollbar-thumb,
+  .game-player-dock [data-testid="hand"]::-webkit-scrollbar-thumb { border-radius: 999px; background: var(--ds-accent); }
+  .game-breeding-dock::-webkit-scrollbar-track,
+  .game-battle-zones > div::-webkit-scrollbar-track,
+  .game-player-dock [data-testid="hand"]::-webkit-scrollbar-track { background: var(--ds-surface-muted); }
+
+
+  /* Field-card actions as a bottom sheet: the card stays visible next to the
+     actions, so a tap target on the board is never hidden behind the menu. */
+  .card-action-sheet { position: fixed; z-index: var(--ds-z-modal); inset: 0; display: grid; align-items: end; background: rgb(4 14 31 / 62%); backdrop-filter: blur(4px); animation: aegis-fadeIn 140ms ease-out; }
+  .card-action-sheet__panel { width: 100%; max-height: 82dvh; padding: var(--ds-space-2) var(--ds-space-4) max(var(--ds-space-4), env(safe-area-inset-bottom)); overflow-y: auto; border-top: 1px solid var(--ds-border-strong); border-radius: var(--ds-radius-lg) var(--ds-radius-lg) 0 0; background: var(--ds-surface); box-shadow: 0 -12px 40px rgb(4 14 31 / 45%); }
+  .card-action-sheet__grip { width: 2.25rem; height: 4px; margin: 0 auto var(--ds-space-3); border-radius: 999px; background: var(--ds-border-strong); }
+  .card-action-sheet__body { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: var(--ds-space-4); align-items: start; }
+  .card-action-sheet__body > div:first-child { width: min(48vw, 12rem) !important; height: auto !important; aspect-ratio: 5 / 7; filter: drop-shadow(0 10px 22px rgb(0 0 0 / 32%)); }
+  .card-action-sheet__info { display: grid; min-width: 0; gap: var(--ds-space-2); align-content: start; }
+  .card-action-sheet__info > strong { color: var(--ds-fg); font-family: var(--ds-font-display); font-size: var(--ds-text-base); line-height: 1.2; overflow-wrap: anywhere; }
+  .card-action-sheet__stats { display: flex; flex-wrap: wrap; gap: var(--ds-space-1) var(--ds-space-2); }
+  .card-action-sheet__stats > span { display: inline-flex; align-items: baseline; gap: 3px; padding: 2px var(--ds-space-2); color: var(--ds-fg-secondary); font: 700 var(--ds-text-xs) var(--ds-font-mono); border-radius: var(--ds-radius-sm); background: var(--ds-surface-muted); }
+  .card-action-sheet__stats > span[data-state="suspended"] { color: var(--ds-warning); background: var(--ds-warning-surface, var(--ds-surface-muted)); }
+  .card-action-sheet__stats em { font-style: normal; font-weight: 800; }
+  .card-action-sheet__stats em[data-sign="up"] { color: var(--ds-success); }
+  .card-action-sheet__stats em[data-sign="down"] { color: var(--ds-danger); }
+  .card-action-sheet__keywords { display: flex; flex-wrap: wrap; gap: var(--ds-space-1); }
+  .card-action-sheet__keywords > span { padding: 2px var(--ds-space-2); color: var(--ds-accent); font-size: 0.625rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; border: 1px solid color-mix(in srgb, var(--ds-accent) 38%, transparent); border-radius: 999px; }
+  .card-action-sheet__stack { display: grid; gap: var(--ds-space-2); margin-top: var(--ds-space-3); padding-top: var(--ds-space-3); border-top: 1px solid var(--ds-border); }
+  .card-action-sheet__stack > div > span { color: var(--ds-fg-muted); font-size: 0.625rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+  .card-action-sheet__stack > div > div { display: flex; gap: var(--ds-space-2); margin-top: var(--ds-space-1); overflow-x: auto; overscroll-behavior-x: contain; scrollbar-width: thin; }
+  .card-action-sheet__zoom { padding: 0; border: 0; background: none; cursor: zoom-in; }
+  .card-action-sheet__stack > div > button { width: 54px; flex: 0 0 auto; padding: 0; border: 0; background: none; cursor: zoom-in; }
+  .card-action-sheet__stack figcaption { margin-top: 2px; overflow: hidden; color: var(--ds-fg-muted); font-size: 0.5625rem; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Trash: one scrollable row of every card, each tappable to enlarge. */
+  .trash-sheet__header { display: flex; align-items: baseline; justify-content: space-between; gap: var(--ds-space-2); margin-bottom: var(--ds-space-3); }
+  .trash-sheet__header > strong { color: var(--ds-fg); font-family: var(--ds-font-display); font-size: var(--ds-text-base); }
+  .trash-sheet__header > span { color: var(--ds-fg-muted); font: 600 var(--ds-text-xs) var(--ds-font-mono); }
+  .trash-sheet__empty { margin: var(--ds-space-6) 0; color: var(--ds-fg-disabled); font: var(--ds-text-xs) var(--ds-font-mono); text-align: center; }
+  .trash-sheet__row { display: flex; gap: var(--ds-space-3); margin: 0 calc(var(--ds-space-4) * -1) var(--ds-space-3); padding: 0 var(--ds-space-4) var(--ds-space-2); overflow-x: auto; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: thin; scrollbar-color: var(--ds-accent) var(--ds-surface-muted); }
+  .trash-sheet__row > button { width: 96px; flex: 0 0 auto; padding: 0; border: 0; background: none; cursor: zoom-in; scroll-snap-align: center; }
+  .trash-sheet__row figcaption { margin-top: var(--ds-space-1); overflow: hidden; color: var(--ds-fg-muted); font-size: 0.625rem; line-height: 1.2; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Every centred dialog on the match screen becomes a bottom sheet: anchored to
+     the bottom edge, full width, and scrolling inside itself. The panels size
+     themselves with inline widths for desktop, so these have to outrank them. */
+  .game-modal,
+  /* `Dialog` portals into its own centring layer, so the scrim class never reaches
+     it; match on the panel inside instead. */
+  .aegis-dialog-layer:has(.game-modal__panel) { position: fixed !important; z-index: var(--ds-z-modal); inset: 0 !important; display: flex !important; padding: 0 !important; align-items: flex-end !important; justify-content: stretch !important; place-items: end stretch !important; }
+  .game-modal__panel {
+    width: 100% !important;
+    max-width: none !important;
+    min-width: 0 !important;
+    max-height: 86dvh !important;
+    margin: 0 !important;
+    padding: var(--ds-space-4) var(--ds-space-4) max(var(--ds-space-4), env(safe-area-inset-bottom)) !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain;
+    border-width: 1px 0 0 !important;
+    border-radius: var(--ds-radius-lg) var(--ds-radius-lg) 0 0 !important;
+    box-shadow: 0 -12px 40px rgb(4 14 31 / 45%) !important;
+  }
+  /* A bare panel carries no scrim of its own, so it pins itself to the viewport. */
+  .game-modal__panel--bare {
+    position: fixed !important;
+    z-index: var(--ds-z-modal);
+    right: 0 !important;
+    bottom: 0 !important;
+    left: 0 !important;
+    top: auto !important;
+    transform: none !important;
+  }
+  /* Inline flex rows inside these panels default to min-width:auto, so long text
+     refused to wrap and pushed the panel past the viewport. */
+  .game-modal__panel > div { min-width: 0; flex-wrap: wrap; }
+  .game-modal__panel > div > div { min-width: 0; }
+  /* Buttons default to min-width:auto too, so a long label kept a two-button row
+     wider than the sheet instead of shrinking or wrapping onto a second line. */
+  .game-modal__panel button { min-width: 0; max-width: 100%; }
+  .game-modal__panel button > * { min-width: 0; overflow-wrap: anywhere; }
+  .decision-overlay__header { align-items: flex-start !important; }
+  .decision-overlay__view-board { width: 100%; min-height: 44px; }
+  /* DecisionOverlay is portalled into document.body. Anchor it below the fixed
+     opponent row; bottom-anchored controls can sit underneath iOS browser chrome. */
+  .decision-board-return { top: calc(env(safe-area-inset-top, 0px) + 4rem); right: var(--ds-space-2); bottom: auto; left: var(--ds-space-2); }
+  .decision-board-return > button { min-height: 44px; flex: 1; }
+  .action-confirmation > div:first-child { flex-wrap: nowrap !important; align-items: flex-start !important; }
+  .action-confirmation > div:first-child > div:first-child { width: 78px !important; height: auto !important; flex: 0 0 auto; aspect-ratio: 5 / 7; }
+  .action-confirmation > div:last-child { flex-wrap: wrap; }
+  .action-confirmation > div:last-child > button { min-height: 44px; flex: 1 1 8rem; }
+
+  /* Card blow-up, above the sheet that opened it. */
+  .card-zoom { position: fixed; z-index: calc(var(--ds-z-modal) + 1); inset: 0; display: grid; padding: max(var(--ds-space-4), env(safe-area-inset-top)) var(--ds-space-4) max(var(--ds-space-4), env(safe-area-inset-bottom)); gap: var(--ds-space-4); grid-template-rows: minmax(0, 1fr) auto; place-items: center; background: rgb(4 14 31 / 88%); backdrop-filter: blur(8px); animation: aegis-fadeIn 140ms ease-out; }
+  .card-zoom > div:first-child { width: min(84vw, 22rem) !important; height: auto !important; max-height: 100%; aspect-ratio: 5 / 7; filter: drop-shadow(0 20px 40px rgb(0 0 0 / 55%)); }
+  .card-zoom > button { min-height: 44px; padding: var(--ds-space-2) var(--ds-space-6); color: var(--ds-brand-on-ink); font-size: var(--ds-text-sm); font-weight: 700; border: 1px solid color-mix(in srgb, var(--ds-brand-on-ink) 40%, transparent); border-radius: var(--ds-radius-md); background: color-mix(in srgb, var(--ds-brand-on-ink) 10%, transparent); }
+  .card-action-sheet__actions { display: grid; min-width: 0; gap: var(--ds-space-2); }
+  /* Full-width actions (hand card, trash) sit under the body rather than beside it. */
+  .card-action-sheet__body + .card-action-sheet__actions { margin-top: var(--ds-space-3); }
+  .card-action-sheet__actions > button { width: 100%; min-height: 44px; max-height: none; height: auto; padding-block: var(--ds-space-3); line-height: 1.25; white-space: normal; overflow-wrap: anywhere; }
+  .card-action-sheet__actions > button > * { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+}
+
+@media (width < 600px) and (height < 650px) and (orientation: portrait) {
+  .game-opponent-bar { min-height: 0; }
+  .game-sidebar > div:nth-child(2) > button { min-height: 44px; }
+  .opponent-action-feed { top: calc(3.75rem + env(safe-area-inset-top, 0px)); }
+  .opponent-action-feed__trail { display: none; }
+  .opponent-action-feed__copy strong,
+  .opponent-action-feed__copy small { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; -webkit-line-clamp: 1; }
+}
+
+@media (width < 600px) and (orientation: landscape) {
+  .game-layout { flex-direction: row; overflow: hidden !important; }
+  .game-sidebar { width: 210px !important; max-height: none; flex-direction: column !important; }
+  .game-sidebar > div { min-width: 0; }
+  .game-sidebar > div:nth-child(3) { display: block; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .opponent-action-feed__current,
+  .opponent-action-feed__trail-item { animation: none; transition: none; }
+}

@@ -1,0 +1,10 @@
+import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import { whenDigivolving } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
+const cardId = "ST6-12";
+const module: EffectModule = { cardId, effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] { if (timing !== EffectTiming.WhenDigivolving) return []; return [whenDigivolving({ source, effectKey: `${cardId}/grant-retaliation`, description: "[When Digivolving] Up to 2 of your Digimon gain Retaliation.", resolve: async (ctx) => { const candidates = ctx.game.player(source.ownerSeat).battleArea.filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard))).map((p) => p.permanentId); const chosen = candidates.length ? await ctx.ask.chooseTargets(ctx, { candidates, min: 0, max: Math.min(2, candidates.length) }) : []; for (const id of chosen) ctx.fx.grantKeyword(id, "Retaliation", EffectDuration.UntilOpponentTurnEnd); } })]; } };
+registerCard(module);
+export default module;

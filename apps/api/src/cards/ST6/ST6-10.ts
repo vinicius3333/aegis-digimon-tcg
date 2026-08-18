@@ -1,0 +1,10 @@
+import { CardColor, EffectTiming, isDigimon } from "@aegis/shared";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import { whenDigivolving } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
+const cardId = "ST6-10";
+const module: EffectModule = { cardId, effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] { if (timing !== EffectTiming.WhenDigivolving) return []; return [whenDigivolving({ source, effectKey: `${cardId}/recover-digimon`, description: "[When Digivolving] Return a purple Digimon from trash to hand.", optional: true, resolve: async (ctx) => { const candidates = ctx.game.player(source.ownerSeat).trash.filter((card) => { const def = ctx.game.definitionOf(card); return isDigimon(def) && def.colors.includes(CardColor.Purple); }).map((card) => card.instanceId); if (!candidates.length) return; const chosen = await ctx.ask.selectCards(ctx, { candidates, min: 1, max: 1 }); if (chosen.length) await ctx.fx.returnToHand(chosen); } })]; } };
+registerCard(module);
+export default module;

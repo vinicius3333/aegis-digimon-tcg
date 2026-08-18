@@ -1,0 +1,51 @@
+:80 {
+	encode gzip
+
+	@stale_web_revision {
+		not header X-Aegis-Web-Revision {{ACTIVE_REVISION}}
+		not header_regexp Cookie "(?:^|;[[:space:]]*)aegis_web_revision={{ACTIVE_REVISION}}(?:;|$)"
+	}
+
+	handle /deployment/manifest.json {
+		header @stale_web_revision Clear-Site-Data "\"cache\""
+		header @stale_web_revision Set-Cookie "aegis_web_revision={{ACTIVE_REVISION}}; Path=/; Max-Age=31536000; Secure; HttpOnly; SameSite=Lax"
+		header Cache-Control "no-store, max-age=0"
+		header Content-Type "application/json"
+		root * /srv/deployment
+		rewrite * /manifest.json
+		file_server
+	}
+
+	handle_path /api/blue/* {
+		reverse_proxy aegis-api-blue:2567
+	}
+
+	@legacy_websocket {
+		header Connection *Upgrade*
+		header Upgrade *websocket*
+	}
+	@legacy_http path /matchmake/* /bot/* /room/*
+	handle @legacy_websocket {
+		reverse_proxy {{LEGACY_WEB_UPSTREAM}}:80
+	}
+	handle @legacy_http {
+		reverse_proxy {{LEGACY_WEB_UPSTREAM}}:80
+	}
+
+	@active_api path /health /ready /auth/* /account/*
+	handle @active_api {
+		reverse_proxy aegis-api-blue:2567
+	}
+
+	@tournament_api {
+		path /tournaments*
+		not header Accept *text/html*
+	}
+	handle @tournament_api {
+		reverse_proxy aegis-api-blue:2567
+	}
+
+	handle {
+		reverse_proxy aegis-web-blue:80
+	}
+}

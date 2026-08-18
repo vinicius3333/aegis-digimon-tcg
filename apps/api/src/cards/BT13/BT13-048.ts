@@ -1,0 +1,102 @@
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+// Behavior is executed by the shared interpreter; this file only carries the IR and
+// registers it. To override with a hand-written module, delete the AUTO-GENERATED
+// header line above and replace the body — the generator will then preserve this file.
+const compiled: CompiledCard = {
+  "effects": [
+    {
+      "trigger": "OnPlay",
+      "actions": [
+        {
+          "kind": "RevealAdd",
+          "revealCount": 3,
+          "add": [
+            {
+              "filter": {
+                "excludeNameOrTrait": [
+                  {
+                    "tokens": [
+                      "Sea Animal"
+                    ],
+                    "match": "trait"
+                  }
+                ],
+                "controllerDefault": "mine",
+                "kind": [
+                  "Digimon"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Beast",
+                      "Animal"
+                    ],
+                    "match": "trait"
+                  },
+                  {
+                    "tokens": [
+                      "Sovereign"
+                    ],
+                    "match": "trait"
+                  }
+                ]
+              },
+              "count": 1,
+              "to": "hand"
+            },
+            {
+              "filter": {
+                "controllerDefault": "mine",
+                "kind": [
+                  "Digimon"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Royal Knight"
+                    ],
+                    "match": "trait"
+                  }
+                ]
+              },
+              "count": 1,
+              "to": "hand"
+            }
+          ],
+          "rest": "deckBottom"
+        }
+      ]
+    },
+    {
+      "trigger": "YourTurn",
+      "actions": [
+        {
+          "kind": "Aura",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          },
+          "effect": {
+            "kind": "modifyDP",
+            "amount": 2000
+          },
+          "while": {
+            "kind": "raw",
+            "raw": "this Digimon has [Beast], [Animal], or [Sovereign], other than [Sea Animal], in one of its traits or the [Royal Knight] trait"
+          }
+        }
+      ],
+      "isInherited": true
+    }
+  ],
+  "coverage": "full",
+  "residual": []
+};
+
+registerIrCard("BT13-048", compiled);

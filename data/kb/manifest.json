@@ -1,0 +1,32 @@
+{
+  "errata": {
+    "url": "https://world.digimoncard.com/rule/errata_card/",
+    "count": 91,
+    "cached": false,
+    "fetchedAt": "2026-05-31T03:30:19.643Z"
+  },
+  "banlist": {
+    "url": "https://world.digimoncard.com/rule/restriction_card/",
+    "events": 64,
+    "current": 54,
+    "cached": false,
+    "fetchedAt": "2026-05-31T03:28:31.721Z"
+  },
+  "qa": {
+    "url": "https://world.digimoncard.com/rule/?card_no=%3Ccard_no%3E",
+    "cardsScanned": 4201,
+    "cardsWithRulings": 2483,
+    "lastFetched": 1782,
+    "fetchedAt": "2026-05-31T06:05:48.011Z",
+    "failed": []
+  },
+  "rules": {
+    "sources": [
+      "https://world.digimoncard.com/rule/pdf/general_rule.pdf",
+      "https://world.digimoncard.com/rule/pdf/manual.pdf",
+      "https://world.digimoncard.com/rule/pdf/glossary.pdf"
+    ],
+    "chunks": 363,
+    "fetchedAt": "2026-05-31T03:50:43.526Z"
+  }
+}

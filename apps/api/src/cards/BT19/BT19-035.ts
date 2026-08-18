@@ -1,0 +1,146 @@
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+// Behavior is executed by the shared interpreter; this file only carries the IR and
+// registers it. To override with a hand-written module, delete the AUTO-GENERATED
+// header line above and replace the body — the generator will then preserve this file.
+const compiled: CompiledCard = {
+  "effects": [
+    {
+      "trigger": "Static",
+      "actions": [
+        {
+          "kind": "GrantStatic",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          },
+          "grant": "name",
+          "tokens": [
+            "Starmons"
+          ]
+        }
+      ]
+    },
+    {
+      "trigger": "AllTurns",
+      "actions": [
+        {
+          "kind": "SubTrigger",
+          "event": "whenPlayed",
+          "sourceFilter": {
+            "controller": "mine",
+            "kind": [
+              "Digimon"
+            ],
+            "nameOrTrait": [
+              {
+                "tokens": [
+                  "Xros Heart"
+                ],
+                "match": "trait"
+              }
+            ]
+          },
+          "actions": [
+            {
+              "kind": "ModifyDP",
+              "target": {
+                "filter": {
+                  "controller": "opponent",
+                  "kind": [
+                    "Digimon"
+                  ]
+                },
+                "count": 1
+              },
+              "amount": -3000,
+              "duration": "untilOpponentTurnEnd"
+            }
+          ]
+        }
+      ],
+      "frequency": "OncePerTurn"
+    },
+    {
+      "trigger": "OnDeletion",
+      "actions": [
+        {
+          "kind": "PlaceUnder",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ],
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "Xros Heart",
+                    "Blue Flare"
+                  ],
+                  "match": "trait"
+                }
+              ]
+            },
+            "count": 1,
+            "from": [
+              "hand",
+              "trash"
+            ]
+          },
+          "underFilter": {
+            "controller": "mine",
+            "kind": [
+              "Tamer"
+            ]
+          },
+          "optional": true
+        }
+      ]
+    },
+    {
+      "trigger": "WhenAttacking",
+      "actions": [
+        {
+          "kind": "ModifyDP",
+          "target": {
+            "filter": {
+              "controller": "opponent",
+              "kind": [
+                "Digimon"
+              ]
+            },
+            "count": 1
+          },
+          "amount": -2000,
+          "duration": "forTheTurn",
+          "condition": {
+            "kind": "raw",
+            "raw": "this Digimon has the [Xros Heart] trait"
+          }
+        }
+      ],
+      "isInherited": true,
+      "frequency": "OncePerTurn"
+    }
+  ],
+  "coverage": "full",
+  "residual": [],
+  "digivolutionRequirement": [
+    {
+      "level": 3,
+      "traits": [
+        "Xros Heart"
+      ],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ]
+};
+
+registerIrCard("BT19-035", compiled);

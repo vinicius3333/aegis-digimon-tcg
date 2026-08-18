@@ -1,0 +1,147 @@
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+// Hand-authored override for BT23-057 (Gankoomon).
+// Text:
+//   [Digivolve] Lv.5 w/[CS] trait: Cost 3
+//   When this card would be played, by returning 3 cards with [Huckmon], [Sistermon] or
+//   [Jesmon] in their names from your trash to the top or bottom of the deck, reduce the
+//   play cost by 5.
+//   [On Play] [When Digivolving] You may play 1 [Hinukamuy] Token. Then, delete 1 of your
+//   opponent's Digimon with a play cost of 6 or less. For each of your other Digimon, add
+//   3 to this effect's play cost maximum.
+// KB Q5322: can't return only 2 of the 3 required cards — must return all 3.
+// Fixes vs AUTO-GENERATED:
+//   - Return cost: target filter includes zone:"trash"; raw clarifies "top or bottom"
+//   - Delete: optional:false — text says "Then, delete 1..." (mandatory)
+//   - CostModifier: retained as closest model for "add 3 to play cost maximum per other Digimon";
+//     moves BEFORE Delete so the ceiling is computed before target resolution
+const compiled: CompiledCard = {
+  "effects": [
+    {
+      "trigger": "Static",
+      "actions": [
+        {
+          "kind": "Replacement",
+          "event": "wouldBePlayed",
+          "sourceFilter": {
+            "isSelfRef": true
+          },
+          "actions": [],
+          "cost": {
+            "kind": "return",
+            "target": {
+              "filter": {
+                "zone": "trash",
+                "controller": "mine",
+                "nameOrTrait": [
+                  {
+                    "tokens": ["Huckmon", "Sistermon", "Jesmon"],
+                    "match": "name"
+                  }
+                ]
+              },
+              "count": 3
+            },
+            "raw": "by returning 3 cards with [Huckmon], [Sistermon] or [Jesmon] in their names from your trash to the top or bottom of the deck, reduce the play cost by 5"
+          },
+          "mode": "reduceCost",
+          "amount": 5
+        }
+      ]
+    },
+    {
+      "trigger": "OnPlay",
+      "actions": [
+        {
+          "kind": "PlayToken",
+          "tokens": ["Hinukamuy"],
+          "count": 1,
+          "payCost": false,
+          "optional": true
+        },
+        {
+          "kind": "CostModifier",
+          "mode": "raiseCeiling",
+          "costType": "playcost",
+          "amount": 3,
+          "scaling": {
+            "per": 1,
+            "filter": {
+              "controller": "mine",
+              "excludeSelf": true,
+              "kind": ["Digimon"]
+            },
+            "unit": "cards"
+          }
+        },
+        {
+          "kind": "Delete",
+          "target": {
+            "filter": {
+              "controller": "opponent",
+              "kind": ["Digimon"],
+              "playCostLte": 6
+            },
+            "count": 1
+          },
+          "optional": false
+        }
+      ]
+    },
+    {
+      "trigger": "WhenDigivolving",
+      "actions": [
+        {
+          "kind": "PlayToken",
+          "tokens": ["Hinukamuy"],
+          "count": 1,
+          "payCost": false,
+          "optional": true
+        },
+        {
+          "kind": "CostModifier",
+          "mode": "raiseCeiling",
+          "costType": "playcost",
+          "amount": 3,
+          "scaling": {
+            "per": 1,
+            "filter": {
+              "controller": "mine",
+              "excludeSelf": true,
+              "kind": ["Digimon"]
+            },
+            "unit": "cards"
+          }
+        },
+        {
+          "kind": "Delete",
+          "target": {
+            "filter": {
+              "controller": "opponent",
+              "kind": ["Digimon"],
+              "playCostLte": 6
+            },
+            "count": 1
+          },
+          "optional": false
+        }
+      ]
+    }
+  ],
+  "coverage": "partial",
+  "residual": [
+    "Static Replacement cost: text says 'to the top or bottom of the deck' (player's choice). Cost.kind='return' has no 'to' field — deckTopOrBottom destination can't be encoded; raw captures the intent."
+  ],
+  "digivolutionRequirement": [
+    {
+      "level": 5,
+      "traits": ["CS"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ]
+};
+
+registerIrCard("BT23-057", compiled);

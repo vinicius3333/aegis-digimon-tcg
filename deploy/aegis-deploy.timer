@@ -1,0 +1,11 @@
+[Unit]
+Description=Poll draining Aegis deployment slots
+
+[Timer]
+OnBootSec=1min
+OnUnitActiveSec=30s
+Unit=aegis-deploy.service
+Persistent=true
+
+[Install]
+WantedBy=timers.target

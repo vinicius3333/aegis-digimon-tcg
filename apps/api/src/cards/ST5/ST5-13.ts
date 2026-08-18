@@ -1,0 +1,10 @@
+import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import { activated, staticModifier } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
+const cardId = "ST5-13";
+const module: EffectModule = { cardId, effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] { if (timing === EffectTiming.None) return [staticModifier({ source, effectKey: `${cardId}/security-attack`, description: "Security Attack +1.", resolve: async (ctx) => { const self = source.permanent(); if (self) ctx.fx.grantKeyword(self.permanentId, "SecurityAttack", EffectDuration.Permanent, 1); } })]; if (timing === EffectTiming.OnDeclaration) return [activated({ source, effectKey: `${cardId}/digiburst`, description: "[Main] Digi-Burst 2; 1 of your Digimon gets +4000 DP through the opponent's turn.", canActivate: () => (source.permanent()?.stack.length ?? 0) >= 2, resolve: async (ctx) => { const self = source.permanent(); if (!self || self.stack.length < 2) return; const paid = await ctx.ask.selectCards(ctx, { candidates: self.stack.map((card) => card.instanceId), min: 2, max: 2 }); if (paid.length !== 2) return; await ctx.fx.trashDigivolutionCards(self.permanentId, paid, { byEffectSeat: source.ownerSeat, byEffectCardId: cardId, isDigiBurst: true }); const candidates = ctx.game.player(source.ownerSeat).battleArea.filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard))).map((p) => p.permanentId); if (!candidates.length) return; const chosen = await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }); if (chosen[0]) ctx.fx.modifyDP(chosen[0], 4000, EffectDuration.UntilOpponentTurnEnd, { continuous: false }); } })]; return []; } };
+registerCard(module);
+export default module;

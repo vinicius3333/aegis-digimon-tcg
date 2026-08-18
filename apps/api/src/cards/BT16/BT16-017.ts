@@ -1,0 +1,90 @@
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+// Behavior is executed by the shared interpreter; this file only carries the IR and
+// registers it. To override with a hand-written module, delete the AUTO-GENERATED
+// header line above and replace the body — the generator will then preserve this file.
+const compiled: CompiledCard = {
+  "effects": [
+    {
+      "trigger": "YourTurn",
+      "actions": [
+        {
+          "kind": "SubTrigger",
+          "event": "whenPlayed",
+          "sourceFilter": {
+            "controller": "mine",
+            "excludeSelf": true,
+            "kind": [
+              "Digimon"
+            ]
+          },
+          "actions": [
+            {
+              "kind": "GainMemory",
+              "amount": 1,
+              "condition": {
+                "kind": "raw",
+                "raw": "it has the [Free] trait or is green"
+              }
+            }
+          ]
+        },
+        {
+          "kind": "SubTrigger",
+          "event": "whenOneOfYoursDigivolves",
+          "sourceFilter": {
+            "controller": "mine",
+            "excludeSelf": true,
+            "kind": [
+              "Digimon"
+            ]
+          },
+          "actions": [
+            {
+              "kind": "GainMemory",
+              "amount": 1,
+              "condition": {
+                "kind": "raw",
+                "raw": "it has the [Free] trait or is green"
+              }
+            }
+          ]
+        }
+      ],
+      "frequency": "OncePerTurn"
+    },
+    {
+      "trigger": "YourTurn",
+      "actions": [
+        {
+          "kind": "ModifyDP",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          },
+          "amount": 2000,
+          "duration": "permanent"
+        }
+      ],
+      "isInherited": true
+    }
+  ],
+  "coverage": "full",
+  "residual": [],
+  "digivolutionRequirement": [
+    {
+      "names": [
+        "DemiVeemon"
+      ],
+      "cost": 0,
+      "isAlternate": true
+    }
+  ]
+};
+
+registerIrCard("BT16-017", compiled);

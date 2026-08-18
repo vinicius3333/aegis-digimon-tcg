@@ -1,0 +1,2 @@
+import { describe,expect,it } from "vitest";import { setupEngine } from "../../engine/testkit/harness.js";import "./BT2-005.js";import "./BT2-065.js";
+describe("BT2-005 Kapurimon",()=>{it("gives +1000 DP while its host has Reboot",async()=>{const s=setupEngine({0:{battleArea:[{card:"BT2-065",as:"host",under:["BT2-005"]}]}});await s.engine.recomputeContinuousEffects();expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP+1000);});});

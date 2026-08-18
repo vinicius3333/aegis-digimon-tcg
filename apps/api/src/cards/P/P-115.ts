@@ -1,0 +1,91 @@
+// @ts-nocheck
+// HAND-FIXED IR for P-115 — do not regenerate.
+// OnDeletion PlayWithoutCost: ["Amano"] too broad; errata names are "Nene Amano" and "Yuu Amano".
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+const compiled: CompiledCard = {
+  "effects": [
+    {
+      "trigger": "OnDeletion",
+      "actions": [
+        {
+          "kind": "PlayWithoutCost",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": [
+                "Tamer"
+              ],
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "Nene Amano",
+                    "Yuu Amano"
+                  ],
+                  "match": "name"
+                }
+              ]
+            },
+            "count": 1
+          },
+          "from": [
+            "hand",
+            "trash"
+          ],
+          "payCost": false,
+          "optional": true
+        },
+        {
+          "kind": "PlaceUnder",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          },
+          "underFilter": {
+            "controller": "mine",
+            "kind": [
+              "Tamer"
+            ],
+            "excludeToken": true
+          },
+          "optional": true
+        }
+      ]
+    },
+    {
+      "trigger": "YourTurn",
+      "actions": [
+        {
+          "kind": "Aura",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          },
+          "effect": {
+            "kind": "keyword",
+            "keyword": {
+              "keyword": "SecurityAttack",
+              "amount": 1,
+              "raw": "＜Security Attack +1＞"
+            }
+          },
+          "while": {
+            "kind": "raw",
+            "raw": "this Digimon has the [Bagra Army] or [Twilight] trait and is level 5 or higher"
+          }
+        }
+      ],
+      "isInherited": true
+    }
+  ],
+  "coverage": "full",
+  "residual": []
+};
+
+registerIrCard("P-115", compiled);

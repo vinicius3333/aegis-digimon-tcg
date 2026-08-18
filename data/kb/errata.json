@@ -1,0 +1,1189 @@
+{
+  "EX4-072": {
+    "cardId": "EX4-072",
+    "name": "Digital Translator",
+    "date": "2026-05-29",
+    "changes": [
+      {
+        "before": "[Main] Choose 1 of your level 6 Digimon. Ignoring digivolution requirements and without paying the cost, it may digivolve into a level 6 Digimon card in your hand with a different name that includes the chosen Digimon's name.",
+        "after": "[Main] Choose 1 of your [Gallantmon], [Sakuyamon] or [MegaGargomon]. From your hand, ignoring digivolution requirements and without paying the cost, it may digivolve into a level 6 Digimon card with a different name that includes the chosen Digimon's name."
+      }
+    ],
+    "notes": null,
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT25-057": {
+    "cardId": "BT25-057",
+    "name": "Monarchlizamon",
+    "date": "2026-05-15",
+    "changes": [
+      {
+        "before": "Final Judgment\n[Main] 1 of your Digimon gains <Rush>, <Security A. +1> and +5000 DP until your opponent's turn ends. Then, it may attack.",
+        "after": "Final Judgment\n[Main] 1 of your Digimon gains <Rush>, <Security A. +1> and +5000 DP for the turn. Then, it may attack."
+      }
+    ],
+    "notes": null,
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX11-025": {
+    "cardId": "EX11-025",
+    "name": "FunBeemon ★",
+    "date": "2026-02-06",
+    "changes": [
+      {
+        "before": "",
+        "after": ""
+      }
+    ],
+    "notes": "The emblem design on the card differs from the official emblem design.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT23-078": {
+    "cardId": "BT23-078",
+    "name": "Gorou Matayoshi",
+    "date": "2025-10-17",
+    "changes": [
+      {
+        "before": "Goro Matayoshi",
+        "after": "Gorou Matayoshi"
+      }
+    ],
+    "notes": "Correction of official name.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "ST10-06": {
+    "cardId": "ST10-06",
+    "name": "Mastemon",
+    "date": "2025-08-01",
+    "changes": [
+      {
+        "before": "[When Digivolving] Place 1 yellow or purple Digimon card from your trash on top of your security stack face down. When DNA digivolving, you may search your security stack for 1 level 5 or lower Digimon card and play it without paying its memory cost. Then, shuffle your security stack.",
+        "after": "[When Digivolving] Place 1 yellow or purple Digimon card from your trash on top of your security stack face down. When DNA digivolving, search your security stack, and you may play 1 level 5 or lower Digimon card among it without paying its cost.\nThen, shuffle your security stack."
+      }
+    ],
+    "notes": null,
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX2-028": {
+    "cardId": "EX2-028",
+    "name": "Parasitemon",
+    "date": "2025-08-01",
+    "changes": [
+      {
+        "before": "[End of Attack] You may place this Digimon under 1 of your Digimon as its bottom digivolution card.",
+        "after": "[End of Attack] You may place this Digimon as 1 of your other Digimon's bottom digivolution card."
+      }
+    ],
+    "notes": null,
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX9-021": {
+    "cardId": "EX9-021",
+    "name": "Omnimon Alter-S",
+    "date": "2025-06-03",
+    "changes": [
+      {
+        "before": "[When Digivolving] If DNA digivolving, your opponent's Digimon's effects don't affect this Digimon for the turn. Then, delete all of their Digimon with the highest level.",
+        "after": "[When Digivolving] If DNA digivolving, your opponent's effects don't affect this Digimon for the turn. Then, delete all of their Digimon with the highest level."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-069": {
+    "cardId": "EX3-069",
+    "name": "Trial of the Four Great Dragons EX4-058 Ravemon EX4-063 Henry Wong & Shu-Chong EX4-071 Ame-no-Ohabari BT13-089 Ravemon LM-013 Diarbbitmon ACE",
+    "date": "2025-04-25",
+    "changes": [
+      {
+        "before": "…at the end of your opponent’s turn…",
+        "after": "…at the next end of your opponent’s turn…"
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT20-095": {
+    "cardId": "BT20-095",
+    "name": "Fellowship of Hope's Keepers",
+    "date": "2025-04-18",
+    "changes": [
+      {
+        "before": "[All Turns] When any of your [Chronicle] trait Digimon are deleted, &lang;Delay&rang;.\nBy moving your level 3 or higher [Chronicle] trait Digimon from the breeding area to the battle area…",
+        "after": "[All Turns] When any of your [Chronicle] trait Digimon are deleted, &lang;Delay&rang;.\nBy moving your level 3 or higher Digimon from the breeding area to the battle area…"
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "ST21-04": {
+    "cardId": "ST21-04",
+    "name": "Zudomon",
+    "date": "2025-04-18",
+    "changes": [
+      {
+        "before": "[On Play] [When Digivolving] For every 2 colors your Tamers have, trash any 1 of your opponent's Digimon's digivolution cards. Then, return 1 of their Digimon with 1 or fewer digivolution cards to the hand.",
+        "after": "[On Play] [When Digivolving] From 1 of your opponent's Digimon, trash any 1 digivolution card for every 2 colors your Tamers have. Then, return 1 of their Digimon with 1 or fewer digivolution cards to the hand."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT21-023": {
+    "cardId": "BT21-023",
+    "name": "Globemon",
+    "date": "2025-04-18",
+    "changes": [
+      {
+        "before": "",
+        "after": ""
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT20-098": {
+    "cardId": "BT20-098",
+    "name": "Apparition Legion",
+    "date": "2025-03-07",
+    "changes": [
+      {
+        "before": "[Main] By returning up to 9 levels' total worth of Digimon cards from your opponent's trash to the bottom of the deck, you may play 1 [Ghost] trait Digimon card of each returned card's level from your trash without paying the costs.",
+        "after": "[Main] By returning 9 levels' total worth of Digimon cards from your opponent's trash to the bottom of the deck, you may play 1 [Ghost] trait Digimon card of each returned card's level from your trash without paying the costs."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT19-091": {
+    "cardId": "BT19-091",
+    "name": "Trinity Burst!",
+    "date": "2025-02-21",
+    "changes": [
+      {
+        "before": "“While you have a level 5 [WarGrowlmon], [Taomon] or [Rapidmon], you may ignore this card's color requirements.",
+        "after": "While you have a level 5 [WarGrowlmon], [Taomon] or [Rapidmon], you may ignore this card's color requirements."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT20-077": {
+    "cardId": "BT20-077",
+    "name": "HeavyMetaldramon ACE",
+    "date": "2025-02-21",
+    "changes": [
+      {
+        "before": "[On Play] [When Digivolving] Trash cards in your hand until it has 4 left. Then, play 1 8000 DP or lower Digimon card from your trash. For each card this effect trashed, remove 2000 from this effect's DP maximum.",
+        "after": "[On Play] [When Digivolving] Trash cards in your hand until it has 4 left. Then, play 1 8000 DP or lower Digimon card from your trash without paying the cost. For each card this effect trashed, remove 2000 from this effect's DP maximum."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT18-099": {
+    "cardId": "BT18-099",
+    "name": "Fist of Athena",
+    "date": "2024-11-08",
+    "changes": [
+      {
+        "before": "[All Turns] When attack targets change, &lang;Delay&rang;.\n・1 of your Digimon gains &lang;Piercing&rang; and &lang;Security A. +1&rang; the end of your turn.",
+        "after": "[All Turns] When attack targets change, &lang;Delay&rang;.\n・1 of your Digimon gains &lang;Piercing&rang; and &lang;Security A. +1&rang; until the end of your turn."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "ST19-08": {
+    "cardId": "ST19-08",
+    "name": "ShoeShoemon",
+    "date": "2024-09-13",
+    "changes": [
+      {
+        "before": "&lang;Overclock ([Puppet] Trait)&rang; (At the end of your turn, by deleting 1 of your Tokens or other [Puppet] trait Digimon, this Digimon may attack a player without suspending.)",
+        "after": "&lang;Overclock ([Puppet] Trait)&rang; (At the end of your turn, by deleting 1 of your Tokens or other [Puppet] trait Digimon, this Digimon attacks a player without suspending.)"
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "ST19-12": {
+    "cardId": "ST19-12",
+    "name": "Cendrillmon",
+    "date": "2024-09-13",
+    "changes": [
+      {
+        "before": "&lang;Overclock ([Puppet] Trait)&rang; (At the end of your turn, by deleting 1 of your Tokens or other [Puppet] trait Digimon, this Digimon may attack a player without suspending.)",
+        "after": "&lang;Overclock ([Puppet] Trait)&rang; (At the end of your turn, by deleting 1 of your Tokens or other [Puppet] trait Digimon, this Digimon attacks a player without suspending.)"
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX7-027": {
+    "cardId": "EX7-027",
+    "name": "Chaperomon",
+    "date": "2024-09-13",
+    "changes": [
+      {
+        "before": "&lang;Overclock ([Puppet] Trait)&rang; (At the end of your turn, by deleting 1 of your Tokens or other [Puppet] trait Digimon, this Digimon may attack a player without suspending.)",
+        "after": "&lang;Overclock ([Puppet] Trait)&rang; (At the end of your turn, by deleting 1 of your Tokens or other [Puppet] trait Digimon, this Digimon attacks a player without suspending.)"
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX7-030": {
+    "cardId": "EX7-030",
+    "name": "Cendrillmon",
+    "date": "2024-09-13",
+    "changes": [
+      {
+        "before": "&lang;Overclock ([Puppet] Trait)&rang; (At the end of your turn, by deleting 1 of your Tokens or other [Puppet] trait Digimon, this Digimon may attack a player without suspending.)",
+        "after": "&lang;Overclock ([Puppet] Trait)&rang; (At the end of your turn, by deleting 1 of your Tokens or other [Puppet] trait Digimon, this Digimon attacks a player without suspending.)"
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "P-123": {
+    "cardId": "P-123",
+    "name": "Ukkomon",
+    "date": "2024-07-05",
+    "changes": [
+      {
+        "before": "[Your Turn] [Once Per Turn] When one of your Digimon moves from the breeding area to the battle area. You may hatch in the breeding area. Then, gain 1 memory.",
+        "after": "[Your Turn] [Once Per Turn] When one of your Digimon moves from the breeding area to the battle area, you may hatch in your breeding area. Then, gain 1 memory."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT16-060": {
+    "cardId": "BT16-060",
+    "name": "Tankdramon",
+    "date": "2024-05-31",
+    "changes": [
+      {
+        "before": "[On Play] [When Digivolving] Reveal the top 3 cards of your deck. For each [D-Brigade] or [DigiPolice] trait card among them, reduce the play costs of all of your opponent's Digimon by 1 until the end of their turn.",
+        "after": "[On Play] [When Digivolving] Reveal the top 3 cards of your deck. For each [D-Brigade] or [DigiPolice] trait card among them, reduce the play costs of all of your opponent's Digimon by 1 for the turn."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT16-077": {
+    "cardId": "BT16-077",
+    "name": "Dinobeemon",
+    "date": "2024-05-17",
+    "changes": [
+      {
+        "before": "&lang;Raid&rang; &lang;Partition (purple Lv.4 & red Lv.4)&rang;\n[When Digivolving] If DNA digivolving, you may play 1 level 5 or lower Digimon card with the [Free] trait from your trash without paying the cost.Then, 1 of your Digimon gains &lang;Rush&rang; for the turn and may attack a player.",
+        "after": "&lang;Raid&rang; &lang;Partition (purple Lv.4 & red Lv.4)&rang;\n[When Digivolving] If DNA digivolving, you may play 1 level 5 or lower Digimon card with the [Free] trait from your trash without paying the cost. Then, 1 of your Digimon may gain &lang;Rush&rang; for the turn and attack a player."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT16-091": {
+    "cardId": "BT16-091",
+    "name": "Beastly Storm Dance of Affection",
+    "date": "2024-05-17",
+    "changes": [
+      {
+        "before": "[Main] You may play 1 [Aquilamon] or [Gatomon] from your hand without paying the cost. Then, 2 of your Digimon may DNA digivolve into a Digimon card in your hand. The Digimon this effect DNA digivolved gains &lang;Security A. +1&rang; for the turn and may attack a player.",
+        "after": "[Main] You may play 1 [Aquilamon] or [Gatomon] from your hand without paying the cost. Then, 2 of your Digimon may DNA digivolve into a Digimon card in your hand. The Digimon this effect DNA digivolved may gain &lang;Security A. +1&rang; for the turn and attack a player."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "P-115": {
+    "cardId": "P-115",
+    "name": "SkullKnightmon",
+    "date": "2024-05-17",
+    "changes": [
+      {
+        "before": "[On Deletion] You may play 1 Tamer card with [Amano] in its name from your hand or trash without paying the cost. Then, &lang;Save&rang;.",
+        "after": "[On Deletion] You may play 1 Tamer card with [Nene Amano]/[Yuu Amano] in its name from your hand or trash without paying the cost. Then, &lang;Save&rang;."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT4-031": {
+    "cardId": "BT4-031",
+    "name": "MarineChimairamon",
+    "date": "2024-05-10",
+    "changes": [
+      {
+        "before": "MarinChimairamon",
+        "after": "MarineChimairamon"
+      }
+    ],
+    "notes": "Correction of official name.\nRead as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX4-063": {
+    "cardId": "EX4-063",
+    "name": "Henry Wong & Shu-Chong Wong",
+    "date": "2024-03-08",
+    "changes": [
+      {
+        "before": "[Your Turn] When one of your Digimon with [Terriermon] or [Lopmon] in its name would digivolve, by suspending this Tamer, reduce the digivolution cost by 1.",
+        "after": "[Your Turn] When one of your Digimon with [Terriermon] or [Lopmon] in its digivolution cards would digivolve, by suspending this Tamer, reduce the digivolution cost by 1."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT12-037": {
+    "cardId": "BT12-037",
+    "name": "Opossummon",
+    "date": "2024-02-09",
+    "changes": [
+      {
+        "before": "[On Play][When Digivolving] Reveal the top 3 cards of your deck. You may play 1 [Airu Suzaki], [Ren Tobari], or [Ryouma Mogami] card among them without paying its cost. Place the remaining cards at the bottom of your deck in any order.[On Deletion] ＜Save＞.Then, place 1 Digimon card with ＜Save＞ in its text from your trash under 1 of your Tamers.",
+        "after": "[On Play][When Digivolving] Reveal the top 3 cards of your deck. You may play 1 [Airu Suzaki], [Ren Tobari], or [Ryoma Mogami] card among them without paying its cost. Place the remaining cards at the bottom of your deck in any order. [On Deletion] ＜Save＞.Then, place 1 Digimon card with ＜Save＞ in its text from your trash under 1 of your Tamers."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT12-051": {
+    "cardId": "BT12-051",
+    "name": "Yasyamon",
+    "date": "2024-02-09",
+    "changes": [
+      {
+        "before": "[On Play][When Digivolving] You may play 1 [Airu Suzaki], [Ren Tobari], or [Ryouma Mogami] card from your hand without paying its cost.[On Deletion] ＜Save＞.\nThen, place 1 Digimon card with ＜Save＞ in its text from your trash under 1 of your Tamers.",
+        "after": "[On Play][When Digivolving] You may play 1 [Airu Suzaki], [Ren Tobari], or [Ryoma Mogami] card from your hand without paying its cost.[On Deletion] ＜Save＞.\nThen, place 1 Digimon card with ＜Save＞ in its text from your trash under 1 of your Tamers."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT9-071": {
+    "cardId": "BT9-071",
+    "name": "Dracmon",
+    "date": "2024-01-19",
+    "changes": [
+      {
+        "before": "[On Play] Reveal the top 3 cards of your deck. Trash 1 of them, and add 1 card with [Undead] or [Dark Animal] in its traits among them to your hand. Place the rest at the bottom of your deck in any order.",
+        "after": "[On Play] Reveal the top 3 cards of your deck. Among them, add 1 card with [Undead] or [Dark Animal] in one of its traits to the hand and trash 1 such card. Return the rest to the bottom of the deck."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT14-023": {
+    "cardId": "BT14-023",
+    "name": "Ikkakumon",
+    "date": "2023-12-22",
+    "changes": [
+      {
+        "before": "Effect\n[When Digivolving] Trash any 2 digivolution cards from your opponent's Digimon. [When Attacking] (Once Per Turn) Until the end of your opponent's turn, 1 of your opponent's Digimon with fewer digivolution cards than this digimon can't attack.\nInherited effect\n[When Attacking][Once Per Turn] Until the end of your opponent's turn, 1 of your opponent's Digimon with fewer digivolution cards than this digimon can't attack.",
+        "after": "Effect\n[When Digivolving] Trash any 2 digivolution cards from your opponent's Digimon. [When Attacking] (Once Per Turn) Until the end of your opponent's turn, 1 of your opponent's Digimon with as many or fewer digivolution cards as this digimon can't attack.\nInherited effect\n[When Attacking][Once Per Turn] Until the end of your opponent's turn, 1 of your opponent's Digimon with as many or fewer digivolution cards as this digimon can't attack."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT14-029": {
+    "cardId": "BT14-029",
+    "name": "Plesiomon",
+    "date": "2023-12-22",
+    "changes": [
+      {
+        "before": "Effect\n[When Digivolving] Trash any 3 digivolution cards from your opponent's Digimon.\n[When Attacking][Once Per Turn] If your opponent has no Digimon with more digivolution cards than this Digimon, unsuspend this Digimon.",
+        "after": "Effect\n[When Digivolving] Trash any 3 digivolution cards from your opponent's Digimon.\n[When Attacking][Once Per Turn] If your opponent has no Digimon with as many or more digivolution cards as this Digimon, unsuspend this Digimon."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT14-091": {
+    "cardId": "BT14-091",
+    "name": "Wave of Reliability",
+    "date": "2023-12-22",
+    "changes": [
+      {
+        "before": "Effect\n[Main] Trash any 2 digivolution cards from your opponent's Digimon. Then, if you have a Tamer with [Joe Kido] in its name, choose 1 of your Digimon. If your opponent has no Digimon with more digivolution cards than the chosen Digimon, unsuspend it.",
+        "after": "Effect\n[Main] Trash any 2 digivolution cards from your opponent's Digimon. Then if you have a Tamer with [Joe Kido] in its name, choose 1 of your Digimon. If your opponent has no Digimon with as many or more digivolution cards as the chosen Digimon, unsuspend it."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT14-002": {
+    "cardId": "BT14-002",
+    "name": "Bukamon",
+    "date": "2023-12-15",
+    "changes": [
+      {
+        "before": "Inherited Effect\n[Your Turn] While your opponent has no Digimon with more digivolution cards than this Digimon, this Digimon gains <Jamming>.",
+        "after": "Inherited Effect\n[Your Turn] While your opponent has no Digimon with as many or more digivolution cards as this Digimon, this Digimon gains <Jamming>."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "ST16-11": {
+    "cardId": "ST16-11",
+    "name": "WereGarurumon",
+    "date": "2023-09-29",
+    "changes": [
+      {
+        "before": "Inherited Effect\n[When Attacking][Once Per Turn] By trashing 1 card in your hand, unsuspend this Digimon",
+        "after": "Inherited Effect\n[When Attacking][Once Per Turn] By trashing 1 card in your hand, delete 1 of your opponent's level 4 or lower Digimon."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT12-094": {
+    "cardId": "BT12-094",
+    "name": "Yuu Amano",
+    "date": "2023-04-14",
+    "changes": [
+      {
+        "before": "Start of Your Main Phase] By placing 1 Digimon card with ＜Save＞ in its text from your hand under this Tamer, 1 of your Digimon gets +2000 DP for the turn.",
+        "after": "Start of Your Main Phase] By placing 1 Digimon card with ＜Save＞ in its text from your hand under this Tamer, gain 1 memory."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "P-071": {
+    "cardId": "P-071",
+    "name": "Impmon",
+    "date": "2023-04-14",
+    "changes": [
+      {
+        "before": "[Security] At the end of the battle, you may play 1 purple level 3 Digimon card from your trash without paying its memory cost.",
+        "after": "[Security] At the end of the battle, you may play 1 purple level 3 Digimon card from your trash without paying its memory cost. Then, add this card to its owner's hand."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT11-009": {
+    "cardId": "BT11-009",
+    "name": "Shoutmon + Star Sword",
+    "date": "2023-02-17",
+    "changes": [
+      {
+        "before": "＜Material Save 1＞ (When this Digimon would be deleted, you may place 2 cards in this Digimon's DigiXros requirements from this Digimon's digivolution cards under 1 of your Tamers.)",
+        "after": "＜Material Save 1＞ (When this Digimon would be deleted, you may place 1 card in this Digimon's DigiXros requirements from this Digimon's digivolution cards under 1 of your Tamers.)"
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT3-111": {
+    "cardId": "BT3-111",
+    "name": "Imperialdramon: Dragon Mode",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "Digivolves from: Blue level 5 by paying 3 memory/Digivolves from: Green level 5 by paying 3 memory",
+        "after": "Digivolves from: Green level 5 by paying 5 memory/Digivolves from: Blue level 5 by paying 5 memory"
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-001": {
+    "cardId": "EX3-001",
+    "name": "Babydomon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[All Turns][Once Per Turn] When a Digimon with [Dramon] or [Examon] in its name becomes unsuspended, this Digimon gets +1000 DP for the turn.",
+        "after": "[All Turns] [Once Per Turn] When this Digimon with [Dramon] or [Examon] in its name becomes unsuspended, this Digimon gets +1000 for the turn."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-003": {
+    "cardId": "EX3-003",
+    "name": "Sunarizamon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[When Attacking] Reveal the top 3 cards of your deck. Add 1 Digimon card with [Dragon] in its traits among them to your hand. Place the rest at the bottom of your deck in any order.",
+        "after": "[When Attacking] Reveal the top 3 cards of your deck. Add 1 Digimon card with [Dragon], [saur] or [Ceratopsian] in one of its traits among them to your hand. Place the rest at the bottom of your deck in any order."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-008": {
+    "cardId": "EX3-008",
+    "name": "Flamedramon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "・You may digivolve 1 of other Digimon into a level 4 purple Digimon card with [Free] in its traits from your trash for its play cost.\n・You may DNA digivolve this Digimon and one of your other Digimon in play into a Digimon card in your hand for its DNA digivolve cost.",
+        "after": "・You may digivolve 1 of your other Digimon into a level 4 purple Digimon card with the [Free] trait from your trash for the cost.\n・You may DNA digivolve this Digimon and one of your other Digimon may DNA digivolve into a Digimon card in your hand for the cost."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-014": {
+    "cardId": "EX3-014",
+    "name": "Dorbickmon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[On Play] Delete 1 of your opponent's Digimon with 3000 DP or less. For each card with [Dragon] in its traits in this Digimon's digivolution cards, add 2000 DP to the maximum DP you can choose with this effect.\n[DigiXros -2] 5 Digimon cards w/different names + [Dragon] traits\nOn play, place from hand/battle area under this card. Reduce play cost per card.",
+        "after": "[On Play] Delete 1 of your opponent's Digimon with 3000 or less. For each card with [Dragon], [saur] or [Ceratopsian] in one of its traits in this Digimon's digivolution cards, add 2000 DP to the maximum DP you can choose with this effect.\n[DigiXros -2] 5 Digimon cards w/different names + [Dragon], [saur], or [Ceratopsian] in one of its traits\nOn play, place from hand/battle area under this card. Reduce play cost per card."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-022": {
+    "cardId": "EX3-022",
+    "name": "MegaSeadramon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[When Attacking] You may play 1 blue level 3 Digimon card from one of your blue Digimon's digivolution cards without paying its memory cost.\n[When Attacking][Once Per Turn] You may play a blue level 3 Digimon card from 1 of your blue Digimon without paying its memory cost.",
+        "after": "[When Attacking] You may play 1 blue level 3 Digimon card from 1 of your blue Digimon's digivolution cards without paying its memory cost.\n[When Attacking] [Once Per Turn] You may play 1 blue level 3 Digimon card from 1 of your blue Digimon's digivolution cards without paying its memory cost."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-023": {
+    "cardId": "EX3-023",
+    "name": "Plesiomon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[When Digivolving] You may play 1 blue level 3 Digimon card or 1 level 4 or lower Digimon card with [Aquatic] in its traits from one of your blue Digimon's digivolution cards without paying its memory cost. Then, you may place 1 blue Digimon card from your hand under this Digimon as its bottom digivolution card.\n[All Turns][Once Per Turn] When you play a Digimon from digivolution cards, return 1 of your opponent's Digimon of the same level to the bottom of its owner's deck.",
+        "after": "[When Digivolving] You may play 1 blue level 3 Digimon card or 1 level 4 or lower Digimon card with [Aqua] or [Sea Animal] in one of its traits from one of your blue Digimon's digivolution cards without paying its memory cost. Then, you may place 1 blue Digimon card from your hand under this Digimon as its bottom digivolution card.\n[All Turns] [Once Per Turn] When you play a Digimon from digivolution cards, you may return 1 of your opponent's Digimon of the same level to the bottom of its owner's deck."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-024": {
+    "cardId": "EX3-024",
+    "name": "Slayerdramon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[Start of Opponent's Main Phase] You may suspend 1 of your Digimon with [Dramon] or [Examon] in its name to force 1 of your opponent’s Digimon to attack.\n[Start of Opponent's Main Phase] You may suspend 1 of your Digimon with [Dramon] or [Examon] in its name to force 1 of your opponent’s Digimon to attack.",
+        "after": "[Start of Opponent's Main Phase] By suspending 1 of your Digimon with [Dramon] or [Examon] in its name, your opponent attacks with 1 of their Digimon.\n[Start of Opponent's Main Phase] By suspending 1 of your Digimon with [Dramon] or [Examon] in its name, your opponent attacks with 1 of their Digimon."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-025": {
+    "cardId": "EX3-025",
+    "name": "Azulongmon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[On Deletion] If you don't have a [Trial of the Four Great Dragons] in play, place 1 [Trial of the Four Great Dragons] from your hand in your battle area.",
+        "after": "[On Deletion] If you don't have a [Trial of the Four Great Dragons] in play, you may place 1 [Trial of the Four Great Dragons] from your hand in your battle area."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-026": {
+    "cardId": "EX3-026",
+    "name": "Aegisdramon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[When Digivolving] You may play 1 blue level 3 Digimon card or 1 Digimon card with [Seadramon] in its name or [Aquatic] in its traits from one of your blue Digimon's digivolution cards without paying its memory cost.",
+        "after": "[When Digivolving] You may play 1 blue level 3 Digimon card or 1 Digimon card with [Seadramon] in its name or [Aqua] or [Sea Animal] in one of its traits from one of your blue Digimon's digivolution cards without paying its memory cost."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-028": {
+    "cardId": "EX3-028",
+    "name": "Patamon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[On Play] Reveal the top 4 cards of your deck. Add 1 yellow card with [Angel] in its traits and 1 card with the [Four Great Dragons] in its traits among them to your hand. Place the rest at the bottom of your deck in any order.",
+        "after": "[On Play] Reveal the top 4 cards of your deck. Add 1 yellow card with [Angel], [Cherub], [Throne], [Authority], [Seraph] or [Virtue], other than [Three Great Angels], in one of its traits and 1 card with the [Four Great Dragons] trait among them to your hand. Place the rest at the bottom of your deck in any order."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-030": {
+    "cardId": "EX3-030",
+    "name": "Gatomon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[On Play] Reveal the top 4 cards of your deck. Add 1 yellow card with [Angel] in its traits and 1 card with the [Four Great Dragons] in its traits among them to your hand. Place the rest at the bottom of your deck in any order.\n[Inherited Effect][Your Turn][Once Per Turn] When you play a Digimon with [Four Great Dragons] in its traits, it gains ＜Rush＞ for the turn. (This Digimon may attack the turn it was played.)",
+        "after": "[On Play] Reveal the top 4 cards of your deck. Add 1 yellow card with [Angel], [Cherub], [Throne], [Authority], [Seraph] or [Virtue], other than [Three Great Angels], in one of its traits and 1 card with the [Four Great Dragons] trait among them to your hand. Place the rest at the bottom of your deck in any order.\n[Inherited Effect][Your Turn] [Once Per Turn] When you play a Digimon with the [Four Great Dragons] trait, 1 of those Digimon gains ＜Rush＞ for the turn. (This Digimon may attack the turn it was played.)"
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-031": {
+    "cardId": "EX3-031",
+    "name": "Veedramon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[Your Turn][Once Per Turn] When you play a Digimon with [Four Great Dragons] in its traits, it gains gains <Rush> for the turn. (This Digimon may attack the turn it was played.)",
+        "after": "[Your Turn] [Once Per Turn] When you play a Digimon with the [Four Great Dragons] trait, 1 of those Digimon gains <Rush> for the turn. (This Digimon may attack the turn it was played.)"
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-033": {
+    "cardId": "EX3-033",
+    "name": "AeroVeedramon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[When Digivolving] If you don't have a [Trial of the Four Great Dragons] in play, place 1 [Trial of the Four Great Dragons] from your hand in your battle area.",
+        "after": "[When Digivolving] If you don't have a [Trial of the Four Great Dragons] in play, you may place 1 [Trial of the Four Great Dragons] from your hand in your battle area."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-034": {
+    "cardId": "EX3-034",
+    "name": "Angewomon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[When Digivolving] If you don't have a [Trial of the Four Great Dragons] in play, place 1 [Trial of the Four Great Dragons] from your hand in your battle area.",
+        "after": "[When Digivolving] If you don't have a [Trial of the Four Great Dragons] in play, you may place 1 [Trial of the Four Great Dragons] from your hand in your battle area."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-035": {
+    "cardId": "EX3-035",
+    "name": "Goldramon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[When Digivolving] Return 1 card with [Four Great Dragons] in its trait from your trash to your hand.\n[When Attacking] 1 of your opponent's Digimon gets -6000 DP for the turn. Then, you may return 1 [Magnadramon], 1 [Azulongmon], and 1 [Megidramon] from your trash to the bottom of your deck in any order to trash the top 2 cards of your opponent's security stack.",
+        "after": "[When Digivolving] You may return 1 card with the [Four Great Dragons] trait from your trash to your hand.\n[When Attacking] 1 of your opponent's Digimon gets -6000 for the turn. Then, by returning 1 [Magnadramon], 1 [Azulongmon], and 1 [Megidramon] from your trash to the bottom of your deck in any order, trash the top 2 cards of your opponent's security stack."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-036": {
+    "cardId": "EX3-036",
+    "name": "Magnadramon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[On Deletion] If you don't have a [Trial of the Four Great Dragons] in play, place 1 [Trial of the Four Great Dragons] from your hand in your battle area.",
+        "after": "[On Deletion] If you don't have a [Trial of the Four Great Dragons] in play, you may place 1 [Trial of the Four Great Dragons] from your hand in your battle area."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-045": {
+    "cardId": "EX3-045",
+    "name": "Hydramon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[When Digivolving] You may suspend 1 of you or your opponent’s Digimon.\n[All Turns][Once Per Turn] When an opponent's Digimon becomes suspended, for each other suspended Digimon with [Vegetation], [Plant],or [Fairy] in its traits you have in play, gain 1 memory.\n[End of Your Turn][Once Per turn] If you have 2 or more suspended Digimon with [Vegetation], [Plant], or [Fairy] in their traits, place 1 of your opponent's suspended Digimon at the bottom of its owner's deck.",
+        "after": "[When Digivolving] You may suspend 1 Digimon.\n[All Turns] [Once Per Turn] When an opponent's Digimon becomes suspended, for each other suspended Digimon with [Vegetation], [Plant], or [Fairy] in one of their traits you have in play, gain 1 memory.\n[End of Your Turn] [Once Per turn] If you have 2 or more suspended Digimon with [Vegetation], [Plant], or [Fairy] in one of their traits, return 1 of your opponent's suspended Digimon to the bottom of its owner's deck."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-055": {
+    "cardId": "EX3-055",
+    "name": "Wormmon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[On Play] Reveal the top 3 cards of your deck. Add 1 purple or red card with the [Free] trait or 1 card with [Imperialdramon] in its name among them to your hand, and trash 1 card among them. Place the rest at the bottom of your deck in any order.",
+        "after": "[On Play] Reveal the top 3 cards of your deck. Add 1 purple or red card with the [Free] trait or 1 card with [Imperialdramon] in its name among them to your hand, and trash 1 such card among them. Place the rest at the bottom of your deck in any order."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-057": {
+    "cardId": "EX3-057",
+    "name": "Growlmon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[On Deletion] Delete 1 of your opponent‘s Digimon with 3000 DP or less. If no Digimon was deleted by this effect, both players trash the top 2 cards of their decks.",
+        "after": "[When Digivolving] Delete 1 of your opponent's Digimon with 3000 DP or less. If no Digimon is deleted by this effect, trash the top 2 cards of both players' decks"
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-058": {
+    "cardId": "EX3-058",
+    "name": "Shadramon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[When Digivolving] Activate 1 of the effects below.\n・You may digivolve 1 of your other Digimon into a red level 4 Digimon card with [Free] in its traits from your trash for its digivolution cost.\n・You may DNA digivolve this Digimon and one of your other Digimon into a Digimon card from your hand for its DNA digivolve cost.",
+        "after": "[When Digivolving] Activate 1 of the effects below.\n・You may digivolve 1 of your other Digimon into a level 4 red Digimon card with the [Free] trait from your trash for the cost.\n・You may DNA digivolve this Digimon and one of your other Digimon may DNA digivolve into a Digimon card in your hand for the cost."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-063": {
+    "cardId": "EX3-063",
+    "name": "Imperialdramon: Dragon Mode",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[When Digivolving] When DNA digivolving, your opponent chooses 1 of their Digimon and deletes the rest. Then, ＜Blitz＞.",
+        "after": "[When Digivolving] If DNA digivolving, your opponent chooses 1 of their Digimon. Delete all of their other Digimon. Then, ＜Blitz＞."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-064": {
+    "cardId": "EX3-064",
+    "name": "Megidramon",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[On Deletion] If you don't have a [Trial of the Four Great Dragons] in play, place 1 [Trial of the Four Great Dragons] from your hand in your battle area.",
+        "after": "[On Deletion] If you don't have a [Trial of the Four Great Dragons] in play, you may place 1 [Trial of the Four Great Dragons] from your hand in your battle area."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX3-068": {
+    "cardId": "EX3-068",
+    "name": "God Flame",
+    "date": "2022-11-11",
+    "changes": [
+      {
+        "before": "[Main] 1 of your opponent's Digimon gets -6000 DP for the turn. Then, return 1 card with the [Four Great Dragons] in its traits from your trash to your hand.",
+        "after": "[Main] 1 of your opponent's Digimon gets -6000 DP for the turn. Then, you may return 1 card with the [Four Great Dragons] trait from your trash to your hand."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT10-004": {
+    "cardId": "BT10-004",
+    "name": "Bosamon",
+    "date": "2022-10-28",
+    "changes": [
+      {
+        "before": "[Your Turn]When an effect suspends a Digimon, this Digimon gets +1000 DP for the turn.",
+        "after": "[Your Turn][Once Per Turn] When an effect suspends a Digimon, this Digimon gets +1000 DP for the turn."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT10-093": {
+    "cardId": "BT10-093",
+    "name": "Yuu Amano",
+    "date": "2022-10-28",
+    "changes": [
+      {
+        "before": "[Your turn] [Once per turn] When you would play a level 4 or higher Digimon card with [Bagra Army] in its traits, by placing up to 3 purple Digimon cards from under your Tamers in the digivolution cards of the Digimon card played, reduce the memory cost of that Digimon by 2 for each card placed.",
+        "after": "[Your turn] [Once per turn] When you would play 1 level 4 or higher Digimon card with [Bagra Army] in its traits, by placing up to 3 purple Digimon cards from under your Tamers in the digivolution cards of the Digimon card played, reduce the memory cost of that Digimon by 2 for each card placed."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT10-096": {
+    "cardId": "BT10-096",
+    "name": "Burning Star Crusher",
+    "date": "2022-10-28",
+    "changes": [
+      {
+        "before": "[Security] Reveal the top 3 cards of your deck. Add 1 card with [Xros Heart] in its traits among them to your hand and play 1 [Taiki Kudo] among them without paying its memory cost. Place the rest at the bottom of your deck in any order.",
+        "after": "[Security] Reveal the top 3 cards of your deck. You may add 1 Digimon card with [Xros Heart] in its traits among them to your hand and play 1 [Taiki Kudo] among them without paying its memory cost. Place the rest at the bottom of your deck in any order."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT10-097": {
+    "cardId": "BT10-097",
+    "name": "Blazing Memory Boost!",
+    "date": "2022-10-28",
+    "changes": [
+      {
+        "before": "[Main] Reveal the top 6 cards of your deck. Add 2 cards with [Blue Flare] in their traits among them to your hand and you may play 1 [ Christopher Aonuma] among them without paying its memory cost. Place the rest at the bottom of your deck in any order. Then, place this card in your Battle Area.",
+        "after": "[Main] Reveal the top 6 cards of your deck. You may add 2 cards with [Blue Flare] in their traits among them to your hand, and play 1 [Kiriha Aonuma] among them without paying its memory cost. Place the rest at the bottom of your deck in any order. Then, place this card in your Battle Area."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT10-086": {
+    "cardId": "BT10-086",
+    "name": "Omnimon (X Antibody)",
+    "date": "2022-10-14",
+    "changes": [
+      {
+        "before": "When a Digimon with [X Antibody] in its traits would digivolve cards would digivolve into this card, reduce the digivolution cost by 2.",
+        "after": "When a Digimon with [X Antibody] in its digivolution cards would digivolve into this card, reduce the digivolution cost by 2."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT10-101": {
+    "cardId": "BT10-101",
+    "name": "Lónkhē Adistakto",
+    "date": "2022-10-14",
+    "changes": [
+      {
+        "before": "Lóankhē Adistakto",
+        "after": "Lónkhē Adistakto"
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT10-107": {
+    "cardId": "BT10-107",
+    "name": "Buzzing Fist",
+    "date": "2022-10-14",
+    "changes": [
+      {
+        "before": "[Security] You may play 1 black Tamer card from your hand or trash without paying its play cost. Then, add this card to its owner's hand.",
+        "after": "[Security] You may play 1 [Yuu Amano] from your hand or trash without paying its play cost. Then, add this card to its owner's hand."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT9-067": {
+    "cardId": "BT9-067",
+    "name": "Raidenmon",
+    "date": "2022-09-05",
+    "changes": [
+      {
+        "before": "[On Play][When Digivolving] Place 1 [Raijinmon], 1 [Fuijinmon], and 1 [Suijinmon] from your trash under this Digimon in any order as its bottom digivolution cards. Gain 1 memory for each card placed.",
+        "after": "[On Play][When Digivolving] Place 1 [Raijinmon], 1 [Fujinmon], and 1 [Suijinmon] from your trash under this Digimon in any order as its bottom digivolution cards. Gain 1 memory for each card placed."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT8-097": {
+    "cardId": "BT8-097",
+    "name": "Crimson Blaze",
+    "date": "2022-09-05",
+    "changes": [
+      {
+        "before": "[Main] Delete all of your opponent's Digimon with 6000 DP or less. Your opponent can't play Digimon by effects until the end of their next turn.",
+        "after": "[Main] Your opponent can't play Digimon by effects until the end of their turn. Delete all of your opponent's Digimon with 6000 DP or less."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT1-042": {
+    "cardId": "BT1-042",
+    "name": "LoaderLeomon",
+    "date": "2022-08-05",
+    "changes": [
+      {
+        "before": "LoaderLiomon",
+        "after": "LoaderLeomon"
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX2-055": {
+    "cardId": "EX2-055",
+    "name": "Reaper",
+    "date": "2022-07-01",
+    "changes": [
+      {
+        "before": "When you would play this Digimon, you may trash 7 or more digivolution cards from the bottom of 1 of your [Mother D-Reaper]s to reduce this Digimon's play cost to 0.",
+        "after": "When you would play this Digimon, you may trash 7 or more digivolution cards from the bottom of 1 of your [Mother D-Reaper]s to set this Digimon's play cost to 0."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX2-053": {
+    "cardId": "EX2-053",
+    "name": "ADR-08 Optimizer",
+    "date": "2022-06-24",
+    "changes": [
+      {
+        "before": "[On Play][When Attacking][Once Per Turn] If one of your [Mother D-Reaper]s has 5 or more digivolution cards, reveal the top 3 cards of your deck. You may play 1 card with [D-Reaper] in its traits and a play cost of 10 or less among them without paying its memory cost. Place the remaining cards at the bottom of your deck in any order.",
+        "after": "[On Play][When Attacking][Once Per Turn] If one of your [Mother D-Reaper]s has 5 or more digivolution cards, reveal the top 3 cards of your deck. You may play 1 card with [D-Reaper] in its traits and a play cost of 10 or less among them without paying its memory cost. Place the remaining cards at the top of your deck in any order."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT8-109": {
+    "cardId": "BT8-109",
+    "name": "Flame Hellscythe",
+    "date": "2022-05-27",
+    "changes": [
+      {
+        "before": "[Main] 1 of your opponent's Digimon gets -6000 DP for the turn. Then, play 1 purple or yellow Digimon card with 6000 DP or less from your trash without paying its memory cost.",
+        "after": "[Main] 1 of your opponent's Digimon gets -6000 DP for the turn. Then, you may play 1 purple or yellow Digimon card with 6000 DP or less from your trash without paying its memory cost."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT8-110": {
+    "cardId": "BT8-110",
+    "name": "Armor Texture!",
+    "date": "2022-05-27",
+    "changes": [
+      {
+        "before": "[Security] Play 1 level 3 Digimon card with [Free] in its traits from your hand or trash without paying its memory cost.",
+        "after": "[Security] You may play 1 level 3 Digimon card with [Free] in its traits from your hand or trash without paying its memory cost."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT8-069": {
+    "cardId": "BT8-069",
+    "name": "Ouryumon",
+    "date": "2022-05-20",
+    "changes": [
+      {
+        "before": "[Your Turn][Once Per Turn] When one of your effects places a digivolution card under this Digimon, this Digimon gets +2000 DP and can't be deleted by your opponent's effects until the end of your opponent's next turn.",
+        "after": "[Your Turn][Once Per Turn] When one of your effects places a digivolution card under one of your Digimon, this Digimon gets +2000 DP and can't be deleted by your opponent's effects until the end of your opponent's next turn."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT8-070": {
+    "cardId": "BT8-070",
+    "name": "BlackWarGreymon",
+    "date": "2022-05-20",
+    "changes": [
+      {
+        "before": "[All Turns][Once Per Turn] When an opponent's Digimon is deleted, unsuspend this Digimon.",
+        "after": "[All Turns][Once Per Turn] When an opponent's Digimon is deleted, you may unsuspend this Digimon."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "P-063": {
+    "cardId": "P-063",
+    "name": "Ruli Tsukiyono",
+    "date": "2022-04-22",
+    "changes": [
+      {
+        "before": "Ruri Tsukiyono",
+        "after": "Ruli Tsukiyono"
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "P-060": {
+    "cardId": "P-060",
+    "name": "Angoramon",
+    "date": "2022-04-22",
+    "changes": [
+      {
+        "before": "[When Attacking][Once Per Turn] If you have a [Ruri Tsukiyono] in play, gain 1 memory.",
+        "after": "[When Attacking][Once Per Turn] If you have a [Ruli Tsukiyono] in play, gain 1 memory."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX1-053": {
+    "cardId": "EX1-053",
+    "name": "MetalEtemon",
+    "date": "2021-12-10",
+    "changes": [
+      {
+        "before": "[Your Turn] For each Digimon card with [Etemon] in its name in your trash, this Digimon gets +1000 DP.",
+        "after": "[Opponent's Turn] For each Digimon card with [Etemon] in its name in your trash, this Digimon gets +1000 DP."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "EX1-073": {
+    "cardId": "EX1-073",
+    "name": "Machinedramon",
+    "date": "2021-11-26",
+    "changes": [
+      {
+        "before": "[On Play] You may place up to 5 red and/or black cards with [Cyborg] in their traits and different card numbers from your hand and/or trash in this Digimon's digivolution cards to gain 1 memory for each card placed.",
+        "after": "[On Play] You may place up to 5 level 5 red and/or black cards with [Cyborg] in their traits and different card numbers from your hand and/or trash in this Digimon's digivolution cards to gain 1 memory for each card placed."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "P-045": {
+    "cardId": "P-045",
+    "name": "Kurisarimon",
+    "date": "2021-11-12",
+    "changes": [
+      {
+        "before": "[All Turns] All of your Digimon with the same name as this Digimon gain ＜Decoy (Black/White)＞. (When one of your other black or white Digimon would be deleted, you may delete this Digimon to prevent it.)",
+        "after": "[All Turns] All of your other Digimon with the same name as this Digimon gain ＜Decoy (Black/White)＞. (When one of your other black or white Digimon would be deleted by an opponent's effect, you may delete this Digimon to prevent that deletion.)"
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT4-037": {
+    "cardId": "BT4-037",
+    "name": "Kudamon",
+    "date": "2021-09-17",
+    "changes": [
+      {
+        "before": "[On Play] You may trash the top card of your security stack to have 1 of your opponent's Digimon get -2000 DP.",
+        "after": "[On Play] You may trash the top card of your security stack to have 1 of your opponent's Digimon get -2000 DP for the turn."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT6-059": {
+    "cardId": "BT6-059",
+    "name": "Machmon",
+    "date": "2021-09-03",
+    "changes": [
+      {
+        "before": "＜Decoy (Black)＞. (When one of your other black Digimon would be deleted, you may delete this Digimon to prevent it.)",
+        "after": "＜Decoy (Black)＞ (When one of your other black Digimon would be deleted by an opponent's effect, you may delete this Digimon to prevent that deletion.)"
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT6-064": {
+    "cardId": "BT6-064",
+    "name": "Mamemon",
+    "date": "2021-09-03",
+    "changes": [
+      {
+        "before": "＜Decoy (Black)＞. (When one of your other black Digimon would be deleted, you may delete this Digimon to prevent it.)",
+        "after": "＜Decoy (Black)＞ (When one of your other black Digimon would be deleted by an opponent's effect, you may delete this Digimon to prevent that deletion.)"
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT4-041": {
+    "cardId": "BT4-041",
+    "name": "Meicoomon",
+    "date": "2021-05-28",
+    "changes": [
+      {
+        "before": "Attribute: Unidentified Type: Unidentified",
+        "after": "Attribute: Unknown Type: Unknown"
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "P-029": {
+    "cardId": "P-029",
+    "name": "Agunimon P-030 Lobomon",
+    "date": "2021-05-21",
+    "changes": [
+      {
+        "before": "[Your Turn] When digivolving one of your Digimon into an [AncientGreymon] in your hand, reduce its digivolution cost by 2.",
+        "after": "[Your Turn] When digivolving this Digimon into an [AncientGreymon] in your hand, reduce its digivolution cost by 2."
+      },
+      {
+        "before": "[Your Turn] When digivolving one of your Digimon into an [AncientGarurumon] in your hand, reduce its digivolution cost by 2.",
+        "after": "[Your Turn] When digivolving this Digimon into an [AncientGarurumon] in your hand, reduce its digivolution cost by 2."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT2-097": {
+    "cardId": "BT2-097",
+    "name": "Lightning Paw",
+    "date": "2021-05-14",
+    "changes": [
+      {
+        "before": "[Main] Up to 3 of your opponent’s level 3 Digimon get -4000 DP for the turn.",
+        "after": "[Main] 3 of your opponent’s level 3 Digimon get -4000 DP for the turn."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT3-092": {
+    "cardId": "BT3-092",
+    "name": "MaloMyotismon",
+    "date": "2021-04-23",
+    "changes": [
+      {
+        "before": "[All Turns] When another Digimon is deleted, gain 1 memory",
+        "after": "[All Turns] When another Digimon is deleted, gain 1 memory for each Digimon deleted."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "BT3-097": {
+    "cardId": "BT3-097",
+    "name": "A Delicate Plan",
+    "date": "2021-02-12",
+    "changes": [
+      {
+        "before": "[Main] 1 of your Digimon gains “This Digimon doesn‘t activate the [Security] effects of any cards it checks\" for the turn.",
+        "after": "[Main] 1 of your Digimon gains \"This Digimon doesn't activate the [Security] effects of any Option cards it checks\" for the turn."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  },
+  "P-012": {
+    "cardId": "P-012",
+    "name": "Tai Kamiya(V-Tamer)",
+    "date": "2020-11-27",
+    "changes": [
+      {
+        "before": "[Main] If you have a Digimon with [Veedramon] in its name, you may suspend this Tamer to activate one of the following effects:\n・Activate ＜Draw 1＞. (Draw 1 card from your deck.)\n・This Digimon gets +1000 DP for the turn.",
+        "after": "[Main] If you have a Digimon with [Veedramon] in its name, you may suspend this Tamer to activate one of the following effects:\n・Trigger ＜Draw 1＞. (Draw 1 card from your deck.)\n・1 of your Digimon gets +1000 DP for the turn."
+      }
+    ],
+    "notes": "Read as the errata when playing.",
+    "source": "https://world.digimoncard.com/rule/errata_card/"
+  }
+}
