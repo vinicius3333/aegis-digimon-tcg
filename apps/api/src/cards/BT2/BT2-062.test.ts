@@ -1,5 +1,6 @@
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import module from "./BT2-062.js";
 
@@ -57,5 +58,36 @@ describe("BT2-062 Infermon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("infermon").topCard.cardId === "BT2-082");
     expect(s.state.memory).toBe(6);
+  });
+
+  it("does not reduce the cost when digivolving into a Digimon not named Diaboromon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT2-062", as: "infermon" }], hand: [{ card: "BT2-065", as: "warGreymon" }] },
+    });
+    await s.ready();
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("infermon").permanentId,
+        instanceId: s.inst("warGreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("infermon").topCard.cardId === "BT2-065");
+
+    expect(s.state.memory).toBe(7);
+  });
+
+  it("does not reduce the cost during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT2-062", as: "infermon" }], hand: [{ card: "BT2-082", as: "diaboromon" }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      advance(s.engine).ledgers.modifiers.evoCostFor(s.perm("infermon"), getCardDefinition("BT2-082")),
+    ).toBeUndefined();
   });
 });
