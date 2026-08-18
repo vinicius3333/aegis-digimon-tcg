@@ -1,6 +1,11 @@
 import { describe, it, expect } from "vitest";
-import { getCardDefinition, getCompiledCard, type AttackTarget } from "@aegis/shared";
+import { EffectDuration, getCardDefinition, getCompiledCard, Phase, type AttackTarget } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../BT4/BT4-101.js";
+import "./BT1-054.js";
+import "./BT1-072.js";
 import { compiled } from "./BT1-112.js";
 
 // A3 for BT1-112 (Dimension Scissor, Green Option).
@@ -126,5 +131,195 @@ describe("BT1-112 Dimension Scissor", () => {
     // Attacker was unsuspended by the whenDeletesInBattle trigger (it got suspended by the
     // attack declaration, then the sub-trigger unsuspends it after winning the battle).
     expect(attacker.isSuspended).toBe(false);
+  });
+
+  it("Q984 can unsuspend repeatedly after deleting multiple opposing Digimon in separate battles", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-057", as: "attacker", dp: 5000 }, "BT1-064"],
+          hand: [{ card: "BT1-112", as: "option" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-003", as: "first", dp: 1000, suspended: true },
+            { card: "BT1-009", as: "second", dp: 2000, suspended: true },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-112"));
+
+    for (const alias of ["first", "second"]) {
+      s.state.phase = Phase.Main;
+      s.state.turnSeat = 0;
+      const defenderId = s.perm(alias).permanentId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "permanent", permanentId: defenderId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === defenderId) &&
+          !s.perm("attacker").isSuspended &&
+          !observe(s.engine).isAttacking(),
+      );
+    }
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.perm("attacker").isSuspended).toBe(false);
+  });
+
+  it("Q985 does not unsuspend after surviving a battle with a Security Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-057", as: "attacker", dp: 5000 }, "BT1-064"],
+          hand: [{ card: "BT1-112", as: "option" }],
+        },
+        1: { security: [{ card: "BT1-010", as: "securityDigimon" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-112"));
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+
+    expect(s.perm("attacker").isSuspended).toBe(true);
+  });
+
+  it("Q986 unsuspends after surviving and deleting a blocking Digimon in battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-057", as: "attacker", dp: 10000 }, "BT1-064"],
+          hand: [{ card: "BT1-112", as: "option" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-072", as: "blocker", dp: 6000 }],
+          security: ["BT1-001"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-112"));
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).blockingSeat() === 1);
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && !s.perm("attacker").isSuspended);
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("attacker").isSuspended).toBe(false);
+  });
+
+  it("Q987 does not unsuspend when its effect deletes a different Digimon during the attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-054", as: "attacker", dp: 10000 }, "BT1-064"],
+          hand: [{ card: "BT1-112", as: "option" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "effectTarget", dp: 2000 },
+            { card: "BT1-016", as: "battleTarget", dp: 5000, suspended: true },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: [] },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-112"));
+    advance(s.engine).ledgers.continuous.addRestriction(
+      s.perm("battleTarget").permanentId,
+      "beDeletedInBattle",
+      EffectDuration.Permanent,
+    );
+    const battleTargetId = s.perm("battleTarget").permanentId;
+    const effectTargetId = s.perm("effectTarget").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: battleTargetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === effectTargetId) &&
+        !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === battleTargetId)).toBe(true);
+    expect(s.perm("attacker").isSuspended).toBe(true);
+  });
+
+  it("Q1263 does not unsuspend when BT4-101 deletes the attack target before battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-057", as: "attacker", dp: 10000 }, "BT8-088"],
+          hand: [
+            { card: "BT1-112", as: "dimensionScissor" },
+            { card: "BT4-101", as: "spiralMasquerade" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-016", as: "target", dp: 5000, suspended: true }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    for (const alias of ["dimensionScissor", "spiralMasquerade"]) {
+      const instanceId = s.inst(alias).instanceId;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId })).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === instanceId));
+    }
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && !observe(s.engine).isAttacking());
+
+    expect(s.perm("attacker").isSuspended).toBe(true);
   });
 });
