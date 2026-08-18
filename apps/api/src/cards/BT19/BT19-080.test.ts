@@ -15,10 +15,10 @@ const source: CardSource = {
 };
 
 describe("BT19-080 Takato Matsuki", () => {
-  it("fires the Growlmon/Gallantmon clause only in the digivolution window", () => {
+  it("installs the Growlmon/Gallantmon watcher from the Tamer entry window", () => {
     const module = getEffectModule("BT19-080");
     expect(module).toBeDefined();
-    expect(module!.effectsForTiming(EffectTiming.OnEnterFieldAnyone, source)).toHaveLength(0);
-    expect(module!.effectsForTiming(EffectTiming.WhenDigivolving, source)).toHaveLength(1);
+    expect(module!.effectsForTiming(EffectTiming.OnEnterFieldAnyone, source)).toHaveLength(1);
+    expect(module!.effectsForTiming(EffectTiming.WhenDigivolving, source)).toHaveLength(0);
   });
 });
