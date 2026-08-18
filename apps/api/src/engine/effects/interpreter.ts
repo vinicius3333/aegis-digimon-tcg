@@ -2708,6 +2708,17 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
           return top !== undefined && (ctx.game.definitionOf(top).nameEn ?? "").toLowerCase() === m[1]!.toLowerCase();
         }
       }
+      {
+        const m = /this Digimon has (.+?) in its name/i.exec(cond.raw ?? "");
+        if (m) {
+          const self = ctx.source.permanent();
+          const top = self?.topCard;
+          if (top === undefined) return false;
+          const name = (ctx.game.definitionOf(top).nameEn ?? "").toLowerCase();
+          const names = [...m[1]!.matchAll(/\[([^\]]+)\]/g)].map((x) => x[1]!.toLowerCase());
+          return names.some((token) => name.includes(token));
+        }
+      }
       if (/deleted outside of a battle/i.test(cond.raw ?? "")) {
         return ctx.trigger.removalCause !== "byBattle";
       }
