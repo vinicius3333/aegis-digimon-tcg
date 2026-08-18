@@ -169,6 +169,8 @@ export interface TriggerInfo {
   deletedWasStackInstanceIds?: string[];
   /** Why the cards in this deletion window left play. */
   removalCause?: RemovalCause;
+  /** True when this simultaneous deletion batch is the rule check for Digimon at exactly 0 DP. */
+  deletedByDpZero?: boolean;
   /** Security card currently being checked. */
   securityInstanceId?: string;
   /** Permanent that was suspended (OnTappedAnyone). */

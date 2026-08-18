@@ -23,12 +23,22 @@ const module: EffectModule = {
             event: "onDeletionOf",
             sourcePermanentId: host.permanentId,
             once: false,
-            description: `${cardId}: opponent Digimon deleted`,
+            description: `${cardId}: opponent Digimon deleted at 0 DP`,
             matches: (subCtx) => {
               const subjectId = subCtx.trigger.deletedPermanentId;
               const subject = subjectId === undefined ? undefined : subCtx.game.permanentById(subjectId);
+              const firstEligibleId = subCtx.trigger.deletedPermanentIds?.find((permanentId) => {
+                const permanent = subCtx.game.permanentById(permanentId);
+                return (
+                  permanent?.topCard !== undefined &&
+                  permanent.controllerSeat === subCtx.game.opponentOf(source.ownerSeat) &&
+                  isDigimon(subCtx.game.definitionOf(permanent.topCard))
+                );
+              });
               return (
                 source.isOwnersTurn() &&
+                subCtx.trigger.deletedByDpZero === true &&
+                subjectId === firstEligibleId &&
                 subject?.topCard !== undefined &&
                 subject.controllerSeat === subCtx.game.opponentOf(source.ownerSeat) &&
                 isDigimon(subCtx.game.definitionOf(subject.topCard))
