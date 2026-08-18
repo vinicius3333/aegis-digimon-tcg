@@ -17910,6 +17910,54 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         5000,
         "Greymon gained memory with Agumon in its sources and boosted qualifying Greymon hosts.",
       );
+    if (cardId === "BT5-011")
+      return effectBt3Demo(cardId, "Meramon", 5000, "Meramon gave another Digimon +3000 DP when digivolving.");
+    if (cardId === "BT5-012")
+      return effectBt3Demo(cardId, "Monochromon", 5000, "Monochromon has Blocker and loses 2 memory when attacking.");
+    if (cardId === "BT5-013") return vanillaBt3Demo(cardId, "Triceramon", 8000);
+    if (cardId === "BT5-014")
+      return effectBt3Demo(
+        cardId,
+        "OmniShoutmon",
+        7000,
+        "OmniShoutmon digivolved over Shoutmon for the alternate cost and grants Security Attack +1 to a Blitz host.",
+      );
+    if (cardId === "BT5-015")
+      return effectBt3Demo(
+        cardId,
+        "MetalGreymon: Alterous Mode",
+        8000,
+        "Alterous Mode deleted a 4000 DP Digimon and boosted qualifying Greymon hosts.",
+      );
+    if (cardId === "BT5-016")
+      return effectBt3Demo(
+        cardId,
+        "WarGreymon",
+        11000,
+        "WarGreymon deleted a Blocker with a qualifying Greymon source and deletes a 3000 DP or less opponent when attacking.",
+      );
+    if (cardId === "BT5-017")
+      return effectBt3Demo(
+        cardId,
+        "ZeigGreymon",
+        11000,
+        "ZeigGreymon gained Blitz when digivolving and lets a Blitz host attack an unsuspended Digimon.",
+      );
+    if (cardId === "BT5-018") return vanillaBt3Demo(cardId, "Dorbickmon", 11000);
+    if (cardId === "BT5-019")
+      return effectBt3Demo(
+        cardId,
+        "Shoutmon DX",
+        12000,
+        "Shoutmon DX placed a red Digimon under itself, deleted once per named source, and gained Blitz.",
+      );
+    if (cardId === "BT5-020")
+      return effectBt3Demo(
+        cardId,
+        "Gabumon",
+        2000,
+        "Gabumon revealed cards and added a Garurumon and an Omnimon to hand.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
