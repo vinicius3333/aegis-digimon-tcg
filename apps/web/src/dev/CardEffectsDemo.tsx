@@ -18271,6 +18271,71 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         10000,
         "Zanbamon deleted an opposing Digimon with Retaliation after losing a battle.",
       );
+    if (cardId === "BT5-081")
+      return effectBt3Demo(
+        cardId,
+        "ChaosGallantmon",
+        12000,
+        "ChaosGallantmon could delete an own Digimon to delete an opposing level 5 and plays a purple level 3 after another own deletion.",
+      );
+    if (cardId === "BT5-082")
+      return effectBt3Demo(
+        cardId,
+        "Tactimon",
+        11000,
+        "Tactimon selected among memory gain, +2000 DP, and deletion modes when attacking.",
+      );
+    if (cardId === "BT5-083")
+      return effectBt3Demo(
+        cardId,
+        "Megidramon",
+        11000,
+        "Megidramon trashed up to five cards from both decks and can play a level 6 Gallantmon from trash when deleted.",
+      );
+    if (cardId === "BT5-084")
+      return effectBt3Demo(cardId, "Diaboromon", 11000, "Diaboromon may play a Diaboromon Token when digivolving.");
+    if (cardId === "BT5-085")
+      return effectBt3Demo(
+        cardId,
+        "Armageddemon",
+        15000,
+        "Armageddemon deleted a Diaboromon to reduce its play cost by 12, enters with Rush, and restricts level 7 When Digivolving effects.",
+      );
+    if (cardId === "BT5-086")
+      return effectBt3Demo(
+        cardId,
+        "Omnimon",
+        14000,
+        "Omnimon unsuspended and gained Blitz when digivolving, and can trash a level 6 source to prevent deletion.",
+      );
+    if (cardId === "BT5-087")
+      return effectBt3Demo(
+        cardId,
+        "Omnimon Zwart",
+        15000,
+        "Omnimon Zwart milled three and played up to two eligible Digimon from trash, and returns a level 6 source to delete an unsuspended Digimon when attacking.",
+      );
+    if (cardId === "BT5-088")
+      return effectBt3Demo(
+        cardId,
+        "Sora Takenouchi & Joe Kido",
+        0,
+        "Sora & Joe gained 2 memory when the opponent had a source-less Digimon, could suspend after a blue attack, and plays from security.",
+      );
+    if (cardId === "BT5-089")
+      return effectBt3Demo(
+        cardId,
+        "Izzy Izumi & Mimi Tachikawa",
+        0,
+        "Izzy & Mimi gained 2 memory when the opponent had a suspended Digimon and could digivolve an attacking green level 5.",
+      );
+    if (cardId === "BT5-090")
+      return effectBt3Demo(
+        cardId,
+        "Arata Sanada",
+        0,
+        "Arata gained memory with an Unidentified Digimon in trash, suspends for Diaboromon Token effects, and plays from security.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
