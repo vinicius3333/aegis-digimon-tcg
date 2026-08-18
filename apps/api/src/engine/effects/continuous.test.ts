@@ -70,6 +70,39 @@ describe("ContinuousEffectLedger", () => {
     expect(ledger.hasRestriction("P2", "attack")).toBe(false);
   });
 
+  it("re-evaluates player-wide conditional restrictions for existing and future permanents", () => {
+    const controllers = new Map<string, Seat>([
+      ["EXISTING", 1 as Seat],
+      ["LATE", 1 as Seat],
+      ["MINE", 0 as Seat],
+    ]);
+    const sourceCounts = new Map<string, number>([
+      ["EXISTING", 0],
+      ["LATE", 0],
+      ["MINE", 0],
+    ]);
+    const ledger = new ContinuousEffectLedger((permanentId) => controllers.get(permanentId));
+    const { state } = boardWithOnePermanent();
+    ledger.addPlayerRestriction(
+      1 as Seat,
+      0 as Seat,
+      "attack",
+      EffectDuration.UntilOpponentTurnEnd,
+      (permanentId) => sourceCounts.get(permanentId) === 0,
+    );
+
+    expect(ledger.hasRestriction("EXISTING", "attack")).toBe(true);
+    expect(ledger.hasRestriction("LATE", "attack")).toBe(true);
+    expect(ledger.hasRestriction("MINE", "attack")).toBe(false);
+    sourceCounts.set("EXISTING", 1);
+    expect(ledger.hasRestriction("EXISTING", "attack")).toBe(false);
+
+    ledger.sweep(state, "ownerTurnEnd", 0 as Seat);
+    expect(ledger.hasRestriction("LATE", "attack")).toBe(true);
+    ledger.sweep(state, "ownerTurnEnd", 1 as Seat);
+    expect(ledger.hasRestriction("LATE", "attack")).toBe(false);
+  });
+
   it("keeps an unsuspended-digivolve prohibition through recomputes and clears it at the source opponent's turn end", () => {
     const ledger = new ContinuousEffectLedger();
     const { state } = boardWithOnePermanent();

@@ -869,6 +869,13 @@ export interface Primitives {
     duration: EffectDuration,
     opts?: { fromSourceKind?: string[]; byOpponentEffectsOnly?: boolean; continuous?: boolean },
   ): void;
+  /** Apply a live, duration-scoped restriction to every matching permanent a player controls. */
+  restrictPlayer?(
+    seat: Seat,
+    restriction: EnforcedRestriction,
+    duration: EffectDuration,
+    matches: (permanentId: string) => boolean,
+  ): void;
   /**
    * Prevent one attacker from declaring an attack against one exact opposing Digimon while
    * leaving player attacks and every other Digimon target legal (BT10-042 Venusmon).

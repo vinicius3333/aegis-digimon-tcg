@@ -3164,6 +3164,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     });
   };
 
+  const restrictPlayer: NonNullable<Primitives["restrictPlayer"]> = (seat, restriction, duration, matches): void => {
+    const ownerSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
+    continuous.addPlayerRestriction(seat, ownerSeat, restriction, duration, matches, continuousOpt());
+  };
+
   const restrictAttackTarget = (
     attackerPermanentId: string,
     targetPermanentId: string,
@@ -3957,6 +3962,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     changeEvoCost,
     changePlayCost,
     restrict,
+    restrictPlayer,
     restrictAttackTarget,
     grantNameTrait,
     setOriginalCardInfo,

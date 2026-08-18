@@ -9,9 +9,24 @@ const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     const apply = async (ctx: Parameters<Effect["resolve"]>[0], duration: EffectDuration): Promise<void> => {
-      for (const p of ctx.game.player(ctx.game.opponentOf(source.ownerSeat)).battleArea)
-        if (p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && p.stack.length === 0)
-          ctx.fx.restrict(p.permanentId, "attack", duration);
+      const opponentSeat = ctx.game.opponentOf(source.ownerSeat);
+      const hasNoDigivolutionCards = (permanentId: string): boolean => {
+        const permanent = ctx.game.permanentById(permanentId);
+        return (
+          permanent?.topCard !== undefined &&
+          isDigimon(ctx.game.definitionOf(permanent.topCard)) &&
+          permanent.stack.length === 0
+        );
+      };
+      if (ctx.fx.restrictPlayer) {
+        ctx.fx.restrictPlayer(opponentSeat, "attack", duration, hasNoDigivolutionCards);
+        return;
+      }
+      for (const permanent of ctx.game.player(opponentSeat).battleArea) {
+        if (hasNoDigivolutionCards(permanent.permanentId)) {
+          ctx.fx.restrict(permanent.permanentId, "attack", duration);
+        }
+      }
     };
     if (timing === EffectTiming.OnUseOption)
       return [

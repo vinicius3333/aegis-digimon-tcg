@@ -62,6 +62,15 @@ interface RestrictionEntry {
   byOpponentEffectsOnly?: boolean;
 }
 
+interface PlayerRestrictionEntry {
+  seat: Seat;
+  ownerSeat: Seat;
+  restriction: Restriction;
+  duration: EffectDuration;
+  matches: (permanentId: string) => boolean;
+  continuous?: boolean;
+}
+
 interface AttackTargetRestriction {
   attackerPermanentId: string;
   targetPermanentId: string;
@@ -433,6 +442,7 @@ function clearsAt(duration: EffectDuration, boundary: DurationBoundary, ownerSea
 
 export class ContinuousEffectLedger {
   private restrictions: RestrictionEntry[] = [];
+  private playerRestrictions: PlayerRestrictionEntry[] = [];
   private attackTargetRestrictions: AttackTargetRestriction[] = [];
   private canAttackUnsuspendedGrants: CanAttackUnsuspendedGrant[] = [];
   private vortexCanAttackPlayersGrants: VortexCanAttackPlayersGrant[] = [];
@@ -481,6 +491,18 @@ export class ContinuousEffectLedger {
     });
   }
 
+  /** Record a duration-scoped rule for every matching permanent a player controls, including future entrants. */
+  addPlayerRestriction(
+    seat: Seat,
+    ownerSeat: Seat,
+    restriction: Restriction,
+    duration: EffectDuration,
+    matches: (permanentId: string) => boolean,
+    opts?: { continuous?: boolean },
+  ): void {
+    this.playerRestrictions.push({ seat, ownerSeat, restriction, duration, matches, continuous: opts?.continuous });
+  }
+
   addUnsuspendedDigivolveProhibition(seat: Seat, sourceSeat: Seat, duration: EffectDuration): void {
     this.unsuspendedDigivolveProhibitions.push({ seat, sourceSeat, duration });
   }
@@ -509,13 +531,18 @@ export class ContinuousEffectLedger {
     sourceKind?: string,
     opts?: { byOpponentEffect?: boolean },
   ): boolean {
-    return this.restrictions.some((r) => {
+    const individuallyRestricted = this.restrictions.some((r) => {
       if (r.permanentId !== permanentId || r.restriction !== restriction) return false;
       if (r.byOpponentEffectsOnly === true && opts?.byOpponentEffect === false) return false;
       if (r.fromSourceKind === undefined) return true;
       // Qualified entry: block only when sourceKind is known and matches.
       return sourceKind !== undefined && r.fromSourceKind.includes(sourceKind);
     });
+    if (individuallyRestricted) return true;
+    const controllerSeat = this.controllerSeatOf?.(permanentId);
+    return this.playerRestrictions.some(
+      (entry) => entry.seat === controllerSeat && entry.restriction === restriction && entry.matches(permanentId),
+    );
   }
 
   /** Number of independently-stacking copies of a restriction on one permanent. */
@@ -1218,6 +1245,9 @@ export class ContinuousEffectLedger {
     this.restrictions = this.restrictions.filter(
       (r) => !clearsAt(r.duration, boundary, ownerOf(r.permanentId), sweepSeat),
     );
+    this.playerRestrictions = this.playerRestrictions.filter(
+      (entry) => !clearsAt(entry.duration, boundary, entry.ownerSeat, sweepSeat),
+    );
     this.attackTargetRestrictions = this.attackTargetRestrictions.filter(
       (entry) => !clearsAt(entry.duration, boundary, ownerOf(entry.attackerPermanentId), sweepSeat),
     );
@@ -1307,6 +1337,7 @@ export class ContinuousEffectLedger {
    */
   clearContinuous(): void {
     this.restrictions = this.restrictions.filter((r) => !r.continuous);
+    this.playerRestrictions = this.playerRestrictions.filter((r) => !r.continuous);
     this.attackTargetRestrictions = this.attackTargetRestrictions.filter((r) => !r.continuous);
     this.canAttackUnsuspendedGrants = this.canAttackUnsuspendedGrants.filter((g) => !g.continuous);
     this.vortexCanAttackPlayersGrants = this.vortexCanAttackPlayersGrants.filter((g) => !g.continuous);
@@ -1335,6 +1366,7 @@ export class ContinuousEffectLedger {
   /** Clear everything (fresh match). */
   reset(): void {
     this.restrictions = [];
+    this.playerRestrictions = [];
     this.attackTargetRestrictions = [];
     this.canAttackUnsuspendedGrants = [];
     this.vortexCanAttackPlayersGrants = [];

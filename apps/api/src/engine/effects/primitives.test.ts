@@ -2133,6 +2133,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     relocatePermanentByEffect: true,
     resolveCardEffect: true,
     restrict: true,
+    restrictPlayer: true,
     restrictAttackTarget: true,
     restrictCostReduction: true,
     restrictDigivolveInto: true,

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { CardKind, requireCardDefinition, type CardColor, type Seat } from "@aegis/shared";
+import { CardKind, EffectDuration, requireCardDefinition, type CardColor, type Seat } from "@aegis/shared";
 import { cite, markNotTestable } from "./_kb.js";
 import "./not-testable.js";
 import { setupEngine as setup, makeInstance as instance, makeDigimon as digimon, settle } from "../testkit/harness.js";
@@ -27,15 +27,15 @@ import "../../cards/index.js";
  * {Breeding}-timed real-card work.
  *
  * Real fixtures: BT1-100 ("[Main] Until the end of your opponent's next turn, their
- * Digimon with no digivolution cards can't attack" — literally the rules' OWN §15-11-1-3
- * worked example), EX4-015 ("[On Play] Both players draw the top card of their decks"),
+ * individually chosen Digimon restriction used below), BT1-100 (the §15-11-2 overall-processing
+ * case, with Q965 requiring its condition to stay live), EX4-015 ("[On Play] Both players draw the top card of their decks"),
  * BT14-042 ("[On Play] By suspending this Digimon, reveal the top 3 cards of your deck.
  * Add 1 green card among them to the hand. Return the rest to the bottom of the deck."),
  * BT1-070 Kuwagamon (the rules' own §15-15-5-1 worked example).
  */
 
 describe("§15-10-1 Effect Targets - Players (comprehensive-0183)", () => {
-  it('15-10-1-3-1: "both players" affects BOTH players\' own zones, not just the activating player\'s', async () => {
+  it("15-10-1-3-1: \"both players\" affects BOTH players' own zones, not just the activating player's", async () => {
     cite("comprehensive-0183", '15-10-1-3-1 if text includes "players" or "both players," it affects both players');
 
     const s = setup();
@@ -61,7 +61,7 @@ describe("§15-10-1 Effect Targets - Players (comprehensive-0183)", () => {
 });
 
 describe("§15-10-2 Effect Targets - Cards (comprehensive-0184)", () => {
-  it("15-10-2-1: an exact-count target (\"1 Digimon\") is individual processing — a decision names the SPECIFIC card affected", async () => {
+  it('15-10-2-1: an exact-count target ("1 Digimon") is individual processing — a decision names the SPECIFIC card affected', async () => {
     cite(
       "comprehensive-0184",
       '15-10-2-1 "X Digimon"/"X cards" written on a card: X cards must be chosen; ' +
@@ -92,11 +92,11 @@ describe("§15-10-2 Effect Targets - Cards (comprehensive-0184)", () => {
 
 // §15-11 Individual Processing and Overall Processing (comprehensive-0185)
 markNotTestable(
-    "comprehensive-0185",
-    'Bare section heading ("15-11. Individual Processing and Overall Processing"), no body — ' +
-      "its content lives in the following chunks (comprehensive-0186 through comprehensive-0188), " +
-      "each cited separately below.",
-  );
+  "comprehensive-0185",
+  'Bare section heading ("15-11. Individual Processing and Overall Processing"), no body — ' +
+    "its content lives in the following chunks (comprehensive-0186 through comprehensive-0188), " +
+    "each cited separately below.",
+);
 describe("§15-11-1 Individual Processing (comprehensive-0186)", () => {
   it("15-11-1-3-1/15-11-1-3-2: an individually-chosen target keeps the effect even after it no longer meets the CHOOSING condition", async () => {
     cite(
@@ -110,19 +110,20 @@ describe("§15-11-1 Individual Processing (comprehensive-0186)", () => {
     );
 
     const s = setup();
-    const p0 = s.state.players[0]!;
     const p1 = s.state.players[1]!;
-    const bt1100 = instance("BT1-100", 0, false); // "Until end of opp's next turn, their Digimon with no digivolution cards can't attack"
-    p0.hand.push(bt1100);
-    p0.battleArea.push(digimon(0, 3000, "BT1-027")); // §4-21 color-requirement source (Blue)
     const onlyLegalTarget = digimon(1, 5000, "AD1-001"); // stack.length 0 => "no digivolution cards"
     p1.battleArea.push(onlyLegalTarget);
-    s.state.memory = requireCardDefinition("BT1-100").playCost;
-
-    s.engine.applyIntent(0, { type: "playCard", instanceId: bt1100.instanceId });
-    const continuous = (s.engine as unknown as { continuous: { hasRestriction(id: string, r: string): boolean } })
-      .continuous;
-    await settle(() => continuous.hasRestriction(onlyLegalTarget.permanentId, "attack"), 200);
+    const continuous = (
+      s.engine as unknown as {
+        continuous: {
+          addRestriction(id: string, restriction: "attack", duration: EffectDuration): void;
+          hasRestriction(id: string, restriction: string): boolean;
+        };
+      }
+    ).continuous;
+    // This is deliberately an INDIVIDUAL restriction. BT1-100 is overall processing and
+    // official Q965 requires its condition to be re-evaluated, so it cannot stand in here.
+    continuous.addRestriction(onlyLegalTarget.permanentId, "attack", EffectDuration.UntilOpponentTurnEnd);
     expect(continuous.hasRestriction(onlyLegalTarget.permanentId, "attack")).toBe(true);
 
     // It now GAINS a digivolution card (no longer "has no digivolution cards") — the
@@ -133,52 +134,57 @@ describe("§15-11-1 Individual Processing (comprehensive-0186)", () => {
 });
 
 describe("§15-11-2 Overall Processing (comprehensive-0187/0188)", () => {
-  it(
-    "15-11-2-1/15-11-2-3-1: overall processing with 'their Digimon with X' restricts EVERY matching Digimon, not one chosen at random",
-    async () => {
-      cite(
-        "comprehensive-0187",
-        "15-11-2-1 'Overall processing refers to when a target isn't chosen for " +
-          "processing... including effects with text such as \"All of your opponent's Digimon get " +
-          "-5000 DP for the turn.\"' 15-11-2-3-1 'When overall processing has conditions for " +
-          "affecting targets, the processing affects ALL of the targets that meet those " +
-          "conditions' — the rules' OWN worked example is 'None of your opponent's Digimon with " +
-          "no digivolution cards can attack or block' (an unbounded ALL-matching restriction). " +
-          "BT1-100's printed text, 'their Digimon with no digivolution cards can't attack,' is " +
-          "this exact overall-processing shape (plural 'their Digimon', no stated count): its " +
-          "compiled IR (apps/api/src/cards/BT1/BT1-100.ts) carries `target.count: \"all\"`, which " +
-          "resolvePermanentTargets (interpreter.ts) resolves to EVERY matching candidate with no " +
-          "chooseTargets prompt — the compiler (the target normalization logic's `bareDefaultsToAll`) " +
-          "now reads a bare, unquantified restriction subject ('their Digimon with X', 'none of " +
-          "X can Y') as this §15-11-2 overall-processing shape instead of defaulting it to a " +
-          "single chosen target.",
-      );
+  it("15-11-2-1/15-11-2-3-1: overall processing with 'their Digimon with X' restricts EVERY matching Digimon, not one chosen at random", async () => {
+    cite(
+      "comprehensive-0187",
+      "15-11-2-1 'Overall processing refers to when a target isn't chosen for " +
+        "processing... including effects with text such as \"All of your opponent's Digimon get " +
+        "-5000 DP for the turn.\"' 15-11-2-3-1 'When overall processing has conditions for " +
+        "affecting targets, the processing affects ALL of the targets that meet those " +
+        "conditions' — the rules' OWN worked example is 'None of your opponent's Digimon with " +
+        "no digivolution cards can attack or block' (an unbounded ALL-matching restriction). " +
+        "BT1-100's printed text, 'their Digimon with no digivolution cards can't attack,' is " +
+        "this exact overall-processing shape (plural 'their Digimon', no stated count): its " +
+        'compiled IR (apps/api/src/cards/BT1/BT1-100.ts) carries `target.count: "all"`, which ' +
+        "resolvePermanentTargets (interpreter.ts) resolves to EVERY matching candidate with no " +
+        "chooseTargets prompt — the compiler (the target normalization logic's `bareDefaultsToAll`) " +
+        "now reads a bare, unquantified restriction subject ('their Digimon with X', 'none of " +
+        "X can Y') as this §15-11-2 overall-processing shape instead of defaulting it to a " +
+        "single chosen target.",
+    );
 
-      const s = setup({ autoSelectCards: true });
-      const p0 = s.state.players[0]!;
-      const p1 = s.state.players[1]!;
-      const bt1100 = instance("BT1-100", 0, false);
-      p0.hand.push(bt1100);
-      p0.battleArea.push(digimon(0, 3000, "BT1-027")); // §4-21 color-requirement source (Blue)
-      const targetA = digimon(1, 5000, "AD1-001"); // no digivolution cards
-      const targetB = digimon(1, 5000, "AD1-001"); // no digivolution cards
-      p1.battleArea.push(targetA, targetB);
-      s.state.memory = requireCardDefinition("BT1-100").playCost;
+    const s = setup({ autoSelectCards: true });
+    const p0 = s.state.players[0]!;
+    const p1 = s.state.players[1]!;
+    const bt1100 = instance("BT1-100", 0, false);
+    p0.hand.push(bt1100);
+    p0.battleArea.push(digimon(0, 3000, "BT1-027")); // §4-21 color-requirement source (Blue)
+    const targetA = digimon(1, 5000, "AD1-001"); // no digivolution cards
+    const targetB = digimon(1, 5000, "AD1-001"); // no digivolution cards
+    p1.battleArea.push(targetA, targetB);
+    s.state.memory = requireCardDefinition("BT1-100").playCost;
 
-      s.engine.applyIntent(0, { type: "playCard", instanceId: bt1100.instanceId });
-      const continuous = (s.engine as unknown as { continuous: { hasRestriction(id: string, r: string): boolean } })
-        .continuous;
-      await settle(() => continuous.hasRestriction(targetA.permanentId, "attack") || continuous.hasRestriction(targetB.permanentId, "attack"), 200);
+    s.engine.applyIntent(0, { type: "playCard", instanceId: bt1100.instanceId });
+    const continuous = (s.engine as unknown as { continuous: { hasRestriction(id: string, r: string): boolean } })
+      .continuous;
+    await settle(
+      () =>
+        continuous.hasRestriction(targetA.permanentId, "attack") ||
+        continuous.hasRestriction(targetB.permanentId, "attack"),
+      200,
+    );
 
-      // EXPECTED (per §15-11-2-3-1): BOTH qualifying Digimon are restricted — overall
-      // processing affects every matching target, not one arbitrarily chosen card.
-      expect(continuous.hasRestriction(targetA.permanentId, "attack")).toBe(true);
-      expect(continuous.hasRestriction(targetB.permanentId, "attack")).toBe(true);
-    },
-  );
+    // EXPECTED (per §15-11-2-3-1): BOTH qualifying Digimon are restricted — overall
+    // processing affects every matching target, not one arbitrarily chosen card.
+    expect(continuous.hasRestriction(targetA.permanentId, "attack")).toBe(true);
+    expect(continuous.hasRestriction(targetB.permanentId, "attack")).toBe(true);
+  });
 
-  it("(structural) a target COUNT of \"all\" IS the real overall-processing path when the IR uses it correctly", () => {
-    cite("comprehensive-0188", "15-11-2-3-3 overall processing dynamically re-affects a target as soon as it meets the condition again");
+  it('(structural) a target COUNT of "all" IS the real overall-processing path when the IR uses it correctly', () => {
+    cite(
+      "comprehensive-0188",
+      "15-11-2-3-3 overall processing dynamically re-affects a target as soon as it meets the condition again",
+    );
     // resolveTargetPermanents' own count==="all" branch (interpreter.ts) returns EVERY
     // matching candidate with no chooseTargets prompt at all — the same overall-
     // processing shape the test above drives end-to-end through BT1-100. Verified here
@@ -191,16 +197,16 @@ describe("§15-11-2 Overall Processing (comprehensive-0187/0188)", () => {
 
 // §15-15-1 Effects That End an Attack (comprehensive-0199)
 markNotTestable(
-    "comprehensive-0199",
-    "Driving 'the end-of-attack timing comes immediately after the processing that ends " +
-      "the attack' requires a real in-progress attack (attack declared, WhenOpponentAttacks/" +
-      "delete-outcome-conditional resolution, ctx.fx.endAttack()) — combat's own state machine " +
-      "(combat/controller.ts, combat/legality.ts), which is chapter 11 'Attacking' scaffolding " +
-      "outside this lane's ch15 file ownership and the concurrent chapter-11 lane's scope. The " +
-      "producing action kind (EndAttack, interpreter.ts, real card BT23-069) exists and is wired " +
-      "to `ctx.fx.endAttack()`, so the mechanism is real — only the combat harness to drive it " +
-      "end-to-end is missing from this lane.",
-  );
+  "comprehensive-0199",
+  "Driving 'the end-of-attack timing comes immediately after the processing that ends " +
+    "the attack' requires a real in-progress attack (attack declared, WhenOpponentAttacks/" +
+    "delete-outcome-conditional resolution, ctx.fx.endAttack()) — combat's own state machine " +
+    "(combat/controller.ts, combat/legality.ts), which is chapter 11 'Attacking' scaffolding " +
+    "outside this lane's ch15 file ownership and the concurrent chapter-11 lane's scope. The " +
+    "producing action kind (EndAttack, interpreter.ts, real card BT23-069) exists and is wired " +
+    "to `ctx.fx.endAttack()`, so the mechanism is real — only the combat harness to drive it " +
+    "end-to-end is missing from this lane.",
+);
 describe("§15-15-3 Effects That Reveal Cards (comprehensive-0057/0201/0202/0203)", () => {
   it("15-15-3-1/15-15-3-2 (+ ch03 comprehensive-0057's batch-move ordering): revealing doesn't change the deck's count; only the FINAL placement does", async () => {
     cite(
@@ -264,7 +270,7 @@ describe("§15-15-3 Effects That Reveal Cards (comprehensive-0057/0201/0202/0203
     );
     cite(
       "comprehensive-0203",
-      '15-15-3-9-2 if a player isn\'t specified in text, only the player who activated ' +
+      "15-15-3-9-2 if a player isn't specified in text, only the player who activated " +
         "the effect searches/looks at the cards",
     );
 
@@ -278,58 +284,50 @@ describe("§15-15-3 Effects That Reveal Cards (comprehensive-0057/0201/0202/0203
 });
 
 describe('§15-15-5 "Isn\'t affected by effects" cards (comprehensive-0204)', () => {
-  it(
-    "NOW MET: an immune permanent should still be a legal, CHOOSABLE candidate — just unaffected once chosen",
-    async () => {
-      cite(
-        "comprehensive-0204",
-        "DIVERGENCE: 15-15-5-3 '\"Isn't affected by effects\" cards can still be chosen for " +
-          "effects. (Example: A card that isn't affected by effects can be chosen for an " +
-          "\"[On Play] Suspend 1 of your opponent's Digimon\" effect, but it isn't affected by " +
-          "that effect and it isn't suspended.)' — the rules' OWN worked example is BT1-070's " +
-          "exact printed text. interpreter.ts's candidatePermanents excludes a permanent with an " +
-          "active beAffected restriction from the CANDIDATE POOL entirely (the `continue` at the " +
-          "isOpponentEffect/relevantSourceKinds check) rather than including it as choosable-but-" +
-          "unaffected — so with 3 opponent Digimon (1 immune, 2 not) and a 'suspend 1' effect, " +
-          "the immune one is never even OFFERED as a choice.",
-      );
+  it("NOW MET: an immune permanent should still be a legal, CHOOSABLE candidate — just unaffected once chosen", async () => {
+    cite(
+      "comprehensive-0204",
+      "DIVERGENCE: 15-15-5-3 '\"Isn't affected by effects\" cards can still be chosen for " +
+        "effects. (Example: A card that isn't affected by effects can be chosen for an " +
+        "\"[On Play] Suspend 1 of your opponent's Digimon\" effect, but it isn't affected by " +
+        "that effect and it isn't suspended.)' — the rules' OWN worked example is BT1-070's " +
+        "exact printed text. interpreter.ts's candidatePermanents excludes a permanent with an " +
+        "active beAffected restriction from the CANDIDATE POOL entirely (the `continue` at the " +
+        "isOpponentEffect/relevantSourceKinds check) rather than including it as choosable-but-" +
+        "unaffected — so with 3 opponent Digimon (1 immune, 2 not) and a 'suspend 1' effect, " +
+        "the immune one is never even OFFERED as a choice.",
+    );
 
-      const s = setup();
-      const p0 = s.state.players[0]!;
-      const p1 = s.state.players[1]!;
-      const kuwagamon = instance("BT1-070", 0, false); // "[On Play] Suspend 1 of your opponent's Digimon."
-      p0.hand.push(kuwagamon);
-      const immune = digimon(1, 5000, "AD1-001");
-      const normalA = digimon(1, 5000, "AD1-001");
-      const normalB = digimon(1, 5000, "AD1-001");
-      p1.battleArea.push(immune, normalA, normalB);
-      s.state.memory = requireCardDefinition("BT1-070").playCost;
+    const s = setup();
+    const p0 = s.state.players[0]!;
+    const p1 = s.state.players[1]!;
+    const kuwagamon = instance("BT1-070", 0, false); // "[On Play] Suspend 1 of your opponent's Digimon."
+    p0.hand.push(kuwagamon);
+    const immune = digimon(1, 5000, "AD1-001");
+    const normalA = digimon(1, 5000, "AD1-001");
+    const normalB = digimon(1, 5000, "AD1-001");
+    p1.battleArea.push(immune, normalA, normalB);
+    s.state.memory = requireCardDefinition("BT1-070").playCost;
 
-      (
-        s.engine as unknown as {
-          continuous: {
-            addRestriction(
-              id: string,
-              r: string,
-              d: number,
-              opts?: { fromSourceKind?: string[] },
-            ): void;
-          };
-        }
-      ).continuous.addRestriction(immune.permanentId, "beAffected", 8 /* EffectDuration.Permanent */, {
-        fromSourceKind: [CardKind.Digimon],
-      });
+    (
+      s.engine as unknown as {
+        continuous: {
+          addRestriction(id: string, r: string, d: number, opts?: { fromSourceKind?: string[] }): void;
+        };
+      }
+    ).continuous.addRestriction(immune.permanentId, "beAffected", 8 /* EffectDuration.Permanent */, {
+      fromSourceKind: [CardKind.Digimon],
+    });
 
-      s.engine.applyIntent(0, { type: "playCard", instanceId: kuwagamon.instanceId });
-      await settle(() => s.decisions.some((d) => d.req.kind === "chooseTargets"), 200);
+    s.engine.applyIntent(0, { type: "playCard", instanceId: kuwagamon.instanceId });
+    await settle(() => s.decisions.some((d) => d.req.kind === "chooseTargets"), 200);
 
-      const targetDecision = s.decisions.find((d) => d.req.kind === "chooseTargets");
-      expect(targetDecision).toBeDefined();
-      const candidateIds = targetDecision?.req.options?.candidateInstanceIds ?? [];
-      // EXPECTED (per §15-15-5-3): the immune permanent is STILL a legal candidate.
-      expect(candidateIds).toContain(immune.permanentId);
-    },
-  );
+    const targetDecision = s.decisions.find((d) => d.req.kind === "chooseTargets");
+    expect(targetDecision).toBeDefined();
+    const candidateIds = targetDecision?.req.options?.candidateInstanceIds ?? [];
+    // EXPECTED (per §15-15-5-3): the immune permanent is STILL a legal candidate.
+    expect(candidateIds).toContain(immune.permanentId);
+  });
 });
 
 describe('§4-24 "With Different Names" (comprehensive-0094, picked up from ch04)', () => {
@@ -351,7 +349,9 @@ describe('§4-24 "With Different Names" (comprehensive-0094, picked up from ch04
     const ctx = fakeCtxFor(s, "BT21-010", 0);
     // distinctNames counts UNIQUE names among matches; 2 permanents sharing 1 name
     // count as 1 distinct name, not 2 — the mechanism the deferred condition consumes.
-    const matches = [heroA, heroB].filter((p) => permanentMatchesFilter(ctx, p, { kind: [CardKind.Tamer] }, ctx.source));
+    const matches = [heroA, heroB].filter((p) =>
+      permanentMatchesFilter(ctx, p, { kind: [CardKind.Tamer] }, ctx.source),
+    );
     const distinctNames = new Set(matches.map((p) => p.topCard?.cardId));
     expect(matches.length).toBe(2); // both match the base filter
     expect(distinctNames.size).toBe(1); // but only 1 DISTINCT name among them
@@ -399,12 +399,9 @@ function fakeCtxFor(s: ReturnType<typeof setup>, cardId: string, seat: Seat): Ef
   const game: GameAccess = {
     state: s.state,
     player: (seatNum: Seat) => s.state.players[seatNum]! as never,
-    opponentOf: (seatNum: Seat) => ((seatNum === 0 ? 1 : 0) as Seat),
+    opponentOf: (seatNum: Seat) => (seatNum === 0 ? 1 : 0) as Seat,
     permanentById: (id: string) => {
-      const all = [
-        ...(s.state.players[0]?.battleArea ?? []),
-        ...(s.state.players[1]?.battleArea ?? []),
-      ];
+      const all = [...(s.state.players[0]?.battleArea ?? []), ...(s.state.players[1]?.battleArea ?? [])];
       return all.find((permanent) => permanent.permanentId === id);
     },
     definitionOf: (card: { cardId: string }) => requireCardDefinition(card.cardId) as never,
