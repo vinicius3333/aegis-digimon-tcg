@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { Permanent } from "@aegis/shared";
 import { setupEngine as setup, type EngineSetup as Setup } from "../../engine/testkit/harness.js";
+import { settle } from "../../engine/testkit/harness.js";
 // Self-registers every card module (boot side-effect) so the engine can look up
 // BT3-014's static color-grant effect.
 import "./BT3-014.js";
@@ -28,9 +29,7 @@ describe("BT3-014 [Your Turn] color grant — also treated as yellow (KB Q1054/Q
   }
 
   function effectiveColors(s: Setup, p: Permanent): string[] {
-    return (s.engine as unknown as { effectiveColorsOf(p: Permanent): string[] }).effectiveColorsOf(
-      p,
-    );
+    return (s.engine as unknown as { effectiveColorsOf(p: Permanent): string[] }).effectiveColorsOf(p);
   }
 
   it("is treated as both Red (printed) and Yellow during its owner's turn", async () => {
@@ -62,5 +61,45 @@ describe("BT3-014 [Your Turn] color grant — also treated as yellow (KB Q1054/Q
     await s.engine.recomputeContinuousEffects();
 
     expect(effectiveColors(s, s.perm("base"))).toEqual(["Red"]);
+  });
+});
+
+describe("BT3-014 When Digivolving original DP overwrite (KB Q1056/Q1057)", () => {
+  it("sets exactly one opposing level 4 or lower Digimon's original DP to 1000 for the turn", async () => {
+    const s = setup({
+      0: { battleArea: [{ card: "BT3-010", as: "base" }], hand: [{ card: "BT3-014", as: "silphymon" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-016", as: "eligible", dp: 5000 },
+          { card: "BT1-010", as: "otherEligible", dp: 2000 },
+          { card: "BT1-084", as: "tooHigh", dp: 15000 },
+        ],
+      },
+    });
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("silphymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const decision = s.state.pendingDecision!;
+    const request = s.decisions.find(({ req }) => req.decisionId === decision.decisionId)!.req;
+    expect(request.options!.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.perm("eligible").permanentId, s.perm("otherEligible").permanentId]),
+    );
+    expect(request.options!.candidateInstanceIds).not.toContain(s.perm("tooHigh").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("eligible").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("eligible").currentDP === 1000);
+    expect(s.perm("eligible").currentDP).toBe(1000);
+    expect(s.perm("otherEligible").currentDP).toBe(2000);
   });
 });
