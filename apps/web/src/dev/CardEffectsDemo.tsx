@@ -6185,6 +6185,36 @@ function kokuwamonDemo(effect: string | null): CardEffectsFixture {
   };
 }
 
+function ogremonDemo(effect: string | null): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 5;
+  state.turnSeat = 0;
+  state.memory = 0;
+
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  you.battleArea.push(permanent("demo-ogremon", "BT1-069", 0, 4000));
+  opponent.handCount = 5;
+  state.players.push(you, opponent);
+
+  if (effect !== "jamming") return { state };
+  return {
+    state,
+    events: [
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: "BT1-069",
+        effectKey: "BT1-069/jamming",
+        description: "Ogremon has Jamming and survives losing battles against Security Digimon.",
+        timing: "Static",
+      },
+    ],
+  };
+}
+
 function palmonDemo(effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
@@ -6548,6 +6578,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
   const effect = params.get("effect");
   const step = params.get("step");
   const fixture = useMemo<CardEffectsFixture | undefined>(() => {
+    if (cardId === "BT1-069") return ogremonDemo(effect);
     if (cardId === "BT1-068") return kokuwamonDemo(effect);
     if (cardId === "BT1-067") return palmonDemo(effect);
     if (cardId === "BT1-066") return tentomonDemo(effect);
