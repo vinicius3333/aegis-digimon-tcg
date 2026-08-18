@@ -4,7 +4,7 @@ import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import { turnTiming } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
-import { attackedWithDigimonInCurrentOrPreviousTurn } from "../../engine/turnActivity.js";
+import { attackedWithDigimonThisTurn } from "../../engine/turnActivity.js";
 const cardId = "ST5-04";
 const module: EffectModule = {
   cardId,
@@ -18,7 +18,7 @@ const module: EffectModule = {
         isInherited: true,
         when: (ctx) =>
           ctx.game.state.turnSeat !== source.ownerSeat &&
-          !attackedWithDigimonInCurrentOrPreviousTurn(ctx.game.state, ctx.game.opponentOf(source.ownerSeat)),
+          !attackedWithDigimonThisTurn(ctx.game.state, ctx.game.opponentOf(source.ownerSeat)),
         resolve: async (ctx) => {
           await ctx.fx.draw(source.ownerSeat, 1);
         },

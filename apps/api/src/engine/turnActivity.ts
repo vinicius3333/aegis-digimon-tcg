@@ -30,3 +30,8 @@ export function attackedWithDigimonInCurrentOrPreviousTurn(state: GameState, sea
   const value = activity(state);
   return value.currentDigimonAttackSeats.has(seat) || value.previousDigimonAttackSeats.has(seat);
 }
+
+/** Whether a player has attacked with a Digimon during the currently ending turn. */
+export function attackedWithDigimonThisTurn(state: GameState, seat: Seat): boolean {
+  return activity(state).currentDigimonAttackSeats.has(seat);
+}
