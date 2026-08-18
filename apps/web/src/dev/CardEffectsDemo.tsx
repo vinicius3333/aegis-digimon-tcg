@@ -10833,6 +10833,33 @@ function kunemonBt3Demo(_effect: string | null): CardEffectsFixture {
   };
 }
 
+function terriermonBt3Demo(_effect: string | null): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 7;
+  state.turnSeat = 1;
+  state.memory = 0;
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  you.battleArea.push(permanent("demo-bt3-046-terriermon", "BT3-046", 0, 2000));
+  opponent.battleArea.push(permanent("demo-bt3-046-attacker", "BT1-019", 1, 4000));
+  state.players.push(you, opponent);
+  return {
+    state,
+    events: [
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: "BT3-046",
+        effectKey: "BT3-046/restrict-memory",
+        description: "Terriermon prevents the opponent from gaining memory except through Tamer effects.",
+        timing: "AllTurns",
+      },
+    ],
+  };
+}
+
 function silphymonBt3Demo(effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
@@ -16814,6 +16841,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
     if (cardId === "BT3-043") return kentaurosmonBt3Demo(effect);
     if (cardId === "BT3-044") return aruraumonBt3Demo(effect);
     if (cardId === "BT3-045") return kunemonBt3Demo(effect);
+    if (cardId === "BT3-046") return terriermonBt3Demo(effect);
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
