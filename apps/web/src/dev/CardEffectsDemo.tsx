@@ -11052,6 +11052,32 @@ function rapidmonBt3Demo(effect: string | null): CardEffectsFixture {
   };
 }
 
+function vanillaBt3Demo(cardId: string, name: string, dp: number): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 7;
+  state.turnSeat = 0;
+  state.memory = 0;
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  you.battleArea.push(permanent(`demo-${cardId}`, cardId, 0, dp));
+  state.players.push(you, opponent);
+  return {
+    state,
+    events: [
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: cardId,
+        effectKey: `${cardId}/no-effect`,
+        description: `${name} has no card effects; its printed stats and play state are unchanged.`,
+        timing: "Static",
+      },
+    ],
+  };
+}
+
 function silphymonBt3Demo(effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
@@ -17040,6 +17066,9 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
     if (cardId === "BT3-050") return stingmonBt3Demo(effect);
     if (cardId === "BT3-051") return dokugumonBt3Demo(effect);
     if (cardId === "BT3-052") return rapidmonBt3Demo(effect);
+    if (cardId === "BT3-053") return vanillaBt3Demo(cardId, "JewelBeemon", 10000);
+    if (cardId === "BT3-059") return vanillaBt3Demo(cardId, "Commandramon", 3000);
+    if (cardId === "BT3-060") return vanillaBt3Demo(cardId, "Psychemon", 5000);
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
