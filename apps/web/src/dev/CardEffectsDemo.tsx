@@ -6431,6 +6431,45 @@ function digitamamonDemo(effect: string | null): CardEffectsFixture {
   };
 }
 
+function megaKabuterimonDemo(effect: string | null): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 5;
+  state.turnSeat = 0;
+  state.memory = effect === "memory-gained" ? 1 : 0;
+
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  const attacker = permanent("demo-megakabuterimon-host", "BT1-074", 0, 5000, [
+    { instanceId: "demo-megakabuterimon-source", cardId: "BT1-076" },
+  ]);
+  attacker.isSuspended = effect === "memory-gained";
+  you.battleArea.push(attacker);
+  const targetA = permanent("demo-megakabuterimon-target-a", "BT1-016", 1, 5000);
+  const targetB = permanent("demo-megakabuterimon-target-b", "BT1-017", 1, 6000);
+  targetA.isSuspended = true;
+  if (effect === "memory-gained") targetB.isSuspended = true;
+  opponent.battleArea.push(targetA, targetB);
+  opponent.handCount = 5;
+  state.players.push(you, opponent);
+
+  if (effect !== "memory-gained") return { state };
+  return {
+    state,
+    events: [
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: "BT1-076",
+        effectKey: "BT1-076/memory",
+        description: "MegaKabuterimon's inherited effect gained 1 memory with 2 suspended opposing Digimon.",
+        timing: "When Attacking",
+      },
+    ],
+  };
+}
+
 function palmonDemo(effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
@@ -6794,6 +6833,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
   const effect = params.get("effect");
   const step = params.get("step");
   const fixture = useMemo<CardEffectsFixture | undefined>(() => {
+    if (cardId === "BT1-076") return megaKabuterimonDemo(effect);
     if (cardId === "BT1-075") return digitamamonDemo(effect);
     if (cardId === "BT1-074") return togemonDemo(step);
     if (cardId === "BT1-073") return kabuterimonDemo(effect);
