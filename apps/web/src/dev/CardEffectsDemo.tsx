@@ -9820,6 +9820,42 @@ function venomMyotismonBt2Demo(effect: string | null): CardEffectsFixture {
   };
 }
 
+function zubamonBt3Demo(effect: string | null): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 7;
+  state.turnSeat = 0;
+  state.memory = 0;
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  const both = effect === "both-ragna";
+  const onlyRagna = effect === "only-ragna";
+  you.deckCount = both ? 3 : onlyRagna ? 4 : 3;
+  if (both) {
+    you.hand.push(card("demo-zubamon-ragna-a", "BT3-019", 0), card("demo-zubamon-ragna-b", "BT3-019", 0));
+  } else if (onlyRagna) you.hand.push(card("demo-zubamon-ragna-only", "BT3-019", 0));
+  else you.hand.push(card("demo-zubamon-ragna", "BT3-019", 0), card("demo-zubamon-legend-arms", "BT3-010", 0));
+  state.players.push(you, opponent);
+  return {
+    state,
+    events: [
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: "BT3-008",
+        effectKey: `BT3-008/${effect ?? "both-categories"}`,
+        description: both
+          ? "Zubamon revealed two RagnaLoardmon cards that each satisfied a category and added both to hand."
+          : onlyRagna
+            ? "Zubamon revealed only a RagnaLoardmon target, so it added one card and bottom-decked the other four."
+            : "Zubamon added one RagnaLoardmon and one Legend-Arms Digimon, then bottom-decked the remaining cards.",
+        timing: "OnPlay",
+      },
+    ],
+  };
+}
+
 function agumonBt3Demo(effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
@@ -15549,6 +15585,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
   const effect = params.get("effect");
   const step = params.get("step");
   const fixture = useMemo<CardEffectsFixture | undefined>(() => {
+    if (cardId === "BT3-008") return zubamonBt3Demo(effect);
     if (cardId === "BT3-007") return agumonBt3Demo(effect);
     if (cardId === "BT3-006") return demiMeramonBt3Demo(effect);
     if (cardId === "BT3-005") return kakkinmonBt3Demo(effect);
