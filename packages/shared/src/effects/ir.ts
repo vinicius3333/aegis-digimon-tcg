@@ -1012,6 +1012,7 @@ export interface Condition {
     // --- effect-result-binding gates (read the ctx outcome bindings set during THIS effect's
     // resolution; see EffectContext.lastDeleteCount / lastDigivolveResult / lastOptionUsed) ---
     | "ifThisEffectDidNotDelete" // "if this effect didn't delete ..." — true when the prior Delete removed 0 (an immune/prevented target counts as not deleted; KB BT23-069 Q5338)
+    | "ifThisEffectDidNotSuspend" // "if this effect didn't suspend ..." — true when the prior Suspend action suspended 0 targets
     | "ifThisEffectUsed" // "if this effect used [the Option] ..." — true when an Option-use happened this resolution (bool set in 08-06; KB EX8-037 Q4737)
     | "ifThisEffectDigivolved" // "then (if it digivolved) ..." — true when the prior digivolve happened (KB BT19-084 Q3146-Q3150)
     | "ifThisEffectActed" // "if you did (either) ..." — true when the prior place/trash branch actually moved >=1 card (BT16-094 OR-modal: -7000 DP only if you placed or trashed; an optional selection declined to nothing leaves it false)

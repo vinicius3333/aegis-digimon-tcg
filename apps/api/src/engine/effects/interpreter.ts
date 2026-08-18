@@ -2386,6 +2386,8 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
       const self = ctx.source.permanent();
       return self !== undefined && self.stack.length === 0;
     }
+    case "ifThisEffectDidNotSuspend":
+      return (ctx.lastSuspendedPermanentIds?.length ?? 0) === 0;
     case "selfHasInDigivolutionCards": {
       // "[X] is in this Digimon's digivolution cards" (BT19-073 AllTurns gate). True when the
       // SOURCE permanent has at least one digivolution stack card whose name or trait matches

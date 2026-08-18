@@ -227,7 +227,7 @@ const compiled: CompiledCard = {
             "keyword": "Blocker",
             "raw": "＜Blocker＞"
           },
-          "duration": "permanent"
+          "duration": "forTheTurn"
         }
       ],
       "isInherited": true

@@ -45,23 +45,23 @@ const compiled: CompiledCard = {
                 },
                 "count": 1
               }
+            },
+            {
+              "kind": "Restrict",
+              "target": {
+                "filter": {
+                  "digivolutionCards": "none",
+                  "controller": "opponent",
+                  "kind": [
+                    "Digimon"
+                  ]
+                },
+                "count": 1
+              },
+              "restriction": "attackOrBlock",
+              "duration": "untilOpponentTurnEnd"
             }
           ]
-        },
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "digivolutionCards": "none",
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "restriction": "attackOrBlock",
-          "duration": "untilOpponentTurnEnd"
         }
       ],
       "frequency": "OncePerTurn"

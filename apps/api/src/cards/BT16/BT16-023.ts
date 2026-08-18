@@ -43,11 +43,9 @@ const compiled: CompiledCard = {
           },
           "to": "deckBottom",
           "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine"
-            },
-            "raw": "you have 3 or fewer"
+            "kind": "securityAtMost",
+            "value": 3,
+            "raw": "you have 3 or fewer security cards"
           }
         }
       ]
@@ -88,11 +86,9 @@ const compiled: CompiledCard = {
           },
           "to": "deckBottom",
           "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine"
-            },
-            "raw": "you have 3 or fewer"
+            "kind": "securityAtMost",
+            "value": 3,
+            "raw": "you have 3 or fewer security cards"
           }
         }
       ]
@@ -110,7 +106,17 @@ const compiled: CompiledCard = {
             "isSelf": true
           },
           "condition": {
-            "kind": "raw",
+            "kind": "selfTopHasText",
+            "filter": {
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "Pulsemon"
+                  ],
+                  "match": "text"
+                }
+              ]
+            },
             "raw": "this Digimon has [Pulsemon] in its text"
           },
           "cost": {

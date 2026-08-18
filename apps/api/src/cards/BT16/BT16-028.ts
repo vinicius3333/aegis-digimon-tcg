@@ -94,14 +94,80 @@ const compiled: CompiledCard = {
               ],
               "optional": true,
               "condition": {
-                "kind": "youHave",
+                "kind": "allOf",
+                "conditions": [
+                  {
+                    "kind": "youHave",
+                    "filter": {
+                      "controllerDefault": "mine",
+                      "kind": [
+                        "Tamer"
+                      ]
+                    },
+                    "raw": "you have a Tamer"
+                  },
+                  {
+                    "kind": "triggerEnteredByEffect",
+                    "raw": "played or digivolved by an effect"
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "kind": "SubTrigger",
+          "event": "whenOneOfYoursDigivolves",
+          "sourceFilter": {
+            "controller": "opponent",
+            "kind": [
+              "Digimon"
+            ]
+          },
+          "actions": [
+            {
+              "kind": "Digivolve",
+              "target": {
                 "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Tamer"
-                  ]
+                  "isSelfRef": true
                 },
-                "raw": "you have a Tamer"
+                "count": 1,
+                "isSelf": true
+              },
+              "into": {
+                "controllerDefault": "mine",
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Imperialdramon: Fighter Mode"
+                    ],
+                    "match": "name"
+                  }
+                ]
+              },
+              "payCost": false,
+              "from": [
+                "hand"
+              ],
+              "optional": true,
+              "condition": {
+                "kind": "allOf",
+                "conditions": [
+                  {
+                    "kind": "youHave",
+                    "filter": {
+                      "controllerDefault": "mine",
+                      "kind": [
+                        "Tamer"
+                      ]
+                    },
+                    "raw": "you have a Tamer"
+                  },
+                  {
+                    "kind": "triggerEnteredByEffect",
+                    "raw": "digivolved by an effect"
+                  }
+                ]
               }
             }
           ]

@@ -92,7 +92,8 @@ const compiled: CompiledCard = {
               "controller": "opponent",
               "kind": [
                 "Digimon"
-              ]
+              ],
+              "digivolutionCardsAtMost": 1
             },
             "count": 1
           }

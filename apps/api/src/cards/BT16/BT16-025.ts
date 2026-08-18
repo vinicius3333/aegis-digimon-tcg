@@ -47,7 +47,7 @@ const compiled: CompiledCard = {
           "restriction": "unsuspend",
           "duration": "untilOpponentTurnEnd",
           "condition": {
-            "kind": "raw",
+            "kind": "isDnaDigivolving",
             "raw": "DNA digivolving"
           }
         }
@@ -79,7 +79,7 @@ const compiled: CompiledCard = {
             "isSelf": true
           },
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectDidNotSuspend",
             "raw": "this effect didn't suspend"
           }
         }

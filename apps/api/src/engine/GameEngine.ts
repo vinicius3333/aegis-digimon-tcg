@@ -2110,7 +2110,10 @@ export class GameEngine {
       await this.fireTiming(EffectTiming.OnEnterFieldAnyone, { subjectPermanentId, entryCause: "play" });
     } else if (timing === EffectTiming.WhenDigivolving) {
       await this.fireTiming(EffectTiming.OnEnterFieldAnyone, { subjectPermanentId, entryCause: "digivolve" });
-      await this.fireSubTrigger("whenOneOfYoursDigivolves", { subjectPermanentId });
+      await this.fireSubTrigger("whenOneOfYoursDigivolves", {
+        subjectPermanentId,
+        enteredByEffect: ownerSeat,
+      });
     }
   }
 
