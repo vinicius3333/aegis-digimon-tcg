@@ -2,7 +2,7 @@ import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
-import { whenDigivolving, staticModifier } from "../../engine/effects/builders.js";
+import { whenDigivolving } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "EX9-021";
@@ -54,61 +54,72 @@ const module: EffectModule = {
       ];
     }
 
-    if (timing === EffectTiming.None) {
+    // This is an End-of-Attack timing effect, not a "when this Digimon wins a battle"
+    // watcher.  The former implementation subscribed to `whenBattleWon`, which skipped
+    // the clause after a direct attack, a loss, or an attack ended by an effect.  The
+    // engine already drives EffectTiming.OnEndAttack for every completed attack.
+    if (timing === EffectTiming.OnEndAttack) {
       return [
-        staticModifier({
-          source,
+        {
           effectKey: `${cardId}/end-attack-play-from-digi`,
           description:
             "[End of Attack] Once Per Turn When this Digimon attacks, play 1 [Greymon] or " +
             "[Ver.1] card and 1 [Garurumon] or [Ver.2] card from this Digimon's digivolution " +
             "cards without paying the costs. Then, place this Digimon at the top of your " +
             "security stack.",
+          // The printed "You may play" makes activation optional.  Once accepted, each
+          // available group is mandatory, but a missing group does not prevent the other
+          // group from being played (KB Q4767).
+          optional: true,
+          isInherited: false,
+          isSecurity: false,
+          isLinked: false,
           maxPerTurn: 1,
-          when: (ctx) => source.isOnBattleArea(),
+          canTrigger: (ctx) =>
+            source.isOnBattleArea() && source.permanent()?.permanentId === ctx.trigger?.attackerPermanentId,
+          canActivate: (ctx) => {
+            const self = source.permanent();
+            if (self === undefined) return false;
+            return self.stack.some((c) => {
+              const def = ctx.game.definitionOf(c);
+              return def.nameEn === "Greymon" || def.nameEn === "Garurumon" ||
+                (def.types ?? []).includes("Ver.1") || (def.types ?? []).includes("Ver.2");
+            });
+          },
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "whenBattleWon",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              oncePerTiming: true,
-              oncePerTurnKey: `${cardId}/end-attack-play-from-digi`,
-              description: `${cardId}: After attack, play Greymon/Ver.1 and Garurumon/Ver.2 from digivolution cards.`,
-              run: async (subCtx) => {
-                const currentSelf = subCtx.game.permanentById(self.permanentId);
-                if (currentSelf === undefined) return;
-
-                const greymonCards = currentSelf.stack.filter((c) => {
-                  const def = subCtx.game.definitionOf(c);
-                  return def.nameEn === "Greymon" || (def.types ?? []).includes("Ver.1");
-                });
-                const garurumonCards = currentSelf.stack.filter((c) => {
-                  const def = subCtx.game.definitionOf(c);
-                  return def.nameEn === "Garurumon" || (def.types ?? []).includes("Ver.2");
-                });
-
-                if (greymonCards.length > 0 && garurumonCards.length > 0) {
-                  const chosenGreymon = await subCtx.ask.selectCards(subCtx, {
-                    candidates: greymonCards.map((c) => c.instanceId),
-                    min: 1,
-                    max: 1,
-                  });
-                  const chosenGarurumon = await subCtx.ask.selectCards(subCtx, {
-                    candidates: garurumonCards.map((c) => c.instanceId),
-                    min: 1,
-                    max: 1,
-                  });
-                  if (chosenGreymon.length > 0 && chosenGarurumon.length > 0) {
-                    await subCtx.fx.playInstances([...chosenGreymon, ...chosenGarurumon], { payCost: false });
-                    await subCtx.fx.addSecurity(source.ownerSeat, [source.instanceId], { toTop: true });
-                  }
-                }
-              },
+            const greymonCards = self.stack.filter((c) => {
+              const def = ctx.game.definitionOf(c);
+              return def.nameEn === "Greymon" || (def.types ?? []).includes("Ver.1");
             });
+            const garurumonCards = self.stack.filter((c) => {
+              const def = ctx.game.definitionOf(c);
+              return def.nameEn === "Garurumon" || (def.types ?? []).includes("Ver.2");
+            });
+            const chosen: string[] = [];
+            if (greymonCards.length > 0) {
+              const selected = await ctx.ask.selectCards(ctx, {
+                candidates: greymonCards.map((c) => c.instanceId),
+                min: 1,
+                max: 1,
+              });
+              chosen.push(...selected);
+            }
+            if (garurumonCards.length > 0) {
+              const selected = await ctx.ask.selectCards(ctx, {
+                candidates: garurumonCards.map((c) => c.instanceId).filter((id) => !chosen.includes(id)),
+                min: 1,
+                max: 1,
+              });
+              chosen.push(...selected);
+            }
+            if (chosen.length > 0) {
+              await ctx.fx.playInstances(chosen, { payCost: false });
+              await ctx.fx.addSecurity(source.ownerSeat, [source.instanceId], { toTop: true });
+            }
           },
-        }),
+        },
       ];
     }
 
