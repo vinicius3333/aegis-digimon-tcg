@@ -11078,6 +11078,33 @@ function vanillaBt3Demo(cardId: string, name: string, dp: number): CardEffectsFi
   };
 }
 
+function effectBt3Demo(cardId: string, name: string, dp: number, description: string): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 7;
+  state.turnSeat = 0;
+  state.memory = 0;
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  you.battleArea.push(permanent(`demo-${cardId}`, cardId, 0, dp));
+  opponent.battleArea.push(permanent(`demo-${cardId}-target`, "BT1-019", 1, 4000));
+  state.players.push(you, opponent);
+  return {
+    state,
+    events: [
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: cardId,
+        effectKey: `${cardId}/resolved`,
+        description,
+        timing: "Main",
+      },
+    ],
+  };
+}
+
 function silphymonBt3Demo(effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
@@ -17067,6 +17094,35 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
     if (cardId === "BT3-051") return dokugumonBt3Demo(effect);
     if (cardId === "BT3-052") return rapidmonBt3Demo(effect);
     if (cardId === "BT3-053") return vanillaBt3Demo(cardId, "JewelBeemon", 10000);
+    if (cardId === "BT3-054")
+      return effectBt3Demo(
+        cardId,
+        "Blossomon",
+        7000,
+        "Blossomon used Digisorption -3 by suspending one of your Digimon.",
+      );
+    if (cardId === "BT3-055") return effectBt3Demo(cardId, "Dinobeemon", 7000, "Dinobeemon has Piercing and Jamming.");
+    if (cardId === "BT3-056")
+      return effectBt3Demo(
+        cardId,
+        "Ceresmon",
+        12000,
+        "Ceresmon used Digisorption -3 and may suspend an opposing Digimon instead during your turn.",
+      );
+    if (cardId === "BT3-057")
+      return effectBt3Demo(
+        cardId,
+        "MegaGargomon",
+        11000,
+        "MegaGargomon suspended an opposing Digimon and prevented it from unsuspending next turn.",
+      );
+    if (cardId === "BT3-058")
+      return effectBt3Demo(
+        cardId,
+        "BanchoStingmon",
+        9000,
+        "BanchoStingmon gained +7000 DP and Security Attack +2 when attacking a 12000 DP Digimon.",
+      );
     if (cardId === "BT3-059") return vanillaBt3Demo(cardId, "Commandramon", 3000);
     if (cardId === "BT3-060") return vanillaBt3Demo(cardId, "Psychemon", 5000);
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
