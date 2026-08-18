@@ -56,6 +56,12 @@ const compiled: CompiledCard = {
     },
     {
       "trigger": "AllTurns",
+      "keywords": [
+        {
+          "keyword": "Delay",
+          "raw": "＜Delay＞"
+        }
+      ],
       "actions": [
         {
           "kind": "Replacement",
@@ -72,50 +78,35 @@ const compiled: CompiledCard = {
           },
           "actions": [
             {
-              "kind": "GainKeyword",
+              "kind": "PlayWithoutCost",
               "target": {
                 "filter": {
-                  "isSelfRef": true
+                  "controller": "mine",
+                  "kind": [
+                    "Digimon"
+                  ],
+                  "levelComparison": {
+                    "op": "lte",
+                    "value": 5
+                  },
+                  "nameOrTrait": [
+                    {
+                      "tokens": [
+                        "ADVENTURE"
+                      ],
+                      "match": "trait"
+                    }
+                  ]
                 },
-                "count": 1,
-                "isSelf": true
+                "count": 1
               },
-              "keyword": {
-                "keyword": "Delay",
-                "raw": "＜Delay＞"
-              },
-              "duration": "permanent"
+              "from": [
+                "hand"
+              ],
+              "payCost": false,
+              "optional": true
             }
           ]
-        },
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
-              },
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "ADVENTURE"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
         }
       ]
     },
