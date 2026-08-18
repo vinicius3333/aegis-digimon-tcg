@@ -17785,6 +17785,76 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         14000,
         "Chaosmon has Piercing, unsuspends when digivolving, and attacks an unsuspended Digimon.",
       );
+    if (cardId === "BT4-091")
+      return effectBt3Demo(
+        cardId,
+        "Chaosmon: Valdur Arm",
+        14000,
+        "Chaosmon: Valdur Arm applied -7000 DP twice when digivolving and gains 3 memory when deleted.",
+      );
+    if (cardId === "BT4-092")
+      return effectBt3Demo(
+        cardId,
+        "Marcus Damon",
+        0,
+        "Marcus Damon set memory to 3 at turn start, could suspend for memory when an eligible Greymon attacked, and plays from security.",
+      );
+    if (cardId === "BT4-093")
+      return effectBt3Demo(
+        cardId,
+        "Thomas H. Norstein",
+        0,
+        "Thomas H. Norstein drew on play, could unsuspend a Gao Digimon, and plays from security.",
+      );
+    if (cardId === "BT4-094")
+      return effectBt3Demo(
+        cardId,
+        "Tai Kamiya",
+        0,
+        "Tai Kamiya gave own Digimon +1000 DP at 3 or fewer security and could suspend for memory after a battle deletion.",
+      );
+    if (cardId === "BT4-095")
+      return effectBt3Demo(
+        cardId,
+        "Yoshino Fujieda",
+        0,
+        "Yoshino Fujieda returned a Digi-Egg from trash and could reduce a Digi-Burst digivolution cost.",
+      );
+    if (cardId === "BT4-096")
+      return effectBt3Demo(
+        cardId,
+        "Izzy Izumi",
+        0,
+        "Izzy Izumi set memory to 3 and could reveal 3 black cards to gain memory and return them to the deck.",
+      );
+    if (cardId === "BT4-097")
+      return effectBt3Demo(
+        cardId,
+        "Kari Kamiya",
+        0,
+        "Kari Kamiya could suspend to gain 1 memory when a card left your security and plays from security.",
+      );
+    if (cardId === "BT4-098")
+      return effectBt3Demo(
+        cardId,
+        "Atomic Inferno",
+        0,
+        "Atomic Inferno boosted a Hybrid with +3000 DP and Security Attack +1, and its Security effect boosted all own Digimon.",
+      );
+    if (cardId === "BT4-099")
+      return effectBt3Demo(
+        cardId,
+        "Heir of Dragons",
+        0,
+        "Heir of Dragons drew 2 and deleted a 4000 DP Digimon while Greymon was present, including from security.",
+      );
+    if (cardId === "BT4-100")
+      return effectBt3Demo(
+        cardId,
+        "Trident Revolver",
+        0,
+        "Trident Revolver deleted a 6000 DP Digimon and played a cost-4 Tamer, including from security.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
