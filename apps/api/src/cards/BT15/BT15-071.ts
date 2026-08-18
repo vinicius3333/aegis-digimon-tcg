@@ -67,11 +67,9 @@ const compiled: CompiledCard = {
           "kind": "GainMemory",
           "amount": 1,
           "condition": {
-            "kind": "opponentHas",
-            "filter": {
-              "controllerDefault": "opponent"
-            },
-            "count": 1,
+            "kind": "memoryAtLeast",
+            "controller": "opponent",
+            "value": 1,
             "raw": "your opponent has 1 or more memory"
           }
         }
