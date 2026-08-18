@@ -509,13 +509,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // (BT3-105, EX1-073, BT23-085, BT7-064, BT9-098, BT19-089), so it gates negative deltas
     // only — a buff still lands on a DP-immune Digimon.
     if (delta < 0 && isRestricted(permanentId, "dpImmune")) return;
-    ledger.addDpModifier(
-      state,
-      permanentId,
-      delta,
-      durationForTarget(permanentId, duration),
-      opts?.continuous === undefined ? continuousOpt() : { continuous: opts.continuous },
-    );
+    ledger.addDpModifier(state, permanentId, delta, durationForTarget(permanentId, duration), {
+      ...(opts?.continuous === undefined ? continuousOpt() : { continuous: opts.continuous }),
+      ...(opts?.sourceInstanceId !== undefined ? { sourceInstanceId: opts.sourceInstanceId } : {}),
+    });
     // currentDP was recomputed by the ledger; no dedicated ServerEvent in the
     // protocol for a DP change — the schema delta (currentDP) is the source of truth.
   };
@@ -1775,6 +1772,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // unprotected one (KB Q1922). Rule-driven identity cleanup uses other seams and is unaffected.
     const trashableInstanceIds = instanceIds.filter((instanceId) => !continuous.stackCardTrashLocked(instanceId));
     const moved = await trash(trashableInstanceIds);
+    ledger.dropSourceInstances(
+      state,
+      moved.map((card) => card.instanceId),
+    );
     if (moved.length > 0 && engine.fireSubTrigger) {
       // Digi-Burst trashes all chosen sources simultaneously. Notify its self-card watchers in
       // one batch before any per-card fire can trigger a continuous recompute and tear down the

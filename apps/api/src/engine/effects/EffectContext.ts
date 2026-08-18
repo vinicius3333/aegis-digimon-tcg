@@ -498,7 +498,12 @@ export interface Primitives {
   setMemory(v: number): void;
   /** Raise the active turn-end threshold for this effect's controller (BT14-081). */
   setTurnEndMinMemory?(seat: Seat, minimum: number): void;
-  modifyDP(permanentId: string, delta: number, duration: EffectDuration, opts?: { continuous?: boolean }): void;
+  modifyDP(
+    permanentId: string,
+    delta: number,
+    duration: EffectDuration,
+    opts?: { continuous?: boolean; sourceInstanceId?: string },
+  ): void;
   /**
    * Override a permanent's ORIGINAL/base DP to an absolute value for `duration`
    * (the "treated as having N DP" family). Replaces the base DP that signed

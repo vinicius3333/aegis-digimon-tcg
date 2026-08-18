@@ -20,7 +20,11 @@ const module: EffectModule = {
         when: () => source.isOwnersTurn(),
         resolve: async (ctx) => {
           const self = source.permanent();
-          if (self !== undefined) ctx.fx.modifyDP(self.permanentId, 2000, EffectDuration.UntilEachTurnEnd);
+          if (self !== undefined) {
+            ctx.fx.modifyDP(self.permanentId, 2000, EffectDuration.UntilEachTurnEnd, {
+              sourceInstanceId: source.instanceId,
+            });
+          }
         },
       }),
     ];

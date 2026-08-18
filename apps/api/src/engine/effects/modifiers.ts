@@ -45,6 +45,8 @@ export interface DpModifier {
   permanentId: string;
   delta: number;
   duration: EffectDuration;
+  /** Card instance whose continued presence sustains this modifier. */
+  sourceInstanceId?: string;
   /**
    * True when this delta was produced by a PERSISTENT (static / `EffectTiming.None`)
    * effect rather than a one-shot triggered effect. The continuous-recompute pass
@@ -198,10 +200,7 @@ function clearsAt(
   switch (duration) {
     case EffectDuration.UntilOwnerTurnEnd:
       // Clears when the owner's own turn ends.
-      return (
-        (boundary === "ownerTurnEnd" || boundary === "eachTurnEnd") &&
-        modifierOwnerSeat === sweepSeat
-      );
+      return (boundary === "ownerTurnEnd" || boundary === "eachTurnEnd") && modifierOwnerSeat === sweepSeat;
     case EffectDuration.UntilOpponentTurnEnd:
       // Clears when the owner's opponent's turn ends.
       return (
@@ -259,9 +258,15 @@ export class ModifierLedger {
     permanentId: string,
     delta: number,
     duration: EffectDuration,
-    opts?: { continuous?: boolean },
+    opts?: { continuous?: boolean; sourceInstanceId?: string },
   ): DpModifier {
-    const modifier: DpModifier = { permanentId, delta, duration, continuous: opts?.continuous };
+    const modifier: DpModifier = {
+      permanentId,
+      delta,
+      duration,
+      continuous: opts?.continuous,
+      sourceInstanceId: opts?.sourceInstanceId,
+    };
     this.dpModifiers.push(modifier);
     this.recomputeDP(state, permanentId);
     return modifier;
@@ -425,11 +430,7 @@ export class ModifierLedger {
   }
 
   /** Grant Piercing to a permanent for a duration (read by combat at battle outcome). */
-  addPierceGrant(
-    permanentId: string,
-    duration: EffectDuration,
-    opts?: { continuous?: boolean },
-  ): PierceGrant {
+  addPierceGrant(permanentId: string, duration: EffectDuration, opts?: { continuous?: boolean }): PierceGrant {
     const grant: PierceGrant = { permanentId, duration, continuous: opts?.continuous };
     this.pierceGrants.push(grant);
     return grant;
@@ -603,6 +604,18 @@ export class ModifierLedger {
     this.baseDpOverrides = this.baseDpOverrides.filter((o) => o.permanentId !== permanentId);
     this.minDpFloors = this.minDpFloors.filter((f) => f.permanentId !== permanentId);
     this.pierceGrants = this.pierceGrants.filter((g) => g.permanentId !== permanentId);
+  }
+
+  /** Remove DP modifiers sustained by card instances that have left their source stack. */
+  dropSourceInstances(state: GameState, instanceIds: readonly string[]): void {
+    const removed = new Set(instanceIds);
+    const touched = new Set<string>();
+    this.dpModifiers = this.dpModifiers.filter((modifier) => {
+      if (modifier.sourceInstanceId === undefined || !removed.has(modifier.sourceInstanceId)) return true;
+      touched.add(modifier.permanentId);
+      return false;
+    });
+    for (const permanentId of touched) this.recomputeDP(state, permanentId);
   }
 
   /**
