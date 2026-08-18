@@ -15,16 +15,9 @@ const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controllerDefault": "mine",
-              "colors": [
-                "Green"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Royal Knight"
-                  ],
-                  "match": "trait"
-                }
+              "or": [
+                {"colors": ["Green"], "kind": ["Digimon"]},
+                {"nameOrTrait": [{"tokens": ["Royal Knight"], "match": "trait"}], "kind": ["Digimon"]}
               ]
             },
             "count": 1
@@ -59,16 +52,9 @@ const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controllerDefault": "mine",
-              "colors": [
-                "Green"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Royal Knight"
-                  ],
-                  "match": "trait"
-                }
+              "or": [
+                {"colors": ["Green"], "kind": ["Digimon"]},
+                {"nameOrTrait": [{"tokens": ["Royal Knight"], "match": "trait"}], "kind": ["Digimon"]}
               ]
             },
             "count": 1
@@ -117,16 +103,9 @@ const compiled: CompiledCard = {
                   "kind": [
                     "Digimon"
                   ],
-                  "colors": [
-                    "Green"
-                  ],
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Royal Knight"
-                      ],
-                      "match": "trait"
-                    }
+                  "or": [
+                    {"colors": ["Green"], "kind": ["Digimon"]},
+                    {"nameOrTrait": [{"tokens": ["Royal Knight"], "match": "trait"}], "kind": ["Digimon"]}
                   ]
                 },
                 "count": "all"

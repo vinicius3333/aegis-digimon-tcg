@@ -80,12 +80,18 @@ const compiled: CompiledCard = {
           "kind": "Trash",
           "target": {
             "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+              "isSelfRef": true
             },
-            "count": 1
+            "count": 1,
+            "isSelf": true,
+            "topCardOnly": true
+          }
+        },
+        {
+          "kind": "Unsuspend",
+          "target": {
+            "filter": {"controller": "mine", "kind": ["Digimon"]},
+            "count": "all"
           }
         }
       ]

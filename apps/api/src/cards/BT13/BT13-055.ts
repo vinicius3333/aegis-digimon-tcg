@@ -9,7 +9,45 @@ const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Main",
-      "actions": [],
+      "actions": [
+        {
+          "kind": "Digivolve",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [{"tokens": ["Angoramon"], "match": "name"}]
+            },
+            "count": 1
+          },
+          "into": {
+            "controllerDefault": "mine",
+            "nameOrTrait": [{"tokens": ["Lamortmon"], "match": "name"}]
+          },
+          "from": ["hand"],
+          "payCost": true,
+          "ignoreRequirements": true,
+          "optional": true,
+          "additionalCosts": [
+            {
+              "kind": "place",
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "kind": ["Digimon"],
+                  "nameOrTrait": [{"tokens": ["SymbareAngoramon"], "match": "name"}]
+                },
+                "count": 1,
+                "from": ["hand"]
+              },
+              "destination": "digivolutionStack",
+              "position": "bottom",
+              "host": "target",
+              "raw": "by placing 1 [SymbareAngoramon] from your hand as 1 of your [Angoramon]'s bottom digivolution card"
+            }
+          ]
+        }
+      ],
       "isFromHand": true
     },
     {
