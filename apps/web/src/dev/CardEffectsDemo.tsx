@@ -18777,6 +18777,64 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
       );
     if (cardId === "BT6-070")
       return effectBt3Demo(cardId, "Elecmon", 2000, "Elecmon deleted an opposing level 3 Digimon when deleted.");
+    if (cardId === "BT6-071")
+      return effectBt3Demo(
+        cardId,
+        "Kinkakumon",
+        5000,
+        "Kinkakumon trashed a card from hand to delete an opposing level 3 Digimon when attacking.",
+      );
+    if (cardId === "BT6-072")
+      return effectBt3Demo(
+        cardId,
+        "Ogremon",
+        4000,
+        "Ogremon could trash a card from hand to delete an opposing level 4 or lower Digimon.",
+      );
+    if (cardId === "BT6-073")
+      return effectBt3Demo(
+        cardId,
+        "Ginkakumon",
+        5000,
+        "Ginkakumon gained 1 memory once per turn when an effect trashed a card from hand.",
+      );
+    if (cardId === "BT6-074") return vanillaBt3Demo(cardId, "Boogiemon", 7000);
+    if (cardId === "BT6-075")
+      return effectBt3Demo(
+        cardId,
+        "Ginkakumon Promote",
+        6000,
+        "Ginkakumon Promote has Rush and places the required named cards under itself, then draws and gains memory.",
+      );
+    if (cardId === "BT6-076") return vanillaBt3Demo(cardId, "Feresmon", 9000);
+    if (cardId === "BT6-077")
+      return effectBt3Demo(
+        cardId,
+        "Rebellimon",
+        7000,
+        "Rebellimon is treated as purple and black and can trash a card from hand to gain Blocker and Retaliation.",
+      );
+    if (cardId === "BT6-078")
+      return effectBt3Demo(
+        cardId,
+        "SkullGreymon",
+        7000,
+        "SkullGreymon gains DP when a card is trashed from hand and grants Retaliation; when trashed, it can go under a purple Digimon.",
+      );
+    if (cardId === "BT6-079")
+      return effectBt3Demo(
+        cardId,
+        "Murmukusmon",
+        10000,
+        "Murmukusmon has Retaliation and plays Ornismon from trash on deletion when the trash has enough cards.",
+      );
+    if (cardId === "BT6-080")
+      return effectBt3Demo(
+        cardId,
+        "Ornismon",
+        12000,
+        "Ornismon has Security Attack +1 and deletes an opposing level 5 or lower Digimon when played.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
