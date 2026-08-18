@@ -6050,27 +6050,27 @@ function labramonDemo(effect: string | null): CardEffectsFixture {
   return { state };
 }
 
-function liollmonDemo(effect: string | null): CardEffectsFixture {
+function vanillaPlayDemo(cardId: string, dp: number, playCost: number, effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
   state.phase = Phase.Main;
   state.turnCount = 5;
   state.turnSeat = 0;
-  state.memory = effect === "played" ? 0 : 3;
+  state.memory = effect === "played" ? 0 : playCost;
 
   const you = player(0, "Effect tester", "card-effects-viewer");
   const opponent = player(1, "Training opponent", "card-effects-opponent");
   opponent.handCount = 5;
   if (effect === "played") {
-    you.battleArea.push(permanent("demo-liollmon", "BT1-050", 0, 4000));
+    you.battleArea.push(permanent("demo-vanilla", cardId, 0, dp));
     state.players.push(you, opponent);
     return {
       state,
-      events: [{ kind: "cardsMoved", instanceIds: ["demo-liollmon-top"], from: "hand", to: "battleArea" }],
+      events: [{ kind: "cardsMoved", instanceIds: ["demo-vanilla-top"], from: "hand", to: "battleArea" }],
     };
   }
 
-  you.hand.push(card("demo-liollmon-hand", "BT1-050", 0));
+  you.hand.push(card("demo-vanilla-hand", cardId, 0));
   you.handCount = 1;
   state.players.push(you, opponent);
   return { state };
@@ -6081,7 +6081,8 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
   const effect = params.get("effect");
   const step = params.get("step");
   const fixture = useMemo<CardEffectsFixture | undefined>(() => {
-    if (cardId === "BT1-050") return liollmonDemo(effect);
+    if (cardId === "BT1-051") return vanillaPlayDemo(cardId, 4000, 3, effect);
+    if (cardId === "BT1-050") return vanillaPlayDemo(cardId, 4000, 3, effect);
     if (cardId === "BT1-049") return labramonDemo(effect);
     if (cardId === "EX3-074") return examonDemo();
     if (cardId === "EX3-073") return fighterModeDemo(effect);
