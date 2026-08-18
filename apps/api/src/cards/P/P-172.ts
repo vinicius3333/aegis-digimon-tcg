@@ -24,7 +24,15 @@ const compiled: CompiledCard = {
               "amount": 4,
               "raw": "reduce the play cost by 4",
               "condition": {
-                "kind": "raw",
+                "kind": "youHave",
+                "filter": {
+                  "controller": "mine",
+                  "zone": "security",
+                  "faceUp": true,
+                  "nameOrTrait": [
+                    { "tokens": ["Nature Spirits"], "match": "nameExact" }
+                  ]
+                },
                 "raw": "[Nature Spirits] is face-up in your security stack"
               }
             }
