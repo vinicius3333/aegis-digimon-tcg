@@ -9820,6 +9820,46 @@ function venomMyotismonBt2Demo(effect: string | null): CardEffectsFixture {
   };
 }
 
+function demiMeramonBt3Demo(effect: string | null): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 7;
+  state.turnSeat = 0;
+  state.memory = 0;
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  const host = permanent("demo-demimeramon-host", "BT2-079", 0, 12000);
+  host.stack.push(card("demo-demimeramon-source", "BT3-006", 0));
+  you.deckCount = effect === "resolved" ? 35 : 36;
+  you.trash.push(
+    card("demo-demimeramon-host-trash", "BT2-079", 0),
+    card("demo-demimeramon-source-trash", "BT3-006", 0),
+  );
+  if (effect === "resolved") {
+    you.hand.push(card("demo-demimeramon-kept", "BT1-011", 0));
+    you.trash.push(card("demo-demimeramon-drawn-then-trashed", "BT1-010", 0));
+  } else {
+    you.battleArea.push(host);
+    you.deckCount = 36;
+    you.hand.push(card("demo-demimeramon-existing", "BT1-011", 0));
+  }
+  state.players.push(you, opponent);
+  return {
+    state,
+    events: [
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: "BT3-006",
+        effectKey: `BT3-006/${effect ?? "resolved"}`,
+        description: "DemiMeramon's On Deletion effect drew 1 card, then trashed 1 card from its owner's hand.",
+        timing: "OnDeletion",
+      },
+    ],
+  };
+}
+
 function kakkinmonBt3Demo(effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
@@ -15483,6 +15523,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
   const effect = params.get("effect");
   const step = params.get("step");
   const fixture = useMemo<CardEffectsFixture | undefined>(() => {
+    if (cardId === "BT3-006") return demiMeramonBt3Demo(effect);
     if (cardId === "BT3-005") return kakkinmonBt3Demo(effect);
     if (cardId === "BT3-004") return minomonBt3Demo(effect);
     if (cardId === "BT3-003") return upamonBt3Demo(effect);
