@@ -8,6 +8,44 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   "effects": [
     {
+      "trigger": "Static",
+      "actions": [
+        {
+          "kind": "Replacement",
+          "event": "wouldBePlayed",
+          "sourceFilter": {
+            "controllerDefault": "mine",
+            "isSelfRef": true
+          },
+          "actions": [
+            {
+              "kind": "Replacement",
+              "event": "wouldBePlayed",
+              "mode": "reduceCost",
+              "amount": 8,
+              "raw": "reduce the play cost by 8",
+              "condition": {
+                "kind": "youHave",
+                "filter": {
+                  "zone": "trash",
+                  "controllerDefault": "mine",
+                  "kind": ["Digimon"],
+                  "nameOrTrait": [
+                    {
+                      "tokens": ["Chessmon"],
+                      "match": "name"
+                    }
+                  ]
+                },
+                "count": 8,
+                "raw": "you have 8 or more Digimon cards with [Chessmon] in their names in your trash"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
       "trigger": "OnPlay",
       "actions": [
         {
