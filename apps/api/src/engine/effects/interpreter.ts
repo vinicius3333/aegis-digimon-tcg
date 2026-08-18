@@ -366,7 +366,8 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   // Static level threshold ("level N or lower/higher"). A `relativeTo:"lastDeleted"` comparison
   // (no static `value`) is resolved against context in permanentMatchesFilter and stripped before
   // delegating here, so a missing `value` at this static seam is a no-op (skip).
-  if (filter.levelComparison && filter.levelComparison.value !== undefined && def.level !== undefined) {
+  if (filter.levelComparison && filter.levelComparison.value !== undefined) {
+    if (def.level === undefined) return false;
     const { op, value } = filter.levelComparison;
     if (op === "lte" && !(def.level <= value)) return false;
     if (op === "gte" && !(def.level >= value)) return false;
@@ -7425,11 +7426,13 @@ function triggerSubjectMatchesColor(ctx: EffectContext, filter: Filter | undefin
 
 function triggerSubjectMatchesFilter(ctx: EffectContext, filter: Filter | undefined): boolean {
   if (filter === undefined) return false;
-  const subjectId = ctx.trigger.subjectPermanentId;
-  if (subjectId === undefined) return false;
-  const subject = ctx.game.permanentById(subjectId);
-  if (subject === undefined) return false;
-  return permanentMatchesFilter(ctx, subject, filter, ctx.source);
+  const subjectIds =
+    ctx.trigger.subjectPermanentIds ??
+    (ctx.trigger.subjectPermanentId === undefined ? [] : [ctx.trigger.subjectPermanentId]);
+  return subjectIds.some((subjectId) => {
+    const subject = ctx.game.permanentById(subjectId);
+    return subject !== undefined && permanentMatchesFilter(ctx, subject, filter, ctx.source);
+  });
 }
 
 /**
