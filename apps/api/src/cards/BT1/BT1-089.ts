@@ -5,6 +5,27 @@ import type { Effect } from "../../engine/effects/Effect.js";
 import { activated, security, turnTiming } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 const cardId = "BT1-089";
+const hasGreenLevelFive = (ctx: Parameters<Effect["canTrigger"]>[0], source: CardSource): boolean =>
+  ctx.game
+    .player(source.ownerSeat)
+    .battleArea.some(
+      (p) =>
+        p.topCard !== undefined &&
+        isDigimon(ctx.game.definitionOf(p.topCard)) &&
+        (ctx.game.definitionOf(p.topCard).level ?? 0) >= 5 &&
+        ctx.game.definitionOf(p.topCard).colors.includes(CardColor.Green),
+    );
+
+const hasBreedingAction = (ctx: Parameters<Effect["canTrigger"]>[0], source: CardSource): boolean => {
+  const player = ctx.game.player(source.ownerSeat);
+  if (player.breeding === undefined) return player.eggDeck.length > 0;
+  return (
+    player.breeding.topCard !== undefined &&
+    isDigimon(ctx.game.definitionOf(player.breeding.topCard)) &&
+    (ctx.game.definitionOf(player.breeding.topCard).level ?? 0) >= 3
+  );
+};
+
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
@@ -29,15 +50,8 @@ const module: EffectModule = {
           optional: true,
           canActivate: (ctx) =>
             source.permanent()?.isSuspended === false &&
-            ctx.game
-              .player(source.ownerSeat)
-              .battleArea.some(
-                (p) =>
-                  p.topCard !== undefined &&
-                  isDigimon(ctx.game.definitionOf(p.topCard)) &&
-                  (ctx.game.definitionOf(p.topCard).level ?? 0) >= 5 &&
-                  ctx.game.definitionOf(p.topCard).colors.includes(CardColor.Green),
-              ),
+            hasGreenLevelFive(ctx, source) &&
+            hasBreedingAction(ctx, source),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (!self || !ctx.fx.payActivationCost?.(self.permanentId, "suspend")) return;
