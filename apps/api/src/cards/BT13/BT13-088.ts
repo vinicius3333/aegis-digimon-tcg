@@ -59,9 +59,7 @@ const compiled: CompiledCard = {
             "isSelf": true
           },
           "immuneFrom": "opponentEffects",
-          "duration": "untilOpponentTurnEnd",
-          "optional": true,
-          "abortOnDecline": true
+          "duration": "untilOpponentTurnEnd"
         }
       ]
     },
@@ -117,9 +115,7 @@ const compiled: CompiledCard = {
             "isSelf": true
           },
           "immuneFrom": "opponentEffects",
-          "duration": "untilOpponentTurnEnd",
-          "optional": true,
-          "abortOnDecline": true
+          "duration": "untilOpponentTurnEnd"
         }
       ]
     },

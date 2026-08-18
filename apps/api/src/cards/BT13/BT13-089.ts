@@ -21,6 +21,14 @@ const compiled: CompiledCard = {
             "controller": "mine"
           },
           "payCost": false,
+          "condition": {
+            "kind": "selfDigivolutionStackHasTrait",
+            "filter": {
+              "nameOrTrait": [
+                {"tokens": ["Bird", "Avian"], "match": "trait"}
+              ]
+            }
+          },
           "cost": {
             "kind": "deleteOwn",
             "target": {
