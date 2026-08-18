@@ -17339,6 +17339,49 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         0,
         "Death Parade Blaster trashed two bottom digivolution cards and suspended the target.",
       );
+    if (cardId === "BT4-001")
+      return effectBt3Demo(cardId, "Sakuttomon", 0, "Sakuttomon gained 1 memory when its level 7 host attacked.");
+    if (cardId === "BT4-002")
+      return effectBt3Demo(
+        cardId,
+        "Bukamon",
+        0,
+        "Bukamon trashed the bottom source of an opposing level 4 or lower Digimon when attacking.",
+      );
+    if (cardId === "BT4-003")
+      return effectBt3Demo(
+        cardId,
+        "Koromon",
+        0,
+        "Koromon gave an opposing Digimon -1000 DP when its host attacked at 3 security.",
+      );
+    if (cardId === "BT4-004")
+      return effectBt3Demo(cardId, "Budmon", 0, "Budmon gave its host +1000 DP while it had Digi-Burst.");
+    if (cardId === "BT4-005")
+      return effectBt3Demo(cardId, "Missimon", 0, "Missimon gave its D-Brigade host +1000 DP during its turn.");
+    if (cardId === "BT4-006")
+      return effectBt3Demo(
+        cardId,
+        "Xiaomon",
+        0,
+        "Xiaomon granted Retaliation to its host while there were at least 10 cards in trash.",
+      );
+    if (cardId === "BT4-007") return vanillaBt3Demo(cardId, "Otamamon", 5000);
+    if (cardId === "BT4-008")
+      return effectBt3Demo(
+        cardId,
+        "Agumon",
+        2000,
+        "Agumon returned itself to hand after being trashed for its host's Digi-Burst.",
+      );
+    if (cardId === "BT4-009")
+      return effectBt3Demo(
+        cardId,
+        "Flamemon",
+        2000,
+        "Flamemon revealed cards and added a Hybrid Digimon and a red Tamer to hand.",
+      );
+    if (cardId === "BT4-010") return vanillaBt3Demo(cardId, "Fugamon", 3000);
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
