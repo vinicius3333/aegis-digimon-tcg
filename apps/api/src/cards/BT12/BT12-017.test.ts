@@ -31,3 +31,35 @@ it("plays Takuya from trash after deletion", async () => {
   await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT12-088"));
   expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT12-088")).toBe(true);
 });
+
+it("requires the red Tamer source card for the DP-based alternate deletion cap", async () => {
+  const withoutRedTamer = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT12-017", as: "emperor", under: ["BT12-034", "BT12-090"] },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-009", dp: 7000, as: "target" }] },
+    },
+    { autoSelectCards: true },
+  );
+  await withoutRedTamer.ready();
+  await advance(withoutRedTamer.engine).fire(EffectTiming.WhenDigivolving, withoutRedTamer.perm("emperor"));
+  expect(withoutRedTamer.state.players[1]!.battleArea).toHaveLength(1);
+
+  const withRedTamer = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT12-017", as: "emperor", under: ["BT12-034", "BT12-088"] },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-009", dp: 7000, as: "target" }] },
+    },
+    { autoSelectCards: true },
+  );
+  await withRedTamer.ready();
+  await advance(withRedTamer.engine).fire(EffectTiming.WhenDigivolving, withRedTamer.perm("emperor"));
+  expect(withRedTamer.state.players[1]!.battleArea).toHaveLength(0);
+});
