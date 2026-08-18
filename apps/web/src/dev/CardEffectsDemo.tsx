@@ -18637,6 +18637,48 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         7000,
         "Mistymon gave an opposing Digimon -2000 DP when its host removed your security.",
       );
+    if (cardId === "BT6-041")
+      return effectBt3Demo(
+        cardId,
+        "Mistymon",
+        7000,
+        "Mistymon trashed the top security card to give an opposing Digimon -5000 DP when attacking.",
+      );
+    if (cardId === "BT6-042") return vanillaBt3Demo(cardId, "Babamon", 10000);
+    if (cardId === "BT6-043")
+      return effectBt3Demo(
+        cardId,
+        "SkullMammothmon",
+        11000,
+        "SkullMammothmon has Blocker and gets +2000 DP while you have at most 3 security cards.",
+      );
+    if (cardId === "BT6-044")
+      return effectBt3Demo(
+        cardId,
+        "Dynasmon",
+        12000,
+        "Dynasmon revealed 6, paid a security cost, and recovered an eligible card.",
+      );
+    if (cardId === "BT6-045")
+      return effectBt3Demo(
+        cardId,
+        "Bakomon",
+        2000,
+        "Bakomon gained 1 memory when attacking while the opponent had 2 suspended Digimon.",
+      );
+    if (cardId === "BT6-046") return vanillaBt3Demo(cardId, "Pomumon", 5000);
+    if (cardId === "BT6-047")
+      return effectBt3Demo(cardId, "Morphomon", 1000, "Morphomon added Menoa and Eosmon from the top 5 on deletion.");
+    if (cardId === "BT6-048") return vanillaBt3Demo(cardId, "Parasaurmon", 5000);
+    if (cardId === "BT6-049")
+      return effectBt3Demo(cardId, "Arbormon", 5000, "Arbormon digivolved onto a green Tamer for 2 memory.");
+    if (cardId === "BT6-050")
+      return effectBt3Demo(
+        cardId,
+        "Petaldramon",
+        7000,
+        "Petaldramon digivolved onto a green Tamer and has Piercing, rejecting zero-cost evolution on non-green Tamers.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
