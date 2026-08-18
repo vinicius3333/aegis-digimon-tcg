@@ -46,26 +46,34 @@ const compiled: CompiledCard = {
       "trigger": "EndOfYourTurn",
       "actions": [
         {
-          "kind": "GainKeyword",
+          "kind": "GrantStatic",
           "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
-            },
-            "count": 1
+            "filter": {"isSelfRef": true}, "count": 1, "isSelf": true
           },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
-          },
+          "grant": "kind",
+          "tokens": ["Digimon"],
+          "staticEffect": {"kind": "SetBaseDP", "value": 3000},
           "duration": "untilOpponentTurnEnd",
           "condition": {
-            "kind": "raw",
+            "kind": "totalSecurityCount",
+            "op": "lte",
+            "value": 6,
             "raw": "there're 6 or fewer total cards in both players' security stacks"
           }
+        },
+        {
+          "kind": "Restrict",
+          "target": {"filter": {"isSelfRef": true}, "count": 1, "isSelf": true},
+          "restriction": "digivolve",
+          "duration": "untilOpponentTurnEnd",
+          "condition": {"kind": "totalSecurityCount", "op": "lte", "value": 6}
+        },
+        {
+          "kind": "GainKeyword",
+          "target": {"filter": {"isSelfRef": true}, "count": 1, "isSelf": true},
+          "keyword": {"keyword": "Blocker", "raw": "＜Blocker＞"},
+          "duration": "untilOpponentTurnEnd",
+          "condition": {"kind": "totalSecurityCount", "op": "lte", "value": 6}
         }
       ],
       "frequency": "OncePerTurn"

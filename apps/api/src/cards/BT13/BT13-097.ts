@@ -14,10 +14,9 @@ const compiled: CompiledCard = {
           "kind": "SetMemory",
           "value": 3,
           "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine"
-            },
+            "kind": "memoryAtMost",
+            "controller": "mine",
+            "value": 2,
             "raw": "you have 2 or fewer memory"
           }
         }
