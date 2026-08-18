@@ -50,7 +50,7 @@ const compiled: CompiledCard = {
                       "Bird",
                       "Beast",
                       "Animal",
-                      ";Sovereign"
+                      "Sovereign"
                     ],
                     "match": "trait"
                   }
