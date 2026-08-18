@@ -13,6 +13,19 @@ describe("BT1-087 T.K. Takaishi", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("does not lower memory already at 3 and does not apply during the opponent's turn", async () => {
+    const atThree = setupEngine({ 0: { battleArea: [{ card: "BT1-087", as: "takeru" }] } });
+    atThree.state.memory = 3;
+    await advance(atThree.engine).fire(EffectTiming.OnStartTurn, atThree.perm("takeru"));
+    expect(atThree.state.memory).toBe(3);
+
+    const opponentTurn = setupEngine({ 0: { battleArea: [{ card: "BT1-087", as: "takeru" }] } });
+    opponentTurn.state.turnSeat = 1;
+    opponentTurn.state.memory = 1;
+    await advance(opponentTurn.engine).fire(EffectTiming.OnStartTurn, opponentTurn.perm("takeru"));
+    expect(opponentTurn.state.memory).toBe(1);
+  });
+
   it("chooses a yellow card from security, adds it to hand, then recovers from deck", async () => {
     const preferredSelection: string[] = [];
     const s = setupEngine(
@@ -36,7 +49,9 @@ describe("BT1-087 T.K. Takaishi", () => {
     preferredSelection.push(yellowChoiceId);
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("takeru").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("takeru").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(
       () =>
         player.hand.some((card) => card.instanceId === yellowChoiceId) &&
@@ -63,10 +78,12 @@ describe("BT1-087 T.K. Takaishi", () => {
     });
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("takeru").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("takeru").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
 
     const pending = s.state.pendingDecision!;
@@ -74,25 +91,69 @@ describe("BT1-087 T.K. Takaishi", () => {
       candidateInstanceIds?: string[];
       visibleCards?: Array<{ instanceId: string; cardId: string }>;
     };
-    expect(payload.candidateInstanceIds).toEqual(expect.arrayContaining([
-      s.inst("redChoice").instanceId,
-      s.inst("yellowChoice").instanceId,
-    ]));
-    expect(payload.visibleCards).toEqual(expect.arrayContaining([
-      { instanceId: s.inst("redChoice").instanceId, cardId: "BT1-009" },
-      { instanceId: s.inst("yellowChoice").instanceId, cardId: "BT1-087" },
-    ]));
+    expect(payload.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.inst("redChoice").instanceId, s.inst("yellowChoice").instanceId]),
+    );
+    expect(payload.visibleCards).toEqual(
+      expect.arrayContaining([
+        { instanceId: s.inst("redChoice").instanceId, cardId: "BT1-009" },
+        { instanceId: s.inst("yellowChoice").instanceId, cardId: "BT1-087" },
+      ]),
+    );
 
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: pending.decisionId,
-      response: { kind: "selectCards", instanceIds: [s.inst("yellowChoice").instanceId] },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.some((card) =>
-      card.instanceId === s.inst("recovery").instanceId,
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("yellowChoice").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId));
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-011"]);
+  });
+
+  it("adds a non-yellow security card without recovering, then shuffles security (Q952)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT1-087", as: "takeru" }],
+          security: [
+            { card: "BT1-009", as: "redChoice" },
+            { card: "BT1-087", as: "yellow" },
+          ],
+          deck: [{ card: "BT1-010", as: "deckTop" }],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("redChoice").instanceId);
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("takeru").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("redChoice").instanceId));
+
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("yellow").instanceId);
+    expect(s.state.players[0]!.deck[0]!.instanceId).toBe(s.inst("deckTop").instanceId);
+  });
+
+  it("does nothing on play when the security stack is empty", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT1-087", as: "takeru" }] } });
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("takeru").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("takeru").instanceId),
+    );
+
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
   it("plays itself from security without paying its cost", async () => {
@@ -100,8 +161,10 @@ describe("BT1-087 T.K. Takaishi", () => {
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityTk"));
 
-    expect(s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard?.instanceId === s.inst("securityTk").instanceId,
-    )).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("securityTk").instanceId,
+      ),
+    ).toBe(true);
   });
 });
