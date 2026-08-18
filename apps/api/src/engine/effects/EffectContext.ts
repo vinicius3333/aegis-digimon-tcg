@@ -1593,6 +1593,8 @@ export interface EffectContext {
    * no self-reducer requested a relocation this play.
    */
   pendingSelfReducerRelocations?: string[];
+  /** Loose card instance ids committed under the card being played once its permanent exists. */
+  pendingSelfReducerPlacements?: string[];
   /**
    * The set of permanent ids ACTUALLY deleted by the most recent `DeleteByDPBudget` action in
    * this resolution (CAP-A3). Written by the executor after the batch delete; read by the

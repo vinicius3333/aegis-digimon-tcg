@@ -1,6 +1,6 @@
 // @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registerIrCard, registerWouldBePlayedSelfReducer } from "../../engine/effects/interpreter.js";
 
 // KB Q5783: if only 1 face-up Dark Masters card in security, can place just that 1.
 // KB Q5784: if 2+ with different names, must place ALL distinct-named ones (mandatory).
@@ -9,10 +9,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q5741: the Digimon played by this effect are deleted at end of the turn.
 // KB Q5742: end-of-turn effect and the deletion are simultaneous; turn player chooses order.
 //
-// New capabilities needed (see LANE_D.md):
-//  - PlaceCostDifferentNames: "1 of each ... with different names" variable count w/ distinctness.
-//  - PlayDifferentNames: PlayWithoutCost "1 of each ... with different names" variable count.
-//  - CostReducePerPlaced: reduce play cost by N for each card placed in the preceding cost.
 const compiled: CompiledCard = {
   "effects": [
     {
@@ -50,7 +46,8 @@ const compiled: CompiledCard = {
                   }
                 ]
               },
-              "count": "allDistinctNames"
+              "count": "all",
+              "distinctNames": true
             },
             "underFilter": {
               "isSelfRef": true
@@ -78,7 +75,8 @@ const compiled: CompiledCard = {
                 }
               ]
             },
-            "count": "allDistinctNames"
+            "count": "all",
+            "distinctNames": true
           },
           "from": [
             "digivolutionCards"
@@ -141,7 +139,8 @@ const compiled: CompiledCard = {
                 }
               ]
             },
-            "count": "allDistinctNames"
+            "count": "all",
+            "distinctNames": true
           },
           "from": [
             "digivolutionCards"
@@ -188,11 +187,7 @@ const compiled: CompiledCard = {
     }
   ],
   "coverage": "full",
-  "residual": [
-    "PlaceCostDifferentNames (count:'allDistinctNames') not implemented — engine does not support variable 'place all distinct-named' cost selection. See LANE_D.md.",
-    "PlayDifferentNames (count:'allDistinctNames' on PlayWithoutCost from digivolutionCards) not implemented. See LANE_D.md.",
-    "CostReducePerPlaced (amountPerPlaced) not implemented — engine does not compute per-placed-card cost reduction. See LANE_D.md."
-  ],
+  "residual": [],
   "digivolutionRequirement": [
     {
       "level": 6,
@@ -206,3 +201,32 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("EX10-061", compiled);
+
+registerWouldBePlayedSelfReducer("EX10-061", {
+  amount: 0,
+  raw: "Place 1 of each face-up [Dark Masters] card with different names under Apocalymon to reduce its play cost by 4 each?",
+  pay: async (ctx) => {
+    const groups = new Map<string, string[]>();
+    for (const card of ctx.game.player(ctx.source.ownerSeat).security) {
+      const definition = ctx.game.definitionOf(card);
+      if (card.faceUp !== true || !definition.types.includes("Dark Masters")) continue;
+      const name = (definition.nameEn ?? card.cardId).toLowerCase();
+      const group = groups.get(name) ?? [];
+      group.push(card.instanceId);
+      groups.set(name, group);
+    }
+    if (groups.size === 0) return false;
+    const chosen: string[] = [];
+    for (const group of groups.values()) {
+      const id =
+        group.length === 1
+          ? group[0]
+          : (await ctx.ask.selectCards(ctx, { candidates: group, min: 1, max: 1 }))[0];
+      if (id === undefined) return false;
+      chosen.push(id);
+    }
+    ctx.pendingSelfReducerPlacements = [...(ctx.pendingSelfReducerPlacements ?? []), ...chosen];
+    ctx.playCostDelta = (ctx.playCostDelta ?? 0) + chosen.length * 4;
+    return true;
+  }
+});

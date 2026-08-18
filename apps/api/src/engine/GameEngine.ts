@@ -2229,6 +2229,10 @@ export class GameEngine {
       const pending = this.pendingSelfReducerRelocations.get(instance.instanceId) ?? [];
       this.pendingSelfReducerRelocations.set(instance.instanceId, [...pending, ...ctx.pendingSelfReducerRelocations]);
     }
+    if (ctx.pendingSelfReducerPlacements && ctx.pendingSelfReducerPlacements.length > 0) {
+      const pending = this.pendingPlayReducerPlacements.get(instance.instanceId) ?? [];
+      this.pendingPlayReducerPlacements.set(instance.instanceId, [...pending, ...ctx.pendingSelfReducerPlacements]);
+    }
     await this.runCrossPermanentPlayReducers(instance, ctx, crossWatchers);
     const delta = Math.max(0, ctx.playCostDelta ?? 0);
     return Math.max(0, baseCost - delta);
