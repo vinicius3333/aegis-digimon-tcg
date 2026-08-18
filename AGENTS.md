@@ -2,4 +2,4 @@
 
 ## GitHub Issues
 
-- Always write GitHub issue comments, status updates, and verification reports in English.
+- Always write all GitHub issue content in English, including titles, descriptions, comments, status updates, and verification reports.
