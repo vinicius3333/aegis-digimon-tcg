@@ -23,7 +23,7 @@ interface NavigationLike {
 
 const MANIFEST_TIMEOUT_MS = 5_000;
 
-/** Dokploy's single-compose fallback uses the legacy same-origin API instead of slot routing. */
+/** Direct production builds use the same-origin API instead of slot routing. */
 export function usesSlotDeploymentRouter({
   production,
   deploymentMode,

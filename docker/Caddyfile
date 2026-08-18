@@ -37,7 +37,7 @@
 		reverse_proxy api:2567
 	}
 
-	# Recovery endpoint for clients that retained HTML from an old blue/green slot.
+	# Recovery endpoint for clients that retained HTML from an older release.
 	# It clears only the caller's HTTP cache; cookies and local storage are preserved.
 	handle /reset-web-cache {
 		header Clear-Site-Data "\"cache\""

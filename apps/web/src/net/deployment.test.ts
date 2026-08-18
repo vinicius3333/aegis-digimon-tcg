@@ -10,7 +10,7 @@ import {
 } from "./deployment";
 
 describe("deployment manifest", () => {
-  it("uses direct same-origin routing for Dokploy production builds", () => {
+  it("uses direct same-origin routing for direct production builds", () => {
     expect(usesSlotDeploymentRouter({ production: true, deploymentMode: "direct" })).toBe(false);
     expect(usesSlotDeploymentRouter({ production: true, deploymentMode: "slots" })).toBe(true);
     expect(usesSlotDeploymentRouter({ production: false, deploymentMode: undefined })).toBe(false);

@@ -1,9 +1,0 @@
-#!/bin/sh
-set -eu
-
-deploy_root=${AEGIS_DEPLOY_ROOT:-/var/lib/aegis-deploy}
-mkdir -p "$deploy_root"
-
-exec 9>"$deploy_root/deploy.lock"
-flock -x 9
-exec node "$(dirname "$0")/../tools/blue-green-deploy.mjs" "$@"

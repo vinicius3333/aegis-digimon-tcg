@@ -62,13 +62,10 @@ effects, resolves them one at a time, and opens typed decisions when player
 input is required. Continuous effects are recomputed from active sources rather
 than stored as permanent mutations.
 
-## Persistence and operations
+## Persistence
 
 Database schema upgrades live in `apps/api/src/db/migrations`; they are active
-runtime migrations and must remain sequential. Production deployment is
-documented in [DOKPLOY-DEPLOYMENT.md](./DOKPLOY-DEPLOYMENT.md). The optional
-blue/green controller is documented in
-[BLUE-GREEN-DEPLOYMENT.md](./BLUE-GREEN-DEPLOYMENT.md).
+runtime migrations and must remain sequential.
 
 ## Verification
 

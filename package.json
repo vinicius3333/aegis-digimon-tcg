@@ -10,7 +10,6 @@
     "typecheck": "pnpm --filter @aegis/shared build && pnpm -r typecheck",
     "test": "pnpm -r test",
     "test:tools": "node --test tools/*.test.mjs",
-    "test:blue-green-smoke": "pnpm --filter @aegis/shared build && pnpm --filter @aegis/api build && node tools/blue-green-smoke.mjs",
     "ci": "pnpm -r typecheck && pnpm test:tools && pnpm -r test",
     "lint": "oxlint .",
     "lint:cards": "oxlint apps/api/src/cards",

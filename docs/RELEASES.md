@@ -31,11 +31,6 @@ themselves. The CI checks each PR commit against this format.
 5. Once the approved release is deployed to production, create the matching
    immutable Git tag, for example `v1.1.0`.
 
-Pushing to `master` triggers Dokploy's repository webhook. Dokploy builds
-`docker-compose.dokploy.yml` on the VPS and replaces the direct API/web compose
-services. GitHub Actions is disabled. This fallback does not preserve in-memory
-matches across a rollout; schedule production pushes accordingly.
-
 The first deployed baseline must be tagged `v1.0.0` before the next release PR.
 `releases.json` is the source of truth; do not hand-edit its generated outputs.
 
