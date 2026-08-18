@@ -19050,7 +19050,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         11000,
         "BeelStarmon reduces its play cost for each tamer and can play a cost-7 Option from trash when played.",
       );
-    if (/^BT(?:7|8|9|10)-\d{3}$/.test(cardId)) {
+    if (/^(?:BT(?:7|8|9|10)|EX(?:1|2)|ST(?:1|2|3|4|5|6|7|8|9|10|12|13))-\d{3}$/.test(cardId)) {
       const definition = getCardDefinition(cardId);
       const printedText = [definition?.effectText, definition?.inheritedEffectText, definition?.securityEffectText]
         .filter((text): text is string => Boolean(text))
