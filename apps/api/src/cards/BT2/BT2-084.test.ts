@@ -7,19 +7,106 @@ import "./BT2-084.js";
 describe("BT2-084 Sora Takenouchi", () => {
   it("suspends to give an attacking red Digimon +2000 DP when it attacks a player", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT2-084", as: "sora" }, { card: "BT1-010", as: "attacker" }] } },
+      {
+        0: {
+          battleArea: [
+            { card: "BT2-084", as: "sora" },
+            { card: "BT1-010", as: "attacker" },
+          ],
+        },
+      },
       { autoAcceptOptional: true },
     );
     const originalDP = s.perm("attacker").currentDP;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("sora").isSuspended && s.perm("attacker").currentDP === originalDP + 2000);
 
     expect(s.perm("attacker").currentDP).toBe(originalDP + 2000);
+  });
+
+  it("does not activate when the red Digimon attacks another Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT2-084", as: "sora" },
+          { card: "BT1-010", as: "attacker" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-011", as: "target", suspended: true }] },
+    });
+    const originalDP = s.perm("attacker").currentDP;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking);
+
+    expect(s.perm("sora").isSuspended).toBe(false);
+    expect(s.perm("attacker").currentDP).toBe(originalDP);
+  });
+
+  it("does not activate for a non-red attacker", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT2-084", as: "sora" },
+          { card: "BT2-020", as: "attacker" },
+        ],
+      },
+      1: { security: [{ card: "BT1-001", as: "security" }] },
+    });
+    const originalDP = s.perm("attacker").currentDP;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking);
+
+    expect(s.perm("sora").isSuspended).toBe(false);
+    expect(s.perm("attacker").currentDP).toBe(originalDP);
+  });
+
+  it("may decline the DP bonus and keeps Sora unsuspended", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT2-084", as: "sora" },
+            { card: "BT1-010", as: "attacker" },
+          ],
+        },
+        1: { security: [{ card: "BT1-001", as: "security" }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    const originalDP = s.perm("attacker").currentDP;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking);
+
+    expect(s.perm("sora").isSuspended).toBe(false);
+    expect(s.perm("attacker").currentDP).toBe(originalDP);
   });
 
   it("plays itself from security without paying its cost", async () => {
