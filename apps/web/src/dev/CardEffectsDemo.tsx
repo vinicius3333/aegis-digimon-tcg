@@ -18835,6 +18835,76 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         12000,
         "Ornismon has Security Attack +1 and deletes an opposing level 5 or lower Digimon when played.",
       );
+    if (cardId === "BT6-081")
+      return effectBt3Demo(
+        cardId,
+        "Titamon",
+        12000,
+        "Titamon gains DP and Security Attack +1 after trashing cards from hand.",
+      );
+    if (cardId === "BT6-082")
+      return effectBt3Demo(
+        cardId,
+        "Sistermon Blanc",
+        3000,
+        "Sistermon Blanc grants Blocker to Sistermon Digimon and draws 1 when played.",
+      );
+    if (cardId === "BT6-083")
+      return effectBt3Demo(
+        cardId,
+        "Eosmon",
+        4000,
+        "Eosmon gains memory when played and can draw an Eosmon from the deck when attacking.",
+      );
+    if (cardId === "BT6-084")
+      return effectBt3Demo(
+        cardId,
+        "Sistermon Ciel",
+        5000,
+        "Sistermon Ciel gives Huckmon and Royal Knight Digimon +2000 DP and gains 1 memory when played.",
+      );
+    if (cardId === "BT6-085")
+      return effectBt3Demo(
+        cardId,
+        "Eosmon",
+        6000,
+        "Eosmon gains an attack effect that draws an Eosmon and can play Eosmon from hand.",
+      );
+    if (cardId === "BT6-086")
+      return effectBt3Demo(
+        cardId,
+        "Eosmon",
+        13000,
+        "Eosmon gains memory and draws when another Eosmon is deleted, then can play a level 5 or lower Eosmon from hand.",
+      );
+    if (cardId === "BT6-087")
+      return effectBt3Demo(
+        cardId,
+        "Tai Kamiya",
+        0,
+        "Tai Kamiya gains memory and draws when Agumon or Greymon moves from breeding, and enables Agumon Bond of Bravery digivolution.",
+      );
+    if (cardId === "BT6-088")
+      return effectBt3Demo(
+        cardId,
+        "Matt Ishida",
+        0,
+        "Matt Ishida gains memory and draws when Gabumon or Garurumon moves from breeding, and enables Gabumon Bond of Friendship digivolution.",
+      );
+    if (cardId === "BT6-089")
+      return effectBt3Demo(
+        cardId,
+        "T.K. Takaishi & Kari Kamiya",
+        0,
+        "T.K. and Kari recover or add security and gain memory when security is reduced.",
+      );
+    if (cardId === "BT6-090")
+      return effectBt3Demo(
+        cardId,
+        "Izzy Izumi & Joe Kido",
+        0,
+        "Izzy and Joe reveal cards and gain memory when an opponent has 2 or more Digimon in play.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
