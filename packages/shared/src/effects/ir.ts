@@ -3769,6 +3769,8 @@ export interface CardEffect {
 export type Coverage = "full" | "partial" | "none";
 
 export interface DigivolutionRequirement {
+  /** Live condition that must hold for this alternate path to be available. */
+  whileCondition?: Condition;
   /** Required level of the card digivolved FROM, when stated ("Lv.5" / "from Lv.3"). */
   level?: number;
   /** Maximum level when the documented behavior uses `.Level <= N` on the source. */
