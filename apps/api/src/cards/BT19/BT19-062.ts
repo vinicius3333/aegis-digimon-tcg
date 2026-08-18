@@ -37,7 +37,7 @@ const compiled: CompiledCard = {
               "zone": "battleArea",
               "controller": "mine",
               "kind": ["Option"],
-              "placedByThisEffect": false
+              "placedInBattleAreaByEffect": true
             },
             "count": 1
           }

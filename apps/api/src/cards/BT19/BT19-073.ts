@@ -69,11 +69,12 @@ const compiled: CompiledCard = {
         "kind": "selfHasInDigivolutionCards",
         "nameOrTrait": [
           {
-            "tokens": [
-              "LordKnightmon",
-              "X Antibody"
-            ],
+            "tokens": ["LordKnightmon"],
             "match": "name"
+          },
+          {
+            "tokens": ["X Antibody"],
+            "match": "trait"
           }
         ],
         "raw": "[LordKnightmon] or [X Antibody] is in this Digimon's digivolution cards"

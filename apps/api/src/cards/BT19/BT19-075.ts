@@ -2,6 +2,9 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
+// Manual audit correction: the number of Tamers deleted is based on cards trashed from the
+// opponent's hand by this effect, not on the opponent's total board/card count.
+
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
@@ -36,10 +39,8 @@ const compiled: CompiledCard = {
           },
           "scaling": {
             "per": 2,
-            "filter": {
-              "controller": "opponent"
-            },
-            "unit": "cards"
+            "unit": "namedCount",
+            "countSource": "trashedThisEffect"
           }
         }
       ]
@@ -73,10 +74,8 @@ const compiled: CompiledCard = {
           },
           "scaling": {
             "per": 2,
-            "filter": {
-              "controller": "opponent"
-            },
-            "unit": "cards"
+            "unit": "namedCount",
+            "countSource": "trashedThisEffect"
           }
         }
       ]

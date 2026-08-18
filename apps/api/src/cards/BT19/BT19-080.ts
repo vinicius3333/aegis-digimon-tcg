@@ -2,7 +2,7 @@ import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
-import { turnTiming, security } from "../../engine/effects/builders.js";
+import { turnTiming, security, whenDigivolving } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "BT19-080";
@@ -24,11 +24,11 @@ const module: EffectModule = {
       ];
     }
 
-    if (timing === EffectTiming.OnEnterFieldAnyone) {
+    if (timing === EffectTiming.WhenDigivolving) {
       return [
         // [Your Turn] When a Digimon digivolves into Growlmon/Gallantmon, by
         // suspending this Tamer (cost), grant Raid + force attack a player.
-        turnTiming({
+        whenDigivolving({
           source,
           effectKey: `${cardId}/digivolve-growlmon-grant-raid-attack`,
           description:

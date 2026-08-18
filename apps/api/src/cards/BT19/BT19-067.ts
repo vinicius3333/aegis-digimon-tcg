@@ -31,6 +31,8 @@ const compiled: CompiledCard = {
           "payCost": false,
           "condition": {
             "kind": "youHave",
+            "countMin": 0,
+            "countMax": 1,
             "filter": {
               "controllerDefault": "mine",
               "kind": [

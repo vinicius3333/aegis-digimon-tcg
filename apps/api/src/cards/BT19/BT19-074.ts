@@ -2,6 +2,11 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
+// Manual audit corrections:
+// - the 10-card return cost excludes Digi-Eggs (the generated record had the inverse filter);
+// - the result is the opponent's top security card, so it must use SecurityManipulation rather
+//   than a loose-card Trash action.
+
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
@@ -104,13 +109,16 @@ const compiled: CompiledCard = {
       "trigger": "WhenAttacking",
       "actions": [
         {
-          "kind": "Trash",
+          "kind": "SecurityManipulation",
+          "op": "trash",
+          "controller": "opponent",
           "target": {
             "filter": {
               "controller": "opponent"
             },
             "count": 1
           },
+          "from": ["security"],
           "cost": {
             "kind": "return",
             "target": {
@@ -118,7 +126,9 @@ const compiled: CompiledCard = {
                 "zone": "trash",
                 "controller": "mine",
                 "kind": [
-                  "DigiEgg"
+                  "Digimon",
+                  "Tamer",
+                  "Option"
                 ]
               },
               "count": 10

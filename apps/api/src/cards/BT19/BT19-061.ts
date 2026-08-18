@@ -44,7 +44,7 @@ const compiled: CompiledCard = {
                   }
                 ]
               },
-              "count": "all",
+              "count": 1,
               "to": "hand"
             }
           ],
@@ -72,7 +72,7 @@ const compiled: CompiledCard = {
                   }
                 ]
               },
-              "count": "all",
+              "count": 1,
               "to": "hand"
             }
           ],
