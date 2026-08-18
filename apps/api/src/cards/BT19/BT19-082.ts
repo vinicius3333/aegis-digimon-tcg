@@ -58,7 +58,8 @@ const compiled: CompiledCard = {
               },
               "underFilter": {
                 "controller": "mine",
-                "kind": ["Digimon"]
+                "kind": ["Digimon"],
+                "isTriggerSource": true
               },
               "position": "bottom",
               "cost": {

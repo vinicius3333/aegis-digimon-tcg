@@ -42,8 +42,9 @@ const compiled: CompiledCard = {
           "count": 1,
           "payCost": false,
           "condition": {
-            "kind": "raw",
-            "raw": "can't play tokens with the same name as your Digimon"
+            "kind": "not",
+            "condition": { "kind": "youHave", "filter": { "controllerDefault": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["WarGrowlmon"], "match": "nameExact" }] } },
+            "raw": "can't play tokens with the same names as your Digimon"
           }
         },
         {
@@ -52,8 +53,9 @@ const compiled: CompiledCard = {
           "count": 1,
           "payCost": false,
           "condition": {
-            "kind": "raw",
-            "raw": "can't play tokens with the same name as your Digimon"
+            "kind": "not",
+            "condition": { "kind": "youHave", "filter": { "controllerDefault": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Taomon"], "match": "nameExact" }] } },
+            "raw": "can't play tokens with the same names as your Digimon"
           }
         },
         {
@@ -62,8 +64,9 @@ const compiled: CompiledCard = {
           "count": 1,
           "payCost": false,
           "condition": {
-            "kind": "raw",
-            "raw": "can't play tokens with the same name as your Digimon"
+            "kind": "not",
+            "condition": { "kind": "youHave", "filter": { "controllerDefault": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Rapidmon"], "match": "nameExact" }] } },
+            "raw": "can't play tokens with the same names as your Digimon"
           }
         },
         {
@@ -72,7 +75,8 @@ const compiled: CompiledCard = {
             "filter": {
               "controller": "mine",
               "kind": ["Digimon"],
-              "levels": [5]
+              "levels": [5],
+              "excludeToken": true
             },
             "count": 1
           },
@@ -86,7 +90,8 @@ const compiled: CompiledCard = {
             "filter": {
               "controller": "mine",
               "kind": ["Digimon"],
-              "levels": [5]
+              "levels": [5],
+              "excludeToken": true
             },
             "count": 1
           },

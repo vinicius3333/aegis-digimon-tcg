@@ -25,7 +25,9 @@ const compiled: CompiledCard = {
           "condition": {
             "kind": "youHave",
             "filter": {
-              "controllerDefault": "mine"
+              "controllerDefault": "mine",
+              "zone": "security",
+              "faceUp": true
             },
             "raw": "you have a face-up security card"
           }
