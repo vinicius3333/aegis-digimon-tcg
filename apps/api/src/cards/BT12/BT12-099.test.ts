@@ -19,3 +19,9 @@ describe("BT12-099 handwritten module", () => {
     expect(module!.effectsForTiming(EffectTiming.OnUseOption, source).length).toBeGreaterThan(0);
   });
 });
+
+it("does not register an unprinted Security effect", () => {
+  const module = getEffectModule("BT12-099");
+  const source = { instanceId: "source-099", cardId: "BT12-099", ownerSeat: 0, isOnBattleArea: () => false } as never;
+  expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toEqual([]);
+});

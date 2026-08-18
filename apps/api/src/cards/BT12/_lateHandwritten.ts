@@ -807,7 +807,6 @@ export function lateBt12Module(cardId: string): EffectModule {
                 },
               }),
             ];
-          if (timing === EffectTiming.SecuritySkill) return [deleteByDp(cardId, source, 6000, true)];
           return [];
         }
         case "BT12-100": {
@@ -827,18 +826,6 @@ export function lateBt12Module(cardId: string): EffectModule {
                 effectKey: `${cardId}/main`,
                 description: "Delete a Digimon, unsuspend Shoutmon X7: Superior Mode and let it attack.",
                 resolve,
-              }),
-            ];
-          if (timing === EffectTiming.SecuritySkill)
-            return [
-              security({
-                source,
-                effectKey: `${cardId}/security`,
-                description: "Delete an opposing Digimon.",
-                resolve: async (ctx) => {
-                  const target = await choosePermanent(ctx, opposingDigimon(ctx, source));
-                  if (target) await ctx.fx.deletePermanent([target], "byEffect");
-                },
               }),
             ];
           return [];
