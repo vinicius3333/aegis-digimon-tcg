@@ -1,0 +1,278 @@
+// Suspend state, DP, keywords, and moving a permanent.
+
+import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
+import type { EffectContext } from "../../EffectContext.js";
+import { type ActionScope, runAction } from "../dispatch.js";
+import { toDuration } from "../duration.js";
+import { ACTION_TYPE_KEYWORDS, unsupported } from "../errors.js";
+import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
+import { countMatching } from "../scaling.js";
+import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
+import { resolvePermanentTargets } from "../targeting/permanents.js";
+import { CardKind, getCardDefinition } from "@aegis/shared";
+import type { Action, Target, ZoneRef } from "@aegis/shared";
+
+export async function runBoardAction(
+  ctx: EffectContext,
+  action: Action,
+  scope: ActionScope,
+): Promise<boolean> {
+  const { scale } = scope;
+  switch (action.kind) {
+    case "HandManipulation": {
+      const count = action.amount === "variable" ? (ctx.trigger.addedToHand?.instanceIds.length ?? 0) : action.amount;
+      if (count <= 0) return false;
+      const controller = action.controller ?? "mine";
+      const target: Target = {
+        filter: { zone: "hand", controller },
+        count,
+        upTo: true,
+      };
+      const candidates = candidateLooseInstances(ctx, target, ["hand"]);
+      // See TrashAction.chooser: "your opponent trashes cards in their hand equal to..."
+      // (BT10-077) is the opponent's own discard, not the controller reaching into it.
+      const asker = action.chooser === "opponent" ? requireOpponentAsk(ctx) : ctx.ask;
+      const chosen = await pickLoose(ctx, target, candidates, undefined, asker);
+      if (chosen.length > 0) await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
+      return false;
+    }
+    case "Suspend": {
+      // "For each one, suspend 1 ..." (EX6-060): a scale factor (the paid count of an
+      // up-to cost, or a "for each" hint) multiplies the target COUNT for this verb.
+      const target =
+        scale !== undefined && typeof action.target.count === "number"
+          ? { ...action.target, count: action.target.count * scale }
+          : action.target;
+      const ids = await resolvePermanentTargets(ctx, target);
+      const suspendResult = ids.length > 0 ? await ctx.fx.suspend(ids, { byEffectSeat: ctx.source.ownerSeat }) : [];
+      // The primitive owns transition legality (already suspended, restrictions). Effects
+      // whose text says "suspend ... If you did" must key off the permanents that really
+      // changed orientation, not merely the candidates selected by the player.
+      const suspendedIds = suspendResult;
+      ctx.lastSuspendedPermanentIds = suspendedIds;
+      // `suspend()` may open nested trigger windows whose target resolution mutates the
+      // shared context. Rebind sameTarget AFTER those windows finish, using the primitive's
+      // transition receipt rather than the pre-action selection. This keeps continuations
+      // such as Samādhi Śānti's "that Digimon/Tamer can't unsuspend" attached to the card
+      // this effect actually suspended, and to nothing when suspension did not occur.
+      ctx.lastResolvedPermanentIds = suspendedIds;
+      ctx.lastEffectActed = suspendedIds.length > 0;
+      // Bind "the Digimon this effect suspended" so a later action can reference exactly the
+      // permanents that were suspended (empty when 0 resolved — KB Q4791/Q4792 edge case).
+      if (action.bindResultAs) {
+        ctx.boundPlayed ??= new Map();
+        ctx.boundPlayed.set(action.bindResultAs, new Set(suspendedIds));
+      }
+      // When `trackCount` is present, store the actual suspended count so a subsequent
+      // RepeatPerCount action can loop that many times (BT2-041, KB Q1014).
+      if (action.trackCount !== undefined) {
+        if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
+        ctx.namedCounts.set(action.trackCount, suspendedIds.length);
+      }
+      return false;
+    }
+    case "Unsuspend": {
+      const ids = await resolvePermanentTargets(ctx, action.target);
+      if (ids.length > 0) {
+        await ctx.fx.unsuspend(ids);
+        if (action.target.bindAs !== undefined) {
+          ctx.selections ??= new Map();
+          ctx.selections.set(action.target.bindAs, ids[0]!);
+        }
+      }
+      return false;
+    }
+    case "RepeatPerCount": {
+      // Loop the nested action once per count stored under `countSource` (BT2-041).
+      // KB Q1014: each iteration is a separate activation with its own fresh target
+      // selection. KB Q1015: all activations share the same timing priority window.
+      const repeatCount =
+        action.countFilter !== undefined
+          ? countMatching(ctx, action.countFilter)
+          : (ctx.namedCounts?.get(action.countSource) ?? 0);
+      for (let i = 0; i < repeatCount; i++) {
+        await runAction(ctx, action.action);
+      }
+      return false;
+    }
+    case "MovePermanent": {
+      if (action.direction === "toBreeding") {
+        // Self moves into the empty breeding slot (P-143 [End of Your Turn]).
+        const self = ctx.source.permanent();
+        if (self) await ctx.fx.movePermanentZone(self.permanentId, "toBreeding");
+        return false;
+      }
+      // toBattle: move the controller's lone breeding-area Digimon to the battle area
+      // (P-130 [On Play]). Breeding is single-occupancy, so the eligible permanent is the
+      // owner's breeding slot when it meets the target filter (your Digimon, level ≥ 3).
+      const owner = ctx.game.player(ctx.source.ownerSeat);
+      const bred = owner.breeding;
+      if (bred === undefined || bred.topCard === undefined) return false;
+      // Q4242: a Lv.- Digimon (no level) cannot be referenced by level — not eligible.
+      if (ctx.game.definitionOf(bred.topCard).level === undefined) return false;
+      if (action.target && !permanentMatchesFilter(ctx, bred, action.target.filter, ctx.source)) {
+        return false;
+      }
+      await ctx.fx.movePermanentZone(bred.permanentId, "toBattle");
+      return false;
+    }
+    case "Hatch": {
+      // "Hatch a Digi-Egg" into the controller's empty breeding slot (BT8-091 [On Play]).
+      // The primitive no-ops when the Digi-Egg deck is empty or the breeding slot is
+      // occupied (Comprehensive Rules §4-17/§6-4) — a faithful no-op, not a loud gap.
+      ctx.fx.hatch(ctx.source.ownerSeat);
+      return false;
+    }
+    case "ModifyDP": {
+      const ids = await resolvePermanentTargets(ctx, action.target);
+      const duration = toDuration(action.duration);
+      const amount = scale === undefined ? action.amount : action.amount * scale;
+      for (const id of ids) {
+        ctx.fx.modifyDP(
+          id,
+          amount,
+          duration,
+          action.continuous === undefined ? undefined : { continuous: action.continuous },
+        );
+      }
+      return false;
+    }
+    case "AddDPFromSuspendedCost": {
+      // payCost() has already selected and suspended the cost target, recording the
+      // exact permanent id(s) in this resolution's context. Use the live DP after
+      // payment, then apply the attack-scoped delta and keyword grants to the effect
+      // target. This keeps the cost selection and the DP source bound together.
+      const suspendedIds = ctx.lastSuspendedPermanentIds ?? [];
+      if (suspendedIds.length === 0) return action.abortOnDecline === true;
+      const amount = suspendedIds.reduce((total, id) => total + (ctx.game.permanentById(id)?.currentDP ?? 0), 0);
+      const targetIds = await resolvePermanentTargets(ctx, action.target);
+      if (targetIds.length === 0) return false;
+      const duration = toDuration(action.duration);
+      for (const id of targetIds) {
+        ctx.fx.modifyDP(id, amount, duration);
+        for (const keyword of action.alsoGainKeywords ?? []) {
+          ctx.fx.grantKeyword(id, keyword.keyword, duration, keyword.amount);
+        }
+      }
+      return false;
+    }
+    case "SetBaseDP": {
+      const ids = await resolvePermanentTargets(ctx, action.target);
+      const duration = toDuration(action.duration);
+      for (const id of ids) ctx.fx.setBaseDP(id, action.value, duration);
+      return false;
+    }
+    case "GainKeyword": {
+      const kw = action.keyword.keyword;
+      const ids = await resolvePermanentTargets(ctx, action.target);
+      const duration = toDuration(action.duration);
+      // ＜Piercing＞ has a dedicated pierce store; every other CONTINUOUS keyword
+      // ability is recorded in the continuous-effect ledger (real server state the
+      // combat / keyword-abilities subsystem reads). ACTION-type keywords (those that
+      // carry out a verb when gained — De-Digivolve, Digi-Burst, Recovery, ...) have
+      // no continuous representation and remain loud gaps until their verb is wired.
+      if (kw === "Piercing") {
+        for (const id of ids) ctx.fx.grantPierce(id, duration);
+        return false;
+      }
+      if (kw === "LinkMax") {
+        // ＜Link +N＞ raises the affected permanent's link limit.
+        // Recorded in the continuous ledger; `linkMax` (mindLink.ts) sums it on the base 1.
+        const delta = action.keyword.amount ?? 1;
+        for (const id of ids) ctx.fx.grantLinkMax(id, delta, duration);
+        return false;
+      }
+      if (ACTION_TYPE_KEYWORDS.has(kw)) {
+        // Action-type keywords carry out a VERB when gained, not a continuous ability.
+        if (kw === "Recovery") {
+          // ＜Recovery +N (Deck)＞: place the top N of your deck onto your security.
+          await ctx.fx.recoverToSecurity(ctx.source.ownerSeat, action.keyword.amount ?? 1);
+          return false;
+        }
+        if (kw === "DeDigivolve") {
+          // ＜De-Digivolve N＞ on a target (the verb form). Targets resolved above. The trashing
+          // effect's seat gates EX11-070's stacked-trash-lock (KB Q5943: an opponent <De-Digivolve>
+          // can't strip a locked host's sources).
+          for (const id of ids)
+            ctx.fx.deDigivolve(id, action.keyword.amount ?? 1, { byEffectSeat: ctx.source.ownerSeat });
+          return false;
+        }
+        if (kw === "Draw") {
+          // runtime record mis-encodes <Draw N> as GainKeyword on some cards (e.g. BT22-079).
+          // Treat it as the draw verb until the runtime record is fixed.
+          await ctx.fx.draw(ctx.source.ownerSeat, action.keyword.amount ?? 1);
+          return false;
+        }
+        unsupported(ctx, action, `grant action-keyword ＜${kw}＞ needs its verb wired`);
+        return false;
+      }
+      // `count` grants the keyword N times to each target (default 1). Each call to
+      // grantKeyword adds a separate entry in the continuous ledger so that Alliance ×2
+      // produces two grants — the consuming side sums each Alliance entry as one extra
+      // security check (KB Q3163, BT19-091: "gains <Alliance> twice").
+      const grantCount = action.count ?? 1;
+      const keywordAmount = scale === undefined ? action.keyword.amount : (action.keyword.amount ?? 1) * scale;
+      for (const id of ids) {
+        for (let i = 0; i < grantCount; i++) {
+          const active =
+            action.whileMatchesTargetFilter === true
+              ? () => {
+                  const permanent = ctx.game.permanentById(id);
+                  return (
+                    permanent !== undefined && permanentMatchesFilter(ctx, permanent, action.target.filter, ctx.source)
+                  );
+                }
+              : undefined;
+          ctx.fx.grantKeyword(id, kw, duration, keywordAmount, {
+            ...(active === undefined ? {} : { active }),
+            sourceCardId: ctx.source.cardId,
+            sourceEffectText: ctx.activeEffectText,
+          });
+        }
+      }
+      return false;
+    }
+    case "AddToHandSelf": {
+      // "Add this card to its owner's hand" — the card is a security card.
+      await ctx.fx.returnToHand([ctx.source.instanceId]);
+      return false;
+    }
+    case "PlaceInBattleAreaSelf": {
+      // "Place this card in the battle area" — self-placement of the resolving card.
+      // An Option (the ＜Delay＞ "Then, place this card in the battle area" tail and
+      // the matching [Security] effect) becomes an option PERMANENT (source
+      // the effect runtime.PlaceDelayOptionCards), located wherever it currently sits
+      // (trash mid-[Main] resolution, security mid-check). A Digimon/Tamer self-place
+      // only occurs from a [Security] effect, so it plays out of security (free).
+      // Kind routing is a static card fact: prefer the shared card table (the
+      // context's source definition may be a test fixture), falling back for
+      // synthetic ids.
+      if (action.target !== undefined) {
+        const zones = action.target.from ?? action.target.source ?? action.target.zone ?? "hand";
+        const zoneList = (Array.isArray(zones) ? zones : [zones]) as ZoneRef[];
+        const candidates = candidateLooseInstances(ctx, action.target, zoneList);
+        const visible = seatsForController(ctx, action.target.filter)
+          .flatMap((seat) => zoneList.flatMap((zone) => looseCardsInZone(ctx, seat, zone)))
+          .map((candidate) => candidate.instanceId);
+        const chosen = await pickLoose(ctx, action.target, candidates, undefined, ctx.ask, visible);
+        for (const instanceId of chosen) await ctx.fx.placeOptionAsPermanent?.(instanceId);
+        ctx.lastEffectActed = chosen.length > 0;
+        return false;
+      }
+      const selfKinds = getCardDefinition(ctx.source.cardId)?.kinds ?? ctx.source.definition.kinds;
+      if (selfKinds.includes(CardKind.Option)) {
+        await ctx.fx.placeOptionAsPermanent?.(ctx.source.instanceId);
+      } else {
+        if (ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, ctx.source.cardId, "play") === true) {
+          return false;
+        }
+        await ctx.fx.playFromSecurity(ctx.source.instanceId, { payCost: false });
+      }
+      return false;
+    }
+    default:
+      // Unreachable: runAction routes only this family's kinds here, and its own default
+      // reports anything the Action union does not cover.
+      return false;
+  }
+}

@@ -3,7 +3,7 @@
 import { matchingAlternateDigivolutionRequirement, matchingEvoCost } from "../../../cards/cardData.js";
 import type { EffectContext } from "../../EffectContext.js";
 import { unsupported } from "../errors.js";
-import { definitionMatches } from "../matching/definition.js";
+import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { candidateLooseInstances, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
@@ -558,5 +558,112 @@ export async function runRevealChooseDeleteBudget(
   } else {
     const toTop = action.returnRevealed === "deckTop";
     await ctx.fx.returnToDeck(toTop ? [...ordered].reverse() : ordered, { toTop });
+  }
+}
+
+export async function runRevealAction(
+  ctx: EffectContext,
+  action: Action,
+): Promise<boolean> {
+  switch (action.kind) {
+    case "Search": {
+      const seat = ctx.source.ownerSeat;
+      const searchZone = action.searchZone ?? action.filter.zone;
+      if (searchZone === "security") {
+        const security = ctx.game.player(seat).security;
+        const { zone: _zone, ...definitionFilter } = action.filter;
+        const candidates = security.filter((card) =>
+          definitionMatches(definitionFilter, ctx.game.definitionOf(card) as DefinitionFacts),
+        );
+        const maximum = action.count === "all" ? candidates.length : action.count;
+        const selectedIds = await ctx.ask.selectCards(ctx, {
+          candidates: candidates.map((card) => card.instanceId),
+          min: 0,
+          max: Math.min(maximum, candidates.length),
+          visible: security.map((card) => card.instanceId),
+          visibleCards: security.map((card) => ({
+            instanceId: card.instanceId,
+            cardId: card.cardId,
+          })),
+        });
+        const selected = candidates.filter((card) => selectedIds.includes(card.instanceId));
+        for (const card of selected) card.faceUp = true;
+        ctx.lastRevealedCards = selected.map((card) => ({
+          instanceId: card.instanceId,
+          cardId: card.cardId,
+          ownerSeat: card.ownerSeat,
+        }));
+        if (action.bindResultAs !== undefined) {
+          ctx.boundPlayed ??= new Map();
+          ctx.boundPlayed.set(action.bindResultAs, new Set(selectedIds));
+        }
+        if (action.then?.kind === "PlayWithoutCost") {
+          const played =
+            selectedIds.length > 0 ? await ctx.fx.playInstances(selectedIds, { payCost: action.then.payCost }) : [];
+          ctx.lastPlayedPermanentIds = (played ?? []).map((permanent) => permanent.permanentId);
+        } else if (action.to === "hand" && selectedIds.length > 0) {
+          await ctx.fx.returnToHand(selectedIds);
+        }
+        ctx.lastEffectActed =
+          action.then?.kind === "PlayWithoutCost"
+            ? (ctx.lastPlayedPermanentIds?.length ?? 0) > 0
+            : selectedIds.length > 0;
+        return false;
+      }
+      ctx.lastRevealedCards = undefined;
+      await ctx.fx.searchDeck(seat, (def) => definitionMatches(action.filter, def), {
+        min: 0,
+        max: action.count === "all" ? Number.MAX_SAFE_INTEGER : action.count,
+      });
+      return false;
+    }
+    case "SearchSecurity": {
+      const continuationSource: string = action.then.source;
+      if (continuationSource !== "security") {
+        unsupported(ctx, action, `SearchSecurity cannot continue from ${continuationSource}`);
+        return false;
+      }
+      const security = ctx.game.player(ctx.source.ownerSeat).security;
+      const candidates = security.filter((card) =>
+        definitionMatches(action.target.filter, ctx.game.definitionOf(card) as DefinitionFacts),
+      );
+      const maximum =
+        action.target.count === "all" ? candidates.length : Math.min(action.target.count, candidates.length);
+      const minimum = action.then.optional === true || action.target.upTo === true ? 0 : maximum;
+      const selectedIds = await ctx.ask.selectCards(ctx, {
+        candidates: candidates.map((card) => card.instanceId),
+        min: minimum,
+        max: maximum,
+        visible: security.map((card) => card.instanceId),
+        // Security is private and therefore absent from the normal client instance index.
+        // Send the authoritative identities with the decision so the search modal renders
+        // real cards instead of anonymous placeholders (ST10-06 / Mastemon).
+        visibleCards: security.map((card) => ({ instanceId: card.instanceId, cardId: card.cardId })),
+      });
+      if (selectedIds.length === 0) {
+        ctx.lastEffectActed = false;
+        return false;
+      }
+      const played = await ctx.fx.playInstances(selectedIds, { payCost: action.then.payCost });
+      ctx.lastPlayedPermanentIds = (played ?? []).map((permanent) => permanent.permanentId);
+      ctx.lastEffectActed = ctx.lastPlayedPermanentIds.length > 0;
+      return false;
+    }
+    case "Reveal": {
+      await runReveal(ctx, action);
+      return false;
+    }
+    case "RevealAdd": {
+      await runRevealAdd(ctx, action);
+      return false;
+    }
+    case "RevealChooseDeleteBudget": {
+      await runRevealChooseDeleteBudget(ctx, action);
+      return false;
+    }
+    default:
+      // Unreachable: runAction routes only this family's kinds here, and its own default
+      // reports anything the Action union does not cover.
+      return false;
   }
 }

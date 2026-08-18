@@ -15,6 +15,19 @@ export type ActionRunner = (ctx: EffectContext, action: Action) => Promise<boole
 /** Runs one whole CardEffect: its gate, its cost, then its actions in order. */
 export type EffectRunner = (ctx: EffectContext, effect: CardEffect) => Promise<void>;
 
+/**
+ * What `runAction` works out before dispatching that a case body still needs.
+ */
+export interface ActionScope {
+  /** The `for each ...` multiplier, or undefined when the action carries no scaling clause. */
+  scale: number | undefined;
+  /**
+   * Permanents suspended by an Attack's OWN suspend cost, whose suspend triggers were held back
+   * until the attack is declared so a watcher cannot interrupt the declaration.
+   */
+  deferredCostSuspensions: string[];
+}
+
 let actionRunner: ActionRunner | undefined;
 let effectRunner: EffectRunner | undefined;
 

@@ -1,9 +1,11 @@
 // Security-stack manipulation.
 
+import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
 import type { EffectContext } from "../../EffectContext.js";
 import { evaluateCondition } from "../conditions.js";
 import { describeAction } from "../describe.js";
-import { runAction } from "../dispatch.js";
+import { type ActionScope, runAction } from "../dispatch.js";
+import { toDuration } from "../duration.js";
 import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
 import { scaleFactor } from "../scaling.js";
@@ -366,4 +368,74 @@ async function runSecurityAdd(
     return;
   }
   unsupported(ctx, action, `SecurityManipulation ${action.op} source ${String(source)} unsupported`);
+}
+
+export async function runSecurityAction(
+  ctx: EffectContext,
+  action: Action,
+  scope: ActionScope,
+): Promise<boolean> {
+  const { scale } = scope;
+  switch (action.kind) {
+    case "OpponentMayTrashSecurity": {
+      const opponent = ctx.game.opponentOf(ctx.source.ownerSeat);
+      const ask = requireOpponentAsk(ctx);
+      const accepted = await ask.optional(ctx, "Trash the top card of your security stack?");
+      ctx.lastOpponentDeclined = !accepted;
+      if (accepted && ctx.game.player(opponent).security.length > 0) {
+        await ctx.fx.trashFromSecurity(opponent, 1, { fromTop: true });
+      }
+      return false;
+    }
+    case "SecurityManipulation": {
+      await runSecurityManipulation(ctx, action);
+      return false;
+    }
+    case "RecoverByTrashingMostSecurity": {
+      await runRecoverByTrashingMostSecurity(ctx, action);
+      return false;
+    }
+    case "trashSecurityTop": {
+      // "Trash the top N card(s) of <controller>'s security stack" as a standalone action
+      // (not a cost). Used inside SubTrigger.actions to trash the opponent's top security
+      // as part of a triggered effect body (CAP-E15, BT21-052 Examon X Antibody).
+      const mine = ctx.source.ownerSeat;
+      const opp = ctx.game.opponentOf(mine);
+      const seat = action.controller === "opponent" ? opp : mine;
+      const count = action.count ?? 1;
+      if (ctx.game.player(seat).security.length > 0) {
+        await ctx.fx.trashFromSecurity(seat, count, { fromTop: true });
+      }
+      return false;
+    }
+    case "ModifySecurityDP": {
+      const delta = scale === undefined ? action.amount : action.amount * scale;
+      const seat = action.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
+      ctx.fx.modifySecurityDp(seat, delta);
+      return false;
+    }
+    case "SecurityAttackInvert": {
+      // EX6-031 [Your Turn]: "Change ＜Security Attack -＞ to ＜Security Attack +＞ on all of your
+      // Digimon" (KB Q3751/Q3752, per-instance sign flip). A persistent per-permanent inversion on
+      // the resolved target(s); the security-check strike consumer (GameEngine.runSecurityCheck.
+      // strikeFor) negates each existing SA grant's amount while active. Re-derived each continuous
+      // pass (CR-01).
+      const ids = await resolvePermanentTargets(ctx, action.target);
+      const duration = toDuration(action.duration);
+      for (const id of ids) ctx.fx.securityAttackInvert?.(id, duration);
+      return false;
+    }
+    case "DisableSecurityEffect": {
+      // `card.PermanentOfThisCard()`. Resolve the target (normally the source itself) and
+      // record the security-effect disable; the security-check loop consults it per flip.
+      const ids = await resolvePermanentTargets(ctx, action.target);
+      const duration = toDuration(action.duration);
+      for (const id of ids) ctx.fx.disableSecurityEffect(id, action.sourceKind, duration);
+      return false;
+    }
+    default:
+      // Unreachable: runAction routes only this family's kinds here, and its own default
+      // reports anything the Action union does not cover.
+      return false;
+  }
 }
