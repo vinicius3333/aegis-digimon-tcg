@@ -24,7 +24,7 @@ describe("ST3 Seraphimon DP-control deck gauntlet", () => {
         },
         1: {
           battleArea: [
-            { card: "ST1-06", as: "fiveThousandDpTarget", suspended: true },
+            { card: "ST1-06", as: "fiveThousandDpTarget", dp: 5000, suspended: true },
           ],
           security: ["BT1-001", "BT1-002"],
         },

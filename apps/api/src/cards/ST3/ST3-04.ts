@@ -17,9 +17,6 @@ const module: EffectModule = {
         resolve: async (ctx) => {
           const host = source.permanent();
           if (host === undefined) return;
-          const opposingIds = new Set(
-            ctx.game.player(ctx.game.opponentOf(source.ownerSeat)).battleArea.map(({ permanentId }) => permanentId),
-          );
           ctx.fx.subscribeSubTrigger({
             event: "onDeletionOf",
             sourcePermanentId: host.permanentId,
@@ -28,8 +25,10 @@ const module: EffectModule = {
             description: "ST3-04 inherited",
             matches: (subCtx) =>
               source.isOwnersTurn() &&
+              subCtx.trigger.deletedByDpZero === true &&
               subCtx.trigger.deletedPermanentId !== undefined &&
-              opposingIds.has(subCtx.trigger.deletedPermanentId),
+              ctx.game.permanentById(subCtx.trigger.deletedPermanentId)?.controllerSeat ===
+                ctx.game.opponentOf(source.ownerSeat),
             run: async (subCtx) => {
               subCtx.fx.gainMemory(1);
             },
