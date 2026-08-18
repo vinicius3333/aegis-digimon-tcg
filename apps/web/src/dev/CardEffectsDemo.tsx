@@ -18124,6 +18124,53 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         3000,
         "Weedmon gained 1 memory after being trashed for its host's Digi-Burst.",
       );
+    if (cardId === "BT5-051") return vanillaBt3Demo(cardId, "MoriShellmon", 7000);
+    if (cardId === "BT5-052") return vanillaBt3Demo(cardId, "Garbagemon", 8000);
+    if (cardId === "BT5-053")
+      return effectBt3Demo(cardId, "Deramon", 7000, "Deramon gained +2000 DP for each other suspended own Digimon.");
+    if (cardId === "BT5-054") return vanillaBt3Demo(cardId, "Piximon", 8000);
+    if (cardId === "BT5-055")
+      return effectBt3Demo(
+        cardId,
+        "BanchoLillymon",
+        11000,
+        "BanchoLillymon bottom-decked a suspended opposing Digimon and trashed its sources when deleted.",
+      );
+    if (cardId === "BT5-056")
+      return effectBt3Demo(
+        cardId,
+        "Rafflesimon",
+        11000,
+        "Rafflesimon Digi-Bursted 2 to boost an own Digimon and restrict an opposing Digimon from attacking or blocking.",
+      );
+    if (cardId === "BT5-057")
+      return effectBt3Demo(
+        cardId,
+        "Rosemon",
+        11000,
+        "Rosemon Digi-Bursted 3 to give all own Digi-Burst Digimon Security Attack +1.",
+      );
+    if (cardId === "BT5-058")
+      return effectBt3Demo(
+        cardId,
+        "Argomon",
+        11000,
+        "Argomon used Digisorption -2, suspended opposing Tamers when digivolving, and grants protection to its host.",
+      );
+    if (cardId === "BT5-059")
+      return effectBt3Demo(
+        cardId,
+        "Keramon",
+        2000,
+        "Keramon revealed cards and added an Unidentified Digimon and Arata Sanada.",
+      );
+    if (cardId === "BT5-060")
+      return effectBt3Demo(
+        cardId,
+        "Monitamon",
+        2000,
+        "Monitamon checked the top card without moving it and revealed 3 on deletion to play a Monitamon.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
