@@ -18679,6 +18679,50 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         7000,
         "Petaldramon digivolved onto a green Tamer and has Piercing, rejecting zero-cost evolution on non-green Tamers.",
       );
+    if (cardId === "BT6-051")
+      return effectBt3Demo(
+        cardId,
+        "Toropiamon",
+        6000,
+        "Toropiamon suspended an opposing 5000 DP Digimon when its host attacked.",
+      );
+    if (cardId === "BT6-052")
+      return effectBt3Demo(
+        cardId,
+        "Entmon",
+        8000,
+        "Entmon unsuspended after deleting an opposing Digimon in battle and could attack again.",
+      );
+    if (cardId === "BT6-053")
+      return effectBt3Demo(
+        cardId,
+        "Eldradimon",
+        12000,
+        "Eldradimon has Security Attack +1 and prevents effect DP reduction during the opponent's turn.",
+      );
+    if (cardId === "BT6-054")
+      return effectBt3Demo(
+        cardId,
+        "AncientTroymon",
+        13000,
+        "AncientTroymon suspended up to two opposing non-Blockers when the opponent attacked and plays a green level 4 Hybrid on deletion.",
+      );
+    if (cardId === "BT6-055")
+      return effectBt3Demo(cardId, "Junkmon", 2000, "Junkmon gained 1 memory when its host was deleted.");
+    if (cardId === "BT6-056")
+      return effectBt3Demo(cardId, "Chikurimon", 1000, "Chikurimon De-Digivolved an opposing Digimon from Security.");
+    if (cardId === "BT6-057")
+      return effectBt3Demo(cardId, "ToyAgumon", 2000, "ToyAgumon gave its host +1000 DP while the host had Blocker.");
+    if (cardId === "BT6-058")
+      return effectBt3Demo(cardId, "Nanimon", 2000, "Nanimon played itself from its Security effect.");
+    if (cardId === "BT6-059") return effectBt3Demo(cardId, "Machmon", 5000, "Machmon has Decoy (Black).");
+    if (cardId === "BT6-060")
+      return effectBt3Demo(
+        cardId,
+        "Deputymon",
+        4000,
+        "Deputymon revealed cards, added a Three Musketeers Digimon and cost-7 Option, and trashed the rest.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
