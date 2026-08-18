@@ -14,8 +14,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // The [Once Per Turn] is shared across both triggers ([When Digivolving] and [When Attacking])
 // — one use per turn total. sharedUseKey links the two CardEffect entries to the same quota.
 //
-// CAPABILITY GAP: PlaceCost destination:"security" supports position:"top"|"bottom" but not
-// the player's choice of top-or-bottom. See LANE_C.md: PlaceCostTopOrBottom.
+// The interpreter's security placement cost now prompts for the controller's
+// top/bottom choice when `position: "choice"` is used.
 const compiled: CompiledCard = {
   "effects": [
     {
@@ -157,9 +157,7 @@ const compiled: CompiledCard = {
     }
   ],
   "coverage": "partial",
-  "residual": [
-    "PlaceCostTopOrBottom: place cost position 'top or bottom' (player chooses) not yet in IR — encoded as destination:security without position; see LANE_C.md"
-  ]
+  "residual": []
 };
 
 registerIrCard("P-187", compiled);

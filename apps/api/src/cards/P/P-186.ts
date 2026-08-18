@@ -136,9 +136,7 @@ const compiled: CompiledCard = {
     }
   ],
   "coverage": "full",
-  "residual": [
-    "KB-override: delete target uses lte:13000 (KB Q4629/Q4630), not gte:13000 as the printed effectText says — printed text is a misprint; Q&A rulings are binding"
-  ],
+  "residual": [],
   "digivolutionRequirement": [
     {
       "level": 5,
