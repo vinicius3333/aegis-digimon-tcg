@@ -10040,6 +10040,34 @@ function patamonBt3Demo(_effect: string | null): CardEffectsFixture {
   };
 }
 
+function veemonBt3Demo(_effect: string | null): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 7;
+  state.turnSeat = 0;
+  state.memory = 0;
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  const veemon = permanent("demo-bt3-021-veemon", "BT3-021", 0, 2000);
+  veemon.keywords.push("Jamming");
+  you.battleArea.push(veemon);
+  state.players.push(you, opponent);
+  return {
+    state,
+    events: [
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: "BT3-021",
+        effectKey: "BT3-021/jamming",
+        description: "Veemon has Jamming and cannot be deleted in battles against Security Digimon.",
+        timing: "Static",
+      },
+    ],
+  };
+}
+
 function silphymonBt3Demo(effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
@@ -15996,6 +16024,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
     if (cardId === "BT3-018") return blitzGreymonBt3Demo(effect);
     if (cardId === "BT3-019") return ragnaLoardmonBt3Demo(effect);
     if (cardId === "BT3-020") return patamonBt3Demo(effect);
+    if (cardId === "BT3-021") return veemonBt3Demo(effect);
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
