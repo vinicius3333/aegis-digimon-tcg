@@ -17679,6 +17679,59 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
     if (cardId === "BT4-069") return vanillaBt3Demo(cardId, "Blimpmon", 7000);
     if (cardId === "BT4-070")
       return effectBt3Demo(cardId, "Meteormon", 8000, "Meteormon has Reboot and remains suspended after attacking.");
+    if (cardId === "BT4-071")
+      return effectBt3Demo(
+        cardId,
+        "Tankdramon",
+        7000,
+        "Tankdramon revealed 2 cards and could play a Commandramon when another D-Brigade Digimon was deleted.",
+      );
+    if (cardId === "BT4-072")
+      return effectBt3Demo(
+        cardId,
+        "Gogmamon",
+        7000,
+        "Gogmamon Digi-Bursted 1 to give an own Digimon +2000 DP through the opponent's turn and grants its host +1000 DP.",
+      );
+    if (cardId === "BT4-073")
+      return effectBt3Demo(
+        cardId,
+        "BanchoGolemon",
+        11000,
+        "BanchoGolemon has Blocker and gains +3000 DP during the opponent's turn while they have 3 Digimon.",
+      );
+    if (cardId === "BT4-074")
+      return effectBt3Demo(
+        cardId,
+        "Darkdramon",
+        11000,
+        "Darkdramon returned D-Brigade Digimon from trash to the deck top, gained memory, and has Rush.",
+      );
+    if (cardId === "BT4-075")
+      return effectBt3Demo(
+        cardId,
+        "Blastmon",
+        13000,
+        "Blastmon has Security Attack +1 and lets the opponent redirect its attack to an unsuspended Digimon.",
+      );
+    if (cardId === "BT4-076") return vanillaBt3Demo(cardId, "Gabumon", 4000);
+    if (cardId === "BT4-077")
+      return effectBt3Demo(
+        cardId,
+        "Ghostmon",
+        2000,
+        "Ghostmon returned to hand after being trashed for its host's Digi-Burst.",
+      );
+    if (cardId === "BT4-078")
+      return effectBt3Demo(
+        cardId,
+        "Soundbirdmon",
+        1000,
+        "Soundbirdmon could trash an Option from hand when attacking to gain 1 memory.",
+      );
+    if (cardId === "BT4-079")
+      return effectBt3Demo(cardId, "Labramon", 2000, "Labramon drew one card and then trashed one card from hand.");
+    if (cardId === "BT4-080") return vanillaBt3Demo(cardId, "Bakemon", 6000);
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
