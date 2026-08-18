@@ -9820,6 +9820,32 @@ function venomMyotismonBt2Demo(effect: string | null): CardEffectsFixture {
   };
 }
 
+function agumonBt3Demo(effect: string | null): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 7;
+  state.turnSeat = 0;
+  state.memory = 0;
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  you.battleArea.push(permanent("demo-bt3-007-agumon", "BT3-007", 0, 4000));
+  state.players.push(you, opponent);
+  return {
+    state,
+    events: [
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: "BT3-007",
+        effectKey: "BT3-007/vanilla",
+        description: "BT3-007 Agumon has no printed effect: the 4000 DP Digimon remains unchanged.",
+        timing: "Main",
+      },
+    ],
+  };
+}
+
 function demiMeramonBt3Demo(effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
@@ -15523,6 +15549,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
   const effect = params.get("effect");
   const step = params.get("step");
   const fixture = useMemo<CardEffectsFixture | undefined>(() => {
+    if (cardId === "BT3-007") return agumonBt3Demo(effect);
     if (cardId === "BT3-006") return demiMeramonBt3Demo(effect);
     if (cardId === "BT3-005") return kakkinmonBt3Demo(effect);
     if (cardId === "BT3-004") return minomonBt3Demo(effect);
