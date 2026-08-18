@@ -111,12 +111,11 @@ const compiled: CompiledCard = {
           "kind": "Trash",
           "target": {
             "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+              "isSelfRef": true
             },
-            "count": 1
+            "count": 1,
+            "isSelf": true,
+            "topCardOnly": true
           },
           "condition": {
             "kind": "raw",

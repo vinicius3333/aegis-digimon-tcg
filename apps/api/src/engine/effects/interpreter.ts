@@ -2700,6 +2700,14 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
       if (/this Digimon is suspended/i.test(cond.raw ?? "")) {
         return ctx.source.permanent()?.isSuspended === true;
       }
+      {
+        const m = /this Digimon is \[([^\]]+)\]/i.exec(cond.raw ?? "");
+        if (m) {
+          const self = ctx.source.permanent();
+          const top = self?.topCard;
+          return top !== undefined && (ctx.game.definitionOf(top).nameEn ?? "").toLowerCase() === m[1]!.toLowerCase();
+        }
+      }
       if (/deleted outside of a battle/i.test(cond.raw ?? "")) {
         return ctx.trigger.removalCause !== "byBattle";
       }
