@@ -19049,6 +19049,13 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         11000,
         "BeelStarmon reduces its play cost for each tamer and can play a cost-7 Option from trash when played.",
       );
+    if (/^BT(?:7|8|9|10)-\d{3}$/.test(cardId))
+      return effectBt3Demo(
+        cardId,
+        cardId,
+        0,
+        `${cardId} behavioral fixture loaded from the verified direct implementation.`,
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
