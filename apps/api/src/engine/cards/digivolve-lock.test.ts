@@ -3,6 +3,15 @@ import "../../cards/index.js";
 import { definitionOf, matchingAlternateDigivolutionRequirement, matchingEvoCost } from "./cardData.js";
 
 describe("alternate-digivolution gate lock (regression: BT21-021 onto Lv.2)", () => {
+  it("RB1-036 exposes the Arcturusmon stack-name gate", () => {
+    const req = matchingAlternateDigivolutionRequirement("RB1-036", "RB1-010");
+    expect(req).toMatchObject({
+      cost: 3,
+      minNameStackCount: 1,
+      minNameStackNames: ["Arcturusmon"],
+    });
+  });
+
   it("BT21-021 (OmniShoutmon) does NOT match a Lv.2 non-Shoutmon base", () => {
     // Koromon (BT11-003 etc.) is a Lv.2 with no Shoutmon name / Xros Heart-Hero traits.
     expect(matchingAlternateDigivolutionRequirement("BT21-021", "BT1-001")).toBeUndefined();

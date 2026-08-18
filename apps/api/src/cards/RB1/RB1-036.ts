@@ -20,9 +20,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - sourceFilter for onDeletionOf: removed controllerDefault:'mine' — "another
 //   Digimon" = any Digimon (either controller) other than self (excludeSelf:true
 //   is the only constraint). Text does not restrict controller.
-// - digivolutionRequirement: adds stackNames gate for [Arcturusmon] in
-//   digivolution cards. Engine lacks minStackNames field → LANE_F.md capability
-//   spec; encoded with raw note.
+// - digivolutionRequirement: the shared alternate-requirement override adds the
+//   required [Arcturusmon] card in the base's digivolution stack.
 const compiled: CompiledCard = {
   "effects": [
     {
@@ -125,10 +124,8 @@ const compiled: CompiledCard = {
       "frequency": "OncePerTurn"
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "digivolutionRequirement: 'w/[Arcturusmon] digivolution card' stack-name gate not expressible — DigivolutionRequirement has minTraitStackTraits (checks trait) but no minStackNames (checks card name); capability spec in LANE_F.md"
-  ],
+  "coverage": "full",
+  "residual": [],
   "digivolutionRequirement": [
     {
       "names": [

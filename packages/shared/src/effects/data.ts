@@ -429,6 +429,19 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     { cost: 0, isAlternate: true, names: ["Ravemon"], burstDigivolve: { returnTamerNamesExact: ["Keenan Crier"] } },
   ],
 
+  // RB1-036 (Proximamon): the Siriusmon alternate path is legal only when the
+  // base already has an [Arcturusmon] card in its digivolution stack (printed
+  // "w/[Arcturusmon] digivolution card").
+  "RB1-036": [
+    {
+      cost: 3,
+      isAlternate: true,
+      names: ["Siriusmon"],
+      minNameStackCount: 1,
+      minNameStackNames: ["Arcturusmon"],
+    },
+  ],
+
   // BT26-050 combines an ordinary alternate path with a Burst Digivolve clause, so its
   // complete requirements are kept together here instead of in the committed data below.
   "BT26-050": [
