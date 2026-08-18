@@ -22,7 +22,7 @@ const opponentLevel3Digimon = (ctx: EffectContext, source: CardSource): string[]
     .map((permanent) => permanent.permanentId);
 };
 
-/** Shared [Main] body: select up to 3 opponent level-3 Digimon and give each -4000 DP for the turn. */
+/** Shared errata [Main] body: select 3, or every eligible target when fewer exist. */
 const resolveMain = async (ctx: EffectContext, source: CardSource): Promise<void> => {
   const candidates = opponentLevel3Digimon(ctx, source);
   if (candidates.length === 0) return;

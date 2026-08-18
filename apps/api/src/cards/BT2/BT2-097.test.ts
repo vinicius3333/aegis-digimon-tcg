@@ -18,7 +18,7 @@ import module from "./BT2-097.js";
 //   [Security] Activate this card's [Main] effect.
 //
 // FAILS-WHEN-REVERTED: the inert legacy IR fallback produces no executable effect, so no modifyDP
-// call is recorded for either timing. The hand-written module selects up to 3 opponent level-3
+// call is recorded for either timing. The hand-written module selects 3 opponent level-3
 // Digimon and applies -4000 DP (UntilEachTurnEnd) to each, from both [Main] and [Security].
 
 interface Recorder {
@@ -162,7 +162,7 @@ describe("BT2-097 Lightning Paw", () => {
     expect(module!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(0);
   });
 
-  it("[Main] gives -4000 DP to up to 3 opponent level-3 Digimon (caps at 3 when more exist)", async () => {
+  it("[Main] gives -4000 DP to exactly 3 opponent level-3 Digimon when at least 3 exist", async () => {
     const source = makeSource();
     const recorder: Recorder = { calls: [] };
     const ctx = makeContext({
@@ -266,5 +266,33 @@ describe("BT2-097 Lightning Paw", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[1]!.trash.filter(({ cardId }) => cardId === "BT1-009")).toHaveLength(3);
+  });
+
+  it("uses as many targets as possible when fewer than 3 eligible Digimon exist", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-048", as: "yellowSource" }],
+          hand: [{ card: "BT2-097", as: "option" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first", dp: 4000 },
+            { card: "BT1-009", as: "second", dp: 4000 },
+            { card: "BT2-071", as: "levelFour" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.state.players[1]!.battleArea[0]!.topCard.instanceId).toBe(s.perm("levelFour").topCard.instanceId);
+    expect(s.state.players[1]!.trash.filter(({ cardId }) => cardId === "BT1-009")).toHaveLength(2);
   });
 });
