@@ -24,7 +24,7 @@ describe("ST16-15 Lament of Friendship", () => {
     };
     expect(engine.continuous.listCustomEffectGrants()).toContainEqual(expect.objectContaining({
       instanceId: s.perm("garurumon").topCard!.instanceId,
-      token: "OnDeletionPlaySelf",
+      token: "OnDeletionPlaySelfMandatory",
     }));
   });
 });

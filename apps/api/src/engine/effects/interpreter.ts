@@ -6810,7 +6810,7 @@ async function runSubTrigger(ctx: EffectContext, action: Extract<Action, { kind:
   // payload attacker to the permanent carrying this effect. Without this gate BT11-008/010/014
   // reacted to a neighboring Digimon being blocked or using Raid.
   const attackTargetSwitchedGate =
-    event === "whenAttackTargetSwitched" && anchorPermanentId !== undefined
+    event === "whenAttackTargetSwitched" && sourceFilter?.isSelfRef === true && anchorPermanentId !== undefined
       ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === anchorPermanentId
       : undefined;
   // `whenEffectSuspends` without an explicit sourceFilter is the printed self-scoped form:
@@ -11939,6 +11939,16 @@ const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect> = {
   OnDeletionPlaySelf: {
     trigger: "OnDeletion",
     optional: true,
+    actions: [
+      {
+        kind: "PlayWithoutCost",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        payCost: false,
+      } as Action,
+    ],
+  },
+  OnDeletionPlaySelfMandatory: {
+    trigger: "OnDeletion",
     actions: [
       {
         kind: "PlayWithoutCost",

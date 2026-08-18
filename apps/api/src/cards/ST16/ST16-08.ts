@@ -15,9 +15,7 @@ const compiled: CompiledCard = {
         {
           "kind": "PlayWithoutCost",
           "target": {
-            "orFilters": [
-              {
-                "filter": {
+            "filter": {
                   "controller": "mine",
                   "kind": [
                     "Digimon"
@@ -30,10 +28,9 @@ const compiled: CompiledCard = {
                       "match": "nameExact"
                     }
                   ]
-                }
-              },
+            },
+            "orFilters": [
               {
-                "filter": {
                   "controller": "mine",
                   "kind": [
                     "Tamer"
@@ -46,7 +43,6 @@ const compiled: CompiledCard = {
                       "match": "name"
                     }
                   ]
-                }
               }
             ],
             "count": 1

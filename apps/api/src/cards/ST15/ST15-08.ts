@@ -15,21 +15,28 @@ const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "mine",
+              "kind": ["Digimon"],
               "nameOrTrait": [
                 {
                   "tokens": [
                     "Agumon"
                   ],
-                  "match": "name"
-                },
-                {
-                  "tokens": [
-                    "Tai Kamiya"
-                  ],
-                  "match": "name"
+                  "match": "nameExact"
                 }
               ]
             },
+            "orFilters": [
+                {
+                  "controller": "mine",
+                  "kind": ["Tamer"],
+                  "nameOrTrait": [
+                    {
+                      "tokens": ["Tai Kamiya"],
+                      "match": "name"
+                    }
+                  ]
+                }
+              ],
             "count": 1
           },
           "from": [

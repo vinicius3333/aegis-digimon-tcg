@@ -69,7 +69,7 @@ const module: EffectModule = {
                 ctx.fx.grantCustomEffect?.(
                   top.instanceId,
                   source.ownerSeat,
-                  "OnDeletionPlaySelf",
+                  "OnDeletionPlaySelfMandatory",
                   EffectDuration.UntilOpponentTurnEnd,
                 );
               }
