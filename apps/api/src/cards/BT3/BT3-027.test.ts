@@ -5,11 +5,25 @@ import "./BT3-027.js";
 
 describe("BT3-027 Paildramon", () => {
   it("has Jamming and unsuspends its Imperialdramon host when attacking", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT3-027", as: "paildramon" }, { card: "BT3-031", as: "imperial", under: ["BT3-027"] }] }, 1: { security: ["BT1-010"] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT3-027", as: "paildramon" },
+          { card: "BT3-031", as: "imperial", under: ["BT3-027"] },
+        ],
+      },
+      1: { security: ["BT1-010"] },
+    });
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).hasKeyword(s.perm("paildramon"), "Jamming")).toBe(true);
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("imperial").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("imperial").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.perm("imperial").isSuspended, 5000);
 
     expect(s.perm("imperial").isSuspended).toBe(false);
@@ -21,11 +35,13 @@ describe("BT3-027 Paildramon", () => {
       1: { security: ["BT1-010"] },
     });
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking);
 
     expect(s.perm("host").isSuspended).toBe(true);
