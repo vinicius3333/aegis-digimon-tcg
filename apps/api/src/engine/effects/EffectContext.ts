@@ -627,7 +627,7 @@ export interface Primitives {
   relocatePermanent(
     destPermanentId: string,
     sourcePermanentId: string,
-    opts?: { belowTop?: boolean; shedOwnCards?: boolean },
+    opts?: { belowTop?: boolean; shedOwnCards?: boolean; faceUp?: boolean },
   ): boolean;
   /**
    * Effect/cost form of `relocatePermanent`: after the move, opens the canonical
@@ -638,7 +638,7 @@ export interface Primitives {
   relocatePermanentByEffect?(
     destPermanentId: string,
     sourcePermanentId: string,
-    opts?: { belowTop?: boolean; shedOwnCards?: boolean },
+    opts?: { belowTop?: boolean; shedOwnCards?: boolean; faceUp?: boolean },
   ): Promise<boolean>;
   /**
    * Move a whole permanent (top + digivolution stack + linked cards) across the

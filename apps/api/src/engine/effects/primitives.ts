@@ -1405,7 +1405,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const relocatePermanent = (
     destPermanentId: string,
     sourcePermanentId: string,
-    opts?: { belowTop?: boolean; shedOwnCards?: boolean },
+    opts?: { belowTop?: boolean; shedOwnCards?: boolean; faceUp?: boolean },
   ): boolean => {
     if (destPermanentId === sourcePermanentId) return false;
     // The host may sit in the battle area OR the breeding area: BT13-007's [Breeding] effect
@@ -1448,7 +1448,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const belowTop = opts?.belowTop ?? true;
     const toAttach: CardInstance[] = shed ? [source.topCard] : [source.topCard, ...source.stack, ...source.linked];
     for (const card of toAttach) {
-      card.faceUp = false;
+      card.faceUp = opts?.faceUp ?? false;
       if (belowTop) dest.stack.push(card);
       else dest.stack.unshift(card);
     }
