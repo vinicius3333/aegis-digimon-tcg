@@ -2697,9 +2697,22 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
           const level = top === undefined ? undefined : ctx.game.definitionOf(top).level;
           return level !== undefined && level >= Number(selfLevelAtLeast[1]);
         }
-        if (/this Digimon is suspended/i.test(cond.raw ?? "")) {
-          return ctx.source.permanent()?.isSuspended === true;
+      if (/this Digimon is suspended/i.test(cond.raw ?? "")) {
+        return ctx.source.permanent()?.isSuspended === true;
+      }
+      // "this Digimon had [X] or [Y] in its name" (BT13-062/EX5-045): on-deletion
+      // inherited effects must inspect the deleted host's top card, not the inherited
+      // source card that remains as the trigger owner.
+      {
+        const m = /this Digimon had (?:\[([^\]]+)\](?:\s+or\s+)?)+ in its name/i.exec(cond.raw ?? "");
+        if (m) {
+          const deleted = ctx.trigger.deletedTopCardId;
+          const def = deleted !== undefined ? ctx.game.definitionOf({ cardId: deleted } as never) : undefined;
+          const name = (def?.nameEn ?? "").toLowerCase();
+          const names = [...(cond.raw ?? "").matchAll(/\[([^\]]+)\]/g)].map((x) => x[1]!.toLowerCase());
+          return names.some((token) => name.includes(token));
         }
+      }
       }
       // Known runtime record-raw phrases that map onto effect-result bindings the parser
       // did not normalize: "this effect digivolved" (BT16-024's place-as-security gate)
