@@ -17188,6 +17188,40 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
       );
     if (cardId === "BT3-076") return vanillaBt3Demo(cardId, "Candlemon", 3000);
     if (cardId === "BT3-078") return vanillaBt3Demo(cardId, "Shamanmon", 4000);
+    if (cardId === "BT3-072")
+      return effectBt3Demo(cardId, "BryweLudramon", 12000, "BryweLudramon granted Blocker to its host.");
+    if (cardId === "BT3-073")
+      return effectBt3Demo(
+        cardId,
+        "CresGarurumon",
+        11000,
+        "CresGarurumon revealed cards per opposing Digimon and played an eligible card.",
+      );
+    if (cardId === "BT3-074")
+      return effectBt3Demo(
+        cardId,
+        "MetalEtemon",
+        10000,
+        "MetalEtemon cannot be blocked on its turn and gains +2000 DP during the opponent's turn.",
+      );
+    if (cardId === "BT3-075")
+      return effectBt3Demo(
+        cardId,
+        "Craniamon",
+        12000,
+        "Craniamon protected an own Blocker Digimon from an opponent's deletion effect.",
+      );
+    if (cardId === "BT3-077")
+      return effectBt3Demo(
+        cardId,
+        "Gazimon",
+        2000,
+        "Gazimon prevented the opponent from gaining memory except by Tamer effects.",
+      );
+    if (cardId === "BT3-079")
+      return effectBt3Demo(cardId, "Tsukaimon", 2000, "Tsukaimon gained 1 memory when its host was deleted.");
+    if (cardId === "BT3-080")
+      return effectBt3Demo(cardId, "Saberdramon", 3000, "Saberdramon granted Retaliation to its host.");
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
