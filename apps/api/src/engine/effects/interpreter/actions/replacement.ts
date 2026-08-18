@@ -1,0 +1,327 @@
+// Replacing or preventing an event before it happens.
+
+import type { EffectContext, ReplacementEventName } from "../../EffectContext.js";
+import { evaluateCondition } from "../conditions.js";
+import { payCost, payOneCostOption } from "../costs.js";
+import { runAction } from "../dispatch.js";
+import { unsupported } from "../errors.js";
+import { definitionMatches } from "../matching/definition.js";
+import { permanentMatchesFilter } from "../matching/permanent.js";
+import { getCardDefinition } from "@aegis/shared";
+import type { Action, Condition, Cost, Permanent } from "@aegis/shared";
+
+const REPLACEMENT_EVENT_MAP: Record<string, ReplacementEventName | undefined> = {
+  wouldLeavePlay: "wouldLeavePlay",
+  wouldBeDeleted: "wouldBeDeleted",
+  wouldBePlayed: "wouldBePlayed",
+  wouldDigivolve: "wouldDigivolve",
+};
+
+/**
+ * Install a replacement effect. `reduceCost` records a cost delta the play/digivolve
+ * cost step subtracts; `instead`/`prevent` run a payload when the engine consults the
+ * replacement before the replaced event. A "raw" event is a loud gap.
+ */
+export async function runReplacement(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "Replacement" }>,
+): Promise<void> {
+  const event = REPLACEMENT_EVENT_MAP[action.event];
+  if (event === undefined) {
+    unsupported(ctx, action, `Replacement event "${action.event}" is not a known game event`);
+    return;
+  }
+  if (action.sourceFilter?.zone === "battleArea" && !ctx.source.isOnBattleArea()) return;
+  const self = ctx.source.permanent();
+  // The prose compiler often emits the prevention as a NESTED `{kind:"Prevent"}` inner action
+  // (carrying the prevention's cost) rather than setting `mode:"prevent"` on the Replacement
+  // itself — BT18-082 "by trashing the bottom card of your security stack, it doesn't leave".
+  // Normalize that shape here so the reaction installs as a real prevent (consulted by the
+  // engine's leave-prevention seam) instead of a mode-less dead store the consult skips.
+  //
+  // A THIRD encoding of the same prevention (BT11-062, BT11-064): a nested `GrantStatic`
+  // carrying `grant: { cannotLeavePlay: true }` plus its OWN cost/optional/abortOnDecline,
+  // rather than a `{kind:"Prevent"}` sibling. Recognized here alongside it — without this, the
+  // outer Replacement defaults to "instead" mode (no cost gate, no protection) and the inner
+  // GrantStatic falls through to the engine's fail-loud "no enforcement path" catch-all.
+  const isCannotLeavePlayGrant = (grant: unknown): boolean =>
+    typeof grant === "object" && grant !== null && (grant as { cannotLeavePlay?: boolean }).cannotLeavePlay === true;
+  const nestedPrevent = (
+    action.actions as { kind?: string; cost?: Cost; condition?: Condition; grant?: unknown }[] | undefined
+  )?.find((a) => a.kind === "Prevent" || (a.kind === "GrantStatic" && isCannotLeavePlayGrant(a.grant)));
+  // The prose compiler also emits a CROSS-CARD reduceCost as a nested Replacement — an outer
+  // `wouldBePlayed` reaction scoped by `sourceFilter` ("an [Eater] Digimon", not "this card")
+  // wrapping the inner `{mode:"reduceCost", amount}` Replacement, rather than setting mode/amount
+  // on the outer action itself (BT22-079's [Breeding] resident reducer). Hoist the nested mode +
+  // amount the same way nestedPrevent is normalized above, so the installed subscription is a real
+  // reduceCost entry `costReductionFor` can sum — not a mode-less dead store.
+  const nestedCostModifier = (
+    action.actions as
+      | { kind?: string; event?: string; mode?: string; amount?: number; condition?: Condition }[]
+      | undefined
+  )?.find(
+    (a) =>
+      a.kind === "Replacement" && a.event === action.event && (a.mode === "reduceCost" || a.mode === "increaseCost"),
+  );
+  // When the prose compiler emits a Replacement with a cost but no explicit
+  // mode (e.g. BT18-082 "by trashing the bottom card of your security stack,
+  // it doesn't leave"), interpret it as "prevent" — a cost with empty actions
+  // can only mean prevention.
+  const mode =
+    action.mode ??
+    (nestedPrevent !== undefined
+      ? "prevent"
+      : nestedCostModifier !== undefined
+        ? nestedCostModifier.mode
+        : action.cost
+          ? "prevent"
+          : "instead");
+  let amount = action.amount ?? nestedCostModifier?.amount;
+  // Mutually-exclusive amount alternatives (EX6-006 "reduce by 3 ... reduce by 4 instead"):
+  // only ONE eligible entry ever installs — never both — because `costReductionFor` SUMS every
+  // active reduceCost subscription anchored to this permanent, so two simultaneously-installed
+  // amounts would silently stack.
+  if (mode === "reduceCost" && action.amountChoices && action.amountChoices.length > 0) {
+    const eligible = action.amountChoices.filter(
+      (choice) => choice.condition === undefined || evaluateCondition(ctx, choice.condition),
+    );
+    if (eligible.length === 0) return;
+    if (eligible.length === 1) {
+      amount = eligible[0]!.amount;
+    } else {
+      const chosen = await ctx.ask.chooseOption(
+        ctx,
+        eligible.map((choice) => choice.raw ?? `Reduce the play cost by ${choice.amount}.`),
+      );
+      amount = eligible[chosen]!.amount;
+    }
+  }
+  const preventCost = action.cost ?? nestedPrevent?.cost;
+  // A "prevent" leave/delete reaction: install a protects-predicate (which permanents it
+  // guards) + a preventCheck (prompt + pay the cost; true => the removal is prevented). The
+  // engine's leave-prevention consult runs these when a permanent would be deleted/leave.
+  if (mode === "prevent") {
+    const protectsSelf =
+      action.target === undefined || action.target.isSelf === true || action.target.filter?.isSelfRef === true;
+    const protectsFilter = action.target?.filter;
+    // The reaction's owner seat (whose permanents it protects). Used to gate the removal
+    // cause: "your effects" / "opponent's effect" are relative to this seat.
+    const ownerSeat = ctx.source.ownerSeat;
+    // sourceFilter.leaveReason="effect" is an alternative encoding of leaveCause:"byEffect"
+    // (used by cards like BT19-048 where the cause gate is embedded in the sourceFilter
+    // rather than the top-level leaveCause field). leaveCause wins when both are present.
+    const sourceleaveReason = action.sourceFilter?.leaveReason;
+    const leaveCause = action.leaveCause ?? (sourceleaveReason === "effect" ? "byEffect" : "any");
+    const exceptDeletion = action.exceptDeletion === true;
+    ctx.fx.subscribeReplacement({
+      event,
+      sourcePermanentId: self?.permanentId,
+      mode: "prevent",
+      affectsAll: action.affectsAll,
+      description: action.raw,
+      causeAllows: (cause, resolvingSeat, isBounce) => {
+        // "Can't leave EXCEPT by deletion" (EX6-044): a deletion (a non-bounce removal) is
+        // allowed through; only a move/bounce is prevented (KB EX6-044 Q3771).
+        if (exceptDeletion && !isBounce) return false;
+        switch (leaveCause) {
+          case "byOpponentEffect":
+            // Only an opponent's effect: removal must be effect-driven by a non-owner seat.
+            return cause === "byEffect" && resolvingSeat !== undefined && resolvingSeat !== ownerSeat;
+          case "otherThanYourEffect":
+            // Anything except the owner's own effect.
+            return !(cause === "byEffect" && resolvingSeat === ownerSeat);
+          case "byEffect":
+            return cause === "byEffect";
+          case "byBattle":
+            return cause === "byBattle";
+          case "otherThanBattle":
+            return cause !== "byBattle";
+          case "any":
+          default:
+            return true;
+        }
+      },
+      protects: (subCtx, leavingId) => {
+        if (protectsSelf) return subCtx.source.permanent()?.permanentId === leavingId;
+        const leaving = subCtx.game.permanentById(leavingId);
+        if (leaving === undefined || protectsFilter === undefined) return false;
+        // Controller gate ("any of YOUR Digimon"): permanentMatchesFilter checks definition
+        // facts only, not the seat, so a "mine"/"opponent" filter must be honored here against
+        // the leaving permanent's controller relative to the reaction's owner.
+        if (protectsFilter.controller === "mine" && leaving.controllerSeat !== ownerSeat) return false;
+        if (protectsFilter.controller === "opponent" && leaving.controllerSeat === ownerSeat) return false;
+        return permanentMatchesFilter(subCtx, leaving, protectsFilter, subCtx.source);
+      },
+      preventCheck: async (subCtx) => {
+        // "You may [pay cost] to prevent" — the cost is the gate. Decline => not prevented.
+        if (action.optional !== false) {
+          const yes = await subCtx.ask.optional(subCtx, `Prevent leaving the battle area? (${action.raw})`);
+          if (!yes) return false;
+        }
+        const runCtx: EffectContext =
+          action.requiresDelayArmed === true ? { ...subCtx, delayArmedConsumed: true } : subCtx;
+        if (action.requiresDelayArmed === true) {
+          const source = subCtx.source.permanent();
+          if (source === undefined) return false;
+          if (source.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
+          const hasDelay = (subCtx.fx.grantedKeywords?.(source.permanentId) ?? []).some((g) => g.keyword === "Delay");
+          if (!hasDelay) return false;
+          subCtx.fx.revokeKeyword?.(source.permanentId, "Delay");
+          const trashed = await subCtx.fx.deletePermanent([source.permanentId]);
+          if (trashed <= 0) return false;
+        }
+        // CAP-E14: an intrinsic ＜Delay＞ gate (`withIntrinsicDelayGate`, comprehensive rules
+        // §16-17) — the printed keyword's OWN cost, not the separate GainKeyword-armed model
+        // above. §16-17-3 bars activation the turn the card entered play; §16-17-1 makes
+        // trashing the source card (already asked as the "prevent?" confirm above) the cost.
+        if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
+          const source = subCtx.source.permanent();
+          if (source === undefined) return false;
+          if (source.enterFieldTurnCount === subCtx.game.state.turnCount) return false;
+          const trashed = await subCtx.fx.deletePermanent([source.permanentId]);
+          if (trashed <= 0) return false;
+        }
+        const preventCosts = action.costOptions ?? (preventCost ? [preventCost] : []);
+        if (preventCosts.length > 0) {
+          const paid = await payOneCostOption(subCtx, preventCosts);
+          if (!paid) return false;
+        }
+        for (const inner of action.actions ?? []) {
+          if (inner.kind === "Prevent") continue;
+          if (inner.kind === "GrantStatic" && isCannotLeavePlayGrant((inner as { grant?: unknown }).grant)) continue;
+          const abort = await runAction(runCtx, inner);
+          if (abort) break;
+        }
+        if (nestedPrevent?.condition !== undefined && !evaluateCondition(runCtx, nestedPrevent.condition)) {
+          return false;
+        }
+        return true;
+      },
+    });
+    return;
+  }
+  // The mode/amount hoist above lifts a nested reduceCost Replacement's own gate too — dropping
+  // it would install the cost reduction UNCONDITIONALLY. This is the one reduceCost path the
+  // engine actually consumes for digivolve costs (GameEngine's wouldDigivolve costReductionFor),
+  // so a dropped condition here silently discounts every digivolve, condition or not
+  // (P-117/BT13-049/BT13-050/EX2-026/BT14-044's "you have a [green] Tamer" gate).
+  if (
+    mode === "reduceCost" &&
+    nestedCostModifier?.condition !== undefined &&
+    !evaluateCondition(ctx, nestedCostModifier.condition)
+  ) {
+    return;
+  }
+  const intoFilter = action.into;
+  if (mode === "reduceCost" || mode === "increaseCost") {
+    const interactiveCost = action.cost;
+    const ownerSeat = ctx.source.ownerSeat;
+    ctx.fx.subscribeReplacement({
+      event,
+      sourcePermanentId: self?.permanentId,
+      mode: "reduceCost",
+      amount: mode === "increaseCost" ? -(amount ?? 0) : amount,
+      description: action.raw,
+      digisorptionRedirect: action.digisorptionRedirect,
+      // "when this Digimon would digivolve INTO a card with [X] trait/name": restrict the
+      // cost reduction to only when the digivolution target satisfies the into-filter.
+      intoMatches: intoFilter !== undefined ? (def) => definitionMatches(intoFilter, def) : undefined,
+      ...(mode === "increaseCost"
+        ? {
+            appliesTo: (target: Permanent) => {
+              // A Tamer used through a Hybrid "as if level 3 Digimon" path is the Digimon
+              // that would digivolve for this reaction (EX3-016 Q3382/Q3383). The action verb
+              // has already established that special identity, so do not reject it merely
+              // because its printed CardKind is Tamer at this lower cost seam.
+              const { kind: _digivolvingKind, ...filter } = action.sourceFilter ?? {};
+              return permanentMatchesFilter(ctx, target, filter, ctx.source);
+            },
+          }
+        : {}),
+      ...(interactiveCost !== undefined
+        ? {
+            controllerSeat: ownerSeat,
+            appliesTo: (target: Permanent) =>
+              target.controllerSeat === ownerSeat &&
+              !target.inBreeding &&
+              permanentMatchesFilter(ctx, target, action.sourceFilter ?? {}, ctx.source),
+            activate: async (runtimeCtx: EffectContext) => {
+              if (action.optional !== false) {
+                const accepted = await runtimeCtx.ask.optional(
+                  runtimeCtx,
+                  action.raw ?? "Pay the cost to reduce the digivolution cost?",
+                );
+                if (!accepted) return false;
+              }
+              if (
+                interactiveCost.kind === "suspend" &&
+                (interactiveCost.target?.isSelf === true || interactiveCost.target?.filter.isSelfRef === true)
+              ) {
+                return self !== undefined && runtimeCtx.fx.payActivationCost?.(self.permanentId, "suspend") === true;
+              }
+              return payCost(runtimeCtx, interactiveCost);
+            },
+            consumeOnActivate: true,
+          }
+        : {}),
+    });
+    return;
+  }
+  // mode === "instead": a substitute side effect the leave-prevention consult runs alongside
+  // (not instead of, despite the name — see ReplacementInstallInstead's doc comment) the
+  // event; it never itself blocks the removal.
+  ctx.fx.subscribeReplacement({
+    event,
+    sourcePermanentId: self?.permanentId,
+    mode: "instead",
+    description: action.raw,
+    digisorptionRedirect: action.digisorptionRedirect,
+    causeAllows: (cause) => {
+      switch (action.leaveCause ?? "any") {
+        case "byBattle":
+          return cause === "byBattle";
+        case "byEffect":
+          return cause === "byEffect";
+        case "otherThanBattle":
+          return cause !== "byBattle";
+        case "any":
+          return true;
+        default:
+          return true;
+      }
+    },
+    appliesTo: (_subCtx, leavingPermanentId) => {
+      const candidate = _subCtx.game.permanentById(leavingPermanentId);
+      if (candidate === undefined) return false;
+      const filter = action.sourceFilter ?? action.target?.filter;
+      if (filter !== undefined) {
+        if (filter.controller === "mine" && candidate.controllerSeat !== ctx.source.ownerSeat) return false;
+        if (filter.controller === "opponent" && candidate.controllerSeat === ctx.source.ownerSeat) return false;
+        if (!permanentMatchesFilter(_subCtx, candidate, filter, _subCtx.source)) return false;
+      }
+      if (intoFilter !== undefined) {
+        const intoCardId = _subCtx.trigger.digivolvingIntoCardId;
+        const into = intoCardId === undefined ? undefined : getCardDefinition(intoCardId);
+        if (into === undefined || !definitionMatches(intoFilter, into)) return false;
+      }
+      return true;
+    },
+    apply: async (subCtx) => {
+      for (const a of action.actions ?? []) {
+        const abort = await runAction(subCtx, a);
+        if (abort) break;
+      }
+    },
+  });
+}
+
+export async function runPrevent(ctx: EffectContext, action: Extract<Action, { kind: "Prevent" }>): Promise<void> {
+  const event = action.mode === "delete" ? "wouldBeDeleted" : "wouldLeavePlay";
+  await runReplacement(ctx, {
+    ...action,
+    kind: "Replacement",
+    event,
+    mode: "prevent",
+    raw: action.raw ?? "legacy Prevent",
+  });
+}
