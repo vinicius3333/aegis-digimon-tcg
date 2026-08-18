@@ -18336,6 +18336,76 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         0,
         "Arata gained memory with an Unidentified Digimon in trash, suspends for Diaboromon Token effects, and plays from security.",
       );
+    if (cardId === "BT5-091")
+      return effectBt3Demo(
+        cardId,
+        "Takumi Aiba",
+        0,
+        "Takumi made level 3 Digimon lose 1 memory when they attacked and could draw when a Tamer was played.",
+      );
+    if (cardId === "BT5-092")
+      return effectBt3Demo(
+        cardId,
+        "Nokia Shiramine",
+        0,
+        "Nokia could play an Agumon for free, reduce a qualifying Greymon digivolution cost, and plays from security.",
+      );
+    if (cardId === "BT5-093")
+      return effectBt3Demo(
+        cardId,
+        "Tai Kamiya & Matt Ishida",
+        0,
+        "Tai & Matt gained 2 memory when the opponent had a level 6 or higher Digimon, boost Omnimon, and play from security.",
+      );
+    if (cardId === "BT5-094")
+      return effectBt3Demo(
+        cardId,
+        "Rowdy Rocker",
+        0,
+        "Rowdy Rocker placed a red level 4 or lower card under a Digimon, then drew 2, and adds itself from security.",
+      );
+    if (cardId === "BT5-095")
+      return effectBt3Demo(
+        cardId,
+        "Transcendent Sword",
+        0,
+        "Transcendent Sword deleted Digimon up to its DP ceiling, with a higher ceiling when Omnimon or a qualifying Greymon was present.",
+      );
+    if (cardId === "BT5-096")
+      return effectBt3Demo(
+        cardId,
+        "Supreme Cannon",
+        0,
+        "Supreme Cannon returned opposing Digimon at the DP threshold and trashed their sources, with a higher threshold alongside Garurumon.",
+      );
+    if (cardId === "BT5-097")
+      return effectBt3Demo(
+        cardId,
+        "Absolute Blast",
+        0,
+        "Absolute Blast trashed a bottom source and bottom-decked an opponent with no sources.",
+      );
+    if (cardId === "BT5-098")
+      return effectBt3Demo(
+        cardId,
+        "Meteor Shower",
+        0,
+        "Meteor Shower played a yellow Starmon-named Digimon from hand for free, including from security.",
+      );
+    if (cardId === "BT5-099")
+      return effectBt3Demo(
+        cardId,
+        "Spiral Masquerade",
+        0,
+        "Spiral Masquerade gave -3000 DP separately for each Digimon you controlled, including its Security effect.",
+      );
+    if (cardId === "BT5-100")
+      return effectBt3Demo(
+        cardId,
+        "Royal Nuts",
+        0,
+        "Royal Nuts revealed five cards, added one Digisorption Digimon, and placed the rest at the bottom; it adds itself from security.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
