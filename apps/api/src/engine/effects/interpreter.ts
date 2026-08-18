@@ -2701,6 +2701,19 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
         return ctx.source.permanent()?.isSuspended === true;
       }
       {
+        // Multicolor inherited conditions (BT16-001–004 and peers) refer to the
+        // host Digimon's effective colors, including continuous color grants.
+        const m = /this Digimon has (\d+) or more colors/i.exec(cond.raw ?? "");
+        if (m) {
+          const self = ctx.source.permanent();
+          const top = self?.topCard;
+          if (self === undefined || top === undefined) return false;
+          const definition = ctx.game.definitionOf(top);
+          const colors = ctx.game.effectiveColors?.(self) ?? definition.colors;
+          return new Set(colors).size >= Number(m[1]);
+        }
+      }
+      {
         const m = /this Digimon is \[([^\]]+)\]/i.exec(cond.raw ?? "");
         if (m) {
           const self = ctx.source.permanent();

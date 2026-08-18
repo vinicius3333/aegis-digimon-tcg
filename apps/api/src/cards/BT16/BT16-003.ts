@@ -10,6 +10,16 @@ const compiled: CompiledCard = {
     {
       "trigger": "OpponentsTurn",
       "actions": [],
+      "keywords": [
+        {
+          "keyword": "Blocker",
+          "raw": "＜Blocker＞"
+        }
+      ],
+      "condition": {
+        "kind": "raw",
+        "raw": "this Digimon has 2 or more colors"
+      },
       "isInherited": true
     }
   ],

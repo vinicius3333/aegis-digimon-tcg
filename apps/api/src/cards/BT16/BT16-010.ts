@@ -43,8 +43,7 @@ const compiled: CompiledCard = {
             },
             "raw": "By deleting this Digimon"
           },
-          "optional": true,
-          "abortOnDecline": true
+          "optional": false
         }
       ]
     },
