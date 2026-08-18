@@ -10128,6 +10128,33 @@ function angemonBt3Demo(effect: string | null): CardEffectsFixture {
   };
 }
 
+function airdramonBt3Demo(_effect: string | null): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 7;
+  state.turnSeat = 1;
+  state.memory = 0;
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  you.battleArea.push(permanent("demo-bt3-024-airdramon", "BT3-024", 0, 4000));
+  opponent.battleArea.push(permanent("demo-bt3-024-attacker", "BT1-057", 1, 5000));
+  state.players.push(you, opponent);
+  return {
+    state,
+    events: [
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: "BT3-024",
+        effectKey: "BT3-024/security",
+        description: "Airdramon was played from Security without paying its memory cost at the end of battle.",
+        timing: "Security",
+      },
+    ],
+  };
+}
+
 function silphymonBt3Demo(effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
@@ -16087,6 +16114,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
     if (cardId === "BT3-021") return veemonBt3Demo(effect);
     if (cardId === "BT3-022") return penguinmonBt3Demo(effect);
     if (cardId === "BT3-023") return angemonBt3Demo(effect);
+    if (cardId === "BT3-024") return airdramonBt3Demo(effect);
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
