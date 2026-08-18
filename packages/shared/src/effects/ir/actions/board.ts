@@ -12,7 +12,7 @@ export interface HandManipulationAction extends ActionBase {
   op: "trashVariable";
   controller?: Controller;
   amount: number | "variable";
-  /** Who picks which hand card(s) are trashed. See `TrashAction.chooser` for the full rationale. */
+  /** See `TrashAction.chooser` for the full rationale. */
   chooser?: "controller" | "opponent";
 }
 
@@ -20,47 +20,42 @@ export interface SuspendAction extends ActionBase {
   kind: "Suspend";
   target: Target;
   /**
-   * When set, the interpreter stores the number of permanents actually suspended
-   * (truely affected, not just targeted) under this name in `EffectContext.namedCounts`
-   * so a subsequent `RepeatPerCount` action can loop that many times (BT2-041).
+   * Store how many permanents were actually suspended — not merely targeted — so a following
+   * `RepeatPerCount` can loop that many times (BT2-041).
    */
   trackCount?: string;
   /**
-   * Bind the ids actually suspended under this name in `EffectContext.boundPlayed`, so a later
-   * action can reference "the Digimon this effect suspended" (mirrors `Return`/`PlayFromZone`).
-   * Unlike the `sameTarget` workaround (which reuses `lastResolvedPermanentIds`), a real bind is
-   * empty when suspension resolves 0 permanents — the downstream restriction then applies to
-   * nothing, matching KB Q4791/Q4792 (EX9-037/038, BT9-056 edge case).
+   * Bind the suspended ids in `EffectContext.boundPlayed` so a later action can reference "the
+   * Digimon this effect suspended". Unlike the `sameTarget` workaround, which reuses
+   * `lastResolvedPermanentIds`, a real bind is EMPTY when 0 permanents are suspended, so the
+   * downstream restriction applies to nothing — matching KB Q4791/Q4792 (EX9-037/038, BT9-056).
    */
   bindResultAs?: string;
 }
 
 /**
- * Execute a nested `action` once for each unit stored in the named counter written
- * by a prior `trackCount` action (BT2-041: repeat ModifyDP once per suspended Tamer).
- * Each iteration performs independent target selection ("a SEPARATE activation per
- * Tamer" — KB Q1014). `countSource` is the same name used in the prior `trackCount`.
+ * Run a nested action once per unit in the counter a prior `trackCount` wrote (BT2-041: repeat
+ * ModifyDP once per suspended Tamer). Each iteration selects targets independently — "a SEPARATE
+ * activation per Tamer" (KB Q1014).
  */
 export interface RepeatPerCountAction extends ActionBase {
   kind: "RepeatPerCount";
-  /** Name written by the prior `trackCount` action in `EffectContext.namedCounts`. */
+  /** The name written by the prior `trackCount`. */
   countSource: string;
-  /** Alternatively derive the repeat count directly from the current board/zones. */
+  /** Alternatively derive the repeat count from the current board. */
   countFilter?: Filter;
-  /** The action to execute on each iteration (independent target selection per loop). */
   action: Action;
 }
 
 /**
- * Move a whole permanent (top card + digivolution stack + linked cards) across the
- * breeding/battle boundary as a card EFFECT — NOT the once-per-turn breeding-phase
- * player action. The permanent keeps its identity, stack, linked cards, and suspended
- * state; digivolution cards are NOT trashed and ＜Overflow＞ is NOT processed
- * (Comprehensive Rules §4-16 "Moving"; KB P-143 Q4250/Q4251/Q4256/Q4257, P-130 Q4242).
- *   - "toBreeding": the (self) target leaves the battle area for the empty breeding slot
- *     (P-143 [End of Your Turn]). `target` is the self permanent.
- *   - "toBattle": a chosen breeding-area Digimon moves to the battle area (P-130 [On
- *     Play]); `target` carries the eligibility filter (your breeding Digimon, level ≥ 3).
+ * Move a whole permanent — top card, digivolution stack, and linked cards — across the
+ * breeding/battle boundary as a card EFFECT, not the once-per-turn breeding-phase player action.
+ * Identity, stack, linked cards, and suspended state survive; digivolution cards are not trashed
+ * and ＜Overflow＞ is not processed (Comprehensive Rules §4-16; KB P-143 Q4250/Q4251/Q4256/Q4257,
+ * P-130 Q4242).
+ *
+ * `"toBreeding"` sends the self target to the empty breeding slot (P-143). `"toBattle"` brings a
+ * chosen breeding Digimon out, with `target` carrying the eligibility filter (P-130).
  */
 export interface MovePermanentAction extends ActionBase {
   kind: "MovePermanent";
@@ -69,11 +64,10 @@ export interface MovePermanentAction extends ActionBase {
 }
 
 /**
- * "Hatch a Digi-Egg" as a card EFFECT (BT8-091 [On Play]): flip the top card of the
- * controller's Digi-Egg deck into the EMPTY breeding slot as a fresh permanent
- * (Comprehensive Rules §4-17-1). The interpreter resolves this through the `hatch`
- * primitive (the Digi-Egg-deck seam `placeUnder`/loose-card helpers cannot serve).
- * No target — hatching is always into the controller's own breeding area.
+ * "Hatch a Digi-Egg" as a card EFFECT (BT8-091): flip the top Digi-Egg-deck card into the EMPTY
+ * breeding slot as a fresh permanent (Comprehensive Rules §4-17-1). Resolved through the `hatch`
+ * primitive, since the Digi-Egg-deck `placeUnder`/loose-card helpers cannot serve. Always into the
+ * controller's own breeding area, so there is no target.
  */
 export interface HatchAction extends ActionBase {
   kind: "Hatch";
@@ -87,17 +81,17 @@ export interface UnsuspendAction extends ActionBase {
 export interface ModifyDPAction extends ActionBase {
   kind: "ModifyDP";
   target: Target;
-  amount: number; // signed
+  /** Signed. */
+  amount: number;
   duration: EffectDurationRef;
   /** Override continuous-pass inference for audited edge cases with a triggered duration. */
   continuous?: boolean;
 }
 
 /**
- * Suspend a Digimon as an activation cost, then add that Digimon's current DP
- * to the target for the current attack and grant any listed attack keywords.
- * This is the declarative form of Alliance-like "adds the suspended Digimon's
- * DP" effects (EX4-029/035/054).
+ * Suspend a Digimon as an activation cost, then add that Digimon's current DP to the target for
+ * the current attack and grant any listed attack keywords — the declarative form of Alliance-like
+ * effects (EX4-029/035/054).
  */
 export interface AddDPFromSuspendedCostAction extends ActionBase {
   kind: "AddDPFromSuspendedCost";
@@ -109,17 +103,15 @@ export interface AddDPFromSuspendedCostAction extends ActionBase {
 }
 
 /**
- * Set a permanent's ORIGINAL/base DP to an absolute value (distinct from the
- * signed-delta ModifyDP). The override REPLACES the printed base DP; signed DP
- * deltas from other effects layer on top of it, and between competing overrides
- * the most recently applied wins. KB: BT3-014 Q1056/Q1057 ("treated as 1000 DP",
- * a coexisting -1000 → 0 → deletion), BT22-007 Q4864 (16000 then -3000 → 13000),
- * Q4865 (a later original-DP override of 3000 → 3000).
+ * Set a permanent's base DP to an absolute value, unlike the signed-delta ModifyDP. The override
+ * REPLACES the printed base; signed deltas layer on top, and the most recent override wins.
+ * KB BT3-014 Q1056/Q1057 ("treated as 1000 DP", a coexisting -1000 → 0 → deletion),
+ * BT22-007 Q4864 (16000 then -3000 → 13000), Q4865 (a later override of 3000 → 3000).
  */
 export interface SetBaseDPAction extends ActionBase {
   kind: "SetBaseDP";
   target: Target;
-  value: number; // absolute base DP
+  value: number;
   duration: EffectDurationRef;
 }
 
@@ -129,29 +121,27 @@ export interface GainKeywordAction extends ActionBase {
   keyword: KeywordRef;
   duration: EffectDurationRef;
   /**
-   * How many times the keyword is granted to each target. Defaults to 1.
-   * Used by BT19-091 ("gains ＜Alliance＞ twice") — each extra grant adds one
-   * additional security check when the keyword is Alliance.
+   * How many times each target gains the keyword; default 1. BT19-091 "gains ＜Alliance＞ twice"
+   * — each extra Alliance grant adds one more security check.
    */
   count?: number;
   /**
-   * Keep the grant active only while its recipient continues to match the original
-   * target filter. Used by effects such as Beast Cyclone: losing Blocker/Reboot after
-   * digivolution also removes the granted Security Attack bonus (KB Q1144).
+   * Keep the grant only while its recipient still matches the original target filter. Beast
+   * Cyclone: losing Blocker/Reboot after digivolution also drops the granted Security Attack
+   * bonus (KB Q1144).
    */
   whileMatchesTargetFilter?: boolean;
 }
 
-/** "Add this card to its owner's hand" (self), e.g. a security card returning to hand. */
+/** "Add this card to its owner's hand", e.g. a security card returning to hand. */
 export interface AddToHandSelfAction extends ActionBase {
   kind: "AddToHandSelf";
 }
 
-/** "Place this card in the battle area" (self), e.g. a security Digimon entering play. */
+/** "Place this card in the battle area", e.g. a security Digimon entering play. */
 export interface PlaceInBattleAreaSelfAction extends ActionBase {
   kind: "PlaceInBattleAreaSelf";
-  /** Zone to place the card from/to. */
   zone?: string;
-  /** Target specification (alternative to self). */
+  /** Alternative to acting on self. */
   target?: Target;
 }

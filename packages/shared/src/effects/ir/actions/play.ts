@@ -8,79 +8,57 @@ export interface PlayWithoutCostAction extends ActionBase {
   kind: "PlayWithoutCost";
   /** What is played; `isSelf` for "play this card". */
   target: Target;
-  /** From where, when stated ("from your hand or trash", "from security"). */
+  /** "from your hand or trash", "from security". */
   from?: ZoneRef[];
   payCost: boolean;
   /**
-   * Reduce the paid play cost by N when `payCost` is true ("you may play this card with the play
-   * `card.Owner.UntilCalculateFixedCostEffect` for the duration of this one play). Folded INTO the
-   * play verb (NOT a standalone CostModifier construct), floored at 0. Ignored when `payCost` is
-   * false (a free play has nothing to reduce).
+   * Reduce the paid cost when `payCost` is true. Folded INTO the play verb rather than being a
+   * standalone CostModifier, and floored at 0. Ignored for a free play.
    */
   reduceCostBy?: number;
   /**
-   * Source the played cards from the SOURCE permanent's OWN digivolution stack only — not every
-   * battle-area permanent's stack (BT22-007 "play 3 [Mother Eater]s from ITS digivolution cards";
-   * KB Q4858/Q4859/Q4860 "play 3 or as many as possible, up to 3"). `target.count` caps how many
-   * (3 here) and is satisfied as-many-as-possible. The generic `from:["digivolutionCards"]` path
-   * scans ALL permanents' stacks, so this scoped flag is required for a {Breeding} source whose
-   * own stack is the pool. Mutually exclusive with `from`.
+   * Source the played cards from the SOURCE permanent's OWN stack, not every permanent's
+   * (BT22-007; KB Q4858/Q4859/Q4860 "play 3 or as many as possible"). `target.count` caps how
+   * many and is satisfied as-many-as-possible. Required because the generic
+   * `from:["digivolutionCards"]` path scans ALL stacks. Mutually exclusive with `from`.
    */
   fromOwnDigivolutionStack?: boolean;
-  /**
-   * Play the resolved card(s) entering SUSPENDED (rested) rather than active — "play ... suspended"
-   * (BT7-063's would-be-deleted SkullKnightmon/DeadlyAxemon enter suspended). Passed through to the
-   * play verb, which rests the placed permanent. Default (absent/false) enters active.
-   */
+  /** Play entering SUSPENDED rather than active (BT7-063). Default enters active. */
   suspended?: boolean;
   /**
-   * Play the resolved card(s) to the controller's BREEDING area instead of the battle area
-   * (EX5-040's effect-driven breeding play; Comprehensive Rules §4-17-1). Gated: only
-   * Digimon/DigiEgg cards are breeding-playable (§6-4), and the breeding slot must be empty
-   * (single-occupancy — an occupied slot is a no-op, not a throw).
+   * Play to the BREEDING area instead of the battle area (EX5-040; Comprehensive Rules §4-17-1).
+   * Only Digimon/DigiEgg cards are breeding-playable (§6-4), and an occupied slot makes this a
+   * no-op rather than a throw.
    */
   breeding?: boolean;
-  /** Cost reduction amount (alternative to reduceCostBy). */
+  /** Alternative to `reduceCostBy`. */
   costReduction?: number;
-  /** Suppress [On Play] effects of cards played by this action. */
   suppressOnPlayEffects?: boolean;
-  /** Source filter for played cards (alternative to target). */
+  /** Alternative to `target`. */
   source?: Filter;
-  /** Cost modifier specification. */
   costModifier?: { amount: number; [key: string]: unknown };
   /**
-   * Exclude candidates whose card name already appears among the controller's cards in the listed
+   * Drop candidates whose `nameEn` already appears among the controller's cards in the listed
    * zones — "play 1 [Deva] Digimon card ... without the same name as cards in the battle area or
-   * trash" (EX5-001..012 Deva Security effects). A deduplication filter: any candidate whose
-   * `nameEn` matches the name of an existing battle-area permanent (top card) and/or trash card for
-   * the controller is dropped from the offerable/playable pool. Compared by `nameEn`.
+   * trash" (EX5-001..012). Battle-area names are read from the top card.
    */
   notSameNameAs?: ("battleArea" | "trash")[];
   /**
-   * Before resolving the play, verify the named zone is empty (contains no cards/permanents).
-   * If the zone is non-empty, the action is skipped entirely — "play ... to your EMPTY breeding
-   * area" (BT18-101 WhenDigivolving: play Lucemon: Larva to breeding area only when slot is free).
-   * Supported zones: "breedingArea" (maps to the controller's breeding slot).
+   * Skip the action entirely unless the named zone is empty — "play ... to your EMPTY breeding
+   * area" (BT18-101). Only "breedingArea" is supported.
    */
   requiresEmpty?: "breedingArea";
   /**
-   * The play is only offered while the SOURCE permanent has an active `＜Delay＞` keyword grant,
-   * and the grant is consumed (removed) on resolution — "armed on one turn, fires on another"
-   * semantics (P-243 [Start of Your Turn] play-from-trash). When set, `runAction` checks
-   * `ctx.fx.grantedKeywords(permanentId)` for a `Delay` entry before proceeding; off-field
-   * sources unconditionally skip. Pairs with `notEnteredThisTurn` (the standard `＜Delay＞`
-   * option gate) and `GainKeyword(Delay)` as the arming write.
+   * Offered only while the source has an active ＜Delay＞ grant, which resolution consumes:
+   * armed on one turn, fires on another (P-243). Off-field sources always skip. Pairs with
+   * `notEnteredThisTurn` and `GainKeyword(Delay)` as the arming write.
    */
   requiresDelayArmed?: true;
   /**
-   * Dynamically adjusts the `dp.value` ceiling on the play target filter before
-   * resolving candidates. `mode: "lowerCeiling"` reduces the ceiling, `"raiseCeiling"`
-   * increases it, by `amount × scaledCount`. `scaledCount` comes from either:
-   *   - `scalingSource`: a value stored in `EffectContext.namedCounts` (written by a
-   *     prior Trash action's `trackCount`) — CAP-E13, BT20-077.
-   *   - `scaling`: a live board count via the standard `Scaling` filter (e.g. "for each
-   *     suspended Digimon") — EX11-032.
-   * If the adjusted ceiling is ≤ 0 the candidate pool is empty and no card can be played.
+   * Adjust the target filter's `dp.value` ceiling by `amount × scaledCount` before resolving
+   * candidates. `scaledCount` comes from `scalingSource` (a `namedCounts` value written by a
+   * prior Trash `trackCount` — CAP-E13, BT20-077) or from a live `scaling` count (EX11-032).
+   * A ceiling <= 0 leaves the pool empty.
    */
   dpCeilingModifier?: {
     mode: "lowerCeiling" | "raiseCeiling";
@@ -89,13 +67,10 @@ export interface PlayWithoutCostAction extends ActionBase {
     scaling?: Scaling;
   };
   /**
-   * Dynamically raises the `playCostLte` ceiling on the play target filter before resolving
-   * candidates. `base` is the starting ceiling (overrides the filter's static `playCostLte`
-   * when specified). For every `per` cards matching `filter` (across specified zones/controllers),
-   * `raise` is added to the ceiling.
-   * Final ceiling = `base + Math.floor(totalMatchingCards / per) * raise`.
-   * When `filter.zone === "trash"` and `filter.controller === "both"`, both players' trashes are
-   * counted. (CAP-E16, BT21-079)
+   * Raise the target filter's `playCostLte` before resolving candidates:
+   * `base + floor(matchingCards / per) * raise`. `base` overrides the filter's static
+   * `playCostLte`. With `filter.zone === "trash"` and `filter.controller === "both"`, both
+   * players' trashes count (CAP-E16, BT21-079).
    */
   playCostCeiling?: {
     base: number;
@@ -106,17 +81,16 @@ export interface PlayWithoutCostAction extends ActionBase {
     raw?: string;
   };
   /**
-   * Bind the ids of the permanents actually played under this name in `EffectContext.boundPlayed`,
-   * so a later action can reference "the Digimon this effect played" (mirrors `PlayFromZone`).
-   * BT16-015: `Delete.target.filter.dp.valueFrom` compares an opponent's DP against the DP of the
-   * Digimon this effect played.
+   * Bind the played permanent ids in `EffectContext.boundPlayed` so a later action can reference
+   * "the Digimon this effect played" — BT16-015 compares an opponent's DP against it via
+   * `Delete.target.filter.dp.valueFrom`.
    */
   bindResultAs?: string;
 }
 
 /**
- * Play any number of matching cards without paying the cost, capped by total printed play cost.
- * Used for effects like "play any number of [X] with play costs totaling N or less".
+ * Play any number of matching cards for free, capped by total printed play cost ("play any number
+ * of [X] with play costs totaling N or less").
  */
 export interface PlayMultipleAction extends ActionBase {
   kind: "PlayMultiple";
@@ -124,99 +98,76 @@ export interface PlayMultipleAction extends ActionBase {
   filter: Filter;
   from: ZoneRef | ZoneRef[] | "digivolution";
   payCost: boolean;
-  /** Suppress [On Play] effects of cards played by this action. */
   suppressOnPlayEffects?: boolean;
 }
 
 /**
- * Play a card from a specified zone with an optional cost reduction (CAP-A10, BT19-099).
- * Resolves a matching card from `from` zone(s), reduces the play cost by `costReduction`
- * (floored at 0) when `payCost` is true, or plays for free when `payCost` is false.
- * When the filter carries `playCost.relativeToLeavingDigimon`, the target's printed play cost
- * must equal the triggering leaving Digimon's playCost plus that offset (resolved at runtime).
+ * Play a card from a specified zone with an optional cost reduction (CAP-A10, BT19-099). When the
+ * filter carries `playCost.relativeToLeavingDigimon`, the target's printed cost must equal the
+ * triggering leaving Digimon's cost plus that offset, resolved at run time.
  */
 export interface PlayFromZoneAction extends ActionBase {
   kind: "PlayFromZone";
-  /** What to play; resolved across the `from` zones by the filter. */
   target: Target;
-  /** Zone(s) to source candidates from (e.g. ["trash"], ["hand","trash"]). */
   from: ZoneRef[];
-  /**
-   * Cost reduction applied to the printed play cost (floored at 0). Ignored when `payCost` is false.
-   * Defaults to 0 when absent (full cost).
-   */
+  /** Floored at 0, default 0. Ignored when `payCost` is false. */
   costReduction?: number;
   /**
-   * A DYNAMIC cost reduction scoped to THIS play, computed as `scaleFactor(scaling)` — "reduce this
-   * effect's paid play cost by 1 for each of your face-up security cards" (EX11-034, Royal Base;
-   * cf. BT19-096). Added to the static `costReduction` and floored at 0. Ignored when `payCost` is
-   * false. Distinct from a board-wide CostModifier: it applies only to this accompanying play.
+   * A DYNAMIC reduction scoped to THIS play, `scaleFactor(scaling)` added to `costReduction` and
+   * floored at 0 (EX11-034; cf. BT19-096). Unlike a board-wide CostModifier it applies only here.
    */
   costReductionScaling?: Scaling;
-  /**
-   * True → player pays the reduced cost; false → free play.
-   * Defaults to true (cost paid) when absent.
-   */
+  /** Default true. */
   payCost?: boolean;
-  /** True when the player may decline to play anything (0 selected is valid). */
+  /** The player may decline; 0 selected is valid. */
   optional?: boolean;
-  /** Suppress [On Play] effects of cards played by this action. */
   suppressOnPlayEffects?: boolean;
-  /**
-   * Store the permanent id(s) actually played under this name in `EffectContext.boundPlayed`,
-   * so a downstream action can reference the exact card(s) this play resolved.
-   */
+  /** Store the played permanent id(s) in `EffectContext.boundPlayed` for downstream reference. */
   bindResultAs?: string;
 }
 
 /**
- * "By returning N levels' total worth of Digimon cards from <cost.target>, play 1 matching card
- * of each returned card's level from <playFilter> without paying the cost."
+ * "By returning N levels' total worth of Digimon cards, play 1 matching card of each returned
+ * card's level without paying the cost."
  *
- * Semantics (BT20-098 errata):
- * 1. Pay cost: select Digimon from `cost.target` whose levels sum to exactly `cost.target.totalLevels`.
- *    Return them to bottom of deck.
- * 2. For each returned card at level L, play 1 card matching `playFilter` AND level L from trash
- *    without paying its cost (`payCost: false`).
- * 3. Bind the set of played permanentIds under `bindResultAs` so downstream actions can reference
- *    them via `Filter.boundRef`.
+ * Per the BT20-098 errata: the paid selection's levels must sum to EXACTLY
+ * `cost.target.totalLevels` and the cards go to the deck bottom; then, for each returned card at
+ * level L, one card matching `playFilter` at level L is played free from trash. The played
+ * permanent ids bind under `bindResultAs` for a downstream `Filter.boundRef`.
  */
 export interface PlayPerLevelAction extends ActionBase {
   kind: "PlayPerLevel";
   cost: Cost;
-  /** Filter on which cards may be played (zone + kind + name/trait). */
+  /** Zone + kind + name/trait predicate on the playable cards. */
   playFilter: Filter;
-  /** When true, each played card's level must equal the corresponding returned card's level. */
+  /** Each played card's level must equal the corresponding returned card's. */
   matchLevel: boolean;
   payCost: boolean;
-  /** Store the set of played permanentIds under this name for downstream `filter.boundRef` use. */
   bindResultAs?: string;
-  /** Suppress [On Play] effects of cards played by this action. */
   suppressOnPlayEffects?: boolean;
 }
 
 /** "Play N [X] Token(s) without paying the cost". */
 export interface PlayTokenAction extends ActionBase {
   kind: "PlayToken";
-  /** Token name tokens (from `[X]` refs). */
+  /** Token name tokens from `[X]` refs. */
   tokens: string[];
   count: number;
   payCost: boolean;
-  /** Single token name (alternative to tokens array). */
+  /** Alternative to `tokens`. */
   token?: string;
-  /** Single count (alternative to `count`). */
+  /** Alternative to `count`. */
   amount?: number;
   /**
-   * Which seat activates the play (attribution only; does NOT change where the token is placed).
-   * Placement side is controlled by `placedAs`. Absent => the source's controller.
+   * Which seat activates the play — attribution only. Placement is `placedAs`. Absent means the
+   * source's controller.
    */
   controller?: "mine" | "opponent";
   /**
-   * Place the token as the OPPONENT's permanent even though the source's controller activates the
-   * effect — "they play 1 [Petrification] Token" (EX11-012, KB Q5800). Absent => placed under the
-   * source's controller.
+   * Place the token as the OPPONENT's permanent even though the source's controller activates it
+   * — "they play 1 [Petrification] Token" (EX11-012, KB Q5800).
    */
   placedAs?: "opponentDigimon";
-  /** Play the token already suspended (e.g., "play 1 [Diaboromon] Token suspended"). */
+  /** Play the token already suspended. */
   suspended?: boolean;
 }
