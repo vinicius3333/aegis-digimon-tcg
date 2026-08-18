@@ -1,0 +1,59 @@
+// DNA digivolution, App Fusion, and Assembly prerequisites.
+
+/**
+ * A DNA-digivolve (Jogress) prerequisite from the "DNA Digivolution: N from <colorA> Lv.<a> +
+ * <colorB> Lv.<b>" header. A structural play-legality field, not a parse hint.
+ */
+export interface DnaDigivolveRequirement {
+  cost: number;
+  /** The material specs, in stated order. */
+  materials: {
+    color?: "Red" | "Blue" | "Yellow" | "Green" | "White" | "Black" | "Purple";
+    level?: number;
+    names?: string[];
+    traits?: string[];
+  }[];
+}
+
+/**
+ * An App Fusion prerequisite from the "[App Fusion] [A] & [B]: Cost N" header. A structural
+ * play-legality field, not a parse hint.
+ */
+export interface AppFusionRequirement {
+  /** Required material card names, e.g. ["Logamon", "Timemon"]. */
+  names: string[];
+  cost: number;
+}
+
+/** One Assembly material slot: `count` cards matching `names`/`traits`. */
+export interface AssemblyMaterial {
+  names?: string[];
+  traits?: string[];
+  level?: number;
+  levelMax?: number;
+  levelMin?: number;
+  /**
+   * Disjunction ACROSS predicate kinds ("[Agumon]/[Greymon] in name OR [ME]/[VB] trait" —
+   * EX12-016/-017; "[Chronomon] in text OR [TS] trait" — BT26-073). An "or" joining tokens of
+   * the SAME kind folds into the already OR-matched `traits`/`names` arrays instead.
+   */
+  nameOrTrait?: { tokens: string[]; match: "name" | "nameExact" | "trait" | "text" | "any" }[];
+  /** Original selectMessage label when it is not a plain card name. */
+  desc?: string;
+  /** Default 1. */
+  count: number;
+  /** Cross-material constraint: no two placed materials may share a level. */
+  differentLevels?: boolean;
+  /** Cross-material constraint: no two placed materials may share a name (EX12-060, EX12-076). */
+  differentNames?: boolean;
+}
+
+/**
+ * The alternate-play path that assembles named material Digimon at a reduced cost. A structural
+ * play-legality field, not a parse hint.
+ */
+export interface AssemblyRequirement {
+  materials: AssemblyMaterial[];
+  /** Default 0. */
+  reduceCost: number;
+}

@@ -1,9 +1,10 @@
 // Deleting, trashing, and returning cards.
 
-import type { ActionBase } from "./base.js";
 import type { EffectDurationRef } from "../durations.js";
-import type { Controller, Filter, Target, ZoneRef } from "../filters.js";
-import type { Scaling } from "../predicates.js";
+import type { Filter, Target } from "../filters/filter.js";
+import type { Controller, ZoneRef } from "../filters/zones.js";
+import type { Scaling } from "../predicates/scaling.js";
+import type { ActionBase } from "./base.js";
 
 export interface DeleteAction extends ActionBase {
   kind: "Delete";

@@ -1,12 +1,12 @@
 // Continuous grants: auras, static modifiers, and effect disabling.
 
-import type { ActionBase } from "./base.js";
-import type { Action } from "./index.js";
-import type { RestrictionKind } from "./restrictions.js";
 import type { EffectDurationRef } from "../durations.js";
-import type { Filter, Target } from "../filters.js";
+import type { Filter, Target } from "../filters/filter.js";
 import type { KeywordRef } from "../keywords.js";
-import type { Condition } from "../predicates.js";
+import type { Condition } from "../predicates/conditions.js";
+import type { Action } from "./action.js";
+import type { ActionBase } from "./base.js";
+import type { RestrictionKind } from "./restrictions.js";
 
 /**
  * Grant a debuff aura to all opponent Digimon (P-075): a SubTrigger watcher is installed on each

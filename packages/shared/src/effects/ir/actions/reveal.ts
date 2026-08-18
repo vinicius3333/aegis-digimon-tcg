@@ -1,7 +1,8 @@
 // Revealing and searching deck, hand, trash, and security.
 
+import type { Filter, Target } from "../filters/filter.js";
+import type { Controller, ZoneRef } from "../filters/zones.js";
 import type { ActionBase } from "./base.js";
-import type { Controller, Filter, Target, ZoneRef } from "../filters.js";
 
 export interface RevealAddAction extends ActionBase {
   kind: "RevealAdd";

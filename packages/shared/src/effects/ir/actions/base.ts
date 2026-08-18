@@ -1,6 +1,8 @@
 // Fields shared by every action node.
 
-import type { Condition, Cost, Scaling } from "../predicates.js";
+import type { Condition } from "../predicates/conditions.js";
+import type { Cost } from "../predicates/costs.js";
+import type { Scaling } from "../predicates/scaling.js";
 
 export interface ActionBase {
   /** Optional per-action gate (the clause-level "If ..."). */

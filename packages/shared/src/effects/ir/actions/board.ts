@@ -1,11 +1,12 @@
 // Board-state manipulation: suspend state, DP, keywords, and movement.
 
-import type { ActionBase } from "./base.js";
-import type { Action } from "./index.js";
 import type { EffectDurationRef } from "../durations.js";
-import type { Controller, Filter, Target } from "../filters.js";
+import type { Filter, Target } from "../filters/filter.js";
+import type { Controller } from "../filters/zones.js";
 import type { KeywordRef } from "../keywords.js";
-import type { Cost } from "../predicates.js";
+import type { Cost } from "../predicates/costs.js";
+import type { Action } from "./action.js";
+import type { ActionBase } from "./base.js";
 
 export interface HandManipulationAction extends ActionBase {
   kind: "HandManipulation";

@@ -1,8 +1,9 @@
 // Restrictions placed on players, cards, and effects.
 
-import type { ActionBase } from "./base.js";
 import type { EffectDurationRef } from "../durations.js";
-import type { Controller, Filter, Target } from "../filters.js";
+import type { Filter, Target } from "../filters/filter.js";
+import type { Controller } from "../filters/zones.js";
+import type { ActionBase } from "./base.js";
 
 /** What a continuous restriction forbids the target from doing. */
 export type RestrictionKind =

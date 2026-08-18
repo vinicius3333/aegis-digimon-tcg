@@ -1,30 +1,16 @@
-// Digivolution, DNA digivolution, App Fusion, DigiXros, and Link.
+// Digivolving, de-digivolving, and moving cards into a digivolution stack.
 
-import type { ActionBase } from "./base.js";
 import type { EffectDurationRef } from "../durations.js";
-import type { Filter, Target, ZoneRef } from "../filters.js";
-import type { Scaling } from "../predicates.js";
+import type { Filter, Target } from "../filters/filter.js";
+import type { ZoneRef } from "../filters/zones.js";
+import type { Scaling } from "../predicates/scaling.js";
+import type { ActionBase } from "./base.js";
 
 /**
  * Widen the DigiXros material source zones at BeforePayCost time (BT19-079 "from under your
  * Tamers", BT19-087 "from under Tamers + trash"). Recorded per-seat for `duration` and read by
  * the material-picking path.
  */
-export interface DigiXrosMaterialZoneExpansionAction extends ActionBase {
-  kind: "DigiXrosMaterialZoneExpansion";
-  zones: ZoneRef[];
-  /** Typically untilOpponentTurnEnd for [All Turns]. */
-  duration: EffectDurationRef;
-}
-
-/**
- * In a `wouldBePlayed` Replacement's `additionalEffects`: trash cards may also be placed as
- * DigiXros materials, on top of the default hand and battle-area zones (BT21-030). Carried as an
- * additional effect so the DigiXros validator can detect it statically from the compiled IR.
- */
-export interface AllowDigiXrosMaterialsFromTrashAction extends ActionBase {
-  kind: "AllowDigiXrosMaterialsFromTrash";
-}
 
 export interface DeDigivolveAction extends ActionBase {
   kind: "DeDigivolve";
@@ -183,42 +169,6 @@ export interface TrashDigivolutionAction extends ActionBase {
   choose?: boolean;
 }
 
-export interface LinkAction extends ActionBase {
-  kind: "Link";
-  target: Target;
-  /** Negative means cheaper. */
-  costDelta?: number;
-  /** False skips the link cost entirely ("without paying the cost"). */
-  payCost?: boolean;
-  /**
-   * The friendly Digimon that RECEIVES the linked card. Absent links onto the source permanent
-   * ("to this Digimon").
-   */
-  recipient?: Target;
-  /** Default ["hand","digivolutionCards"]. */
-  from?: ZoneRef[];
-}
-
-/**
- * A recipient-scoped continuous LINK-cost reduction installed on the source's own permanent:
- * when a card matching `whenLinkingTrait` would link to that recipient, its cost drops by `amount`.
- *
- * Unlike `LinkAction.costDelta`, which only touches a link the source card itself declares, this
- * reduces a link declared by ANY actor onto the recipient. Read by `runLink`/`linkCostOf` from
- * the recipient's grant store. Per KB BT25-089 Q6423 multiple reductions do NOT stack — the read
- * site caps to the largest single grant — and the cost floors at 0.
- */
-export interface GrantLinkCostReductionAction extends ActionBase {
-  kind: "GrantLinkCostReduction";
-  /** Defaults to the source permanent. */
-  target: Target;
-  /** Positive means cheaper by this much (BT25-004 => 1). */
-  amount: number;
-  /** Traits a would-link card must carry, e.g. Social/Tool/Game. */
-  whenLinkingTrait: string[];
-  duration: EffectDurationRef;
-}
-
 /**
  * "[All Turns] players can't ignore digivolution requirements" (KB Q1738-Q1743): a seat-level
  * continuous rule-modifier suppressing other cards' ignore-requirements effects for BOTH players
@@ -232,12 +182,6 @@ export interface CannotIgnoreDigivolutionRequirementsAction extends ActionBase {
   duration: EffectDurationRef;
 }
 
-/** ＜Mind Link＞ — place this Tamer as the bottom digivolution card of a chosen Digimon. */
-export interface MindLinkAction extends ActionBase {
-  kind: "MindLink";
-  target: Target;
-}
-
 /**
  * "You may use/play this card without meeting its color requirements" and the "ignore this
  * card's color requirements" family. A continuous permission, never a no-op once recorded.
@@ -249,58 +193,4 @@ export interface WaiveColorRequirementAction extends ActionBase {
   /** Alternative specification of which color is waived. */
   color?: string;
   duration?: EffectDurationRef;
-}
-
-/**
- * One slot in the per-slot array form of `DnaDigivolveAction.materials` (EX6-072: "1 of your
- * level 6 Digimon and 1 card in the hand"). Each slot resolves in its own zone, unlike the
- * single-`Target` form, which always searches the battle and breeding areas.
- */
-export interface DnaDigivolveMaterialSlot {
-  filter: Filter;
-  zone: ZoneRef;
-  count: number;
-}
-
-/** "DNA digivolve this Digimon and one of your other Digimon into [X]". */
-export interface DnaDigivolveAction extends ActionBase {
-  kind: "DnaDigivolve";
-  /**
-   * `includeRef` pins one slot to a referenced permanent — `"triggerSubject"` (the permanent
-   * that drove the enclosing event, mirroring `Target.sourceRef`) or `"self"` — and the player
-   * chooses the remaining `count - 1`, excluding the pinned id. An unresolvable pin makes the
-   * DNA digivolve illegal.
-   *
-   * The array form instead resolves one `DnaDigivolveMaterialSlot` per material in its own zone,
-   * for mixed-zone recipes. It supports neither `includeRef` nor `isSelf`.
-   */
-  materials: (Target & { includeRef?: "triggerSubject" | "self" }) | DnaDigivolveMaterialSlot[];
-  /** Additional non-permanent material cards, e.g. a specific card in trash or hand. */
-  looseMaterials?: Target & { from?: ZoneRef[] };
-  /** Filter on the result. */
-  into?: Filter;
-  payCost: boolean;
-  /** Store the resulting permanent id for a downstream `filter.boundRef`. */
-  bindResultAs?: string;
-}
-
-/**
- * "1 of your Digimon may app fuse into a Digimon card in the trash/hand."
- *
- * App Fusion plays the fusion-TARGET card on top of an existing battle-area Digimon, carrying
- * that Digimon's stack underneath — the same placement as `digivolveFromInstance`, not
- * DnaDigivolve, since no material is consumed.
- *
- * Legality belongs to the TARGET card's `appFusionRequirement`: the fusing permanent's top card
- * plus its linked cards must cover at least two DISTINCT names from `appFusionRequirement.names`.
- * The paid cost is `appFusionRequirement.cost`.
- */
-export interface AppFuseAction extends ActionBase {
-  kind: "AppFuse";
-  /** The fusing battle-area Digimon. */
-  source: Target;
-  /** Filter on the fusion-result card. */
-  into: Filter;
-  /** "trash" for BT24-087, "hand" for BT25-089. */
-  from: ZoneRef[];
 }

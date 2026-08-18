@@ -1,4 +1,7 @@
-import type { AssemblyRequirement, BaseGrantedDigivolve, CompiledCard, CompiledEffects, DigivolutionRequirement, DigiXrosRequirement, DnaDigivolveRequirement } from "./ir/index.js";
+import type { CompiledCard, CompiledEffects } from "./ir/card.js";
+import type { AssemblyRequirement, DnaDigivolveRequirement } from "./ir/requirements/fusion.js";
+import type { BaseGrantedDigivolve, DigivolutionRequirement } from "./ir/requirements/digivolve.js";
+import type { DigiXrosRequirement } from "./ir/requirements/xrosLink.js";
 import effectsJson from "./effects.json" with { type: "json" };
 import generatedDigivolveOverridesJson from "./generated-digivolve-overrides.json" with { type: "json" };
 
@@ -255,13 +258,15 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
   // Early named hand-evolution effects use exact bracketed names. Their generated `names`
   // entries are substring gates, which admitted forms such as Lucemon: Chaos Mode onto itself.
   // BT2-111 and EX2-022 also carry live-state availability gates omitted by the compiler.
-  "BT2-111": [{
-    cost: 4,
-    isAlternate: true,
-    namesExact: ["Impmon"],
-    controllerTrashCountMin: 10,
-    battleAreaOnly: true,
-  }],
+  "BT2-111": [
+    {
+      cost: 4,
+      isAlternate: true,
+      namesExact: ["Impmon"],
+      controllerTrashCountMin: 10,
+      battleAreaOnly: true,
+    },
+  ],
   "BT5-014": [{ cost: 4, isAlternate: true, namesExact: ["Shoutmon"], battleAreaOnly: true }],
   "BT5-067": [{ cost: 4, isAlternate: true, namesExact: ["Keramon"], battleAreaOnly: true }],
   // BT5-111's named Omnimon shortcut is explicitly limited to the battle area (KB Q1385).
@@ -415,7 +420,12 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
   // Tamer return cost. Combining them in one name list would incorrectly allow a Tamer's
   // name to satisfy the base requirement.
   "BT13-020": [
-    { cost: 0, isAlternate: true, names: ["ShineGreymon"], burstDigivolve: { returnTamerNamesExact: ["Marcus Damon"] } },
+    {
+      cost: 0,
+      isAlternate: true,
+      names: ["ShineGreymon"],
+      burstDigivolve: { returnTamerNamesExact: ["Marcus Damon"] },
+    },
   ],
   "BT13-033": [
     {
@@ -551,25 +561,31 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
       maxMaterials: 5,
     },
   ],
-  "BT11-018": [{
-    materials: [{ names: ["OmniShoutmon"] }, { names: ["ZeigGreymon"] }],
-    count: 2,
-  }],
-  "BT11-019": [{
-    materials: [
-      { names: ["OmniShoutmon"] },
-      { names: ["ZeigGreymon"] },
-      { names: ["Ballistamon"] },
-      { names: ["Dorulumon"] },
-      { names: ["Starmons"] },
-      { names: ["Sparrowmon"] },
-    ],
-    count: 2,
-  }],
-  "BT11-030": [{
-    materials: [{ names: ["MetalGreymon"] }, { names: ["Cyberdramon"] }],
-    count: 2,
-  }],
+  "BT11-018": [
+    {
+      materials: [{ names: ["OmniShoutmon"] }, { names: ["ZeigGreymon"] }],
+      count: 2,
+    },
+  ],
+  "BT11-019": [
+    {
+      materials: [
+        { names: ["OmniShoutmon"] },
+        { names: ["ZeigGreymon"] },
+        { names: ["Ballistamon"] },
+        { names: ["Dorulumon"] },
+        { names: ["Starmons"] },
+        { names: ["Sparrowmon"] },
+      ],
+      count: 2,
+    },
+  ],
+  "BT11-030": [
+    {
+      materials: [{ names: ["MetalGreymon"] }, { names: ["Cyberdramon"] }],
+      count: 2,
+    },
+  ],
   // BT11-009: two distinct printed slots. The compiler kept only Shoutmon and thereby made
   // the two-material conditional On Play branch impossible to reach through a legal DigiXros.
   "BT11-009": [
@@ -592,10 +608,7 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
   // The compiler flattened slot 1 to the single name token "Blue MetalGreymon"; split it here.
   "EX4-021": [
     {
-      materials: [
-        { names: ["MetalGreymon"], colors: ["Blue"] },
-        { names: ["DarkKnightmon"] },
-      ],
+      materials: [{ names: ["MetalGreymon"], colors: ["Blue"] }, { names: ["DarkKnightmon"] }],
       count: 2,
     },
   ],

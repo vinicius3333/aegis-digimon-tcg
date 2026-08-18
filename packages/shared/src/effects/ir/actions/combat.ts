@@ -1,8 +1,9 @@
 // Attack declaration, battle resolution, and attack redirection.
 
-import type { ActionBase } from "./base.js";
 import type { EffectDurationRef } from "../durations.js";
-import type { Controller, Target } from "../filters.js";
+import type { Target } from "../filters/filter.js";
+import type { Controller } from "../filters/zones.js";
+import type { ActionBase } from "./base.js";
 
 export interface AttackAction extends ActionBase {
   kind: "Attack";

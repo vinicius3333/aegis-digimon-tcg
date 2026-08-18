@@ -1,17 +1,11 @@
 // `CardEffect` (one trigger window) and the per-card compiled record.
 
-import type { Action } from "./actions/index.js";
+import type { Action } from "./actions/action.js";
 import type { KeywordRef } from "./keywords.js";
-import type { Condition } from "./predicates.js";
-import type {
-  AppFusionRequirement,
-  AssemblyRequirement,
-  DigiXrosRequirement,
-  DigivolutionRequirement,
-  DnaDigivolveRequirement,
-  LinkRequirement,
-  MindLinkRequirement,
-} from "./requirements.js";
+import type { Condition } from "./predicates/conditions.js";
+import type { DigivolutionRequirement } from "./requirements/digivolve.js";
+import type { AppFusionRequirement, AssemblyRequirement, DnaDigivolveRequirement } from "./requirements/fusion.js";
+import type { DigiXrosRequirement, LinkRequirement, MindLinkRequirement } from "./requirements/xrosLink.js";
 import type { EffectFrequency, EffectTrigger } from "./triggers.js";
 
 /**

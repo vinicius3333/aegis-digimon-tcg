@@ -1,9 +1,10 @@
 // Memory, deck draw, and cost-modification actions.
 
-import type { ActionBase } from "./base.js";
-import type { Action } from "./index.js";
 import type { EffectDurationRef } from "../durations.js";
-import type { Controller, Filter, Target } from "../filters.js";
+import type { Filter, Target } from "../filters/filter.js";
+import type { Controller } from "../filters/zones.js";
+import type { Action } from "./action.js";
+import type { ActionBase } from "./base.js";
 
 export interface DrawAction extends ActionBase {
   kind: "Draw";

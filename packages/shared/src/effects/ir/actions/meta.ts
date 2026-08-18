@@ -1,9 +1,12 @@
 // Actions that operate on other effects, plus the unparsed escape hatch.
 
-import type { ActionBase } from "./base.js";
-import type { Filter, Target, ZoneRef } from "../filters.js";
-import type { Condition, Cost, Scaling } from "../predicates.js";
+import type { Filter, Target } from "../filters/filter.js";
+import type { ZoneRef } from "../filters/zones.js";
+import type { Condition } from "../predicates/conditions.js";
+import type { Cost } from "../predicates/costs.js";
+import type { Scaling } from "../predicates/scaling.js";
 import type { EffectTrigger } from "../triggers.js";
+import type { ActionBase } from "./base.js";
 
 /** "Activate this card's [Main] effect" — a security clause that runs the main ability. */
 export interface ActivateMainAction extends ActionBase {

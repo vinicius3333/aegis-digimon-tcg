@@ -1,8 +1,10 @@
 // Playing cards from hand, deck, trash, and token generation.
 
+import type { Filter, Target } from "../filters/filter.js";
+import type { ZoneRef } from "../filters/zones.js";
+import type { Cost } from "../predicates/costs.js";
+import type { Scaling } from "../predicates/scaling.js";
 import type { ActionBase } from "./base.js";
-import type { Filter, Target, ZoneRef } from "../filters.js";
-import type { Cost, Scaling } from "../predicates.js";
 
 export interface PlayWithoutCostAction extends ActionBase {
   kind: "PlayWithoutCost";

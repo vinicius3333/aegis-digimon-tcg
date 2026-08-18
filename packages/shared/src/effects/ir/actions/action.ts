@@ -1,4 +1,4 @@
-// The closed `Action` union. Re-exports every action node.
+// The closed `Action` union.
 
 import type {
   AddDPFromSuspendedCostAction,
@@ -15,6 +15,12 @@ import type {
   UnsuspendAction,
 } from "./board.js";
 import type {
+  ConditionalBranchAction,
+  DelayedEffectAction,
+  GainTriggeredEffectAction,
+  ModalAction,
+} from "./branching.js";
+import type {
   ArmSuspendRestrictionAction,
   AttackAction,
   BattleAction,
@@ -25,29 +31,14 @@ import type {
   SelectBindAction,
 } from "./combat.js";
 import type {
-  ConditionalBranchAction,
-  DelayedEffectAction,
-  GainTriggeredEffectAction,
-  ModalAction,
-  PreventAction,
-  ReplacementAction,
-  SubTriggerAction,
-} from "./controlFlow.js";
-import type {
-  AllowDigiXrosMaterialsFromTrashAction,
-  AppFuseAction,
   CannotIgnoreDigivolutionRequirementsAction,
   DeDigivolveAction,
-  DigiXrosMaterialZoneExpansionAction,
   DigivolveAction,
-  DnaDigivolveAction,
-  GrantLinkCostReductionAction,
-  LinkAction,
-  MindLinkAction,
   PlaceUnderAction,
   TrashDigivolutionAction,
   WaiveColorRequirementAction,
-} from "./digivolution.js";
+} from "./digivolve.js";
+import type { AppFuseAction, DnaDigivolveAction } from "./dnaFusion.js";
 import type {
   ActivateEffectAction,
   ActivateForeignEffectAction,
@@ -79,6 +70,7 @@ import type {
   RevealChooseDeleteBudgetAction,
   TrashAction,
 } from "./removal.js";
+import type { PreventAction, ReplacementAction } from "./replacement.js";
 import type {
   CostModifierAction,
   DrawAction,
@@ -116,20 +108,14 @@ import type {
   GrantAuraToOpponentsAction,
   GrantStaticAction,
 } from "./statics.js";
-
-export type * from "./base.js";
-export type * from "./board.js";
-export type * from "./combat.js";
-export type * from "./controlFlow.js";
-export type * from "./digivolution.js";
-export type * from "./meta.js";
-export type * from "./play.js";
-export type * from "./removal.js";
-export type * from "./resources.js";
-export type * from "./restrictions.js";
-export type * from "./reveal.js";
-export type * from "./security.js";
-export type * from "./statics.js";
+import type { SubTriggerAction } from "./subTrigger.js";
+import type {
+  AllowDigiXrosMaterialsFromTrashAction,
+  DigiXrosMaterialZoneExpansionAction,
+  GrantLinkCostReductionAction,
+  LinkAction,
+  MindLinkAction,
+} from "./xrosLink.js";
 
 export type Action =
   | DrawAction

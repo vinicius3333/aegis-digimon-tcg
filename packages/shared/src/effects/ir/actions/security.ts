@@ -1,10 +1,11 @@
 // Security-stack manipulation and security-battle modifiers.
 
-import type { ActionBase } from "./base.js";
-import type { Action } from "./index.js";
 import type { EffectDurationRef } from "../durations.js";
-import type { Controller, Filter, Target, ZoneRef } from "../filters.js";
-import type { Condition } from "../predicates.js";
+import type { Filter, Target } from "../filters/filter.js";
+import type { Controller, ZoneRef } from "../filters/zones.js";
+import type { Condition } from "../predicates/conditions.js";
+import type { Action } from "./action.js";
+import type { ActionBase } from "./base.js";
 
 /** Ask the opponent whether to trash their top security card, remembering a decline. */
 export interface OpponentMayTrashSecurityAction extends ActionBase {
