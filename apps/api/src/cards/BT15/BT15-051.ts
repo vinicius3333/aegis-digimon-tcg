@@ -14,7 +14,12 @@ const compiled: CompiledCard = {
           "kind": "GainMemory",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "opponentHas",
+            "filter": {
+              "controllerDefault": "opponent",
+              "kind": ["Digimon"],
+              "suspended": true
+            },
             "raw": "there's a suspended Digimon"
           }
         },

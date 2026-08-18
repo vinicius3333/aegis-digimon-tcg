@@ -45,7 +45,7 @@ const compiled: CompiledCard = {
                 "Digimon",
                 "Tamer"
               ],
-              "isSuspended": true
+              "suspended": true
             },
             "count": "all"
           },
