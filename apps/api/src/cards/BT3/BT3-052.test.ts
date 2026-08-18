@@ -19,4 +19,16 @@ describe("BT3-052 Rapidmon", () => {
 
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 2000);
   });
+
+  it("does not apply the inherited bonus during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT3-054", as: "host", under: ["BT3-052"] }] },
+      1: { battleArea: [{ card: "BT1-019", suspended: true }] },
+    });
+    s.state.turnSeat = 1;
+
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
+  });
 });
