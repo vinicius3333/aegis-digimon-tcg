@@ -473,7 +473,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "log.hatched": "Chocou {card}",
   "log.movedFromBreeding": "Moveu {card} da criação",
   "log.digivolved": "Digievoluiu para {card}",
-  "log.memoryChanged": "Memória {from} → {to} ({reason})",
+  "log.memoryChanged": "Memória alterada: {from} → {to}",
   "log.attackOn": "Ataque em {target}",
   "log.attackOnBy": "Ataque em {target} por {card}",
   "log.targetSecurity": "segurança",

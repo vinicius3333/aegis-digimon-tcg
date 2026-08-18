@@ -1099,7 +1099,11 @@ export function GameScreen({
   const log: LogLine[] = [];
   for (let i = events.length - 1; i >= 0 && log.length < 30; i -= 1) {
     const line = describeEvent(events[i]!, viewerSeat, instanceIndex, t);
-    if (line) log.push(line);
+    // A paid play emits separate `playCard` and `payCost` memory events with
+    // the same before/after values. They are useful in diagnostics but would
+    // render as duplicate player-facing lines in the history.
+    const previous = log.at(-1);
+    if (line && (previous?.text !== line.text || previous.kind !== line.kind)) log.push(line);
   }
   const gameOverReason = (() => {
     for (let i = events.length - 1; i >= 0; i -= 1) {

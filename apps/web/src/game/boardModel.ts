@@ -894,7 +894,12 @@ export function describeEvent(
     case "digivolved":
       return { text: t("log.digivolved", { card: cardName(event.cardId) }), kind: "sys" };
     case "memoryChanged":
-      return { text: t("log.memoryChanged", { from: event.from, to: event.to, reason: event.reason }), kind: "sys" };
+      // The server reason is an internal event name (for example `playCard` or
+      // `payCost`). It is useful for diagnostics, but exposing it in the match
+      // history makes the UI read like a debug trace. Card-play, digivolution,
+      // and effect events already provide the player-facing context, so keep
+      // this line focused on the observable memory change.
+      return { text: t("log.memoryChanged", { from: event.from, to: event.to }), kind: "sys" };
     case "attackDeclared": {
       const who = instanceIndex.get(event.attackerPermanentId);
       const target = t(event.target.kind === "player" ? "log.targetSecurity" : "log.targetDigimon");

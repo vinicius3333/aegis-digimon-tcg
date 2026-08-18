@@ -467,7 +467,7 @@ export const en = {
   "log.hatched": "Hatched {card}",
   "log.movedFromBreeding": "Moved {card} from breeding",
   "log.digivolved": "Digivolved into {card}",
-  "log.memoryChanged": "Memory {from} → {to} ({reason})",
+  "log.memoryChanged": "Memory changed: {from} → {to}",
   "log.attackOn": "Attack on {target}",
   "log.attackOnBy": "Attack on {target} by {card}",
   "log.targetSecurity": "security",
