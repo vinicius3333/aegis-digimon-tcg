@@ -57,10 +57,35 @@ const module: EffectModule = {
             "would leave the battle area other than by one of your effects, by deleting this Digimon, " +
             "prevent it from leaving.",
           when: (ctx) => source.isOnBattleArea(),
-          resolve: async (/*ctx*/) => {
-            // ENGINE-GAP: wouldLeavePlay replacement not yet surfaced in staticModifier resolve;
-            // this effect (Bokomon sacrificing itself to prevent a Gammamon from leaving play)
-            // requires a subscribeReplacement / prevent pattern not reachable here.
+          resolve: async (ctx) => {
+            const self = source.permanent();
+            if (self === undefined) return;
+            ctx.fx.subscribeReplacement({
+              event: "wouldLeavePlay",
+              sourcePermanentId: self.permanentId,
+              mode: "prevent",
+              description:
+                "LM-019: delete Bokomon to prevent another Gammamon-text Digimon leaving by an opponent effect or rule.",
+              causeAllows: (_cause, resolvingSeat) => resolvingSeat !== source.ownerSeat,
+              protects: (checkCtx, leavingPermanentId) => {
+                if (leavingPermanentId === self.permanentId) return false;
+                const leaving = checkCtx.game.permanentById(leavingPermanentId);
+                if (leaving === undefined || leaving.topCard === undefined) return false;
+                const def = checkCtx.game.definitionOf(leaving.topCard);
+                return (
+                  leaving.controllerSeat === source.ownerSeat &&
+                  isDigimon(def) &&
+                  hasGammamonInText(def)
+                );
+              },
+              preventCheck: async (checkCtx, leavingPermanentId) => {
+                const leaving = checkCtx.game.permanentById(leavingPermanentId);
+                if (leaving === undefined || leavingPermanentId === self.permanentId) return false;
+                if (self.permanentId === leavingPermanentId) return false;
+                const deleted = await checkCtx.fx.deletePermanent([self.permanentId], "byEffect");
+                return deleted > 0;
+              },
+            });
           },
         }),
       ];
