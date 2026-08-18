@@ -115,25 +115,25 @@ const compiled: CompiledCard = {
       "trigger": "OpponentsTurn",
       "actions": [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Purple"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
-            },
-            "count": 1
-          },
-          "payCost": false
+          "kind": "SubTrigger",
+          "event": "whenTrashedFromHand",
+          "actions": [
+            {
+              "kind": "PlayWithoutCost",
+              "target": {
+                "filter": {
+                  "zone": "trash",
+                  "controller": "mine",
+                  "kind": ["Digimon"],
+                  "colors": ["Purple"],
+                  "levelComparison": {"op": "lte", "value": 4}
+                },
+                "count": 1
+              },
+              "payCost": false,
+              "optional": true
+            }
+          ]
         }
       ],
       "isInherited": true,
