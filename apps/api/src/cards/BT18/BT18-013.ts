@@ -50,8 +50,7 @@ const compiled: CompiledCard = {
             },
             "raw": "By trashing 1 card in your hand"
           },
-          "optional": true,
-          "abortOnDecline": true
+          "optional": false
         }
       ]
     },
@@ -88,8 +87,7 @@ const compiled: CompiledCard = {
             },
             "raw": "By trashing 1 card in your hand"
           },
-          "optional": true,
-          "abortOnDecline": true
+          "optional": false
         }
       ]
     },

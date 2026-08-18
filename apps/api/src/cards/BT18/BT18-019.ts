@@ -46,8 +46,7 @@ const compiled: CompiledCard = {
             "trackCount": "returnedDistinctLevels",
             "raw": "by returning 1 of each Digimon card with different levels from your opponent's trash to the top of the deck"
           },
-          "optional": true,
-          "abortOnDecline": true,
+          "optional": false,
           "scaling": {
             "per": 1,
             "unit": "namedCount",
@@ -95,8 +94,7 @@ const compiled: CompiledCard = {
             "trackCount": "returnedDistinctLevels",
             "raw": "by returning 1 of each Digimon card with different levels from your opponent's trash to the top of the deck"
           },
-          "optional": true,
-          "abortOnDecline": true,
+          "optional": false,
           "scaling": {
             "per": 1,
             "unit": "namedCount",

@@ -101,11 +101,8 @@ const compiled: CompiledCard = {
       "frequency": "OncePerTurn"
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "digivolutionCardColors scaling unit — needs engine support (count distinct colors among source Digimon's digivolution stack cards)",
-    "digivolutionRequirement minTraitStackCount (w/5 [Hybrid] trait cards under Takuya Kanbara) — needs engine support"
-  ],
+  "coverage": "full",
+  "residual": [],
   "digivolutionRequirement": [
     {
       "names": [
