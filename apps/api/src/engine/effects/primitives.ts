@@ -2571,15 +2571,28 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   // --- suspend / unsuspend ---------------------------------------------------
 
   async function fireSuspensionTriggers(permanentIds: string[], opts?: { byEffectSeat?: Seat }): Promise<void> {
-    for (const permanentId of permanentIds) {
-      await engine.fireTiming?.(EffectTiming.OnTappedAnyone, { suspendedPermanentId: permanentId });
-      await engine.fireSubTrigger?.("whenSuspended", { suspendedPermanentId: permanentId });
-      await engine.fireSubTrigger?.("whenEffectSuspends", {
-        subjectPermanentId: permanentId,
-        suspendedPermanentId: permanentId,
-        ...(opts?.byEffectSeat !== undefined ? { effectSuspendSeat: opts.byEffectSeat } : {}),
-      });
-    }
+    const firstPermanentId = permanentIds[0];
+    if (firstPermanentId === undefined) return;
+    const simultaneousTrigger = {
+      subjectPermanentId: firstPermanentId,
+      ...(permanentIds.length > 1 ? { subjectPermanentIds: permanentIds } : {}),
+      suspendedPermanentId: firstPermanentId,
+    };
+    // One action that suspends multiple permanents creates one simultaneous timing, not one
+    // timing per card (BT2-041 Q1015 / BT4-084 Q1230). Carry every subject so filtered watchers
+    // can match any relevant member while activating only once for the shared timing.
+    await engine.fireTiming?.(EffectTiming.OnTappedAnyone, {
+      suspendedPermanentId: firstPermanentId,
+      ...(permanentIds.length > 1 ? { subjectPermanentId: firstPermanentId, subjectPermanentIds: permanentIds } : {}),
+    });
+    await engine.fireSubTrigger?.(
+      "whenSuspended",
+      permanentIds.length > 1 ? simultaneousTrigger : { suspendedPermanentId: firstPermanentId },
+    );
+    await engine.fireSubTrigger?.("whenEffectSuspends", {
+      ...simultaneousTrigger,
+      ...(opts?.byEffectSeat !== undefined ? { effectSuspendSeat: opts.byEffectSeat } : {}),
+    });
   }
 
   async function suspend(
@@ -2605,9 +2618,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         if (continuous.hasRestriction(permanentId, "beSuspended")) continue;
         access.suspend(permanent);
         suspendedPermanentIds.push(permanentId);
-        if (opts?.deferTriggers !== true) await fireSuspensionTriggers([permanentId], opts);
       }
     }
+    if (opts?.deferTriggers !== true) await fireSuspensionTriggers(suspendedPermanentIds, opts);
     return suspendedPermanentIds;
   }
 
