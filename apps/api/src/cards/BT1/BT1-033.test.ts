@@ -5,7 +5,10 @@ import "./BT1-033.js";
 
 describe("BT1-033 Dolphmon", () => {
   it("gives its Digimon +1000 DP while the opponent has a Digimon without digivolution cards", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-032", as: "host", dp: 5000, under: ["BT1-033"] }] }, 1: { battleArea: ["BT1-016"] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-032", as: "host", dp: 5000, under: ["BT1-033"] }] },
+      1: { battleArea: ["BT1-016"] },
+    });
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("host").currentDP).toBe(6000);
   });
@@ -18,6 +21,16 @@ describe("BT1-033 Dolphmon", () => {
     await s.ready();
     expect(s.perm("host").currentDP).toBe(6000);
     await advance(s.engine).verb.deletePermanent([s.perm("qualifier").permanentId]);
+    expect(s.perm("host").currentDP).toBe(5000);
+  });
+
+  it("does not give the bonus during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-032", as: "host", dp: 5000, under: ["BT1-033"] }] },
+      1: { battleArea: ["BT1-016"] },
+    });
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
     expect(s.perm("host").currentDP).toBe(5000);
   });
 });
