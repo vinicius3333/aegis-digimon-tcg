@@ -18,7 +18,7 @@ describe("BT11-061 Vemmon", () => {
           { card: "BT11-111", as: "galacticmon" },
         ],
       },
-    });
+    }, { autoSelectCards: true, autoAcceptOptional: true });
     s.state.memory = 10;
 
     await s.engine.recomputeContinuousEffects();
