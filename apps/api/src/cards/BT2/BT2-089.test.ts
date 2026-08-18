@@ -6,7 +6,14 @@ import "./BT2-089.js";
 
 describe("BT2-089 Tai Kamiya", () => {
   it("sets memory to 3 at turn start and gives black Digimon +1000 DP on the opponent's turn", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT2-089", as: "tai" }, { card: "BT2-063", as: "black" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT2-089", as: "tai" },
+          { card: "BT2-063", as: "black" },
+        ],
+      },
+    });
     s.state.memory = 1;
 
     await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("tai"));
@@ -15,6 +22,47 @@ describe("BT2-089 Tai Kamiya", () => {
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
     expect(s.perm("black").currentDP).toBe(s.perm("black").baseDP + 1000);
+  });
+
+  it("sets memory to 3 from the exact 2-memory boundary", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT2-089", as: "tai" }] } });
+    s.state.memory = 2;
+
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("tai"));
+
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("does not lower memory when it is already above 2", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT2-089", as: "tai" }] } });
+    s.state.memory = 4;
+
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("tai"));
+
+    expect(s.state.memory).toBe(4);
+  });
+
+  it("boosts only the controller's black Digimon and only on the opponent's turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT2-089", as: "tai" },
+          { card: "BT2-063", as: "ownBlack" },
+          { card: "BT1-010", as: "ownRed" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT2-063", as: "opposingBlack" }] },
+    });
+    await s.ready();
+
+    expect(s.perm("ownBlack").currentDP).toBe(s.perm("ownBlack").baseDP);
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+
+    expect(s.perm("ownBlack").currentDP).toBe(s.perm("ownBlack").baseDP + 1000);
+    expect(s.perm("ownRed").currentDP).toBe(s.perm("ownRed").baseDP);
+    expect(s.perm("opposingBlack").currentDP).toBe(s.perm("opposingBlack").baseDP);
   });
 
   it("plays itself from security without paying its cost", async () => {
