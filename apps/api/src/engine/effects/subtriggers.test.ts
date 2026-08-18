@@ -278,6 +278,33 @@ describe("SubTriggerRegistry — oncePerTiming across fire() calls (KB Q2814 / B
     expect(fired).toBe(1);
   });
 
+  it("keeps oncePerTiming dedupe when a continuous watcher is reinstalled in the same window", async () => {
+    const registry = new SubTriggerRegistry();
+    let fired = 0;
+    const install = () =>
+      registry.subscribe({
+        event: "whenPlayed",
+        sourcePermanentId: "KERAMON",
+        once: false,
+        continuous: true,
+        oncePerTiming: true,
+        oncePerTimingIdentity: "KERAMON/whenPlayed/inherited-draw",
+        description: "BT2-053 inherited draw",
+        run: async () => {
+          fired += 1;
+        },
+      });
+    const windowToken = { resolvingEffectKey: "play-two-tokens" };
+
+    install();
+    await registry.fire("whenPlayed", () => fakeCtx, "KERAMON", windowToken);
+    registry.clearContinuous();
+    install();
+    await registry.fire("whenPlayed", () => fakeCtx, "KERAMON", windowToken);
+
+    expect(fired).toBe(1);
+  });
+
   it("a later, genuinely distinct windowToken fires the subscription again", async () => {
     const registry = new SubTriggerRegistry();
     let fired = 0;

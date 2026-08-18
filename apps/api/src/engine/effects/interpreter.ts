@@ -6228,9 +6228,7 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
       // effect. When nothing is chosen the handle stays unset and dependents resolve to nothing.
       const name = action.target.bindAs;
       if (name === undefined) return false;
-      const target = action.chooser === undefined
-        ? action.target
-        : { ...action.target, chooser: action.chooser };
+      const target = action.chooser === undefined ? action.target : { ...action.target, chooser: action.chooser };
       const ids = await resolvePermanentTargets(ctx, target);
       if (ids.length > 0 && ctx.selections) ctx.selections.set(name, ids[0]!);
       return false;
@@ -7043,6 +7041,15 @@ async function runSubTrigger(ctx: EffectContext, action: Extract<Action, { kind:
     ...(matches ? { matches } : {}),
     ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
     ...(action.oncePerTiming ? { oncePerTiming: true } : {}),
+    ...(action.oncePerTiming
+      ? {
+          oncePerTimingIdentity: `${ctx.source.instanceId}/${event}/${JSON.stringify({
+            sourceFilter: action.sourceFilter,
+            actions: action.actions,
+            raw: action.raw,
+          })}`,
+        }
+      : {}),
     ...(action.oncePerTurnKey ? { oncePerTurnKey: `${ctx.source.instanceId}/${action.oncePerTurnKey}` } : {}),
     description: action.raw,
     run: async (subCtx) => {

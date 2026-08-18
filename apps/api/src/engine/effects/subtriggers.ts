@@ -85,6 +85,12 @@ export interface SubTriggerSubscription {
    */
   oncePerTiming?: boolean;
   /**
+   * Stable identity for an `oncePerTiming` watcher that is cleared and reinstalled by
+   * continuous recomputation inside the same timing window. Subscription ids are intentionally
+   * fresh on each install, so persistent effects must provide this key to preserve the dedupe.
+   */
+  oncePerTimingIdentity?: string;
+  /**
    * A stable per-TURN key gating this watcher to fire at most once per turn — the
    * printed `[Once Per Turn]` on a persistent (`[All Turns]` / `EffectTiming.None`)
    * effect's watcher. Unlike `oncePerTiming` (scoped to one resolving window) this is
@@ -286,7 +292,11 @@ export class SubTriggerRegistry {
    * later `fire()` call that shares W, and fires again once a genuinely different (or
    * absent) windowToken is passed. See {@link fire}.
    */
-  private oncePerTimingFiredFor = new Map<number, unknown>();
+  private oncePerTimingFiredFor = new Map<number | string, unknown>();
+
+  private oncePerTimingKey(sub: SubTriggerSubscription): number | string {
+    return sub.oncePerTimingIdentity ?? sub.id;
+  }
 
   /**
    * Install a delayed/triggered sub-effect. Returns its id (for manual removal).
@@ -383,7 +393,11 @@ export class SubTriggerRegistry {
     for (const sub of matching) {
       // oncePerTiming: skip when this subscription already fired for the SAME window
       // (persists across fire() calls, unlike a per-call local — see oncePerTimingFiredFor).
-      if (sub.oncePerTiming && windowToken !== undefined && this.oncePerTimingFiredFor.get(sub.id) === windowToken) {
+      if (
+        sub.oncePerTiming &&
+        windowToken !== undefined &&
+        this.oncePerTimingFiredFor.get(this.oncePerTimingKey(sub)) === windowToken
+      ) {
         continue;
       }
       // oncePerTurnKey: skip when this (stable, recompute-surviving) key already fired a
@@ -436,7 +450,7 @@ export class SubTriggerRegistry {
     turnLedger: SubTriggerTurnLedger | undefined,
   ): void {
     if (sub.oncePerTiming && windowToken !== undefined) {
-      this.oncePerTimingFiredFor.set(sub.id, windowToken);
+      this.oncePerTimingFiredFor.set(this.oncePerTimingKey(sub), windowToken);
     }
     if (sub.oncePerTurnKey !== undefined) turnLedger?.markFired(sub.oncePerTurnKey);
     if (sub.once) this.subs = this.subs.filter((s) => s.id !== sub.id);
@@ -567,7 +581,7 @@ export class SubTriggerRegistry {
   /** Drop every subscription anchored to a permanent (when it leaves the field). */
   dropPermanent(permanentId: string): void {
     for (const s of this.subs) {
-      if (s.sourcePermanentId === permanentId) this.oncePerTimingFiredFor.delete(s.id);
+      if (s.sourcePermanentId === permanentId) this.oncePerTimingFiredFor.delete(this.oncePerTimingKey(s));
     }
     this.subs = this.subs.filter((s) => s.sourcePermanentId !== permanentId);
     this.replacements = this.replacements.filter((r) => r.sourcePermanentId !== permanentId);
