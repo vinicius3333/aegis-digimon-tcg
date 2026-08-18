@@ -15,11 +15,11 @@ const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+              "kind": ["Digimon"],
+              "suspended": true
             },
-            "count": 1
+            "count": 1,
+            "sameTarget": true
           }
         },
         {

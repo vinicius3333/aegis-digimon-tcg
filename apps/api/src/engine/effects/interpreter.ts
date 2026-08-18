@@ -11761,6 +11761,21 @@ export function registerIrCard(cardId: string, compiled: CompiledCard): EffectMo
  * at all.
  */
 const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect> = {
+  "[All Turns] When this Digimon becomes suspended, lose 2 memory.": {
+    trigger: "AllTurns",
+    actions: [
+      {
+        kind: "SubTrigger",
+        event: "whenSuspended",
+        actions: [
+          {
+            kind: "GainMemory",
+            amount: -2,
+          } as Action,
+        ],
+      } as Action,
+    ],
+  },
   "[Your Turn] When attacking an opponent's Digimon with no digivolution cards, delete that Digimon": {
     trigger: "WhenAttacking",
     actions: [

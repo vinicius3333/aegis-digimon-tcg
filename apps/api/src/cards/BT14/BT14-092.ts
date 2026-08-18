@@ -25,9 +25,12 @@ const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+              "kind": ["Digimon"],
+              "relativeTo": {
+                "attr": "digivolutionCount",
+                "op": "lte",
+                "selectionRef": "chosenDigimon"
+              }
             },
             "count": 3
           },
@@ -64,10 +67,8 @@ const compiled: CompiledCard = {
       "isSecurity": true
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "opponent Digimon filter: as many or fewer digivolution cards as the chosen Digimon (needs engine digivolutionCount relativeTo)"
-  ]
+  "coverage": "full",
+  "residual": []
 };
 
 registerIrCard("BT14-092", compiled);
