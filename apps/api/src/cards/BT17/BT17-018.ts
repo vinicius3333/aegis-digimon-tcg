@@ -55,13 +55,10 @@ const compiled: CompiledCard = {
       "trigger": "WhenAttacking",
       "actions": [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "opponent"
-            },
-            "count": 1
-          },
+          "kind": "SecurityManipulation",
+          "op": "trashTop",
+          "controller": "opponent",
+          "amount": 1,
           "scaling": {
             "per": 10,
             "filter": {

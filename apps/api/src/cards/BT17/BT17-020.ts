@@ -35,7 +35,8 @@ const compiled: CompiledCard = {
                 "controllerDefault": "mine",
                 "kind": [
                   "Tamer"
-                ]
+                ],
+                "hasInheritedEffects": true
               },
               "count": 1,
               "to": "hand"
@@ -55,7 +56,8 @@ const compiled: CompiledCard = {
               "controller": "mine",
               "kind": [
                 "Tamer"
-              ]
+              ],
+              "hasInheritedEffects": true
             },
             "count": 1
           },
@@ -63,14 +65,7 @@ const compiled: CompiledCard = {
             "hand"
           ],
           "payCost": true,
-          "optional": true
-        },
-        {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "mode": "reduceCost",
-          "amount": 2,
-          "raw": "play 1 Tamer card with an inherited effect from your hand with the play cost reduced by 2",
+          "reduceCostBy": 2,
           "optional": true
         }
       ],

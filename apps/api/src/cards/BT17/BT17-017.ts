@@ -28,7 +28,11 @@ const compiled: CompiledCard = {
               "controller": "opponent",
               "kind": [
                 "Digimon"
-              ]
+              ],
+              "dp": {
+                "op": "lte",
+                "relativeToSource": true
+              }
             },
             "count": 1
           }
@@ -45,7 +49,11 @@ const compiled: CompiledCard = {
               "controller": "opponent",
               "kind": [
                 "Digimon"
-              ]
+              ],
+              "dp": {
+                "op": "lte",
+                "relativeToSource": true
+              }
             },
             "count": 1
           }
@@ -62,8 +70,21 @@ const compiled: CompiledCard = {
               "zone": "trash",
               "controller": "mine",
               "kind": [
-                "Digimon",
                 "Tamer"
+              ]
+            },
+            "count": 1
+          },
+          "to": "hand"
+        },
+        {
+          "kind": "Return",
+          "target": {
+            "filter": {
+              "zone": "trash",
+              "controller": "mine",
+              "kind": [
+                "Digimon"
               ],
               "nameOrTrait": [
                 {
@@ -106,6 +127,11 @@ const compiled: CompiledCard = {
         {
           "names": [
             "Agunimon"
+          ]
+        },
+        {
+          "names": [
+            "BurningGreymon"
           ]
         }
       ],
