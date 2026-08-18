@@ -11,7 +11,7 @@ const compiled: CompiledCard = {
       "trigger": "Static",
       "actions": [
         {
-          "kind": "GrantStatic",
+          "kind": "WaiveColorRequirement",
           "target": {
             "filter": {
               "isSelfRef": true
@@ -19,10 +19,6 @@ const compiled: CompiledCard = {
             "count": 1,
             "isSelf": true
           },
-          "grant": {
-            "color": "purple"
-          },
-          "tokens": []
         }
       ]
     },
