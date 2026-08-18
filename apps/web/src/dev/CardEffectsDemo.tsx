@@ -6442,6 +6442,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
   const effect = params.get("effect");
   const step = params.get("step");
   const fixture = useMemo<CardEffectsFixture | undefined>(() => {
+    if (cardId === "BT1-065") return vanillaPlayDemo(cardId, 4000, 2, effect);
     if (cardId === "BT1-064") return vanillaPlayDemo(cardId, 3000, 2, effect);
     if (cardId === "BT1-063") return seraphimonDemo(effect);
     if (cardId === "BT1-062") return slashAngemonDemo(effect);
