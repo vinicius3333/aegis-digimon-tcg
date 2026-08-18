@@ -6215,6 +6215,39 @@ function ogremonDemo(effect: string | null): CardEffectsFixture {
   };
 }
 
+function kuwagamonDemo(effect: string | null): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 5;
+  state.turnSeat = 0;
+  state.memory = -4;
+
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  you.battleArea.push(permanent("demo-kuwagamon", "BT1-070", 0, 4000));
+  const target = permanent("demo-kuwagamon-target", "BT1-029", 1, 2000);
+  target.isSuspended = effect === "suspend";
+  opponent.battleArea.push(target);
+  opponent.handCount = 5;
+  state.players.push(you, opponent);
+
+  if (effect !== "suspend") return { state };
+  return {
+    state,
+    events: [
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: "BT1-070",
+        effectKey: "BT1-070/suspend",
+        description: "Kuwagamon's On Play effect suspends 1 opposing Digimon.",
+        timing: "On Play",
+      },
+    ],
+  };
+}
+
 function palmonDemo(effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
@@ -6578,6 +6611,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
   const effect = params.get("effect");
   const step = params.get("step");
   const fixture = useMemo<CardEffectsFixture | undefined>(() => {
+    if (cardId === "BT1-070") return kuwagamonDemo(effect);
     if (cardId === "BT1-069") return ogremonDemo(effect);
     if (cardId === "BT1-068") return kokuwamonDemo(effect);
     if (cardId === "BT1-067") return palmonDemo(effect);
