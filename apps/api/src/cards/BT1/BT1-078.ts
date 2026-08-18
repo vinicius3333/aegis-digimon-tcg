@@ -25,9 +25,32 @@ const module: EffectModule = {
             })
             .map((card) => card.instanceId);
           const chosen = candidates.length ? await ctx.ask.selectCards(ctx, { candidates, min: 0, max: 1 }) : [];
-          if (chosen[0]) await ctx.fx.digivolveFromInstance(self.permanentId, chosen[0], { payCost: false });
-          const rest = revealed.filter((card) => !chosen.includes(card.instanceId)).map((card) => card.instanceId);
-          if (rest.length) await ctx.fx.returnToDeck(rest, { toTop: false });
+          const returnRemaining = async (): Promise<void> => {
+            let rest = revealed.filter((card) => !chosen.includes(card.instanceId)).map((card) => card.instanceId);
+            if (rest.length > 1 && ctx.ask.orderCards !== undefined) {
+              rest = await ctx.ask.orderCards(ctx, {
+                candidates: rest,
+                visibleCards: revealed
+                  .filter((card) => rest.includes(card.instanceId))
+                  .map((card) => ({ instanceId: card.instanceId, cardId: card.cardId })),
+                destination: "deckBottom",
+              });
+            }
+            if (rest.length > 0) await ctx.fx.returnToDeck(rest, { toTop: false });
+          };
+          if (chosen[0]) {
+            const restToStage = revealed
+              .filter((card) => !chosen.includes(card.instanceId))
+              .map((card) => card.instanceId);
+            if (restToStage.length > 0) await ctx.fx.returnToHand(restToStage, { silent: true });
+            await ctx.fx.digivolveFromInstance(self.permanentId, chosen[0], {
+              payCost: false,
+              draw: true,
+              beforeWhenDigivolving: returnRemaining,
+            });
+          } else {
+            await returnRemaining();
+          }
         },
       }),
     ];

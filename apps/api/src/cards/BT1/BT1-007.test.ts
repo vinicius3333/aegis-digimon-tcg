@@ -75,9 +75,12 @@ describe("BT1-007 Tanemon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("host").topCard.instanceId === s.inst("evolution").instanceId);
+    await settle(
+      () =>
+        s.perm("host").topCard.instanceId === s.inst("evolution").instanceId &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT1-007"),
+    );
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
   });
 });
