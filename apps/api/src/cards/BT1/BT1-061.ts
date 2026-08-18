@@ -13,13 +13,14 @@ const module: EffectModule = {
       onPlay({
         source,
         effectKey: `${cardId}/dp-minus`,
-        description: "[On Play] Up to 2 opposing Digimon get -3000 DP for the turn.",
+        description: "[On Play] 2 opposing Digimon get -3000 DP for the turn.",
         resolve: async (ctx) => {
           const candidates = ctx.game
             .player(ctx.game.opponentOf(source.ownerSeat))
             .battleArea.filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)))
             .map((p) => p.permanentId);
-          const chosen = await ctx.ask.chooseTargets(ctx, { candidates, min: 0, max: Math.min(2, candidates.length) });
+          const count = Math.min(2, candidates.length);
+          const chosen = await ctx.ask.chooseTargets(ctx, { candidates, min: count, max: count });
           for (const id of chosen) ctx.fx.modifyDP(id, -3000, EffectDuration.UntilEachTurnEnd);
         },
       }),
