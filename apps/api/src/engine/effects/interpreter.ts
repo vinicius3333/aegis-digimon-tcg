@@ -1932,7 +1932,7 @@ function countMatching(ctx: EffectContext, filter: Filter): number {
   // "battleArea" (the default for `youHave`/`opponentHas`, e.g. BT2-031) and any other
   // zone value must fall through to the default per-permanent scan below — special-
   // casing on `zone !== undefined` alone silently dropped that scan to 0 (regression).
-  const looseCardZones: readonly string[] = ["trash", "hand", "digivolutionCards"];
+  const looseCardZones: readonly string[] = ["trash", "hand", "security", "digivolutionCards"];
   if (filter.zone !== undefined) {
     const zones = Array.isArray(filter.zone) ? filter.zone : [filter.zone];
     if (zones.some((z) => looseCardZones.includes(z))) {
@@ -1948,6 +1948,15 @@ function countMatching(ctx: EffectContext, filter: Filter): number {
           for (const seat of seats) {
             const hand = ctx.game.player(seat).hand;
             for (const card of hand) {
+              if (definitionMatches(filter, ctx.game.definitionOf(card))) n++;
+            }
+          }
+        } else if (zone === "security") {
+          for (const seat of seats) {
+            const security = ctx.game.player(seat).security;
+            for (const card of security) {
+              if (filter.faceUp === true && card.faceUp !== true) continue;
+              if (filter.faceUp === false && card.faceUp === true) continue;
               if (definitionMatches(filter, ctx.game.definitionOf(card))) n++;
             }
           }
@@ -11073,6 +11082,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "EX9-064", // trash 1 [Cyborg]/[Ver.x] from hand -> -2
   "EX9-044", // suspend 1 [WG] Digimon -> -4
   "P-170", // return 3 [Three Musketeers]-text from trash -> -6
+  "P-174", // face-up [Nightmare Soldiers] in security -> -4
   "BT12-112", // place 1 [Shoutmon] as digivolution material -> -1 (KB Q2249-Q2256)
   "BT8-043", // delete 1 purple [Cherubimon] -> -8
   "BT9-097", // condition: you have a Digimon with [X Antibody] card name in play -> -2 (KB Q1902)
