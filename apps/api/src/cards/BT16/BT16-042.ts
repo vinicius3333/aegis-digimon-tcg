@@ -8,6 +8,25 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   "effects": [
     {
+      "trigger": "Static",
+      "actions": [
+        {
+          "kind": "GrantStatic",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          },
+          "grant": "trait",
+          "tokens": [
+            "Insectoid"
+          ]
+        }
+      ]
+    },
+    {
       "trigger": "OnPlay",
       "actions": [
         {
@@ -23,20 +42,6 @@ const compiled: CompiledCard = {
           },
           "amount": 3000,
           "duration": "untilOpponentTurnEnd"
-        },
-        {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "grant": "trait",
-          "tokens": [
-            "Insectoid"
-          ]
         }
       ]
     },
@@ -56,20 +61,6 @@ const compiled: CompiledCard = {
           },
           "amount": 3000,
           "duration": "untilOpponentTurnEnd"
-        },
-        {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "grant": "trait",
-          "tokens": [
-            "Insectoid"
-          ]
         }
       ]
     },
