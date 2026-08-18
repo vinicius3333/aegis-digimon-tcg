@@ -2,8 +2,9 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// KB Q3170 (binding): when trashed in the battle area during opponent's turn,
-// the 2nd effect lasts until the end of your opponent's turn (untilOpponentTurnEnd).
+// KB Q3170 (binding): when trashed in the battle area, the 2nd effect lasts
+// until the end of your opponent's turn (untilOpponentTurnEnd), regardless of
+// whose turn caused the trashing.
 const compiled: CompiledCard = {
   "effects": [
     {
@@ -77,44 +78,6 @@ const compiled: CompiledCard = {
     },
     {
       "trigger": "whenTrashedFromBattleArea",
-      "turnCondition": "yourTurn",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "amount": 4000,
-          "duration": "forTheTurn"
-        },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "Piercing",
-            "raw": "＜Piercing＞"
-          },
-          "duration": "forTheTurn"
-        }
-      ]
-    },
-    {
-      "trigger": "whenTrashedFromBattleArea",
-      "turnCondition": "opponentsTurn",
       "actions": [
         {
           "kind": "ModifyDP",

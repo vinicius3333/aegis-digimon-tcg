@@ -109,10 +109,12 @@ const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "mine",
-              "playCostLte": 5
+              "playCostLte": 5,
+              "zone": "underTamers"
             },
             "count": 1
           },
+          "from": ["underTamers"],
           "payCost": false,
           "optional": true
         }
