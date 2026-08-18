@@ -28,4 +28,24 @@ describe("BT3-047 Wormmon", () => {
       s.inst("restTwo").instanceId,
     ]);
   });
+
+  it("also adds an eligible level 5 Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT3-047", as: "wormmon" }],
+          deck: [
+            { card: "BT3-040", as: "levelFive" },
+            { card: "BT1-010", as: "restOne" },
+            { card: "BT1-011", as: "restTwo" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const addedId = s.inst("levelFive").instanceId;
+    await advance(s.engine).verb.deletePermanent([s.perm("wormmon").permanentId]);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === addedId)).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
 });
