@@ -61,6 +61,7 @@ const onField = (ctx: EffectContext): boolean => ctx.source.isOnBattleArea();
 const inBreedingArea = (ctx: EffectContext): boolean => ctx.source.isOnBreedingArea?.() ?? false;
 const inTrashZone = (ctx: EffectContext): boolean => ctx.source.isInTrash?.() ?? false;
 const inHandZone = (ctx: EffectContext): boolean => ctx.source.isInHand?.() ?? false;
+const inFaceUpSecurity = (ctx: EffectContext): boolean => ctx.source.isInSecurity?.() ?? false;
 
 function build(opts: BuilderOptions, flags: BuilderFlags): Effect {
   const baseGuard = flags.baseGuard ?? onField;
@@ -351,6 +352,9 @@ export const handResidentStatic = (opts: BuilderOptions): Effect => build(opts, 
  * untouched, so this does not let unrelated statics leak off the battle area.
  */
 export const colorWaiverStatic = (opts: BuilderOptions): Effect => build(opts, { baseGuard: () => true });
+
+/** Persistent effects whose source is a face-up card in the security stack. */
+export const securityStatic = (opts: BuilderOptions): Effect => build(opts, { baseGuard: inFaceUpSecurity });
 
 /**
  * `[Breeding]`-region resident effects (source effects gated on
