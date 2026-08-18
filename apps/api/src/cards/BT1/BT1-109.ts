@@ -40,9 +40,7 @@ const BASE_LEVEL_TO = 6;
  * digivolved into), so the "to Lv.6" half of the gate is enforced when known: a
  * hypothetical Lv.5 -> Lv.7 jump-evolution of a green base is no longer reduced.
  */
-function isGreenLevelFiveBase(
-  source: CardSource,
-): (m: { target: Permanent; into?: CardDefinition }) => boolean {
+function isGreenLevelFiveBase(source: CardSource): (m: { target: Permanent; into?: CardDefinition }) => boolean {
   return ({ target, into }): boolean => {
     if (target.controllerSeat !== source.ownerSeat) return false;
     if (target.inBreeding) return false; // Q979: breeding area is excluded
@@ -74,7 +72,7 @@ const module: EffectModule = {
             "Digimon from Lv.5 to Lv.6, decrease the digivolution cost by 4.",
           optional: false,
           resolve: async (ctx) => {
-            ctx.fx.changeEvoCost(isGreenLevelFiveBase(ctx.source), DIGIVOLVE_COST_REDUCTION);
+            ctx.fx.changeEvoCost(isGreenLevelFiveBase(ctx.source), DIGIVOLVE_COST_REDUCTION, { once: true });
           },
         }),
       ];
