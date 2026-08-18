@@ -15,7 +15,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 //   [Main] 1 of your Digimon gets +3000 DP for the turn.
 //   [Security] Suspend 1 of your opponent's Digimon. Then add this card to its owner's hand.
 //
-//   EffectTiming.OptionSkill → EffectTiming.OnPlay   ([Main] activated by playing the Option)
+//   EffectTiming.OnUseOption → [Main] activated by using the Option
 //   EffectTiming.SecuritySkill → EffectTiming.SecuritySkill ([Security] fired on security check)
 
 const cardId = "BT1-108";
@@ -23,14 +23,13 @@ const cardId = "BT1-108";
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnPlay) {
+    if (timing === EffectTiming.OnUseOption) {
       return [
         activated({
           source,
           effectKey: `${cardId}/main-dp-boost`,
           description: "[Main] 1 of your Digimon gets +3000 DP for the turn.",
           optional: false,
-          canActivate: (ctx) => ownDigimonIds(ctx.game, source).length > 0,
           resolve: async (ctx) => {
             const candidates = ownDigimonIds(ctx.game, source);
             if (candidates.length === 0) return;
@@ -52,8 +51,7 @@ const module: EffectModule = {
         security({
           source,
           effectKey: `${cardId}/security-suspend-return`,
-          description:
-            "[Security] Suspend 1 of your opponent's Digimon. Then add this card to its owner's hand.",
+          description: "[Security] Suspend 1 of your opponent's Digimon. Then add this card to its owner's hand.",
           optional: false,
           resolve: async (ctx) => {
             const candidates = opponentDigimonIds(ctx.game, source);

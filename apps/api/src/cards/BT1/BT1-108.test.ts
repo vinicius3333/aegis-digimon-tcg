@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import { EffectDuration, EffectTiming, getCardDefinition, type CardDefinition, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import module from "./BT1-108.js";
 
 // A3 for BT1-108 (Horn Buster):
@@ -130,10 +132,11 @@ describe("BT1-108 Horn Buster", () => {
     expect(module.cardId).toBe("BT1-108");
   });
 
-  it("exposes an OnPlay effect for [Main]", () => {
+  it("exposes an OnUseOption effect for [Main]", () => {
     const source = makeSource();
-    const effects = module!.effectsForTiming(EffectTiming.OnPlay, source);
+    const effects = module!.effectsForTiming(EffectTiming.OnUseOption, source);
     expect(effects.length).toBeGreaterThanOrEqual(1);
+    expect(module!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(0);
   });
 
   it("exposes a SecuritySkill effect for [Security]", () => {
@@ -155,7 +158,7 @@ describe("BT1-108 Horn Buster", () => {
       const ctx = makeCtx({ recorder, ownBattleArea: [digimon] });
 
       const source = makeSource();
-      const effects = module!.effectsForTiming(EffectTiming.OnPlay, source);
+      const effects = module!.effectsForTiming(EffectTiming.OnUseOption, source);
       await effects[0]!.resolve(ctx);
 
       const dpCalls = recorder.filter((c) => c.verb === "modifyDP");
@@ -170,7 +173,7 @@ describe("BT1-108 Horn Buster", () => {
       const ctx = makeCtx({ recorder, ownBattleArea: [] });
 
       const source = makeSource();
-      const effects = module!.effectsForTiming(EffectTiming.OnPlay, source);
+      const effects = module!.effectsForTiming(EffectTiming.OnUseOption, source);
       await effects[0]!.resolve(ctx);
 
       expect(recorder.filter((c) => c.verb === "modifyDP")).toHaveLength(0);
@@ -240,5 +243,62 @@ describe("BT1-108 Horn Buster", () => {
       expect(suspendCalls).toHaveLength(1);
       expect((suspendCalls[0]!.args[0] as string[])[0]).toBe("opp-perm-suspended");
     });
+  });
+
+  it("uses Main through the production Option flow and gives the selected Digimon +3000 DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-064", as: "recipient" }],
+          hand: [{ card: "BT1-108", as: "option" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const printedDP = s.perm("recipient").currentDP;
+    s.state.memory = 1;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("recipient").currentDP === printedDP + 3000);
+
+    expect(s.perm("recipient").currentDP).toBe(printedDP + 3000);
+  });
+
+  it("can be used with only a green Tamer and resolves without a Digimon target", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: ["BT1-089"],
+        hand: [{ card: "BT1-108", as: "option" }],
+      },
+    });
+    s.state.memory = 1;
+    const option = s.inst("option");
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: option.instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === option.instanceId));
+
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("suspends an opposing Digimon and moves itself from security to hand in the production engine", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT1-108", as: "securityOption", faceUp: true }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "target" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
+
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("securityOption").instanceId);
   });
 });
