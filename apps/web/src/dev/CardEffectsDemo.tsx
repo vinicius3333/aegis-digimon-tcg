@@ -10807,6 +10807,32 @@ function aruraumonBt3Demo(_effect: string | null): CardEffectsFixture {
   };
 }
 
+function kunemonBt3Demo(_effect: string | null): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 7;
+  state.turnSeat = 0;
+  state.memory = 0;
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  you.battleArea.push(permanent("demo-bt3-045-kunemon", "BT3-045", 0, 4000));
+  state.players.push(you, opponent);
+  return {
+    state,
+    events: [
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: "BT3-045",
+        effectKey: "BT3-045/vanilla",
+        description: "BT3-045 Kunemon has no printed effect: the 4000 DP Digimon remains unchanged.",
+        timing: "OnPlay",
+      },
+    ],
+  };
+}
+
 function silphymonBt3Demo(effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
@@ -16787,6 +16813,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
     if (cardId === "BT3-042") return clavisAngemonBt3Demo(effect);
     if (cardId === "BT3-043") return kentaurosmonBt3Demo(effect);
     if (cardId === "BT3-044") return aruraumonBt3Demo(effect);
+    if (cardId === "BT3-045") return kunemonBt3Demo(effect);
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
