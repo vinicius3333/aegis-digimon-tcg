@@ -104,9 +104,8 @@ const compiled: CompiledCard = {
             }
           },
           "while": {
-            "kind": "selfHasNameContaining",
-            "names": ["Numemon", "Monzaemon"],
-            "raw": "this Digimon has [Numemon] or [Monzaemon] in its name"
+            "kind": "raw",
+            "raw": "this Digimon has [Numemon] or [Monzaemon] in its name or [DigiPolice] trait"
           }
         },
         {
@@ -145,9 +144,8 @@ const compiled: CompiledCard = {
             }
           },
           "while": {
-            "kind": "selfHasNameContaining",
-            "names": ["Numemon", "Monzaemon"],
-            "raw": "this Digimon has [Numemon] or [Monzaemon] in its name"
+            "kind": "raw",
+            "raw": "this Digimon has [Numemon] or [Monzaemon] in its name or [DigiPolice] trait"
           }
         }
       ],

@@ -2736,6 +2736,17 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
           return self.stack.some((card) => matchNameOrTrait(ctx.game.definitionOf(card), { tokens: [m[1]!], match: "trait" }));
         }
       }
+      {
+        const rawHasTrait = /this Digimon has (.+?) trait/i.exec(cond.raw ?? "");
+        if (rawHasTrait) {
+          const self = ctx.source.permanent();
+          const top = self?.topCard;
+          if (top === undefined) return false;
+          const def = ctx.game.definitionOf(top);
+          const tokens = [...rawHasTrait[1]!.matchAll(/\[([^\]]+)\]/g)].map((x) => x[1]!);
+          return tokens.some((token) => matchNameOrTrait(def, {tokens: [token], match: "trait"}));
+        }
+      }
       // "this Digimon had [X] or [Y] in its name" (BT13-062/EX5-045): on-deletion
       // inherited effects must inspect the deleted host's top card, not the inherited
       // source card that remains as the trigger owner.
