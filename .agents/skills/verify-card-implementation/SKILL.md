@@ -72,7 +72,44 @@ result. Resolve the full effect stack before final assertions.
 Completion criterion: reverting the card-specific implementation makes at
 least one focused assertion fail for the intended reason.
 
-## 4. Verify the change
+## 4. Cross-card and evolution-stack verification
+
+Check the card against nearby implementations that share its traits, colors,
+evolution requirements, or effect vocabulary. Read those peer modules and
+tests to detect inconsistent targeting, timing, cost handling, inherited
+effects, and trait filters. Add at least one comparative case when a peer
+interaction is relevant (for example, a trait-based effect selecting this
+card and a similar card).
+
+When the card uses a trait or trait-based filter, assemble a focused test deck
+or board containing multiple cards with that trait, cards with near-matching
+traits, and at least one non-matching card. Exercise searches, buffs, deletion,
+evolution, and target selection against that mixed pool so the implementation
+is proven to distinguish the complete trait set rather than succeeding only
+with a single-card fixture.
+
+Exercise the card in realistic evolution stacks, not only as an isolated card:
+
+- build the smallest legal stack that reaches the card and verify each
+  evolution requirement and source-card transition;
+- assert inherited effects from the stack and confirm the correct source,
+  level, traits, colors, and DP are visible after each evolution;
+- build stacks from the focused trait deck, including a similar-trait card and
+  one invalid or non-matching stack, to prove filters and boundaries;
+- when applicable, resolve effects across multiple evolution steps, deletion,
+  unsuspension, attacks, and security so pending effects do not lose their
+  source or controller.
+
+Use the Orca Browser or an equivalent observable UI harness for the stack
+scenarios when the application exposes the relevant flow. A passing isolated
+fixture is not sufficient evidence for a card whose behavior depends on
+traits or evolution sources.
+
+Completion criterion: every applicable shared-trait and evolution-stack risk
+has a passing comparative or stack assertion, or is explicitly documented as
+unsupported or ambiguous.
+
+## 5. Verify the change
 
 Run the focused test first:
 
@@ -94,7 +131,7 @@ Completion criterion: focused proof, affected regression suites, typecheck,
 and diff validation all pass, or each unrelated pre-existing failure is named
 with evidence.
 
-## 5. Close the audit
+## 6. Close the audit
 
 Report:
 
