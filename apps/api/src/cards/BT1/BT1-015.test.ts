@@ -8,4 +8,11 @@ describe("BT1-015 Greymon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("host").currentDP).toBe(7000);
   });
+
+  it("does not give its Digimon +2000 DP during the opponent's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-016", as: "host", dp: 5000, under: ["BT1-015"] }] } });
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("host").currentDP).toBe(5000);
+  });
 });
