@@ -105,6 +105,7 @@ const compiled: CompiledCard = {
           "kind": "SubTrigger",
           "event": "onDeletionOf",
           "sourceFilter": {
+            "controllerDefault": "mine",
             "nameOrTrait": [
               {
                 "tokens": [
