@@ -18905,6 +18905,76 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         0,
         "Izzy and Joe reveal cards and gain memory when an opponent has 2 or more Digimon in play.",
       );
+    if (cardId === "BT6-091")
+      return effectBt3Demo(
+        cardId,
+        "Sora Takenouchi & Mimi Tachikawa",
+        0,
+        "Sora and Mimi suspend an opposing Digimon and gain memory when a Digimon is deleted by an effect.",
+      );
+    if (cardId === "BT6-092")
+      return effectBt3Demo(
+        cardId,
+        "Menoa Bellucci",
+        0,
+        "Menoa reduces the digivolution cost of Eosmon and draws when an Eosmon is played.",
+      );
+    if (cardId === "BT6-093")
+      return effectBt3Demo(
+        cardId,
+        "Judgement of the Blade",
+        0,
+        "Judgement of the Blade deletes an opposing Digimon with a play cost of 7 or less.",
+      );
+    if (cardId === "BT6-094")
+      return effectBt3Demo(
+        cardId,
+        "Red Reamer",
+        0,
+        "Red Reamer deletes an opposing Digimon with 4000 DP or less and can be used from security.",
+      );
+    if (cardId === "BT6-095")
+      return effectBt3Demo(
+        cardId,
+        "Happy Bullet Showering",
+        0,
+        "Happy Bullet Showering deletes up to two opposing Digimon with 3000 DP or less.",
+      );
+    if (cardId === "BT6-096")
+      return effectBt3Demo(
+        cardId,
+        "Forbidden Trident",
+        0,
+        "Forbidden Trident gives one of your Digimon Security Attack +1 and allows it to attack an opponent's Digimon.",
+      );
+    if (cardId === "BT6-097")
+      return effectBt3Demo(
+        cardId,
+        "Howling Memory Boost!",
+        0,
+        "Howling Memory Boost! reveals cards to add a Gabumon or Garurumon and sets up a delayed memory gain.",
+      );
+    if (cardId === "BT6-098")
+      return effectBt3Demo(
+        cardId,
+        "Raddle Star",
+        0,
+        "Raddle Star returns an opposing level 4 or lower Digimon to its owner's hand.",
+      );
+    if (cardId === "BT6-099")
+      return effectBt3Demo(
+        cardId,
+        "Acid Injection",
+        0,
+        "Acid Injection deletes an opposing Digimon with 5000 DP or less.",
+      );
+    if (cardId === "BT6-100")
+      return effectBt3Demo(
+        cardId,
+        "Reinforcing Memory Boost!",
+        0,
+        "Reinforcing Memory Boost! reveals cards to add a Tamer and sets up a delayed memory gain.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
