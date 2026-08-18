@@ -14,11 +14,7 @@ describe("historical green suspend-control deck", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT10-052", as: "cherrymon", suspended: true },
-            "BT8-012",
-            "BT8-016",
-          ],
+          battleArea: [{ card: "BT10-052", as: "cherrymon", suspended: true }, "BT8-012", "BT8-016"],
           hand: [{ card: "BT8-099", as: "gigaDeath" }],
           security: [
             { card: "BT1-110", as: "flower", faceUp: true },
@@ -29,7 +25,7 @@ describe("historical green suspend-control deck", () => {
           battleArea: [
             { card: "BT1-009", as: "attacker", dp: 1000 },
             { card: "BT1-010", as: "nonBlocker" },
-            { card: "BT1-023", as: "blocker" },
+            { card: "BT1-031", as: "blocker" },
           ],
         },
       },
@@ -39,11 +35,13 @@ describe("historical green suspend-control deck", () => {
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();
 
-    expect(s.engine.applyIntent(1, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         !s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-009") &&
@@ -62,7 +60,9 @@ describe("historical green suspend-control deck", () => {
     s.state.turnSeat = 0;
     s.state.memory = 10;
     preferred.push(s.perm("blocker").permanentId, s.perm("nonBlocker").permanentId);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gigaDeath").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gigaDeath").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });

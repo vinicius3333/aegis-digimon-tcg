@@ -230,6 +230,8 @@ export interface PrimitivesEngine {
    * one-shot effect resolution. Optional on the port so the test fakes need no change.
    */
   inContinuousPass?(): boolean;
+  /** True while a triggered timing window is resolving, including nested windows. */
+  inResolvingWindow?(): boolean;
   /**
    * Once-per-turn prevention ledger (＜Barrier＞). `barrierFired` returns true
    * when the given per-permanent key has already prevented a removal this turn;
@@ -377,7 +379,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   };
 
   /** Whether the engine is currently re-firing persistent effects (see PrimitivesEngine). */
-  const continuousPass = (): boolean => engine.inContinuousPass?.() ?? false;
+  const continuousPass = (): boolean =>
+    (engine.inContinuousPass?.() ?? false) && !(engine.inResolvingWindow?.() ?? false);
   /** `{ continuous: true }` while re-firing persistent effects, else undefined. */
   const continuousOpt = (): { continuous: boolean } | undefined =>
     continuousPass() ? { continuous: true } : undefined;

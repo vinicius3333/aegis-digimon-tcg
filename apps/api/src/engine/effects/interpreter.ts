@@ -4547,7 +4547,14 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
       const amount = scale === undefined ? action.amount : action.amount * scale;
-      for (const id of ids) ctx.fx.modifyDP(id, amount, duration);
+      for (const id of ids) {
+        ctx.fx.modifyDP(
+          id,
+          amount,
+          duration,
+          action.continuous === undefined ? undefined : { continuous: action.continuous },
+        );
+      }
       return false;
     }
     case "AddDPFromSuspendedCost": {

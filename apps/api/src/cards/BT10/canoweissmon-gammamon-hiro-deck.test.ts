@@ -38,34 +38,40 @@ describe("BT10 Canoweissmon Gammamon/Hiro deck gauntlet", () => {
     const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
     await settle(() => mainPhase.isOpen);
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("gammamonLine").permanentId,
-      instanceId: s.inst("canoweissmon").instanceId,
-      useAlternateCost: true,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("gammamonLine").topCard.cardId === "BT10-011" &&
-      s.engine.hasAcceptedBlitzAttack(s.perm("gammamonLine").permanentId)
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gammamonLine").permanentId,
+        instanceId: s.inst("canoweissmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("gammamonLine").topCard.cardId === "BT10-011" &&
+        s.engine.hasAcceptedBlitzAttack(s.perm("gammamonLine").permanentId),
     );
 
     expect(s.engine.hasAcceptedBlitzAttack(s.perm("gammamonLine").permanentId)).toBe(true);
     expect(s.state.memory).toBe(-1);
-    expect(s.perm("gammamonLine").currentDP).toBe(10_000);
+    // P-059 Gammamon is in the stack and inherits +2000 while Hiro is in play.
+    expect(s.perm("gammamonLine").currentDP).toBe(12_000);
     expect(mainPhase.isOpen).toBe(true);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("gammamonLine").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      !observe(s.engine).isAttacking() &&
-      s.perm("hiro").isSuspended &&
-      s.state.players[1]!.security.length === 0 &&
-      !s.state.players[1]!.battleArea.some(
-        ({ permanentId }) => permanentId === smallTargetId,
-      )
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gammamonLine").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.perm("hiro").isSuspended &&
+        s.state.players[1]!.security.length === 0 &&
+        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === smallTargetId),
+      5000,
     );
 
     // The two temporary +1 grants are both still observable at combat completion and are also
@@ -75,7 +81,7 @@ describe("BT10 Canoweissmon Gammamon/Hiro deck gauntlet", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
     await turn;
     // They expire cleanly at the crossed-memory turn boundary.
-    expect(s.perm("gammamonLine").currentDP).toBe(10_000);
+    expect(s.perm("gammamonLine").currentDP).toBe(12_000);
     expect(observe(s.engine).keywordAmount(s.perm("gammamonLine"), "SecurityAttack")).toBe(0);
     assertNoLoudGap(s);
   });

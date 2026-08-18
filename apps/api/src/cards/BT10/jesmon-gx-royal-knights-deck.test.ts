@@ -14,11 +14,13 @@ describe("ST12 Jesmon and Jesmon GX Royal Knights deck", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{
-            card: "ST12-10",
-            as: "jesmon",
-            under: ["ST12-08"],
-          }],
+          battleArea: [
+            {
+              card: "ST12-10",
+              as: "jesmon",
+              under: ["ST12-08"],
+            },
+          ],
           hand: [
             { card: "BT10-112", as: "gx" },
             { card: "BT6-084", as: "ciel" },
@@ -41,27 +43,26 @@ describe("ST12 Jesmon and Jesmon GX Royal Knights deck", () => {
         preferInstanceIds: preferred,
       },
     );
-    preferred.push(
-      s.inst("jesmonX").instanceId,
-      s.inst("ciel").instanceId,
-      s.inst("blanc").instanceId,
-    );
+    preferred.push(s.inst("jesmonX").instanceId, s.inst("ciel").instanceId, s.inst("blanc").instanceId);
     s.state.memory = 4;
 
     const turn = s.engine.runOneTurn();
     const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
     await settle(() => mainPhase.isOpen);
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("jesmon").permanentId,
-      instanceId: s.inst("gx").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.engine.hasAcceptedBlitzAttack(s.perm("jesmon").permanentId) &&
-      s.state.players[0]!.battleArea.some((permanent) =>
-        permanent.topCard.instanceId === s.inst("ciel").instanceId,
-      ) &&
-      s.state.pendingDecision === undefined,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("jesmon").permanentId,
+        instanceId: s.inst("gx").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.engine.hasAcceptedBlitzAttack(s.perm("jesmon").permanentId) &&
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("ciel").instanceId,
+        ) &&
+        s.state.pendingDecision === undefined,
     );
 
     expect(s.decisions.filter(({ req }) => req.kind === "chooseTargets")).toEqual([]);
@@ -71,21 +72,25 @@ describe("ST12 Jesmon and Jesmon GX Royal Knights deck", () => {
     expect(observe(s.engine).hasPierce(s.perm("jesmon"))).toBe(true);
     expect(observe(s.engine).keywordAmount(s.perm("jesmon"), "SecurityAttack")).toBe(2);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("jesmon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[1]!.security.length === 1 &&
-      s.state.players[0]!.battleArea.some((permanent) =>
-        permanent.topCard.instanceId === s.inst("blanc").instanceId,
-      ) &&
-      !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("jesmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 1 &&
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("blanc").instanceId,
+        ) &&
+        !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
     );
 
     expect(s.state.memory).toBe(0);
-    expect(s.perm("jesmon").currentDP).toBeGreaterThanOrEqual(19_000);
+    // Jesmon GX is 15,000 DP and Sistermon Ciel contributes +2,000 DP.
+    expect(s.perm("jesmon").currentDP).toBeGreaterThanOrEqual(17_000);
     expect(s.state.phase).toBe(Phase.Main);
     expect(mainPhase.isOpen).toBe(true);
 

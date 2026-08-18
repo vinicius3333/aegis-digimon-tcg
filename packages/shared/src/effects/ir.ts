@@ -1,4 +1,3 @@
-
 // Declarative intermediate representation (IR) for card effect text.
 //
 // The compiler pipeline is: effect text (English prose) -> this IR -> the
@@ -1618,6 +1617,8 @@ export interface ModifyDPAction extends ActionBase {
   target: Target;
   amount: number; // signed
   duration: EffectDurationRef;
+  /** Override continuous-pass inference for audited edge cases with a triggered duration. */
+  continuous?: boolean;
 }
 /**
  * Suspend a Digimon as an activation cost, then add that Digimon's current DP

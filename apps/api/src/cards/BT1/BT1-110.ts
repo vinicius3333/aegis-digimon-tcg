@@ -2,9 +2,20 @@ import { EffectTiming, isDigimon } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
+import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { activated, security } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 const cardId = "BT1-110";
+
+function hasBlocker(ctx: EffectContext, permanentId: string): boolean {
+  const permanent = ctx.game.permanentById(permanentId);
+  const printed =
+    permanent?.topCard === undefined
+      ? false
+      : /[<＜]\s*Blocker/i.test(ctx.game.definitionOf(permanent.topCard).effectText ?? "");
+  return printed || (ctx.game.hasKeyword?.(permanentId, "Blocker") ?? false);
+}
+
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
@@ -38,7 +49,7 @@ const module: EffectModule = {
                 (p) =>
                   p.topCard !== undefined &&
                   isDigimon(ctx.game.definitionOf(p.topCard)) &&
-                  !(ctx.game.hasKeyword?.(p.permanentId, "Blocker") ?? false),
+                  !hasBlocker(ctx, p.permanentId),
               )
               .map((p) => p.permanentId);
             ctx.fx.suspend(targets);
