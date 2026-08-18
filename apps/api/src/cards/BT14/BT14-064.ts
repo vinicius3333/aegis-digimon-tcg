@@ -73,42 +73,23 @@ const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
-          },
+          "sourceFilter": {"controller": "mine", "excludeSelf": true, "kind": ["Digimon"]},
           "actions": [
             {
               "kind": "RevealAdd",
               "revealCount": 3,
-              "add": [],
+              "add": [
+                {
+                  "filter": {"controllerDefault": "mine", "kind": ["Digimon"], "nameOrTrait": [{"tokens": ["Commandramon"], "match": "name"}]},
+                  "count": 1,
+                  "to": "play",
+                  "payCost": false,
+                  "optional": true
+                }
+              ],
               "rest": "deckBottom"
             }
           ]
-        },
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "name": "Commandramon"
-            },
-            "count": 1,
-            "upTo": false
-          },
-          "payCost": false,
-          "optional": true
-        },
-        {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine"
-            },
-            "count": 1
-          }
         }
       ],
       "isInherited": true,
