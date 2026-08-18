@@ -18975,6 +18975,80 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         0,
         "Reinforcing Memory Boost! reveals cards to add a Tamer and sets up a delayed memory gain.",
       );
+    if (cardId === "BT6-101")
+      return effectBt3Demo(
+        cardId,
+        "Wyvern's Breath",
+        0,
+        "Wyvern's Breath returns an opposing level 5 or lower Digimon to its owner's hand.",
+      );
+    if (cardId === "BT6-102")
+      return effectBt3Demo(
+        cardId,
+        "Tropical Venom",
+        0,
+        "Tropical Venom suspends an opposing Digimon and reduces its DP.",
+      );
+    if (cardId === "BT6-103")
+      return effectBt3Demo(
+        cardId,
+        "Blasted Disaster",
+        0,
+        "Blasted Disaster deletes an opposing Digimon with 6000 DP or less.",
+      );
+    if (cardId === "BT6-104")
+      return effectBt3Demo(
+        cardId,
+        "Parabolic Junk",
+        0,
+        "Parabolic Junk trashes a card from an opponent's hand and draws 1 card.",
+      );
+    if (cardId === "BT6-105")
+      return effectBt3Demo(
+        cardId,
+        "Gewalt Schwärmer",
+        0,
+        "Gewalt Schwärmer deletes an opposing Digimon with 7000 DP or less.",
+      );
+    if (cardId === "BT6-106")
+      return effectBt3Demo(
+        cardId,
+        "Iron-Fisted Onslaught",
+        0,
+        "Iron-Fisted Onslaught deletes an opposing Digimon with 5000 DP or less and an opposing Tamer.",
+      );
+    if (cardId === "BT6-107")
+      return effectBt3Demo(
+        cardId,
+        "Glaive Memory Boost!",
+        0,
+        "Glaive Memory Boost! reveals cards to add a purple Digimon and sets up a delayed memory gain.",
+      );
+    if (cardId === "BT6-108")
+      return effectBt3Demo(
+        cardId,
+        "Underworld's Call",
+        0,
+        "Underworld's Call plays a purple Digimon from trash while suspending one of your Digimon.",
+      );
+    if (cardId === "BT6-109")
+      return effectBt3Demo(cardId, "Fly Bullet", 0, "Fly Bullet deletes an opposing Digimon with 3000 DP or less.");
+    if (cardId === "BT6-110")
+      return effectBt3Demo(cardId, "Cutting Edge", 0, "Cutting Edge deletes an opposing Digimon with 7000 DP or less.");
+    if (cardId === "BT6-111")
+      return effectBt3Demo(
+        cardId,
+        "Alphamon",
+        11000,
+        "Alphamon places a card from its hand under itself when digivolving and gains Security Attack +1 while it has a Digimon card under it.",
+      );
+    if (cardId === "BT6-112")
+      return effectBt3Demo(
+        cardId,
+        "BeelStarmon",
+        11000,
+        "BeelStarmon reduces its play cost for each tamer and can play a cost-7 Option from trash when played.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
