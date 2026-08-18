@@ -1201,7 +1201,11 @@ export class GameEngine {
       fireWhenDigivolving: async (_state, seat, permanent, previousLevel) => {
         // Turn-scoped fact consumed by inherited effects such as BT1-007. Register before
         // firing When Digivolving so effects in that window can observe the completed evolution.
-        this.tracker.register(`seat:${seat}`, "digivolvedThisTurn");
+        // Effects do not inspect the breeding area unless their text explicitly says so (BT1-007
+        // Q870), therefore a breeding-area evolution must not set this battle-area fact.
+        if (!permanent.inBreeding) {
+          this.tracker.register(`seat:${seat}`, "digivolvedThisTurn");
+        }
         // Scope [When Digivolving] to the permanent that just digivolved (its top card
         // plus inherited stack effects). A global fire would also collect and resolve
         // every OTHER permanent's [When Digivolving] effect — including the opponent's
@@ -2082,6 +2086,13 @@ export class GameEngine {
     },
   ): Promise<void> {
     const attackerPermanentId = this.combat?.currentAttackerId;
+    const subjectPermanent = this.findInstance(instanceId)?.permanent;
+    // Effect-driven digivolutions are genuine digivolutions for "digivolved this turn"
+    // conditions (BT1-007 Q871). As with the manual action seam, breeding-area evolutions
+    // remain excluded unless card text explicitly references that area (Q870).
+    if (timing === EffectTiming.WhenDigivolving && subjectPermanent !== undefined && !subjectPermanent.inBreeding) {
+      this.tracker.register(`seat:${ownerSeat}`, "digivolvedThisTurn");
+    }
     await this.fireTimingForInstance(timing, instanceId, {
       enteredByEffect: ownerSeat,
       ...(attackerPermanentId !== undefined ? { attackerPermanentId } : {}),
@@ -2093,7 +2104,7 @@ export class GameEngine {
         ? { playedByEffectSourceCardId: opts.playedByEffectSourceCardId }
         : {}),
     });
-    const subjectPermanentId = this.findInstance(instanceId)?.permanent?.permanentId;
+    const subjectPermanentId = subjectPermanent?.permanentId;
     if (subjectPermanentId === undefined) return;
     if (timing === EffectTiming.OnPlay) {
       await this.fireTiming(EffectTiming.OnEnterFieldAnyone, { subjectPermanentId, entryCause: "play" });
