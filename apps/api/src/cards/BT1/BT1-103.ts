@@ -40,10 +40,8 @@ const module: EffectModule = {
         activated({
           source,
           effectKey: `${cardId}/main-gain-blocker`,
-          description:
-            "[Main] Until the end of your opponent's next turn, 1 of your Digimon gains ＜Blocker＞.",
+          description: "[Main] Until the end of your opponent's next turn, 1 of your Digimon gains ＜Blocker＞.",
           optional: false,
-          canActivate: (ctx) => ownDigimonIds(ctx, source).length >= 1,
           resolve: async (ctx) => {
             const candidates = ownDigimonIds(ctx, source);
             if (candidates.length === 0) return;
@@ -65,8 +63,7 @@ const module: EffectModule = {
         security({
           source,
           effectKey: `${cardId}/security-draw-return`,
-          description:
-            "[Security] Trigger ＜Draw 1＞ (Draw 1 card from your deck.) Then, add this card to your hand.",
+          description: "[Security] Trigger ＜Draw 1＞ (Draw 1 card from your deck.) Then, add this card to your hand.",
           optional: false,
           resolve: async (ctx) => {
             await ctx.fx.draw(source.ownerSeat, 1);

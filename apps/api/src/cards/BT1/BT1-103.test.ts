@@ -2,6 +2,9 @@ import { describe, it, expect } from "vitest";
 import { EffectDuration, EffectTiming, getCardDefinition, type CardDefinition, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import module from "./BT1-103.js";
 
 // A3 for BT1-103 (Testament):
@@ -149,12 +152,12 @@ describe("BT1-103 Testament", () => {
     expect(module!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(0);
   });
 
-  it("[Main] canActivate is false when owner has no Digimon on battle area", () => {
+  it("[Main] can activate when owner has no Digimon because selecting a target is not a use condition", () => {
     const source = makeSource();
     const recorder: Recorder = { calls: [] };
     const ctx = makeContext({ recorder, source, battleArea: [] });
     const effects = module!.effectsForTiming(EffectTiming.OnUseOption, source);
-    expect(effects[0]!.canActivate(ctx)).toBe(false);
+    expect(effects[0]!.canActivate(ctx)).toBe(true);
   });
 
   it("[Main] canActivate is true when owner has a Digimon on battle area", () => {
@@ -220,5 +223,58 @@ describe("BT1-103 Testament", () => {
     const returnCalls = recorder.calls.filter((c) => c.verb === "returnToHand");
     expect(returnCalls).toHaveLength(1);
     expect((returnCalls[0]!.args[0] as string[]).includes("testament-security")).toBe(true);
+  });
+
+  it("can be used with only a yellow Tamer in play and no Digimon, then resolves without a target", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: ["BT1-087"],
+        hand: [{ card: "BT1-103", as: "option" }],
+      },
+    });
+    s.state.memory = 3;
+    const option = s.inst("option");
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: option.instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((entry) => entry.instanceId === option.instanceId));
+
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("grants Blocker to the selected Digimon through the opponent's next turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-047", as: "recipient" }],
+          hand: [{ card: "BT1-103", as: "option" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("recipient"), "Blocker"));
+
+    expect(observe(s.engine).hasKeyword(s.perm("recipient"), "Blocker")).toBe(true);
+  });
+
+  it("draws 1 and moves itself from security to hand", async () => {
+    const s = setupEngine({
+      0: {
+        security: [{ card: "BT1-103", as: "securityOption", faceUp: true }],
+        deck: [{ card: "BT1-001", as: "drawn" }],
+      },
+    });
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
+
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((entry) => entry.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("drawn").instanceId, s.inst("securityOption").instanceId]),
+    );
   });
 });
