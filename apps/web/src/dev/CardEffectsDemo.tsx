@@ -17222,6 +17222,53 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
       return effectBt3Demo(cardId, "Tsukaimon", 2000, "Tsukaimon gained 1 memory when its host was deleted.");
     if (cardId === "BT3-080")
       return effectBt3Demo(cardId, "Saberdramon", 3000, "Saberdramon granted Retaliation to its host.");
+    if (cardId === "BT3-081")
+      return effectBt3Demo(cardId, "Devidramon", 4000, "Devidramon gained 1 memory when its host was deleted.");
+    if (cardId === "BT3-082")
+      return effectBt3Demo(
+        cardId,
+        "BlackGatomon",
+        4000,
+        "BlackGatomon was played without paying its cost after battling as a Security Digimon.",
+      );
+    if (cardId === "BT3-083") return vanillaBt3Demo(cardId, "Meramon", 5000);
+    if (cardId === "BT3-084")
+      return effectBt3Demo(
+        cardId,
+        "Raremon",
+        4000,
+        "Raremon revealed cards, added an Option to hand, and trashed the rest.",
+      );
+    if (cardId === "BT3-085") return vanillaBt3Demo(cardId, "SkullMeramon", 6000);
+    if (cardId === "BT3-086")
+      return effectBt3Demo(
+        cardId,
+        "Arukenimon",
+        6000,
+        "Arukenimon could pay 3 memory to play MaloMyotismon from hand, then delete itself.",
+      );
+    if (cardId === "BT3-087")
+      return effectBt3Demo(
+        cardId,
+        "Mummymon",
+        7000,
+        "Mummymon could pay 3 memory to play MaloMyotismon from trash, then delete itself.",
+      );
+    if (cardId === "BT3-088")
+      return effectBt3Demo(
+        cardId,
+        "LadyDevimon",
+        8000,
+        "LadyDevimon drew 2 cards, trashed 2 cards, and deleted an opposing level 3 when its host used an Option.",
+      );
+    if (cardId === "BT3-089") return vanillaBt3Demo(cardId, "Boltmon", 12000);
+    if (cardId === "BT3-090")
+      return effectBt3Demo(
+        cardId,
+        "Mastemon",
+        12000,
+        "Mastemon trashed both top security cards and played a low-level card from trash.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
