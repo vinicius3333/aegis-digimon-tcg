@@ -10218,6 +10218,39 @@ function magnaAngemonBt3Demo(effect: string | null): CardEffectsFixture {
   };
 }
 
+function paildramonBt3Demo(effect: string | null): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 7;
+  state.turnSeat = 0;
+  state.memory = 0;
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  const imperial = permanent("demo-bt3-027-imperial", "BT3-031", 0, 12000);
+  imperial.stack.push(card("demo-bt3-027-inherited", "BT3-027", 0));
+  imperial.keywords.push("Jamming");
+  imperial.isSuspended = effect !== "resolved";
+  you.battleArea.push(imperial);
+  state.players.push(you, opponent);
+  return {
+    state,
+    events: [
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: "BT3-027",
+        effectKey: `BT3-027/${effect ?? "resolved"}`,
+        description:
+          effect === "non-imperial"
+            ? "Paildramon's inherited effect did not unsuspend a non-Imperialdramon host."
+            : "Paildramon's inherited effect unsuspended Imperialdramon; Jamming remains active.",
+        timing: "WhenAttacking",
+      },
+    ],
+  };
+}
+
 function silphymonBt3Demo(effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
@@ -16180,6 +16213,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
     if (cardId === "BT3-024") return airdramonBt3Demo(effect);
     if (cardId === "BT3-025") return exVeemonBt3Demo(effect);
     if (cardId === "BT3-026") return magnaAngemonBt3Demo(effect);
+    if (cardId === "BT3-027") return paildramonBt3Demo(effect);
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
