@@ -17636,6 +17636,49 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         12000,
         "Lotosmon suspended a level 4 or lower Digimon played by either player.",
       );
+    if (cardId === "BT4-061")
+      return effectBt3Demo(
+        cardId,
+        "BanchoLeomon",
+        11000,
+        "BanchoLeomon suspended up to 2 opposing Digimon when deleted.",
+      );
+    if (cardId === "BT4-062")
+      return effectBt3Demo(
+        cardId,
+        "Nidhoggmon",
+        13000,
+        "Nidhoggmon Digi-Bursted 4 to bottom-deck all suspended opposing Digimon.",
+      );
+    if (cardId === "BT4-063")
+      return effectBt3Demo(
+        cardId,
+        "Commandramon",
+        1000,
+        "Commandramon revealed 3 cards and could play a Commandramon for free when deleted.",
+      );
+    if (cardId === "BT4-064")
+      return effectBt3Demo(
+        cardId,
+        "Sunarizamon",
+        2000,
+        "Sunarizamon returned itself to hand after being trashed for Digi-Burst.",
+      );
+    if (cardId === "BT4-065") return vanillaBt3Demo(cardId, "Gotsumon", 6000);
+    if (cardId === "BT4-066")
+      return effectBt3Demo(cardId, "Golemon", 3000, "Golemon gave itself and your other black Digimon +1000 DP.");
+    if (cardId === "BT4-067")
+      return effectBt3Demo(cardId, "Sealsdramon", 6000, "Sealsdramon has Blocker and loses 2 memory when attacking.");
+    if (cardId === "BT4-068")
+      return effectBt3Demo(
+        cardId,
+        "Baboongamon",
+        4000,
+        "Baboongamon Digi-Bursted 2 to De-Digivolve 1 an opposing Digimon with play cost 7 or less.",
+      );
+    if (cardId === "BT4-069") return vanillaBt3Demo(cardId, "Blimpmon", 7000);
+    if (cardId === "BT4-070")
+      return effectBt3Demo(cardId, "Meteormon", 8000, "Meteormon has Reboot and remains suspended after attacking.");
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
