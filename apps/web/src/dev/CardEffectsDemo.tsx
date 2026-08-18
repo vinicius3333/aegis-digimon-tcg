@@ -6153,6 +6153,40 @@ function darcmonDemo(effect: string | null): CardEffectsFixture {
   return { state };
 }
 
+function chirinmonDemo(effect: string | null): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 5;
+  state.turnSeat = 0;
+  state.memory = effect === "loan-repaid-after-deletion" ? -6 : 0;
+
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  opponent.handCount = 5;
+  if (effect === "loan-repaid-after-deletion") {
+    you.trash.push(card("demo-chirinmon-card", "BT1-058", 0));
+  } else {
+    you.battleArea.push(permanent("demo-chirinmon", "BT1-058", 0, 7000));
+  }
+  state.players.push(you, opponent);
+
+  if (effect !== "loan-repaid-after-deletion") return { state };
+  return {
+    state,
+    events: [
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: "BT1-058",
+        effectKey: "BT1-058/memory-loan",
+        description: "Chirinmon's delayed payment still lost 3 memory after it left the battle area.",
+        timing: "OnEndTurn",
+      },
+    ],
+  };
+}
+
 function petermonDemo(effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
@@ -6258,6 +6292,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
   const effect = params.get("effect");
   const step = params.get("step");
   const fixture = useMemo<CardEffectsFixture | undefined>(() => {
+    if (cardId === "BT1-058") return chirinmonDemo(effect);
     if (cardId === "BT1-057") return vanillaPlayDemo(cardId, 6000, 5, effect);
     if (cardId === "BT1-056") return petermonDemo(effect);
     if (cardId === "BT1-055") return angemonDemo(effect);
