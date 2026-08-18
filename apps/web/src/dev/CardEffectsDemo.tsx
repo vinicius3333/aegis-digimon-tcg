@@ -6153,6 +6153,38 @@ function darcmonDemo(effect: string | null): CardEffectsFixture {
   return { state };
 }
 
+function kokuwamonDemo(effect: string | null): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 5;
+  state.turnSeat = effect === "security-attack-active" ? 0 : 1;
+  state.memory = 0;
+
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  you.battleArea.push(
+    permanent("demo-kokuwamon-host", "BT1-081", 0, 11000, [{ instanceId: "demo-kokuwamon-source", cardId: "BT1-068" }]),
+  );
+  opponent.handCount = 5;
+  state.players.push(you, opponent);
+
+  if (effect !== "security-attack-active") return { state };
+  return {
+    state,
+    events: [
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: "BT1-068",
+        effectKey: "BT1-068/level-six-security-attack",
+        description: "Kokuwamon's inherited effect grants Security Attack +1 to its level 6 host during your turn.",
+        timing: "Static",
+      },
+    ],
+  };
+}
+
 function palmonDemo(effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
@@ -6516,6 +6548,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
   const effect = params.get("effect");
   const step = params.get("step");
   const fixture = useMemo<CardEffectsFixture | undefined>(() => {
+    if (cardId === "BT1-068") return kokuwamonDemo(effect);
     if (cardId === "BT1-067") return palmonDemo(effect);
     if (cardId === "BT1-066") return tentomonDemo(effect);
     if (cardId === "BT1-065") return vanillaPlayDemo(cardId, 4000, 2, effect);
