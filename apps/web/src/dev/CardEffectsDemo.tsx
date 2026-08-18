@@ -17535,6 +17535,59 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         "Growlmon gave its host +1000 DP while you had 3 or fewer security cards.",
       );
     if (cardId === "BT4-040") return vanillaBt3Demo(cardId, "Diatrymon", 6000);
+    if (cardId === "BT4-041")
+      return effectBt3Demo(
+        cardId,
+        "Meicoomon",
+        3000,
+        "Meicoomon gave an opposing Digimon -4000 DP when its owner had 3 or fewer security cards.",
+      );
+    if (cardId === "BT4-042")
+      return effectBt3Demo(cardId, "Piddomon", 4000, "Piddomon has Blocker and loses 2 memory when it attacks.");
+    if (cardId === "BT4-043") return vanillaBt3Demo(cardId, "Crowmon", 8000);
+    if (cardId === "BT4-044")
+      return effectBt3Demo(
+        cardId,
+        "HippoGryphonmon",
+        10000,
+        "HippoGryphonmon gave an opposing Digimon -3000 DP when attacking at 3 or fewer security.",
+      );
+    if (cardId === "BT4-045")
+      return effectBt3Demo(
+        cardId,
+        "Maycrackmon",
+        7000,
+        "Maycrackmon gave your Security Digimon +4000 DP during the opponent's turn at 3 or fewer security.",
+      );
+    if (cardId === "BT4-046")
+      return effectBt3Demo(
+        cardId,
+        "WarGrowlmon",
+        7000,
+        "WarGrowlmon Digi-Bursted 2 to give an opposing Digimon -4000 DP and boosted its host.",
+      );
+    if (cardId === "BT4-047")
+      return effectBt3Demo(
+        cardId,
+        "Rasielmon",
+        12000,
+        "Rasielmon recovered 2 cards when digivolving and trashed the top security card at the opponent's turn end.",
+      );
+    if (cardId === "BT4-048")
+      return effectBt3Demo(
+        cardId,
+        "WarGreymon",
+        12000,
+        "WarGreymon took the top security card to hand, unsuspended, and applied -6000 DP once per turn.",
+      );
+    if (cardId === "BT4-049")
+      return effectBt3Demo(
+        cardId,
+        "Varodurumon",
+        12000,
+        "Varodurumon Digi-Bursted 3 to give all opposing Digimon -4000 DP.",
+      );
+    if (cardId === "BT4-050") return vanillaBt3Demo(cardId, "Liollmon", 5000);
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
