@@ -22,8 +22,8 @@ const compiled: CompiledCard = {
             },
             "raw": "By trashing your top security card"
           },
-          "optional": true,
-          "abortOnDecline": true
+          "optional": false,
+          "abortOnDecline": false
         }
       ]
     },

@@ -151,7 +151,7 @@ const compiled: CompiledCard = {
           },
           "duration": "permanent",
           "condition": {
-            "kind": "selfTopHasText",
+            "kind": "selfHasTrait",
             "filter": {
               "nameOrTrait": [
                 {

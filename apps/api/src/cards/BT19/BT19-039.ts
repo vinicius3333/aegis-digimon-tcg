@@ -30,20 +30,21 @@ const compiled: CompiledCard = {
             "target": {
               "filter": {
                 "controller": "mine",
-                "zone": "security"
+                "zone": "security",
+                "position": "top"
               },
               "count": 1
             },
             "raw": "By trashing your top security card"
           },
-          "optional": true,
-          "abortOnDecline": true
+          "optional": false,
+          "abortOnDecline": false
         },
         {
           "kind": "GainMemory",
           "amount": 1,
-          "optional": true,
-          "abortOnDecline": true
+          "optional": false,
+          "abortOnDecline": false
         }
       ]
     },
@@ -70,20 +71,21 @@ const compiled: CompiledCard = {
             "target": {
               "filter": {
                 "controller": "mine",
-                "zone": "security"
+                "zone": "security",
+                "position": "top"
               },
               "count": 1
             },
             "raw": "By trashing your top security card"
           },
-          "optional": true,
-          "abortOnDecline": true
+          "optional": false,
+          "abortOnDecline": false
         },
         {
           "kind": "GainMemory",
           "amount": 1,
-          "optional": true,
-          "abortOnDecline": true
+          "optional": false,
+          "abortOnDecline": false
         }
       ]
     },
@@ -102,14 +104,20 @@ const compiled: CompiledCard = {
       "trigger": "AllTurns",
       "actions": [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          }
+          "kind": "SubTrigger",
+          "event": "whenSecurityRemoved",
+          "actions": [
+            {
+              "kind": "Unsuspend",
+              "target": {
+                "filter": {
+                  "isSelfRef": true
+                },
+                "count": 1,
+                "isSelf": true
+              }
+            }
+          ]
         }
       ],
       "isInherited": true,

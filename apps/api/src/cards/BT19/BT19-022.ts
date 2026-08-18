@@ -35,7 +35,10 @@ const compiled: CompiledCard = {
                 }
               ]
             },
-            "count": 1
+            "count": 1,
+            "from": [
+              "trash"
+            ]
           },
           "underFilter": {
             "controller": "mine",

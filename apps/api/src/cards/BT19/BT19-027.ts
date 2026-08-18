@@ -52,11 +52,12 @@ const compiled: CompiledCard = {
         {
           "kind": "Return",
           "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+              "filter": {
+                "controller": "opponent",
+                "kind": [
+                  "Digimon"
+                ],
+                "levelLte": "returnedDigimonLevel"
             },
             "count": 1
           },
@@ -72,10 +73,12 @@ const compiled: CompiledCard = {
               },
               "count": 1
             },
-            "raw": "By returning 1 of your Digimon to the bottom of the deck"
+            "raw": "By returning 1 of your Digimon to the bottom of the deck",
+            "to": "deckBottom",
+            "storeAs": "returnedDigimonLevel"
           },
-          "optional": true,
-          "abortOnDecline": true
+          "optional": false,
+          "abortOnDecline": false
         }
       ],
       "frequency": "OncePerTurn"

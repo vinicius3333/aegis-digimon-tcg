@@ -48,7 +48,7 @@ const compiled: CompiledCard = {
           },
           "actions": [
             {
-              "kind": "ModifyDP",
+              "kind": "GainKeyword",
               "target": {
                 "filter": {
                   "controller": "opponent",
@@ -57,6 +57,25 @@ const compiled: CompiledCard = {
                   ]
                 },
                 "count": 1
+              },
+              "keyword": {
+                "keyword": "SecurityAttack",
+                "amount": -1,
+                "raw": "＜Security Attack -1＞"
+              },
+              "duration": "untilOpponentTurnEnd"
+            },
+            {
+              "kind": "ModifyDP",
+              "target": {
+                "filter": {
+                  "controller": "opponent",
+                  "kind": [
+                    "Digimon"
+                  ]
+                },
+                "count": 1,
+                "sameTarget": true
               },
               "amount": -3000,
               "duration": "untilOpponentTurnEnd"

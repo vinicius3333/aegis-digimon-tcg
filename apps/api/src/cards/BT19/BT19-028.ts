@@ -72,8 +72,8 @@ const compiled: CompiledCard = {
             "position": "bottom",
             "host": "self"
           },
-          "optional": true,
-          "abortOnDecline": true
+          "optional": false,
+          "abortOnDecline": false
         }
       ]
     },
