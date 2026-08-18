@@ -18075,6 +18075,55 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         "ShootingStarmon gave an opposing Digimon -3000 DP when deleted.",
       );
     if (cardId === "BT5-040") return vanillaBt3Demo(cardId, "SuperStarmon", 7000);
+    if (cardId === "BT5-041")
+      return effectBt3Demo(
+        cardId,
+        "Taomon",
+        7000,
+        "Taomon gave all opposing Security Digimon -1000 DP during your turn.",
+      );
+    if (cardId === "BT5-042")
+      return effectBt3Demo(cardId, "Knightmon", 7000, "Knightmon gave one opposing Digimon -4000 DP for the turn.");
+    if (cardId === "BT5-043")
+      return effectBt3Demo(cardId, "Jijimon", 10000, "Jijimon recovered the top deck card when deleted.");
+    if (cardId === "BT5-044")
+      return effectBt3Demo(
+        cardId,
+        "Sakuyamon",
+        11000,
+        "Sakuyamon gave an opposing Digimon Security Attack -3 from breeding and opposing Security Digimon -3000 DP during your turn.",
+      );
+    if (cardId === "BT5-045")
+      return effectBt3Demo(
+        cardId,
+        "LordKnightmon",
+        11000,
+        "LordKnightmon could play a yellow Warrior when attacking and gains +1000 DP for each other own Digimon.",
+      );
+    if (cardId === "BT5-046")
+      return effectBt3Demo(
+        cardId,
+        "Terriermon Assistant",
+        1000,
+        "Terriermon Assistant Digi-Bursted 1 to reveal and add a green Digimon.",
+      );
+    if (cardId === "BT5-047")
+      return effectBt3Demo(
+        cardId,
+        "Palmon",
+        2000,
+        "Palmon placed itself from trash under an own green Digimon when deleted.",
+      );
+    if (cardId === "BT5-048") return vanillaBt3Demo(cardId, "Floramon", 4000);
+    if (cardId === "BT5-049")
+      return effectBt3Demo(cardId, "Kiwimon", 4000, "Kiwimon added all revealed Digimon with Digisorption to hand.");
+    if (cardId === "BT5-050")
+      return effectBt3Demo(
+        cardId,
+        "Weedmon",
+        3000,
+        "Weedmon gained 1 memory after being trashed for its host's Digi-Burst.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
