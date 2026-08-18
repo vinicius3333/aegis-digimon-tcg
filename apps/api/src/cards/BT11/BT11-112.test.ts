@@ -158,3 +158,25 @@ describe("BT11-112 [All Turns] Veedramon-named Digimon suspended -> reactivate i
     expect(kouji.isSuspended).toBe(false);
   });
 });
+
+describe("BT11-112 [Your Turn][Once Per Turn] blue Digimon unsuspend -> memory", () => {
+  it("gains memory from the actual unsuspended-permanent trigger field", async () => {
+    const s = setup({
+      0: {
+        battleArea: [
+          { card: "BT11-112", as: "kouji" },
+          { card: "BT11-023", as: "blue" },
+        ],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 3;
+    s.perm("blue").isSuspended = true;
+
+    await (s.engine as unknown as {
+      fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
+    }).fireTiming(EffectTiming.OnUnTappedAnyone, { unsuspendedPermanentId: s.perm("blue").permanentId });
+
+    await settle(() => s.state.memory === 4, 200);
+    expect(s.state.memory).toBe(4);
+  });
+});

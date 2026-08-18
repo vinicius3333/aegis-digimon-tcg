@@ -129,9 +129,9 @@ const module: EffectModule = {
           maxPerTurn: 1,
           when: (ctx) => {
             if (!source.isOnBattleArea() || !source.isOwnersTurn()) return false;
-            const suspendedId = ctx.trigger?.suspendedPermanentId;
-            if (suspendedId === undefined) return false;
-            const perm = ctx.game.permanentById(suspendedId);
+            const unsuspendedId = ctx.trigger?.unsuspendedPermanentId;
+            if (unsuspendedId === undefined) return false;
+            const perm = ctx.game.permanentById(unsuspendedId);
             if (perm === undefined || perm.controllerSeat !== source.ownerSeat) return false;
             if (perm.topCard === undefined) return false;
             const def = ctx.game.definitionOf(perm.topCard);
