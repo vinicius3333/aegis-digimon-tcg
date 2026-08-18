@@ -45,8 +45,9 @@ const module: EffectModule = {
 
             const eligible = opp.battleArea.filter((p) => {
               if (p.topCard === undefined) return false;
-              if (!isDigimon(ctx.game.definitionOf(p.topCard))) return false;
-              const cost = ctx.game.definitionOf(p.topCard).playCost;
+              const def = ctx.game.definitionOf(p.topCard);
+              if (!isDigimon(def) && !isTamer(def)) return false;
+              const cost = def.playCost;
               return cost !== undefined && cost <= 6;
             });
             if (eligible.length > 0) {
@@ -66,11 +67,10 @@ const module: EffectModule = {
                 if (pickable.length === 0) break;
                 const pick = await ctx.ask.selectCards(ctx, {
                   candidates: pickable.map((a) => a.id),
-                  min: 0,
+                  min: deleted.length === 0 ? 1 : 0,
                   max: 1,
                 });
-                if (pick.length === 0 && deleted.length > 0) break;
-                if (pick.length === 0) continue;
+                if (pick.length === 0) break;
                 deleted.push(pick[0]!);
               }
               if (deleted.length > 0) {
@@ -114,7 +114,7 @@ const module: EffectModule = {
             const maxTrash = Math.min(3, lv6Cands.length);
             const chosen = await ctx.ask.selectCards(ctx, {
               candidates: lv6Cands,
-              min: 0,
+              min: 1,
               max: maxTrash,
             });
             if (chosen.length === 0) return;

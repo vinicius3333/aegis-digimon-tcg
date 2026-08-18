@@ -113,7 +113,7 @@ const compiled: CompiledCard = {
       "frequency": "OncePerTurn"
     }
   ],
-  "coverage": "partial",
+  "coverage": "full",
   "residual": [],
   "digivolutionRequirement": [
     {

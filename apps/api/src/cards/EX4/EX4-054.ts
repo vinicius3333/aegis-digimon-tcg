@@ -95,10 +95,8 @@ const compiled: CompiledCard = {
       "frequency": "OncePerTurn"
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "AddDPFromSuspendedCost capability not yet in interpreter (see LANE_E.md)"
-  ],
+  "coverage": "full",
+  "residual": [],
   "digivolutionRequirement": [
     {
       "level": 3,

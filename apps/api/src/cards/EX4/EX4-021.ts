@@ -83,6 +83,7 @@ const module: EffectModule = {
               if (p.inBreeding || p.topCard === undefined) continue;
               const def = ctx.game.definitionOf(p.topCard);
               if (!def.kinds.includes(CardKind.Digimon)) continue;
+              if (def.level === undefined || def.level > 4) continue;
               ctx.fx.restrict(p.permanentId, "attackPlayers", EffectDuration.UntilOpponentTurnEnd);
             }
           },
