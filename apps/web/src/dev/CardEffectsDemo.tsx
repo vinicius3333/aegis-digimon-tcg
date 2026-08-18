@@ -10472,6 +10472,36 @@ function lopmonBt3Demo(effect: string | null): CardEffectsFixture {
   };
 }
 
+function gatomonBt3Demo(effect: string | null): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 7;
+  state.turnSeat = 0;
+  state.memory = 0;
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  const host = permanent("demo-bt3-036-gatomon-host", "BT3-036", 0, 6000);
+  host.stack.push(card("demo-bt3-035-inherited", "BT3-035", 0));
+  const target = permanent("demo-bt3-035-target", "BT1-019", 1, effect === "resolved" ? 3000 : 4000);
+  you.battleArea.push(host);
+  opponent.battleArea.push(target);
+  state.players.push(you, opponent);
+  return {
+    state,
+    events: [
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: "BT3-035",
+        effectKey: `BT3-035/${effect ?? "resolved"}`,
+        description: "Gatomon's inherited effect gave one opposing Digimon -1000 DP for the turn.",
+        timing: "WhenAttacking",
+      },
+    ],
+  };
+}
+
 function silphymonBt3Demo(effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
@@ -16442,6 +16472,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
     if (cardId === "BT3-032") return armadillomonBt3Demo(effect);
     if (cardId === "BT3-033") return salamonBt3Demo(effect);
     if (cardId === "BT3-034") return lopmonBt3Demo(effect);
+    if (cardId === "BT3-035") return gatomonBt3Demo(effect);
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
