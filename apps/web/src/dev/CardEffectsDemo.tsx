@@ -9950,6 +9950,38 @@ function valkyrimonBt3Demo(effect: string | null): CardEffectsFixture {
   };
 }
 
+function blitzGreymonBt3Demo(_effect: string | null): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 7;
+  state.turnSeat = 0;
+  state.memory = 0;
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  const host = permanent("demo-blitzgreymon", "BT3-018", 0, 12000);
+  host.keywords.push("Piercing");
+  const target = permanent("demo-blitzgreymon-target", "BT2-020", 1, 6000);
+  target.stack.push(card("demo-blitzgreymon-card-1", "BT2-013", 1));
+  target.stack.push(card("demo-blitzgreymon-card-2", "BT2-017", 1));
+  you.battleArea.push(host);
+  opponent.battleArea.push(target);
+  state.players.push(you, opponent);
+  return {
+    state,
+    events: [
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: "BT3-018",
+        effectKey: "BT3-018/de-digivolve-2",
+        description: "BlitzGreymon De-Digivolved the opposing Digimon by 2 and retains Piercing.",
+        timing: "WhenDigivolving",
+      },
+    ],
+  };
+}
+
 function silphymonBt3Demo(effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
@@ -15903,6 +15935,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
     if (cardId === "BT3-015") return metalGreymonBt3Demo(effect);
     if (cardId === "BT3-016") return durandamonBt3Demo(effect);
     if (cardId === "BT3-017") return valkyrimonBt3Demo(effect);
+    if (cardId === "BT3-018") return blitzGreymonBt3Demo(effect);
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
