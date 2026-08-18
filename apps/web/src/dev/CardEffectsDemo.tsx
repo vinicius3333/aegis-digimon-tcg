@@ -18171,6 +18171,59 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         2000,
         "Monitamon checked the top card without moving it and revealed 3 on deletion to play a Monitamon.",
       );
+    if (cardId === "BT5-061") return effectBt3Demo(cardId, "Commandramon", 2000, "Commandramon has Blocker.");
+    if (cardId === "BT5-062")
+      return effectBt3Demo(
+        cardId,
+        "Mekanorimon",
+        6000,
+        "Mekanorimon has Blocker, cannot attack on its turn, and unsuspends after surviving a battle deletion.",
+      );
+    if (cardId === "BT5-063")
+      return effectBt3Demo(
+        cardId,
+        "Kurisarimon",
+        4000,
+        "Kurisarimon played Arata Sanada when none was in play and grants Rush to matching other Digimon.",
+      );
+    if (cardId === "BT5-064")
+      return effectBt3Demo(
+        cardId,
+        "BlackGaogamon",
+        5000,
+        "BlackGaogamon grants Jamming to its host while it has Reboot.",
+      );
+    if (cardId === "BT5-065")
+      return effectBt3Demo(
+        cardId,
+        "Shademon",
+        5000,
+        "Shademon has Blocker, cannot attack on your turn, and plays from Security after its battle.",
+      );
+    if (cardId === "BT5-066") return vanillaBt3Demo(cardId, "WaruMonzaemon", 6000);
+    if (cardId === "BT5-067")
+      return effectBt3Demo(
+        cardId,
+        "Infermon",
+        6000,
+        "Infermon can digivolve over Keramon and may play a Diaboromon Token when its host is deleted.",
+      );
+    if (cardId === "BT5-068")
+      return effectBt3Demo(
+        cardId,
+        "BlackMachGaogamon",
+        7000,
+        "BlackMachGaogamon has Reboot and gives its host +2000 DP while it has Reboot.",
+      );
+    if (cardId === "BT5-069")
+      return effectBt3Demo(cardId, "BlackWarGreymon", 12000, "BlackWarGreymon has Security Attack +1 and Reboot.");
+    if (cardId === "BT5-070")
+      return effectBt3Demo(
+        cardId,
+        "MetalGarurumon",
+        11000,
+        "MetalGarurumon Digi-Bursted 2 to delete a play-cost-6 Digimon, or trash the opponent's top security when no Digimon was deleted.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
