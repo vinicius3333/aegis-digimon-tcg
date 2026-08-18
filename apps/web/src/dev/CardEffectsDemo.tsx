@@ -10155,6 +10155,35 @@ function airdramonBt3Demo(_effect: string | null): CardEffectsFixture {
   };
 }
 
+function exVeemonBt3Demo(effect: string | null): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 7;
+  state.turnSeat = 0;
+  state.memory = 0;
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  const host = permanent("demo-bt3-025-host", "BT3-025", 0, 4000);
+  const target = permanent("demo-bt3-025-target", "BT2-024", 0, 4000);
+  target.isSuspended = effect === "suspended";
+  you.battleArea.push(host, target);
+  state.players.push(you, opponent);
+  return {
+    state,
+    events: [
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: "BT3-025",
+        effectKey: `BT3-025/${effect ?? "resolved"}`,
+        description: "ExVeemon unsuspended one of its owner's level 4 or lower Digimon.",
+        timing: "WhenDigivolving",
+      },
+    ],
+  };
+}
+
 function silphymonBt3Demo(effect: string | null): CardEffectsFixture {
   const state = new GameState();
   state.matchId = "card-effects-demo";
@@ -16115,6 +16144,7 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
     if (cardId === "BT3-022") return penguinmonBt3Demo(effect);
     if (cardId === "BT3-023") return angemonBt3Demo(effect);
     if (cardId === "BT3-024") return airdramonBt3Demo(effect);
+    if (cardId === "BT3-025") return exVeemonBt3Demo(effect);
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
