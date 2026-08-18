@@ -17269,6 +17269,76 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         12000,
         "Mastemon trashed both top security cards and played a low-level card from trash.",
       );
+    if (cardId === "BT3-091")
+      return effectBt3Demo(
+        cardId,
+        "Lilithmon",
+        11000,
+        "Lilithmon returned up to two purple Options from the trash and gained memory when its owner used an Option.",
+      );
+    if (cardId === "BT3-092")
+      return effectBt3Demo(
+        cardId,
+        "MaloMyotismon",
+        12000,
+        "MaloMyotismon has Piercing and gains memory for each other Digimon deleted.",
+      );
+    if (cardId === "BT3-093")
+      return effectBt3Demo(
+        cardId,
+        "Davis Motomiya",
+        0,
+        "Davis Motomiya revealed the top 3 cards and added one blue and one green Digimon to hand.",
+      );
+    if (cardId === "BT3-094")
+      return effectBt3Demo(
+        cardId,
+        "Ken Ichijoji",
+        0,
+        "Ken Ichijoji set memory to 3 at turn start and could suspend to gain memory after a blue battle win.",
+      );
+    if (cardId === "BT3-095")
+      return effectBt3Demo(
+        cardId,
+        "Joe Kido",
+        0,
+        "Joe Kido gained memory at turn start while an own Blocker was in play.",
+      );
+    if (cardId === "BT3-096")
+      return effectBt3Demo(
+        cardId,
+        "Mimi Tachikawa",
+        0,
+        "Mimi Tachikawa could suspend when an Option was used to gain memory.",
+      );
+    if (cardId === "BT3-097")
+      return effectBt3Demo(
+        cardId,
+        "A Delicate Plan",
+        0,
+        "A Delicate Plan prevented checked Option cards from activating their Security effects.",
+      );
+    if (cardId === "BT3-098")
+      return effectBt3Demo(
+        cardId,
+        "Plasma Stake",
+        0,
+        "Plasma Stake deleted an opposing Digimon with 13000 DP or more.",
+      );
+    if (cardId === "BT3-099")
+      return effectBt3Demo(
+        cardId,
+        "We Have to Stop Fighting!",
+        0,
+        "We Have to Stop Fighting! prevented battle deletion for both players' Digimon this turn.",
+      );
+    if (cardId === "BT3-100")
+      return effectBt3Demo(
+        cardId,
+        "Death Parade Blaster",
+        0,
+        "Death Parade Blaster trashed two bottom digivolution cards and suspended the target.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
