@@ -17382,6 +17382,60 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         "Flamemon revealed cards and added a Hybrid Digimon and a red Tamer to hand.",
       );
     if (cardId === "BT4-010") return vanillaBt3Demo(cardId, "Fugamon", 3000);
+    if (cardId === "BT4-011")
+      return effectBt3Demo(
+        cardId,
+        "Agunimon",
+        5000,
+        "Agunimon digivolved from a red Tamer for 2 memory and drew a card.",
+      );
+    if (cardId === "BT4-012")
+      return effectBt3Demo(
+        cardId,
+        "GeoGreymon",
+        5000,
+        "GeoGreymon trashed two sources to delete an opposing Digimon with 4000 DP or less.",
+      );
+    if (cardId === "BT4-013")
+      return effectBt3Demo(
+        cardId,
+        "BurningGreymon",
+        6000,
+        "BurningGreymon digivolved onto a red Tamer and gained +3000 DP during its turn.",
+      );
+    if (cardId === "BT4-014") return vanillaBt3Demo(cardId, "Vermilimon", 8000);
+    if (cardId === "BT4-015")
+      return effectBt3Demo(cardId, "Volcdramon", 7000, "Volcdramon granted Security Attack +1 to its host.");
+    if (cardId === "BT4-016")
+      return effectBt3Demo(
+        cardId,
+        "Aldamon",
+        7000,
+        "Aldamon gained Security Attack +1 and +4000 DP with a Hybrid or red Tamer source.",
+      );
+    if (cardId === "BT4-017")
+      return effectBt3Demo(
+        cardId,
+        "RizeGreymon",
+        7000,
+        "RizeGreymon was treated as yellow, Digi-Bursted to play a Tamer, and reduced an opposing Digimon by 2000 DP.",
+      );
+    if (cardId === "BT4-018")
+      return effectBt3Demo(cardId, "Spinomon", 10000, "Spinomon gained +3000 DP during its turn.");
+    if (cardId === "BT4-019")
+      return effectBt3Demo(
+        cardId,
+        "VictoryGreymon",
+        12000,
+        "VictoryGreymon Digi-Bursted 2 to delete an opposing Digimon with 8000 DP or less.",
+      );
+    if (cardId === "BT4-020")
+      return effectBt3Demo(
+        cardId,
+        "ShineGreymon",
+        11000,
+        "ShineGreymon gained Security Attack +1 for each suspended red or yellow Tamer.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
