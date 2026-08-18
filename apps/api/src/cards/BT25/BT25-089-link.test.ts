@@ -8,7 +8,7 @@ import {
   type Seat,
   type ServerEvent,
 } from "@aegis/shared";
-import type { Filter, Target } from "@aegis/shared/effects/ir.js";
+import type { Filter, Target } from "@aegis/shared/effects/ir/index.js";
 import { MemoryGauge } from "../../engine/MemoryGauge.js";
 import { ModifierLedger } from "../../engine/effects/modifiers.js";
 import { createPrimitives, type PrimitivesEngine, type SelectionPort } from "../../engine/effects/primitives.js";

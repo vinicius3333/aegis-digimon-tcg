@@ -1,4 +1,4 @@
-import type { AssemblyRequirement, BaseGrantedDigivolve, CompiledCard, CompiledEffects, DigivolutionRequirement, DigiXrosRequirement, DnaDigivolveRequirement } from "./ir.js";
+import type { AssemblyRequirement, BaseGrantedDigivolve, CompiledCard, CompiledEffects, DigivolutionRequirement, DigiXrosRequirement, DnaDigivolveRequirement } from "./ir/index.js";
 import effectsJson from "./effects.json" with { type: "json" };
 import generatedDigivolveOverridesJson from "./generated-digivolve-overrides.json" with { type: "json" };
 

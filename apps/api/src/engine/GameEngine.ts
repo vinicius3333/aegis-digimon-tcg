@@ -2674,7 +2674,7 @@ export class GameEngine {
   /**
    * §17-1-3-2-6/§17-1-3-2-7's category gate, parsed from the printed
    * `CardDefinition.linkRequirement` header ("[Link] [Appmon] trait: Cost 1"). The
-   * STRUCTURED `LinkRequirement[]` array on `CompiledCard` (packages/shared/src/effects/ir.ts)
+   * STRUCTURED `LinkRequirement[]` array on `CompiledCard` (packages/shared/src/effects/ir/requirements.ts)
    * exists but is populated only on the 2 hand-authored cards that reference it in an
    * effect body (BT25-045, EX10-029) — every AUTO-GENERATED card (BT21-009 among them,
    * the fixture this rule check is proven against) carries the requirement ONLY as this
