@@ -24,7 +24,7 @@ const compiled: CompiledCard = {
           "restriction": "attack",
           "duration": "untilOpponentTurnEnd",
           "condition": {
-            "kind": "raw",
+            "kind": "triggerEnteredByEffect",
             "raw": "played by an effect"
           }
         }
