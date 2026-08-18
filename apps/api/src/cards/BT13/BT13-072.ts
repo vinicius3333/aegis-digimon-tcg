@@ -31,6 +31,13 @@ const compiled: CompiledCard = {
             }
           ],
           "rest": "trash"
+        },
+        {
+          "kind": "Restrict",
+          "target": {"filter": {"isSelfRef": true}, "count": 1, "isSelf": true},
+          "restriction": "dpImmune",
+          "duration": "untilOpponentTurnEnd",
+          "condition": {"kind": "raw", "raw": "you did"}
         }
       ]
     },
