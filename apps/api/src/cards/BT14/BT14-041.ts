@@ -46,7 +46,11 @@ const compiled: CompiledCard = {
                   "isSelfRef": true
                 }
               },
-              "keyword": "SecurityAttack",
+              "keyword": {
+                "keyword": "SecurityAttack",
+                "amount": 1,
+                "raw": "＜Security Attack +1＞"
+              },
               "count": 1,
               "duration": "forTheTurn"
             }

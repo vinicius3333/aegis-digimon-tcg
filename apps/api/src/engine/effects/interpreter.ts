@@ -2722,6 +2722,12 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
       if (/deleted outside of a battle/i.test(cond.raw ?? "")) {
         return ctx.trigger.removalCause !== "byBattle";
       }
+      if (/attacked a Digimon with higher DP than this Digimon/i.test(cond.raw ?? "")) {
+        const self = ctx.source.permanent();
+        const targetId = ctx.trigger.targetPermanentId ?? ctx.trigger.defenderPermanentId;
+        const target = targetId !== undefined ? ctx.game.permanentById(targetId) : undefined;
+        return self?.currentDP !== undefined && target?.currentDP !== undefined && target.currentDP > self.currentDP;
+      }
       {
         const m = /this Digimon has the \[([^\]]+)\] trait/i.exec(cond.raw ?? "");
         if (m) {
