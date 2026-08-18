@@ -19,9 +19,7 @@ describe("BT3-050 Stingmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(
-      () =>
-        !s.state.players[1]!.battleArea.some((p) => p.permanentId === defenderId) &&
-        s.state.memory === 1,
+      () => !s.state.players[1]!.battleArea.some((p) => p.permanentId === defenderId) && s.state.memory === 1,
       5000,
     );
 
