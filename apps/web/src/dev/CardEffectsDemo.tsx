@@ -18461,6 +18461,64 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
       );
     if (cardId === "BT6-010")
       return effectBt3Demo(cardId, "Flamemon", 3000, "Flamemon granted Piercing to a Hybrid host during your turn.");
+    if (cardId === "BT6-011")
+      return effectBt3Demo(
+        cardId,
+        "BaoHuckmon",
+        6000,
+        "BaoHuckmon deleted a 5000 DP Digimon when attacking while you had Sistermon.",
+      );
+    if (cardId === "BT6-012") return vanillaBt3Demo(cardId, "Deltamon", 7000);
+    if (cardId === "BT6-013")
+      return effectBt3Demo(
+        cardId,
+        "Megadramon",
+        7000,
+        "Megadramon is treated as black in the battle area and gives its host +2000 DP during your turn.",
+      );
+    if (cardId === "BT6-014") return effectBt3Demo(cardId, "Asuramon", 8000, "Asuramon gained Blitz when digivolving.");
+    if (cardId === "BT6-015")
+      return effectBt3Demo(
+        cardId,
+        "SaviorHuckmon",
+        7000,
+        "SaviorHuckmon played a Sistermon from hand when digivolving and its inherited effect enables one reattack.",
+      );
+    if (cardId === "BT6-016")
+      return effectBt3Demo(
+        cardId,
+        "Jesmon",
+        11000,
+        "Jesmon played a Sistermon when attacking and gains +3000 DP from the inherited effect.",
+      );
+    if (cardId === "BT6-017")
+      return effectBt3Demo(
+        cardId,
+        "MagnaKidmon",
+        11000,
+        "MagnaKidmon has Security Attack +1, can use a cost-7 Option for free, or delete a 4000 DP Digimon.",
+      );
+    if (cardId === "BT6-018")
+      return effectBt3Demo(
+        cardId,
+        "Agumon - Bond of Bravery",
+        14000,
+        "Agumon - Bond of Bravery deleted up to 13000 DP when attacking and trashes security once per turn on deletion.",
+      );
+    if (cardId === "BT6-019")
+      return effectBt3Demo(
+        cardId,
+        "Gabumon",
+        2000,
+        "Gabumon gains memory once per turn when matching Matt Tamers are played and unsuspends its Bond host after attacking.",
+      );
+    if (cardId === "BT6-020")
+      return effectBt3Demo(
+        cardId,
+        "Lobomon",
+        2000,
+        "Lobomon gave its host +2000 DP while the opponent had no Digimon with sources.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
