@@ -17,7 +17,8 @@ const compiled: CompiledCard = {
             "controller": "mine",
             "kind": [
               "Digimon"
-            ]
+            ],
+            "fromDigivolution": true
           },
           "actions": [
             {

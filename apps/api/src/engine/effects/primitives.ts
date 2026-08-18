@@ -1333,7 +1333,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // watchers. No co-located EffectTiming analogue (a fresh fire point per RESEARCH A1).
       // The permanent that GAINED the cards is the event subject; a watcher's sourceFilter
       // ("under one of YOUR Digimon") gates on it.
-      await engine.fireSubTrigger?.("onAddDigivolutionCards", { subjectPermanentId: targetPermanentId });
+      await engine.fireSubTrigger?.("onAddDigivolutionCards", {
+        subjectPermanentId: targetPermanentId,
+        addedDigivolutionCardInstanceIds: placed.map((card) => card.instanceId),
+      });
     }
     return placed;
   };
@@ -1464,6 +1467,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     sourcePermanentId,
     opts,
   ) => {
+    const movedSource = access.permanentById(sourcePermanentId);
+    const movedCardIds =
+      movedSource === undefined
+        ? []
+        : [movedSource.topCard, ...movedSource.stack, ...movedSource.linked]
+            .filter((card): card is CardInstance => card !== undefined)
+            .map((card) => card.instanceId);
     const moved = relocatePermanent(destPermanentId, sourcePermanentId, opts);
     if (moved) {
       // A whole permanent placed under another by an effect/cost is still one or more
@@ -1471,6 +1481,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // so ST13-05/ST13-14 and every analogous watcher resolve before the parent continues.
       await engine.fireSubTrigger?.("onAddDigivolutionCards", {
         subjectPermanentId: destPermanentId,
+        addedDigivolutionCardInstanceIds: movedCardIds,
       });
     }
     return moved;

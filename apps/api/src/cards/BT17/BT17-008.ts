@@ -48,23 +48,20 @@ const nameContains = (def: CardDefinition, fragment: string): boolean =>
  * IsPermanentExistsOnOwnerBattleArea + (Digimon && EqualsCardName("Calumon")) ||
  * (Tamer && ContainsCardName("Takato Matsuki"/"TakatoMatsuki"))).
  *
- * TriggerInfo carries no "just-entered permanents" field yet, so — like AD1-010 — this
- * reads the owner's current battle-area permanents whose top card matches. Best-effort
- * stand-in until the trigger payload carries the just-played permanents.
+ * The OnEnterFieldAnyone window carries the just-entered permanent in
+ * `TriggerInfo.subjectPermanentId`; use that event subject rather than scanning the
+ * whole board (which would incorrectly trigger after an unrelated play whenever an old
+ * Calumon/Takato was already present).
  */
 const triggeredByCalumonOrTakato = (ctx: EffectContext, source: CardSource): boolean => {
-  const owner = ctx.game.player(source.ownerSeat);
-  return Array.from(owner.battleArea).some((permanent: Permanent) => {
-    if (permanent.controllerSeat !== source.ownerSeat || permanent.topCard === undefined) {
-      return false;
-    }
-    const def = ctx.game.definitionOf(permanent.topCard);
-    if (isDigimon(def) && nameEquals(def, "Calumon")) return true;
-    if (isTamer(def) && (nameContains(def, "Takato Matsuki") || nameContains(def, "TakatoMatsuki"))) {
-      return true;
-    }
+  const subjectId = ctx.trigger.subjectPermanentId;
+  const permanent = subjectId === undefined ? undefined : ctx.game.permanentById(subjectId);
+  if (permanent === undefined || permanent.controllerSeat !== source.ownerSeat || permanent.topCard === undefined) {
     return false;
-  });
+  }
+  const def = ctx.game.definitionOf(permanent.topCard);
+  if (isDigimon(def) && nameEquals(def, "Calumon")) return true;
+  return isTamer(def) && (nameContains(def, "Takato Matsuki") || nameContains(def, "TakatoMatsuki"));
 };
 
 // Opponent battle-area Digimon with 3000 DP or less (source

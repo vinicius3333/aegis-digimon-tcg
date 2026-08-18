@@ -132,7 +132,10 @@ export function createBreedingVerbs(engine: BreedingEngine): BreedingVerbs {
       to: Zone.BattleArea,
     });
     // Same SubTrigger seam placeUnder uses: a card was added to the host's digivolution cards.
-    await engine.fireSubTrigger?.("onAddDigivolutionCards", { subjectPermanentId: targetPermanentId });
+    await engine.fireSubTrigger?.("onAddDigivolutionCards", {
+      subjectPermanentId: targetPermanentId,
+      addedDigivolutionCardInstanceIds: [egg.instanceId],
+    });
     return egg;
   };
 
@@ -161,7 +164,10 @@ export function createBreedingVerbs(engine: BreedingEngine): BreedingVerbs {
       from: Zone.EggDeck,
       to: Zone.BattleArea,
     });
-    await engine.fireSubTrigger?.("onAddDigivolutionCards", { subjectPermanentId: targetPermanentId });
+    await engine.fireSubTrigger?.("onAddDigivolutionCards", {
+      subjectPermanentId: targetPermanentId,
+      addedDigivolutionCardInstanceIds: [egg.instanceId],
+    });
     return egg;
   };
 

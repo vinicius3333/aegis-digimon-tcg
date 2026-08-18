@@ -230,6 +230,8 @@ export interface TriggerInfo {
    * "1 of those Digimon" use this collection to offer the complete event-bound choice.
    */
   subjectPermanentIds?: string[];
+  /** Card instances just added to the subject permanent's digivolution stack. */
+  addedDigivolutionCardInstanceIds?: string[];
   /** Printed card id selected as the destination of an imminent digivolution. */
   digivolvingIntoCardId?: string;
   /** Printed level of the permanent's top card immediately before a digivolution. */
