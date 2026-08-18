@@ -17732,6 +17732,59 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
     if (cardId === "BT4-079")
       return effectBt3Demo(cardId, "Labramon", 2000, "Labramon drew one card and then trashed one card from hand.");
     if (cardId === "BT4-080") return vanillaBt3Demo(cardId, "Bakemon", 6000);
+    if (cardId === "BT4-081")
+      return effectBt3Demo(cardId, "Devimon", 5000, "Devimon Digi-Bursted 2 to delete an opposing level 3 Digimon.");
+    if (cardId === "BT4-082") return vanillaBt3Demo(cardId, "Dobermon", 7000);
+    if (cardId === "BT4-083")
+      return effectBt3Demo(
+        cardId,
+        "Cerberusmon",
+        6000,
+        "Cerberusmon drew 2 cards and then trashed 1 card when deleted.",
+      );
+    if (cardId === "BT4-084")
+      return effectBt3Demo(
+        cardId,
+        "NeoDevimon",
+        7000,
+        "NeoDevimon gained 3 memory when the opponent played a Tamer and its inherited effect gained memory when one became suspended.",
+      );
+    if (cardId === "BT4-085") return vanillaBt3Demo(cardId, "Phantomon", 10000);
+    if (cardId === "BT4-086")
+      return effectBt3Demo(
+        cardId,
+        "Cerberusmon: Werewolf Mode",
+        9000,
+        "Werewolf Mode could delete a Cerberusmon to gain 9 memory and has Rush.",
+      );
+    if (cardId === "BT4-087")
+      return effectBt3Demo(
+        cardId,
+        "Anubismon",
+        10000,
+        "Anubismon played a level 3 Digimon from trash for free and gave it Rush.",
+      );
+    if (cardId === "BT4-088")
+      return effectBt3Demo(
+        cardId,
+        "DanDevimon",
+        12000,
+        "DanDevimon trashed the opponent's top security when one of yours was removed and made them trash 2 cards when deleted.",
+      );
+    if (cardId === "BT4-089")
+      return effectBt3Demo(
+        cardId,
+        "Plutomon",
+        12000,
+        "Plutomon drew two cards and used a purple Option costing 6 or less for free.",
+      );
+    if (cardId === "BT4-090")
+      return effectBt3Demo(
+        cardId,
+        "Chaosmon",
+        14000,
+        "Chaosmon has Piercing, unsuspends when digivolving, and attacks an unsuspended Digimon.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
