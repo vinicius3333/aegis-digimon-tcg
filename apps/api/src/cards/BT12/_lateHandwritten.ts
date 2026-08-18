@@ -1310,11 +1310,12 @@ export function lateBt12Module(cardId: string): EffectModule {
                 effectKey: `${cardId}/disable-option-security`,
                 description: "Opponent Option Security effects do not activate on your turn.",
                 when: () => source.isOwnersTurn(),
-                resolve: async (ctx) => {
-                  for (const permanent of myPermanents(ctx, source, (definition) => isDigimon(definition))) {
-                    ctx.fx.disableSecurityEffect(permanent.permanentId, "option", EffectDuration.Permanent);
-                  }
-                },
+                resolve: async (ctx) =>
+                  ctx.fx.disableSecurityEffectsForSeat(
+                    ctx.game.opponentOf(source.ownerSeat),
+                    "option",
+                    EffectDuration.Permanent,
+                  ),
               }),
             ];
           return [];

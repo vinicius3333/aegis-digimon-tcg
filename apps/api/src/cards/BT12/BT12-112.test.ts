@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 // A3 for BT12-112 (Shoutmon X7: Superior Mode) — self ＜would be played＞ cost reduction paid by
@@ -95,4 +96,13 @@ describe("BT12-112 ＜when played＞ cost reduction (place 1 [Shoutmon] → -1)"
     expect(p0?.battleArea.some((p) => p.permanentId === shoutmonPermanentId)).toBe(true);
     expect(played?.stack.length ?? 0).toBe(0);
   });
+});
+
+it("suppresses Option Security effects for every opposing attacker", async () => {
+  const s = setupEngine({
+    0: { battleArea: [{ card: BT12_112, as: "x7" }] },
+    1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+  });
+  await s.ready();
+  expect(observe(s.engine).suppressesSecurityEffect(s.perm("attacker"), "BT12-101")).toBe(true);
 });
