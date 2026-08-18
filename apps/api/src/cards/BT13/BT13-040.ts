@@ -46,7 +46,10 @@ const compiled: CompiledCard = {
                   ],
                   "match": "name"
                 }
-              ]
+              ],
+              "hostFilter": {
+                "isSelfRef": true
+              }
             },
             "count": 1
           },
