@@ -69,9 +69,10 @@ const compiled: CompiledCard = {
           "kind": "ActivateEffect",
           "target": {
             "filter": {
-              "controllerDefault": "mine"
+              "isSelfRef": true
             },
-            "count": 1
+            "count": 1,
+            "isSelf": true
           },
           "effectType": "OnPlay",
           "count": 1,
