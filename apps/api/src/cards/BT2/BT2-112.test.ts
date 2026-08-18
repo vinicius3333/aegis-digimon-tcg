@@ -11,10 +11,31 @@ describe("BT2-112 BlackWarGreymon", () => {
     s.state.memory = 7;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blackwar").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("blackwar").instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blackwar").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("blackwar").instanceId),
+    );
 
     expect(s.state.memory).toBe(0);
+  });
+
+  it("does not reduce its play cost when every opposing Digimon has less than 10000 DP", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT2-112", as: "blackwar" }] },
+      1: { battleArea: [{ card: "BT2-046", as: "belowThreshold", dp: 9000 }] },
+    });
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blackwar").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("blackwar").instanceId),
+    );
+    expect(s.state.memory).toBe(-6);
   });
 
   it("unsuspends when attacking an opponent's highest-DP Digimon", async () => {
@@ -29,11 +50,13 @@ describe("BT2-112 BlackWarGreymon", () => {
       },
     });
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("blackwar").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("highest").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("blackwar").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("highest").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.perm("blackwar").isSuspended);
 
     expect(s.perm("blackwar").isSuspended).toBe(false);
@@ -51,11 +74,13 @@ describe("BT2-112 BlackWarGreymon", () => {
     });
     const combat = s.engine as unknown as { combat: { isAttacking: boolean } };
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("blackwar").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("lower").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("blackwar").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("lower").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !combat.combat.isAttacking);
 
     expect(s.perm("blackwar").isSuspended).toBe(true);
