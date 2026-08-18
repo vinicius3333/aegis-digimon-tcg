@@ -17436,6 +17436,47 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         11000,
         "ShineGreymon gained Security Attack +1 for each suspended red or yellow Tamer.",
       );
+    if (cardId === "BT4-021")
+      return effectBt3Demo(
+        cardId,
+        "Gaomon",
+        2000,
+        "Gaomon returned itself to hand after being trashed for Digi-Burst.",
+      );
+    if (cardId === "BT4-022") return vanillaBt3Demo(cardId, "Sangomon", 4000);
+    if (cardId === "BT4-023")
+      return effectBt3Demo(
+        cardId,
+        "Strabimon",
+        2000,
+        "Strabimon revealed cards and added a Hybrid Digimon and blue Tamer to hand.",
+      );
+    if (cardId === "BT4-024") return vanillaBt3Demo(cardId, "Tobiumon", 3000);
+    if (cardId === "BT4-025")
+      return effectBt3Demo(
+        cardId,
+        "Lobomon",
+        5000,
+        "Lobomon digivolved from a blue Tamer for 2 memory and drew a card.",
+      );
+    if (cardId === "BT4-026")
+      return effectBt3Demo(cardId, "GaoGamon", 5000, "GaoGamon trashed two sources for Digi-Burst to draw a card.");
+    if (cardId === "BT4-027")
+      return effectBt3Demo(
+        cardId,
+        "KendoGarurumon",
+        6000,
+        "KendoGarurumon digivolved from a blue Tamer and returned a level 3 Digimon while trashing its sources.",
+      );
+    if (cardId === "BT4-028")
+      return effectBt3Demo(
+        cardId,
+        "Piranimon",
+        7000,
+        "Piranimon trashed the top source of an opposing Digimon when its host attacked.",
+      );
+    if (cardId === "BT4-029") return vanillaBt3Demo(cardId, "Gusokumon", 10000);
+    if (cardId === "BT4-030") return vanillaBt3Demo(cardId, "Beowolfmon", 7000);
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
