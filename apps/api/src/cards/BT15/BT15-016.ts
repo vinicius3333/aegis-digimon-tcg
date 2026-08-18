@@ -28,10 +28,9 @@ const compiled: CompiledCard = {
           "restriction": "attack",
           "duration": "untilOpponentTurnEnd",
           "condition": {
-            "kind": "opponentHas",
-            "filter": {
-              "controllerDefault": "opponent"
-            },
+            "kind": "memoryAtMost",
+            "controller": "opponent",
+            "value": 4,
             "raw": "your opponent has 4 or less memory"
           }
         },
@@ -51,7 +50,9 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "memoryAtLeast",
+            "controller": "opponent",
+            "value": 4,
             "raw": "they have 4 or more"
           }
         }
@@ -78,10 +79,9 @@ const compiled: CompiledCard = {
           "restriction": "attack",
           "duration": "untilOpponentTurnEnd",
           "condition": {
-            "kind": "opponentHas",
-            "filter": {
-              "controllerDefault": "opponent"
-            },
+            "kind": "memoryAtMost",
+            "controller": "opponent",
+            "value": 4,
             "raw": "your opponent has 4 or less memory"
           }
         },
@@ -101,7 +101,9 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "memoryAtLeast",
+            "controller": "opponent",
+            "value": 4,
             "raw": "they have 4 or more"
           }
         }

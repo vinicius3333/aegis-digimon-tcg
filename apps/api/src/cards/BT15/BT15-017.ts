@@ -37,7 +37,11 @@ const compiled: CompiledCard = {
           "controller": "opponent",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "zoneCount",
+            "seat": "opponent",
+            "zone": "security",
+            "op": "gte",
+            "value": 4,
             "raw": "they have 4 or more"
           }
         }
@@ -73,7 +77,11 @@ const compiled: CompiledCard = {
           "controller": "opponent",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "zoneCount",
+            "seat": "opponent",
+            "zone": "security",
+            "op": "gte",
+            "value": 4,
             "raw": "they have 4 or more"
           }
         }
