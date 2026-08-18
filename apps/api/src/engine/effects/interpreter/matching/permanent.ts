@@ -1,0 +1,556 @@
+// Matching a filter against a live PERMANENT, and the source-relative helpers it needs.
+
+import type { CardSource } from "../../CardSource.js";
+import type { EffectContext } from "../../EffectContext.js";
+import { COLOR_MAP, KIND_MAP } from "../maps.js";
+import { scaleFactor } from "../scaling.js";
+import { definitionMatches, matchNameOrTrait, textHasKeyword } from "./definition.js";
+import { CardKind } from "@aegis/shared";
+import type { Condition, Filter, Permanent, Seat } from "@aegis/shared";
+
+/**
+ * Whether a card matching the trait `filter` is in the SOURCE permanent's digivolution stack
+ * (BT7-024 "while a card with [Hybrid] in its traits is in this Digimon's digivolution cards").
+ * Matches each stack card's definition against `filter.nameOrTrait` via the shared
+ * `matchNameOrTrait` (Form ∪ Attribute ∪ Type union). Returns false when there is no source
+ * permanent or no trait filter (conservative; we never invent a gate).
+ */
+export function selfStackMatchesTrait(ctx: EffectContext, filter: Filter | undefined): boolean {
+  if (filter === undefined) return false;
+  const hasPredicate =
+    (filter.nameOrTrait?.length ?? 0) > 0 || (filter.or?.length ?? 0) > 0 || (filter.and?.length ?? 0) > 0;
+  if (!hasPredicate) return false;
+  const self = ctx.source.permanent();
+  if (self === undefined) return false;
+  return self.stack.some((card) => definitionMatches(filter, ctx.game.definitionOf(card)));
+}
+
+/**
+ * Whether the SOURCE permanent's TOP card's trait union (Form ∪ Attribute ∪ Type) matches the
+ * trait token(s) in `filter.nameOrTrait` (EX12-004 "this Digimon with the [TB] trait"). Only the
+ * top card is checked — the permanent's live identity, not its digivolution stack. Returns false
+ * when there is no source permanent (off-field) or no filter (conservative; we never invent a gate).
+ */
+export function selfTopMatchesTrait(ctx: EffectContext, filter: Filter | undefined): boolean {
+  const refs = filter?.nameOrTrait;
+  if (refs === undefined || refs.length === 0) return false;
+  const self = ctx.source.permanent();
+  if (self?.topCard === undefined) return false;
+  const def = ctx.game.definitionOf(self.topCard);
+  return refs.some((ref) => matchNameOrTrait(def, ref));
+}
+
+/**
+ * Whether the SOURCE permanent's (the inherited host's) TOP card carries the text token(s) in
+ * against the union via the shared `matchNameOrTrait`. Returns false when there is no source
+ * permanent (off-field) or no filter (conservative; we never invent a gate).
+ */
+export function selfTopMatchesText(ctx: EffectContext, filter: Filter | undefined): boolean {
+  const refs = filter?.nameOrTrait;
+  if (refs === undefined || refs.length === 0) return false;
+  const self = ctx.source.permanent();
+  if (self?.topCard === undefined) return false;
+  const def = ctx.game.definitionOf(self.topCard);
+  return refs.some((ref) => matchNameOrTrait(def, ref));
+}
+
+export function sourceTopDefinition(ctx: EffectContext) {
+  const topCard = ctx.source.permanent()?.topCard;
+  if (topCard !== undefined) return ctx.game.definitionOf(topCard);
+  // [On Deletion] conditions are evaluated after the permanent has moved to trash.
+  // The live source can no longer recover its host, so use the authoritative top-card
+  // snapshot captured by the deletion producer (for example, "this Digimon has 2 or
+  // more colors" on an inherited effect).
+  return ctx.trigger.deletedTopCardId === undefined
+    ? undefined
+    : ctx.game.definitionOf({ cardId: ctx.trigger.deletedTopCardId } as never);
+}
+
+export function compareNumber(actual: number, op: Condition["op"] | undefined, expected: number): boolean {
+  switch (op) {
+    case "lt":
+      return actual < expected;
+    case "lte":
+      return actual <= expected;
+    case "eq":
+      return actual === expected;
+    case "gt":
+      return actual > expected;
+    default:
+      return actual >= expected;
+  }
+}
+
+export function sourceStackHasSameLevelCards(ctx: EffectContext, minCount: number): boolean {
+  const self = ctx.source.permanent();
+  if (self === undefined) return false;
+  const levelCounts = new Map<number, number>();
+  const cards = [self.topCard, ...self.stack].filter((card): card is NonNullable<typeof card> => card !== undefined);
+  for (const card of cards) {
+    const level = ctx.game.definitionOf(card).level;
+    if (typeof level !== "number") continue;
+    const next = (levelCounts.get(level) ?? 0) + 1;
+    if (next >= minCount) return true;
+    levelCounts.set(level, next);
+  }
+  return false;
+}
+
+// ---------------------------------------------------------------------------
+// Target / filter resolution
+// ---------------------------------------------------------------------------
+
+/**
+ * Resolve a filter's controller scope to concrete seats relative to the source. Uses
+ * the explicit `controller` when set; otherwise falls back to the runtime-only
+ * `controllerDefault` hint (the prose default for an un-possessived target) so seat
+ * enumeration still narrows even though the structural signature carried no owner
+ * predicate. An unset/`any` scope spans both seats.
+ */
+export function seatsForController(ctx: EffectContext, filter: Filter): Seat[] {
+  const mine = ctx.source.ownerSeat;
+  const opp = ctx.game.opponentOf(mine);
+  const scope = filter.controller ?? filter.controllerDefault;
+  switch (scope) {
+    case "mine":
+      return [mine];
+    case "opponent":
+      return [opp];
+    case "any":
+    case undefined:
+      return [mine, opp];
+    default:
+      return [mine, opp];
+  }
+}
+
+/** Does a permanent's top card satisfy the (battle-area) filter? */
+/**
+ * The level bound for a `levelComparison.relativeTo:"lastDeleted"` filter: the printed level of
+ * the Digimon just deleted in this resolution. Prefer the effect-result capture set by a
+ * `deleteOwn` cost / Delete action (BT8-107). Fall back to the SubTrigger deletion subject, whose
+ */
+function lastDeletedLevelBound(ctx: EffectContext): number | undefined {
+  if (ctx.lastDeletedLevel !== undefined) return ctx.lastDeletedLevel;
+  const id = ctx.trigger.deletedPermanentId ?? ctx.trigger.subjectPermanentId;
+  if (id === undefined) return undefined;
+  const perm = ctx.game.permanentById(id);
+  if (perm?.topCard === undefined) return undefined;
+  const level = ctx.game.definitionOf(perm.topCard).level;
+  return level !== undefined && level > 0 ? level : undefined;
+}
+
+export function permanentMatchesFilter(
+  ctx: EffectContext,
+  permanent: Permanent,
+  filter: Filter,
+  source: CardSource,
+): boolean {
+  if (permanent.topCard === undefined) return false;
+  // A permanent filter naming a field zone must distinguish the breeding area from
+  // the battle area. Cost-modifier predicates receive both kinds of permanent directly,
+  // so relying on the caller's candidate scan would let battle-area-only reducers apply
+  // in breeding (BT2-088 Q1038).
+  if (filter.zone === "battleArea" && permanent.inBreeding) return false;
+  if (filter.zone === "breeding" && !permanent.inBreeding) return false;
+  if (filter.excludeSelf || filter.isSelfRef === false) {
+    const self = source.permanent();
+    if (self !== undefined && self.permanentId === permanent.permanentId) {
+      if (filter.excludeSelf) return false;
+    }
+  }
+  // `isSelfRef: true` restricts the filter to THIS card's own permanent. Most targets carrying
+  // it short-circuit in `candidatePermanents` before reaching here; the exception is a union
+  // (`orFilters`) where "this Digimon" is one alternative among several (BT21-013: place the
+  // card under this Digimon OR under a red Tamer with inherited effects).
+  if (filter.isSelfRef === true) {
+    const self = source.permanent();
+    if (self === undefined || self.permanentId !== permanent.permanentId) return false;
+  }
+  // boundRef: restrict to permanents in the named effect-result binding (written by PlayPerLevel
+  // or another producing action via `bindResultAs`). An unbound or empty ref matches nothing.
+  if (filter.boundRef !== undefined) {
+    const bound = ctx.boundPlayed?.get(filter.boundRef);
+    if (!bound || !bound.has(permanent.permanentId)) return false;
+  }
+  if (
+    typeof filter.playCost === "object" &&
+    filter.playCost !== null &&
+    "lteBindResult" in filter.playCost &&
+    typeof filter.playCost.lteBindResult === "string"
+  ) {
+    const bound = ctx.boundPlayed?.get(filter.playCost.lteBindResult);
+    const boundId = bound?.values().next().value as string | undefined;
+    const boundPermanent = boundId === undefined ? undefined : ctx.game.permanentById(boundId);
+    if (boundPermanent?.topCard === undefined) return false;
+    const maximum = ctx.game.definitionOf(boundPermanent.topCard).playCost;
+    const candidateCost = ctx.game.definitionOf(permanent.topCard).playCost;
+    if (maximum === undefined || candidateCost === undefined || candidateCost > maximum) return false;
+    const { playCost: _boundPlayCost, ...rest } = filter;
+    filter = rest;
+  }
+  // excludeSelectionRef: drop a permanent bound earlier under SelectBind/Target.bindAs (the
+  // positive counterpart of boundRef). Used for "choose N exemptions, then delete all other
+  // Digimon" (EX11-011).
+  if (filter.excludeSelectionRef !== undefined) {
+    const refs = Array.isArray(filter.excludeSelectionRef) ? filter.excludeSelectionRef : [filter.excludeSelectionRef];
+    for (const ref of refs) {
+      if (ctx.selections?.get(ref) === permanent.permanentId) return false;
+    }
+  }
+  // Host/target predicate for stack-card costs that refer to "that Digimon" from the
+  // enclosing trigger (e.g. cards under the Digimon that attacked). This is useful inside
+  // `hostFilter` for loose `digivolutionCards` candidates.
+  if (filter.isTriggerSource === true) {
+    const triggerId =
+      ctx.trigger.subjectPermanentId ?? ctx.trigger.attackerPermanentId ?? ctx.trigger.deletedPermanentId;
+    if (triggerId === undefined || permanent.permanentId !== triggerId) return false;
+    const { isTriggerSource: _omit, ...rest } = filter;
+    filter = rest;
+  }
+  // Disjunctive sub-filter ("black or has [Legend-Arms] in its traits"): the permanent matches
+  // the OR group if it satisfies ANY alternative. Each alternative is a full Filter, so it is
+  // evaluated against the LIVE permanent (recursing) — an alternative may itself constrain DP,
+  // suspended state, kind, etc. The remaining (non-`or`) fields on the parent still apply (AND),
+  // so strip `or` before delegating to the field-by-field checks to avoid re-evaluating it.
+  if (filter.or && filter.or.length > 0) {
+    if (!filter.or.some((alt) => permanentMatchesFilter(ctx, permanent, alt, source))) return false;
+    const { or: _or, ...rest } = filter;
+    filter = rest;
+  }
+  const def = ctx.game.definitionOf(permanent.topCard);
+
+  // `placedInBattleAreaByEffect`: an Option only becomes a battle-area permanent when a
+  // "place this card in the battle area" effect put it there (normal Option use trashes it), so
+  // a battle-area Option permanent always satisfies this — a non-Option never does (Cap-E-006).
+  if (filter.placedInBattleAreaByEffect === true && !def.kinds.includes(CardKind.Option)) {
+    return false;
+  }
+
+  // DP threshold needs the live permanent, so it lives here (not in definitionMatches).
+  // Strip dp from filter after evaluation so definitionMatches doesn't double-check using
+  // the printed (static) dp, which may differ from currentDP after ModifyDP effects.
+  if (filter.dp) {
+    const cmp = filter.dp;
+    let bound: number | undefined;
+    if (cmp.relativeToSource) {
+      bound = source.permanent()?.currentDP;
+    } else if (cmp.valueFrom !== undefined) {
+      const boundIds = ctx.boundPlayed?.get(cmp.valueFrom);
+      const boundId = boundIds?.values().next().value as string | undefined;
+      const boundPermanent = boundId !== undefined ? ctx.game.permanentById(boundId) : undefined;
+      bound = boundPermanent?.currentDP;
+    } else {
+      bound = cmp.value;
+    }
+    if (bound === undefined) return false;
+    if (cmp.op === "lte" && !(permanent.currentDP <= bound)) return false;
+    if (cmp.op === "gte" && !(permanent.currentDP >= bound)) return false;
+    if (cmp.op === "eq" && permanent.currentDP !== bound) return false;
+    const { dp: _dp, ...rest } = filter;
+    filter = rest;
+  }
+
+  // Runtime DP threshold bound to the permanent suspended by this effect's immediately preceding
+  // suspend payment/action (BT16-048: return a Digimon with DP <= the Digimon this effect
+  // suspended). If multiple were suspended, use the maximum DP to preserve "up to" benefit.
+  if (filter.dpLessOrEqualToSuspendedDigimon === true) {
+    const bound = (ctx.lastSuspendedPermanentIds ?? [])
+      .map((id) => ctx.game.permanentById(id)?.currentDP)
+      .filter((dp): dp is number => dp !== undefined)
+      .reduce<number | undefined>((max, dp) => (max === undefined ? dp : Math.max(max, dp)), undefined);
+    if (bound === undefined || permanent.currentDP > bound) return false;
+    const { dpLessOrEqualToSuspendedDigimon: _dpBound, ...rest } = filter;
+    filter = rest;
+  }
+
+  // Selection-relative threshold ("DP/level/play cost <op> the chosen Digimon's"): compare the
+  // candidate's live attribute to the bound selection's. An unresolved ref excludes the
+  if (filter.relativeTo) {
+    const rel = filter.relativeTo;
+    const boundId = ctx.selections?.get(rel.selectionRef);
+    const boundPerm = boundId !== undefined ? ctx.game.permanentById(boundId) : undefined;
+    if (boundPerm === undefined) return false;
+    const attrOf = (p: Permanent): number | undefined => {
+      if (rel.attr === "dp") return p.currentDP;
+      if (rel.attr === "digivolutionCount") return p.stack.length;
+      const cardDef = p.topCard ? ctx.game.definitionOf(p.topCard) : undefined;
+      if (rel.attr === "level") return cardDef?.level ?? undefined;
+      if (rel.attr === "playCost") return cardDef?.playCost ?? undefined;
+      return undefined;
+    };
+    const lhs = attrOf(permanent);
+    const rhs = attrOf(boundPerm);
+    if (lhs === undefined || rhs === undefined) return false;
+    if (rel.op === "lte" && !(lhs <= rhs)) return false;
+    if (rel.op === "gte" && !(lhs >= rhs)) return false;
+    if (rel.op === "eq" && lhs !== rhs) return false;
+  }
+
+  // Runtime-scaled level threshold ("delete 1 level 4 or lower; add 1 to the level cap for
+  // each of your other Digimon" — BT16-079). This is a target-cap adjustment, distinct from
+  // DeleteLevelBudget's "sum of levels" semantics. Strip the comparison afterward so
+  // definitionMatches does not re-apply the unscaled base threshold.
+  if (filter.levelComparison?.value !== undefined && filter.levelComparison.scaling !== undefined) {
+    const level = def.level;
+    if (level === undefined) return false;
+    const { op, value, scaling } = filter.levelComparison;
+    const bound = value + scaleFactor(ctx, scaling);
+    if (op === "lte" && !(level <= bound)) return false;
+    if (op === "gte" && !(level >= bound)) return false;
+    if (op === "eq" && level !== bound) return false;
+    const { levelComparison: _lc, ...rest } = filter;
+    filter = rest;
+  }
+
+  // Dynamic level threshold bound to a just-deleted Digimon ("delete an opponent's Digimon with
+  // level <= the deleted Digimon's level" — BT8-107 cost-deleted, BT17-071 SubTrigger subject;
+  // definitionMatches does not re-apply it with a missing `value`. An unresolved bound (no
+  if (filter.levelComparison?.relativeTo === "lastDeleted") {
+    const bound = lastDeletedLevelBound(ctx);
+    const level = def.level;
+    if (bound === undefined || level === undefined) return false;
+    const { op } = filter.levelComparison;
+    if (op === "lte" && !(level <= bound)) return false;
+    if (op === "gte" && !(level >= bound)) return false;
+    if (op === "eq" && level !== bound) return false;
+    const { levelComparison: _lc, ...rest } = filter;
+    return permanentMatchesFilter(ctx, permanent, rest, source);
+  }
+
+  // Dynamic level cap ("level 4 or lower. For each of your other Digimon, add 1 to the
+  // maximum level you can choose", BT16-079). Apply the runtime scaling to the static bound,
+  // then strip the dynamic comparison before delegating to definitionMatches.
+  if (filter.levelComparison?.scaling !== undefined && filter.levelComparison.value !== undefined) {
+    const level = def.level;
+    if (level === undefined) return false;
+    const { op, value, scaling } = filter.levelComparison;
+    const bound = value + scaleFactor(ctx, scaling);
+    if (op === "lte" && !(level <= bound)) return false;
+    if (op === "gte" && !(level >= bound)) return false;
+    if (op === "eq" && level !== bound) return false;
+    const { levelComparison: _lc, ...rest } = filter;
+    return permanentMatchesFilter(ctx, permanent, rest, source);
+  }
+
+  // Dynamic level upper bound from a named context variable (string) or a static numeric cap
+  // (BT19-002 "levelLte: 'returnedDigimonLevel'" — the cap is the returned Digimon's level stored
+  // by the preceding return cost's `storeAs`). A string key missing from namedCounts excludes all.
+  if (filter.levelLte !== undefined) {
+    const bound = typeof filter.levelLte === "string" ? ctx.namedCounts?.get(filter.levelLte) : filter.levelLte;
+    if (bound === undefined || def.level === undefined || !(def.level <= bound)) return false;
+  }
+  if (filter.levelLteTriggerSource === true) {
+    const bound = ctx.trigger.playedLevel;
+    if (bound === undefined || def.level === undefined || def.level > bound) return false;
+  }
+  if (filter.levelEqTriggerSource === true) {
+    const bound = ctx.trigger.playedLevel;
+    if (bound === undefined || def.level === undefined || def.level !== bound) return false;
+  }
+  if (filter.playCostLteTriggerSource === true) {
+    const bound = ctx.trigger.playedPlayCost;
+    if (bound === undefined || def.playCost > bound) return false;
+    const { playCostLteTriggerSource: _bound, ...rest } = filter;
+    filter = rest;
+  }
+  if (filter.levelEq !== undefined) {
+    const bound = typeof filter.levelEq === "string" ? ctx.namedCounts?.get(filter.levelEq) : filter.levelEq;
+    if (bound === undefined || def.level === undefined || def.level !== bound) return false;
+  }
+
+  // Alternative generated shape for "level <= the number of cards in your or their security
+  // stack" (BT16-063). A candidate is legal if it fits at least one of the two counts, which is
+  // equivalent to checking against the maximum count.
+  {
+    const levelShape = filter.level as { lte?: { kind?: string } } | undefined;
+    if (levelShape?.lte?.kind === "chooseEitherSecurityCount") {
+      const mine = ctx.game.player(ctx.source.ownerSeat).security.length;
+      const opp = ctx.game.player(ctx.game.opponentOf(ctx.source.ownerSeat)).security.length;
+      const bound = Math.max(mine, opp);
+      if (def.level === undefined || def.level > bound) return false;
+      const { level: _level, ...rest } = filter;
+      filter = rest;
+    }
+  }
+
+  // Suspended-state filter ("1 of your opponent's suspended Digimon") — live state.
+  if (filter.suspended === true && !permanent.isSuspended) return false;
+  if (filter.suspended === false && permanent.isSuspended) return false;
+  // Unsuspended-state filter ("opponent has no unsuspended Digimon") — live state.
+  if (filter.unsuspended && permanent.isSuspended) return false;
+
+  if ((filter.digivolutionCards === "none" || filter.digivolutionCards === "hasNone") && permanent.stack.length > 0)
+    return false;
+  if (filter.digivolutionCards === "hasAny" && permanent.stack.length === 0) return false;
+  // "WITH digivolution cards" alias (BT17-098): at least one card under the top.
+  if (filter.hasDigivolutionCards === true && permanent.stack.length === 0) return false;
+
+  // Digivolution-stack KIND gate ("a Digimon with a Tamer card in its digivolution cards",
+  // BT17-090): at least one stacked card must be of one of the requested kinds. Distinct from
+  // the count-only `digivolutionCards:"hasAny"`.
+  if (filter.digivolutionStackKind && filter.digivolutionStackKind.length > 0) {
+    const wanted = filter.digivolutionStackKind.map((k) => KIND_MAP[k as keyof typeof KIND_MAP]);
+    const hit = permanent.stack.some((card) => {
+      const stackDef = ctx.game.definitionOf(card);
+      return wanted.some((k) => k !== undefined && stackDef.kinds.includes(k));
+    });
+    if (!hit) return false;
+  }
+
+  // Digivolution-stack name/trait gate: unlike the ordinary `nameOrTrait` predicate (which
+  // inspects the permanent's TOP card), this requires a matching card UNDER that top card.
+  if (filter.digivolutionStackNameOrTrait && filter.digivolutionStackNameOrTrait.length > 0) {
+    const hit = permanent.stack.some((card) =>
+      definitionMatches({ nameOrTrait: filter.digivolutionStackNameOrTrait }, ctx.game.definitionOf(card)),
+    );
+    if (!hit) return false;
+  }
+
+  // Digivolution-stack NAME exclusion ("[Diaboromon] without [Doomsday Clock] in its
+  // digivolution cards", BT17-100): reject if any stacked card's name matches an excluded token.
+  if (filter.excludeCardsNamed && filter.excludeCardsNamed.length > 0) {
+    const excluded = filter.excludeCardsNamed.map((n) => n.toLowerCase());
+    const hasExcluded = permanent.stack.some((card) => {
+      const name = (ctx.game.definitionOf(card).nameEn ?? "").toLowerCase();
+      return excluded.some((n) => name.includes(n));
+    });
+    if (hasExcluded) return false;
+  }
+
+  // Same-name-as-source filter ("another Digimon with the same name as this Digimon", BT2-053).
+  // Compares the candidate's live top-card name to the SOURCE permanent's live top-card name
+  // (the evolved-into form, not the printed card id — KB Q1023). An off-field source matches none.
+  if (filter.isSameName === true) {
+    const selfTop = source.permanent()?.topCard;
+    if (selfTop === undefined) return false;
+    const selfName = (ctx.game.definitionOf(selfTop).nameEn ?? "").toLowerCase();
+    const candName = (def.nameEn ?? "").toLowerCase();
+    if (selfName === "" || selfName !== candName) return false;
+  }
+
+  // Comparative digivolution-stack-size filter relative to the effect source ("a Digimon with as
+  // many or fewer digivolution cards as this Digimon" — AD1-025, BT16-027). Compare the candidate's
+  // stack size to the source Digimon's; an unresolvable source excludes the candidate.
+  if (filter.digivolutionCardsCompareToSource) {
+    const sourceStack = source.permanent()?.stack.length;
+    if (sourceStack === undefined) return false;
+    const op = filter.digivolutionCardsCompareToSource;
+    if (op === "lte" && !(permanent.stack.length <= sourceStack)) return false;
+    if (op === "gte" && !(permanent.stack.length >= sourceStack)) return false;
+    if (op === "eq" && permanent.stack.length !== sourceStack) return false;
+  }
+
+  // Dynamic play-cost cap relative to the effect source's stack size ("play costs less than or
+  // equal to this Digimon's digivolution cards" — BT7-065). This compares the candidate's printed
+  // play cost to the source permanent's current digivolution-card count.
+  if (filter.playCostLteSourceDigivolutionCards === true) {
+    const sourceStack = source.permanent()?.stack.length;
+    if (sourceStack === undefined || def.playCost > sourceStack) return false;
+    const { playCostLteSourceDigivolutionCards: _cap, ...rest } = filter;
+    filter = rest;
+  }
+
+  // Absolute digivolution-stack-size upper bound ("1 or fewer digivolution cards" — BT20-055,
+  // CAP-H-02). Distinct from digivolutionCards:"none" (stack.length === 0).
+  if (filter.digivolutionCardsAtMost !== undefined && permanent.stack.length > filter.digivolutionCardsAtMost)
+    return false;
+
+  // Absolute digivolution-stack-size lower bound ("4 or more digivolution cards" — BT1-085).
+  if (filter.digivolutionCardsAtLeast !== undefined && permanent.stack.length < filter.digivolutionCardsAtLeast)
+    return false;
+
+  // Runtime-scaled play-cost cap ("delete a play cost 3 or lower Digimon; for each [X] in
+  // your trash add 1 to the maximum" — EX5-054). The effective cap is the static base plus
+  // the scaled bonus; check it against the candidate's printed play cost, then strip the cap
+  // fields so definitionMatches does not re-apply the static-only bound.
+  if (filter.playCostLteScaling) {
+    const base = filter.playCostLte ?? 0;
+    const cap = base + scaleFactor(ctx, filter.playCostLteScaling);
+    if ((def.playCost ?? 0) > cap) return false;
+    const { playCostLte: _baseCap, playCostLteScaling: _scaledCap, ...rest } = filter;
+    return definitionMatches(rest, def);
+  }
+
+  // Color predicates on a LIVE permanent must observe "also treated as <color>" grants.
+  // Definition-only filters still use printed colors, but board predicates such as `youHave`
+  // and effect targets see the permanent's effective set (printed union active grants).
+  if (
+    (filter.colors && filter.colors.length > 0) ||
+    (filter.excludeColors && filter.excludeColors.length > 0) ||
+    filter.multicolor === true
+  ) {
+    const effective = typeof ctx.game.effectiveColors === "function" ? ctx.game.effectiveColors(permanent) : def.colors;
+    if (filter.colors && filter.colors.length > 0) {
+      const wanted = filter.colors.map((color) => COLOR_MAP[color]);
+      if (!wanted.some((color) => effective.includes(color))) return false;
+    }
+    if (filter.excludeColors && filter.excludeColors.length > 0) {
+      const banned = filter.excludeColors.map((color) => COLOR_MAP[color]);
+      if (banned.some((color) => effective.includes(color))) return false;
+    }
+    if (filter.multicolor === true && new Set(effective).size < 2) return false;
+    const { colors: _colors, excludeColors: _excludeColors, multicolor: _multicolor, ...rest } = filter;
+    return definitionMatches(rest, def);
+  }
+
+  // Kind filter with effective-type grants ("treat as Digimon"): a Tamer permanent
+  // granted Digimon kind should pass a kind:["Digimon"] filter (HARD-01). When
+  // GameAccess.effectiveKinds is available, check effective kinds first; fall back
+  // to the static CardDefinition.kinds when it isn't (test fakes / lightweight calls).
+  if (filter.kind?.includes("Digimon")) {
+    const effective = ctx.game.effectiveKinds?.(permanent.permanentId);
+    if (effective !== undefined) {
+      const wanted = filter.kind.map((k) => KIND_MAP[k]);
+      if (!wanted.some((k) => effective.includes(k))) return false;
+      // Strip kind from filter so definitionMatches doesn't double-check against static def.kinds
+      const { kind: _k, ...rest } = filter;
+      return definitionMatches(rest, def);
+    }
+  }
+
+  // Keyword-presence on a LIVE permanent ("Digimon with ＜Security Attack＞") must see
+  // keywords conferred by ＜...+/-＞ grants, not only the printed text (KB BT12-040 Q2172).
+  // Ask GameAccess first: its engine binding resolves the permanent's complete live keyword
+  // set, including inherited/static stack keywords (for example ST5-11 conferring Blocker),
+  // while `fx.grantedKeywords` only contains ledger grants. Keep both reads because lightweight
+  // interpreter tests may supply a primitive grant store without a fully bound GameAccess.
+  // Delegate the remaining definition-only predicates with the keyword clause stripped so it
+  // is not re-checked against printed text alone.
+  if (filter.keywords && filter.keywords.length > 0) {
+    const granted = new Set((ctx.fx.grantedKeywords?.(permanent.permanentId) ?? []).map((g) => g.keyword));
+    const hasKeyword = (kw: string): boolean =>
+      ctx.game.hasKeyword?.(permanent.permanentId, kw) === true || granted.has(kw) || textHasKeyword(def, kw);
+    if (!filter.keywords.every(hasKeyword)) return false;
+    const { keywords: _omit, ...rest } = filter;
+    return definitionMatches(rest, def);
+  }
+  if (filter.excludeKeywords && filter.excludeKeywords.length > 0) {
+    const granted = new Set((ctx.fx.grantedKeywords?.(permanent.permanentId) ?? []).map((g) => g.keyword));
+    const hasKeyword = (kw: string): boolean =>
+      ctx.game.hasKeyword?.(permanent.permanentId, kw) === true || granted.has(kw) || textHasKeyword(def, kw);
+    if (filter.excludeKeywords.some(hasKeyword)) return false;
+    const { excludeKeywords: _omit, ...rest } = filter;
+    return definitionMatches(rest, def);
+  }
+
+  return definitionMatches(filter, def);
+}
+
+/**
+ * True when `permanent` is immune to effects from `source` (Comprehensive Rules
+ * §15-15-5: "isn't affected by effects" grants — BT19-089's Option-sourced immunity,
+ * BT16-063's Digimon-sourced immunity, and CAP-C-06's blanket opponent immunity). Only
+ * ever excludes an OPPONENT's effect; a controller's own effects are never blocked by
+ * these grants.
+ */
+export function isPermanentUnaffectable(
+  ctx: EffectContext,
+  source: CardSource,
+  permanent: Permanent,
+  relevantSourceKinds: readonly string[],
+): boolean {
+  if (source.ownerSeat === permanent.controllerSeat) return false;
+  if (relevantSourceKinds.some((k) => ctx.fx.isBeAffectedBySourceKind!(permanent.permanentId, k))) return true;
+  return ctx.fx.isUnaffectableByOpponentEffects?.(permanent.permanentId) === true;
+}
