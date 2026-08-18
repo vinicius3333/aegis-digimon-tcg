@@ -18723,6 +18723,60 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         4000,
         "Deputymon revealed cards, added a Three Musketeers Digimon and cost-7 Option, and trashed the rest.",
       );
+    if (cardId === "BT6-061")
+      return effectBt3Demo(
+        cardId,
+        "Gigadramon",
+        7000,
+        "Gigadramon is treated as red in the battle area and gives its host +2000 DP during the opponent's turn.",
+      );
+    if (cardId === "BT6-062")
+      return effectBt3Demo(
+        cardId,
+        "Volcanomon",
+        7000,
+        "Volcanomon gave its host Security Attack +1 while an opposing Digimon was unsuspended.",
+      );
+    if (cardId === "BT6-063") return vanillaBt3Demo(cardId, "BigMamemon", 10000);
+    if (cardId === "BT6-064")
+      return effectBt3Demo(cardId, "Mamemon", 6000, "Mamemon has Decoy and deletes a play-cost-7 Digimon on deletion.");
+    if (cardId === "BT6-065")
+      return effectBt3Demo(
+        cardId,
+        "Gundramon",
+        11000,
+        "Gundramon has Blocker and may use a revealed cost-7 Option without paying its cost.",
+      );
+    if (cardId === "BT6-066")
+      return effectBt3Demo(
+        cardId,
+        "PileVolcamon",
+        11000,
+        "PileVolcamon has Reboot and De-Digivolves once per turn when another own Digimon is deleted on the opponent's turn.",
+      );
+    if (cardId === "BT6-067")
+      return effectBt3Demo(
+        cardId,
+        "Gankoomon",
+        12000,
+        "Gankoomon deleted all opposing Digimon tied for lowest play cost and gains Security Attack +1 while the opponent has an unsuspended Digimon.",
+      );
+    if (cardId === "BT6-068")
+      return effectBt3Demo(
+        cardId,
+        "Impmon",
+        2000,
+        "Impmon could trash a hand card to return a Three Musketeers Digimon from trash.",
+      );
+    if (cardId === "BT6-069")
+      return effectBt3Demo(
+        cardId,
+        "Goblimon",
+        2000,
+        "Goblimon gave its host +2000 DP once per turn when effects trashed cards from hand.",
+      );
+    if (cardId === "BT6-070")
+      return effectBt3Demo(cardId, "Elecmon", 2000, "Elecmon deleted an opposing level 3 Digimon when deleted.");
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
