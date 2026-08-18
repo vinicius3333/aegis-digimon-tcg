@@ -5437,8 +5437,13 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
     case "DelayedDeletePlayed": {
       // EX10-035: "at turn end, delete the Digimon this effect played." The played permanent is
       // deletes it at the owner's turn end, expiring at that same boundary.
-      const self = ctx.source.permanent();
-      if (self !== undefined) ctx.fx.delayedDeletePlayed?.(self.permanentId);
+      const playedIds = ctx.lastPlayedPermanentIds ?? [];
+      if (playedIds.length > 0) {
+        for (const permanentId of playedIds) ctx.fx.delayedDeletePlayed?.(permanentId);
+      } else {
+        const self = ctx.source.permanent();
+        if (self !== undefined) ctx.fx.delayedDeletePlayed?.(self.permanentId);
+      }
       return false;
     }
     case "DelayedDelete": {
