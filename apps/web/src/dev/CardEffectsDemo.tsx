@@ -6076,11 +6076,50 @@ function vanillaPlayDemo(cardId: string, dp: number, playCost: number, effect: s
   return { state };
 }
 
+function seasarmonDemo(effect: string | null): CardEffectsFixture {
+  const state = new GameState();
+  state.matchId = "card-effects-demo";
+  state.phase = Phase.Main;
+  state.turnCount = 5;
+  state.turnSeat = 0;
+  state.memory = 3;
+
+  const you = player(0, "Effect tester", "card-effects-viewer");
+  const opponent = player(1, "Training opponent", "card-effects-opponent");
+  const seasarmon = permanent("demo-seasarmon", "BT1-052", 0, 4000);
+  opponent.handCount = 5;
+  if (effect === "security-battle") {
+    seasarmon.isSuspended = true;
+    you.battleArea.push(seasarmon);
+    opponent.securityCount = 4;
+    opponent.trash.push(card("demo-seasarmon-security", "BT1-080", 1));
+    state.players.push(you, opponent);
+    return {
+      state,
+      events: [
+        {
+          kind: "effectResolved",
+          seat: 0,
+          sourceCardId: "BT1-052",
+          effectKey: "BT1-052/jamming",
+          description: "Jamming prevented Seasarmon from being deleted in the security battle.",
+          timing: "Static",
+        },
+      ],
+    };
+  }
+
+  you.battleArea.push(seasarmon);
+  state.players.push(you, opponent);
+  return { state };
+}
+
 export function CardEffectsDemo({ cardId }: { cardId: string }) {
   const params = new URLSearchParams(window.location.search);
   const effect = params.get("effect");
   const step = params.get("step");
   const fixture = useMemo<CardEffectsFixture | undefined>(() => {
+    if (cardId === "BT1-052") return seasarmonDemo(effect);
     if (cardId === "BT1-051") return vanillaPlayDemo(cardId, 4000, 3, effect);
     if (cardId === "BT1-050") return vanillaPlayDemo(cardId, 4000, 3, effect);
     if (cardId === "BT1-049") return labramonDemo(effect);
