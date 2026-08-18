@@ -94,7 +94,10 @@ export function st7Module(cardId: string): EffectModule {
               ]
             : [];
         case "ST7-03": {
-          if (timing === EffectTiming.OnUseOption)
+          // This is an on-field [Your Turn] activated effect, not an Option card
+          // effect. OnDeclaration is the engine window used by Digimon/Tamer [Main]
+          // abilities and exposes the alternate digivolve action to the UI.
+          if (timing === EffectTiming.OnDeclaration)
             return [
               activated({
                 source,
