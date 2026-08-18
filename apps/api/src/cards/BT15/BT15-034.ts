@@ -50,10 +50,8 @@ const compiled: CompiledCard = {
           ],
           "toTop": false,
           "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine"
-            },
+            "kind": "securityAtMost",
+            "value": 2,
             "raw": "you have 2 or fewer"
           },
           "optional": true
