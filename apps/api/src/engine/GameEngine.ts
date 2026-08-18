@@ -362,7 +362,6 @@ export class GameEngine {
   /** Guards against re-entrant continuous recomputes (a static effect that itself recomputes). */
   private recomputing = false;
   /** Trigger payload for the timing window currently resolving. */
-  private pendingTrigger: TriggerInfo = {};
   /** Transient security-DP modifiers during an active security check. */
   private readonly securityDp = new SecurityDpLedger();
   /** Continuous DP-based-deletion maximum bonuses (rebuilt each continuous recompute). */
@@ -1450,10 +1449,9 @@ export class GameEngine {
    */
   private async fireTiming(timing: EffectTiming, trigger: TriggerInfo = {}): Promise<void> {
     const wasOutermostWindow = this.beginResolvingWindow();
-    this.pendingTrigger = trigger;
     try {
       await this.recomputeContinuousEffects();
-      await runTiming(timing, this.effectEnvironment(), this.resolutionDeps());
+      await runTiming(timing, this.effectEnvironment(trigger), this.resolutionDeps());
       if (wasOutermostWindow) await this.flushDeferredSecurityRemovalTriggers();
       // GRANTED timed triggers (System B) fired at the same physical point as the matching
       // Phase]" ability granted onto a permanent (BT23-056) fires at OnStartMainPhase; the
@@ -1479,7 +1477,6 @@ export class GameEngine {
       }
       await this.recomputeContinuousEffects();
     } finally {
-      this.pendingTrigger = {};
       this.endResolvingWindow(wasOutermostWindow);
     }
   }
@@ -1988,10 +1985,10 @@ export class GameEngine {
    * its own play here), so the candidate set is narrowed to that single instance.
    *
    * `trigger` is carried into the window's `ctx.trigger` (e.g. `enteredByEffect` for an
-   * effect-driven play/digivolve — see {@link fireEnteredByEffectTiming}). The prior
-   * `pendingTrigger` is saved and restored because this can fire NESTED inside an outer
-   * effect's resolution (a played card's On Play firing while the playing effect is still
-   * on the stack); clobbering it to `{}` would strip the outer effect's own trigger.
+   * effect-driven play/digivolve — see {@link fireEnteredByEffectTiming}). Each window's
+   * environment carries its OWN trigger payload (no shared engine field), so firing NESTED
+   * inside an outer effect's resolution — or interleaved with a concurrent one — can never
+   * strip or clobber another window's trigger.
    */
   private async fireTimingForInstance(
     timing: EffectTiming,
@@ -1999,19 +1996,16 @@ export class GameEngine {
     trigger: TriggerInfo = {},
   ): Promise<void> {
     const wasOutermostWindow = this.beginResolvingWindow();
-    const previousTrigger = this.pendingTrigger;
-    this.pendingTrigger = trigger;
     try {
       await this.recomputeContinuousEffects();
       await runTiming(
         timing,
-        this.effectEnvironment(),
+        this.effectEnvironment(trigger),
         this.resolutionDeps(() => this.instancesById([sourceInstanceId])),
       );
       if (wasOutermostWindow) await this.flushDeferredSecurityRemovalTriggers();
       await this.recomputeContinuousEffects();
     } finally {
-      this.pendingTrigger = previousTrigger;
       this.endResolvingWindow(wasOutermostWindow);
     }
   }
@@ -2029,8 +2023,6 @@ export class GameEngine {
     trigger: TriggerInfo = {},
   ): Promise<void> {
     const wasOutermostWindow = this.beginResolvingWindow();
-    const previousTrigger = this.pendingTrigger;
-    this.pendingTrigger = trigger;
     // Freeze the subject instance set at window open. The resolver re-collects every pass
     // (to fold in effects that BECOME active during resolution), but a card that digivolves
     // onto this permanent MID-WINDOW would otherwise be re-collected here and have its
@@ -2048,7 +2040,7 @@ export class GameEngine {
       await this.recomputeContinuousEffects();
       await runTiming(
         timing,
-        this.effectEnvironment(),
+        this.effectEnvironment(trigger),
         this.resolutionDeps(() => {
           const scoped: CardInstance[] = [];
           this.collectPermanentInstances(permanent, scoped);
@@ -2058,7 +2050,6 @@ export class GameEngine {
       if (wasOutermostWindow) await this.flushDeferredSecurityRemovalTriggers();
       await this.recomputeContinuousEffects();
     } finally {
-      this.pendingTrigger = previousTrigger;
       this.endResolvingWindow(wasOutermostWindow);
     }
   }
@@ -2356,7 +2347,7 @@ export class GameEngine {
    * the effect verbs (fx), the player-decision API (ask), and the per-turn use ledger
    * (shared with activateEffect so maxPerTurn accounting is unified).
    */
-  private effectEnvironment(): EffectEnvironment {
+  private effectEnvironment(trigger: TriggerInfo): EffectEnvironment {
     return {
       state: this.state,
       fx: this.primitives,
@@ -2369,7 +2360,7 @@ export class GameEngine {
       digivolvedThisTurn: (seat) => this.tracker.count(`seat:${seat}`, "digivolvedThisTurn") > 0,
       effectiveColors: (permanent) => this.effectiveColorsOf(permanent),
       colorRequirementWaived: (instanceId) => this.continuous.hasColorWaiver(instanceId),
-      triggerInfo: this.pendingTrigger,
+      triggerInfo: trigger,
     };
   }
 
@@ -4237,7 +4228,8 @@ export class GameEngine {
     // internal ordering (each begins only after the previous settles) with a single .catch(logError)
     // so a thrown error surfaces as a log instead of an unhandled rejection. Un-awaited/uncaught
     // fires here previously risked exactly the race P-130's fix eliminated for movePermanentZone:
-    // a nested fire clobbering the shared this.pendingTrigger field out of order.
+    // a nested fire clobbering the then-shared engine trigger field out of order (each window
+    // now carries its own trigger payload in its environment).
     void this.fireTiming(EffectTiming.OnMove, { movedPermanentId })
       .then(() => this.fireSubTrigger("whenMovedFromBreeding", { subjectPermanentId: movedPermanentId }))
       .then(() => this.fireSubTrigger("whenOpponentMovedFromBreeding", { subjectPermanentId: movedPermanentId }))
