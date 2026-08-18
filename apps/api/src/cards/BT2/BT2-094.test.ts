@@ -106,6 +106,31 @@ describe("BT2-094 Arctic Blizzard", () => {
     expect(s.perm("noSources").stack).toHaveLength(0);
   });
 
+  it("still trashes the opposing source when there is no own Digimon to receive the DP bonus", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-085", as: "blueTamer" }],
+          hand: [{ card: "BT2-094", as: "option" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-057", as: "opponent", under: [{ card: "BT1-029", as: "source" }] }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    const sourceId = s.inst("source").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === sourceId));
+
+    expect(s.perm("opponent").stack).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
   it("[Security] adds this card to its owner's hand", async () => {
     const s = setupEngine({
       // Player 0 has BT2-094 in security, no battleArea Digimon.
