@@ -28,6 +28,7 @@ const compiled: CompiledCard = {
           },
           "underFilter": {
             "controller": "mine",
+            "zone": "breedingArea",
             "nameOrTrait": [
               {
                 "tokens": [
