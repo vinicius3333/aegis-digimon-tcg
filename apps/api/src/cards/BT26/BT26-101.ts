@@ -4,7 +4,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { activated, security } from "../../engine/effects/builders.js";
+import { activated, colorWaiverStatic, security } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**
@@ -26,10 +26,8 @@ import { registerCard } from "../../engine/effects/registry.js";
  * [Security] You may play 1 play cost 4 or lower [TS] card from your hand or trash
  *   without paying the cost.
  *
- * ＜Use Req. ([TS] trait)＞ is a data-only header — per the card implementation guide's documented
- * gap, the engine has no primitive that enforces a Use Requirement (it would need to
- * gate the OnUseOption activation itself on the controller having a [TS] trait card on
- * the field). Left undeclared here; noting it rather than working around it.
+ * ＜Use Req. ([TS] trait)＞ is implemented as a hand-resident color-requirement waiver,
+ * gated by having a [TS] trait card in the battle area.
  *
  * PROVISIONAL READING: the printed text reads as one sentence ending "...until your
  * opponent's turn ends." followed by a new sentence "Then, activate 1 of the effects
@@ -62,6 +60,13 @@ function tsTraitDigimon(ctx: EffectContext, source: CardSource): Permanent[] {
     if (p.topCard === undefined) return false;
     const def = ctx.game.definitionOf(p.topCard);
     return isDigimon(def) && (def.types ?? []).includes("TS");
+  });
+}
+
+function hasTsInPlay(ctx: EffectContext, source: CardSource): boolean {
+  return ctx.game.player(source.ownerSeat).battleArea.some((permanent) => {
+    if (permanent.inBreeding || permanent.topCard === undefined) return false;
+    return (ctx.game.definitionOf(permanent.topCard).types ?? []).includes("TS");
   });
 }
 
@@ -136,6 +141,20 @@ async function resolveMain(ctx: EffectContext, source: CardSource): Promise<void
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
+    if (timing === EffectTiming.None) {
+      return [
+        colorWaiverStatic({
+          source,
+          effectKey: `${cardId}/use-req-ts`,
+          description: "＜Use Req. ([TS] trait)＞ Ignore this card's color requirements.",
+          when: (ctx) => hasTsInPlay(ctx, source),
+          resolve: async (ctx) => {
+            ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.UntilEachTurnEnd);
+          },
+        }),
+      ];
+    }
+
     if (timing === EffectTiming.OnUseOption) {
       return [
         activated({
