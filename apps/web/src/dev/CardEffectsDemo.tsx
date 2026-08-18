@@ -18573,6 +18573,70 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         14000,
         "Gabumon - Bond of Friendship unsuspended and bottom-decked a level 5 Digimon after trashing its sources.",
       );
+    if (cardId === "BT6-031")
+      return effectBt3Demo(
+        cardId,
+        "Tinkermon",
+        2000,
+        "Tinkermon gave an opposing Digimon Security Attack -1 when deleted.",
+      );
+    if (cardId === "BT6-032")
+      return effectBt3Demo(
+        cardId,
+        "Tapirmon",
+        2000,
+        "Tapirmon drew once when its host removed a card from your security.",
+      );
+    if (cardId === "BT6-033")
+      return effectBt3Demo(
+        cardId,
+        "Pulsemon",
+        2000,
+        "Pulsemon could trash security down to three for memory and grants inherited Jamming at exactly three security.",
+      );
+    if (cardId === "BT6-034")
+      return effectBt3Demo(
+        cardId,
+        "Wizardmon",
+        4000,
+        "Wizardmon gained 1 memory when its host removed a card from your security.",
+      );
+    if (cardId === "BT6-035")
+      return effectBt3Demo(
+        cardId,
+        "Baluchimon",
+        5000,
+        "Baluchimon drew two cards when its owner had three or fewer security cards.",
+      );
+    if (cardId === "BT6-036")
+      return effectBt3Demo(
+        cardId,
+        "Mimicmon",
+        3000,
+        "Mimicmon gained two memory when its owner had three or fewer security cards.",
+      );
+    if (cardId === "BT6-037")
+      return effectBt3Demo(
+        cardId,
+        "Manticoremon",
+        5000,
+        "Manticoremon gained Security Attack +1 while you had at least three security cards.",
+      );
+    if (cardId === "BT6-038") return vanillaBt3Demo(cardId, "Apemon", 8000);
+    if (cardId === "BT6-039")
+      return effectBt3Demo(
+        cardId,
+        "Mammothmon",
+        6000,
+        "Mammothmon gave its host +1000 DP while you had at most three security cards.",
+      );
+    if (cardId === "BT6-040")
+      return effectBt3Demo(
+        cardId,
+        "Mistymon",
+        7000,
+        "Mistymon gave an opposing Digimon -2000 DP when its host removed your security.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
