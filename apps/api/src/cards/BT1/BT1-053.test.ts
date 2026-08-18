@@ -2,12 +2,21 @@ import { describe, expect, it } from "vitest";
 import { Phase } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT1-053.js";
+import "./BT1-056.js";
 
 describe("BT1-053 Darcmon", () => {
   it("draws 1 when its suspended copy sees a level 3 yellow Digimon played", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-053", as: "darcmon", suspended: true }], hand: [{ card: "BT1-045", as: "played" }], deck: [{ card: "BT1-010", as: "drawn" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-053", as: "darcmon", suspended: true }],
+        hand: [{ card: "BT1-045", as: "played" }],
+        deck: [{ card: "BT1-010", as: "drawn" }],
+      },
+    });
     s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
   });
@@ -22,14 +31,12 @@ describe("BT1-053 Darcmon", () => {
     });
     s.state.memory = 3;
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
 
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(
-      s.inst("mustStayInDeck").instanceId,
-    );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("mustStayInDeck").instanceId);
   });
 
   it.each([
@@ -45,9 +52,9 @@ describe("BT1-053 Darcmon", () => {
     });
     s.state.memory = 10;
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
 
     expect(s.state.players[0]!.deck.map((candidate) => candidate.instanceId)).toContain(
@@ -74,9 +81,9 @@ describe("BT1-053 Darcmon", () => {
     );
     s.state.memory = 3;
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.deck.length === 0);
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
@@ -102,8 +109,33 @@ describe("BT1-053 Darcmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.breeding === undefined);
 
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(
-      s.inst("mustStayInDeck").instanceId,
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("mustStayInDeck").instanceId);
+  });
+
+  it("draws when a yellow level-3 Digimon is played by an effect (Q911)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-053", as: "darcmon", suspended: true }],
+          hand: [{ card: "BT1-056", as: "petermon" }],
+          trash: [{ card: "BT1-047", as: "tinkermon" }],
+          deck: [{ card: "BT1-010", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("petermon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("tinkermon").instanceId,
+        ) && s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId),
+    );
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
   });
 });
