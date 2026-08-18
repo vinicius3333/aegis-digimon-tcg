@@ -31,9 +31,10 @@ const compiled: CompiledCard = {
           ],
           "payCost": false,
           "condition": {
-            "kind": "youHave",
+            "kind": "permanentCount",
+            "op": "lte",
+            "value": 1,
             "filter": {
-              "controllerDefault": "mine",
               "kind": [
                 "Tamer"
               ]

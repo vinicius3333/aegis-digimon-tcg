@@ -4044,6 +4044,17 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
         };
       }
       target = raiseDeletionDpCap(ctx, target);
+      if (action.playCostCeiling !== undefined) {
+        const ceiling = action.playCostCeiling;
+        const units = scaleFactor(ctx, ceiling);
+        target = {
+          ...target,
+          filter: {
+            ...target.filter,
+            playCostLte: ceiling.base + units * ceiling.raise,
+          },
+        };
+      }
       if (scale !== undefined && action.scaling?.levelCeilingAdd === undefined && typeof target.count === "number") {
         target = { ...target, count: target.count * scale };
       }

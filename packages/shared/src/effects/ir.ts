@@ -1373,6 +1373,15 @@ export interface DeleteAction extends ActionBase {
   at?: "endOfTurn";
   /** Add to the target DP ceiling for each unit counted by this scaling clause. */
   dpCeilingScaling?: Scaling & { amount: number };
+  /** Dynamically raises a printed play-cost ceiling on the delete target. */
+  playCostCeiling?: {
+    base: number;
+    raise: number;
+    per: number;
+    filter: Filter;
+    unit: "cards" | "digivolutionCards";
+    raw?: string;
+  };
 }
 /**
  * Delete matching permanents until the remaining count equals a live resource count.

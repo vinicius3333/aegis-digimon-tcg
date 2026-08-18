@@ -33,8 +33,7 @@ const compiled: CompiledCard = {
             },
             "raw": "By trashing the top card of your security stack"
           },
-          "optional": true,
-          "abortOnDecline": true
+          "optional": false
         },
         {
           "kind": "GainKeyword",
@@ -86,8 +85,7 @@ const compiled: CompiledCard = {
             },
             "raw": "By trashing the top card of your security stack"
           },
-          "optional": true,
-          "abortOnDecline": true
+          "optional": false
         },
         {
           "kind": "GainKeyword",

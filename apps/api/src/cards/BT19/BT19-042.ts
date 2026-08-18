@@ -67,8 +67,7 @@ const compiled: CompiledCard = {
             },
             "raw": "by trashing the top card of your security stack"
           },
-          "optional": true,
-          "abortOnDecline": true
+          "optional": false
         },
         {
           "kind": "ModifyDP",
@@ -126,8 +125,7 @@ const compiled: CompiledCard = {
             },
             "raw": "by trashing the top card of your security stack"
           },
-          "optional": true,
-          "abortOnDecline": true
+          "optional": false
         },
         {
           "kind": "ModifyDP",

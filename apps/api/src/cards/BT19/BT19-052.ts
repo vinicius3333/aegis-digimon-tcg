@@ -52,17 +52,14 @@ const compiled: CompiledCard = {
               "playCostLte": 2
             },
             "count": 1
-          }
-        },
-        {
-          "kind": "CostModifier",
-          "mode": "raiseCeiling",
-          "costType": "play",
-          "amount": 2,
-          "scaling": {
+          },
+          "playCostCeiling": {
+            "base": 2,
+            "raise": 2,
             "per": 1,
             "filter": {
-              "controller": "mine"
+              "controller": "mine",
+              "faceUp": true
             },
             "unit": "security"
           }
@@ -83,17 +80,14 @@ const compiled: CompiledCard = {
               "playCostLte": 2
             },
             "count": 1
-          }
-        },
-        {
-          "kind": "CostModifier",
-          "mode": "raiseCeiling",
-          "costType": "play",
-          "amount": 2,
-          "scaling": {
+          },
+          "playCostCeiling": {
+            "base": 2,
+            "raise": 2,
             "per": 1,
             "filter": {
-              "controller": "mine"
+              "controller": "mine",
+              "faceUp": true
             },
             "unit": "security"
           }
