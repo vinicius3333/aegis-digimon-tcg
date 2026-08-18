@@ -262,6 +262,12 @@ export class GameEngine {
   private activeWindowToken: number | undefined = undefined;
   /** Async Main verbs accepted by the server but not yet fully resolved. */
   private mainVerbContinuationsInFlight = 0;
+  /**
+   * Tail of the serialized Main-verb chain: each accepted verb starts only once the
+   * previous one has fully settled, so two effect resolutions are never in flight at
+   * once (see {@link continueMainVerb}).
+   */
+  private mainVerbChain: Promise<void> = Promise.resolve();
   /** Security-removal reactions wait until the currently resolving effect finishes. */
   private readonly deferredSecurityRemovalTriggers: Array<{
     payload: TriggerInfo;
@@ -3591,20 +3597,49 @@ export class GameEngine {
     }
   }
 
-  /** Track one accepted async Main verb and make its final turn-end check authoritative. */
+  /**
+   * Track one accepted async Main verb and make its final turn-end check authoritative.
+   *
+   * `start` is a THUNK, not a promise: the verb must not begin until every previously
+   * accepted verb has fully settled. Intents are gated on an open decision, but nothing
+   * gated them on a verb whose triggers were merely still settling, so two resolutions
+   * ran concurrently and both could reach a prompt — the second threw out of
+   * `DecisionManager.request`, aborting a card's clause halfway (memory never gained, a
+   * card never drawn) in whichever card lost the race.
+   *
+   * Only these turn-player verbs queue. The replies that DRIVE a running resolution —
+   * respondDecision, respondCounter, and the combat decisions — deliberately bypass this
+   * seam, so serializing here cannot deadlock the chain they are answering.
+   *
+   * A verb arriving while nothing is in flight still begins SYNCHRONOUSLY, exactly as
+   * before: a verb's synchronous prefix (paying cost, moving the card out of hand) has
+   * always run by the time `applyIntent` returns, and callers read state expecting that.
+   * Only a verb that arrives while another is still settling waits.
+   *
+   * The trade-off for that waiting verb is deliberate: it was validated when it arrived
+   * but applies after the previous chain finishes, so it may find a board that moved.
+   * That beats the alternative it replaces — applying against state another chain is
+   * mutating underneath it.
+   */
   private continueMainVerb<T>(
-    continuation: Promise<T>,
+    start: () => Promise<T>,
     onResolved: (value: T) => void,
     onRejected: (error: unknown) => void,
   ): void {
+    const idle = this.mainVerbContinuationsInFlight === 0;
     this.mainVerbContinuationsInFlight += 1;
-    void continuation
-      .then(onResolved)
-      .catch(onRejected)
-      .finally(() => {
-        this.mainVerbContinuationsInFlight -= 1;
-        this.checkTurnEndAfterVerb();
-      });
+    const begun = idle ? start() : this.mainVerbChain.then(start);
+    const settled = begun.then(onResolved).catch(onRejected);
+    // The queue tail must never carry a rejection forward, or one failed verb would
+    // reject every verb queued behind it.
+    this.mainVerbChain = settled.then(
+      () => {},
+      () => {},
+    );
+    void settled.finally(() => {
+      this.mainVerbContinuationsInFlight -= 1;
+      this.checkTurnEndAfterVerb();
+    });
   }
 
   /** Enforce that a crossed-memory attack is the single Blitz window the player accepted. */
@@ -3670,7 +3705,7 @@ export class GameEngine {
       return { ok: false, reason: check.reason };
     }
     this.continueMainVerb(
-      applyActivateEffect(this.state, seat, intent, deps),
+      () => applyActivateEffect(this.state, seat, intent, deps),
       (outcome) => {
         if (outcome.ok) {
           this.hooks.emit({
@@ -3883,7 +3918,7 @@ export class GameEngine {
       return { ok: false, reason: mapPlayCardReason(check.reason) };
     }
     this.continueMainVerb(
-      applyPlayCard(this.state, seat, intent, deps),
+      () => applyPlayCard(this.state, seat, intent, deps),
       () => {},
       (err) => {
         logError("[engine] playCard apply failed:", err);
@@ -3909,7 +3944,7 @@ export class GameEngine {
       return { ok: false, reason: mapDigiXrosReason(check.reason) };
     }
     this.continueMainVerb(
-      applyDigiXros(this.state, seat, intent, deps),
+      () => applyDigiXros(this.state, seat, intent, deps),
       () => {},
       (err) => {
         logError("[engine] digiXros apply failed:", err);
@@ -3992,7 +4027,7 @@ export class GameEngine {
       return { ok: false, reason: mapAssemblyReason(check.reason) };
     }
     this.continueMainVerb(
-      applyAssembly(this.state, seat, intent, deps),
+      () => applyAssembly(this.state, seat, intent, deps),
       () => {},
       (err) => {
         logError("[engine] assembly apply failed:", err);
@@ -4059,7 +4094,7 @@ export class GameEngine {
       return { ok: false, reason: mapDigivolveReason(check.reason) };
     }
     this.continueMainVerb(
-      applyDigivolve(this.state, seat, intent, deps),
+      () => applyDigivolve(this.state, seat, intent, deps),
       () => {},
       (err) => {
         logError("[engine] digivolve apply failed:", err);
@@ -4106,7 +4141,7 @@ export class GameEngine {
       return { ok: false, reason: mapLinkReason(check.reason) };
     }
     this.continueMainVerb(
-      applyLinkCard(this.state, seat, intent, deps),
+      () => applyLinkCard(this.state, seat, intent, deps),
       () => {},
       (err) => {
         logError("[engine] linkCard apply failed:", err);
@@ -4176,7 +4211,7 @@ export class GameEngine {
       return { ok: false, reason: mapDnaDigivolveReason(check.reason) };
     }
     this.continueMainVerb(
-      applyDnaDigivolve(this.state, seat, intent, deps),
+      () => applyDnaDigivolve(this.state, seat, intent, deps),
       () => {},
       (err) => {
         logError("[engine] dnaDigivolve apply failed:", err);
