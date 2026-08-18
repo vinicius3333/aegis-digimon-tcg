@@ -3,7 +3,7 @@ name: Populate Aegis card roadmap
 on:
   workflow_dispatch:
   schedule:
-    - cron: "*/15 * * * *"
+    - cron: "*/5 * * * *"
 
 permissions:
   contents: read
@@ -25,5 +25,5 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPOSITORY: ${{ github.repository }}
-          ROADMAP_BATCH_SIZE: "60"
+          ROADMAP_BATCH_SIZE: "20"
         run: node roadmap/populate.mjs
