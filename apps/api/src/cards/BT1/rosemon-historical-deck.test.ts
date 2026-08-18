@@ -5,7 +5,7 @@ import "./BT1-082.js";
 import "./BT1-103.js";
 
 describe("BT1 Rosemon historical deck gauntlet", () => {
-  it("offers every distinct non-Blocker copy to the UI while excluding a printed Blocker", async () => {
+  it("offers every distinct opposing Digimon, including a printed Blocker", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-082", as: "rosemon", suspended: true }],
@@ -42,8 +42,8 @@ describe("BT1 Rosemon historical deck gauntlet", () => {
         s.perm("secondCopy").permanentId,
       ]),
     );
-    expect(new Set(candidateIds).size).toBe(3);
-    expect(candidateIds).not.toContain(s.perm("printedBlocker").permanentId);
+    expect(new Set(candidateIds).size).toBe(4);
+    expect(candidateIds).toContain(s.perm("printedBlocker").permanentId);
 
     expect(
       s.engine.applyIntent(0, {
@@ -61,7 +61,7 @@ describe("BT1 Rosemon historical deck gauntlet", () => {
     assertNoLoudGap(s);
   });
 
-  it("excludes a Digimon that gained Blocker during the game from Rosemon's UI candidates", async () => {
+  it("does not apply Flower Cannon's Blocker restriction to Rosemon's candidates", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -105,7 +105,7 @@ describe("BT1 Rosemon historical deck gauntlet", () => {
     const rosemonRequest = s.decisions.filter(({ req }) => req.kind === "chooseTargets").at(-1)?.req;
     const candidateIds = rosemonRequest?.options?.candidateInstanceIds ?? [];
     expect(candidateIds).toContain(s.perm("legalTarget").permanentId);
-    expect(candidateIds).not.toContain(s.perm("grantedBlocker").permanentId);
+    expect(candidateIds).toContain(s.perm("grantedBlocker").permanentId);
     assertNoLoudGap(s);
   });
 });

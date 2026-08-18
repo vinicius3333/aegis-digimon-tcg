@@ -43,88 +43,104 @@ describe("BT1 yellow recovery control deck gauntlet", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("patamon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.hand.some(({ instanceId }) => instanceId === tkId) &&
-      s.state.pendingDecision === undefined,
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("patamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === tkId) && s.state.pendingDecision === undefined,
     );
+    // Let the automatic Patamon ordering response finish its effect continuation
+    // before starting the next play intent.
+    await settle(() => false, 5);
 
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === tkId)).toBe(true);
     expect(s.state.memory).toBe(7);
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: tkId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: tkId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
 
     const securityChoice = s.decisions.at(-1)!.req;
     expect(securityChoice.sourceCardId).toBe("BT1-087");
-    expect(new Set(securityChoice.options?.candidateInstanceIds ?? [])).toEqual(new Set([
-      holyWaveId,
-      redSecurityId,
-      yellowSecurityId,
-    ]));
-    expect(new Set(securityChoice.options?.visibleInstanceIds ?? [])).toEqual(new Set([
-      holyWaveId,
-      redSecurityId,
-      yellowSecurityId,
-    ]));
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: securityChoice.decisionId,
-      response: { kind: "selectCards", instanceIds: [holyWaveId] },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.pendingDecision === undefined &&
-      s.state.players[0]!.hand.some(({ instanceId }) => instanceId === holyWaveId) &&
-      s.state.players[0]!.security.length === 3
+    expect(new Set(securityChoice.options?.candidateInstanceIds ?? [])).toEqual(
+      new Set([holyWaveId, redSecurityId, yellowSecurityId]),
     );
+    expect(new Set(securityChoice.options?.visibleInstanceIds ?? [])).toEqual(
+      new Set([holyWaveId, redSecurityId, yellowSecurityId]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: securityChoice.decisionId,
+        response: { kind: "selectCards", instanceIds: [holyWaveId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === holyWaveId) &&
+        s.state.players[0]!.security.length === 3,
+    );
+    await settle(() => false, 5);
 
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.memory).toBe(3);
 
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("magnaAngemon").permanentId,
-      instanceId: s.inst("seraphimon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.perm("magnaAngemon").topCard.instanceId === s.inst("seraphimon").instanceId &&
-      s.state.players[0]!.security.length === 4
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("magnaAngemon").permanentId,
+        instanceId: s.inst("seraphimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("magnaAngemon").topCard.instanceId === s.inst("seraphimon").instanceId &&
+        s.state.players[0]!.security.length === 4,
     );
 
     expect(s.perm("magnaAngemon").currentDP).toBe(11000);
     expect(observe(s.engine).keywordAmount(s.perm("magnaAngemon"), "SecurityAttack")).toBe(1);
     expect(s.state.memory).toBe(7);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("magnaAngemon").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("magnaAngemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 1, 5000);
 
     const securityBeforeHolyWave = s.state.players[0]!.security.length;
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: holyWaveId,
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.security.length === securityBeforeHolyWave + 1 &&
-      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === holyWaveId)
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: holyWaveId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.security.length === securityBeforeHolyWave + 1 &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === holyWaveId),
     );
 
     expect(s.state.players[0]!.security).toHaveLength(5);
     expect(s.state.pendingDecision).toBeUndefined();
-    expect(s.decisions.some(({ req }) =>
-      req.sourceCardId === "BT1-107" &&
-      (req.kind === "selectCards" || req.kind === "chooseTargets")
-    )).toBe(false);
+    expect(
+      s.decisions.some(
+        ({ req }) => req.sourceCardId === "BT1-107" && (req.kind === "selectCards" || req.kind === "chooseTargets"),
+      ),
+    ).toBe(false);
     assertNoLoudGap(s);
   });
 });

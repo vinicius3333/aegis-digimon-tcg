@@ -43,12 +43,15 @@ describe("BT3 Imperialdramon historical deck gauntlet", () => {
         instanceId: s.inst("imperialdramon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.memory === 0 &&
-      !s.perm("paildramon").isSuspended &&
-      !s.perm("veemon").isSuspended &&
-      s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("evolutionDraw").instanceId)
+    await settle(
+      () =>
+        s.state.memory === 0 &&
+        !s.perm("paildramon").isSuspended &&
+        !s.perm("veemon").isSuspended &&
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("evolutionDraw").instanceId),
     );
+    await s.engine.recomputeContinuousEffects();
+    await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("paildramon"), "Jamming")).toBe(true);
     expect(
@@ -58,17 +61,18 @@ describe("BT3 Imperialdramon historical deck gauntlet", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[1]!.security.length === 2 &&
-      !observe(s.engine).isAttacking() &&
-      !s.perm("paildramon").isSuspended &&
-      s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("attackDraw").instanceId)
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 2 &&
+        !observe(s.engine).isAttacking() &&
+        !s.perm("paildramon").isSuspended &&
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("attackDraw").instanceId),
     );
 
     // Jamming keeps Imperialdramon alive against the 15000 DP security Omnimon.
-    expect(s.state.players[0]!.battleArea.some(({ permanentId }) =>
-      permanentId === s.perm("paildramon").permanentId
-    )).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("paildramon").permanentId),
+    ).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(2);
 
     expect(
