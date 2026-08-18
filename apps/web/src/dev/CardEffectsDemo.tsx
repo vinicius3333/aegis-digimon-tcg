@@ -17855,6 +17855,61 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
         0,
         "Trident Revolver deleted a 6000 DP Digimon and played a cost-4 Tamer, including from security.",
       );
+    if (cardId === "BT5-001")
+      return effectBt3Demo(cardId, "Koromon", 0, "Koromon drew once when its Greymon host attacked.");
+    if (cardId === "BT5-002")
+      return effectBt3Demo(cardId, "Tsunomon", 0, "Tsunomon gave its Garurumon host +1000 DP during your turn.");
+    if (cardId === "BT5-003")
+      return effectBt3Demo(
+        cardId,
+        "Pickmon",
+        0,
+        "Pickmon gave an opposing Digimon -1000 DP when its host attacked with 3 Digimon in play.",
+      );
+    if (cardId === "BT5-004")
+      return effectBt3Demo(
+        cardId,
+        "Yokomon",
+        0,
+        "Yokomon gave an own Digimon +2000 DP after being trashed for Digi-Burst.",
+      );
+    if (cardId === "BT5-005")
+      return effectBt3Demo(cardId, "Tsumemon", 0, "Tsumemon drew once when its Unidentified host attacked.");
+    if (cardId === "BT5-006")
+      return effectBt3Demo(
+        cardId,
+        "Gigimon",
+        0,
+        "Gigimon gave its host +2000 DP when another own Digimon was deleted.",
+      );
+    if (cardId === "BT5-007")
+      return effectBt3Demo(
+        cardId,
+        "Agumon",
+        2000,
+        "Agumon revealed cards and added an eligible Greymon and Omnimon to hand.",
+      );
+    if (cardId === "BT5-008")
+      return effectBt3Demo(
+        cardId,
+        "Gaossmon",
+        2000,
+        "Gaossmon gave other Gaossmon +3000 DP during your turn and blocked opponent cost reduction.",
+      );
+    if (cardId === "BT5-009")
+      return effectBt3Demo(
+        cardId,
+        "Shoutmon",
+        1000,
+        "Shoutmon revealed cards and added a Shoutmon and a Digimon with Blitz to hand.",
+      );
+    if (cardId === "BT5-010")
+      return effectBt3Demo(
+        cardId,
+        "Greymon",
+        5000,
+        "Greymon gained memory with Agumon in its sources and boosted qualifying Greymon hosts.",
+      );
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
