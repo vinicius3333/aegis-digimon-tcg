@@ -26,7 +26,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "to": "hand",
-          "optional": true
+          "optional": false
         },
         {
           "kind": "Delete",
@@ -58,7 +58,7 @@ const compiled: CompiledCard = {
             },
             "raw": "[Garudamon] or [X Antibody] is in this Digimon's digivolution cards"
           },
-          "optional": true
+          "optional": false
         }
       ]
     },

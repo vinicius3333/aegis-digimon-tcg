@@ -34,7 +34,7 @@ const compiled: CompiledCard = {
           "amount": -7000,
           "duration": "untilOpponentTurnEnd",
           "condition": {
-            "kind": "raw",
+            "kind": "isDnaDigivolving",
             "raw": "DNA digivolving"
           }
         }

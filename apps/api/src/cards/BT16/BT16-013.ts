@@ -97,7 +97,7 @@ const compiled: CompiledCard = {
           },
           "duration": "untilYourTurnEnd",
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectDidNotDelete",
             "raw": "this effect didn't delete"
           }
         }

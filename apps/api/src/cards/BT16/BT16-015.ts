@@ -11,6 +11,21 @@ const compiled: CompiledCard = {
       "trigger": "WhenDigivolving",
       "actions": [
         {
+          "kind": "GainKeyword",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          },
+          "keyword": {
+            "keyword": "Blitz",
+            "raw": "＜Blitz＞"
+          },
+          "duration": "forTheTurn"
+        },
+        {
           "kind": "GrantStatic",
           "target": {
             "filter": {
@@ -41,12 +56,6 @@ const compiled: CompiledCard = {
             },
             "raw": "[Phoenixmon] or [X Antibody] is in this Digimon's digivolution cards"
           }
-        }
-      ],
-      "keywords": [
-        {
-          "keyword": "Blitz",
-          "raw": "＜Blitz＞"
         }
       ]
     },
@@ -84,12 +93,6 @@ const compiled: CompiledCard = {
             },
             "raw": "[Phoenixmon] or [X Antibody] is in this Digimon's digivolution cards"
           }
-        }
-      ],
-      "keywords": [
-        {
-          "keyword": "Blitz",
-          "raw": "＜Blitz＞"
         }
       ]
     },
