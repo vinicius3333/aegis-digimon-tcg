@@ -6,6 +6,7 @@ import "./BT3-071.js";
 describe("BT3-071 MetalMamemon", () => {
   it("has Reboot", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT3-071", as: "metalMamemon" }] } });
+    await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).hasKeyword(s.perm("metalMamemon"), "Reboot")).toBe(true);
   });
 });
