@@ -17477,6 +17477,64 @@ export function CardEffectsDemo({ cardId }: { cardId: string }) {
       );
     if (cardId === "BT4-029") return vanillaBt3Demo(cardId, "Gusokumon", 10000);
     if (cardId === "BT4-030") return vanillaBt3Demo(cardId, "Beowolfmon", 7000);
+    if (cardId === "BT4-031")
+      return effectBt3Demo(
+        cardId,
+        "MarinChimairamon",
+        7000,
+        "MarinChimairamon returned another own Digimon as cost and returned an opposing Digimon without sources.",
+      );
+    if (cardId === "BT4-032")
+      return effectBt3Demo(
+        cardId,
+        "MachGaogamon",
+        7000,
+        "MachGaogamon Digi-Bursted 2 to return a level 4 Digimon after trashing its sources.",
+      );
+    if (cardId === "BT4-033")
+      return effectBt3Demo(
+        cardId,
+        "ZeedGarurumon",
+        12000,
+        "ZeedGarurumon Digi-Bursted 2 to return a level 5 Digimon and trash its sources.",
+      );
+    if (cardId === "BT4-034")
+      return effectBt3Demo(
+        cardId,
+        "Regalecusmon",
+        11000,
+        "Regalecusmon trashed its bottom source, then drew 1 and gained 1 memory when attacking.",
+      );
+    if (cardId === "BT4-035")
+      return effectBt3Demo(
+        cardId,
+        "MirageGaogamon",
+        12000,
+        "MirageGaogamon gained memory for cards in the opponent's hand and was unblockable during its turn.",
+      );
+    if (cardId === "BT4-036") return vanillaBt3Demo(cardId, "Falcomon", 5000);
+    if (cardId === "BT4-037")
+      return effectBt3Demo(
+        cardId,
+        "Kudamon",
+        2000,
+        "Kudamon trashed the top security card to give an opposing Digimon -2000 DP.",
+      );
+    if (cardId === "BT4-038")
+      return effectBt3Demo(
+        cardId,
+        "BushiAgumon",
+        3000,
+        "BushiAgumon has Rush and can attack during the turn it was played.",
+      );
+    if (cardId === "BT4-039")
+      return effectBt3Demo(
+        cardId,
+        "Growlmon",
+        4000,
+        "Growlmon gave its host +1000 DP while you had 3 or fewer security cards.",
+      );
+    if (cardId === "BT4-040") return vanillaBt3Demo(cardId, "Diatrymon", 6000);
     if (cardId === "BT3-014") return silphymonBt3Demo(effect);
     if (cardId === "BT3-012") return aquilamonBt3Demo(effect);
     if (cardId === "BT3-011") return greymonBt3Demo(effect);
