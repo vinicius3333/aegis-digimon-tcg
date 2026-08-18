@@ -23,7 +23,16 @@ const module: EffectModule = {
             })
             .map((card) => card.instanceId);
           if (selected.length > 0) await ctx.fx.returnToHand(selected);
-          const rest = revealed.filter((card) => !selected.includes(card.instanceId)).map((card) => card.instanceId);
+          let rest = revealed.filter((card) => !selected.includes(card.instanceId)).map((card) => card.instanceId);
+          if (rest.length > 1 && ctx.ask.orderCards !== undefined) {
+            rest = await ctx.ask.orderCards(ctx, {
+              candidates: rest,
+              visibleCards: revealed
+                .filter((card) => rest.includes(card.instanceId))
+                .map((card) => ({ instanceId: card.instanceId, cardId: card.cardId })),
+              destination: "deckBottom",
+            });
+          }
           if (rest.length > 0) await ctx.fx.returnToDeck(rest, { toTop: false });
         },
       }),
