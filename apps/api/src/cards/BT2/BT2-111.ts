@@ -15,64 +15,64 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 5. The local digivolutionRequirement entry is omitted; the shared client/server override
 //    carries the exact [Impmon] and 10-card trash gates used by direct action validation.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "zone": "battleArea",
-              "nameOrTrait": [
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              zone: "battleArea",
+              nameOrTrait: [
                 {
-                  "tokens": ["Impmon"],
-                  "match": "nameExact"
-                }
-              ]
+                  tokens: ["Impmon"],
+                  match: "nameExact",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "isSelfRef": true
+          into: {
+            controllerDefault: "mine",
+            isSelfRef: true,
           },
-          "from": ["hand"],
-          "payCost": true,
-          "costOverride": 4,
-          "ignoreRequirements": true,
-          "condition": {
-            "kind": "selfHasMinTrash",
-            "count": 10,
-            "filter": {
-              "controllerDefault": "mine"
+          from: ["hand"],
+          payCost: true,
+          costOverride: 4,
+          ignoreRequirements: true,
+          condition: {
+            kind: "selfHasMinTrash",
+            count: 10,
+            filter: {
+              controllerDefault: "mine",
             },
-            "raw": "while you have 10 or more cards in your trash"
-          }
-        }
-      ]
+            raw: "while you have 10 or more cards in your trash",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "levelComparison": { "op": "lte", "value": 4 }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: { op: "lte", value: 4 },
             },
-            "count": 1
-          }
-        }
-      ]
-    }
+            count: 1,
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT2-111", compiled);
