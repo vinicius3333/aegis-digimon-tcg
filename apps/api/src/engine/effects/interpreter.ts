@@ -4896,11 +4896,16 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
       });
       const chosen: string[] = [];
       let usedCost = 0;
+      const budget = action.totalCostScaling
+        ? action.totalCostScaling.base +
+          Math.floor(countMatching(ctx, action.totalCostScaling.filter) / action.totalCostScaling.per) *
+            action.totalCostScaling.raise
+        : action.totalCost;
       for (const instanceId of selected) {
         const cand = candidates.find((c) => c.instanceId === instanceId);
         if (cand === undefined) continue;
         const playCost = ctx.game.definitionOf({ cardId: cand.cardId } as never).playCost;
-        if (playCost === undefined || usedCost + playCost > action.totalCost) continue;
+        if (playCost === undefined || usedCost + playCost > budget) continue;
         chosen.push(instanceId);
         usedCost += playCost;
       }

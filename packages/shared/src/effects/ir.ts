@@ -1801,6 +1801,14 @@ export interface PlayWithoutCostAction extends ActionBase {
 export interface PlayMultipleAction extends ActionBase {
   kind: "PlayMultiple";
   totalCost: number;
+  /** Optional dynamic budget: add `raise` for every `per` matching cards. */
+  totalCostScaling?: {
+    base: number;
+    raise: number;
+    per: number;
+    filter: Filter;
+    unit: "cards" | "digivolutionCards";
+  };
   filter: Filter;
   from: ZoneRef | ZoneRef[] | "digivolution";
   payCost: boolean;
