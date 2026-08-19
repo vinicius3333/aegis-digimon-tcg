@@ -26,7 +26,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // granted permanent's controller's turn-end expiry.
 // The inherited "When attack targets change" clause uses the distinct attack-target-change bus,
 // not the normal when-attacking declaration event.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
