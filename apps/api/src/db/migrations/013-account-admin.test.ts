@@ -4,12 +4,17 @@ import { createMemoryPool } from "../memoryPool.fixture.js";
 import { runMigrations } from "../migrator.js";
 import { migrations } from "./index.js";
 
+const MIGRATIONS_BEFORE_ADMIN = migrations.slice(
+  0,
+  migrations.findIndex((migration) => migration.id === "013-account-admin"),
+);
+
 describe("013-account-admin", () => {
   let pool: Pool;
 
   beforeEach(async () => {
     pool = createMemoryPool();
-    await runMigrations(pool, migrations.slice(0, -1));
+    await runMigrations(pool, MIGRATIONS_BEFORE_ADMIN);
     await pool.query("INSERT INTO accounts (id, display_name, created_at) VALUES ($1,'vini',1),($2,'Other',1)", [
       "10000000-0000-4000-8000-000000000001",
       "10000000-0000-4000-8000-000000000002",
