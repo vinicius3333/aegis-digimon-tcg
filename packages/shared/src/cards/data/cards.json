@@ -67773,6 +67773,48 @@
     "nameJp": "モジャモン"
   },
   {
+    "cardId": "BT26-024",
+    "set": "BT26",
+    "nameEn": "Tinkermon",
+    "colors": [
+      "Yellow"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 3,
+    "dp": 2000,
+    "evoCosts": [
+      {
+        "color": "Yellow",
+        "level": 2,
+        "memoryCost": 0
+      },
+      {
+        "color": "Green",
+        "level": 2,
+        "memoryCost": 0
+      }
+    ],
+    "rarity": "C",
+    "maxCountInDeck": 4,
+    "imageId": "BT26-024",
+    "level": 3,
+    "forms": [
+      "Rookie"
+    ],
+    "attributes": [
+      "Virus"
+    ],
+    "types": [
+      "Fairy",
+      "WG"
+    ],
+    "effectText": "[Digivolve] Lv.2 w/[WG] trait: Cost 0 \n\n[Your Turn] When any of your other Digimon with the [Vegetation], [Fairy] or [WG] trait are played, this Digimon may digivolve into a Digimon card with the [Vegetation], [Fairy] or [WG] trait in the hand without paying the cost.",
+    "inheritedEffectText": "＜Barrier＞ ",
+    "nameJp": "ティンカーモン"
+  },
+  {
     "cardId": "BT26-025",
     "set": "BT26",
     "nameEn": "Liollmon",
@@ -67847,6 +67889,49 @@
     "effectText": "[Digivolve] Lv.3 w/[Glowing Dawn] trait: Cost 2 \n\n＜Barrier＞ \n[When Attacking] [Once Per Turn] By trashing the bottom face-down card from under any of your Tamers or your top security card, you may use 1 Option card with the [Glowing Dawn] trait from your hand with the cost reduced by 2.",
     "inheritedEffectText": "＜Barrier＞ ",
     "nameJp": "クーガモン"
+  },
+  {
+    "cardId": "BT26-027",
+    "set": "BT26",
+    "nameEn": "Petermon",
+    "colors": [
+      "Yellow",
+      "Green"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 4,
+    "dp": 5000,
+    "evoCosts": [
+      {
+        "color": "Yellow",
+        "level": 3,
+        "memoryCost": 2
+      },
+      {
+        "color": "Green",
+        "level": 3,
+        "memoryCost": 2
+      }
+    ],
+    "rarity": "U",
+    "maxCountInDeck": 4,
+    "imageId": "BT26-027",
+    "level": 4,
+    "forms": [
+      "Champion"
+    ],
+    "attributes": [
+      "Data"
+    ],
+    "types": [
+      "Fairy",
+      "WG"
+    ],
+    "effectText": "[Digivolve] Lv.3 w/[WG] trait: Cost 2 \n\n[On Play] [Start of Opponent's Main Phase] By suspending 1 of your Digimon with the [Vegetation], [Fairy] or [WG] trait, give 1 of your opponent's Digimon ＜Security A. -2＞ until their turn ends. ",
+    "inheritedEffectText": "＜Barrier＞ ",
+    "nameJp": "ピーターモン"
   },
   {
     "cardId": "BT26-028",
@@ -68167,6 +68252,43 @@
     "nameJp": "パルモン"
   },
   {
+    "cardId": "BT26-035",
+    "set": "BT26",
+    "nameEn": "Morphomon",
+    "colors": [
+      "Green"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 3,
+    "dp": 1000,
+    "evoCosts": [
+      {
+        "color": "Green",
+        "level": 2,
+        "memoryCost": 0
+      }
+    ],
+    "rarity": "C",
+    "maxCountInDeck": 4,
+    "imageId": "BT26-035",
+    "level": 3,
+    "forms": [
+      "Rookie"
+    ],
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Insectoid",
+      "NSp"
+    ],
+    "effectText": "[Digivolve] Lv.2 w/[NSp] trait: Cost 0 \n\n[When Moving] [On Play] You may suspend 1 Digimon.",
+    "inheritedEffectText": "[Your Turn] [Once Per Turn] When this Digimon wins a battle, 1 of your [Insectoid] or [NSp] trait trait Digimon may digivolve into an [Insectoid] or [NSp] trait trait Digimon card in the hand with the cost reduced by 1.",
+    "nameJp": "モルフォモン"
+  },
+  {
     "cardId": "BT26-036",
     "set": "BT26",
     "nameEn": "Lalamon",
@@ -68355,6 +68477,49 @@
     "effectText": "[Digivolve] Lv.3 w/[DM] trait: Cost 2 \n\n＜Training＞ \n＜Piercing＞ \n[When Moving] [On Play] Suspend 1 of your opponent's Digimon. Then, by placing 1 card in your hand face down as this Digimon's bottom digivolution card, this Digimon gets +1000 DP until your opponent's turn ends for each of its face-down digivolution cards.",
     "inheritedEffectText": "＜Piercing＞ ",
     "nameJp": "ドリモゲモン"
+  },
+  {
+    "cardId": "BT26-041",
+    "set": "BT26",
+    "nameEn": "Hudiemon",
+    "colors": [
+      "Green",
+      "Yellow"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 4,
+    "dp": 5000,
+    "evoCosts": [
+      {
+        "color": "Green",
+        "level": 3,
+        "memoryCost": 3
+      },
+      {
+        "color": "Yellow",
+        "level": 3,
+        "memoryCost": 3
+      }
+    ],
+    "rarity": "U",
+    "maxCountInDeck": 4,
+    "imageId": "BT26-041",
+    "level": 4,
+    "forms": [
+      "Champion"
+    ],
+    "attributes": [
+      "Free"
+    ],
+    "types": [
+      "Insectoid",
+      "NSp"
+    ],
+    "effectText": "[Digivolve] Lv.3 w/[Larva]/[Insectoid]/[NSp] trait: Cost 2 \n\n[On Play] [When Digivolving] Add your top security card to the hand and ＜Recovery +1＞ Then, you may suspend 1 Digimon.",
+    "inheritedEffectText": "[Your Turn] [Once Per Turn] When this Digimon wins a battle, gain 1 memory.",
+    "nameJp": "フーディエモン"
   },
   {
     "cardId": "BT26-042",
@@ -68826,6 +68991,49 @@
     "nameJp": "ウルヴァモン"
   },
   {
+    "cardId": "BT26-054",
+    "set": "BT26",
+    "nameEn": "Andromon",
+    "colors": [
+      "Black",
+      "Yellow"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 7,
+    "dp": 7000,
+    "evoCosts": [
+      {
+        "color": "Black",
+        "level": 4,
+        "memoryCost": 4
+      },
+      {
+        "color": "Yellow",
+        "level": 4,
+        "memoryCost": 4
+      }
+    ],
+    "rarity": "U",
+    "maxCountInDeck": 4,
+    "imageId": "BT26-054",
+    "level": 5,
+    "forms": [
+      "Ultimate"
+    ],
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Cyborg",
+      "CS"
+    ],
+    "effectText": "[Digivolve] Lv.4 w/[CS] trait: Cost 3 \n\n[On Play] [When Digivolving] You may play 1 [CS] trait Tamer card from your hand without paying the cost. This effect can't play cards with the same name as any of your Tamers.\n[All Turns] [Once Per Turn] When effects place [CS] trait Digimon cards in this Digimon's digivolution cards, this Digimon may digivolve into a [CS] trait Digimon card in the hand without paying the cost.",
+    "inheritedEffectText": "[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon attacks, you may change the attack target to this Digimon.",
+    "nameJp": "アンドロモン"
+  },
+  {
     "cardId": "BT26-055",
     "set": "BT26",
     "nameEn": "Giromon",
@@ -68964,6 +69172,48 @@
     "nameJp": "ベアキャットモン/ペネトレイトブロウ"
   },
   {
+    "cardId": "BT26-058",
+    "set": "BT26",
+    "nameEn": "HiAndromon",
+    "colors": [
+      "Black",
+      "Yellow"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 12,
+    "dp": 12000,
+    "evoCosts": [
+      {
+        "color": "Black",
+        "level": 5,
+        "memoryCost": 4
+      },
+      {
+        "color": "Yellow",
+        "level": 5,
+        "memoryCost": 4
+      }
+    ],
+    "rarity": "R",
+    "maxCountInDeck": 4,
+    "imageId": "BT26-058",
+    "level": 6,
+    "forms": [
+      "Mega"
+    ],
+    "attributes": [
+      "Vaccine"
+    ],
+    "types": [
+      "Cyborg",
+      "CS"
+    ],
+    "effectText": "[Digivolve] Lv.5 w/[CS] trait: Cost 3 \n\n＜Reboot＞ \n＜Blocker＞ \n[When Digivolving] [When Attacking] [Once Per Turn] Your opponent's Digimon effects don't affect 1 of your [CS] trait Digimon until their turn ends.\n[All Turns] When any of your [CS] trait Digimon would leave the battle area, by placing this Digimon's top stacked card as its bottom digivolution card, they don't leave.",
+    "nameJp": "ハイアンドロモン"
+  },
+  {
     "cardId": "BT26-059",
     "set": "BT26",
     "nameEn": "Plutomon",
@@ -69046,6 +69296,7 @@
       "Iliad",
       "TS"
     ],
+    "effectText": "[Digivolve] Lv.6 w/[Chronomon] in text/[Giant Slayer]: Cost 5 \n\n＜Security A. +1＞ \n＜Reboot＞ \n＜Blocker＞ \n＜Succession (Lv.6 w/[Chronomon] in name)＞ \n[On Play] [When Digivolving] Return the top 5 stacked cards of 3 of your opponent's Digimon to the top of the deck.\n[All Turns] [Once Per Turn] When your effects add to decks, you may delete 1 of your opponent's Digimon.",
     "nameJp": "クロノモン：デストロイモード"
   },
   {
@@ -69832,8 +70083,8 @@
       "Digimon",
       "Option"
     ],
-    "playCost": -1,
-    "dp": 0,
+    "playCost": 5,
+    "dp": 13000,
     "evoCosts": [
       {
         "color": "Purple",
@@ -69842,6 +70093,11 @@
       },
       {
         "color": "Green",
+        "level": 5,
+        "memoryCost": 5
+      },
+      {
+        "color": "Black",
         "level": 5,
         "memoryCost": 5
       }
@@ -69862,9 +70118,10 @@
       "Iliad",
       "TS"
     ],
+    "effectText": "[Digivolve] Play cost 12 [Bacchusmon]: Cost 2 \n\n＜Security A. +1＞ \n＜Succession ([Bacchusmon])＞ \n[When Digivolving] By suspending 1 Digimon, this Digimon may attack without suspending.\n[When Attacking] [Once Per Turn] Delete 1 of your opponent's Digimon with the same orientation as this Digimon.",
     "isDualCard": true,
     "dualEffect": "Reversal of the Dead",
-    "optionEffect": "＜Use Req. ([TS] trait)＞ ",
+    "optionEffect": "＜Use Req. ([TS] trait)＞ \n[Main] You may unsuspend 1 Digimon. Then, delete all of your opponent's unsuspended Digimon with the lowest DP.",
     "optionColorRequirements": [
       "Purple"
     ],
@@ -70041,6 +70298,107 @@
     "nameJp": "コピペモン"
   },
   {
+    "cardId": "BT26-085",
+    "set": "BT26",
+    "nameEn": "Giant Slayer",
+    "colors": [
+      "White"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 12,
+    "dp": 14000,
+    "evoCosts": [],
+    "rarity": "R",
+    "maxCountInDeck": 4,
+    "imageId": "BT26-085",
+    "attributes": [
+      "NO DATA"
+    ],
+    "types": [
+      "TS"
+    ],
+    "effectText": "[Assembly -5] 5 different-level cards w/[Chronomon] in text or w/[Shaman] trait\n\n＜Collision＞ \n＜Reboot＞ \n＜Blocker＞ \n[On Play] Until your opponent's turn ends, your opponent's effects can't reduce this Digimon's DP or trash its stacked cards.\n[All Turns] When this Digimon would leave the battle area, by digivolving it into [Chronomon: Destroy Mode] in the hand or trash without paying the cost, it doesn't leave.",
+    "nameJp": "巨神兵器"
+  },
+  {
+    "cardId": "BT26-086",
+    "set": "BT26",
+    "nameEn": "Dantemon",
+    "colors": [
+      "White"
+    ],
+    "kinds": [
+      "Digimon"
+    ],
+    "playCost": 14,
+    "dp": 14000,
+    "evoCosts": [],
+    "rarity": "SR",
+    "maxCountInDeck": 4,
+    "imageId": "BT26-086",
+    "level": 7,
+    "forms": [
+      "Unknown",
+      "Appmon"
+    ],
+    "attributes": [
+      "Unknown"
+    ],
+    "types": [
+      "Open (App Name)"
+    ],
+    "effectText": "[Assembly -7] 7 [Seven Code] trait Digimon cards w/different names\n\n＜Rush＞ \n＜Reboot＞ \n＜Blocker＞ \n＜Link +6＞ \n[On Play] [When Digivolving] You may link up to 7 [Appmon] trait cards with different names from this Digimon's digivolution cards to this Digimon without paying the costs. Then, this Digimon may attack without suspending.\n[All Turns] [Once Per Turn] When this Digimon gets linked, you may delete 1 of your opponent's Digimon. Then, if this Digimon has 7 link cards, return your opponent's top security card to the bottom of the deck.",
+    "nameJp": "ダンテモン"
+  },
+  {
+    "cardId": "BT26-087",
+    "set": "BT26",
+    "nameEn": "Toya Kuga",
+    "colors": [
+      "Red"
+    ],
+    "kinds": [
+      "Tamer"
+    ],
+    "playCost": 3,
+    "dp": 0,
+    "evoCosts": [],
+    "rarity": "U",
+    "maxCountInDeck": 4,
+    "imageId": "BT26-087",
+    "types": [
+      "TS"
+    ],
+    "effectText": "[Start of Your Main Phase] By returning 1 [TS] trait Digimon card from your trash to the bottom of the deck, gain 1 memory. After, you may return 1 [Giant Slayer] from your trash to the hand.\n[On Play] By trashing 1 [TS] card from your hand, ＜Draw 2＞ ",
+    "securityEffectText": "[Security] Play this card without paying the cost.",
+    "nameJp": "久我橙矢"
+  },
+  {
+    "cardId": "BT26-088",
+    "set": "BT26",
+    "nameEn": "Hiroko Sagisaka",
+    "colors": [
+      "Red"
+    ],
+    "kinds": [
+      "Tamer"
+    ],
+    "playCost": 4,
+    "dp": 0,
+    "evoCosts": [],
+    "rarity": "R",
+    "maxCountInDeck": 4,
+    "imageId": "BT26-088",
+    "types": [
+      "TS"
+    ],
+    "effectText": "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.\n[Your Turn] When any [Boss] or [TS] trait Digimon cards would be played, by suspending this Tamer, reduce the costs by 1. If you have no Digimon, instead reduce the costs by 2.",
+    "securityEffectText": "[Security] Play this card without paying the cost.",
+    "nameJp": "鷺坂ヒロコ"
+  },
+  {
     "cardId": "BT26-089",
     "set": "BT26",
     "nameEn": "Kyo Sawashiro",
@@ -70112,6 +70470,29 @@
     "nameJp": "藤枝淑乃"
   },
   {
+    "cardId": "BT26-092",
+    "set": "BT26",
+    "nameEn": "Shota Kuroi",
+    "colors": [
+      "Black"
+    ],
+    "kinds": [
+      "Tamer"
+    ],
+    "playCost": 3,
+    "dp": 0,
+    "evoCosts": [],
+    "rarity": "U",
+    "maxCountInDeck": 4,
+    "imageId": "BT26-092",
+    "types": [
+      "TS"
+    ],
+    "effectText": "[Start of Your Main Phase] By trashing 1 [TS] trait card from your hand, ＜Draw 1＞ and gain 1 memory.\n[Opponent's Turn] When one of your opponent's Digimon attacks, by returning 1 of your [TS] trait Tamers to the bottom of the deck, you may change the attack target to 1 of your Digimon with the [TS] trait.",
+    "securityEffectText": "[Security] Play this card without paying the cost.",
+    "nameJp": "黒井翔太"
+  },
+  {
     "cardId": "BT26-093",
     "set": "BT26",
     "nameEn": "Reina Sakuya",
@@ -70181,6 +70562,52 @@
     "effectText": "[Start of Your Main Phase] By placing 1 [BEATBREAK] trait card from your hand face down under this Tamer, ＜Draw 1＞ and gain 1 memory.\n[All Turns] When any Digimon are deleted, by suspending this Tamer, ＜Draw 1＞ and trash 1 card in your hand. After, place 1 [BEATBREAK] trait non-Digi-Egg card from your trash face down under this Tamer.",
     "securityEffectText": "[Security] Play this card without paying the cost.",
     "nameJp": "久遠寺マコト"
+  },
+  {
+    "cardId": "BT26-096",
+    "set": "BT26",
+    "nameEn": "Kosuke Misono",
+    "colors": [
+      "Purple"
+    ],
+    "kinds": [
+      "Tamer"
+    ],
+    "playCost": 3,
+    "dp": 0,
+    "evoCosts": [],
+    "rarity": "U",
+    "maxCountInDeck": 4,
+    "imageId": "BT26-096",
+    "types": [
+      "TS"
+    ],
+    "effectText": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[Main] By returning this Tamer to the bottom of the deck, you may play 1 Digimon card with [Chronomon] in its text or 1 Tamer card with the [TS] trait from your hand or trash with the cost reduced by 2.",
+    "securityEffectText": "[Security] Play this card without paying the cost.",
+    "nameJp": "御園公介"
+  },
+  {
+    "cardId": "BT26-097",
+    "set": "BT26",
+    "nameEn": "The Thunder Emperor Awakens",
+    "colors": [
+      "Yellow"
+    ],
+    "kinds": [
+      "Option"
+    ],
+    "playCost": 2,
+    "dp": 0,
+    "evoCosts": [],
+    "rarity": "R",
+    "maxCountInDeck": 4,
+    "imageId": "BT26-097",
+    "types": [
+      "TS"
+    ],
+    "effectText": "Add 1 to this card's use cost for each of your security cards.\n[Main] By placing 1 of your Tamers with [Dan Yuki] or [Kanan Yuki] in their names as any of your [Aegiomon]'s bottom digivolution card, it may digivolve into [Jupitermon] in the hand or trash, ignoring digivolution requirements and without paying the cost. After, you may place 1 card with [Aegiochusmon] in its name in your trash as any of your [Jupitermon]'s top digivolution card.",
+    "securityEffectText": "[Security] You may play 1 play cost 5 or lower [TS] trait card from your hand without paying the cost. Then, add this card to the hand.",
+    "nameJp": "雷霆の覚醒"
   },
   {
     "cardId": "BT26-098",

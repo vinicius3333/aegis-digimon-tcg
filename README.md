@@ -133,6 +133,14 @@ The project is developed as a non-commercial community effort. The MIT License
 does not impose that limitation on use of the software. If you enjoy the
 project, please support the official Digimon Card Game.
 
+## Credits
+
+Card data comes from the community-maintained
+[TakaOtaku/Digimon-Card-App](https://github.com/TakaOtaku/Digimon-Card-App)
+database (`src/assets/cardlists/DigimonCards.json`, MIT License, © Christian
+Bayer). `tools/import-taka-cards.mjs` maps those records into this project's
+`CardDefinition` shape. Thanks to its maintainers and contributors.
+
 ## License
 
 [MIT](./LICENSE) © Vinícius Luiz.
