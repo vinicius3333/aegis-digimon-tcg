@@ -1,12 +1,11 @@
-import { EffectTiming } from "@aegis/shared";
+import { CardKind, EffectTiming } from "@aegis/shared";
 import type { CardDefinition, CardInstance, Permanent } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { whenDigivolving } from "../../engine/effects/builders.js";
+import { beforePayCost, whenDigivolving } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
-
 
 const cardId = "BT22-080";
 const EATER_SPECIES_FORM = "Eater (Species Form)";
@@ -17,17 +16,15 @@ function isEaterSpeciesForm(ctx: EffectContext, card: CardInstance): boolean {
 }
 
 function isMotherEater(ctx: EffectContext, permanent: Permanent): boolean {
-  return (
-    permanent.topCard !== undefined &&
-    ctx.game.definitionOf(permanent.topCard).nameEn === MOTHER_EATER
-  );
+  return permanent.topCard !== undefined && ctx.game.definitionOf(permanent.topCard).nameEn === MOTHER_EATER;
 }
 
 function isCSTamer(def: CardDefinition): boolean {
-  // [CS] trait check: `def.types` is absent from the current card database (0/4201
-  // cards have a types field). The predicate is correct; candidates will be empty
-  // until trait data is populated.
-  return (def.kinds as string[]).includes("Tamer") && (def.types ?? []).includes("CS");
+  return def.kinds.includes(CardKind.Tamer) && (def.types ?? []).includes("CS");
+}
+
+function hasEaterTrait(def: CardDefinition): boolean {
+  return [...(def.types ?? []), ...(def.forms ?? []), ...(def.attributes ?? [])].includes("Eater");
 }
 
 /** Owner's breeding permanent, or undefined. */
@@ -117,11 +114,7 @@ const module: EffectModule = {
         // (the TriggerInfo for the firing security check), so attackerPermanentId is
         canTrigger: (ctx) => {
           const self = source.permanent();
-          return (
-            self !== undefined &&
-            ctx.trigger.attackerPermanentId === self.permanentId &&
-            source.isOwnersTurn()
-          );
+          return self !== undefined && ctx.trigger.attackerPermanentId === self.permanentId && source.isOwnersTurn();
         },
 
         // canActivate: must have at least one [CS] Tamer in hand.
@@ -148,39 +141,36 @@ const module: EffectModule = {
       return [effect];
     }
 
-    // ----- ESS cost reduction (BLOCKED) -------------------------------------
-    //
-    // (the actual once-per-turn activation).
-    //
-    // BLOCKED: the `wouldBePlayed` replacement event is not consumed by the engine's
-    // play-cost step. Additionally, the [Eater] trait predicate requires `def.types`
-    // data which is absent from the current card database. Recorded as a documented
-    // inert marker so the gap is auditable — mirrors how BT9-109's trash-lock is
-    // handled. When (1) playCard.ts consults SubTriggerRegistry.costReductionFor(
-    // "wouldBePlayed") AND (2) trait data is populated, replace this block with:
-    //   subscribeReplacement({event:"wouldBePlayed", mode:"reduceCost", amount:1, ...})
-    // gated on IsExistOnBreedingArea + IsOwnerTurn + HasEaterTraits(played card).
+    // ----- [Breeding] inherited play-cost reduction -------------------------
+    // The pay-time seam is evaluated by GameEngine for inherited effects carried
+    // by the owner's breeding-area stack. This preserves the printed optional
+    // choice and makes each physical copy independently once-per-turn.
     if (timing === EffectTiming.None) {
-      const effect: Effect = {
-        effectKey: `${cardId}/breeding-ess-eater-cost-reduction`,
-        description:
-          "[Breeding] [Your Turn] [Once Per Turn] When any of your Digimon cards with the [Eater] trait would be played, you may reduce the play costs by 1.",
-        optional: true,
-        isInherited: true,
-        isSecurity: false,
-        isLinked: false,
-        maxPerTurn: 1,
-        canTrigger: (ctx) => {
-          const perm = source.permanent();
-          // Only fires when in the breeding area on owner's turn.
-          return perm !== undefined && !source.isOnBattleArea() && source.isOwnersTurn();
-        },
-        canActivate: () => true,
-        resolve: async () => {
-          // BLOCKED: see clause header. Intentional no-op.
-        },
-      };
-      return [effect];
+      return [];
+    }
+
+    if (timing === EffectTiming.BeforePayCost) {
+      return [
+        beforePayCost({
+          source,
+          effectKey: `${cardId}/breeding-ess-eater-cost-reduction`,
+          description:
+            "[Breeding] [Your Turn] [Once Per Turn] When any of your Digimon cards with the [Eater] trait would be played, you may reduce the play costs by 1.",
+          isInherited: true,
+          optional: true,
+          maxPerTurn: 1,
+          canActivate: (ctx) => {
+            const playedCardId = ctx.trigger.wouldBePlayedCardId;
+            if (playedCardId === undefined) return false;
+            return hasEaterTrait(ctx.game.definitionOf({ cardId: playedCardId } as CardInstance));
+          },
+          resolve: async (ctx) => {
+            if (await ctx.ask.optional(ctx, "Reduce the Eater Digimon's play cost by 1?")) {
+              ctx.playCostDelta = (ctx.playCostDelta ?? 0) + 1;
+            }
+          },
+        }),
+      ];
     }
 
     return [];

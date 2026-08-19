@@ -2217,7 +2217,20 @@ export class GameEngine {
     // that reduces the cost of a matching played card. Scanned so the early-return below does not
     // skip the pay-time window when only such a reducer applies.
     const crossWatchers = this.crossPermanentPlayReducerWatchers(instance, source.ownerSeat);
-    if (effects.length === 0 && selfReducers.length === 0 && crossWatchers.length === 0) return baseCost;
+    const breeding = this.state.players[source.ownerSeat]?.breeding;
+    const breedingResidentEffects = Array.from(breeding?.stack ?? []).flatMap((card) => {
+      const residentSource = this.cardSourceOf(card);
+      return effectsOf(EffectTiming.BeforePayCost, residentSource)
+        .filter((effect) => effect.isInherited)
+        .map((effect) => ({ effect, source: residentSource }));
+    });
+    if (
+      effects.length === 0 &&
+      selfReducers.length === 0 &&
+      crossWatchers.length === 0 &&
+      breedingResidentEffects.length === 0
+    )
+      return baseCost;
     // Seed `selections` so the interpreter's runEffect does NOT clone the context (it clones only
     // when `selections` is unset). The ReducePlayCost action writes the earned delta onto THIS
     // context's `playCostDelta`; a clone would strand the write and the reduction would be lost.
@@ -2226,6 +2239,28 @@ export class GameEngine {
       if (!canTrigger(effect, ctx, this.tracker)) continue;
       if (!canActivate(effect, ctx, this.tracker)) continue;
       await effect.resolve(ctx);
+    }
+    // [Breeding] inherited pay-time effects are supplied by cards in the owner's
+    // breeding-area stack (the card being played is still in hand, so its own
+    // module cannot host the watcher). Resolve these against the same shared
+    // play-cost context so their reductions are paid before memory is charged.
+    for (const { effect, source: residentSource } of breedingResidentEffects) {
+      const residentCtx: EffectContext = {
+        ...this.buildEffectContext(residentSource, {
+          wouldBePlayedInstanceId: instance.instanceId,
+          wouldBePlayedCardId: instance.cardId,
+        }),
+        selections: new Map(),
+        playCostDelta: ctx.playCostDelta,
+      };
+      if (!canTrigger(effect, residentCtx, this.tracker)) continue;
+      if (!canActivate(effect, residentCtx, this.tracker)) continue;
+      const beforeDelta = residentCtx.playCostDelta ?? 0;
+      await effect.resolve(residentCtx);
+      ctx.playCostDelta = residentCtx.playCostDelta;
+      if ((residentCtx.playCostDelta ?? 0) > beforeDelta && effect.maxPerTurn > 0) {
+        this.tracker.register(residentSource.instanceId, effect.effectKey);
+      }
     }
     for (const reducer of selfReducers) {
       await applyWouldBePlayedSelfReducer(ctx, reducer);
@@ -3033,6 +3068,11 @@ export class GameEngine {
           (effect) => effect.costWindow !== "digivolve",
         ) ||
         wouldBePlayedSelfReducersFor(instance.cardId).length > 0 ||
+        (this.state.players[this.cardSourceOf(instance).ownerSeat]?.breeding?.stack ?? []).some((card) =>
+          effectsOf(EffectTiming.BeforePayCost, this.cardSourceOf(card)).some(
+            (effect) => effect.isInherited && effect.costWindow === "play",
+          ),
+        ) ||
         this.crossPermanentPlayReducerWatchers(instance, this.cardSourceOf(instance).ownerSeat).length > 0,
       // After the played permanent is created (before On Play), place any cards a cross-permanent
       // reducer (BT10-093) committed under it, and relocate any whole permanent a SELF reducer's cost
