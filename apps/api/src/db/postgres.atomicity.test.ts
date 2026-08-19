@@ -24,18 +24,20 @@ import { runMigrations, type Migration } from "./migrator.js";
  * rolled-back command actually leaves the database as it found it. This file verifies that, and
  * nothing else — it is deliberately a handful of scenarios, not a second copy of the suite.
  *
- * **How to run it.** It is skipped unless `POSTGRES_TESTS=1`, so the default `pnpm test` is
- * unchanged on a machine with no database:
+ * **How to run it.** It is its own lane, excluded from the default `pnpm test` by
+ * `vitest.config.ts` unless `POSTGRES_TESTS=1`, so a machine with no database does not collect it
+ * at all rather than reporting five permanently pending tests:
  *
  * ```bash
  * docker run --rm -d -p 55432:5432 -e POSTGRES_PASSWORD=aegis --name aegis-pg postgres:16
- * POSTGRES_TESTS=1 POSTGRES_TEST_URL=postgres://postgres:aegis@127.0.0.1:55432/postgres \
- *   pnpm --filter @aegis/api exec vitest run src/db/postgres.atomicity
+ * POSTGRES_TEST_URL=postgres://postgres:aegis@127.0.0.1:55432/postgres \
+ *   pnpm --filter @aegis/api test:postgres
  * docker rm -f aegis-pg
  * ```
  *
- * Any environment with a reachable Postgres can run it by setting the same two variables; there is
- * no CI job wired to it yet.
+ * Any reachable Postgres works: point `POSTGRES_TEST_URL` (or `DATABASE_URL`) at it. Opting in
+ * without a connection string is an error, not a skip, so the lane cannot pass by doing nothing.
+ * There is no CI job wired to it yet.
  *
  * **Why plain `pg` and not testcontainers.** The value of this lane is real Postgres transaction
  * semantics, not container lifecycle management. `pg` is already a runtime dependency; testcontainers
@@ -56,7 +58,11 @@ function isolatedPool(): Pool {
   return new Pool({ connectionString: CONNECTION, options: `-c search_path=${SCHEMA}` });
 }
 
-describe.skipIf(!ENABLED || !CONNECTION)("transaction atomicity against a real Postgres", () => {
+if (ENABLED && !CONNECTION) {
+  throw new Error("POSTGRES_TESTS=1 needs POSTGRES_TEST_URL (or DATABASE_URL) to point at a Postgres");
+}
+
+describe.skipIf(!ENABLED)("transaction atomicity against a real Postgres", () => {
   let admin: Pool;
 
   beforeAll(async () => {
@@ -245,6 +251,9 @@ describe.skipIf(!ENABLED || !CONNECTION)("transaction atomicity against a real P
     try {
       const event = await startEvent(accounts, participants, swiss, 4);
       const match = (await series.scoreViews(event.tournamentId)).find((view) => view.participant0Id && view.participant1Id)!;
+      // Publishing round 1 audits itself, so the trail is not empty before the ruling below;
+      // what must not change is its contents.
+      const trailBefore = await readTournamentEvents(pool, event.tournamentId);
 
       // The audit row and the change it describes share one transaction, so a failure in either
       // must take both down. A trail that can outlive the decision it records is worse than none.
@@ -265,7 +274,7 @@ describe.skipIf(!ENABLED || !CONNECTION)("transaction atomicity against a real P
       ).rejects.toThrow(/ledger unavailable/);
 
       expect((await series.seriesForMatch(match.matchId))?.status ?? "no series").not.toBe("resolved");
-      expect(await readTournamentEvents(pool, event.tournamentId)).toHaveLength(0);
+      expect(await readTournamentEvents(pool, event.tournamentId)).toEqual(trailBefore);
     } finally {
       await accounts.close();
     }

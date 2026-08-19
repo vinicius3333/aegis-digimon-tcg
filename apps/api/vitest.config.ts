@@ -11,12 +11,19 @@ const heavySuites = [
   "src/engine/conformance/**",
 ];
 
+// The transaction lane needs a real Postgres, so it is its own opt-in lane (`pnpm test:postgres`,
+// or POSTGRES_TESTS=1 with POSTGRES_TEST_URL). It is excluded rather than skipped: a suite that
+// cannot run here is not a pending test, and reporting it as one buries a real skip in the noise.
+const postgresLane = "src/db/postgres.atomicity.test.ts";
+
 export default defineConfig({
   test: {
     include: ["src/**/*.test.ts"],
-    exclude: process.env.FAST
-      ? [...configDefaults.exclude, ...heavySuites]
-      : configDefaults.exclude,
+    exclude: [
+      ...configDefaults.exclude,
+      ...(process.env.FAST ? heavySuites : []),
+      ...(process.env.POSTGRES_TESTS === "1" ? [] : [postgresLane]),
+    ],
     // `forks` (process isolation) gives each file a full heap. `threads` shares a
     // capped worker heap and the full card suite exhausts it (ERR_WORKER_OUT_OF_MEMORY),
     // GC-thrashing for ~80s before dying. The fast inner loop overrides to `--pool=threads`.

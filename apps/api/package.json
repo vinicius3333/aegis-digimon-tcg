@@ -19,6 +19,7 @@
     "test:conformance": "vitest run --passWithNoTests src/engine/conformance --pool=forks --poolOptions.forks.maxForks=1 --no-file-parallelism",
     "test:engine": "FAST=1 vitest run --pool=threads --passWithNoTests src/engine/",
     "bench:bot": "BOT_BENCH=1 vitest run src/bot/benchmark.test.ts",
+    "test:postgres": "POSTGRES_TESTS=1 vitest run src/db/postgres.atomicity",
     "test:parallel": "concurrently -n fast,cards 'pnpm test:fast' 'pnpm test:cards'"
   },
   "dependencies": {
