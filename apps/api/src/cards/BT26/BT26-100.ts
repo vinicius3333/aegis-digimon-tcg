@@ -9,9 +9,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-100 — Dark Field (BT26, Purple/Black Option, [Titan]/[TS] trait).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-100 as of this port
-// (`node tools/kb/query.mjs card BT26-100` returned no knowledge-base entries — BT26 has
-// no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// Q7174–Q7181 confirm the no-face-up-security condition, zero-security Main activation,
+// face-up security behavior, Security timing, and that the DP/Blocker grant only applies
+// to [Titan] trait Digimon.
 //
 // Printed text:
 //   While you have no face-up security cards, you can ignore this card's color
@@ -71,7 +71,10 @@ function namedPlutomonOrTitamon(def: CardDefinition): boolean {
 function titanBattleTargets(ctx: EffectContext, source: CardSource): Permanent[] {
   const owner = ctx.game.player(source.ownerSeat);
   return Array.from(owner.battleArea).filter(
-    (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && hasTitanTrait(ctx.game.definitionOf(p.topCard)),
+    (p) =>
+      p.topCard !== undefined &&
+      isDigimon(ctx.game.definitionOf(p.topCard)) &&
+      hasTitanTrait(ctx.game.definitionOf(p.topCard)),
   );
 }
 
@@ -79,7 +82,10 @@ function titanBattleTargets(ctx: EffectContext, source: CardSource): Permanent[]
 function hasPlutomonOrTitamonDigimon(ctx: EffectContext, source: CardSource): boolean {
   const owner = ctx.game.player(source.ownerSeat);
   return Array.from(owner.battleArea).some(
-    (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && namedPlutomonOrTitamon(ctx.game.definitionOf(p.topCard)),
+    (p) =>
+      p.topCard !== undefined &&
+      isDigimon(ctx.game.definitionOf(p.topCard)) &&
+      namedPlutomonOrTitamon(ctx.game.definitionOf(p.topCard)),
   );
 }
 
@@ -129,8 +135,7 @@ const module: EffectModule = {
         colorWaiverStatic({
           source,
           effectKey: `${cardId}/color-waiver-no-face-up-security`,
-          description:
-            "While you have no face-up security cards, you can ignore this card's color requirements.",
+          description: "While you have no face-up security cards, you can ignore this card's color requirements.",
           optional: false,
           when: (ctx) => hasNoFaceUpSecurity(ctx, source),
           resolve: async (ctx) => {
