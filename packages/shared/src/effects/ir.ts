@@ -232,6 +232,8 @@ export type FilterKeyword = Keyword;
  * are optional and AND together; an empty Filter matches "any card in scope".
  */
 export interface Filter {
+  /** Require a card to have exactly one color ("single-color" cards). */
+  singleColor?: boolean;
   /** Cost-only hint: a selectable stack card must belong to a level represented at least twice. */
   sameLevelPair?: boolean;
   /** Restrict an onDeletionOf watcher to deletion caused by DP reaching 0. */

@@ -357,6 +357,7 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   // Multicolored: two or more colors. With `colors` also set, the card must be
   // multicolored AND include one of those colors (handled by the `colors` check above).
   if (filter.multicolor && def.colors.length < 2) return false;
+  if (filter.singleColor === true && def.colors.length !== 1) return false;
   if (filter.levels && filter.levels.length > 0) {
     if (def.level === undefined || !filter.levels.includes(def.level)) return false;
   }
