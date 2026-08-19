@@ -11,11 +11,9 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
 /**
  * BT26-102 — Seven Code PAD (BT26, White Option).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-102` returns no errata/Q&A hits), so this port is
- * provisional: it follows the printed text directly and mirrors the closest existing
- * hand-written cards for each clause shape. Re-check against the KB once BT26 rulings
- * are scraped.
+ * The committed KB contains Q7127-Q7128 and Q7183-Q7186 (2026-08-18), confirming mixed
+ * placement sources, the exact six-card requirement, chosen ordering, optional digivolution,
+ * and the linked-trigger timing.
  *
  * Printed text:
  *   ＜Use Req. ([Seven Code] trait)＞
@@ -106,10 +104,7 @@ const module: EffectModule = {
             const placementCandidates: PlacementCandidate[] = [];
             for (const permanent of owner.battleArea) {
               if (permanent.inBreeding || permanent.topCard === undefined) continue;
-              if (
-                permanent.permanentId !== recipient &&
-                isSevenCodeDigimon(ctx.game.definitionOf(permanent.topCard))
-              ) {
+              if (permanent.permanentId !== recipient && isSevenCodeDigimon(ctx.game.definitionOf(permanent.topCard))) {
                 placementCandidates.push({
                   kind: "permanent",
                   instanceId: permanent.topCard.instanceId,
@@ -164,9 +159,7 @@ const module: EffectModule = {
             }
 
             // "that Digimon MAY digivolve into [Dantemon] in the hand".
-            const dantemon = owner.hand
-              .filter((c) => isDantemon(ctx.game.definitionOf(c)))
-              .map((c) => c.instanceId);
+            const dantemon = owner.hand.filter((c) => isDantemon(ctx.game.definitionOf(c))).map((c) => c.instanceId);
             if (dantemon.length === 0) return;
 
             const chosen = await ctx.ask.selectCards(ctx, { candidates: dantemon, min: 0, max: 1 });
