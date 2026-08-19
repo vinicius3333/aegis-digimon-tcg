@@ -15,6 +15,8 @@ export interface PlayerIdentity {
   shards: number;
   avatarId?: DigimonWorldAvatarId | null;
   avatarUrl?: string | null;
+  /** Portrait picked during guest onboarding; account avatars win over it. */
+  guestAvatarId?: DigimonWorldAvatarId | null;
 }
 
 /** A screen key in the client router. */

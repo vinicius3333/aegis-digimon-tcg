@@ -9,6 +9,7 @@ export const DEFAULT_PLAYER: PlayerIdentity = {
   shards: 12480,
   avatarId: null,
   avatarUrl: null,
+  guestAvatarId: null,
 };
 
 export function loadIdentity(): PlayerIdentity {

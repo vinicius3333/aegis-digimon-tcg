@@ -164,7 +164,11 @@ export function AegisClient({
     name: account.displayName,
     avatarId: account.avatarId,
     avatarUrl: account.avatarUrl,
-  } : player, [account, player]);
+  } : {
+    ...player,
+    avatarId: player.guestAvatarId ?? null,
+    avatarUrl: null,
+  }, [account, player]);
   const [route, setRoute] = useState<AppRoute>(() => {
     if (initialScreen) return { screen: initialScreen };
     const directRoute = routeFromPathname(window.location.pathname);
@@ -181,6 +185,14 @@ export function AegisClient({
     const expectedPath = pathForRoute(route);
     if (window.location.pathname !== expectedPath) window.history.replaceState(null, "", expectedPath);
   }, []);
+
+  useEffect(() => {
+    if (initialScreen || !account || screen !== "onboarding") return;
+    if (window.location.pathname !== pathForRoute({ screen: "home" })) {
+      window.history.replaceState(null, "", pathForRoute({ screen: "home" }));
+    }
+    setRoute({ screen: "home" });
+  }, [account, screen, initialScreen]);
 
   useEffect(() => {
     if (initialScreen) return;
@@ -229,8 +241,8 @@ export function AegisClient({
           {screen === "onboarding" && (
             <Onboarding
               initialColor={identityColor}
-              onEnter={({ name, color }) => {
-                setPlayer((p) => ({ ...p, name, color }));
+              onEnter={({ name, color, avatarId }) => {
+                setPlayer((p) => ({ ...p, name, color, guestAvatarId: avatarId }));
                 navigateScreen("home");
               }}
             />
