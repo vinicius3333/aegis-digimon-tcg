@@ -10,11 +10,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 /**
  * BT26-103 — Jupitermon: Wrath Mode (BT26, Yellow/Red/Black Lv.7 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-103` returns no errata/Q&A hits), so this port is
- * provisional: it follows the printed text directly and mirrors the closest existing
- * hand-written cards for each clause shape. Re-check against the KB once BT26 rulings
- * are scraped.
+ * Q7187–Q7189 confirm Counter timing, activation with zero security cards, and the
+ * ordering of security-removal triggers relative to Security effects.
  *
  * Printed text:
  *   [Digivolve] Lv.6 w/[Olympos XII] trait: Cost 5
@@ -52,16 +49,12 @@ async function penalizeOneOpponentDigimon(ctx: EffectContext, ownerSeat: Seat): 
   const opponentSeat = ctx.game.opponentOf(ownerSeat);
   const candidates = ctx.game
     .player(opponentSeat)
-    .battleArea.filter(
-      (p) => !p.inBreeding && p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
-    )
+    .battleArea.filter((p) => !p.inBreeding && p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)))
     .map((p) => p.permanentId);
   if (candidates.length === 0) return;
 
   const chosen =
-    candidates.length === 1
-      ? candidates[0]!
-      : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
+    candidates.length === 1 ? candidates[0]! : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
   if (chosen === undefined) return;
 
   ctx.fx.modifyDP(chosen, DP_PENALTY, EffectDuration.UntilOpponentTurnEnd);
@@ -76,8 +69,7 @@ const module: EffectModule = {
           source,
           effectKey: TRASH_RECOVER_KEY,
           description:
-            "[When Digivolving] [Counter] [Once Per Turn] Trash your top security card, and " +
-            "＜Recovery +2＞",
+            "[When Digivolving] [Counter] [Once Per Turn] Trash your top security card, and " + "＜Recovery +2＞",
           optional: false,
           maxPerTurn: 1,
           resolve: async (ctx) => {
@@ -94,8 +86,7 @@ const module: EffectModule = {
           source,
           effectKey: TRASH_RECOVER_KEY,
           description:
-            "[When Digivolving] [Counter] [Once Per Turn] Trash your top security card, and " +
-            "＜Recovery +2＞",
+            "[When Digivolving] [Counter] [Once Per Turn] Trash your top security card, and " + "＜Recovery +2＞",
           optional: false,
           maxPerTurn: 1,
           canActivate: (ctx) => ctx.source.isOnBattleArea(),
