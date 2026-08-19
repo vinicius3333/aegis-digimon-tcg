@@ -28,6 +28,7 @@ services:
       DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:?DISCORD_CLIENT_ID must be set}
       DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:?DISCORD_CLIENT_SECRET must be set}
       DISCORD_REDIRECT_URI: ${AEGIS_PUBLIC_URL}/auth/discord/callback
+      ADMIN_DISPLAY_NAME: ${ADMIN_DISPLAY_NAME:-}
     depends_on:
       postgres:
         condition: service_healthy
