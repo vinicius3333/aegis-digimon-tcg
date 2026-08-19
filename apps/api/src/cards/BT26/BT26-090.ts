@@ -10,11 +10,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 /**
  * BT26-090 — Kanan Yuki (BT26, Green Tamer).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-090` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * The committed KB contains Q7143 (2026-08-18), confirming that “4 or less memory”
+ * refers to positions 4 and to the right on the controller's side of the gauge.
  *
  * Printed text:
  *   [Start of Your Main Phase] If you have 4 or less memory, gain 1 memory.
