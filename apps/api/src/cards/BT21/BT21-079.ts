@@ -11,82 +11,82 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 3. CostModifier is integrated into PlayWithoutCost as a dynamic ceiling, not a sibling
 //    action. Using inline playCostCeiling with scaling per 10 cards in both trashes.
 //    The base ceiling is 3 (playCostLte:3) + 2 per 10 total cards in both trashes.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "SecurityAttack",
-          "amount": 1,
-          "raw": "＜Security Attack +1＞"
-        }
-      ]
-    },
-    {
-      "trigger": "EndOfAttack",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "kind": ["Digimon"],
-              "controller": "both"
-            },
-            "count": "all"
-          }
-        }
+          keyword: "SecurityAttack",
+          amount: 1,
+          raw: "＜Security Attack +1＞",
+        },
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "playCostLte": 3,
-              "nameOrTrait": [
-                {
-                  "tokens": ["Guilmon", "Growlmon"],
-                  "match": "name"
-                }
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              kind: ["Digimon"],
+              controller: "both",
             },
-            "count": 1
+            count: "all",
           },
-          "from": ["trash"],
-          "payCost": false,
-          "optional": true,
-          "playCostCeiling": {
-            "base": 3,
-            "raise": 2,
-            "per": 10,
-            "filter": {
-              "zone": "trash",
-              "controller": "both"
-            },
-            "unit": "cards",
-            "raw": "For every 10 total cards in both players' trashes, add 2 to this effect's play cost maximum"
-          }
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
     {
-      "level": 5,
-      "names": ["Growlmon"],
-      "cost": 4,
-      "isAlternate": true
-    }
-  ]
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              playCostLte: 3,
+              nameOrTrait: [
+                {
+                  tokens: ["Guilmon", "Growlmon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+          playCostCeiling: {
+            base: 3,
+            raise: 2,
+            per: 10,
+            filter: {
+              zone: "trash",
+              controller: "both",
+            },
+            unit: "cards",
+            raw: "For every 10 total cards in both players' trashes, add 2 to this effect's play cost maximum",
+          },
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 5,
+      names: ["Growlmon"],
+      cost: 4,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT21-079", compiled);
