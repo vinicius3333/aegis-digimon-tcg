@@ -12,7 +12,7 @@ describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () =
   );
 
   it("finds the expected number of BT26 cards printing a [Digivolve] header", () => {
-    expect(bt26WithHeader.length).toBe(68);
+    expect(bt26WithHeader.length).toBe(76);
   });
 
   it.each(bt26WithHeader.map((c) => c.cardId))("%s resolves a non-empty alternate requirement", (cardId) => {
