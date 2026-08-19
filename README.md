@@ -31,6 +31,16 @@ More detail is available in [Architecture](./docs/ARCHITECTURE.md) and the
 Card implementation progress is tracked in the public
 [Aegis Digimon TCG Card Roadmap](https://github.com/users/vinicius3333/projects/5).
 
+## Why not DCGO?
+
+DCGO already works, and it is a good client. It also asks you to install a
+desktop build and sit at that machine to play.
+
+I wanted to open a tab and play. Aegis runs in the browser, so I can start a
+match on my laptop and finish it on my phone during a bus ride. That single
+requirement shaped the rest of the project: a web client, a server that owns
+the rules, and no download between you and a game.
+
 ## Requirements
 
 - Node.js 20 or newer
