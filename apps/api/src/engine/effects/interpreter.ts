@@ -12141,6 +12141,10 @@ const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect> = {
       {
         kind: "SubTrigger",
         event: "whenSuspended",
+        // "THIS Digimon becomes suspended": scope the watcher to the card the grant sits on.
+        // `whenSuspended` fires the whole bus with no source, so an unscoped watcher would
+        // charge 2 memory for every suspension on the board, not just the grantee's.
+        sourceFilter: { isSelfRef: true },
         actions: [
           {
             kind: "GainMemory",

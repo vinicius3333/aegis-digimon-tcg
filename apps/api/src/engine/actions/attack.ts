@@ -64,13 +64,22 @@ export function validateAttack(deps: AttackDeps, seat: Seat, intent: AttackInten
     return "wrong-phase";
   }
 
-  // 2. No attack may begin while another is mid-resolution (source
+  // 2. No attack may begin while an effect is waiting on a Decision. Attacking is a Main-phase
+  //    action like play/digivolve/activate, and every one of those gates here (the API-CONTRACT
+  //    validation contract, and this function's own doc comment above). Attacking is the worst
+  //    one to let through: it opens a combat window — block, counter, battle, security — on top
+  //    of an effect resolution that is still suspended waiting for its answer.
+  if (state.pendingDecision !== undefined) {
+    return "decision-pending";
+  }
+
+  // 3. No attack may begin while another is mid-resolution (source
   //    Permanent.CanAttack: `if (attackProcess.IsAttacking) return false`).
   if (deps.combat.isAttacking) {
     return "wrong-phase";
   }
 
-  // 3. Attacker legality (own, battle-area Digimon, unsuspended).
+  // 4. Attacker legality (own, battle-area Digimon, unsuspended).
   const attacker = access.permanentById(intent.attackerPermanentId);
   if (attacker === undefined) {
     return "illegal-target";
@@ -80,12 +89,12 @@ export function validateAttack(deps: AttackDeps, seat: Seat, intent: AttackInten
     return attackerReject;
   }
 
-  // 4. §11-2-3: each Digimon may attack at most once per turn.
+  // 5. §11-2-3: each Digimon may attack at most once per turn.
   if (deps.attackedThisTurn?.has(attacker.permanentId)) {
     return "illegal-target";
   }
 
-  // 5. Target legality (player, or an opponent's suspended battle-area Digimon). A ＜Vortex＞
+  // 6. Target legality (player, or an opponent's suspended battle-area Digimon). A ＜Vortex＞
   //    declaration (intent.vortex) restricts the player target unless a grant relaxes it.
   return canAttackTarget(access, seat, attacker, intent.target, deps.continuous, intent.vortex);
 }
