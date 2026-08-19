@@ -16,10 +16,12 @@ describe("P-174 Boltmon", () => {
     reduced.state.memory = 11;
     await reduced.ready();
 
-    expect(reduced.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: reduced.inst("boltmon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      reduced.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: reduced.inst("boltmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => reduced.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "P-174"));
 
     expect(reduced.state.memory).toBe(4);
@@ -34,10 +36,12 @@ describe("P-174 Boltmon", () => {
     faceDown.state.memory = 11;
     await faceDown.ready();
 
-    expect(faceDown.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: faceDown.inst("boltmon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      faceDown.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: faceDown.inst("boltmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => faceDown.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "P-174"));
 
     expect(faceDown.state.memory).toBe(0);
@@ -54,10 +58,12 @@ describe("P-174 Boltmon", () => {
     s.state.memory = 11;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("boltmon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("boltmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "P-174"));
 
     expect(s.state.memory).toBe(0);
@@ -86,7 +92,9 @@ describe("P-174 Boltmon", () => {
     await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === stackedTargetId));
 
     expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === level5Id)).toBe(true);
-    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT1-020", "BT1-014"]));
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT1-020", "BT1-014"]),
+    );
     assertNoLoudGap(s);
   });
 
@@ -105,7 +113,9 @@ describe("P-174 Boltmon", () => {
     await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === targetId));
 
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("P-174");
-    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT1-020", "BT1-014"]));
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT1-020", "BT1-014"]),
+    );
     assertNoLoudGap(s);
   });
 });
