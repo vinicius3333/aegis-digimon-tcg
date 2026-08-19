@@ -4,7 +4,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { whenDigivolving, onPlay, whenAttacking, staticModifier } from "../../engine/effects/builders.js";
+import { whenDigivolving, onPlay, whenAttacking, staticModifier, digivolveCostStatic } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT25-020 — Red Lv.6 Digimon (BT25, Marsmon).
@@ -114,9 +114,56 @@ const module: EffectModule = {
       ];
     }
 
-    // BLOCKED: [All Turns] When TS Digimon wins battle → trash top opponent security.
-    // Requires OnEndBattle timing and the whenBattleWon sub-trigger support.
-    // Also BLOCKED: Play cost -5 when there's a 13000+ DP Digimon.
+    if (timing === EffectTiming.None) {
+      return [
+        digivolveCostStatic({
+          source,
+          effectKey: `${cardId}/play-cost-reduction`,
+          description: "When this card would be played, reduce its cost by 5 if a Digimon has 13000 DP or more.",
+          when: (ctx) => ctx.game.player(ctx.source.ownerSeat).hand.some((card) => card.instanceId === ctx.source.instanceId),
+          resolve: async (ctx) => {
+            const hasLargeDigimon = ctx.game.state.players.some((player) =>
+              player.battleArea.some((permanent) => {
+                if (permanent.topCard === undefined) return false;
+                const definition = ctx.game.definitionOf(permanent.topCard);
+                return isDigimon(definition) && (permanent.currentDP ?? permanent.baseDP ?? 0) >= 13000;
+              }),
+            );
+            if (!hasLargeDigimon) return;
+            ctx.fx.changePlayCost(
+              (facts) => facts.controllerSeat === ctx.source.ownerSeat && facts.def.cardId === cardId,
+              -5,
+            );
+          },
+        }),
+        staticModifier({
+          source,
+          effectKey: `${cardId}/ts-battle-won-trash-security`,
+          description: "[All Turns][Once Per Turn] When your TS Digimon wins a battle, trash your opponent's top security card.",
+          maxPerTurn: 1,
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self === undefined) return;
+            ctx.fx.subscribeSubTrigger({
+              event: "whenBattleWon",
+              sourcePermanentId: self.permanentId,
+              once: false,
+              description: `${cardId}: TS Digimon wins a battle`,
+              matches: (subCtx) => {
+                const winnerId = subCtx.trigger?.subjectPermanentId;
+                if (winnerId === undefined) return false;
+                const winner = subCtx.game.permanentById(winnerId);
+                if (winner === undefined || winner.controllerSeat !== source.ownerSeat || winner.topCard === undefined) return false;
+                return (subCtx.game.definitionOf(winner.topCard).types ?? []).includes("TS");
+              },
+              run: async (subCtx) => {
+                await subCtx.fx.trashFromSecurity(subCtx.game.opponentOf(source.ownerSeat), 1, { fromTop: true });
+              },
+            });
+          },
+        }),
+      ];
+    }
 
     return [];
   },
