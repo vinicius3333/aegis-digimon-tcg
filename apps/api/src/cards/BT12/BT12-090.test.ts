@@ -7,6 +7,14 @@ import "./BT12-031.js";
 import "./BT12-090.js";
 
 describe("BT12-090 Davis Motomiya", () => {
+  it("plays itself from security without paying its cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT12-090", as: "davis", faceUp: true }] } });
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("davis"));
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT12-090")).toBe(true);
+  });
+
   it("gains 1 memory at start of main while a Free Digimon is in play", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT12-090", as: "davis" }, "BT12-021"] },
@@ -31,20 +39,24 @@ describe("BT12-090 Davis Motomiya", () => {
     });
     s.state.memory = 2;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
 
     const optional = s.state.pendingDecision!;
     expect(s.decisions.at(-1)!.req.sourceCardId).toBe("BT12-090");
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: optional.decisionId,
-      response: { kind: "optional", accept: true },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: optional.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
 
     const select = s.state.pendingDecision!;
@@ -54,11 +66,13 @@ describe("BT12-090 Davis Motomiya", () => {
       min: 1,
       max: 1,
     });
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: select.decisionId,
-      response: { kind: "selectCards", instanceIds: [s.inst("fighter").instanceId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: select.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("fighter").instanceId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("attacker").topCard.cardId === "BT12-031");
 
     expect(s.perm("davis").isSuspended).toBe(true);
@@ -79,11 +93,13 @@ describe("BT12-090 Davis Motomiya", () => {
     });
     s.state.memory = 2;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.decisions.some(({ req }) => req.sourceCardId === "BT12-090")).toBe(false);
