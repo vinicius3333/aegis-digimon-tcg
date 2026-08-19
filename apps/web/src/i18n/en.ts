@@ -74,6 +74,7 @@ export const en = {
   "lobby.yourDecks": "Your decks",
   "lobby.famousDecks": "Famous decks",
   "lobby.famousDecksDesc": "Tournament and historic presets available in the current card pool.",
+  "lobby.deckCount": "{count} decks",
   "lobby.copyPreset": "Copy to edit",
   "lobby.noDecks": "No custom decks yet —",
   "lobby.noDecksLink": "build one in the Deck Builder",
