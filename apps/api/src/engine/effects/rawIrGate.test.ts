@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { allRegisteredModules } from "./registry.js";
-import { runtimeCompiledCard } from "./interpreter.js";
+import { hasRegisteredCompiledCard, runtimeCompiledCard } from "./interpreter.js";
 import { setupEngine, settle } from "../testkit/harness.js";
 import "../../cards/index.js";
 
@@ -25,6 +25,7 @@ function collectRawNodes(): RawNode[] {
     Object.entries(record).forEach(([key, entry]) => walk(cardId, `${path}.${key}`, entry));
   };
   for (const cardId of allRegisteredModules().keys()) {
+    if (!hasRegisteredCompiledCard(cardId)) continue;
     walk(cardId, "", runtimeCompiledCard(cardId));
   }
   return nodes;
@@ -35,12 +36,21 @@ describe("raw IR guard", () => {
     const nodes = collectRawNodes();
     const cards = new Set(nodes.map((node) => node.cardId));
     // The plan's historical main-tree baseline was 281 nodes / 216 cards. The
-    // runtime registry currently exposes 510 nodes / 387 cards, so keep the
-    // observed runtime baseline strict until the inventory is reconciled with
-    // the upstream snapshot. Every migration must reduce this number or add a
-    // corresponding typed-IR proof in reencoded-ir.test.ts.
-    expect({ nodes: nodes.length, cards: cards.size }).toEqual({ nodes: 510, cards: 387 });
+    // inline runtime modules currently expose 278 nodes / 209 cards after the
+    // first Phase 1 migrations. The upstream effects.json fallback is excluded
+    // because it is not the runtime source for hand-written modules.
+    expect({ nodes: nodes.length, cards: cards.size }).toEqual({ nodes: 278, cards: 209 });
     expect(nodes.every((node) => node.raw.length > 0)).toBe(true);
+  });
+
+  it("does not reintroduce the Phase 1 raw spellings", () => {
+    const migrated = new Set([
+      "DNA digivolving",
+      "DNA Digivolving",
+      "DigiXrosing",
+      "there're 6 or fewer total cards in both players' security stacks",
+    ]);
+    expect(collectRawNodes().filter((node) => migrated.has(node.raw))).toEqual([]);
   });
 
   it("does not offer an activation whose whole condition is still raw", async () => {

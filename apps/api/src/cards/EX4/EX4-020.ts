@@ -38,7 +38,8 @@ const compiled: CompiledCard = {
             "upTo": true
           },
           "condition": {
-            "kind": "raw",
+            "kind": "digiXrosCount",
+            "minimum": 1,
             "raw": "DigiXrosing"
           }
         }

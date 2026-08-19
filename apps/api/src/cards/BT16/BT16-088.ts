@@ -101,7 +101,7 @@ const compiled: CompiledCard = {
           },
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "isDnaDigivolving",
             "raw": "DNA digivolving"
           }
         }

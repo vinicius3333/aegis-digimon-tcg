@@ -74,6 +74,11 @@ export function runtimeCompiledCard(cardId: string): CompiledCard | undefined {
   return registeredCompiledCards.get(cardId) ?? getCompiledCard(cardId);
 }
 
+/** Whether the runtime card module owns an inline compiled IR record. */
+export function hasRegisteredCompiledCard(cardId: string): boolean {
+  return registeredCompiledCards.has(cardId);
+}
+
 /** Names a card is unconditionally also treated as in every zone. */
 export function universalNameAliasesFor(cardId: string): string[] {
   const compiled = runtimeCompiledCard(cardId);
