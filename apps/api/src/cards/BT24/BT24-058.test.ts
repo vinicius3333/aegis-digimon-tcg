@@ -8,12 +8,13 @@ describe("BT24-058 Blimpmon", () => {
     for (const effect of effects ?? []) {
       const reveal = effect.actions?.[0] as any;
       expect(reveal).toMatchObject({ kind: "RevealAdd", revealCount: 3, rest: "deckTopOrBottom" });
-      expect(reveal.add).toEqual(
-        expect.arrayContaining([
-          expect.objectContaining({ to: "hand", optional: true }),
-          expect.objectContaining({ to: "placeUnder", optional: true }),
-        ]),
-      );
+      // One add entry offers both printed destinations: `to` is the default and `orDispositions`
+      // carries the alternative, which is the pair runRevealAdd presents as one choice.
+      expect(reveal.add).toHaveLength(1);
+      expect(reveal.add[0]).toMatchObject({
+        to: "hand",
+        orDispositions: [expect.objectContaining({ to: "placeUnder" })],
+      });
     }
     expect(BT24_058.effects?.find((entry) => entry.isInherited)?.keywords?.[0]?.keyword).toBe("Reboot");
   });

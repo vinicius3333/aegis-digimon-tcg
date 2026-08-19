@@ -54,7 +54,13 @@ describe("BT22-026 MetalGarurumon", () => {
       isInherited: true,
       frequency: "OncePerTurn",
       actions: [
-        { kind: "Unsuspend", target: { filter: { isSelfRef: true }, isSelf: true }, condition: { kind: "raw" } },
+        {
+          kind: "Unsuspend",
+          target: { filter: { isSelfRef: true }, isSelf: true },
+          // Structured, not "raw": evaluateCondition treats an unparsed gate as unmet, so a raw
+          // kind here would silently never unsuspend.
+          condition: { kind: "selfHasNameContaining" },
+        },
       ],
     });
   });
