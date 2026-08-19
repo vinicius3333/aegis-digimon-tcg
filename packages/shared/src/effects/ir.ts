@@ -1000,6 +1000,13 @@ export interface Condition {
     | "attackTargetsPlayer" // true when the current attack was declared at a player rather than a permanent
     | "attackTargetMatchesFilter" // true when the attacked permanent matches `filter`, including superlatives such as highest DP
     | "lastTargetDpAtLeast" // true when every permanent selected by the preceding action currently has at least `value` DP
+    | "lastTargetDpAtMostSelf" // true when every permanent selected by the preceding action has DP <= this source Digimon
+    | "triggerRevealedFromDeck" // true when this source card is among the cards revealed from a deck by the current effect
+    | "triggerAttackBy" // true when the current attack was declared through the named attack mechanic
+    | "allYoursMatchFilter" // true when every permanent you control in the battle area matches `filter`
+    | "breedingAreaEmpty" // true when your breeding area has no permanent
+    | "digivolutionCountCompare" // compares a selected Digimon's stack size with the source/target stack
+    | "triggerPlayCostAtMostStackCount" // true when the triggered card's play cost is <= a matching stack count
     | "selfDigivolutionStackHasTrait" // "while a card with [X] in its traits is in THIS Digimon's digivolution cards" (BT7-024); `filter.nameOrTrait` carries the trait token(s), matched against each stack card's trait union (Form ∪ Attribute ∪ Type)
     | "selfDigivolutionStackHasColor" // true when a SOURCE stack card has one of `filter.colors` (BT8-082)
     | "selfDigivolutionStackHasNonColor" // true when a SOURCE stack card has none of `filter.colors` (BT10-001)

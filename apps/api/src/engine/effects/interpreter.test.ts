@@ -16,6 +16,7 @@ import {
   registerIrCard,
   UnsupportedEffectError,
   candidateLooseInstances,
+  evaluateCondition,
   payCost,
 } from "./interpreter.js";
 import { getEffectModule, registerCard, unregisterCard } from "./registry.js";
@@ -114,6 +115,78 @@ describe("registerIrCard", () => {
 
     expect(recorder.calls).toContainEqual({ verb: "draw", args: [0, 2] });
     unregisterCard(cardId);
+  });
+});
+
+describe("new typed RAW-elimination conditions", () => {
+  function conditionContext(overrides: Partial<Omit<Parameters<typeof makeContext>[0], "source" | "recorder">> = {}) {
+    const sourcePermanent = makeFakePermanent({
+      permanentId: "SOURCE",
+      controllerSeat: 0 as Seat,
+      currentDP: 7000,
+      stack: [
+        { instanceId: "source-under", cardId: "SOURCE-UNDER", ownerSeat: 0, faceUp: true },
+        { instanceId: "source-top", cardId: "SOURCE", ownerSeat: 0, faceUp: true },
+      ] as never,
+    });
+    const source = makeSource({ cardId: "SOURCE", permanent: () => sourcePermanent });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({ source, recorder, ownBattleArea: [sourcePermanent], ...overrides });
+    return { ctx, sourcePermanent };
+  }
+
+  it("checks the preceding target DP against the source Digimon", () => {
+    const target = makeFakePermanent({ permanentId: "TARGET", controllerSeat: 1 as Seat, currentDP: 6000 });
+    const { ctx } = conditionContext({ opponentBattleArea: [target] });
+    ctx.lastResolvedPermanentIds = ["TARGET"];
+    expect(evaluateCondition(ctx, { kind: "lastTargetDpAtMostSelf" })).toBe(true);
+    target.currentDP = 7001;
+    expect(evaluateCondition(ctx, { kind: "lastTargetDpAtMostSelf" })).toBe(false);
+  });
+
+  it("recognizes a source card in the current reveal window", () => {
+    const { ctx } = conditionContext({ revealed: [{ instanceId: "revealed", cardId: "SOURCE" }] });
+    expect(evaluateCondition(ctx, { kind: "triggerRevealedFromDeck" })).toBe(true);
+    ctx.lastRevealedCards = [{ instanceId: "other", cardId: "OTHER", ownerSeat: 0 }];
+    expect(evaluateCondition(ctx, { kind: "triggerRevealedFromDeck" })).toBe(false);
+  });
+
+  it("checks named attack procedures and the empty breeding slot", () => {
+    const { ctx } = conditionContext({ trigger: { attackMechanic: "Execute" } });
+    expect(evaluateCondition(ctx, { kind: "triggerAttackBy", keyword: "Execute" })).toBe(true);
+    expect(evaluateCondition(ctx, { kind: "triggerAttackBy", keyword: "Overclock" })).toBe(false);
+    expect(evaluateCondition(ctx, { kind: "breedingAreaEmpty" })).toBe(true);
+    (ctx.game.player(0) as { breeding?: Permanent }).breeding = makeFakePermanent({ permanentId: "BREEDING" });
+    expect(evaluateCondition(ctx, { kind: "breedingAreaEmpty" })).toBe(false);
+  });
+
+  it("checks all-yours filters and selected stack counts", () => {
+    const sourceStack = makeFakePermanent({
+      permanentId: "SOURCE",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "source-top", cardId: "SOURCE", ownerSeat: 0, faceUp: true } as never,
+      stack: [
+        { instanceId: "a", cardId: "A", ownerSeat: 0, faceUp: true },
+        { instanceId: "b", cardId: "B", ownerSeat: 0, faceUp: true },
+      ] as never,
+    });
+    const target = makeFakePermanent({
+      permanentId: "TARGET",
+      controllerSeat: 1 as Seat,
+      topCard: { instanceId: "target-top", cardId: "TARGET", ownerSeat: 1, faceUp: true } as never,
+      stack: [{ instanceId: "t", cardId: "T", ownerSeat: 1, faceUp: true }] as never,
+    });
+    const { ctx } = conditionContext({
+      ownBattleArea: [sourceStack],
+      opponentBattleArea: [target],
+      definitionOf: (id) => makeFakeDefinition({ cardId: id, kinds: [CardKind.Digimon], types: ["D-Reaper"] }),
+    });
+    ctx.lastResolvedPermanentIds = ["TARGET"];
+    expect(evaluateCondition(ctx, { kind: "allYoursMatchFilter", filter: { kind: ["Digimon"] } })).toBe(true);
+    expect(evaluateCondition(ctx, { kind: "digivolutionCountCompare", op: "lte" })).toBe(true);
+    expect(evaluateCondition(ctx, { kind: "triggerPlayCostAtMostStackCount" })).toBe(false);
+    ctx.trigger.playedPlayCost = 1;
+    expect(evaluateCondition(ctx, { kind: "triggerPlayCostAtMostStackCount" })).toBe(true);
   });
 });
 
@@ -520,7 +593,15 @@ function makeContext(opts: {
     };
   }
 
-  return { source: opts.source, trigger: opts.trigger ?? {}, game, fx, ask, selections: new Map<string, string>() };
+  return {
+    source: opts.source,
+    trigger: opts.trigger ?? {},
+    game,
+    fx,
+    ask,
+    selections: new Map<string, string>(),
+    lastRevealedCards: opts.revealed?.map((card) => ({ ...card, ownerSeat: 0 as Seat })),
+  };
 }
 
 function makeSource(over: Partial<CardSource> = {}): CardSource {

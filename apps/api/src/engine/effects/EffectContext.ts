@@ -148,6 +148,8 @@ export interface TriggerInfo {
   /** Card id being played during the pay-time cost window. */
   wouldBePlayedCardId?: string;
   attackerPermanentId?: string;
+  /** Named attack procedure that caused the current attack watcher, when applicable. */
+  attackMechanic?: string;
   /** The defending permanent of the in-flight battle (the original target or the blocker). */
   defenderPermanentId?: string;
   /** The Digimon that declared a block this battle (＜Blocker＞ window). */

@@ -66,7 +66,7 @@ const compiled: CompiledCard = {
           "controller": "mine",
           "amount": 2,
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectActed",
             "raw": "this effect trashed"
           }
         },
@@ -124,7 +124,7 @@ const compiled: CompiledCard = {
           "controller": "mine",
           "amount": 2,
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectActed",
             "raw": "this effect trashed"
           }
         },

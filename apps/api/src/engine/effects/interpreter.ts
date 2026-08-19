@@ -2156,7 +2156,7 @@ function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
 
 /** Evaluate a parsed Condition. An unrecognized ("raw") condition is treated as
  *  unmet so the interpreter never guesses a gate it could not parse. */
-function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
+export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
   const mine = ctx.source.ownerSeat;
   const opp = ctx.game.opponentOf(mine);
   switch (cond.kind) {
@@ -2185,6 +2185,43 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
         ids.length > 0 &&
         ids.every((id) => (ctx.game.permanentById(id)?.currentDP ?? -Infinity) >= (cond.value ?? Infinity))
       );
+    }
+    case "lastTargetDpAtMostSelf": {
+      const source = ctx.source.permanent();
+      const ids = ctx.lastResolvedPermanentIds ?? [];
+      return (
+        source !== undefined &&
+        ids.length > 0 &&
+        ids.every((id) => (ctx.game.permanentById(id)?.currentDP ?? Infinity) <= source.currentDP)
+      );
+    }
+    case "triggerRevealedFromDeck":
+      return (ctx.lastRevealedCards ?? []).some((card) => card.cardId === ctx.source.cardId);
+    case "triggerAttackBy":
+      return ctx.trigger.attackMechanic === cond.keyword;
+    case "allYoursMatchFilter":
+      return ctx.game
+        .player(mine)
+        .battleArea.every(
+          (permanent) =>
+            cond.filter === undefined ||
+            permanentMatchesFilter(ctx, permanent, { ...cond.filter, controller: "mine" }, ctx.source),
+        );
+    case "breedingAreaEmpty":
+      return ctx.game.player(mine).breeding === undefined;
+    case "digivolutionCountCompare": {
+      const ids = ctx.lastResolvedPermanentIds ?? [];
+      const target = ids.length === 1 ? ctx.game.permanentById(ids[0]!) : undefined;
+      const source = ctx.source.permanent();
+      if (target === undefined || source === undefined) return false;
+      const targetCount = target.stack.length - 1;
+      const sourceCount = source.stack.length - 1;
+      return compareNumber(targetCount, cond.op, sourceCount);
+    }
+    case "triggerPlayCostAtMostStackCount": {
+      const source = ctx.source.permanent();
+      const playCost = ctx.trigger.playedPlayCost;
+      return source !== undefined && playCost !== undefined && playCost <= source.stack.length - 1;
     }
     case "selfHasKeyword": {
       const permanent = ctx.source.permanent();
