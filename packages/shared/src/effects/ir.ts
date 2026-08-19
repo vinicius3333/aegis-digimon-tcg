@@ -1153,6 +1153,7 @@ export interface Cost {
     | "payMemory"
     | "flipSecurity" // flip your top face-up security card face down (BT23-043, EX11-031)
     | "trashSecurityTop" // trash your own top security card (ST23-05)
+    | "trashBottomFaceDownUnderTamer" // trash the bottom face-down card under one of your Tamers
     | "securityToHand" // add your top/bottom security card to hand as a cost
     | "placeAsSecurity" // move a permanent to the security stack as a cost (BT19-048)
     | "playFromDigivolutionCards" // play a selected card from a selected Digimon's stack as a cost (BT19-102)
@@ -1167,6 +1168,8 @@ export interface Cost {
    * Distinct from a "You may" on the whole action.
    */
   optional?: boolean;
+  /** Controller for specialized costs that target a relative player's stack. */
+  controller?: Controller;
   raw?: string;
   /**
    * Return destination for `kind:"return"` costs. `"deckBottom"` sends the card to the bottom

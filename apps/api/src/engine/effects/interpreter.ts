@@ -2890,6 +2890,13 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
  * `securityToHand`, and `payMemory`; extend as other provable cases arise.
  */
 function canPayCost(ctx: EffectContext, cost: Cost): boolean {
+  if (cost.kind === "trashBottomFaceDownUnderTamer") {
+    const seat = cost.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
+    return ctx.game.player(seat).battleArea.some((permanent) => {
+      if (permanent.topCard === undefined || !isTamer(ctx.game.definitionOf(permanent.topCard))) return false;
+      return permanent.stack.some((card) => !card.faceUp);
+    });
+  }
   if (cost.kind === "deleteOwn") {
     if (cost.target === undefined) return false;
     const candidates = candidatePermanents(ctx, cost.target);
@@ -2998,6 +3005,31 @@ export async function payCost(
   opts?: { deferSuspendTriggers?: boolean },
 ): Promise<boolean> {
   switch (cost.kind) {
+    case "trashBottomFaceDownUnderTamer": {
+      const seat = cost.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
+      const candidates = ctx.game.player(seat).battleArea.filter((permanent) => {
+        if (permanent.topCard === undefined || !isTamer(ctx.game.definitionOf(permanent.topCard))) return false;
+        return permanent.stack.some((card) => !card.faceUp);
+      });
+      if (candidates.length === 0) return false;
+      const chosenId =
+        candidates.length === 1
+          ? candidates[0]!.permanentId
+          : (await ctx.ask.chooseTargets(ctx, {
+              candidates: candidates.map((permanent) => permanent.permanentId),
+              min: 1,
+              max: 1,
+            }))[0];
+      if (chosenId === undefined) return false;
+      const chosen = ctx.game.permanentById(chosenId);
+      const bottomFaceDown = chosen?.stack.find((card) => !card.faceUp);
+      if (bottomFaceDown === undefined) return false;
+      const moved = await ctx.fx.trashDigivolutionCards(chosenId, [bottomFaceDown.instanceId], {
+        byEffectSeat: ctx.source.ownerSeat,
+        byEffectCardId: ctx.source.cardId,
+      });
+      return moved.length === 1;
+    }
     case "suspend": {
       // "by suspending this Tamer" etc.
       const ids = cost.target
