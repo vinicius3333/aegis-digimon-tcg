@@ -126,7 +126,7 @@ const compiled: CompiledCard = {
           ],
           "payCost": false,
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectDidNotAct",
             "raw": "they don't"
           },
           "optional": true

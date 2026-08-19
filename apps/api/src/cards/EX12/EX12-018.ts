@@ -87,7 +87,7 @@ const compiled: CompiledCard = {
           "amount": -2000,
           "duration": "untilOpponentTurnEnd",
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectActed",
             "raw": "this effect placed"
           },
           "scaling": {
@@ -154,7 +154,7 @@ const compiled: CompiledCard = {
           "amount": -2000,
           "duration": "untilOpponentTurnEnd",
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectActed",
             "raw": "this effect placed"
           },
           "scaling": {

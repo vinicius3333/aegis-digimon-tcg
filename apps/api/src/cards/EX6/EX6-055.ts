@@ -36,7 +36,7 @@ const compiled: CompiledCard = {
             }
           },
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectDidNotAct",
             "raw": "you didn't"
           }
         }
@@ -71,7 +71,7 @@ const compiled: CompiledCard = {
             }
           },
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectDidNotAct",
             "raw": "you didn't"
           }
         }

@@ -115,7 +115,7 @@ const compiled: CompiledCard = {
             }
           },
           "while": {
-            "kind": "raw",
+            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens": ["Dark Animal","SoC"], "match": "trait"}]},
             "raw": "this Digimon has the [Dark Animal]/[SoC] trait"
           }
         },
@@ -136,7 +136,7 @@ const compiled: CompiledCard = {
             }
           },
           "while": {
-            "kind": "raw",
+            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens": ["Dark Animal","SoC"], "match": "trait"}]},
             "raw": "this Digimon has the [Dark Animal]/[SoC] trait"
           }
         }

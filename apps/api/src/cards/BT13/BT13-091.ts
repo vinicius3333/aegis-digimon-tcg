@@ -118,7 +118,7 @@ const compiled: CompiledCard = {
             "topCardOnly": true
           },
           "condition": {
-            "kind": "raw",
+            "kind": "selfHasName", "names": ["Belphemon: Sleep Mode"],
             "raw": "this Digimon is [Belphemon: Sleep Mode]"
           }
         }

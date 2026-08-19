@@ -74,6 +74,11 @@ export function runtimeCompiledCard(cardId: string): CompiledCard | undefined {
   return registeredCompiledCards.get(cardId) ?? getCompiledCard(cardId);
 }
 
+/** Whether the runtime card module owns an inline compiled IR record. */
+export function hasRegisteredCompiledCard(cardId: string): boolean {
+  return registeredCompiledCards.has(cardId);
+}
+
 /** Names a card is unconditionally also treated as in every zone. */
 export function universalNameAliasesFor(cardId: string): string[] {
   const compiled = runtimeCompiledCard(cardId);
@@ -2151,7 +2156,7 @@ function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
 
 /** Evaluate a parsed Condition. An unrecognized ("raw") condition is treated as
  *  unmet so the interpreter never guesses a gate it could not parse. */
-function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
+export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
   const mine = ctx.source.ownerSeat;
   const opp = ctx.game.opponentOf(mine);
   switch (cond.kind) {
@@ -2180,6 +2185,59 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
         ids.length > 0 &&
         ids.every((id) => (ctx.game.permanentById(id)?.currentDP ?? -Infinity) >= (cond.value ?? Infinity))
       );
+    }
+    case "lastTargetDpAtMostSelf": {
+      const source = ctx.source.permanent();
+      const ids = ctx.lastResolvedPermanentIds ?? [];
+      return (
+        source !== undefined &&
+        ids.length > 0 &&
+        ids.every((id) => (ctx.game.permanentById(id)?.currentDP ?? Infinity) <= source.currentDP)
+      );
+    }
+    case "lastTargetDpGreaterThanSelf": {
+      const source = ctx.source.permanent();
+      const ids = ctx.lastResolvedPermanentIds ?? [];
+      return source !== undefined && ids.length > 0 && ids.every((id) => (ctx.game.permanentById(id)?.currentDP ?? -Infinity) > source.currentDP);
+    }
+    case "lastTargetCanTrashDigivolution": {
+      const ids = ctx.lastResolvedPermanentIds ?? [];
+      return ids.length > 0 && ids.every((id) => {
+        const permanent = ctx.game.permanentById(id);
+        if (permanent === undefined || permanent.stack.length <= 1) return false;
+        const level = permanent.topCard === undefined ? undefined : ctx.game.definitionOf(permanent.topCard).level;
+        return level !== 3;
+      });
+    }
+    case "triggerRevealedFromDeck":
+      return (ctx.lastRevealedCards ?? []).some((card) => card.cardId === ctx.source.cardId);
+    case "triggerRevealedMatchesFilter":
+      return cond.filter !== undefined && (ctx.lastRevealedCards ?? []).some((card) => definitionMatches(cond.filter!, ctx.game.definitionOf(card as never)));
+    case "triggerAttackBy":
+      return ctx.trigger.attackMechanic === cond.keyword;
+    case "allYoursMatchFilter":
+      return ctx.game
+        .player(mine)
+        .battleArea.every(
+          (permanent) =>
+            cond.filter === undefined ||
+            permanentMatchesFilter(ctx, permanent, { ...cond.filter, controller: "mine" }, ctx.source),
+        );
+    case "breedingAreaEmpty":
+      return ctx.game.player(mine).breeding === undefined;
+    case "digivolutionCountCompare": {
+      const ids = ctx.lastResolvedPermanentIds ?? [];
+      const target = ids.length === 1 ? ctx.game.permanentById(ids[0]!) : undefined;
+      const source = ctx.source.permanent();
+      if (target === undefined || source === undefined) return false;
+      const targetCount = target.stack.length - 1;
+      const sourceCount = source.stack.length - 1;
+      return compareNumber(targetCount, cond.op, sourceCount);
+    }
+    case "triggerPlayCostAtMostStackCount": {
+      const source = ctx.source.permanent();
+      const playCost = ctx.trigger.playedPlayCost;
+      return source !== undefined && playCost !== undefined && playCost <= source.stack.length - 1;
     }
     case "selfHasKeyword": {
       const permanent = ctx.source.permanent();
@@ -2276,6 +2334,7 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
         if (permanent.topCard === undefined) continue;
         const definition = ctx.game.definitionOf(permanent.topCard);
         if (cond.cardType !== undefined && !definition.kinds.includes(cond.cardType as never)) continue;
+        if (cond.filter !== undefined && !permanentMatchesFilter(ctx, permanent, cond.filter, ctx.source)) continue;
         for (const color of definition.colors) colors.add(color);
       }
       const value = cond.value ?? 0;
@@ -2482,6 +2541,16 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
       // `filter.nameOrTrait`, using the same Form ∪ Attribute ∪ Type union as every other trait
       // match. An unset filter never matches (we do not guess).
       return selfStackMatchesTrait(ctx, cond.filter);
+    case "selfDigivolutionStackDistinctNameCount": {
+      const self = ctx.source.permanent();
+      if (self === undefined) return false;
+      const names = new Set(self.stack.map((card) => ctx.game.definitionOf(card).nameEn.toLowerCase()));
+      return compareNumber(names.size, cond.op, cond.value ?? 0);
+    }
+    case "selfDigivolutionStackMatchesFilter": {
+      const self = ctx.source.permanent();
+      return self !== undefined && cond.filter !== undefined && self.stack.some((card) => definitionMatches(cond.filter!, ctx.game.definitionOf(card)));
+    }
     case "selfDigivolutionStackHasColor": {
       const self = ctx.source.permanent();
       const colors = cond.filter?.colors ?? [];
@@ -2910,6 +2979,18 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
  * `securityToHand`, and `payMemory`; extend as other provable cases arise.
  */
 function canPayCost(ctx: EffectContext, cost: Cost): boolean {
+  if (cost.kind === "raw") return false;
+  if (cost.kind === "moveToBattleArea") {
+    const self = ctx.source.permanent();
+    return self !== undefined && self.inBreeding && ctx.game.player(ctx.source.ownerSeat).battleArea.length === 0;
+  }
+  if (cost.kind === "attack" || cost.kind === "digivolveSelf") return ctx.source.permanent() !== undefined;
+  if (cost.kind === "reveal") {
+    if (cost.target === undefined) return false;
+    const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
+    const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
+    return required > 0 && candidates.length >= required;
+  }
   if (cost.kind === "compound") {
     return cost.costs !== undefined && cost.costs.length > 0 && cost.costs.every((nested) => canPayCost(ctx, nested));
   }
@@ -3029,6 +3110,21 @@ export async function payCost(
   opts?: { deferSuspendTriggers?: boolean },
 ): Promise<boolean> {
   switch (cost.kind) {
+    case "moveToBattleArea": {
+      const self = ctx.source.permanent();
+      return self !== undefined && (await ctx.fx.movePermanentZone(self.permanentId, "toBattle"));
+    }
+    case "attack":
+    case "digivolveSelf":
+      return false;
+    case "reveal": {
+      if (cost.target === undefined) return false;
+      const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
+      const count = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
+      if (count <= 0 || candidates.length < count) return false;
+      const chosen = await pickLoose(ctx, { ...cost.target, count }, candidates);
+      return chosen.length === count;
+    }
     case "compound": {
       if (cost.costs === undefined || cost.costs.length === 0) return false;
       for (const nested of cost.costs) {
@@ -3570,6 +3666,10 @@ export async function payCost(
         if (level !== undefined && level > 0) maxLevel = Math.max(maxLevel ?? 0, level);
       }
       if (maxLevel !== undefined) ctx.lastDeletedLevel = maxLevel;
+      if (cost.bindResultAs !== undefined) {
+        ctx.boundPlayed ??= new Map();
+        ctx.boundPlayed.set(cost.bindResultAs, new Set(ids));
+      }
       await ctx.fx.deletePermanent(ids);
       return true;
     }
@@ -6148,6 +6248,19 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
             continue;
           }
           for (const id of ids) ctx.fx.restrict(id, mapped, grantDuration, { byOpponentEffectsOnly: true });
+        }
+        return false;
+      }
+      // BT18-065: while the controller has no Digimon other than Vemmon,
+      // cards in that controller's trash are legal DigiXros materials. This
+      // uses the same per-seat expansion ledger as the Tamer expander cards;
+      // the enclosing static condition is re-evaluated on every recompute.
+      if (action.grant === "digixrosFromTrash") {
+        const grantDuration = toDuration(action.duration ?? "permanent");
+        for (const id of ids) {
+          const permanent = ctx.game.permanentById(id);
+          if (permanent === undefined) continue;
+          ctx.fx.expandDigiXrosZones?.(permanent.controllerSeat, ["trash"], grantDuration);
         }
         return false;
       }
@@ -10894,12 +11007,15 @@ async function runEffect(ctx: EffectContext, effect: CardEffect): Promise<void> 
  * activation on a guess).
  */
 function canActivateEffect(ctx: EffectContext, effect: CardEffect): boolean {
-  if (effect.condition && effect.condition.kind !== "raw" && !evaluateCondition(ctx, effect.condition)) return false;
+  // An unparsed condition is not evidence that the effect is activatable. Treat it
+  // as restrictive here, matching runAction's resolution behavior; otherwise the
+  // UI offers an effect that resolution will silently skip.
+  if (effect.condition && (effect.condition.kind === "raw" || !evaluateCondition(ctx, effect.condition))) return false;
   const relevantActions = (effect.actions ?? []).filter((action) => action.kind !== "RawUnparsed");
   const isGated = (action: Action) =>
     action.kind === "DnaDigivolve" ||
-    (action.kind !== "ConditionalBranch" && action.condition !== undefined && action.condition.kind !== "raw") ||
-    (action.cost !== undefined && action.cost.kind !== "raw");
+    (action.kind !== "ConditionalBranch" && action.condition !== undefined) ||
+    action.cost !== undefined;
   // A leading abort-on-decline action is the activation gate for the complete clause:
   // "If ..., by paying ..., do X. Then, do Y." The dependent `Then` action is often
   // mechanically ungated because it consumes a binding produced by X; treating Y as an
@@ -10910,8 +11026,7 @@ function canActivateEffect(ctx: EffectContext, effect: CardEffect): boolean {
     const intrinsicPossible = leadingAction.kind !== "DnaDigivolve" || canAttemptDnaDigivolve(ctx, leadingAction);
     const conditionMet =
       leadingAction.condition === undefined ||
-      leadingAction.condition.kind === "raw" ||
-      evaluateCondition(ctx, leadingAction.condition);
+      (leadingAction.condition.kind !== "raw" && evaluateCondition(ctx, leadingAction.condition));
     const costPayable = leadingAction.cost === undefined || canPayCost(ctx, leadingAction.cost);
     return intrinsicPossible && conditionMet && costPayable;
   }
@@ -10921,7 +11036,7 @@ function canActivateEffect(ctx: EffectContext, effect: CardEffect): boolean {
   return gatedActions.some((action) => {
     const intrinsicPossible = action.kind !== "DnaDigivolve" || canAttemptDnaDigivolve(ctx, action);
     const conditionMet =
-      action.condition === undefined || action.condition.kind === "raw" || evaluateCondition(ctx, action.condition);
+      action.condition === undefined || (action.condition.kind !== "raw" && evaluateCondition(ctx, action.condition));
     const costPayable = action.cost === undefined || canPayCost(ctx, action.cost);
     return intrinsicPossible && conditionMet && costPayable;
   });

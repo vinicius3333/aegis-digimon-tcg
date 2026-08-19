@@ -102,7 +102,7 @@ const compiled: CompiledCard = {
           "amount": -3000,
           "duration": "forTheTurn",
           "condition": {
-            "kind": "raw",
+            "kind": "isDnaDigivolving",
             "raw": "DNA digivolving"
           }
         }

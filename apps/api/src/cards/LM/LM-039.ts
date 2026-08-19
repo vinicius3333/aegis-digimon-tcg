@@ -53,7 +53,7 @@ const compiled: CompiledCard = {
           },
           "duration": "forTheTurn",
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectDidNotAct",
             "raw": "this effect didn't return"
           }
         }
@@ -97,7 +97,7 @@ const compiled: CompiledCard = {
           },
           "duration": "forTheTurn",
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectDidNotAct",
             "raw": "this effect didn't return"
           }
         }

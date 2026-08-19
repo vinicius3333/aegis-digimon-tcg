@@ -64,7 +64,7 @@ const compiled: CompiledCard = {
           ],
           "optional": true,
           "condition": {
-            "kind": "raw",
+            "kind": "isDnaDigivolving",
             "raw": "DNA digivolving"
           }
         }
@@ -116,7 +116,7 @@ const compiled: CompiledCard = {
           ],
           "optional": true,
           "condition": {
-            "kind": "raw",
+            "kind": "isDnaDigivolving",
             "raw": "DNA digivolving"
           }
         }

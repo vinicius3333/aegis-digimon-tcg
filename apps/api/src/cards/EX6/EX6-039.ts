@@ -98,7 +98,8 @@ const compiled: CompiledCard = {
           "count": 1,
           "payCost": false,
           "condition": {
-            "kind": "raw",
+            "kind": "selfHasTrait",
+            "filter": { "nameOrTrait": [{ "tokens": ["Unidentified"], "match": "trait" }] },
             "raw": "this Digimon had the [Unidentified] trait"
           },
           "optional": true

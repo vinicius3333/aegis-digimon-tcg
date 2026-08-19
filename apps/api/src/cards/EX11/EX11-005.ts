@@ -50,7 +50,7 @@ const compiled: CompiledCard = {
             "count": 2
           },
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectDigivolved",
             "raw": "this effect digivolved"
           }
         }

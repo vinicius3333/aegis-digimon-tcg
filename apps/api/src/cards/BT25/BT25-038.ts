@@ -50,7 +50,7 @@ export const compiled: CompiledCard = {
           "bothPlayers": true,
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "isDnaDigivolving",
             "raw": "DNA digivolving"
           }
         }
@@ -87,7 +87,7 @@ export const compiled: CompiledCard = {
           "bothPlayers": true,
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "isDnaDigivolving",
             "raw": "DNA digivolving"
           }
         }

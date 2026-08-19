@@ -77,6 +77,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "lobby.yourDecks": "Seus decks",
   "lobby.famousDecks": "Decks famosos",
   "lobby.famousDecksDesc": "Listas históricas e competitivas disponíveis no pool atual.",
+  "lobby.deckCount": "{count} decks",
   "lobby.copyPreset": "Copiar para editar",
   "lobby.noDecks": "Nenhum deck próprio ainda —",
   "lobby.noDecksLink": "monte um no Construtor de decks",

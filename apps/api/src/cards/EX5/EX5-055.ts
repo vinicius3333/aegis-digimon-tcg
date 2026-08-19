@@ -48,7 +48,7 @@ const compiled: CompiledCard = {
           "position": "top",
           "scope": "acrossDigimon",
           "condition": {
-            "kind": "raw",
+            "kind": "lastTargetCanTrashDigivolution",
             "raw": "If it has no digivolution cards, or becomes a level 3 Digimon, you can't trash any more cards"
           }
         },
@@ -102,7 +102,7 @@ const compiled: CompiledCard = {
           "position": "top",
           "scope": "acrossDigimon",
           "condition": {
-            "kind": "raw",
+            "kind": "lastTargetCanTrashDigivolution",
             "raw": "If it has no digivolution cards, or becomes a level 3 Digimon, you can't trash any more cards"
           }
         },

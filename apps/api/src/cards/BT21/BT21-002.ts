@@ -15,7 +15,7 @@ const compiled: CompiledCard = {
           "controller": "mine",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "anyOf", "conditions": [{"kind": "selfTopHasText", "filter": {"nameOrTrait": [{"tokens": ["Gammamon"], "match": "text"}]}}, {"kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens": ["Hero"], "match": "trait"}]}}],
             "raw": "this Digimon has [Gammamon] in its text or the [Hero] trait"
           }
         }

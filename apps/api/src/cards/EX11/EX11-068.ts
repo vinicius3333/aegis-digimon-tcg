@@ -112,7 +112,7 @@ const compiled: CompiledCard = {
               "reduceCost": 2,
               "optional": true,
               "condition": {
-                "kind": "raw",
+                "kind": "triggerAttackBy", "keyword": "Execute",
                 "raw": "if attacking by ＜Execute＞"
               }
             }

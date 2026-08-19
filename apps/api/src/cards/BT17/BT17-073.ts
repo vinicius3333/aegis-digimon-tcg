@@ -28,7 +28,7 @@ const compiled: CompiledCard = {
             {
               "kind": "Prevent",
               "cost": {
-                "kind": "raw",
+          "kind": "digivolveSelf",
                 "raw": "by digivolving it into this card without paying the cost"
               },
               "optional": true,
@@ -69,7 +69,11 @@ const compiled: CompiledCard = {
             "count": "all"
           },
           "condition": {
-            "kind": "raw",
+          "kind": "anyOf",
+          "conditions": [
+            { "kind": "selfHasInDigivolutionCards", "nameOrTrait": [{ "tokens": ["Dorugoramon"], "match": "name" }] },
+            { "kind": "digivolvedFromZone", "zone": "trash" }
+          ],
             "raw": "[Dorugoramon] is in this Digimon's digivolution cards or this card is digivolving from the trash"
           }
         }

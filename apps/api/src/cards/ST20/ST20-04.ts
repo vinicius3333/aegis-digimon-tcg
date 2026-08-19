@@ -56,7 +56,11 @@ const compiled: CompiledCard = {
               target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
               keyword: { keyword: "Alliance", raw: "＜Alliance＞" },
               duration: "forTheTurn",
-              condition: { kind: "raw", raw: "any of them have the [ADVENTURE] trait" },
+              condition: {
+                kind: "triggerSubjectMatchesFilter",
+                filter: { nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }] },
+                raw: "any of them have the [ADVENTURE] trait",
+              },
             },
           ],
           raw: "When one of your other Digimon is played, 1 of your Digimon gains ＜Alliance＞ for the turn",

@@ -27,7 +27,10 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           condition: {
-            kind: "raw",
+            kind: "zoneColorCount",
+            cardType: "Tamer",
+            op: "gte",
+            value: 2,
             raw: "your Tamers have 2 or more total colors",
           },
         },
@@ -45,7 +48,8 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           condition: {
-            kind: "raw",
+            kind: "not",
+            condition: { kind: "zoneColorCount", cardType: "Tamer", op: "gte", value: 2 },
             raw: "your Tamers don't have 2 or more total colors",
           },
         },
@@ -68,7 +72,10 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           condition: {
-            kind: "raw",
+            kind: "zoneColorCount",
+            cardType: "Tamer",
+            op: "gte",
+            value: 2,
             raw: "your Tamers have 2 or more total colors",
           },
         },
@@ -86,7 +93,8 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           condition: {
-            kind: "raw",
+            kind: "not",
+            condition: { kind: "zoneColorCount", cardType: "Tamer", op: "gte", value: 2 },
             raw: "your Tamers don't have 2 or more total colors",
           },
         },
@@ -119,7 +127,10 @@ export const compiled: CompiledCard = {
               },
               duration: "forTheTurn",
               condition: {
-                kind: "raw",
+                kind: "triggerSubjectMatchesFilter",
+                filter: {
+                  nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }],
+                },
                 raw: "any of them have the [ADVENTURE] trait",
               },
             },
@@ -149,7 +160,10 @@ export const compiled: CompiledCard = {
               },
               duration: "forTheTurn",
               condition: {
-                kind: "raw",
+                kind: "triggerSubjectMatchesFilter",
+                filter: {
+                  nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }],
+                },
                 raw: "any of them have the [ADVENTURE] trait",
               },
             },

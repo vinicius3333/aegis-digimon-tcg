@@ -44,7 +44,8 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "digiXrosCount",
+            "minimum": 1,
             "raw": "DigiXrosing"
           }
         }
@@ -89,7 +90,8 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "digiXrosCount",
+            "minimum": 1,
             "raw": "DigiXrosing"
           }
         }

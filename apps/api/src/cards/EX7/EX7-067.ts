@@ -52,7 +52,7 @@ const compiled: CompiledCard = {
           ],
           "payCost": false,
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectDidNotAct",
             "raw": "this effect didn't trash"
           },
           "optional": true

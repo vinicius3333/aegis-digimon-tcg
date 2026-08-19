@@ -38,7 +38,8 @@ const compiled: CompiledCard = {
             "upTo": true
           },
           "condition": {
-            "kind": "raw",
+            "kind": "digiXrosCount",
+            "minimum": 1,
             "raw": "DigiXrosing"
           }
         }
@@ -62,7 +63,7 @@ const compiled: CompiledCard = {
           "restriction": "attack",
           "duration": "untilOpponentTurnEnd",
           "condition": {
-            "kind": "raw",
+            "kind": "selfHasName", "names": ["GreyKnightsmon"],
             "raw": "this Digimon is [GreyKnightsmon]"
           }
         }

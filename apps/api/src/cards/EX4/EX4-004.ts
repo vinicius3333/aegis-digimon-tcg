@@ -14,7 +14,7 @@ const compiled: CompiledCard = {
           "kind": "GainMemory",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "not", "condition": {"kind": "triggerRemovalCause", "removalCause": "byBattle"},
             "raw": "deleted outside of a battle"
           }
         }

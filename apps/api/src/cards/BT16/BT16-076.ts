@@ -67,7 +67,7 @@ const compiled: CompiledCard = {
           ],
           "payCost": false,
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectDidNotDelete",
             "raw": "this effect didn't delete"
           },
           "optional": true

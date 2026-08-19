@@ -74,7 +74,7 @@ const compiled: CompiledCard = {
             }
           },
           "while": {
-            "kind": "raw",
+            "kind": "selfDpAtLeast", "value": 10000,
             "raw": "this Digimon has 10000 DP or more"
           }
         }

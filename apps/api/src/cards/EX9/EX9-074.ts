@@ -80,7 +80,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "not", "condition": {"kind": "selfDigivolutionStackDistinctColorCount", "op": "gte", "value": 6},
             "raw": "this Digimon has fewer than 6 colors in its digivolution cards"
           }
         },
@@ -96,7 +96,7 @@ const compiled: CompiledCard = {
             }
           },
           "condition": {
-            "kind": "raw",
+            "kind": "selfDigivolutionStackDistinctColorCount", "op": "gte", "value": 6,
             "raw": "this Digimon has 6 or more colors in its digivolution cards"
           }
         }
@@ -148,7 +148,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "not", "condition": {"kind": "selfDigivolutionStackDistinctColorCount", "op": "gte", "value": 6},
             "raw": "this Digimon has fewer than 6 colors in its digivolution cards"
           }
         },
@@ -164,7 +164,7 @@ const compiled: CompiledCard = {
             }
           },
           "condition": {
-            "kind": "raw",
+            "kind": "selfDigivolutionStackDistinctColorCount", "op": "gte", "value": 6,
             "raw": "this Digimon has 6 or more colors in its digivolution cards"
           }
         }

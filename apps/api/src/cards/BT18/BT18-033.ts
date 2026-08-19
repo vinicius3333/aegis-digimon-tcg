@@ -21,7 +21,7 @@ const compiled: CompiledCard = {
           },
           "payCost": false,
           "condition": {
-            "kind": "raw",
+            "kind": "breedingAreaEmpty",
             "raw": "your breeding area is empty"
           },
           "cost": {

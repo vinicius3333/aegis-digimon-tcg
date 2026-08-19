@@ -39,7 +39,11 @@ const compiled: CompiledCard = {
           ],
           "optional": true,
           "condition": {
-            "kind": "raw",
+            "kind": "zoneColorCount",
+            "cardType": "Tamer",
+            "filter": { "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }] },
+            "op": "gte",
+            "value": 3,
             "raw": "your Tamers with the [ADVENTURE] trait have 3 or more total colors"
           }
         }
@@ -77,7 +81,11 @@ const compiled: CompiledCard = {
           ],
           "optional": true,
           "condition": {
-            "kind": "raw",
+            "kind": "zoneColorCount",
+            "cardType": "Tamer",
+            "filter": { "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }] },
+            "op": "gte",
+            "value": 3,
             "raw": "your Tamers with the [ADVENTURE] trait have 3 or more total colors"
           }
         }

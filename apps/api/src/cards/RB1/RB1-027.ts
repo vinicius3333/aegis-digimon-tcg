@@ -31,7 +31,8 @@ const compiled: CompiledCard = {
           "kind": "GainMemory",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "triggerRevealedMatchesFilter",
+            "filter": { "kind": ["Digimon"] },
             "raw": "that card is a Digimon card"
           }
         },
@@ -40,7 +41,8 @@ const compiled: CompiledCard = {
           "controller": "mine",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "not",
+            "condition": { "kind": "triggerRevealedMatchesFilter", "filter": { "kind": ["Digimon"] } },
             "raw": "it's a non-Digimon card"
           }
         },
@@ -67,7 +69,8 @@ const compiled: CompiledCard = {
           "kind": "GainMemory",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "triggerRevealedMatchesFilter",
+            "filter": { "kind": ["Digimon"] },
             "raw": "that card is a Digimon card"
           }
         },
@@ -76,7 +79,8 @@ const compiled: CompiledCard = {
           "controller": "mine",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "not",
+            "condition": { "kind": "triggerRevealedMatchesFilter", "filter": { "kind": ["Digimon"] } },
             "raw": "it's a non-Digimon card"
           }
         },

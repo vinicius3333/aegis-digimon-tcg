@@ -27,7 +27,7 @@ const compiled: CompiledCard = {
             }
           },
           "while": {
-            "kind": "raw",
+            "kind": "selfHasName", "names": ["Argomon"],
             "raw": "this Digimon is [Argomon]"
           }
         }

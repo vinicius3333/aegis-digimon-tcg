@@ -90,7 +90,7 @@ const compiled: CompiledCard = {
               "payCost": false,
               "optional": true,
               "condition": {
-                "kind": "raw",
+                "kind": "triggerRemovalCause", "removalCause": "byEffect",
                 "raw": "if deleted by ＜Overclock＞"
               }
             }

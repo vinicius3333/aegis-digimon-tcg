@@ -157,7 +157,7 @@ const compiled: CompiledCard = {
               },
               "payCost": true,
               "condition": {
-                "kind": "raw",
+                "kind": "triggerSubjectMatchesFilter", "filter": {"nameOrTrait": [{"tokens": ["WG"], "match": "trait"}]},
                 "raw": "any of them have the [WG] trait"
               },
               "optional": true
@@ -201,7 +201,7 @@ const compiled: CompiledCard = {
               },
               "payCost": true,
               "condition": {
-                "kind": "raw",
+                "kind": "triggerSubjectMatchesFilter", "filter": {"nameOrTrait": [{"tokens": ["WG"], "match": "trait"}]},
                 "raw": "any of them have the [WG] trait"
               },
               "optional": true

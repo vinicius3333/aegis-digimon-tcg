@@ -152,7 +152,15 @@ const compiled: CompiledCard = {
             }
           ],
           "cost": {
-            "kind": "raw",
+            "kind": "place",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestDP" },
+              "count": 1,
+              "from": ["battleArea"]
+            },
+            "destination": "security",
+            "position": "bottom",
+            "targetIsPermanent": true,
             "raw": "by placing 1 of your opponent's Digimon with the lowest DP as the bottom security card"
           }
         },
@@ -167,7 +175,14 @@ const compiled: CompiledCard = {
             }
           ],
           "cost": {
-            "kind": "raw",
+            "kind": "place",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestDP" },
+              "count": 1
+            },
+            "destination": "security",
+            "position": "bottom",
+            "targetIsPermanent": true,
             "raw": "by placing 1 of your opponent's Digimon with the lowest DP as the bottom security card"
           }
         }

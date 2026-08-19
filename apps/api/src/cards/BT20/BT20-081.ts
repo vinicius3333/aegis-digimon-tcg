@@ -59,7 +59,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "selfDigivolutionStackCountAtLeast", "count": 1, "filter": {"kind": ["Tamer"]},
             "raw": "a Tamer card is in this Digimon's digivolution cards"
           }
         }
@@ -98,7 +98,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "selfDigivolutionStackCountAtLeast", "count": 1, "filter": {"kind": ["Tamer"]},
             "raw": "a Tamer card is in this Digimon's digivolution cards"
           }
         }

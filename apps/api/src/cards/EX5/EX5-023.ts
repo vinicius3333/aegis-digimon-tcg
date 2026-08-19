@@ -87,7 +87,7 @@ const compiled: CompiledCard = {
             "isSelf": true
           },
           "condition": {
-            "kind": "raw",
+            "kind": "selfHasNameContaining", "names": ["Garurumon","Omnimon"],
             "raw": "this Digimon has [Garurumon]/[Omnimon] in its name"
           },
           "cost": {

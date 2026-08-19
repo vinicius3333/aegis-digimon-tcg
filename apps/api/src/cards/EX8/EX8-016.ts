@@ -113,7 +113,7 @@ const compiled: CompiledCard = {
             "can only attack suspended Digimon"
           ],
           "condition": {
-            "kind": "raw",
+            "kind": "selfIsSuspended",
             "raw": "this Digimon is suspended"
           }
         }
