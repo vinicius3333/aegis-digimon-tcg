@@ -10,9 +10,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 /**
  * BT26-101 — Cross Arts (BT26, White Option).
  *
- * Provisional port: no KB entry (errata/Q&A) exists yet for BT26-101
- * (`node tools/kb/query.mjs card BT26-101` returned no knowledge-base entries). implemented
- * from the printed card text only, mirroring the reviewed hand-written BT26-098 (Option
+ * Q7182 confirms that the post-"Then" modal effect remains available even without the
+ * named Tamer, so the conditional grant and unconditional modal are intentionally separate.
+ * This mirrors the reviewed hand-written BT26-098 (Option
  * [Main] -> EffectTiming.OnUseOption, [Security] -> the `security` builder) and the
  * DP-threshold delete idiom from BT23-014.
  *
