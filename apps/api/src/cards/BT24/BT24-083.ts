@@ -23,6 +23,7 @@ export const compiled: CompiledCard = {
               {
                 controller: "mine",
                 kind: ["Digimon"],
+                levelComparison: { op: "lte", value: 4 },
                 dp: { op: "lte", value: 5000 },
                 nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
               },

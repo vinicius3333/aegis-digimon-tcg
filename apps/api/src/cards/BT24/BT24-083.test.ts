@@ -10,7 +10,12 @@ describe("BT24-083 Hiroko Sagisaka", () => {
       target: {
         filter: { controller: "mine", kind: ["Tamer"], nameOrTrait: [{ tokens: ["Hiroko Sagisaka"], match: "name" }] },
         orFilters: [
-          { kind: ["Digimon"], dp: { op: "lte", value: 5000 }, nameOrTrait: [{ tokens: ["TS"], match: "trait" }] },
+          {
+            kind: ["Digimon"],
+            levelComparison: { op: "lte", value: 4 },
+            dp: { op: "lte", value: 5000 },
+            nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
+          },
         ],
       },
       cost: { kind: "return", to: "deckBottom" },
