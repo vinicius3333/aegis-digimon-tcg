@@ -82,10 +82,9 @@ scenario("digivolve-normal", () => {
       fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
 
       // The opening draw can carry an effect that opens its own prompt before the first
-      // Breeding window (seed 14 draws one whose reveal asks for a deck order); answer it
-      // through the same overlay a player would use, once its dialog has rendered.
-      // The opening draw can open its own prompt before the first Breeding window; the
-      // scenario's later steps answer any that appear.
+      // Breeding window (seed 14 draws one whose reveal asks for a deck order). The
+      // scenario's later steps answer any that appear, through the same overlay a player
+      // would use.
 
       const yourBattleArea = () => document.querySelector('[data-drop="battle-you"]') as HTMLElement;
 
