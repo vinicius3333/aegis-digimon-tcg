@@ -6,143 +6,132 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Fix: [All Turns] Recovery action was outside the SubTrigger and had spurious `source` field.
 //   Rules §16-6: <Recovery> places top-of-deck cards on TOP of security stack. `toTop: true`.
 //   The conditional Recovery action is moved inside the SubTrigger as a second action.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Barrier",
-          "raw": "＜Barrier＞"
-        }
-      ]
+          keyword: "Barrier",
+          raw: "＜Barrier＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "amount": -6000,
-          "duration": "forTheTurn",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "security"
+          amount: -6000,
+          duration: "forTheTurn",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "security",
+                position: "top",
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing your top security card"
+            raw: "By trashing your top security card",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "amount": -6000,
-          "duration": "forTheTurn",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "security"
+          amount: -6000,
+          duration: "forTheTurn",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "security",
+                position: "top",
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing your top security card"
+            raw: "By trashing your top security card",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSecurityRemoved",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenSecurityRemoved",
+          actions: [
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "keyword": {
-                "keyword": "SecurityAttack",
-                "amount": 1,
-                "raw": "＜Security Attack +1＞"
+              keyword: {
+                keyword: "SecurityAttack",
+                amount: 1,
+                raw: "＜Security Attack +1＞",
               },
-              "duration": "untilYourTurnEnd"
+              duration: "untilYourTurnEnd",
             },
             {
-              "kind": "SecurityManipulation",
-              "op": "placeAsSecurity",
-              "controller": "mine",
-              "from": [
-                "deck"
-              ],
-              "toTop": true,
-              "amount": 1,
-              "condition": {
-                "kind": "zoneCount",
-                "seat": "mine",
-                "zone": "security",
-                "op": "lte",
-                "value": 3,
-                "raw": "you have 3 or fewer security cards"
-              }
-            }
+              kind: "SecurityManipulation",
+              op: "placeAsSecurity",
+              controller: "mine",
+              from: ["deck"],
+              toTop: true,
+              amount: 1,
+              condition: {
+                kind: "zoneCount",
+                seat: "mine",
+                zone: "security",
+                op: "lte",
+                value: 3,
+                raw: "you have 3 or fewer security cards",
+              },
+            },
           ],
-          "raw": "When your security stack is removed from"
-        }
+          raw: "When your security stack is removed from",
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "traits": [
-        "Witchelny",
-        "CS"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["Witchelny", "CS"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT23-035", compiled);
