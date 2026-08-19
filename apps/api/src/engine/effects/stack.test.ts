@@ -458,3 +458,37 @@ describe("resolveTiming: pass-cap overflow (Comprehensive Rules §18-3-2 infinit
     expect(drawDeclared).toBe(true);
   });
 });
+
+describe("resolveTiming: a pending effect whose source leaves and comes back (§15-4-4-3)", () => {
+  it("does not activate an effect whose source left its area mid-window and returned", async () => {
+    // §15-4-4-3: "When a card with an effect that's pending activation becomes a new card before
+    // the effect activates, the effect can no longer be activated." Leaving an area and coming
+    // back to it makes a card a new card, so a round trip inside one resolution window kills the
+    // pending trigger — it does not park it until the card is home again.
+    //
+    // The window here holds two effects. `mover` resolves first and, in its body, takes `pending`
+    // out of the collectable set (the card left its area) and then puts it back (it returned).
+    // Because the loop re-collects only between resolutions, `pending` is collectable again by
+    // the time the next pass runs — so a resolver that re-derives the activatable set purely
+    // from live state, with no memory of the departure, will resolve it.
+    const resolvedKeys: string[] = [];
+    const pending = fakeEffect("pending", { onResolve: () => resolvedKeys.push("pending") });
+    const pendingEntry = collected(0, "pending-card", pending);
+
+    let collectable: CollectedEffect[] = [];
+    const mover = fakeEffect("mover", {
+      onResolve: () => {
+        resolvedKeys.push("mover");
+        collectable = collectable.filter((c) => c !== pendingEntry); // the card leaves its area
+        collectable = [...collectable, pendingEntry]; // ...and returns, as a new card
+      },
+    });
+    const moverEntry = collected(0, "mover-card", mover);
+    collectable = [moverEntry, pendingEntry];
+
+    const { env } = envOver([], { collect: () => collectable });
+    await resolveTiming(EffectTiming.OnPlay, env);
+
+    expect(resolvedKeys).toEqual(["mover"]);
+  });
+});
