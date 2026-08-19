@@ -5,195 +5,166 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 5,
-              "raw": "reduce the play cost by 5",
-              "condition": {
-                "kind": "opponentHas",
-                "filter": {
-                  "controllerDefault": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "dp": {
-                    "op": "gte",
-                    "value": 10000
-                  }
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 5,
+              raw: "reduce the play cost by 5",
+              condition: {
+                kind: "opponentHas",
+                filter: {
+                  controllerDefault: "opponent",
+                  kind: ["Digimon"],
+                  dp: {
+                    op: "gte",
+                    value: 10000,
+                  },
                 },
-                "raw": "your opponent has a Digimon with 10000 DP or more"
-              }
-            }
-          ]
-        }
-      ]
+                raw: "your opponent has a Digimon with 10000 DP or more",
+              },
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "excludeSelf": true,
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "levelComparison": {
-              "op": "lte",
-              "value": 6
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            levelComparison: {
+              op: "lte",
+              value: 6,
             },
-            "nameOrTrait": [
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Leomon"
-                ],
-                "match": "name"
+                tokens: ["Leomon"],
+                match: "name",
               },
               {
-                "tokens": [
-                  "CS"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["CS"],
+                match: "trait",
+              },
+            ],
           },
-          "payCost": false,
-          "from": [
-            "hand"
-          ],
-          "optional": true
-        }
-      ]
+          payCost: false,
+          from: ["hand"],
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "excludeSelf": true,
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "levelComparison": {
-              "op": "lte",
-              "value": 6
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            levelComparison: {
+              op: "lte",
+              value: 6,
             },
-            "nameOrTrait": [
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Leomon"
-                ],
-                "match": "name"
+                tokens: ["Leomon"],
+                match: "name",
               },
               {
-                "tokens": [
-                  "CS"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["CS"],
+                match: "trait",
+              },
+            ],
           },
-          "payCost": false,
-          "from": [
-            "hand"
-          ],
-          "optional": true
-        }
-      ]
+          payCost: false,
+          from: ["hand"],
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "EndOfYourTurn",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Raid",
-            "raw": "＜Raid＞"
+          keyword: {
+            keyword: "Raid",
+            raw: "＜Raid＞",
           },
-          "duration": "forTheTurn"
+          duration: "forTheTurn",
         },
         {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Attack",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
+            sameTarget: true,
           },
-          "withoutSuspending": false,
-          "optional": true
-        }
+          withoutSuspending: false,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "names": [
-        "Leomon"
-      ],
-      "cost": 3,
-      "isAlternate": true
+      level: 5,
+      names: ["Leomon"],
+      cost: 3,
+      isAlternate: true,
     },
     {
-      "traits": [
-        "CS"
-      ],
-      "cost": 3,
-      "isAlternate": true,
-      "level": 5
-    }
-  ]
+      traits: ["CS"],
+      cost: 3,
+      isAlternate: true,
+      level: 5,
+    },
+  ],
 };
 
 registerIrCard("BT23-036", compiled);
