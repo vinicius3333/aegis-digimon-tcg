@@ -6685,6 +6685,7 @@ const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefined> = {
   whenBattleWon: "whenBattleWon",
   whenDeletesInBattle: "whenDeletesInBattle",
   whenOneOfYoursDigivolves: "whenOneOfYoursDigivolves",
+  whenAnyDigivolves: "whenAnyDigivolves",
   whenHatch: "whenHatch",
   whenMovedFromBreeding: "whenMovedFromBreeding",
   whenOpponentMovedFromBreeding: "whenOpponentMovedFromBreeding",

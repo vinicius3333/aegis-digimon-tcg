@@ -1230,6 +1230,10 @@ export class GameEngine {
           subjectPermanentId: permanent.permanentId,
           previousDigivolutionLevel: previousLevel,
         });
+        await this.fireSubTrigger("whenAnyDigivolves", {
+          subjectPermanentId: permanent.permanentId,
+          previousDigivolutionLevel: previousLevel,
+        });
       },
       emit: (event) => this.hooks.emit(event as ServerEvent),
     };
@@ -2111,6 +2115,10 @@ export class GameEngine {
     } else if (timing === EffectTiming.WhenDigivolving) {
       await this.fireTiming(EffectTiming.OnEnterFieldAnyone, { subjectPermanentId, entryCause: "digivolve" });
       await this.fireSubTrigger("whenOneOfYoursDigivolves", {
+        subjectPermanentId,
+        enteredByEffect: ownerSeat,
+      });
+      await this.fireSubTrigger("whenAnyDigivolves", {
         subjectPermanentId,
         enteredByEffect: ownerSeat,
       });

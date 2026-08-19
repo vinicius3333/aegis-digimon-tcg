@@ -76,6 +76,7 @@ export type SubTriggerEventName =
   | "whenSecurityBattleEnded"
   | "whenDeletesInBattle"
   | "whenOneOfYoursDigivolves"
+  | "whenAnyDigivolves"
   | "whenHatch"
   | "whenMovedFromBreeding"
   | "whenOpponentMovedFromBreeding"
