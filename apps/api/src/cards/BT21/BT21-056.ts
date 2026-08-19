@@ -3,7 +3,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-written override for BT21-056 (GranKuwagamon).
 // Fix: Return target must EXCLUDE DigiEgg (not include it).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
@@ -33,6 +33,7 @@ const compiled: CompiledCard = {
             raw: "By trashing 1 card with [Vemmon] in its text from your hand",
           },
           optional: true,
+          abortOnDecline: true,
         },
       ],
     },
@@ -42,18 +43,22 @@ const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldDigivolve",
-          mode: "reduceCost",
-          amount: 1,
-          raw: "When this Digimon would digivolve into a Digimon card with [Vemmon] in its text, reduce the digivolution cost by 1",
-          condition: {
-            kind: "raw",
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Vemmon"], match: "text" }],
-            },
-            raw: "digivolve into a Digimon card with [Vemmon] in its text",
+          sourceFilter: { isSelfRef: true },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Vemmon"], match: "text" }],
           },
+          raw: "When this Digimon would digivolve into a Digimon card with [Vemmon] in its text, reduce the digivolution cost by 1",
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 1,
+              raw: "reduce the digivolution cost by 1",
+            },
+          ],
         },
       ],
       isInherited: true,
