@@ -1,22 +1,99 @@
 // @ts-nocheck
-import { EffectTiming, isDigimon } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { activated, security } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/** BT24-099 — Super Hacking (White Option). Waive color if Appmon on field. [Main] Trash Appmon from hand to Draw 2, place self. [All Turns] When Digimon deleted, Delay -> link Appmon from trash to your Digimon free. [Security] Place self. */
-const cardId = "BT24-099";
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnUseOption) {
-      return [activated({ source, effectKey: `${cardId}/main`, description: "[Main] Trash Appmon from hand, Draw 2, place in battle area.", optional: true, canActivate: (ctx: any) => { return ctx.game.player(source.ownerSeat).hand.some((c: any) => { const def = ctx.game.definitionOf(c); return (def.types as string[]|undefined)?.includes("Appmon"); }); }, resolve: async (ctx: any) => { const owner = ctx.game.player(source.ownerSeat); const appmons = owner.hand.filter((c: any) => (ctx.game.definitionOf(c).types as string[]|undefined)?.includes("Appmon")).map((c: any) => c.instanceId); if (!appmons.length) return; const s = await ctx.ask.selectCards(ctx, { candidates: appmons, min: 0, max: 1 }); if (!s.length) return; await ctx.fx.trash(s); await ctx.fx.draw(source.ownerSeat, 2); await ctx.fx.placeOptionAsPermanent?.(source.instanceId); } })];
-    }
-    if (timing === EffectTiming.SecuritySkill) return [security({ source, effectKey: `${cardId}/sec`, description: "[Security] Place in battle area.", optional: false, resolve: async (ctx) => { await ctx.fx.placeOptionAsPermanent?.(source.instanceId); } })];
-    return [];
-  },
+export const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "WaiveColorRequirement",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon", "Tamer"],
+              nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+            },
+            raw: "you have an [Appmon] trait Digimon or Tamer on the field",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 2,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+              },
+              count: 1,
+            },
+            raw: "By trashing 1 [Appmon] card from your hand",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+        { kind: "PlaceInBattleAreaSelf" },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: { controller: "any", kind: ["Digimon"] },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              keyword: { keyword: "Delay", raw: "＜Delay＞" },
+              duration: "permanent",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Main",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
+      actions: [
+        {
+          kind: "Link",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+            },
+            count: 1,
+          },
+          recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [{ kind: "PlaceInBattleAreaSelf" }],
+      isSecurity: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
-registerCard(module);
-export default module;
+
+registerIrCard("BT24-099", compiled);
