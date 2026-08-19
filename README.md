@@ -28,9 +28,6 @@ state, and synchronizes the permitted result to each client.
 More detail is available in [Architecture](./docs/ARCHITECTURE.md) and the
 [API contract](./docs/API-CONTRACT.md).
 
-Card implementation progress is tracked in the public
-[Aegis Digimon TCG Card Roadmap](https://github.com/users/vinicius3333/projects/5).
-
 ## Why not DCGO?
 
 DCGO already works, and it is a good client. It also asks you to install a
