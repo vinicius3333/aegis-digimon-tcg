@@ -360,6 +360,31 @@ export function turnOwnerGuard(trigger: CardEffect["trigger"]): ((ctx: EffectCon
 }
 
 /** Run all actions of a CardEffect in order against the context. */
+/**
+ * Effect-RESULT bindings a resolution produces. `runEffect` runs the actions on its own derived
+ * context, so these are mirrored back onto the caller's context afterwards: the outcome of the
+ * resolution ("did this effect delete / use an Option / digivolve") is what a caller and the
+ * gated tail both read (KB EX8-037 Q4738).
+ */
+const RESULT_BINDING_KEYS = [
+  "lastDeleteCount",
+  "lastDeletedLevel",
+  "lastDigivolveResult",
+  "lastOptionUsed",
+  "lastEffectActed",
+  "lastOpponentDeclined",
+  "lastPlayedPermanentIds",
+  "lastSuspendedPermanentIds",
+  "lastRevealedCards",
+] as const satisfies readonly (keyof EffectContext)[];
+
+function mirrorResultBindings(from: EffectContext, to: EffectContext): void {
+  if (from === to) return;
+  for (const key of RESULT_BINDING_KEYS) {
+    if (from[key] !== undefined) (to as unknown as Record<string, unknown>)[key] = from[key];
+  }
+}
+
 export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise<void> {
   if (effect.condition && !evaluateCondition(ctx, effect.condition)) return;
   // Turn-condition gate for triggers that carry an explicit turnCondition field rather than
@@ -423,14 +448,18 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
       ctxWithSelections.fx.grantKeyword(self.permanentId, "Reboot", EffectDuration.Permanent);
     }
   }
-  for (const action of actions) {
-    // Legacy compiled Reboot records carry a self-Unsuspend action beside the keyword
-    // marker. It describes what Reboot does during the opponent's unsuspend phase; it is
-    // not a continuously re-fired "unsuspend now" action. Executing it in the static pass
-    // makes a Reboot Digimon stand back up immediately after declaring an attack.
-    if (isRebootMarker && action.kind === "Unsuspend") continue;
-    const abort = await runAction(ctxWithSelections, action);
-    if (abort) break;
+  try {
+    for (const action of actions) {
+      // Legacy compiled Reboot records carry a self-Unsuspend action beside the keyword
+      // marker. It describes what Reboot does during the opponent's unsuspend phase; it is
+      // not a continuously re-fired "unsuspend now" action. Executing it in the static pass
+      // makes a Reboot Digimon stand back up immediately after declaring an attack.
+      if (isRebootMarker && action.kind === "Unsuspend") continue;
+      const abort = await runAction(ctxWithSelections, action);
+      if (abort) break;
+    }
+  } finally {
+    mirrorResultBindings(ctxWithSelections, ctx);
   }
 }
 

@@ -152,7 +152,15 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
     for (const zone of zones) {
       for (const cand of looseCardsInZone(ctx, seat, zone)) {
         if (seen.has(cand.instanceId)) continue;
-        if (target.filter.isSelfRef === true && cand.instanceId !== ctx.source.instanceId) continue;
+        // `isSelfRef` on a digivolution-card filter scopes the HOST ("THIS Digimon's digivolution
+        // cards", BT4-017's ＜Digi-Burst＞), not the card identity: no stack card is ever the
+        // source instance itself. Everywhere else it still means "this very card", which an
+        // inherited source sitting in a stack also satisfies.
+        if (target.filter.isSelfRef === true && cand.instanceId !== ctx.source.instanceId) {
+          const selfPermanentId = ctx.source.permanent()?.permanentId;
+          const hostIsSelf = zone === "digivolutionCards" && cand.hostPermanentId === selfPermanentId;
+          if (!hostIsSelf) continue;
+        }
         const def = ctx.game.definitionOf({ cardId: cand.cardId } as never);
         if (!allFilters.some((f) => definitionMatches(f, def))) continue;
         // hostFilter: when sourcing from digivolutionCards, gate on the host permanent's kind

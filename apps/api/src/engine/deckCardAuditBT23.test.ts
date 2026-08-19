@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CardKind, getCardDefinition } from "@aegis/shared";
+import { CardColor, CardKind, getCardDefinition } from "@aegis/shared";
 import { getEffectModule } from "./effects/registry.js";
 import { assertNoLoudGap, setupEngine, settle } from "./testkit/harness.js";
 import "../cards/index.js";
@@ -36,6 +36,24 @@ const BT23_CARDS = [
 
 const PLAYABLE = new Set([CardKind.Digimon, CardKind.Tamer, CardKind.Option]);
 
+// An Option needs a Digimon or Tamer of EACH of its colors in play (§4-21-2), so the allies the
+// audit seats have to follow the audited card's colors — otherwise every off-red Option is
+// refused for its color requirement before its effect is ever reached. One plain level 3 per color.
+const ALLY_BY_COLOR: Record<string, string> = {
+  [CardColor.Red]: "BT1-009",
+  [CardColor.Blue]: "BT1-027",
+  [CardColor.Yellow]: "BT1-045",
+  [CardColor.Green]: "BT1-064",
+  [CardColor.White]: "BT16-082",
+  [CardColor.Black]: "BT10-058",
+  [CardColor.Purple]: "BT10-071",
+};
+
+function alliesFor(definition: { colors: readonly string[] }): string[] {
+  const allies = definition.colors.map((color) => ALLY_BY_COLOR[color]).filter((ally) => ally !== undefined);
+  return allies.length > 0 ? allies : ["BT1-009"];
+}
+
 describe("BT23 card-by-card audit", () => {
   it("has a registered implementation for every catalog card", () => {
     for (const cardId of BT23_CARDS) {
@@ -57,7 +75,7 @@ describe("BT23 card-by-card audit", () => {
             deck: ["BT1-009", "BT1-027", "BT1-009", "BT1-027", "BT1-090"],
             trash: ["BT1-009", "BT1-027", "BT1-090"],
             security: ["BT1-090", "BT1-090", "BT1-090"],
-            battleArea: [{ card: "BT1-009", as: "ally", under: ["BT1-009"] }],
+            battleArea: alliesFor(definition).map((card, index) => ({ card, as: index === 0 ? "ally" : `ally${index}`, under: ["BT1-009"] })),
           },
           1: {
             deck: ["BT1-009", "BT1-027", "BT1-090"],
