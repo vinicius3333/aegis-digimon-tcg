@@ -5,56 +5,50 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenLinked",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenLinked",
+          actions: [
             {
-              "kind": "DeDigivolve",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "DeDigivolve",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "amount": 1
-            }
-          ]
-        }
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "appFusionRequirement": [
+  coverage: "full",
+  residual: [],
+  appFusionRequirement: [
     {
-      "names": [
-        "Watchmon",
-        "Savemon",
-        "Calendamon"
-      ],
-      "cost": 0
-    }
-  ]
+      names: ["Watchmon", "Savemon", "Calendamon"],
+      cost: 0,
+    },
+  ],
 };
 
 registerIrCard("BT21-059", compiled);
