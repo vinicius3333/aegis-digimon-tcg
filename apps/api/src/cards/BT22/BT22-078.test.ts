@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, type CardSource } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
+import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { compiled } from "./BT22-078.js";
 import "./BT22-010.js";
