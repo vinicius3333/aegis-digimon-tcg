@@ -80,7 +80,7 @@ async function drawAndTrashOneHandCard(ctx: EffectContext, source: CardSource): 
   await ctx.fx.draw(source.ownerSeat, 1);
 
   const owner = ctx.game.player(source.ownerSeat);
-  if (owner.handCount === 0) return;
+  if (owner.hand.length === 0) return;
 
   const chosen = await ctx.ask.selectCards(ctx, {
     candidates: owner.hand.map((c) => c.instanceId),
@@ -108,7 +108,7 @@ async function placeBeatbreakTrashCardUnderSelf(ctx: EffectContext, source: Card
   });
   if (chosen.length === 0) return;
 
-  await ctx.fx.placeUnder(self.permanentId, chosen);
+  await ctx.fx.placeUnder(self.permanentId, chosen, { faceUp: false });
 }
 
 const module: EffectModule = {
@@ -147,7 +147,7 @@ const module: EffectModule = {
             });
             if (chosen.length === 0) return;
 
-            await ctx.fx.placeUnder(selfPerm.permanentId, chosen);
+            await ctx.fx.placeUnder(selfPerm.permanentId, chosen, { faceUp: false });
             await ctx.fx.draw(source.ownerSeat, 1);
             ctx.fx.gainMemory(1);
           },
