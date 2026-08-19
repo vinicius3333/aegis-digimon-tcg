@@ -5,175 +5,153 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Barrier",
-          "raw": "＜Barrier＞"
-        }
-      ]
+          keyword: "Barrier",
+          raw: "＜Barrier＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenMoving",
-      "actions": [
+      trigger: "WhenMoving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "TS"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["TS"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "cost": {
-            "kind": "raw",
-            "raw": "By adding your top security card to the hand"
+          from: ["hand"],
+          payCost: false,
+          cost: {
+            kind: "securityToHand",
+            raw: "By adding your top security card to the hand",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "Restrict",
-          "on": "playTarget",
-          "filter": {
-            "excludeSameNameAsOwnTamers": true
-          }
-        }
-      ]
+          kind: "Restrict",
+          on: "playTarget",
+          filter: {
+            excludeSameNameAsOwnTamers: true,
+          },
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "TS"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["TS"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "cost": {
-            "kind": "raw",
-            "raw": "By adding your top security card to the hand"
+          from: ["hand"],
+          payCost: false,
+          cost: {
+            kind: "securityToHand",
+            raw: "By adding your top security card to the hand",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "Restrict",
-          "on": "playTarget",
-          "filter": {
-            "excludeSameNameAsOwnTamers": true
-          }
-        }
-      ]
+          kind: "Restrict",
+          on: "playTarget",
+          filter: {
+            excludeSameNameAsOwnTamers: true,
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "TS"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["TS"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "cost": {
-            "kind": "raw",
-            "raw": "By adding your top security card to the hand"
+          from: ["hand"],
+          payCost: false,
+          cost: {
+            kind: "securityToHand",
+            raw: "By adding your top security card to the hand",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "Restrict",
-          "on": "playTarget",
-          "filter": {
-            "excludeSameNameAsOwnTamers": true
-          }
-        }
-      ]
+          kind: "Restrict",
+          on: "playTarget",
+          filter: {
+            excludeSameNameAsOwnTamers: true,
+          },
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Barrier",
-          "raw": "＜Barrier＞"
-        }
-      ]
-    }
+          keyword: "Barrier",
+          raw: "＜Barrier＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Elecmon"
-      ],
-      "cost": 2,
-      "isAlternate": true
+      names: ["Elecmon"],
+      cost: 2,
+      isAlternate: true,
     },
     {
-      "level": 3,
-      "traits": [
-        "TS"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["TS"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT24-034", compiled);
