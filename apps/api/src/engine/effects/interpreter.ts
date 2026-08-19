@@ -2892,10 +2892,11 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
 function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   if (cost.kind === "trashBottomFaceDownUnderTamer") {
     const seat = cost.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
-    return ctx.game.player(seat).battleArea.some((permanent) => {
+    const candidates = ctx.game.player(seat).battleArea.filter((permanent) => {
       if (permanent.topCard === undefined || !isTamer(ctx.game.definitionOf(permanent.topCard))) return false;
       return permanent.stack.some((card) => !card.faceUp);
     });
+    return candidates.length >= (cost.count ?? 1);
   }
   if (cost.kind === "deleteOwn") {
     if (cost.target === undefined) return false;
@@ -3007,28 +3008,38 @@ export async function payCost(
   switch (cost.kind) {
     case "trashBottomFaceDownUnderTamer": {
       const seat = cost.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
-      const candidates = ctx.game.player(seat).battleArea.filter((permanent) => {
+      const hosts = ctx.game.player(seat).battleArea.filter((permanent) => {
         if (permanent.topCard === undefined || !isTamer(ctx.game.definitionOf(permanent.topCard))) return false;
         return permanent.stack.some((card) => !card.faceUp);
       });
-      if (candidates.length === 0) return false;
-      const chosenId =
-        candidates.length === 1
-          ? candidates[0]!.permanentId
-          : (await ctx.ask.chooseTargets(ctx, {
-              candidates: candidates.map((permanent) => permanent.permanentId),
-              min: 1,
-              max: 1,
-            }))[0];
-      if (chosenId === undefined) return false;
-      const chosen = ctx.game.permanentById(chosenId);
-      const bottomFaceDown = chosen?.stack.find((card) => !card.faceUp);
-      if (bottomFaceDown === undefined) return false;
-      const moved = await ctx.fx.trashDigivolutionCards(chosenId, [bottomFaceDown.instanceId], {
-        byEffectSeat: ctx.source.ownerSeat,
-        byEffectCardId: ctx.source.cardId,
+      const candidates = hosts.flatMap((host) => {
+        const bottomFaceDown = host.stack.find((card) => !card.faceUp);
+        return bottomFaceDown === undefined
+          ? []
+          : [{ hostId: host.permanentId, cardId: bottomFaceDown.instanceId }];
       });
-      return moved.length === 1;
+      const count = cost.count ?? 1;
+      if (candidates.length < count) return false;
+      const chosen =
+        candidates.length === count
+          ? candidates
+          : (await ctx.ask.selectCards(ctx, {
+              candidates: candidates.map((candidate) => candidate.cardId),
+              min: count,
+              max: count,
+            })).map((cardId) => candidates.find((candidate) => candidate.cardId === cardId)!).filter(Boolean);
+      if (chosen.length !== count) return false;
+      const byHost = new Map<string, string[]>();
+      for (const candidate of chosen) byHost.set(candidate.hostId, [...(byHost.get(candidate.hostId) ?? []), candidate.cardId]);
+      let movedCount = 0;
+      for (const [hostId, cardIds] of byHost) {
+        const moved = await ctx.fx.trashDigivolutionCards(hostId, cardIds, {
+          byEffectSeat: ctx.source.ownerSeat,
+          byEffectCardId: ctx.source.cardId,
+        });
+        movedCount += moved.length;
+      }
+      return movedCount === count;
     }
     case "suspend": {
       // "by suspending this Tamer" etc.

@@ -1170,6 +1170,8 @@ export interface Cost {
   optional?: boolean;
   /** Controller for specialized costs that target a relative player's stack. */
   controller?: Controller;
+  /** Number of cards required by a specialized fixed-card cost. */
+  count?: number;
   raw?: string;
   /**
    * Return destination for `kind:"return"` costs. `"deckBottom"` sends the card to the bottom
