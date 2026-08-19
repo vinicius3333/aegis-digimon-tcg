@@ -11,161 +11,156 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // canNoSelect:true (=> optional) -> AddSecurityCard(selectedCard) (documented behavior). The hand-
 // form is keyed by from:["hand"] + a source filter colors:["Yellow"], which routes the
 // interpreter's placeAsSecurity fromLoose branch (interpreter.ts:1625).
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "mode": "reduceCost",
-          "amount": 6,
-          "raw": "When this card would be played, if there are 6 or fewer total cards in both players' security stacks, reduce the play cost by 6"
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          mode: "reduceCost",
+          amount: 6,
+          raw: "When this card would be played, if there are 6 or fewer total cards in both players' security stacks, reduce the play cost by 6",
+          condition: {
+            kind: "totalSecurityCount",
+            op: "lte",
+            value: 6,
+            raw: "there are 6 or fewer total cards in both players' security stacks",
           },
-          "keyword": {
-            "keyword": "Blocker"
-          },
-          "duration": "permanent"
-        }
+        },
       ],
-      "keywords": []
     },
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Barrier"
+          keyword: {
+            keyword: "Blocker",
           },
-          "duration": "permanent"
-        }
+          duration: "permanent",
+        },
       ],
-      "keywords": []
+      keywords: [],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "from": [
-            "hand"
-          ],
-          "source": {
-            "filter": {
-              "controllerDefault": "mine",
-              "colors": [
-                "Yellow"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1
+            count: 1,
+            isSelf: true,
           },
-          "toTop": true,
-          "optional": true
-        }
-      ]
+          keyword: {
+            keyword: "Barrier",
+          },
+          duration: "permanent",
+        },
+      ],
+      keywords: [],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "from": [
-            "hand"
-          ],
-          "source": {
-            "filter": {
-              "controllerDefault": "mine",
-              "colors": [
-                "Yellow"
-              ]
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          from: ["hand"],
+          source: {
+            filter: {
+              controllerDefault: "mine",
+              colors: ["Yellow"],
             },
-            "count": 1
+            count: 1,
           },
-          "toTop": true,
-          "optional": true
-        }
-      ]
+          toTop: true,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "actions": [
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          from: ["hand"],
+          source: {
+            filter: {
+              controllerDefault: "mine",
+              colors: ["Yellow"],
+            },
+            count: 1,
+          },
+          toTop: true,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          actions: [
             {
-              "kind": "Unsuspend",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "Unsuspend",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "cost": {
-                "kind": "trash",
-                "target": {
-                  "filter": {
-                    "controller": "mine",
-                    "zone": "security"
+              cost: {
+                kind: "trash",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    zone: "security",
+                    position: "top",
                   },
-                  "count": 1
+                  count: 1,
                 },
-                "raw": "by trashing your top security card"
-              }
-            }
+                raw: "by trashing your top security card",
+              },
+            },
           ],
-          "raw": "When this Digimon suspends, by trashing your top security card, it unsuspends"
-        }
+          raw: "When this Digimon suspends, by trashing your top security card, it unsuspends",
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Chirinmon"
-      ],
-      "cost": 3,
-      "isAlternate": true
+      names: ["Chirinmon"],
+      cost: 3,
+      isAlternate: true,
     },
     {
-      "level": 5,
-      "traits": [
-        "CS"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
+      level: 5,
+      traits: ["CS"],
+      cost: 3,
+      isAlternate: true,
+    },
   ],
 };
 
