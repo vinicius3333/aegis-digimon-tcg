@@ -6,7 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [Your Turn][Once Per Turn] SubTrigger whenSecurityRemoved: sourceFilter restricted to
 // this Digimon (isSelfRef) — only fires when this card's security check removes a card.
 // The [Once Per Turn] frequency on the outer effect gates the whole trigger.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
@@ -145,7 +145,8 @@ const compiled: CompiledCard = {
                   "controller": "opponent",
                   "kind": [
                     "Option"
-                  ]
+                  ],
+                  "placedInBattleAreaByEffect": true
                 },
                 "count": 1
               }
