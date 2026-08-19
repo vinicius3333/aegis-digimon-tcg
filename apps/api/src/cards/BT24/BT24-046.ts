@@ -5,92 +5,82 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Jamming",
-          "raw": "＜Jamming＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          }
-        }
+          keyword: "Jamming",
+          raw: "＜Jamming＞",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "names": [
-        "Gabumon"
-      ],
-      "cost": 2,
-      "isAlternate": true
+      level: 3,
+      names: ["Gabumon"],
+      cost: 2,
+      isAlternate: true,
     },
     {
-      "traits": [
-        "TS"
-      ],
-      "cost": 2,
-      "isAlternate": true,
-      "level": 3
-    }
-  ]
+      traits: ["TS"],
+      cost: 2,
+      isAlternate: true,
+      level: 3,
+    },
+  ],
 };
 
 registerIrCard("BT24-046", compiled);
