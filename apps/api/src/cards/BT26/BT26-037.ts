@@ -45,6 +45,11 @@ function linkEligibleTrait(def: CardDefinition): boolean {
   return cardHasTrait(def, "Navi") || cardHasTrait(def, "System") || cardHasTrait(def, "Seven Code");
 }
 
+function hasLinkRequirement(def: CardDefinition): boolean {
+  const requirement = def.linkRequirement?.trim();
+  return requirement !== undefined && requirement.length > 0 && requirement !== "-";
+}
+
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
@@ -70,7 +75,7 @@ const module: EffectModule = {
       if (self === undefined) return;
       const candidates = self.stack.filter((c) => {
         const def = ctx.game.definitionOf(c);
-        return isDigimon(def) && def.level === 3 && linkEligibleTrait(def);
+        return isDigimon(def) && def.level === 3 && linkEligibleTrait(def) && hasLinkRequirement(def);
       });
       if (candidates.length === 0) return;
       const candidateIds = candidates.map((c) => c.instanceId);
