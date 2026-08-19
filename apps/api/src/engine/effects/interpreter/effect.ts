@@ -405,8 +405,6 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
   // Restrictions belong to this effect resolution only, so the inherited set is swapped for a clone
   // and put back afterwards: a nested or subsequent effect must not retain this card's restriction.
   const outerRestrictions = ctxWithSelections.effectRestrictions;
-  const outerTiming = ctxWithSelections.activeTiming;
-  const outerEffectText = ctxWithSelections.activeEffectText;
   ctxWithSelections.effectRestrictions = new Set(ctx.effectRestrictions ?? []);
   ctxWithSelections.activeTiming = effect.trigger;
   ctxWithSelections.activeEffectText = effect.isInherited
@@ -466,9 +464,9 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
       if (abort) break;
     }
   } finally {
+    // `activeTiming` / `activeEffectText` deliberately survive: they are the provenance a decision
+    // raised by this resolution is stamped with, and it is read after the resolution returns.
     ctxWithSelections.effectRestrictions = outerRestrictions;
-    ctxWithSelections.activeTiming = outerTiming;
-    ctxWithSelections.activeEffectText = outerEffectText;
     mirrorResultBindings(ctxWithSelections, ctx);
   }
 }
