@@ -1183,7 +1183,7 @@ export interface Cost {
    * Return destination for `kind:"return"` costs. `"deckBottom"` sends the card to the bottom
    * of its owner's deck instead of the hand (BT19-002). Absent defaults to hand.
    */
-  to?: "hand" | "deckBottom";
+  to?: "hand" | "deckBottom" | "deckTop" | "deckTopOrBottom";
   /**
    * After the `return` cost is paid, store the returned Digimon's level in
    * `EffectContext.namedCounts` under this name so a subsequent `levelLte` filter

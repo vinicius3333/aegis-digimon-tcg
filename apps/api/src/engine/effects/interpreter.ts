@@ -3405,6 +3405,13 @@ export async function payCost(
     }
     case "return": {
       if (!cost.target) return false;
+      const returnToTop = async (): Promise<boolean> => {
+        if (cost.to === "deckTopOrBottom") {
+          return (await ctx.ask.chooseOption(ctx, ["Top of deck", "Bottom of deck"])) === 0;
+        }
+        if (cost.to === "deckTop") return true;
+        return /\bto the top\b/i.test(cost.raw ?? "");
+      };
       // Combined trash-OR-digivolution-cards return cost ("by returning 4 [Negamon] from your
       // trash or your Digimon's digivolution cards to the bottom of the Digi-Egg deck" —
       // EX9-057). All-or-nothing across the pooled candidates from both zones; always returns
@@ -3417,7 +3424,7 @@ export async function payCost(
         if (n <= 0 || candidates.length < n) return false;
         const chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
         if (chosen.length < n) return false;
-        await ctx.fx.returnToDeck(chosen, { toTop: /to the top/i.test(cost.raw ?? "") });
+        await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
         if (out) out.paidCount = chosen.length;
         return true;
       }
@@ -3480,7 +3487,7 @@ export async function payCost(
             if (id === undefined) return false;
             chosen.push(id);
           }
-          await ctx.fx.returnToDeck(chosen, { toTop: /to the top/i.test(cost.raw ?? "") });
+          await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
           if (out) out.paidCount = chosen.length;
           return true;
         }
@@ -3504,7 +3511,7 @@ export async function payCost(
                 destination: /to the top/i.test(cost.raw ?? "") ? "deckTop" : "deckBottom",
               })) ?? chosen;
           }
-          const toTop = /to the top/i.test(cost.raw ?? "");
+          const toTop = await returnToTop();
           await ctx.fx.returnToDeck(toTop ? [...chosen].reverse() : chosen, { toTop });
           if (out) out.paidCount = chosen.length;
           return true;
@@ -3517,7 +3524,7 @@ export async function payCost(
           max: n,
         });
         if (chosen.length < n) return false;
-        await ctx.fx.returnToDeck(chosen, { toTop: /to the top/i.test(cost.raw ?? "") });
+        await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
         if (out) out.paidCount = chosen.length;
         return true;
       }
