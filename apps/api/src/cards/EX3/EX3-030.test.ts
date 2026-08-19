@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX3-030.js";
+import "../index.js"; // the full catalog is registered in a real match
 
 function payload(s: EngineSetup): Record<string, unknown> {
   return JSON.parse(s.state.pendingDecision!.payloadJson) as Record<string, unknown>;
@@ -392,7 +393,10 @@ describe("EX3-030 Gatomon", () => {
     await s.ready();
     await advance(s.engine).recompute();
     await advance(s.engine).recompute();
-    expect(observe(s.engine).subscriptions("whenPlayed")).toHaveLength(2);
+    // Scoped to the two hosts: other registered cards on the board install their own
+    // `whenPlayed` watchers, which say nothing about these two inherited copies.
+    expect(observe(s.engine).subscriptions("whenPlayed", s.perm("firstHost").permanentId)).toHaveLength(1);
+    expect(observe(s.engine).subscriptions("whenPlayed", s.perm("secondHost").permanentId)).toHaveLength(1);
 
     const play = advance(s.engine).verb.playInstances([
       s.inst("firstDragon").instanceId,
@@ -425,7 +429,8 @@ describe("EX3-030 Gatomon", () => {
     ).toHaveLength(2);
     await advance(s.engine).recompute();
     await advance(s.engine).recompute();
-    expect(observe(s.engine).subscriptions("whenPlayed")).toHaveLength(2);
+    expect(observe(s.engine).subscriptions("whenPlayed", s.perm("firstHost").permanentId)).toHaveLength(1);
+    expect(observe(s.engine).subscriptions("whenPlayed", s.perm("secondHost").permanentId)).toHaveLength(1);
 
     await advance(s.engine).verb.playInstances([s.inst("laterDragon").instanceId]);
     const later = s.state.players[0]!.battleArea.find(
@@ -439,7 +444,8 @@ describe("EX3-030 Gatomon", () => {
     expect(
       s.decisions.filter(({ req }) => req.sourceCardId === "EX3-030" && req.kind === "chooseTargets"),
     ).toHaveLength(2);
-    expect(observe(s.engine).subscriptions("whenPlayed")).toHaveLength(2);
+    expect(observe(s.engine).subscriptions("whenPlayed", s.perm("firstHost").permanentId)).toHaveLength(1);
+    expect(observe(s.engine).subscriptions("whenPlayed", s.perm("secondHost").permanentId)).toHaveLength(1);
   });
 
   it("Q3664 triggers once and offers exactly the Four Great Dragons from one simultaneous play", async () => {

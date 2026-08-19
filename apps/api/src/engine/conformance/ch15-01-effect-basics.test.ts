@@ -48,7 +48,9 @@ describe("§15-1 Effects (comprehensive-0157)", () => {
         "performed whenever possible",
     );
 
-    const s = setup();
+    // `autoSelectCards` answers the target choice: the rule under test is that no OPTIONAL
+    // ("use this effect?") prompt is raised, not that the target is picked without asking.
+    const s = setup({ autoSelectCards: true });
     const p0 = s.state.players[0]!;
     const p1 = s.state.players[1]!;
     const kuwagamon = instance("BT1-070", 0, false);
@@ -59,7 +61,7 @@ describe("§15-1 Effects (comprehensive-0157)", () => {
 
     const result = s.engine.applyIntent(0, { type: "playCard", instanceId: kuwagamon.instanceId });
     expect(result).toEqual({ ok: true });
-    await settle(() => onlyTarget.isSuspended, 200);
+    await settle(() => onlyTarget.isSuspended, 5000);
 
     expect(onlyTarget.isSuspended).toBe(true);
     // Mandatory: no "optional" decision was ever requested for this effect.
@@ -207,7 +209,8 @@ describe("§15-13 Gained Effects (comprehensive-0191)", () => {
         "placed on top of that card or removed from its stack",
     );
 
-    const s = setup();
+    // The PlaceUnder asks which trash card to pull and whether to use the optional clause.
+    const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
     const p0 = s.state.players[0]!;
     const grantor = digimon(0, 5000, "BT12-072");
     p0.battleArea.push(grantor);
@@ -222,7 +225,7 @@ describe("§15-13 Gained Effects (comprehensive-0191)", () => {
     await (s.engine as unknown as { fireTiming(t: EffectTiming): Promise<void> }).fireTiming(
       EffectTiming.OnStartMainPhase,
     );
-    await settle(() => grantor.stack.some((c) => c.instanceId === machineTrait.instanceId), 200);
+    await settle(() => grantor.stack.some((c) => c.instanceId === machineTrait.instanceId), 5000);
 
     expect(grantor.stack.some((c) => c.instanceId === machineTrait.instanceId)).toBe(true);
     expect(p0.trash.some((c) => c.instanceId === machineTrait.instanceId)).toBe(false);

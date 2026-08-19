@@ -27,7 +27,7 @@ const futureDeck: FamousDeck = {
 describe("famous deck catalog", () => {
   it("keeps the historical catalog available through the operational cutoff", () => {
     expect(ALL_FAMOUS_DECKS).toHaveLength(337);
-    expect(famousDeckGroups().flatMap((group) => group.decks)).toHaveLength(229);
+    expect(famousDeckGroups().flatMap((group) => group.decks)).toHaveLength(221);
   });
 
   it("withholds a whole future deck instead of truncating its list", () => {
@@ -40,6 +40,13 @@ describe("famous deck catalog", () => {
     const bt12OldCards = COMMUNITY_TOURNAMENT_DECKS.find((deck) => deck.deckId === "bt12-tj-ukge-2023");
     if (!bt12OldCards) throw new Error("BT12 old-card fixture is missing");
     expect(isFamousDeckAvailable(bt12OldCards, "2022-12-31")).toBe(false);
+  });
+
+  it("withholds a recipe built around a card the banlist forbids outright", () => {
+    const bannedRecipe = ALL_FAMOUS_DECKS.find((deck) => deck.deckId === "ex5-gracenovamon-bandai");
+    if (!bannedRecipe) throw new Error("EX5 GraceNovamon fixture is missing");
+    expect(bannedRecipe.decklist.mainDeck).toContain("EX5-065");
+    expect(isFamousDeckAvailable(bannedRecipe)).toBe(false);
   });
 
   it("groups available decks from the most recent format collection to the oldest", () => {
@@ -113,7 +120,7 @@ describe("famous deck catalog", () => {
       "EX11",
     ]);
     expect(OFFICIAL_PRODUCT_DECKS.every((deck) => deck.category === "official-recipe")).toBe(true);
-    expect(famousDeckGroups().flatMap((group) => group.decks)).toHaveLength(229);
+    expect(famousDeckGroups().flatMap((group) => group.decks)).toHaveLength(221);
   });
 
   it("covers every booster collection represented in the registry", () => {

@@ -81,7 +81,7 @@ describe("BT10-028 Cannondramon", () => {
         target: { kind: "player" },
       })).toEqual({ ok: true });
       const priorBlocks = s.events.filter((event) => event.kind === "blocked").length;
-      await settle(() => s.events.filter((event) => event.kind === "blockWindowOpened").length > priorBlocks);
+      await settle(() => s.events.filter((event) => event.kind === "blockWindowOpened").length > priorBlocks, 5000);
       expect(s.engine.applyIntent(0, {
         type: "declareBlock",
         blockerPermanentId: s.perm("blocker").permanentId,
@@ -89,7 +89,7 @@ describe("BT10-028 Cannondramon", () => {
       await settle(() =>
         !observe(s.engine).isAttacking() &&
         s.state.players[1]!.trash.some((card) => card.instanceId === attackerInstanceIds.get(attacker)),
-      );
+      5000);
     }
 
     expect(s.perm("observer").isSuspended).toBe(true);

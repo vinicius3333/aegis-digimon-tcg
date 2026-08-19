@@ -100,6 +100,52 @@ const compiled: CompiledCard = {
         }
       ]
     },
+    {
+      // Option side, "Final Judgment": [Main] 1 of your Digimon gains ＜Rush＞, ＜Security A. +1＞
+      // and +5000 DP for the turn. Then, it may attack. `sameTarget` keeps all four actions on the
+      // one Digimon chosen by the first.
+      "trigger": "Main",
+      "actions": [
+        {
+          "kind": "ModifyDP",
+          "target": {
+            "filter": { "controllerDefault": "mine", "kind": ["Digimon"] },
+            "count": 1
+          },
+          "amount": 5000,
+          "duration": "forTheTurn"
+        },
+        {
+          "kind": "GainKeyword",
+          "target": {
+            "filter": { "controllerDefault": "mine", "kind": ["Digimon"] },
+            "count": 1,
+            "sameTarget": true
+          },
+          "keyword": { "keyword": "Rush", "raw": "＜Rush＞" },
+          "duration": "forTheTurn"
+        },
+        {
+          "kind": "GainKeyword",
+          "target": {
+            "filter": { "controllerDefault": "mine", "kind": ["Digimon"] },
+            "count": 1,
+            "sameTarget": true
+          },
+          "keyword": { "keyword": "SecurityAttack", "amount": 1, "raw": "＜Security Attack +1＞" },
+          "duration": "forTheTurn"
+        },
+        {
+          "kind": "Attack",
+          "target": {
+            "filter": { "controllerDefault": "mine", "kind": ["Digimon"] },
+            "count": 1,
+            "sameTarget": true
+          },
+          "optional": true
+        }
+      ]
+    }
   ],
   "coverage": "full",
   "residual": [],

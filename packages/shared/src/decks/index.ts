@@ -1,4 +1,5 @@
 import { CARD_POOL_CUTOFF_DATE, isCardInActivePool, releaseDateForSet } from "../cards/cardPool.js";
+import { isBanned } from "../banlist.js";
 import { getCardDefinition } from "../cards/registry.js";
 import { catalogDeck, type CatalogFile } from "./catalogSchema.js";
 import bt4Catalog from "./data/bt4.json" with { type: "json" };
@@ -130,7 +131,11 @@ export function famousDeckById(
   return decks.find((deck) => deck.deckId === deckId);
 }
 
-/** A deck is exposed only when every card exists and belongs to the requested pool. */
+/**
+ * A deck is exposed only when every card exists, belongs to the requested pool, and is
+ * still legal. A recipe built around a card the current banlist forbids outright cannot be
+ * adapted by trimming copies, so it is withheld rather than offered as an unplayable preset.
+ */
 export function isFamousDeckAvailable(
   deck: FamousDeck,
   cutoffDate: FamousDeckCutoffDate = CARD_POOL_CUTOFF_DATE,
@@ -139,7 +144,7 @@ export function isFamousDeckAvailable(
   if (formatReleaseDate && formatReleaseDate > cutoffDate) return false;
   return [...deck.decklist.mainDeck, ...deck.decklist.eggDeck].every((cardId) => {
     const definition = getCardDefinition(cardId);
-    return definition !== undefined && isCardInActivePool(definition, cutoffDate);
+    return definition !== undefined && isCardInActivePool(definition, cutoffDate) && !isBanned(cardId);
   });
 }
 

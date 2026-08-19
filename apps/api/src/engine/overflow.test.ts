@@ -207,7 +207,9 @@ describe("<Overflow> (Comprehensive Rules §4-18)", () => {
     primitivesOf(s).deDigivolve(perm.permanentId, 1);
 
     expect(perm.topCard?.instanceId).not.toBe(aceTop.instanceId);
-    expect(p1.deck.some((c) => c.instanceId === aceTop.instanceId)).toBe(true);
+    // <De-Digivolve> TRASHES the demoted top card (KB Q3471/Q3478), so that is where the ACE
+    // lands — the leave-to-trash that charges <Overflow>.
+    expect(p1.trash.some((c) => c.instanceId === aceTop.instanceId)).toBe(true);
     expect(memoryFor(s.state, 1)).toBe(before - ACE_OVERFLOW);
   });
 

@@ -38,16 +38,34 @@ const compiled: CompiledCard = {
             "count": 1,
             "isSelf": true
           },
-          "keywords": [
-            {
-              "keyword": "Blocker",
-              "raw": "＜Blocker＞"
+          "duration": "untilOpponentTurnEnd",
+          "condition": {
+            "kind": "digivolutionCardCount",
+            "nameOrTrait": [
+              {
+                "tokens": [
+                  "Vemmon"
+                ],
+                "match": "name"
+              }
+            ],
+            "op": "gte",
+            "value": 4
+          },
+          "keyword": {
+            "keyword": "Blocker",
+            "raw": "＜Blocker＞"
+          }
+        },
+        {
+          "kind": "GrantImmunity",
+          "target": {
+            "filter": {
+              "isSelfRef": true
             },
-            {
-              "keyword": "EffectImmunity",
-              "raw": "isn't affected by their effects"
-            }
-          ],
+            "count": 1,
+            "isSelf": true
+          },
           "duration": "untilOpponentTurnEnd",
           "condition": {
             "kind": "digivolutionCardCount",
@@ -99,16 +117,34 @@ const compiled: CompiledCard = {
             "count": 1,
             "isSelf": true
           },
-          "keywords": [
-            {
-              "keyword": "Blocker",
-              "raw": "＜Blocker＞"
+          "duration": "untilOpponentTurnEnd",
+          "condition": {
+            "kind": "digivolutionCardCount",
+            "nameOrTrait": [
+              {
+                "tokens": [
+                  "Vemmon"
+                ],
+                "match": "name"
+              }
+            ],
+            "op": "gte",
+            "value": 4
+          },
+          "keyword": {
+            "keyword": "Blocker",
+            "raw": "＜Blocker＞"
+          }
+        },
+        {
+          "kind": "GrantImmunity",
+          "target": {
+            "filter": {
+              "isSelfRef": true
             },
-            {
-              "keyword": "EffectImmunity",
-              "raw": "isn't affected by their effects"
-            }
-          ],
+            "count": 1,
+            "isSelf": true
+          },
           "duration": "untilOpponentTurnEnd",
           "condition": {
             "kind": "digivolutionCardCount",
@@ -157,7 +193,7 @@ const compiled: CompiledCard = {
   ],
   "coverage": "partial",
   "residual": [
-    "digivolutionCardCount condition kind and EffectImmunity keyword need engine support"
+    "digivolutionCardCount condition kind needs engine support"
   ],
   "digivolutionRequirement": [
     {

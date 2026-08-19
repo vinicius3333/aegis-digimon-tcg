@@ -12,8 +12,8 @@ import { describe, expect, it } from "vitest";
  * and completely inert. Splitting the union stops a card from naming an unenforced kind; this
  * stops a kind from quietly losing its consumer afterwards.
  *
- * A consumer is a `hasRestriction(...)` read naming the kind, anywhere under `engine/` outside
- * the declaration and the ledger itself. If this fails, either wire the kind up or move it to
+ * A consumer is a `hasRestriction(...)` / `isRestricted(...)` / `restrictionCount(...)` read
+ * naming the kind, anywhere under `engine/` outside the declaration and the ledger itself. If this fails, either wire the kind up or move it to
  * `DeprecatedRestriction` — do not delete the assertion.
  */
 
@@ -58,7 +58,10 @@ describe("restriction consumers", () => {
     const readers = sources
       .filter(({ text }) =>
         new RegExp(`hasRestriction\\([^)]*"${kind}"`, "s").test(text) ||
-        new RegExp(`isRestricted\\([^)]*"${kind}"`, "s").test(text),
+        new RegExp(`isRestricted\\([^)]*"${kind}"`, "s").test(text) ||
+        // A counted restriction (BT7-055's "trash 1 card from your hand to unsuspend") is read
+        // through the tally rather than the boolean.
+        new RegExp(`restrictionCount\\([^)]*"${kind}"`, "s").test(text),
       )
       .map(({ path }) => path);
 

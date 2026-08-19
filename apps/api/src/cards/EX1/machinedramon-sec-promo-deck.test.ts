@@ -75,11 +75,17 @@ describe("Machinedramon SEC / promo Cyborg deck", () => {
     expect(new Set(machine.stack.map((card) => card.cardId)).size).toBe(5);
     expect(s.state.memory).toBe(5);
 
+    // The prevention is a continuous install, so it exists only after a recompute.
+    await s.engine.recomputeContinuousEffects();
+    // Each prevention pays two digivolution cards on a continuation of the deletion consult.
     await advance(s.engine).verb.deletePermanent([machine.permanentId], "byEffect");
+    await settle(() => machine.stack.length === 3, 5000);
     expect(machine.stack).toHaveLength(3);
     await advance(s.engine).verb.deletePermanent([machine.permanentId], "byEffect");
+    await settle(() => machine.stack.length === 1, 5000);
     expect(machine.stack).toHaveLength(1);
     await advance(s.engine).verb.deletePermanent([machine.permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.length === 0, 5000);
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });

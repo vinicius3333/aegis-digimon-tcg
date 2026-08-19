@@ -33,7 +33,8 @@ describe("BT23-084 Erika Mishima", () => {
     expect(aura).toMatchObject({
       kind: "Aura",
       effect: { kind: "keyword", keyword: { keyword: "Alliance" } },
-      while: { kind: "raw" },
+      // Structured gate — a "raw" kind evaluates as unmet, so the Aura would never grant.
+      while: { kind: "anyOf" },
     });
   });
 });

@@ -176,7 +176,9 @@ describe("A3 GainKeyword granted-to-other — a mid-game-granted keyword changes
       }),
     ).toEqual({ ok: true });
 
-    await settle(() => p1.security.length <= securityBefore - 2);
+    // Two full checks (reveal -> [Security] resolution -> battle -> trash, each bracketed by a
+    // continuous recompute) need a longer budget than the default microtask allowance.
+    await settle(() => p1.security.length <= securityBefore - 2, 5000);
     expect(p1.security.length).toBe(securityBefore - 2);
     assertNoLoudGap(s);
   });

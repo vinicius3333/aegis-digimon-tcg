@@ -1,5 +1,5 @@
 import { CardKind, isTamer, type CardDefinition } from "@aegis/shared";
-import type { Filter } from "@aegis/shared/effects/ir.js";
+import type { Filter } from "@aegis/shared/effects/ir/filters/filter.js";
 import type { CardInstance } from "@aegis/shared/schema/CardInstance.js";
 import type { Permanent } from "@aegis/shared/schema/Permanent.js";
 

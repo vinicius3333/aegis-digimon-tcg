@@ -6,6 +6,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../BT2/BT2-054.js";
 import "./EX3-024.js";
 import "./EX3-044.js";
+import "../index.js"; // the full catalog is registered in a real match
 
 const mainEffect =
   "Digivolve: 3 from [Groundramon] or [Wingdramon][All Turns][Once Per Turn] When this Digimon becomes suspended, suspend 1 of your opponent's Digimon.[All Turns][Once Per Turn] When one of your Digimon with [Dramon] or [Examon] in its name deletes an opponent's Digimon in battle and survives, trash the top card of your opponent's security stack.";
@@ -346,7 +347,9 @@ describe("EX3-044 Breakdramon", () => {
           { card: "EX3-044", as: "mainWatcher" },
           { card: "BT1-020", under: ["EX3-044"], as: "inheritedWatcher" },
           { card: "BT1-020", dp: 15000, as: "firstDramon" },
-          { card: "BT1-026", dp: 15000, as: "secondDramon" },
+          // A vanilla [Dramon] attacker: BT1-026 Breakdramon prints ＜Piercing＞, which would
+          // consume a second security card and hide the once-per-turn trash under test.
+          { card: "BT14-015", dp: 15000, as: "secondDramon" },
           { card: "BT1-009", dp: 15000, as: "nextTurnDramon" },
         ],
         deck: ["BT1-001", "BT1-002", "BT1-003"],

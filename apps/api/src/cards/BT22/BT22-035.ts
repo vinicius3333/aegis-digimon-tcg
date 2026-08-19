@@ -22,7 +22,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "Link",
-          source: {
+          target: {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
@@ -32,9 +32,9 @@ export const compiled: CompiledCard = {
               },
               hasLinkRequirement: true,
             },
-            from: ["hand", "digivolutionCards"],
+            count: 1,
           },
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          from: ["hand", "digivolutionCards"],
           payCost: false,
           optional: true,
         },
@@ -45,7 +45,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "Link",
-          source: {
+          target: {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
@@ -55,9 +55,9 @@ export const compiled: CompiledCard = {
               },
               hasLinkRequirement: true,
             },
-            from: ["hand", "digivolutionCards"],
+            count: 1,
           },
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          from: ["hand", "digivolutionCards"],
           payCost: false,
           optional: true,
         },

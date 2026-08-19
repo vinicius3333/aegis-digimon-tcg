@@ -111,7 +111,12 @@ function buildSeatScopedApi(
           ...provenance(ctx),
         },
       });
-      return clampSelection(response.kind === "chooseTargets" ? response.instanceIds : [], opts.candidates, opts.max);
+      const selected = clampSelection(
+        response.kind === "chooseTargets" ? response.instanceIds : [],
+        opts.candidates,
+        opts.max,
+      );
+      return clampToCostBudget(ctx, selected, opts.maxTotalPlayCost, (id) => loosePlayCost(ctx, id));
     },
 
     async selectCards(
@@ -144,7 +149,12 @@ function buildSeatScopedApi(
           ...provenance(ctx),
         },
       });
-      return clampSelection(response.kind === "selectCards" ? response.instanceIds : [], opts.candidates, opts.max);
+      const selected = clampSelection(
+        response.kind === "selectCards" ? response.instanceIds : [],
+        opts.candidates,
+        opts.max,
+      );
+      return clampToCostBudget(ctx, selected, opts.maxTotalPlayCost, (id) => loosePlayCost(ctx, id));
     },
 
     async selectPermanents(
@@ -164,7 +174,12 @@ function buildSeatScopedApi(
           ...provenance(ctx),
         },
       });
-      return clampSelection(response.kind === "chooseTargets" ? response.instanceIds : [], opts.candidates, opts.max);
+      const selected = clampSelection(
+        response.kind === "chooseTargets" ? response.instanceIds : [],
+        opts.candidates,
+        opts.max,
+      );
+      return clampToCostBudget(ctx, selected, opts.maxTotalPlayCost, (id) => permanentPlayCost(ctx, id));
     },
 
     async orderCards(
@@ -220,6 +235,58 @@ function buildSeatScopedApi(
  * (API-CONTRACT.md "Intent validation contract"; the count is "enforced
  * server-side").
  */
+/**
+ * Server-side enforcement of a summed play-cost budget ("play any number whose total play costs
+ * add up to N or less", BT11-044). The client picks; the server keeps the picks in the order it
+ * received them only while the running total stays within budget, so an over-budget response
+ * cannot buy a free play the printed text does not allow.
+ */
+function clampToCostBudget(
+  ctx: EffectContext,
+  chosen: readonly string[],
+  budget: number | undefined,
+  costOf: (instanceId: string) => number | undefined,
+): string[] {
+  if (budget === undefined) return [...chosen];
+  const kept: string[] = [];
+  let spent = 0;
+  for (const id of chosen) {
+    const cost = costOf(id) ?? 0;
+    if (spent + cost > budget) continue;
+    spent += cost;
+    kept.push(id);
+  }
+  return kept;
+}
+
+/** The printed play cost of a loose card (hand, deck, trash, security, stack or link card). */
+function loosePlayCost(ctx: EffectContext, instanceId: string): number | undefined {
+  for (const owner of ctx.game.state.players) {
+    if (owner === undefined) continue;
+    const zones = [owner.hand, owner.deck, owner.trash, owner.security];
+    for (const zone of zones) {
+      const card = zone.find((c) => c.instanceId === instanceId);
+      if (card) return ctx.game.definitionOf(card).playCost;
+    }
+    const permanents = [...owner.battleArea, ...(owner.breeding !== undefined ? [owner.breeding] : [])];
+    for (const permanent of permanents) {
+      const card =
+        (permanent.topCard?.instanceId === instanceId ? permanent.topCard : undefined) ??
+        permanent.stack.find((c) => c.instanceId === instanceId) ??
+        permanent.linked.find((c) => c.instanceId === instanceId);
+      if (card) return ctx.game.definitionOf(card).playCost;
+    }
+  }
+  return undefined;
+}
+
+/** The printed play cost of a permanent's top card. */
+function permanentPlayCost(ctx: EffectContext, permanentId: string): number | undefined {
+  const permanent = ctx.game.permanentById(permanentId);
+  const top = permanent?.topCard;
+  return top ? ctx.game.definitionOf(top).playCost : undefined;
+}
+
 function clampSelection(chosen: readonly string[], candidates: readonly string[], max: number): string[] {
   const allowed = new Set(candidates);
   const out: string[] = [];

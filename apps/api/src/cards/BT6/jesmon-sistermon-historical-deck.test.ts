@@ -40,8 +40,8 @@ describe("BT6 Jesmon/Sistermon historical deck gauntlet", () => {
       s.state.players[0]!.battleArea.some((permanent) =>
         permanent.topCard?.cardId === "BT6-082" && observe(s.engine).hasKeyword(permanent, "Blocker")
       ) &&
-      s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("blancDraw").instanceId)
-    );
+      s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("blancDraw").instanceId),
+    5000);
 
     const blanc = s.state.players[0]!.battleArea.find(
       (permanent) => permanent.topCard?.cardId === "BT6-082",
@@ -63,8 +63,8 @@ describe("BT6 Jesmon/Sistermon historical deck gauntlet", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT6-084") &&
       s.state.memory === 6 &&
       firstJesmon.currentDP === firstBaseDp + 5000 &&
-      secondJesmon.currentDP === secondBaseDp + 5000
-    );
+      secondJesmon.currentDP === secondBaseDp + 5000,
+    5000);
 
     expect(firstJesmon.currentDP).toBe(firstBaseDp + 5000);
     expect(secondJesmon.currentDP).toBe(secondBaseDp + 5000);

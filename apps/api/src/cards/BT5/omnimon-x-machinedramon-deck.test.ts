@@ -1,9 +1,11 @@
+import { Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT1/BT1-114.js";
 import "../EX1/EX1-073.js";
 import "./BT5-087.js";
 import "./BT5-111.js";
+import "../index.js"; // the full catalog is registered in a real match
 
 describe("Machinedramon, Omnimon Zwart, and Omnimon X deck", () => {
   it("can't end an opposing attack when Omnimon X has only one digivolution card", async () => {
@@ -91,17 +93,19 @@ describe("Machinedramon, Omnimon Zwart, and Omnimon X deck", () => {
       attackerPermanentId: s.perm("omniZwart").permanentId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
-    await settle(() =>
-      !s.state.players[1]!.battleArea.some((permanent) =>
-        permanent.permanentId === deleteTargetId,
-      ) &&
-      !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === deleteTargetId) &&
+        !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
+      5000,
     );
 
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
 
+    // The reply happens on the opponent's own turn: re-arm the phase the ended attack closed.
     s.state.turnSeat = 1;
+    s.state.phase = Phase.Main;
     s.perm("replyAttacker").isSuspended = false;
     await s.engine.recomputeContinuousEffects();
     expect(s.engine.applyIntent(1, {

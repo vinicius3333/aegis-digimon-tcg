@@ -167,13 +167,14 @@
     },
     {
       "id": "ex7-dgo-2024-10-05-1-leviamon",
-      "revision": 1,
+      "revision": 2,
       "name": "EX7 Leviamon",
       "archetype": "Leviamon",
       "collection": "EX7",
       "formatBlock": "EX7",
       "colors": ["White", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Dobermon (X Antibody) EX5-059 to 1, Cerberusmon (X Antibody) EX5-061 to 1; the freed copies reinforce Leviamon (X Antibody) BT15-081 to 4, Dobermon BT16-068 to 4, Seventh Lightning BT15-100 to 4, Gazimon BT3-077 to 4.",
       "tournament": {
         "name": "Regionals — TAK Games",
         "date": "2024-10-05",
@@ -195,7 +196,7 @@
         {
           "cardId": "BT3-077",
           "name": "Gazimon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -225,7 +226,7 @@
         {
           "cardId": "BT16-068",
           "name": "Dobermon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -237,7 +238,7 @@
         {
           "cardId": "EX5-059",
           "name": "Dobermon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -255,13 +256,13 @@
         {
           "cardId": "EX5-061",
           "name": "Cerberusmon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT15-081",
           "name": "Leviamon (X Antibody)",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -285,7 +286,7 @@
         {
           "cardId": "BT15-100",
           "name": "Seventh Lightning",
-          "qty": 2,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -324,13 +325,14 @@
     },
     {
       "id": "ex7-dgo-2024-10-05-2-magnamon",
-      "revision": 1,
+      "revision": 2,
       "name": "EX7 Magnamon",
       "archetype": "Magnamon",
       "collection": "EX7",
       "formatBlock": "EX7",
       "colors": ["Red", "Blue", "Yellow", "Green", "Black"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Blinding Ray BT4-104 to 1; the freed copies reinforce Davis Motomiya & Ken Ichijoji BT16-085 to 4, Blue Memory Boost! P-036 to 4.",
       "tournament": {
         "name": "Regionals — TAK Games",
         "date": "2024-10-05",
@@ -412,7 +414,7 @@
         {
           "cardId": "BT16-085",
           "name": "Davis Motomiya & Ken Ichijoji",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -436,7 +438,7 @@
         {
           "cardId": "P-036",
           "name": "Blue Memory Boost!",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -454,7 +456,7 @@
         {
           "cardId": "BT4-104",
           "name": "Blinding Ray",
-          "qty": 3,
+          "qty": 1,
           "type": "Option"
         },
         {
@@ -481,13 +483,14 @@
     },
     {
       "id": "ex7-dgo-2024-10-12-1-miragegaogamon-galaxy",
-      "revision": 1,
+      "revision": 2,
       "name": "EX7 MirageGaogamon Galaxy",
       "archetype": "MirageGaogamon Galaxy",
       "collection": "EX7",
       "formatBlock": "EX7",
       "colors": ["Red", "Blue", "White"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: MirageGaogamon BT11-033 to 1; the freed copies reinforce Huankunmon EX6-014 to 4, Hexeblaumon EX7-023 to 4.",
       "tournament": {
         "name": "Ultimate Cup — Versus Games",
         "date": "2024-10-12",
@@ -557,7 +560,7 @@
         {
           "cardId": "EX6-014",
           "name": "Huankunmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -569,13 +572,13 @@
         {
           "cardId": "BT11-033",
           "name": "MirageGaogamon",
-          "qty": 3,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "EX7-023",
           "name": "Hexeblaumon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -765,13 +768,14 @@
     },
     {
       "id": "ex7-dgo-2024-10-19-1-fenriloogamon-takemikazuchi",
-      "revision": 1,
+      "revision": 2,
       "name": "EX7 Fenriloogamon Takemikazuchi",
       "archetype": "Fenriloogamon Takemikazuchi",
       "collection": "EX7",
       "formatBlock": "EX7",
       "colors": ["Red", "Yellow", "Green", "White", "Black", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: SkullBaluchimon BT10-080 to 1, Fenriloogamon BT17-069 to 1; the freed copies reinforce Tyrannomon BT15-011 to 4, Ukkomon BT16-082 to 4, DexDorugamon BT17-065 to 4.",
       "tournament": {
         "name": "Regionals — The Booster Box",
         "date": "2024-10-19",
@@ -799,7 +803,7 @@
         {
           "cardId": "BT16-082",
           "name": "Ukkomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -811,19 +815,19 @@
         {
           "cardId": "BT17-065",
           "name": "DexDorugamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT15-011",
           "name": "Tyrannomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT10-080",
           "name": "SkullBaluchimon",
-          "qty": 2,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -841,7 +845,7 @@
         {
           "cardId": "BT17-069",
           "name": "Fenriloogamon",
-          "qty": 3,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -904,13 +908,14 @@
     },
     {
       "id": "ex7-dgo-2024-10-20-1-miragegaogamon",
-      "revision": 1,
+      "revision": 2,
       "name": "EX7 MirageGaogamon",
       "archetype": "MirageGaogamon",
       "collection": "EX7",
       "formatBlock": "EX7",
       "colors": ["Blue"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: MirageGaogamon BT11-033 to 1; the freed copies reinforce Gaomon BT11-020 to 4, MachGaogamon BT13-029 to 4, MirageGaogamon: Burst Mode BT13-033 to 4.",
       "tournament": {
         "name": "Regionals — Sangsang",
         "date": "2024-10-20",
@@ -925,7 +930,7 @@
         {
           "cardId": "BT11-020",
           "name": "Gaomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -967,7 +972,7 @@
         {
           "cardId": "BT13-029",
           "name": "MachGaogamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -985,7 +990,7 @@
         {
           "cardId": "BT11-033",
           "name": "MirageGaogamon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -997,7 +1002,7 @@
         {
           "cardId": "BT13-033",
           "name": "MirageGaogamon: Burst Mode",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {

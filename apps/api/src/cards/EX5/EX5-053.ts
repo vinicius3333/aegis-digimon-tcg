@@ -11,7 +11,7 @@ import { registerCard } from "../../engine/effects/registry.js";
  * EX5-053 — Baihumon (EX5, Black/Yellow Lv.6 Digimon).
  *
  * Hand-written override of the declarative effect stub. The compiler's closed
- * `EffectTrigger` set (packages/shared/src/effects/ir.ts) has no tag for "when
+ * `EffectTrigger` set (packages/shared/src/effects/ir/triggers.ts) has no tag for "when
  * your security is checked" — the declarative effect record mapped the printed
  * "[Opponent's Turn]" bracket to trigger "OpponentsTurn", which the interpreter
  * resolves to `EffectTiming.None` (a continuous/static window). That is wrong for

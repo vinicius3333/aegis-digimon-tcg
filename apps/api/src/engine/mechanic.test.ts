@@ -114,9 +114,9 @@ function modifierWrite(s: Setup): ModifierWriter {
 }
 
 interface SecurityDpLedgerLike {
-  add(seat: Seat, delta: number): void;
+  add(seat: Seat, delta: number, opts?: { continuous?: boolean }): void;
   deltaFor(seat: Seat): number;
-  clear(): void;
+  clearContinuous(): void;
 }
 
 /**
@@ -124,21 +124,21 @@ interface SecurityDpLedgerLike {
  * modelling a CONTINUOUS source (the printed vehicle, ST3-12, is an `[Opponent's Turn]`
  * static — a continuous effect that re-applies on every recompute, including the one the
  * security-check window triggers). `runSecurityCheck` clears the ledger at the start of each
- * check, so a continuous source must re-apply afterwards; this wraps `clear` to re-seed the
+ * recompute, so a continuous source must re-apply afterwards; this wraps `clearContinuous` to re-seed the
  * delta, exercising the REAL primitive write (`add`) and the REAL consumer read
  * (`securityCardDp = dp + deltaFor`) — NOT ST3-12's unfaithful compiled IR (deferred to
- * Phase 3). Returns a disposer that restores the original `clear`.
+ * Phase 3). Returns a disposer that restores the original `clearContinuous`.
  */
 function seedContinuousSecurityDp(s: Setup, seat: Seat, delta: number): () => void {
   const dp = (s.engine as unknown as { securityDp: SecurityDpLedgerLike }).securityDp;
-  const originalClear = dp.clear.bind(dp);
-  dp.clear = () => {
+  const originalClear = dp.clearContinuous.bind(dp);
+  dp.clearContinuous = () => {
     originalClear();
-    dp.add(seat, delta);
+    dp.add(seat, delta, { continuous: true });
   };
-  dp.add(seat, delta);
+  dp.add(seat, delta, { continuous: true });
   return () => {
-    dp.clear = originalClear;
+    dp.clearContinuous = originalClear;
     originalClear();
   };
 }
@@ -184,7 +184,9 @@ function digivolve(s: Setup, seat: Seat, baseId: string, evolving: CardInstance)
 
 describe("A3 RevealAdd — reveal top N, add matching, rest to deck", () => {
   it("BT1-067 [On Play] reveals top 3 and adds the lone Lv.4 Digimon to hand", async () => {
-    const s = setup();
+    // The single matching candidate is still offered as a card selection (the client shows the
+    // reveal); the harness answers it, and the assertion below is that nothing OPTIONAL was asked.
+    const s = setup({ autoSelectCards: true });
     const player = s.state.players[0] as PlayerState;
 
     const source = instance("BT1-067", 0, false); // Green Digimon, cost 3, On Play: RevealAdd 3
@@ -202,14 +204,14 @@ describe("A3 RevealAdd — reveal top N, add matching, rest to deck", () => {
       ok: true,
     });
 
-    await settle(() => player.hand.some((c) => c.instanceId === match.instanceId));
+    await settle(() => player.hand.some((c) => c.instanceId === match.instanceId), 5000);
 
     // The Lv.4 Digimon was added to hand; the two non-matches went to the deck bottom.
     expect(player.hand.some((c) => c.instanceId === match.instanceId)).toBe(true);
     expect(player.deck.some((c) => c.instanceId === match.instanceId)).toBe(false);
     expect(player.deck).toHaveLength(2);
-    // A single matching candidate is forced, so the player is never prompted.
-    expect(s.decisions).toHaveLength(0);
+    // Mandatory effect: no "use this effect?" prompt was raised.
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
     assertNoLoudGap(s);
   });
 });
@@ -430,8 +432,10 @@ describe("A3 core verbs — Delete / ModifyDP / Suspend / Return through the rea
   it("DeDigivolve: BT16-026 [On Play] de-digivolves the lone opponent Digimon by 2", async () => {
     const s = setup({ autoSelectCards: true });
     const p1 = s.state.players[1] as PlayerState;
-    const target = digimon(1, 8000, "AD1-001"); // Lv.4 top
-    target.stack.push(instance("BT1-009", 1, true), instance("BT1-010", 1, true)); // 2 digivolution cards
+    // Lv.6 top over Lv.5 over Lv.4: two trashes are legal here, because <De-Digivolve> stops
+    // once the top card is level 3 or lower (comprehensive rules 16-12-4).
+    const target = digimon(1, 8000, "AD1-004"); // Lv.6 top
+    target.stack.push(instance("AD1-001", 1, true), instance("BT1-020", 1, true)); // Lv.4 under Lv.5
     p1.battleArea.push(target);
 
     const source = instance("BT16-026", 0, false); // Digimon, cost 7
@@ -441,12 +445,12 @@ describe("A3 core verbs — Delete / ModifyDP / Suspend / Return through the rea
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: source.instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => target.stack.length === 0);
+    await settle(() => target.stack.length === 0, 5000);
 
-    // Both digivolution cards peel off; the two former top cards return to the owner's deck.
+    // Both top cards are TRASHED (16-12-1), leaving the Lv.4 card as the new top.
     expect(target.stack).toHaveLength(0);
-    expect(target.topCard?.cardId).toBe("BT1-009");
-    expect(p1.deck).toHaveLength(2);
+    expect(target.topCard?.cardId).toBe("AD1-001");
+    expect(p1.trash.map((c) => c.cardId).sort()).toEqual(["AD1-004", "BT1-020"]);
     assertNoLoudGap(s);
   });
 
@@ -2636,8 +2640,10 @@ describe("A3 Search — search deck, pick matching card, add to hand", () => {
     // [Main] routes to OnUseOption (timingsForTrigger: a non-security Main -> OnUseOption).
     const mains = module!.effectsForTiming(EffectTiming.OnUseOption, source);
     expect(mains.length, "BT15-092 has a registered [Main] effect").toBeGreaterThan(0);
+    // The description is the humanized rendering of the compiled actions, so the faithful
+    // security-play reads as "Play without paying the cost" — never as a deck search.
     expect(mains[0]!.description, "BT15-092 [Main] is a PlayWithoutCost, not a Search").toContain(
-      "PlayWithoutCost",
+      "Play without paying the cost",
     );
     expect(mains[0]!.description).not.toContain("Search");
 
@@ -2861,7 +2867,9 @@ describe("A3 digivolve verb — WhenDigivolving fires through a real digivolutio
 
     expect(digivolve(s, 0, base.permanentId, evolving)).toEqual({ ok: true });
 
-    // Steps 1-6 (stack/cost/draw) are synchronous; the new top is in place immediately.
+    // The verb resolves on a continuation (Main verbs are serialized), so settle on the stack
+    // change before reading the new top.
+    await settle(() => base.topCard?.cardId === "BT8-013");
     expect(base.topCard?.cardId).toBe("BT8-013");
     expect(base.stack.some((c) => c.cardId === "BT1-009")).toBe(true); // prior top slid underneath
     expect(s.state.memory).toBe(8); // EvoCost 2 paid through the gauge
@@ -2892,6 +2900,7 @@ describe("A3 digivolve verb — WhenDigivolving fires through a real digivolutio
     s.state.memory = 10; // EvoCost 4 affordable
 
     expect(digivolve(s, 0, base.permanentId, evolving)).toEqual({ ok: true });
+    await settle(() => base.topCard?.cardId === "BT4-019");
     expect(base.topCard?.cardId).toBe("BT4-019");
     expect(s.state.memory).toBe(6); // EvoCost 4 paid
 

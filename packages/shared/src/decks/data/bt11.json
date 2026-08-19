@@ -4,13 +4,14 @@
   "decks": [
     {
       "id": "bt11-dgo-2023-02-26-1-blackwargreymon-x",
-      "revision": 1,
+      "revision": 2,
       "name": "BT11 BlackWarGreymon X",
       "archetype": "BlackWarGreymon X",
       "collection": "BT11",
       "formatBlock": "BT11",
       "colors": ["Red", "White", "Black"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Greymon (X Antibody) BT11-064 to 1; the freed copies reinforce Greymon BT5-010 to 4, Greymon BT8-064 to 4, Gaiomon BT9-068 to 4.",
       "tournament": {
         "name": "2022 Championship Finals",
         "date": "2023-02-26",
@@ -40,19 +41,19 @@
         {
           "cardId": "BT8-064",
           "name": "Greymon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT11-064",
           "name": "Greymon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT5-010",
           "name": "Greymon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -82,7 +83,7 @@
         {
           "cardId": "BT9-068",
           "name": "Gaiomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -139,13 +140,14 @@
     },
     {
       "id": "bt11-dgo-2023-02-26-1-grandiskuwagamon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT11 GrandisKuwagamon",
       "archetype": "GrandisKuwagamon",
       "collection": "BT11",
       "formatBlock": "BT11",
       "colors": ["Blue", "Green"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: GranKuwagamon P-025 to 1; the freed copies reinforce Kokuwamon BT10-045 to 4, Green Memory Boost! P-038 to 4, Snimon ST9-10 to 4.",
       "tournament": {
         "name": "2022 Championship Finals",
         "date": "2023-02-26",
@@ -157,7 +159,7 @@
         {
           "cardId": "BT10-045",
           "name": "Kokuwamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -205,7 +207,7 @@
         {
           "cardId": "ST9-10",
           "name": "Snimon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -223,7 +225,7 @@
         {
           "cardId": "P-025",
           "name": "GranKuwagamon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -253,7 +255,7 @@
         {
           "cardId": "P-038",
           "name": "Green Memory Boost!",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -274,13 +276,14 @@
     },
     {
       "id": "bt11-dgo-2023-02-26-1-xros-heart",
-      "revision": 1,
+      "revision": 2,
       "name": "BT11 Xros Heart",
       "archetype": "Xros Heart",
       "collection": "BT11",
       "formatBlock": "BT11",
       "colors": ["Red", "Yellow", "Green", "Black", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Gravity Crush BT1-090 to 1, Blinding Ray BT4-104 to 1; the freed copies reinforce Starmons BT10-029 to 4, Mervamon BT11-086 to 4, Shoutmon X5 BT10-013 to 4, Sparrowmon BT10-060 to 4.",
       "tournament": {
         "name": "2022 Championship Finals",
         "date": "2023-02-26",
@@ -292,7 +295,7 @@
         {
           "cardId": "BT10-060",
           "name": "Sparrowmon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -316,7 +319,7 @@
         {
           "cardId": "BT10-029",
           "name": "Starmons",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -346,13 +349,13 @@
         {
           "cardId": "BT10-013",
           "name": "Shoutmon X5",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT11-086",
           "name": "Mervamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -376,13 +379,13 @@
         {
           "cardId": "BT1-090",
           "name": "Gravity Crush",
-          "qty": 4,
+          "qty": 1,
           "type": "Option"
         },
         {
           "cardId": "BT4-104",
           "name": "Blinding Ray",
-          "qty": 4,
+          "qty": 1,
           "type": "Option"
         }
       ],
@@ -397,13 +400,14 @@
     },
     {
       "id": "bt11-dgo-2023-03-11-1-blue-flare",
-      "revision": 1,
+      "revision": 2,
       "name": "BT11 Blue Flare",
       "archetype": "Blue Flare",
       "collection": "BT11",
       "formatBlock": "BT11",
       "colors": ["Blue"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Hammer Spark ST2-13 to 1; the freed copies reinforce Deckerdramon BT10-020 to 4.",
       "tournament": {
         "name": "Ultimate Cup — Raid’n’Trade",
         "date": "2023-03-11",
@@ -441,7 +445,7 @@
         {
           "cardId": "BT10-020",
           "name": "Deckerdramon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -513,7 +517,7 @@
         {
           "cardId": "ST2-13",
           "name": "Hammer Spark",
-          "qty": 2,
+          "qty": 1,
           "type": "Option"
         }
       ],
@@ -528,13 +532,14 @@
     },
     {
       "id": "bt11-dgo-2023-03-12-1-bloomlordmon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT11 Bloomlordmon",
       "archetype": "Bloomlordmon",
       "collection": "BT11",
       "formatBlock": "BT11",
       "colors": ["Green"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Blossomon BT3-054 to 1; the freed copies reinforce Ajatarmon BT10-053 to 4, Bloomlordmon BT10-057 to 4.",
       "tournament": {
         "name": "Ultimate Cup — Gametrade",
         "date": "2023-03-12",
@@ -602,13 +607,13 @@
         {
           "cardId": "BT10-053",
           "name": "Ajatarmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT3-054",
           "name": "Blossomon",
-          "qty": 3,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -620,7 +625,7 @@
         {
           "cardId": "BT10-057",
           "name": "Bloomlordmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {

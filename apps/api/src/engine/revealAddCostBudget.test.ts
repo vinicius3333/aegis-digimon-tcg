@@ -106,7 +106,8 @@ describe("RevealAdd costBudget — total-play-cost budget free plays (BT11-044)"
     });
 
     await driveBudgetSelection(s, idToCard, chooseCardIds, () => inPlay(p0, CHUUMON) && inPlay(p0, SUKAMON));
-    await settle(() => inPlay(p0, CHUUMON) && inPlay(p0, SUKAMON));
+    // The free plays land first; the "trash the rest" tail runs on the next continuation.
+    await settle(() => inTrash(p0, etemonId) && inTrash(p0, fillerId), 5000);
 
     // Both within-budget matches were played for free.
     expect(inPlay(p0, CHUUMON)).toBe(true);
@@ -140,8 +141,7 @@ describe("RevealAdd costBudget — total-play-cost budget free plays (BT11-044)"
     });
 
     await driveBudgetSelection(s, idToCard, chooseCardIds, () => inPlay(p0, CHUUMON) && inPlay(p0, SUKAMON));
-    await settle(() => inPlay(p0, CHUUMON) && inPlay(p0, SUKAMON));
-    await settle(() => false, 50); // flush any trailing continuation
+    await settle(() => inTrash(p0, etemonId) && inTrash(p0, fillerId), 5000);
 
     // The two cheap matches fit the budget and were played free.
     expect(inPlay(p0, CHUUMON)).toBe(true);

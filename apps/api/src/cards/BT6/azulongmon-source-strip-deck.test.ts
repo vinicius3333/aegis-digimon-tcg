@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { Phase } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT6-027.js";
@@ -101,10 +102,15 @@ describe("BT6 Azulongmon source-strip deck gauntlet", () => {
       attackerPermanentId: hostId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
-    await settle(() =>
-      !observe(s.engine).isAttacking() &&
-      !s.perm("blueLevelFour").isSuspended &&
-      s.state.players[1]!.security.length === 4
+    // The phase check is load-bearing: the attack resolves before the engine has returned to
+    // Main, and declaring the next one in that window is refused as wrong-phase.
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        !s.perm("blueLevelFour").isSuspended &&
+        s.state.players[1]!.security.length === 4 &&
+        s.state.phase === Phase.Main,
+      5000,
     );
 
     expect(s.engine.applyIntent(0, {
@@ -112,7 +118,13 @@ describe("BT6 Azulongmon source-strip deck gauntlet", () => {
       attackerPermanentId: hostId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 0);
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.security.length === 0 &&
+        s.state.phase === Phase.Main,
+      5000,
+    );
 
     expect(s.perm("blueLevelFour").isSuspended).toBe(true);
     expect(s.engine.applyIntent(0, {

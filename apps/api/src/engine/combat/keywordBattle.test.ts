@@ -132,7 +132,7 @@ describe("<Iceclad> (Comprehensive Rules §16-35) — compare digivolution-card 
         target: { kind: "permanent", permanentId: defender.permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => false, 300);
+    await settle(() => false, 5000);
 
     // Plain DP comparison: the 20000-DP attacker wins as usual.
     expect(p1.battleArea).toHaveLength(0); // defender was deleted

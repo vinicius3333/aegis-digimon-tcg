@@ -158,15 +158,16 @@ describe.each(ALL_META_DECKS.map((deck) => [deck.deckVersion, deck] as const))("
 
   const insidePool = blockDate <= CARD_POOL_CUTOFF_DATE;
 
-  it.skipIf(!insidePool)("is dealable today, its block being inside the active card pool", () => {
-    expect(validateDecklist(deck.decklist)).toEqual({ ok: true });
-  });
-
-  // The counterpart for a block published ahead of the pool. Such a deck may or may
-  // not happen to be dealable, so dealability says nothing; what must hold is that the
-  // default lookup never hands it out, because the server would reject it at deal time.
-  it.runIf(!insidePool)("is withheld by the default lookup until the card pool reaches its block", () => {
-    expect(metaDecksForBlock(deck.block)).not.toContain(deck);
+  // One always-running case, one claim per side of the cutoff. A deck inside the pool must be
+  // dealable. A deck published ahead of the pool may or may not happen to be dealable, so
+  // dealability says nothing about it; what must hold is that the default lookup never hands
+  // it out, because the server would reject it at deal time.
+  it("is dealable exactly when the card pool has reached its block", () => {
+    if (insidePool) {
+      expect(validateDecklist(deck.decklist)).toEqual({ ok: true });
+    } else {
+      expect(metaDecksForBlock(deck.block)).not.toContain(deck);
+    }
   });
 
   it("is immutable", () => {

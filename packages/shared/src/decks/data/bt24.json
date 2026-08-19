@@ -1003,13 +1003,14 @@
     },
     {
       "id": "bt24-dgo-2026-03-15-3-hudiemon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT24 Hudiemon",
       "archetype": "Hudiemon",
       "collection": "BT24",
       "formatBlock": "BT24",
       "colors": ["Red", "Blue", "Yellow", "Green", "White", "Black", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Shakkoumon BT23-032 to 1; the freed copies reinforce Mirei Mikagura BT22-089 to 4, Tentomon BT23-037 to 4, Chitose Imai BT23-081 to 4.",
       "tournament": {
         "name": "World Championship — Bandai",
         "date": "2026-03-15",
@@ -1043,7 +1044,7 @@
         {
           "cardId": "BT23-037",
           "name": "Tentomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1073,7 +1074,7 @@
         {
           "cardId": "BT23-032",
           "name": "Shakkoumon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -1103,13 +1104,13 @@
         {
           "cardId": "BT23-081",
           "name": "Chitose Imai",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
           "cardId": "BT22-089",
           "name": "Mirei Mikagura",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {

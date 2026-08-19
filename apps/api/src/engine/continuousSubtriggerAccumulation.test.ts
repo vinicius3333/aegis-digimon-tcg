@@ -16,15 +16,21 @@ import { observe } from "./testkit/observe.js";
  * the reduceCost replacement re-subscribes each recompute and the third recompute reports
  * 3·N instead of N => the "stays at N" assertions go RED.
  *
- * Vehicles named by the reviewer: BT21-030 (Static reduceCost 1), BT22-041 (Static reduceCost 6).
+ * Vehicles: BT8-097 (Static reduceCost 1 per opponent Digimon) and BT22-041 (Static reduceCost 6). Both install a
+ * plain (non-interactive) reduction, which is the one `costReductionFor` sums — an install
+ * carrying its own activation cost is consumed at pay time instead and never sums here.
  */
 
-const REDUCE_1 = "BT21-030"; // Static -> Replacement{reduceCost, amount:1}
+const REDUCE_1 = "BT8-097"; // Static -> Replacement{reduceCost, amount:1 per opponent Digimon}
 const REDUCE_6 = "BT22-041"; // Static -> Replacement{reduceCost, amount:6}
 
 describe("CR-01 — Static reduceCost replacement does not accumulate across continuous recomputes", () => {
-  it("BT21-030's Static reduceCost stays at 1 over 3 recomputes (not 1, 2, 3)", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: REDUCE_1, dp: 0, as: "perm" }] } });
+  it("BT8-097's Static reduceCost stays at 1 over 3 recomputes (not 1, 2, 3)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: REDUCE_1, dp: 0, as: "perm" }] },
+      // The reduction scales per opponent Digimon: one foe makes the amount exactly 1.
+      1: { battleArea: [{ card: "BT1-009", as: "foe" }] },
+    });
     const perm = s.perm("perm");
 
     const reductionAfterRecompute = async (): Promise<number> => {

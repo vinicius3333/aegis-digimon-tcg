@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT1-001.js";
 import "./BT1-072.js";
+import "../index.js"; // the full catalog is registered in a real match
 
 describe("BT1-001 Yokomon", () => {
   it("gives +1000 DP when its Digimon attacks an opposing Digimon", async () => {
@@ -13,7 +14,10 @@ describe("BT1-001 Yokomon", () => {
 
   it("does not gain DP in a security battle", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-016", as: "attacker", dp: 5000, under: ["BT1-001"] }] },
+      // A plain host (no ＜Jamming＞, which would shield it from the security battle) carrying
+      // Yokomon: at 5000 DP it loses to the 6000-DP security Digimon unless the inherited
+      // +1000 wrongly applied.
+      0: { battleArea: [{ card: "BT1-019", as: "attacker", dp: 5000, under: ["BT1-001"] }] },
       1: { security: ["BT1-020"] },
     });
     const attackerId = s.perm("attacker").permanentId;

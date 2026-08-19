@@ -15,11 +15,12 @@ describe("BT21-101 Gaiamon", () => {
         kind: "Link",
         payCost: false,
         optional: true,
-        source: {
+        target: {
           filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] },
-          from: ["hand", "digivolutionCards"],
+          count: 1,
         },
-        target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+        from: ["hand", "digivolutionCards"],
+        recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
       });
     }
     const yourTurn = compiled.effects.find((entry) => entry.trigger === "YourTurn");

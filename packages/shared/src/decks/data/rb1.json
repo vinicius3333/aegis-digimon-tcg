@@ -139,13 +139,14 @@
     },
     {
       "id": "rb1-dgo-2023-10-21-1-shinegreymon",
-      "revision": 1,
+      "revision": 2,
       "name": "RB1 ShineGreymon",
       "archetype": "ShineGreymon",
       "collection": "RB1",
       "formatBlock": "RB1",
       "colors": ["Red", "Yellow"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: GeoGreymon BT13-012 to 1; the freed copies reinforce RizeGreymon BT12-042 to 4, ShineGreymon BT13-018 to 3.",
       "tournament": {
         "name": "2023 Regionals",
         "date": "2023-10-21",
@@ -187,7 +188,7 @@
         {
           "cardId": "BT13-012",
           "name": "GeoGreymon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -211,7 +212,7 @@
         {
           "cardId": "BT12-042",
           "name": "RizeGreymon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -223,7 +224,7 @@
         {
           "cardId": "BT13-018",
           "name": "ShineGreymon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -274,13 +275,14 @@
     },
     {
       "id": "rb1-dgo-2023-10-21-2-royal-knights",
-      "revision": 1,
+      "revision": 2,
       "name": "RB1 Royal Knights",
       "archetype": "Royal Knights",
       "collection": "RB1",
       "formatBlock": "RB1",
       "colors": ["Red", "Blue", "Yellow", "Green", "White", "Black", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Royal Knights of the Purge BT13-110 to 1; the freed copies reinforce Jesmon BT13-017 to 4, Gankoomon BT13-019 to 4, UlforceVeedramon BT13-030 to 4.",
       "tournament": {
         "name": "2023 Regionals",
         "date": "2023-10-21",
@@ -322,7 +324,7 @@
         {
           "cardId": "BT13-030",
           "name": "UlforceVeedramon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -346,13 +348,13 @@
         {
           "cardId": "BT13-017",
           "name": "Jesmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT13-019",
           "name": "Gankoomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -394,7 +396,7 @@
         {
           "cardId": "BT13-110",
           "name": "Royal Knights of the Purge",
-          "qty": 4,
+          "qty": 1,
           "type": "Option"
         }
       ],

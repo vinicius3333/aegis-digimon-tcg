@@ -5,6 +5,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT1-085.js";
 import "./BT1-101.js";
+import "../index.js"; // the full catalog is registered in a real match
 
 describe("BT1-085 Tai Kamiya", () => {
   it("sets memory to 3 and grants Security Attack +1 to a red Digimon with 4 sources", async () => {
@@ -94,7 +95,9 @@ describe("BT1-085 Tai Kamiya", () => {
       0: {
         battleArea: [
           { card: "BT1-085", as: "tai" },
-          { card: "BT1-025", as: "attacker", dp: 20000, under: ["BT1-001", "BT1-010", "BT1-015", "BT1-020"] },
+          // A plain Lv.5 attacker: BT1-025 WarGreymon would suppress the [Security] skill this
+          // case depends on ("doesn't activate [Security] skills on Option cards it checks").
+          { card: "BT1-024", as: "attacker", dp: 20000, under: ["BT1-001", "BT1-010", "BT1-015", "BT1-020"] },
         ],
       },
       1: { security: ["BT1-010", "BT1-101"] },
@@ -114,6 +117,7 @@ describe("BT1-085 Tai Kamiya", () => {
         s.perm("attacker").stack.length === 0 &&
         s.state.players[1]!.security.length === 1 &&
         observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack") === 0,
+      5000,
     );
 
     expect(s.perm("attacker").stack).toHaveLength(0);

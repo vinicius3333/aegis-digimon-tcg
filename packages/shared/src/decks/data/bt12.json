@@ -4,13 +4,14 @@
   "decks": [
     {
       "id": "bt12-dgo-2023-05-07-1-bloomlordmon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT12 Bloomlordmon",
       "archetype": "Bloomlordmon",
       "collection": "BT12",
       "formatBlock": "BT12",
       "colors": ["Green"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Blossomon BT3-054 to 1; the freed copies reinforce Mushroomon BT10-043 to 4.",
       "tournament": {
         "name": "2023 Regionals",
         "date": "2023-05-07",
@@ -22,7 +23,7 @@
         {
           "cardId": "BT10-043",
           "name": "Mushroomon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -88,7 +89,7 @@
         {
           "cardId": "BT3-054",
           "name": "Blossomon",
-          "qty": 3,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -322,13 +323,14 @@
     },
     {
       "id": "bt12-dgo-2023-05-13-1-beelzemon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT12 Beelzemon",
       "archetype": "Beelzemon",
       "collection": "BT12",
       "formatBlock": "BT12",
       "colors": ["Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Impmon EX2-039 to 1; the freed copies reinforce Beelzemon EX2-044 to 4, Ai & Mako ST14-11 to 4, Baalmon BT10-081 to 3.",
       "tournament": {
         "name": "2023 Regionals",
         "date": "2023-05-13",
@@ -352,7 +354,7 @@
         {
           "cardId": "EX2-039",
           "name": "Impmon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -382,7 +384,7 @@
         {
           "cardId": "BT10-081",
           "name": "Baalmon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -400,7 +402,7 @@
         {
           "cardId": "EX2-044",
           "name": "Beelzemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -418,7 +420,7 @@
         {
           "cardId": "ST14-11",
           "name": "Ai & Mako",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -991,13 +993,14 @@
     },
     {
       "id": "bt12-dgo-2023-05-27-1-red-hybrid",
-      "revision": 1,
+      "revision": 2,
       "name": "BT12 Red Hybrid",
       "archetype": "Red Hybrid",
       "collection": "BT12",
       "formatBlock": "BT12",
       "colors": ["Red"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Gravity Crush BT1-090 to 1; the freed copies reinforce Atomic Inferno BT4-098 to 4.",
       "tournament": {
         "name": "2023 Regionals",
         "date": "2023-05-27",
@@ -1087,13 +1090,13 @@
         {
           "cardId": "BT1-090",
           "name": "Gravity Crush",
-          "qty": 2,
+          "qty": 1,
           "type": "Option"
         },
         {
           "cardId": "BT4-098",
           "name": "Atomic Inferno",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         }
       ],
@@ -1108,13 +1111,14 @@
     },
     {
       "id": "bt12-blasemetabee-ukge-2023",
-      "revision": 1,
+      "revision": 2,
       "name": "BT12 Red Hybrid",
       "archetype": "Red Hybrid",
       "collection": "BT12",
       "formatBlock": "BT12",
       "colors": ["Red", "White"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Gravity Crush BT1-090 to 1; the freed copies reinforce Atomic Inferno BT4-098 to 4.",
       "tournament": {
         "name": "UKGE Regionals",
         "date": "2023-06-02",
@@ -1207,13 +1211,13 @@
         {
           "cardId": "BT4-098",
           "name": "Atomic Inferno",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
           "cardId": "BT1-090",
           "name": "Gravity Crush",
-          "qty": 2,
+          "qty": 1,
           "type": "Option"
         }
       ],
@@ -2260,13 +2264,14 @@
     },
     {
       "id": "bt12-mrcrash-ukge-2023",
-      "revision": 1,
+      "revision": 2,
       "name": "BT12 Red Hybrid",
       "archetype": "Red Hybrid",
       "collection": "BT12",
       "formatBlock": "BT12",
       "colors": ["Red", "White"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Gravity Crush BT1-090 to 1; the freed copies reinforce Flamemon BT4-009 to 4.",
       "tournament": {
         "name": "UKGE Regionals",
         "date": "2023-06-02",
@@ -2293,7 +2298,7 @@
         {
           "cardId": "BT4-009",
           "name": "Flamemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -2371,7 +2376,7 @@
         {
           "cardId": "BT1-090",
           "name": "Gravity Crush",
-          "qty": 2,
+          "qty": 1,
           "type": "Option"
         }
       ],
@@ -2518,13 +2523,14 @@
     },
     {
       "id": "bt12-red-hybrid-saf-ukge-2023",
-      "revision": 1,
+      "revision": 2,
       "name": "BT12 Red Hybrid",
       "archetype": "Red Hybrid",
       "collection": "BT12",
       "formatBlock": "BT12",
       "colors": ["Red", "White"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Gravity Crush BT1-090 to 1; the freed copies reinforce Flamemon BT4-009 to 4.",
       "tournament": {
         "name": "UKGE Regionals",
         "date": "2023-06-02",
@@ -2551,7 +2557,7 @@
         {
           "cardId": "BT4-009",
           "name": "Flamemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -2629,7 +2635,7 @@
         {
           "cardId": "BT1-090",
           "name": "Gravity Crush",
-          "qty": 2,
+          "qty": 1,
           "type": "Option"
         }
       ],
