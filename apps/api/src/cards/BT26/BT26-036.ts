@@ -1,4 +1,4 @@
-import { CardColor, EffectTiming, isTamer } from "@aegis/shared";
+import { CardColor, EffectTiming, isDigimon, isTamer } from "@aegis/shared";
 import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -49,9 +49,7 @@ async function resolveRevealAndAddToHand(ctx: EffectContext, source: CardSource)
   if (owner.deck.length === 0) return;
 
   const revealed = await ctx.fx.reveal(source.ownerSeat, 3);
-  const candidates = revealed
-    .filter((c) => matchesRevealFilter(ctx.game.definitionOf(c)))
-    .map((c) => c.instanceId);
+  const candidates = revealed.filter((c) => matchesRevealFilter(ctx.game.definitionOf(c))).map((c) => c.instanceId);
 
   let selected: string[] = [];
   if (candidates.length > 0) {
@@ -65,7 +63,9 @@ async function resolveRevealAndAddToHand(ctx: EffectContext, source: CardSource)
 
 function opponentDigimonTargets(ctx: EffectContext, source: CardSource) {
   const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
-  return Array.from(opponent.battleArea).filter((p) => p.topCard != null);
+  return Array.from(opponent.battleArea).filter(
+    (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
+  );
 }
 
 const module: EffectModule = {
@@ -112,8 +112,7 @@ const module: EffectModule = {
         whenAttacking({
           source,
           effectKey: `${cardId}/when-attacking-suspend`,
-          description:
-            "[When Attacking] [Once Per Turn] You may suspend 1 of your opponent's Digimon.",
+          description: "[When Attacking] [Once Per Turn] You may suspend 1 of your opponent's Digimon.",
           isInherited: true,
           maxPerTurn: 1,
           optional: true,
