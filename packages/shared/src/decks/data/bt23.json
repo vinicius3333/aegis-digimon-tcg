@@ -172,13 +172,14 @@
     },
     {
       "id": "bt23-dgo-2025-11-08-1-hudiemon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT23 Hudiemon",
       "archetype": "Hudiemon",
       "collection": "BT23",
       "formatBlock": "BT23",
       "colors": ["Black", "Red", "Blue", "Purple", "Green", "Yellow", "White"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Shakkoumon BT23-032 to 1; the freed copies reinforce Betamon BT23-017 to 4, Angemon BT23-027 to 4.",
       "tournament": {
         "name": "CS-International GmbH Regionals",
         "date": "2025-11-08",
@@ -198,7 +199,7 @@
         {
           "cardId": "BT23-017",
           "name": "Betamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -246,13 +247,13 @@
         {
           "cardId": "BT23-027",
           "name": "Angemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT23-032",
           "name": "Shakkoumon",
-          "qty": 3,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -321,13 +322,14 @@
     },
     {
       "id": "bt23-dgo-2025-11-08-2-growlmon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT23 Growlmon",
       "archetype": "Growlmon",
       "collection": "BT23",
       "formatBlock": "BT23",
       "colors": ["Purple", "Red", "Yellow"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Cerberusmon (X Antibody) EX5-061 to 1; the freed copies reinforce Cerberusmon BT16-075 to 4, Arresterdramon: Superior Mode BT21-072 to 3.",
       "tournament": {
         "name": "CS-International GmbH Regionals",
         "date": "2025-11-08",
@@ -383,19 +385,19 @@
         {
           "cardId": "BT16-075",
           "name": "Cerberusmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "EX5-061",
           "name": "Cerberusmon (X Antibody)",
-          "qty": 3,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT21-072",
           "name": "Arresterdramon: Superior Mode",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -921,13 +923,14 @@
     },
     {
       "id": "bt23-dgo-2025-12-13-1-leviamon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT23 Leviamon",
       "archetype": "Leviamon",
       "collection": "BT23",
       "formatBlock": "BT23",
       "colors": ["White", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Dobermon (X Antibody) EX5-059 to 1, Cerberusmon (X Antibody) EX5-061 to 1; the freed copies reinforce Leviamon (X Antibody) BT15-081 to 4, Dobermon BT16-068 to 4, Leviamon EX5-063 to 4, Purple Memory Boost! P-040 to 4, Seventh Lightning BT15-100 to 4.",
       "tournament": {
         "name": "Championship Finals — CS-International GmbH",
         "date": "2025-12-13",
@@ -979,7 +982,7 @@
         {
           "cardId": "BT16-068",
           "name": "Dobermon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -991,7 +994,7 @@
         {
           "cardId": "EX5-059",
           "name": "Dobermon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -1009,13 +1012,13 @@
         {
           "cardId": "EX5-061",
           "name": "Cerberusmon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT15-081",
           "name": "Leviamon (X Antibody)",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1027,7 +1030,7 @@
         {
           "cardId": "EX5-063",
           "name": "Leviamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1039,7 +1042,7 @@
         {
           "cardId": "BT15-100",
           "name": "Seventh Lightning",
-          "qty": 2,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -1057,7 +1060,7 @@
         {
           "cardId": "P-040",
           "name": "Purple Memory Boost!",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -1240,13 +1243,14 @@
     },
     {
       "id": "bt23-dgo-2026-01-24-1-growlmon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT23 Growlmon",
       "archetype": "Growlmon",
       "collection": "BT23",
       "formatBlock": "BT23",
       "colors": ["Red", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Cerberusmon (X Antibody) EX5-061 to 1; the freed copies reinforce Purple Scramble LM-032 to 4, Cerberusmon BT16-075 to 3.",
       "tournament": {
         "name": "Championship Finals — TAK Games",
         "date": "2026-01-24",
@@ -1303,13 +1307,13 @@
         {
           "cardId": "BT16-075",
           "name": "Cerberusmon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
           "cardId": "EX5-061",
           "name": "Cerberusmon (X Antibody)",
-          "qty": 3,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -1363,7 +1367,7 @@
         {
           "cardId": "LM-032",
           "name": "Purple Scramble",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -1402,13 +1406,14 @@
     },
     {
       "id": "bt23-hudiemon-bandai",
-      "revision": 1,
+      "revision": 2,
       "name": "BT23 Hudiemon",
       "archetype": "Hudiemon",
       "collection": "BT23",
       "formatBlock": "BT23",
       "colors": ["Blue", "Purple", "Green", "Yellow", "Black", "Red", "White"],
       "sourceType": "product_recipe",
+      "approximation": "Adapted to the current banlist: Shakkoumon BT23-032 to 1; the freed copies reinforce Kabuterimon BT23-041 to 4, Golemon BT23-051 to 4.",
       "mainDeck": [
         {
           "cardId": "BT23-017",
@@ -1449,13 +1454,13 @@
         {
           "cardId": "BT23-041",
           "name": "Kabuterimon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT23-051",
           "name": "Golemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1467,7 +1472,7 @@
         {
           "cardId": "BT23-032",
           "name": "Shakkoumon",
-          "qty": 3,
+          "qty": 1,
           "type": "Digimon"
         },
         {

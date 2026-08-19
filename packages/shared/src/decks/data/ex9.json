@@ -4,13 +4,14 @@
   "decks": [
     {
       "id": "ex9-dgo-2025-07-12-1-gallantmon",
-      "revision": 1,
+      "revision": 2,
       "name": "EX9 Gallantmon",
       "archetype": "Gallantmon",
       "collection": "EX9",
       "formatBlock": "EX9",
       "colors": ["Red", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Guilmon EX4-006 to 1, Growlmon EX3-057 to 1, Gravity Crush BT1-090 to 1; the freed copies reinforce Demonic Disaster BT5-106 to 4, Gallantmon BT13-111 to 4, Arresterdramon: Superior Mode BT21-072 to 4, WarGrowlmon EX3-062 to 4, MedievalGallantmon EX8-074 to 3.",
       "tournament": {
         "name": "Regionals — Top Cut Events",
         "date": "2025-07-12",
@@ -32,7 +33,7 @@
         {
           "cardId": "EX4-006",
           "name": "Guilmon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -50,7 +51,7 @@
         {
           "cardId": "EX3-057",
           "name": "Growlmon",
-          "qty": 3,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -62,25 +63,25 @@
         {
           "cardId": "BT21-072",
           "name": "Arresterdramon: Superior Mode",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "EX3-062",
           "name": "WarGrowlmon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "EX8-074",
           "name": "MedievalGallantmon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
           "cardId": "BT13-111",
           "name": "Gallantmon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -98,7 +99,7 @@
         {
           "cardId": "BT5-106",
           "name": "Demonic Disaster",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -122,7 +123,7 @@
         {
           "cardId": "BT1-090",
           "name": "Gravity Crush",
-          "qty": 4,
+          "qty": 1,
           "type": "Option"
         }
       ],
@@ -409,13 +410,14 @@
     },
     {
       "id": "ex9-dgo-2025-07-12-2-royal-knights",
-      "revision": 1,
+      "revision": 2,
       "name": "EX9 Royal Knights",
       "archetype": "Royal Knights",
       "collection": "EX9",
       "formatBlock": "EX9",
       "colors": ["Red", "Blue", "Yellow", "White", "Black"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Royal Knights of the Purge BT13-110 to 1; the freed copies reinforce Omnimon BT13-112 to 4, Jesmon BT20-017 to 4.",
       "tournament": {
         "name": "Regionals — PEC Occitania",
         "date": "2025-07-12",
@@ -491,7 +493,7 @@
         {
           "cardId": "BT20-017",
           "name": "Jesmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -515,7 +517,7 @@
         {
           "cardId": "BT13-112",
           "name": "Omnimon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -539,7 +541,7 @@
         {
           "cardId": "BT13-110",
           "name": "Royal Knights of the Purge",
-          "qty": 3,
+          "qty": 1,
           "type": "Option"
         },
         {
@@ -741,13 +743,14 @@
     },
     {
       "id": "ex9-dgo-2025-07-19-1-growlmon",
-      "revision": 1,
+      "revision": 2,
       "name": "EX9 Growlmon",
       "archetype": "Growlmon",
       "collection": "EX9",
       "formatBlock": "EX9",
       "colors": ["Red", "Yellow", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Guilmon EX4-006 to 1, Growlmon EX3-057 to 1, Gravity Crush BT1-090 to 1; the freed copies reinforce The Digimon I Designed BT21-100 to 4, MedievalGallantmon EX8-074 to 4, Grape Memory Boost! LM-038 to 4, Wisdom Training P-108 to 4, Gallantmon P-186 to 4, X Antibody Proto Form EX5-070 to 4, WarGrowlmon (X Antibody) EX8-015 to 3.",
       "tournament": {
         "name": "Regionals — Victory Road",
         "date": "2025-07-19",
@@ -769,7 +772,7 @@
         {
           "cardId": "EX4-006",
           "name": "Guilmon",
-          "qty": 3,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -781,7 +784,7 @@
         {
           "cardId": "EX3-057",
           "name": "Growlmon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -799,13 +802,13 @@
         {
           "cardId": "EX8-015",
           "name": "WarGrowlmon (X Antibody)",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
           "cardId": "EX8-074",
           "name": "MedievalGallantmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -817,13 +820,13 @@
         {
           "cardId": "P-186",
           "name": "Gallantmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT21-100",
           "name": "The Digimon I Designed",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -835,19 +838,19 @@
         {
           "cardId": "LM-038",
           "name": "Grape Memory Boost!",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
           "cardId": "P-108",
           "name": "Wisdom Training",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
           "cardId": "BT1-090",
           "name": "Gravity Crush",
-          "qty": 4,
+          "qty": 1,
           "type": "Option"
         },
         {
@@ -859,7 +862,7 @@
         {
           "cardId": "EX5-070",
           "name": "X Antibody Proto Form",
-          "qty": 2,
+          "qty": 4,
           "type": "Option"
         }
       ],

@@ -598,13 +598,14 @@
     },
     {
       "id": "bt14-dgo-2023-12-02-1-miragegaogamon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT14 MirageGaogamon",
       "archetype": "MirageGaogamon",
       "collection": "BT14",
       "formatBlock": "BT14",
       "colors": ["Blue"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: MirageGaogamon BT11-033 to 1, Bukamon BT14-002 to 1; the freed copies reinforce Gaomon BT11-020 to 4, MachGaogamon BT11-028 to 4, MirageGaogamon: Burst Mode BT13-033 to 4.",
       "tournament": {
         "name": "2023 Championship Finals",
         "date": "2023-12-02",
@@ -616,7 +617,7 @@
         {
           "cardId": "BT11-020",
           "name": "Gaomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -652,7 +653,7 @@
         {
           "cardId": "BT11-028",
           "name": "MachGaogamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -670,7 +671,7 @@
         {
           "cardId": "BT11-033",
           "name": "MirageGaogamon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -682,7 +683,7 @@
         {
           "cardId": "BT13-033",
           "name": "MirageGaogamon: Burst Mode",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -726,20 +727,21 @@
         {
           "cardId": "BT14-002",
           "name": "Bukamon",
-          "qty": 4,
+          "qty": 1,
           "type": "DigiEgg"
         }
       ]
     },
     {
       "id": "bt14-dgo-2023-12-02-1-plesiomon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT14 Plesiomon",
       "archetype": "Plesiomon",
       "collection": "BT14",
       "formatBlock": "BT14",
       "colors": ["Blue"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Bukamon BT14-002 to 1; the freed copies reinforce .",
       "tournament": {
         "name": "Ultimate Cup — Core TCG",
         "date": "2023-12-02",
@@ -870,7 +872,7 @@
         {
           "cardId": "BT14-002",
           "name": "Bukamon",
-          "qty": 4,
+          "qty": 1,
           "type": "DigiEgg"
         }
       ]
@@ -1021,13 +1023,14 @@
     },
     {
       "id": "bt14-dgo-2024-01-07-1-zudomon-ace",
-      "revision": 1,
+      "revision": 2,
       "name": "BT14 Zudomon Ace",
       "archetype": "Zudomon Ace",
       "collection": "BT14",
       "formatBlock": "BT14",
       "colors": ["Blue", "White"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Ukkomon P-123 to 1, Lui Ohwada P-130 to 1, Bukamon BT14-002 to 1; the freed copies reinforce Veemon BT3-021 to 4, Veemon ST9-02 to 4, Veedramon BT1-115 to 4, Lobomon BT4-025 to 4.",
       "tournament": {
         "name": "Ultimate Cup — Organized Play Events",
         "date": "2024-01-07",
@@ -1054,7 +1057,7 @@
         {
           "cardId": "BT3-021",
           "name": "Veemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1066,19 +1069,19 @@
         {
           "cardId": "ST9-02",
           "name": "Veemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "P-123",
           "name": "Ukkomon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT1-115",
           "name": "Veedramon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1096,7 +1099,7 @@
         {
           "cardId": "BT4-025",
           "name": "Lobomon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1114,7 +1117,7 @@
         {
           "cardId": "P-130",
           "name": "Lui Ohwada",
-          "qty": 4,
+          "qty": 1,
           "type": "Tamer"
         },
         {
@@ -1140,20 +1143,21 @@
         {
           "cardId": "BT14-002",
           "name": "Bukamon",
-          "qty": 4,
+          "qty": 1,
           "type": "DigiEgg"
         }
       ]
     },
     {
       "id": "bt14-red-hybrid-saf-ope-2024",
-      "revision": 1,
+      "revision": 2,
       "name": "BT14 Red Hybrid",
       "archetype": "Red Hybrid",
       "collection": "BT14",
       "formatBlock": "BT14",
       "colors": ["Red"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Ukkomon P-123 to 1, Gravity Crush BT1-090 to 1; the freed copies reinforce BurningGreymon BT7-011 to 4, Crimson Blaze BT8-097 to 4, Flamemon BT4-009 to 3.",
       "tournament": {
         "name": "OPE Ultimate Cup",
         "date": "2024-02-18",
@@ -1167,7 +1171,7 @@
         {
           "cardId": "BT4-009",
           "name": "Flamemon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -1185,7 +1189,7 @@
         {
           "cardId": "P-123",
           "name": "Ukkomon",
-          "qty": 2,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -1197,7 +1201,7 @@
         {
           "cardId": "BT7-011",
           "name": "BurningGreymon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1245,7 +1249,7 @@
         {
           "cardId": "BT1-090",
           "name": "Gravity Crush",
-          "qty": 3,
+          "qty": 1,
           "type": "Option"
         },
         {
@@ -1257,7 +1261,7 @@
         {
           "cardId": "BT8-097",
           "name": "Crimson Blaze",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         }
       ],

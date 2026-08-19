@@ -4,13 +4,14 @@
   "decks": [
     {
       "id": "bt13-dgo-2023-07-23-1-shinegreymon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT13 ShineGreymon",
       "archetype": "ShineGreymon",
       "collection": "BT13",
       "formatBlock": "BT13",
       "colors": ["Red", "Yellow"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: GeoGreymon BT13-012 to 1; the freed copies reinforce GeoGreymon BT12-038 to 4, RizeGreymon BT12-042 to 4, Agumon (X Antibody) BT9-008 to 4.",
       "tournament": {
         "name": "2023 Regionals",
         "date": "2023-07-23",
@@ -22,7 +23,7 @@
         {
           "cardId": "BT9-008",
           "name": "Agumon (X Antibody)",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -46,7 +47,7 @@
         {
           "cardId": "BT13-012",
           "name": "GeoGreymon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -58,7 +59,7 @@
         {
           "cardId": "BT12-038",
           "name": "GeoGreymon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -70,7 +71,7 @@
         {
           "cardId": "BT12-042",
           "name": "RizeGreymon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -133,13 +134,14 @@
     },
     {
       "id": "bt13-dgo-2023-07-29-1-belphemon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT13 Belphemon",
       "archetype": "Belphemon",
       "collection": "BT13",
       "formatBlock": "BT13",
       "colors": ["Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Eyesmon: Scatter Mode BT7-069 to 1; the freed copies reinforce Gizmon: XT BT13-086 to 4, Akihiro Kurata BT13-103 to 4, Gift of Darkness BT13-109 to 4.",
       "tournament": {
         "name": "2023 Regionals",
         "date": "2023-07-29",
@@ -175,7 +177,7 @@
         {
           "cardId": "BT7-069",
           "name": "Eyesmon: Scatter Mode",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -199,7 +201,7 @@
         {
           "cardId": "BT13-086",
           "name": "Gizmon: XT",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -229,13 +231,13 @@
         {
           "cardId": "BT13-103",
           "name": "Akihiro Kurata",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
           "cardId": "BT13-109",
           "name": "Gift of Darkness",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -685,13 +687,14 @@
     },
     {
       "id": "bt13-dgo-2023-08-06-1-miragegaogamon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT13 MirageGaogamon",
       "archetype": "MirageGaogamon",
       "collection": "BT13",
       "formatBlock": "BT13",
       "colors": ["Blue"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: MirageGaogamon BT11-033 to 1; the freed copies reinforce Nicolai Petrov BT11-090 to 4, Gaomon BT13-021 to 4, GaoGamon BT13-025 to 4.",
       "tournament": {
         "name": "Ultimate Cup — Play!TCG",
         "date": "2023-08-06",
@@ -711,7 +714,7 @@
         {
           "cardId": "BT13-021",
           "name": "Gaomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -729,7 +732,7 @@
         {
           "cardId": "BT13-025",
           "name": "GaoGamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -759,7 +762,7 @@
         {
           "cardId": "BT11-033",
           "name": "MirageGaogamon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -777,7 +780,7 @@
         {
           "cardId": "BT11-090",
           "name": "Nicolai Petrov",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -816,13 +819,14 @@
     },
     {
       "id": "bt13-dgo-2023-08-13-1-royal-knights",
-      "revision": 1,
+      "revision": 2,
       "name": "BT13 Royal Knights",
       "archetype": "Royal Knights",
       "collection": "BT13",
       "formatBlock": "BT13",
       "colors": ["Red", "Blue", "Yellow", "Green", "White", "Black", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Royal Knights of the Purge BT13-110 to 1; the freed copies reinforce Leopardmon BT13-056 to 4, Marcus Damon BT13-095 to 4, LxF3nkhē Adistakto BT10-101 to 3.",
       "tournament": {
         "name": "2023 Regionals",
         "date": "2023-08-13",
@@ -870,7 +874,7 @@
         {
           "cardId": "BT13-056",
           "name": "Leopardmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -930,7 +934,7 @@
         {
           "cardId": "BT13-095",
           "name": "Marcus Damon",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -942,13 +946,13 @@
         {
           "cardId": "BT13-110",
           "name": "Royal Knights of the Purge",
-          "qty": 4,
+          "qty": 1,
           "type": "Option"
         },
         {
           "cardId": "BT10-101",
           "name": "LxF3nkhē Adistakto",
-          "qty": 2,
+          "qty": 3,
           "type": "Option"
         }
       ],
@@ -963,13 +967,14 @@
     },
     {
       "id": "bt13-dgo-2023-09-02-1-red-hybrid",
-      "revision": 1,
+      "revision": 2,
       "name": "BT13 Red Hybrid",
       "archetype": "Red Hybrid",
       "collection": "BT13",
       "formatBlock": "BT13",
       "colors": ["Red"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Gravity Crush BT1-090 to 1; the freed copies reinforce Atomic Inferno BT4-098 to 4.",
       "tournament": {
         "name": "Ultimate Cup — Carta Magica",
         "date": "2023-09-02",
@@ -1055,13 +1060,13 @@
         {
           "cardId": "BT1-090",
           "name": "Gravity Crush",
-          "qty": 2,
+          "qty": 1,
           "type": "Option"
         },
         {
           "cardId": "BT4-098",
           "name": "Atomic Inferno",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -1082,13 +1087,14 @@
     },
     {
       "id": "bt13-royal-knights-tens-2023",
-      "revision": 1,
+      "revision": 2,
       "name": "BT13 Royal Knights",
       "archetype": "Royal Knights",
       "collection": "BT13",
       "formatBlock": "BT13",
       "colors": ["White"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Royal Knights of the Purge BT13-110 to 1; the freed copies reinforce Gankoomon BT13-019 to 4, UlforceVeedramon BT13-030 to 4, Leopardmon BT13-056 to 4.",
       "tournament": {
         "name": "Magic Omens Tamer Battle",
         "date": "2023-11-14",
@@ -1138,13 +1144,13 @@
         {
           "cardId": "BT13-019",
           "name": "Gankoomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT13-030",
           "name": "UlforceVeedramon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1156,7 +1162,7 @@
         {
           "cardId": "BT13-056",
           "name": "Leopardmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1228,7 +1234,7 @@
         {
           "cardId": "BT13-110",
           "name": "Royal Knights of the Purge",
-          "qty": 4,
+          "qty": 1,
           "type": "Option"
         }
       ],
@@ -1243,13 +1249,14 @@
     },
     {
       "id": "bt13-royal-knights-bandai",
-      "revision": 1,
+      "revision": 2,
       "name": "BT13 Royal Knights",
       "archetype": "Royal Knights",
       "collection": "BT13",
       "formatBlock": "BT13",
       "colors": ["White", "Yellow", "Blue", "Red", "Black", "Green", "Purple"],
       "sourceType": "product_recipe",
+      "approximation": "Adapted to the current banlist: Royal Knights of the Purge BT13-110 to 1; the freed copies reinforce UlforceVeedramon BT13-030 to 4, Alphamon BT13-075 to 4, Leopardmon BT13-056 to 3.",
       "mainDeck": [
         {
           "cardId": "ST12-12",
@@ -1290,7 +1297,7 @@
         {
           "cardId": "BT13-030",
           "name": "UlforceVeedramon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1302,13 +1309,13 @@
         {
           "cardId": "BT13-056",
           "name": "Leopardmon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
           "cardId": "BT13-075",
           "name": "Alphamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1350,7 +1357,7 @@
         {
           "cardId": "BT13-110",
           "name": "Royal Knights of the Purge",
-          "qty": 4,
+          "qty": 1,
           "type": "Option"
         }
       ],
