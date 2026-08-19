@@ -33,6 +33,7 @@ const compiled: CompiledCard = {
               },
               "count": 1
             },
+            "bindResultAs": "deleted",
             "raw": "By deleting 1 of your Digimon"
           },
         },
@@ -61,7 +62,9 @@ const compiled: CompiledCard = {
             }
           ],
           "condition": {
-            "kind": "raw",
+            "kind": "bindingContains",
+            "ref": "deleted",
+            "filter": { "nameOrTrait": [{ "tokens": ["Ravemon"], "match": "name" }] },
             "raw": "one of your Digimon with [Ravemon] in its name was deleted by this effect"
           }
         }

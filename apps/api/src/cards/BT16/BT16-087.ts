@@ -95,7 +95,7 @@ const compiled: CompiledCard = {
             }
           },
           "while": {
-            "kind": "raw",
+            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens":["X Antibody"],"match":"trait"},{"tokens":["SoC"],"match":"trait"}]},
             "raw": "this Digimon has the [X Antibody] or [SoC] trait"
           }
         },
@@ -116,7 +116,7 @@ const compiled: CompiledCard = {
             }
           },
           "while": {
-            "kind": "raw",
+            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens":["X Antibody"],"match":"trait"},{"tokens":["SoC"],"match":"trait"}]},
             "raw": "this Digimon has the [X Antibody] or [SoC] trait"
           }
         }

@@ -36,7 +36,8 @@ const compiled: CompiledCard = {
           "restriction": "unsuspend",
           "duration": "untilOpponentTurnEnd",
           "condition": {
-            "kind": "raw",
+            "kind": "opponentHasNone",
+            "filter": { "kind": ["Digimon"], "unsuspended": true },
             "raw": "they have no unsuspended Digimon"
           }
         }
@@ -71,7 +72,8 @@ const compiled: CompiledCard = {
           "restriction": "unsuspend",
           "duration": "untilOpponentTurnEnd",
           "condition": {
-            "kind": "raw",
+            "kind": "opponentHasNone",
+            "filter": { "kind": ["Digimon"], "unsuspended": true },
             "raw": "they have no unsuspended Digimon"
           }
         }

@@ -131,7 +131,7 @@ const compiled: CompiledCard = {
               "controller": "opponent",
               "amount": 1,
               "condition": {
-                "kind": "raw",
+                "kind": "selfTopHasText", "filter": {"nameOrTrait": [{"tokens": ["Gammamon"], "match": "text"}]},
                 "raw": "this Digimon has [Gammamon] in its text"
               }
             }

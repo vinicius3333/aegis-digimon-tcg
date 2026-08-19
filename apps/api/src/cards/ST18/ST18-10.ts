@@ -49,7 +49,7 @@ const compiled: CompiledCard = {
           ],
           "payCost": false,
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectActed",
             "raw": "this effect suspends your Digimon"
           },
           "optional": true
@@ -100,7 +100,7 @@ const compiled: CompiledCard = {
           ],
           "payCost": false,
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectActed",
             "raw": "this effect suspends your Digimon"
           },
           "optional": true

@@ -39,7 +39,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectActed",
             "raw": "this effect suspended your Digimon"
           }
         }

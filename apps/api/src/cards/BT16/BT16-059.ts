@@ -104,7 +104,7 @@ const compiled: CompiledCard = {
             "isSelf": true
           },
           "condition": {
-            "kind": "raw",
+            "kind": "selfTopHasText", "filter": {"nameOrTrait": [{"tokens": ["Pulsemon"], "match": "text"}]},
             "raw": "this Digimon has [Pulsemon] in its text"
           },
           "cost": {

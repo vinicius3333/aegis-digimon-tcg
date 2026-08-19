@@ -32,7 +32,7 @@ const compiled: CompiledCard = {
           "count": 1,
           "payCost": false,
           "condition": {
-            "kind": "raw",
+            "kind": "selfHasInDigivolutionCards", "nameOrTrait": [{"tokens":["LadyDevimon"],"match":"name"},{"tokens":["X Antibody"],"match":"trait"}],
             "raw": "this Digimon has [LadyDevimon]/[X Antibody] in its digivolution cards"
           },
           "optional": true
@@ -64,7 +64,7 @@ const compiled: CompiledCard = {
           "count": 1,
           "payCost": false,
           "condition": {
-            "kind": "raw",
+            "kind": "selfHasInDigivolutionCards", "nameOrTrait": [{"tokens":["LadyDevimon"],"match":"name"},{"tokens":["X Antibody"],"match":"trait"}],
             "raw": "this Digimon has [LadyDevimon]/[X Antibody] in its digivolution cards"
           },
           "optional": true

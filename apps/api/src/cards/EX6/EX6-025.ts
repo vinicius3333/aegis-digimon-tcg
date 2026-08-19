@@ -64,7 +64,8 @@ const compiled: CompiledCard = {
           ],
           "rest": "deckBottom",
           "condition": {
-            "kind": "raw",
+            "kind": "digiXrosCount",
+            "minimum": 1,
             "raw": "DigiXrosing"
           }
         }
@@ -129,7 +130,8 @@ const compiled: CompiledCard = {
           ],
           "rest": "deckBottom",
           "condition": {
-            "kind": "raw",
+            "kind": "digiXrosCount",
+            "minimum": 1,
             "raw": "DigiXrosing"
           }
         }

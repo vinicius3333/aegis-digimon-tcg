@@ -98,7 +98,7 @@ const compiled: CompiledCard = {
           "grant": "noSecurityOptionEffects",
           "duration": "permanent",
           "condition": {
-            "kind": "raw",
+            "kind": "selfHasName", "names": ["RagnaLoardmon"],
             "raw": "this Digimon is [RagnaLoardmon]"
           }
         }

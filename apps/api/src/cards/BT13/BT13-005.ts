@@ -15,7 +15,7 @@ const compiled: CompiledCard = {
           "controller": "mine",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "selfDigivolutionCountAtLeast", "value": 4,
             "raw": "this Digimon has 4 or more digivolution cards"
           }
         }

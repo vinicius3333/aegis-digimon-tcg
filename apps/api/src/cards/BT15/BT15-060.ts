@@ -24,7 +24,7 @@ const compiled: CompiledCard = {
             "Omnimon"
           ],
           "condition": {
-            "kind": "raw",
+            "kind": "triggerRevealedFromDeck",
             "raw": "this card is revealed from the deck"
           }
         }

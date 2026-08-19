@@ -24,7 +24,7 @@ export const compiled: CompiledCard = {
               "amount": 5,
               "raw": "reduce the cost by 5",
               "condition": {
-                "kind": "raw",
+                "kind": "totalSecurityCount", "op": "lte", "value": 6,
                 "raw": "there are 6 or fewer total cards in both players' security stacks"
               }
             }

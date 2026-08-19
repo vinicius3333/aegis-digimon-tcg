@@ -25,7 +25,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens": ["NSo"], "match": "trait"}]},
             "raw": "this Digimon has the [NSo] trait"
           },
           "cost": {

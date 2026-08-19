@@ -68,7 +68,7 @@ const compiled: CompiledCard = {
                 "count": 1
               },
               "condition": {
-                "kind": "raw",
+                "kind": "selfIsSuspended",
                 "raw": "this Digimon is suspended"
               }
             }

@@ -77,7 +77,7 @@ const compiled: CompiledCard = {
           ],
           "payCost": false,
           "condition": {
-            "kind": "raw",
+            "kind": "selfHasNameContaining", "names": ["Sukamon","Etemon"],
             "raw": "this Digimon had [Sukamon] or [Etemon] in its name"
           },
           "optional": true

@@ -166,7 +166,7 @@ const compiled: CompiledCard = {
                 "count": 1
               },
               "condition": {
-                "kind": "raw",
+                "kind": "lastTargetDpAtMostSelf",
                 "raw": "target has as much or less DP as this Digimon (ShineGreymon)"
               },
               "optional": true
@@ -200,7 +200,7 @@ const compiled: CompiledCard = {
                 "count": 1
               },
               "condition": {
-                "kind": "raw",
+                "kind": "lastTargetDpAtMostSelf",
                 "raw": "target has as much or less DP as this Digimon (ShineGreymon)"
               },
               "optional": true

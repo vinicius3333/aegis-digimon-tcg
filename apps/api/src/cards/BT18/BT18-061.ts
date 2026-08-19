@@ -80,7 +80,7 @@ const compiled: CompiledCard = {
             }
           },
           "while": {
-            "kind": "raw",
+            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens": ["Machine"], "match": "trait"}]},
             "raw": "this Digimon has the [Machine] trait"
           }
         }

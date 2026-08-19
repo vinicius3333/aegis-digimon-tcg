@@ -36,7 +36,11 @@ const compiled: CompiledCard = {
           ],
           "toTop": true,
           "condition": {
-            "kind": "raw",
+            "kind": "allOf",
+            "conditions": [
+              { "kind": "totalSecurityCount", "op": "lte", "value": 6 },
+              { "kind": "triggerRevealedMatchesFilter", "filter": { "colors": ["Yellow"] } }
+            ],
             "raw": "there're 6 or fewer total cards in both players' security stacks and revealed card is yellow"
           }
         }
@@ -74,7 +78,11 @@ const compiled: CompiledCard = {
           ],
           "toTop": true,
           "condition": {
-            "kind": "raw",
+            "kind": "allOf",
+            "conditions": [
+              { "kind": "totalSecurityCount", "op": "lte", "value": 6 },
+              { "kind": "triggerRevealedMatchesFilter", "filter": { "colors": ["Yellow"] } }
+            ],
             "raw": "there're 6 or fewer total cards in both players' security stacks and revealed card is yellow"
           }
         }

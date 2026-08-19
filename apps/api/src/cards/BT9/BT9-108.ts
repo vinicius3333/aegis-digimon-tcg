@@ -20,7 +20,8 @@ const compiled: CompiledCard = {
                 "Digimon"
               ]
             },
-            "count": 1
+          "count": 1,
+          "bindResultAs": "deleted"
           }
         },
         {
@@ -45,7 +46,8 @@ const compiled: CompiledCard = {
           ],
           "payCost": false,
           "condition": {
-            "kind": "raw",
+            "kind": "bindingExists",
+            "ref": "deleted",
             "raw": "you do"
           },
           "optional": true

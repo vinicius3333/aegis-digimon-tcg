@@ -43,7 +43,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectActed",
             "raw": "you added cards"
           }
         }
@@ -85,7 +85,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectActed",
             "raw": "you added cards"
           }
         }

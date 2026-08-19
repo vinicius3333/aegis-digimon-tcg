@@ -36,6 +36,7 @@ const compiled: CompiledCard = {
         },
         {
           "kind": "Trash",
+          "bindResultAs": "trashed",
           "target": {
             "filter": {
               "controller": "mine",
@@ -59,7 +60,9 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "bindingContains",
+            "ref": "trashed",
+            "filter": { "nameOrTrait": [{ "tokens": ["Three Musketeers", "TS"], "match": "trait" }] },
             "raw": "this effect trashed a card with the [Three Musketeers] or [TS] trait"
           }
         }

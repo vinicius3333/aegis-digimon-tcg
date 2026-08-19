@@ -79,7 +79,8 @@ const compiled: CompiledCard = {
           },
           "optional": true,
           "cost": {
-            "kind": "raw",
+            "kind": "suspend",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "raw": "suspend this Digimon"
           }
         },

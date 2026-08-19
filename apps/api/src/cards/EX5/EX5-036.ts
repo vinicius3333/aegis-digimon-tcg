@@ -34,7 +34,7 @@ const compiled: CompiledCard = {
             "amount": 1000
           },
           "while": {
-            "kind": "raw",
+            "kind": "selfIsSuspended",
             "raw": "this Digimon is suspended"
           }
         }

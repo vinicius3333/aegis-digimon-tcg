@@ -26,7 +26,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "anyOf", "conditions": [{"kind": "selfHasNameContaining", "names": ["Tyrannomon"]}, {"kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens": ["Dinosaur"], "match": "trait"}]}}],
             "raw": "this Digimon has [Tyrannomon] in its name or the [Dinosaur] trait"
           }
         }

@@ -23,7 +23,7 @@ const compiled: CompiledCard = {
           "kind": "SubTrigger",
           "event": "whenOpponentAttacks",
           "fireCondition": {
-            "kind": "raw",
+            "kind": "allYoursMatchFilter", "filter": {"nameOrTrait": [{"tokens": ["D-Reaper"], "match": "trait"}]},
             "raw": "all of your Digimon and Tamers in the battle area have the [D-Reaper] trait"
           },
           "actions": [
@@ -121,7 +121,7 @@ const compiled: CompiledCard = {
           ],
           "payCost": false,
           "condition": {
-            "kind": "raw",
+            "kind": "triggerPlayCostAtMostStackCount",
             "raw": "play cost is equal to or lower than the number of digivolution cards of 1 of your [Mother D-Reaper]'s"
           },
           "scaling": {

@@ -44,7 +44,7 @@ const compiled: CompiledCard = {
           "restriction": "attackTargetChange",
           "duration": "forTheTurn",
           "condition": {
-            "kind": "raw",
+            "kind": "isDnaDigivolving",
             "raw": "DNA digivolving"
           }
         }
