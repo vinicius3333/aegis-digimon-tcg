@@ -10,7 +10,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 2. Delete action: optional:true/abortOnDecline removed — player may activate
 //    even with no valid targets (Q6258) but must choose a target when one exists
 //    (Q6259); the whole [Main] effect remains activatable without targets.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Main",
