@@ -26,9 +26,7 @@ describe("BT26-103 Jupitermon: Wrath Mode", () => {
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("wrath"));
 
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(
-      s.inst("topSecurity").instanceId,
-    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("topSecurity").instanceId);
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.players[0]!.deck).toHaveLength(0);
   });
@@ -57,9 +55,7 @@ describe("BT26-103 Jupitermon: Wrath Mode", () => {
 
     const opened = s.events.find((event) => event.kind === "counterWindowOpened");
     if (opened?.kind !== "counterWindowOpened") throw new Error("counterWindowOpened not found");
-    const eligible = opened.eligibleCounters.find(
-      (entry) => entry.instanceId === s.perm("wrath").topCard!.instanceId,
-    );
+    const eligible = opened.eligibleCounters.find((entry) => entry.instanceId === s.perm("wrath").topCard!.instanceId);
     expect(eligible).toBeDefined();
 
     expect(
@@ -112,9 +108,6 @@ describe("BT26-103 Jupitermon: Wrath Mode", () => {
     expect(afterFirst.sort((a, b) => a - b)).toEqual([5000, 20000]);
 
     await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
-    expect([s.perm("first").currentDP, s.perm("second").currentDP].sort((a, b) => a - b)).toEqual([
-      5000,
-      20000,
-    ]);
+    expect([s.perm("first").currentDP, s.perm("second").currentDP].sort((a, b) => a - b)).toEqual([5000, 20000]);
   });
 });
