@@ -358,6 +358,11 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const self = ctx.source.permanent();
       return self !== undefined && self.stack.length === 0;
     }
+    case "selfHadDigivolutionCards":
+      // "if this card had digivolution cards" asked from an OnDeletion window: the permanent is
+      // already off the field, so a live stack read (selfHasNoDigivolutionCards) cannot answer it.
+      // The deletion payload carries what the stack held (BT2-083).
+      return (ctx.trigger.deletedWasStackInstanceIds?.length ?? 0) > 0;
     case "ifThisEffectDidNotSuspend":
       return (ctx.lastSuspendedPermanentIds?.length ?? 0) === 0;
     case "selfHasInDigivolutionCards": {

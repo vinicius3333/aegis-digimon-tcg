@@ -449,8 +449,10 @@ describe("§16-31 <Blast DNA Digivolve> (comprehensive-0250)", () => {
 
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;
-    const materialA = digimon(0, 8000, NON_KEYWORD_CARD);
-    const materialB = digimon(0, 8000, NON_KEYWORD_CARD);
+    // The recipe names its two materials, so they have to BE those cards: a <Blast DNA Digivolve>
+    // still checks the requirement, it only waives the cost.
+    const materialA = digimon(0, 8000, "AD1-004"); // WarGreymon
+    const materialB = digimon(0, 8000, "AD1-014"); // MetalGarurumon
     p0.battleArea.push(materialA, materialB);
     const blastDna = instance("BT17-078", 0, false); // printed <Blast DNA Digivolve ([WarGreymon] + [MetalGarurumon])>
     p0.hand.push(blastDna);

@@ -16,10 +16,18 @@ export function getCompiledCard(cardId: string): CompiledCard | undefined {
 /**
  * Hand-authored DNA requirements missing from the historical aggregate. BT8-015's card-data
  * text starts at [When Digivolving] and omits its printed DNA header, while its audited runtime
- * module correctly carries the red Lv.4 + yellow Lv.4 recipe. This shared override keeps
- * server cost validation/payment and client material highlighting on one source of truth.
+ * module correctly carries the red Lv.4 + yellow Lv.4 recipe. BT17-078 states its recipe inside
+ * the ＜Blast DNA Digivolve＞ keyword rather than a DNA header, so the compiler saw none at all.
+ * This shared override keeps server cost validation/payment and client material highlighting on
+ * one source of truth.
  */
 export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolveRequirement[]> = {
+  "BT17-078": [
+    {
+      cost: 0,
+      materials: [{ names: ["WarGreymon"] }, { names: ["MetalGarurumon"] }],
+    },
+  ],
   "BT8-015": [
     {
       cost: 0,

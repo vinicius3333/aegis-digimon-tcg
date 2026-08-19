@@ -114,11 +114,13 @@ function fakeCardInstance(cardId: string, instanceId: string): CardInstance {
 
 /**
  * A source permanent for the card under test. `digivolutionStack` populates the
- * source's digivolution-cards stack so a Digi-Burst trash cost (BT5-046) is payable.
+ * source's digivolution-cards stack so a Digi-Burst trash cost (BT5-046) is payable; `onField`
+ * gives a stack-less card a permanent anyway, which a battle-area watcher needs before it will
+ * install itself (BT16-082).
  */
-function makeSource(cardId: string, opts: { digivolutionStack?: CardInstance[] } = {}): CardSource {
+function makeSource(cardId: string, opts: { digivolutionStack?: CardInstance[]; onField?: boolean } = {}): CardSource {
   const stack = opts.digivolutionStack ?? [];
-  const permanent = stack.length
+  const permanent = stack.length || opts.onField
     ? () => ({
         permanentId: `PERM#${cardId}`,
         isSuspended: false,
@@ -146,6 +148,7 @@ function makeContext(opts: {
   cardDefinitions?: Record<string, Partial<CardDefinition>>;
   digivolutionStack?: CardInstance[];
   installed?: SubTriggerInstall[];
+  onField?: boolean;
 }): EffectContext {
   // `eggDeck` is read by the Hatch action's legality check (BT16-082's optional tail), so both
   // seats carry one egg — a player with an empty egg deck cannot hatch at all.
@@ -235,7 +238,8 @@ function makeContext(opts: {
     chooseOption: async () => 0,
   };
 
-  return { source: makeSource(opts.cardId, { digivolutionStack: opts.digivolutionStack }), trigger: {}, game, fx, ask };
+  const source = makeSource(opts.cardId, { digivolutionStack: opts.digivolutionStack, onField: opts.onField });
+  return { source, trigger: {}, game, fx, ask };
 }
 
 async function resolveCard(
@@ -787,6 +791,8 @@ describe("RevealAdd cluster A3 — BT16-082 (reveal 3, add 1 Digimon/Tamer, then
         FILLER: { kinds: ["Option"] as never, colors: ["White"] as never, nameEn: "Filler" },
       },
       installed,
+      // The watcher is anchored to the battle-area permanent, so the source needs one.
+      onField: true,
     });
 
     // [Your Turn] -> EffectTiming.None installs a "whenMovedFromBreeding" SubTrigger watcher
