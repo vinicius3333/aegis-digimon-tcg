@@ -151,6 +151,31 @@ describe("new typed RAW-elimination conditions", () => {
     expect(evaluateCondition(ctx, { kind: "triggerRevealedFromDeck" })).toBe(false);
   });
 
+  it("matches revealed cards and distinct filtered Tamer colors", () => {
+    const tamer = makeFakePermanent({
+      permanentId: "TAMER",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "tamer-card", cardId: "TAMER", ownerSeat: 0, faceUp: true } as never,
+    });
+    const { ctx } = conditionContext({
+      revealed: [{ instanceId: "yellow", cardId: "YELLOW" }],
+      ownBattleArea: [tamer],
+      definitionOf: (id) => {
+        if (id === "YELLOW") return makeFakeDefinition({ cardId: id, colors: ["Yellow"] as never });
+        if (id === "TAMER") return makeFakeDefinition({ cardId: id, kinds: [CardKind.Tamer], colors: ["Red"] as never, types: ["ADVENTURE"] });
+        return makeFakeDefinition({ cardId: id, kinds: [CardKind.Digimon] });
+      },
+    });
+    expect(evaluateCondition(ctx, { kind: "triggerRevealedMatchesFilter", filter: { colors: ["Yellow"] } })).toBe(true);
+    expect(evaluateCondition(ctx, {
+      kind: "zoneColorCount",
+      cardType: "Tamer",
+      filter: { nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }] },
+      op: "gte",
+      value: 1,
+    })).toBe(true);
+  });
+
   it("checks named attack procedures and the empty breeding slot", () => {
     const { ctx } = conditionContext({ trigger: { attackMechanic: "Execute" } });
     expect(evaluateCondition(ctx, { kind: "triggerAttackBy", keyword: "Execute" })).toBe(true);

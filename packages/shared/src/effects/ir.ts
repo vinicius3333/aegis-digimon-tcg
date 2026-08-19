@@ -1002,6 +1002,7 @@ export interface Condition {
     | "lastTargetDpAtLeast" // true when every permanent selected by the preceding action currently has at least `value` DP
     | "lastTargetDpAtMostSelf" // true when every permanent selected by the preceding action has DP <= this source Digimon
     | "triggerRevealedFromDeck" // true when this source card is among the cards revealed from a deck by the current effect
+    | "triggerRevealedMatchesFilter" // true when any card in the current reveal window matches `filter`
     | "triggerAttackBy" // true when the current attack was declared through the named attack mechanic
     | "allYoursMatchFilter" // true when every permanent you control in the battle area matches `filter`
     | "breedingAreaEmpty" // true when your breeding area has no permanent

@@ -2197,6 +2197,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     }
     case "triggerRevealedFromDeck":
       return (ctx.lastRevealedCards ?? []).some((card) => card.cardId === ctx.source.cardId);
+    case "triggerRevealedMatchesFilter":
+      return cond.filter !== undefined && (ctx.lastRevealedCards ?? []).some((card) => definitionMatches(cond.filter!, ctx.game.definitionOf(card as never)));
     case "triggerAttackBy":
       return ctx.trigger.attackMechanic === cond.keyword;
     case "allYoursMatchFilter":
@@ -2318,6 +2320,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
         if (permanent.topCard === undefined) continue;
         const definition = ctx.game.definitionOf(permanent.topCard);
         if (cond.cardType !== undefined && !definition.kinds.includes(cond.cardType as never)) continue;
+        if (cond.filter !== undefined && !permanentMatchesFilter(ctx, permanent, cond.filter, ctx.source)) continue;
         for (const color of definition.colors) colors.add(color);
       }
       const value = cond.value ?? 0;
