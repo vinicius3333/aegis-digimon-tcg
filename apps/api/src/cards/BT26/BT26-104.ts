@@ -13,8 +13,7 @@ import { registerCard } from "../../engine/effects/registry.js";
  * Q7190 confirms that this card's pending [End of Your Turn] effect may still be activated
  * after a simultaneous Execute/digivolution sequence has produced a [Tentei Hachibushu]
  * Digimon. The implementation follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * existing hand-written cards for each clause shape.
  *
  * Printed text:
  *   [Start of Your Main Phase] Gain 1 memory.
