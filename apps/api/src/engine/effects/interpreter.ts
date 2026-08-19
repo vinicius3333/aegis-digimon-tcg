@@ -2543,6 +2543,14 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
       }).length;
       return count >= (cond.count ?? 1);
     }
+    case "selfDigivolutionStackHasSameLevelPair": {
+      const self = ctx.source.permanent();
+      if (self === undefined) return false;
+      const levels = self.stack
+        .map((card) => ctx.game.definitionOf(card).level)
+        .filter((level): level is number => level !== undefined && level > 0);
+      return new Set(levels).size < levels.length;
+    }
     case "notEnteredThisTurn": {
       // ＜Delay＞ option gate: the SOURCE permanent must be on
       // the field AND have entered on a turn OTHER than the current one. An off-field source

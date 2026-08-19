@@ -1005,6 +1005,7 @@ export interface Condition {
     | "selfTopHasText" // "while THIS permanent's top card has [X] in its text" (EX11-070's inherited [All Turns] gate: host TopCard.HasText("Maquinamon")); `filter.nameOrTrait` carries the text token(s), matched against the SOURCE permanent's (the inherited host's) top-card name/trait/effect text
     | "selfDigivolutionCountAtLeast" // "if this Digimon has N or more digivolution cards" — reads the SOURCE permanent's digivolution-stack size >= `value` (BT22-007 "10 or more digivolution cards"; KB Q4858)
     | "selfDigivolutionStackCountAtLeast" // "if N or more cards matching [filter] are in THIS Digimon's digivolution cards" — counts SOURCE-permanent stack cards matching `filter.nameOrTrait` >= `count` (BT11-065 "4+ [Vemmon]")
+    | "selfDigivolutionStackHasSameLevelPair" // "if this Digimon's stack has 2 or more cards of the same level" (BT23-102)
     | "selfIsSuspended" // "while/if this Digimon is suspended" — true when the SOURCE permanent's isSuspended flag is set (EX3-042, EX8-043)
     | "selfUnsuspended" // "while this is unsuspended" — true when the SOURCE permanent is NOT suspended (P-199's by-suspending-this-Tamer reduction is only offered while it can still be suspended)
     | "selfDpAtLeast" // the SOURCE permanent's current DP is at least `value`
