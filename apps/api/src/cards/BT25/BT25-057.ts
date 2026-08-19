@@ -37,14 +37,8 @@ const compiled: CompiledCard = {
           },
           "amount": 1,
           "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "bottomDigivolutionCardUnderTamer"
-              },
-              "count": 1
-            },
+            "kind": "trashBottomFaceDownUnderTamer",
+            "controller": "mine",
             "raw": "By trashing the bottom face-down card under any of your Tamers"
           },
           "optional": true,
@@ -70,14 +64,8 @@ const compiled: CompiledCard = {
           },
           "amount": 1,
           "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "bottomDigivolutionCardUnderTamer"
-              },
-              "count": 1
-            },
+            "kind": "trashBottomFaceDownUnderTamer",
+            "controller": "mine",
             "raw": "By trashing the bottom face-down card under any of your Tamers"
           },
           "optional": true,
@@ -112,58 +100,6 @@ const compiled: CompiledCard = {
         }
       ]
     },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "Rush",
-            "raw": "＜Rush＞"
-          },
-          "duration": "forTheTurn"
-        },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": 1,
-            "raw": "＜Security Attack +1＞"
-          },
-          "duration": "forTheTurn"
-        },
-        {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "withoutSuspending": false,
-          "optional": true
-        }
-      ]
-    }
   ],
   "coverage": "full",
   "residual": [],
