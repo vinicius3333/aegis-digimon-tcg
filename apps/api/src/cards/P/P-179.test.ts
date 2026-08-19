@@ -21,6 +21,7 @@ describe("P-179 Justimon: Critical Arm", () => {
           battleArea: [
             { card: "BT12-083", as: "cost9" },
             { card: "BT1-080", as: "cost10" },
+            { card: "P-155", as: "opponentOption" },
           ],
         },
       },
@@ -32,7 +33,7 @@ describe("P-179 Justimon: Critical Arm", () => {
       },
     );
     const cost9Id = s.perm("cost9").permanentId;
-    preferred.push(s.inst("device").instanceId, cost9Id);
+    preferred.push(s.inst("device").instanceId, s.perm("opponentOption").topCard.instanceId, cost9Id);
     s.state.memory = 3;
 
     expect(
@@ -90,16 +91,14 @@ describe("P-179 Justimon: Critical Arm", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "P-179", as: "critical" },
-            { card: "P-155", as: "firstOption" },
-            { card: "P-155", as: "secondOption" },
-          ],
+          battleArea: [{ card: "P-179", as: "critical" }],
         },
         1: {
           battleArea: [
             { card: "BT12-083", as: "firstTarget" },
             { card: "BT17-050", as: "secondTarget" },
+            { card: "P-155", as: "firstOption" },
+            { card: "P-155", as: "secondOption" },
           ],
           security: ["BT1-009"],
         },
@@ -118,15 +117,21 @@ describe("P-179 Justimon: Critical Arm", () => {
     await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === firstTargetId));
 
     s.state.phase = Phase.Main;
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("critical").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("critical").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle();
 
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === secondOptionInstanceId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === s.perm("secondTarget").permanentId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === secondOptionInstanceId)).toBe(
+      true,
+    );
+    expect(
+      s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === s.perm("secondTarget").permanentId),
+    ).toBe(true);
     assertNoLoudGap(s);
   });
 
@@ -142,11 +147,13 @@ describe("P-179 Justimon: Critical Arm", () => {
     void advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("critical"));
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const decision = s.state.pendingDecision!;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: { kind: "optional", accept: false },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("device").instanceId);
