@@ -10,13 +10,9 @@ import { countMatching } from "../scaling.js";
 import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardKind, getCardDefinition } from "@aegis/shared";
-import type { Action, Target, ZoneRef } from "@aegis/shared";
+import type { Action, EffectDurationRef, Target, ZoneRef } from "@aegis/shared";
 
-export async function runBoardAction(
-  ctx: EffectContext,
-  action: Action,
-  scope: ActionScope,
-): Promise<boolean> {
+export async function runBoardAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
   switch (action.kind) {
     case "HandManipulation": {
@@ -135,6 +131,10 @@ export async function runBoardAction(
           action.continuous === undefined ? undefined : { continuous: action.continuous },
         );
       }
+      if (ids.length > 0 && action.target.bindAs !== undefined) {
+        ctx.selections ??= new Map();
+        ctx.selections.set(action.target.bindAs, ids[0]!);
+      }
       return false;
     }
     case "AddDPFromSuspendedCost": {
@@ -163,7 +163,12 @@ export async function runBoardAction(
       return false;
     }
     case "GainKeyword": {
-      const kw = action.keyword.keyword;
+      const keyword = action.keyword ?? action.keywords?.[0];
+      if (keyword === undefined || typeof keyword !== "object") {
+        unsupported(ctx, action, "GainKeyword is missing its keyword specification");
+        return false;
+      }
+      const kw = keyword.keyword;
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
       // ＜Piercing＞ has a dedicated pierce store; every other CONTINUOUS keyword
@@ -178,7 +183,7 @@ export async function runBoardAction(
       if (kw === "LinkMax") {
         // ＜Link +N＞ raises the affected permanent's link limit.
         // Recorded in the continuous ledger; `linkMax` (mindLink.ts) sums it on the base 1.
-        const delta = action.keyword.amount ?? 1;
+        const delta = keyword.amount ?? 1;
         for (const id of ids) ctx.fx.grantLinkMax(id, delta, duration);
         return false;
       }
@@ -186,21 +191,20 @@ export async function runBoardAction(
         // Action-type keywords carry out a VERB when gained, not a continuous ability.
         if (kw === "Recovery") {
           // ＜Recovery +N (Deck)＞: place the top N of your deck onto your security.
-          await ctx.fx.recoverToSecurity(ctx.source.ownerSeat, action.keyword.amount ?? 1);
+          await ctx.fx.recoverToSecurity(ctx.source.ownerSeat, keyword.amount ?? 1);
           return false;
         }
         if (kw === "DeDigivolve") {
           // ＜De-Digivolve N＞ on a target (the verb form). Targets resolved above. The trashing
           // effect's seat gates EX11-070's stacked-trash-lock (KB Q5943: an opponent <De-Digivolve>
           // can't strip a locked host's sources).
-          for (const id of ids)
-            ctx.fx.deDigivolve(id, action.keyword.amount ?? 1, { byEffectSeat: ctx.source.ownerSeat });
+          for (const id of ids) ctx.fx.deDigivolve(id, keyword.amount ?? 1, { byEffectSeat: ctx.source.ownerSeat });
           return false;
         }
         if (kw === "Draw") {
           // runtime record mis-encodes <Draw N> as GainKeyword on some cards (e.g. BT22-079).
           // Treat it as the draw verb until the runtime record is fixed.
-          await ctx.fx.draw(ctx.source.ownerSeat, action.keyword.amount ?? 1);
+          await ctx.fx.draw(ctx.source.ownerSeat, keyword.amount ?? 1);
           return false;
         }
         unsupported(ctx, action, `grant action-keyword ＜${kw}＞ needs its verb wired`);
@@ -211,7 +215,7 @@ export async function runBoardAction(
       // produces two grants — the consuming side sums each Alliance entry as one extra
       // security check (KB Q3163, BT19-091: "gains <Alliance> twice").
       const grantCount = action.count ?? 1;
-      const keywordAmount = scale === undefined ? action.keyword.amount : (action.keyword.amount ?? 1) * scale;
+      const keywordAmount = scale === undefined ? keyword.amount : (keyword.amount ?? 1) * scale;
       for (const id of ids) {
         for (let i = 0; i < grantCount; i++) {
           const active =
@@ -229,6 +233,23 @@ export async function runBoardAction(
             sourceEffectText: ctx.activeEffectText,
           });
         }
+      }
+      for (const extra of action.keywords ?? []) {
+        if (extra.keyword === kw) continue;
+        for (const id of ids) ctx.fx.grantKeyword(id, extra.keyword, duration, extra.amount);
+      }
+      // Some generated cards attach a second continuous grant to a keyword action. The legacy
+      // shape used by BT24-028 is `additionalEffect: { kind: "GrantStatic", modifier:
+      // "cannotBeDeletedInBattle" }`; apply it to the same resolved targets after the placement
+      // cost has succeeded, so the protection is not installed on a declined cost.
+      const additionalEffect = (
+        action as typeof action & {
+          additionalEffect?: { kind?: string; modifier?: string; duration?: EffectDurationRef };
+        }
+      ).additionalEffect;
+      if (additionalEffect?.kind === "GrantStatic" && additionalEffect.modifier === "cannotBeDeletedInBattle") {
+        const protectionDuration = toDuration(additionalEffect.duration ?? action.duration ?? "untilOpponentTurnEnd");
+        for (const id of ids) ctx.fx.restrict(id, "beDeletedInBattle", protectionDuration);
       }
       return false;
     }

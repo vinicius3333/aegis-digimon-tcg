@@ -36,6 +36,8 @@ export interface CardStateLookup {
    * Optional on the port (fakes that never exercise a `[Hand]` effect may omit it).
    */
   isInHand?(instanceId: string): boolean;
+  /** Is this card currently face-up in its owner's security stack? */
+  isInSecurity?(instanceId: string): boolean;
   /** source the effect runtime.IsOwnerTurn(card): is it `ownerSeat`'s turn? */
   isSeatsTurn(seat: Seat): boolean;
 }
@@ -73,6 +75,7 @@ export function createCardSource(
     isOnBreedingArea: (): boolean => lookup.isOnBreedingArea?.(instanceId) ?? false,
     isInTrash: (): boolean => lookup.isInTrash?.(instanceId) ?? false,
     isInHand: (): boolean => lookup.isInHand?.(instanceId) ?? false,
+    isInSecurity: (): boolean => lookup.isInSecurity?.(instanceId) ?? false,
     isOwnersTurn: (): boolean => lookup.isSeatsTurn(ownerSeat),
     hasColor: (color: CardColor): boolean => defHasColor(definition, color),
   };

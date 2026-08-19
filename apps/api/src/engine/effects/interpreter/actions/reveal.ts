@@ -561,10 +561,7 @@ export async function runRevealChooseDeleteBudget(
   }
 }
 
-export async function runRevealAction(
-  ctx: EffectContext,
-  action: Action,
-): Promise<boolean> {
+export async function runRevealAction(ctx: EffectContext, action: Action): Promise<boolean> {
   switch (action.kind) {
     case "Search": {
       const seat = ctx.source.ownerSeat;

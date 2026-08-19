@@ -78,6 +78,8 @@ export interface CompilerAliases {
   excludeKind?: string[];
   /** Alternative to `excludeNameOrTrait`. */
   notTrait?: string[];
+  /** Cost-only: every selected digivolution card must come from one host permanent. */
+  sameHost?: boolean;
   type?: { kind: string };
   /** Used in or-filter groups. */
   count?: number | "all" | { op: string; value: number };

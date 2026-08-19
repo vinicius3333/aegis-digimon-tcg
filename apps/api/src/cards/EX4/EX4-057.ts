@@ -23,13 +23,13 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    may decline — encoded as the suspend on the ModifyDP action's `cost` field with the
 //    action itself `optional:true` (same pattern as BT2-084), not a separate mandatory
 //    Suspend action ahead of it.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "WhenAttacking",
       "actions": [
         {
-          "kind": "ModifyDP",
+          "kind": "AddDPFromSuspendedCost",
           "target": {
             "filter": {
               "isSelfRef": true
@@ -37,16 +37,23 @@ const compiled: CompiledCard = {
             "count": 1,
             "isSelf": true
           },
-          "amount": {
-            "kind": "raw",
-            "raw": "+DP equal to the suspended Digimon's DP"
+          "dpSource": {
+            "kind": "suspendedTarget"
           },
-          "duration": "forTheTurn",
+          "duration": "forThisAttack",
+          "alsoGainKeywords": [
+            {
+              "keyword": "SecurityAttack",
+              "amount": 1,
+              "raw": "＜Security Attack +1＞"
+            }
+          ],
           "cost": {
             "kind": "suspend",
             "target": {
               "filter": {
                 "controller": "mine",
+                "zone": "battleArea",
                 "excludeSelf": true,
                 "kind": [
                   "Digimon"
@@ -126,10 +133,8 @@ const compiled: CompiledCard = {
       "frequency": "OncePerTurn"
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "ModifyDP by 'equal to suspended Digimon's DP' is a dynamic source-referenced amount not expressible in structured IR"
-  ],
+  "coverage": "full",
+  "residual": [],
   "digivolutionRequirement": [
     {
       "level": 4,

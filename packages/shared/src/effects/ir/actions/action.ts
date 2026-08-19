@@ -17,6 +17,7 @@ import type {
 import type {
   ConditionalBranchAction,
   DelayedEffectAction,
+  GainEffectAction,
   GainTriggeredEffectAction,
   ModalAction,
 } from "./branching.js";
@@ -72,6 +73,7 @@ import type {
 } from "./removal.js";
 import type { PreventAction, ReplacementAction } from "./replacement.js";
 import type {
+  CostGatedBlockAction,
   CostModifierAction,
   DrawAction,
   GainMemoryAction,
@@ -87,6 +89,7 @@ import type {
   RestrictAction,
   RestrictCostReductionAction,
   RestrictDigivolveIntoAction,
+  RestrictEffectAction,
   RestrictMemoryGainAction,
   RestrictPlayAction,
   RestrictUnsuspendedDigivolveAction,
@@ -146,6 +149,9 @@ export type Action =
   | PlayMultipleAction
   | PlayFromZoneAction
   | GainTriggeredEffectAction
+  | GainEffectAction
+  | CostGatedBlockAction
+  | RestrictEffectAction
   | DelayedEffectAction
   | GrantAuraToOpponentsAction
   | DigiXrosMaterialZoneExpansionAction

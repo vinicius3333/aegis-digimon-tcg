@@ -9,123 +9,106 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [When Attacking]: digivolve into [Tyrannomon]-name or [Dinosaur]-trait card from hand.
 // [All Turns] inherited: whenDeletesInBattle → gain 1 memory, but NOT when simultaneous
 //   deletion (Q4929: can't activate if both die at same timing).
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "DarkTyrannomon"
-                  ],
-                  "match": "name"
+                  tokens: ["DarkTyrannomon"],
+                  match: "name",
                 },
                 {
-                  "tokens": [
-                    "X Antibody"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["X Antibody"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "[DarkTyrannomon] in name or [X Antibody] trait is in this Digimon's digivolution cards"
-          }
-        }
-      ]
+            raw: "[DarkTyrannomon] in name or [X Antibody] trait is in this Digimon's digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Tyrannomon"
-                ],
-                "match": "name"
+                tokens: ["Tyrannomon"],
+                match: "name",
               },
               {
-                "tokens": [
-                  "Dinosaur"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Dinosaur"],
+                match: "trait",
+              },
+            ],
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenDeletesInBattle",
-          "notSimultaneous": true,
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenDeletesInBattle",
+          sourceFilter: { isSelfRef: true },
+          notSimultaneous: true,
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "GainMemory",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "names": [
-        "Tyrannomon"
-      ],
-      "excludeTraits": [
-        "X Antibody"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      names: ["Tyrannomon"],
+      excludeTraits: ["X Antibody"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT22-070", compiled);

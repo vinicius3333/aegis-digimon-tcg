@@ -271,8 +271,17 @@ export function midBt12Module(cardId: string): EffectModule {
                 description: "Delete an opposing Digimon within the applicable DP cap.",
                 resolve: async (ctx) => {
                   const self = source.permanent();
-                  const cap =
-                    stackHas(ctx, source, "tamer") && stackHas(ctx, source, "red") ? (self?.currentDP ?? 6000) : 6000;
+                  // The printed condition is specifically a red Tamer in the
+                  // digivolution cards.  Checking the stack for the words
+                  // "tamer" and "red" independently incorrectly upgraded a
+                  // stack containing (for example) a red Digimon plus a blue
+                  // Tamer.  Keep the colour and kind test on the same source
+                  // card.
+                  const hasRedTamer = self?.stack.some((item) => {
+                    const definition = ctx.game.definitionOf(item);
+                    return isTamer(definition) && definition.colors.includes(CardColor.Red);
+                  }) === true;
+                  const cap = hasRedTamer ? (self?.currentDP ?? 6000) : 6000;
                   const [target] = await permanent(
                     ctx,
                     foes(ctx, source, (_d, p) => p.currentDP <= cap),

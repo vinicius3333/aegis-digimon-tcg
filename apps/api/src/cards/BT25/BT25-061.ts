@@ -5,58 +5,54 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine",
-                "nameOrTrait": [
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Appmon"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Appmon"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing 1 card with the [Appmon] trait from your hand"
+            raw: "By trashing 1 card with the [Appmon] trait from your hand",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 2,
-      "traits": [
-        "Appmon"
+          kind: "GainMemory",
+          amount: 1,
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 2,
+      traits: ["Appmon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT25-061", compiled);

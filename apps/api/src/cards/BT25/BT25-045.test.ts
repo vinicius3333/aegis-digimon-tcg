@@ -11,6 +11,7 @@ import {
 } from "@aegis/shared";
 import { MemoryGauge } from "../../engine/MemoryGauge.js";
 import { ModifierLedger } from "../../engine/effects/modifiers.js";
+import { ContinuousEffectLedger } from "../../engine/effects/continuous.js";
 import { createPrimitives, type PrimitivesEngine, type SelectionPort } from "../../engine/effects/primitives.js";
 import { createCardSource, type CardStateLookup } from "../../engine/cards/CardSource.js";
 import { createGameAccess, createEffectContext } from "../../engine/effects/context.js";
@@ -95,6 +96,7 @@ async function runLinkEffect(compiled: CompiledCard): Promise<RunResult> {
   state.players[0]!.hand.push(linkCard);
 
   const ledger = new ModifierLedger();
+  const continuous = new ContinuousEffectLedger();
   const memory = new MemoryGauge(state, (e) => events.push(e));
 
   const stateLookup: CardStateLookup = {
@@ -130,59 +132,79 @@ async function runLinkEffect(compiled: CompiledCard): Promise<RunResult> {
     nextPermanentId: () => "p-x",
     memory,
     modifiers: ledger,
+    continuous,
     ask,
     controllerSeat: () => state.turnSeat,
   };
   const fx = createPrimitives(engine);
-  const game = createGameAccess(state);
+  const game = createGameAccess(
+    state,
+    (id) => continuous.linkMaxDelta(id),
+    (id, traits) => continuous.linkCostReduction(id, traits),
+  );
 
   const module = irCardModule("BT25-045", compiled);
   const src = createCardSource(recipient.topCard!, stateLookup);
-  // The costDelta reduction lives on BT25-045's [Your Turn] clause, which the IR files under the
-  // continuous/static window (EffectTiming.None). Resolve only the Link effect there (skip the
-  // co-resident whenLinked SubTrigger install, which would pull no candidates here anyway).
-  const effects = module
-    .effectsForTiming(EffectTiming.None, src)
-    .filter((e) => e.description.includes("Link") && !e.description.includes("SubTrigger"));
+  // Install BT25-045's real recipient grant in the continuous/static window.
+  const effects = module.effectsForTiming(EffectTiming.None, src);
 
   const before = state.memory;
-  for (const e of effects) {
+  if (compiled.effects?.some((e) => e.actions?.some((a) => (a as { kind?: string }).kind === "GrantLinkCostReduction"))) {
+    for (const e of effects) {
+      const ctx = createEffectContext({ source: src, trigger: {}, game, fx, ask: decisionApi });
+      await e.resolve(ctx);
+    }
+  }
+
+  // A separate generic Link declaration targets the recipient carrying the grant.
+  const genericLink: CompiledCard = {
+    effects: [{
+      trigger: "Main",
+      actions: [{ kind: "Link", target: { filter: { nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] }, count: 1 } }],
+    }],
+    coverage: "full",
+    residual: [],
+  };
+  const linkModule = irCardModule("BT25-045", genericLink);
+  const linkEffects = linkModule.effectsForTiming(EffectTiming.OnDeclaration, src);
+  for (const e of linkEffects) {
     const ctx = createEffectContext({ source: src, trigger: {}, game, fx, ask: decisionApi });
     await e.resolve(ctx);
   }
   return { memoryPaid: before - state.memory, linkedCount: recipient.linked.length };
 }
 
-/** A clone of BT25-045's registered IR with every Link action's costDelta removed (the revert). */
-function withoutCostDelta(compiled: CompiledCard): CompiledCard {
+/** A clone of BT25-045's registered IR with the grant neutered (the revert). */
+function withoutGrant(compiled: CompiledCard): CompiledCard {
   const clone: CompiledCard = JSON.parse(JSON.stringify(compiled));
   for (const eff of clone.effects ?? []) {
     for (const action of eff.actions ?? []) {
-      if ((action as { kind?: string }).kind === "Link") delete (action as { costDelta?: number }).costDelta;
+      if ((action as { kind?: string }).kind === "GrantLinkCostReduction") (action as { amount?: number }).amount = 0;
     }
   }
   return clone;
 }
 
-describe("BT25-045 Onmon — link-cost-reduction via the Phase-7 costDelta seam (documented behavior documented rule)", () => {
-  it("authors a Link action carrying costDelta:-1 on its activated link clause", () => {
+describe("BT25-045 Onmon — recipient-scoped link-cost reduction", () => {
+  it("authors a GrantLinkCostReduction action (amount 1, Social/Tool/Game)", () => {
     const links = (BT25_045.effects ?? [])
       .flatMap((e) => e.actions ?? [])
-      .filter((a) => (a as { kind?: string }).kind === "Link") as { costDelta?: number }[];
+      .filter((a) => (a as { kind?: string }).kind === "GrantLinkCostReduction") as { amount?: number; whenLinkingTrait?: string[] }[];
     expect(links.length).toBeGreaterThan(0);
-    expect(links.some((l) => l.costDelta === -1)).toBe(true);
+    expect(links.some((l) => l.amount === 1)).toBe(true);
+    expect(links[0]?.whenLinkingTrait).toEqual(["Social", "Tool", "Game"]);
   });
 
   it("pays exactly 1 less memory to link a [Social] card than with the reduction reverted", async () => {
     const reduced = await runLinkEffect(BT25_045);
-    const full = await runLinkEffect(withoutCostDelta(BT25_045));
+    const full = await runLinkEffect(withoutGrant(BT25_045));
 
-    // Both runs land the single linkable card; the only difference is the costDelta.
+    // Both runs land the single linkable card; the only difference is the recipient grant.
     expect(reduced.linkedCount).toBe(1);
     expect(full.linkedCount).toBe(1);
 
-    // BT21-009 printed link cost is 1; costDelta:-1 floors it to 0, so the reduced run pays 0
-    // and the reverted run pays the full 1 => the reduction is exactly 1.
+    // BT21-009 printed link cost is 1; the grant floors it to 0, so the reduced run pays 0 and
+    // the reverted run pays the full 1 => the reduction is exactly 1.
     expect(full.memoryPaid).toBe(1);
     expect(reduced.memoryPaid).toBe(0);
     expect(full.memoryPaid - reduced.memoryPaid).toBe(1);

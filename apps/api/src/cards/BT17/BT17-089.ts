@@ -37,7 +37,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 //          tightened once the engine exposes that field.
 const cardId = "BT17-089";
 
-const module: EffectModule = {
+export const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     if (timing === EffectTiming.OnTappedAnyone) {
@@ -55,8 +55,7 @@ const module: EffectModule = {
         turnTiming({
           source,
           effectKey: `${cardId}/suspend-self-when-your-digimon-suspended`,
-          description:
-            "[Your Turn] When an effect suspends one of your Digimon, you may suspend this Tamer.",
+          description: "[Your Turn] When an effect suspends one of your Digimon, you may suspend this Tamer.",
           optional: true,
           when: (ctx) => {
             if (!source.isOnBattleArea()) return false;
@@ -108,17 +107,15 @@ const module: EffectModule = {
             ctx.fx.gainMemory(1);
 
             // Check if owner has [Argomon] or yellow Digimon with Agumon/Greymon name.
-            const hasQualifyingDigimon = ctx.game
-              .player(source.ownerSeat)
-              .battleArea.some((p) => {
-                if (p.topCard === undefined) return false;
-                const def = ctx.game.definitionOf(p.topCard);
-                if (!isDigimon(def)) return false;
-                if (def.nameEn === "Argomon") return true;
-                // Yellow color + ("Agumon" in name OR "Greymon" in name).
-                if (!def.colors.includes(CardColor.Yellow)) return false;
-                return def.nameEn.includes("Agumon") || def.nameEn.includes("Greymon");
-              });
+            const hasQualifyingDigimon = ctx.game.player(source.ownerSeat).battleArea.some((p) => {
+              if (p.topCard === undefined) return false;
+              const def = ctx.game.definitionOf(p.topCard);
+              if (!isDigimon(def)) return false;
+              if (def.nameEn === "Argomon") return true;
+              // Yellow color + ("Agumon" in name OR "Greymon" in name).
+              if (!def.colors.includes(CardColor.Yellow)) return false;
+              return def.nameEn.includes("Agumon") || def.nameEn.includes("Greymon");
+            });
 
             if (hasQualifyingDigimon) {
               await ctx.fx.draw(source.ownerSeat, 1);

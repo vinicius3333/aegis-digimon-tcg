@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { activated } from "../../engine/effects/builders.js";
 import { registerCard, unregisterCard } from "../../engine/effects/registry.js";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
@@ -137,5 +138,15 @@ describe("BT22-092 [Your Turn] Flame/CS Digimon enters -> suspend Jimmy, reactiv
 
     expect(s.state.memory).toBe(5);
     expect(s.perm("jimmy").isSuspended).toBe(false);
+  });
+});
+
+describe("BT22-092 [Security]", () => {
+  it("plays itself from security without paying the cost", async () => {
+    const s = setup({ 0: { security: [{ card: JIMMY, as: "jimmy", faceUp: true }] } });
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("jimmy"));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("jimmy").instanceId)).toBe(true);
   });
 });

@@ -92,9 +92,12 @@ const module: EffectModule = {
             const playable = owner.hand.filter((c) => hasPlayableTrait(ctx.game.definitionOf(c)));
             if (playable.length === 0) return;
 
-            // "by suspending 1 Digimon" — the cost. Any unsuspended Digimon the controller
-            // owns may pay it; declining leaves the whole second half unresolved.
-            const suspendable = owner.battleArea
+            // "by suspending 1 Digimon" — the cost. Any unsuspended Digimon may pay it;
+            // declining leaves the whole second half unresolved (Q7001).
+            const suspendable = [
+              ...Array.from(owner.battleArea),
+              ...Array.from(ctx.game.player(ctx.game.opponentOf(source.ownerSeat)).battleArea),
+            ]
               .filter(
                 (p) =>
                   !p.inBreeding &&
@@ -125,7 +128,8 @@ const module: EffectModule = {
             const def = ctx.game.definitionOf(picked);
             if (isOption(def)) {
               const reducedCost = Math.max(0, (def.playCost ?? 0) - COST_REDUCTION);
-              await ctx.fx.useOptionFromHand(ctx, pickedId, reducedCost);
+              if (reducedCost > 0) ctx.fx.gainMemory(-reducedCost);
+              await ctx.fx.useOptionFromHand(ctx, pickedId, def.playCost);
             } else {
               await ctx.fx.playFromHand([pickedId], { costDelta: -COST_REDUCTION });
             }

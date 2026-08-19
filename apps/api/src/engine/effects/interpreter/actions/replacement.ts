@@ -15,6 +15,9 @@ const REPLACEMENT_EVENT_MAP: Record<string, ReplacementEventName | undefined> = 
   wouldBeDeleted: "wouldBeDeleted",
   wouldBePlayed: "wouldBePlayed",
   wouldDigivolve: "wouldDigivolve",
+  // Hand-authored EX5 wording names the destination explicitly; the engine's
+  // replacement seam is the same pre-digivolution window.
+  wouldBeDigivolvedInto: "wouldDigivolve",
 };
 
 /**

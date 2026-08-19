@@ -20,7 +20,7 @@ const cardId = "EX4-037";
 function isGreenOrBlack(def: ReturnType<EffectContext["game"]["definitionOf"]>): boolean {
   const colors = def.colors as CardColor[] | undefined;
   if (!colors) return false;
-  return colors.includes(CardColor.Green) || colors.includes(CardColor.Black);
+  return colors.includes(CardColor.Green) && colors.includes(CardColor.Black);
 }
 
 const module: EffectModule = {
@@ -43,7 +43,7 @@ const module: EffectModule = {
               if (p.topCard === undefined) return false;
               if (!isDigimon(ctx.game.definitionOf(p.topCard))) return false;
               return isGreenOrBlack(ctx.game.definitionOf(p.topCard));
-            }).length >= 1;
+            }).length >= 2;
           },
           resolve: async (ctx) => {
             const mine = ctx.game.player(source.ownerSeat).battleArea;

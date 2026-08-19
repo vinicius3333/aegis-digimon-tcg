@@ -212,22 +212,34 @@ export function Lobby({
             <h2 id="lobby-famous-title">{t("lobby.famousDecks")}</h2>
             <p>{t("lobby.famousDecksDesc")}</p>
           </header>
-          {FAMOUS_DECK_GROUPS.map((group) => {
+          {FAMOUS_DECK_GROUPS.map((group, index) => {
             const headingId = `famous-${group.collection.toLowerCase()}`;
             return (
               <section className="lobby-famous__group" aria-labelledby={headingId} key={group.collection}>
-                <h3 id={headingId}>{group.collection}</h3>
-                <div className="lobby-decks">
-                  {group.decks.map((deck) => (
-                    <DeckListCard
-                      key={deck.id}
-                      deck={deck}
-                      active={deck.id === activeDeckId}
-                      compact
-                      onSelect={() => onSelectDeck(deck.id)}
+                <details open={index === 0}>
+                  <summary className="lobby-famous__summary">
+                    <img
+                      className="lobby-famous__set"
+                      src={`/sets/${group.collection}.jpg`}
+                      alt=""
+                      aria-hidden="true"
                     />
-                  ))}
-                </div>
+                    <h3 id={headingId}>{group.collection}</h3>
+                    <span className="lobby-famous__count">{t("lobby.deckCount", { count: group.decks.length })}</span>
+                    <Icons.ChevronDown className="lobby-famous__chevron" size={16} />
+                  </summary>
+                  <div className="lobby-decks">
+                    {group.decks.map((deck) => (
+                      <DeckListCard
+                        key={deck.id}
+                        deck={deck}
+                        active={deck.id === activeDeckId}
+                        compact
+                        onSelect={() => onSelectDeck(deck.id)}
+                      />
+                    ))}
+                  </div>
+                </details>
               </section>
             );
           })}

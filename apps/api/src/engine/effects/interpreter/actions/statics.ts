@@ -12,10 +12,7 @@ import { SUBTRIGGER_EVENT_MAP } from "./subTrigger.js";
 import { EffectDuration } from "@aegis/shared";
 import type { Action, Target } from "@aegis/shared";
 
-export async function runStaticAction(
-  ctx: EffectContext,
-  action: Action,
-): Promise<boolean> {
+export async function runStaticAction(ctx: EffectContext, action: Action): Promise<boolean> {
   switch (action.kind) {
     case "Aura": {
       // A "while ..." aura: live exactly while its gate holds. The static-effect

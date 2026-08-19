@@ -9,9 +9,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-033 — Jupitermon // Wide Plasment (BT26 Yellow/Red DUAL Digimon/Option).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-033 as of this port
-// (`node tools/kb/query.mjs card BT26-033` returned no knowledge-base entries — BT26 has
-// no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// The committed KB contains Q7004-Q7006 (2026-08-18), confirming stacked cost reductions,
+// simultaneous leave prevention for all matching cards, and the always-active use-cost surcharge.
 //
 // [Digivolve] Lv.5 w/[TS] trait: Cost 4 — a digivolution-cost requirement, not an effect
 //   clause; already carried by CardDefinition.evoCosts / ALTERNATE_DIGIVOLUTION_OVERRIDES,
@@ -162,6 +161,7 @@ const module: EffectModule = {
               event: "wouldLeavePlay",
               sourcePermanentId: selfId,
               mode: "prevent",
+              affectsAll: true,
               description:
                 "[All Turns] By placing this Digimon's top stacked card as the bottom " +
                 "security card, a [TS] trait Digimon or Tamer doesn't leave the battle area.",
@@ -212,9 +212,7 @@ const module: EffectModule = {
         activated({
           source,
           effectKey: `${cardId}/main`,
-          description:
-            "[Main] Delete all of your opponent's Digimon with the lowest DP. Then, " +
-            "＜Recovery +1＞.",
+          description: "[Main] Delete all of your opponent's Digimon with the lowest DP. Then, " + "＜Recovery +1＞.",
           resolve: async (ctx) => {
             const targets = opponentDigimonTargets(ctx, source);
             if (targets.length > 0) {

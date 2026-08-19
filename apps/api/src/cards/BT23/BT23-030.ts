@@ -13,107 +13,97 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //
 // Fix: GainKeyword actions must NOT be optional — they are mandatory once cost is paid.
 // PlayWithoutCost is optional (player may decline whole effect) with abortOnDecline.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Alliance",
-          "raw": "＜Alliance＞"
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "playCostLte": 3,
-              "nameOrTrait": [
-                { "tokens": ["Chuumon", "Sukamon"], "match": "name" },
-                { "tokens": ["CS"], "match": "trait" }
-              ]
-            },
-            "count": 1
-          },
-          "from": ["hand"],
-          "payCost": false,
-          "cost": {
-            "kind": "payMemory",
-            "memory": 1,
-            "raw": "By paying 1 cost"
-          },
-          "optional": true,
-          "abortOnDecline": true
+          keyword: "Alliance",
+          raw: "＜Alliance＞",
         },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "levelComparison": { "op": "gte", "value": 3 }
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "Reboot",
-            "raw": "＜Reboot＞"
-          },
-          "duration": "untilOpponentTurnEnd"
-        },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "levelComparison": { "op": "gte", "value": 3 }
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
-          },
-          "duration": "untilOpponentTurnEnd"
-        }
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Main",
+      actions: [
         {
-          "keyword": "Alliance",
-          "raw": "＜Alliance＞"
-        }
-      ]
-    }
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              playCostLte: 3,
+              nameOrTrait: [
+                { tokens: ["Chuumon", "Sukamon"], match: "name" },
+                { tokens: ["CS"], match: "trait" },
+              ],
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          payCost: false,
+          cost: {
+            kind: "payMemory",
+            memory: 1,
+            raw: "By paying 1 cost",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: { op: "gte", value: 3 },
+            },
+            count: 1,
+          },
+          keyword: {
+            keyword: "Reboot",
+            raw: "＜Reboot＞",
+          },
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: { op: "gte", value: 3 },
+            },
+            count: 1,
+            sameTarget: true,
+          },
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
+          },
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "names": ["Sukamon"],
-      "cost": 3,
-      "isAlternate": true
+      level: 4,
+      names: ["Sukamon"],
+      cost: 3,
+      isAlternate: true,
     },
     {
-      "level": 4,
-      "traits": ["CS"],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      traits: ["CS"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT23-030", compiled);

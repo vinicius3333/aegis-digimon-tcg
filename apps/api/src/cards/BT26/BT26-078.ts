@@ -6,12 +6,12 @@ import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { onPlay, whenDigivolving, inTrash } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 
 // BT26-078 — Cherubimon (BT26, Purple/Green Lv.6 Digimon, Cherub/Titan/TS).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-078 as of this port
-// (`node tools/kb/query.mjs card BT26-078` returned no knowledge-base entries). implemented
-// from the printed card text only. Re-check against the KB once BT26 rulings are scraped.
+// The committed KB contains Q7105-Q7108 (2026-08-18), confirming text matching, Trash-only
+// activation, the opponent-memory boundary, and the combined card/trait filter semantics.
 //
 // Printed text:
 //   [Digivolve] Lv.5 w/[TS] trait: Cost 5
@@ -61,20 +61,14 @@ function memoryFor(ctx: EffectContext, seat: Seat): number {
 
 /** "[Chronomon] text or [Titan] trait" (BT26-011's identical phrase/idiom). */
 function hasChronomonTextOrTitanTrait(def: CardDefinition): boolean {
-  return (
-    (typeof def.effectText === "string" && def.effectText.includes("Chronomon")) ||
-    (def.types ?? []).includes("Titan")
-  );
+  return matchNameOrTrait(def, { tokens: ["Chronomon"], match: "text" }) || (def.types ?? []).includes("Titan");
 }
 
 /**
  * [On Play] [When Digivolving] By deleting this Digimon, you may play 1 play cost 12 or
  * lower [Chronomon] text or [Titan] trait card from your trash without paying the cost.
  */
-async function resolveDeleteToPlayFromTrash(
-  ctx: EffectContext,
-  source: CardSource,
-): Promise<void> {
+async function resolveDeleteToPlayFromTrash(ctx: EffectContext, source: CardSource): Promise<void> {
   const self = source.permanent();
   if (self === undefined) return;
 
@@ -137,8 +131,7 @@ function installTrashResidentWatcher(ctx: EffectContext, source: CardSource): vo
       if (subjectId === undefined) return;
       const willActivate = await subCtx.ask.optional(
         subCtx,
-        "By returning this card to the bottom of the deck, 1 of them gains ＜Rush＞ and " +
-          "＜Execute＞ for the turn?",
+        "By returning this card to the bottom of the deck, 1 of them gains ＜Rush＞ and " + "＜Execute＞ for the turn?",
       );
       if (!willActivate) return;
       await subCtx.fx.returnToDeck([subCtx.source.instanceId]);

@@ -36,6 +36,7 @@ const module: EffectModule = {
             for (const p of ctx.game.player(source.ownerSeat).battleArea)
               if (p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)))
                 ctx.fx.modifyDP(p.permanentId, 5000, EffectDuration.UntilEachTurnEnd);
+            ctx.fx.modifySecurityDp(source.ownerSeat, 5000);
             await ctx.fx.returnToHand([source.instanceId]);
           },
         }),

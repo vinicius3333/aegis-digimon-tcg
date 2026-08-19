@@ -120,6 +120,8 @@ export interface GainKeywordAction extends ActionBase {
   kind: "GainKeyword";
   target: Target;
   keyword: KeywordRef;
+  /** Legacy compiler shape: several keywords granted in one action. */
+  keywords?: KeywordRef[];
   duration: EffectDurationRef;
   /**
    * How many times each target gains the keyword; default 1. BT19-091 "gains ＜Alliance＞ twice"

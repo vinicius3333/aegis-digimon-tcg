@@ -80,12 +80,16 @@ export function createCardStateLookup(state: GameState): CardStateLookup {
   const isInHand = (instanceId: string): boolean =>
     state.players.some((p) => p.hand.some((c) => c.instanceId === instanceId));
 
+  const isInSecurity = (instanceId: string): boolean =>
+    state.players.some((p) => p.security.some((c) => c.instanceId === instanceId && c.faceUp));
+
   return {
     permanentOf: (instanceId: string): Permanent | undefined => findPermanent(instanceId)?.permanent,
     isOnBattleArea: (instanceId: string): boolean => findPermanent(instanceId)?.inBattleArea ?? false,
     isOnBreedingArea: (instanceId: string): boolean => findPermanent(instanceId)?.inBreedingArea ?? false,
     isInTrash,
     isInHand,
+    isInSecurity,
     isSeatsTurn: (seat: Seat): boolean => state.turnSeat === seat,
   };
 }
@@ -330,7 +334,7 @@ export function gatherTriggeredEffects(
   timing: EffectTiming,
   candidateInstances: readonly CardInstance[],
   grantSnapshot?: {
-    stackEffectConferrals: readonly { targetPermanentId: string; stackInstanceId: string }[];
+    stackEffectConferrals: readonly { targetPermanentId: string; stackInstanceId: string; trigger?: string }[];
     customEffectGrants: readonly { instanceId: string; token: string }[];
   },
 ): CollectedEffect[] {

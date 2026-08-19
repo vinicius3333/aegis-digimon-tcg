@@ -59,7 +59,9 @@ const compiled: CompiledCard = {
           "amount": -2000,
           "duration": "forTheTurn",
           "condition": {
-            "kind": "raw",
+            "kind": "totalSecurityCount",
+            "op": "lte",
+            "value": 6,
             "raw": "there're 6 or fewer total cards in both players' security stacks"
           }
         }

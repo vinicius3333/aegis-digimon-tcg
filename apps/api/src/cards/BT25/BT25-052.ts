@@ -15,7 +15,7 @@ const compiled: CompiledCard = {
               "kind": [
                 "Digimon"
               ],
-              "hasKeyword": "Link",
+              "hasLinkRequirement": true,
               "nameOrTrait": [
                 {
                   "tokens": [

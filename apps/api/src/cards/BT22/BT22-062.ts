@@ -5,88 +5,95 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Collision",
-          "raw": "＜Collision＞"
-        }
-      ]
+          keyword: "Collision",
+          raw: "＜Collision＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 4000,
-          "duration": "untilOpponentTurnEnd"
+          amount: 4000,
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "digivolve",
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          restriction: "digivolve",
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "MetalTyrannomon",
-                    "X Antibody"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["MetalTyrannomon"],
+                  match: "name",
+                },
+                {
+                  tokens: ["X Antibody"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "[MetalTyrannomon] or [X Antibody] is in this Digimon's digivolution cards"
-          }
-        }
-      ]
+            raw: "[MetalTyrannomon] or [X Antibody] is in this Digimon's digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "EndOfOpponentsTurn",
-      "actions": [
+      trigger: "EndOfOpponentsTurn",
+      actions: [
         {
-          "kind": "RedirectAttack",
-          "controller": "opponent"
-        }
+          kind: "Attack",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+            chooser: "opponent",
+          },
+          optional: true,
+          drainTimingWindowDuringAttack: true,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "names": [
-        "Tyrannomon"
-      ],
-      "cost": 1,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      names: ["Tyrannomon"],
+      excludeTraits: ["X Antibody"],
+      cost: 1,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT22-062", compiled);

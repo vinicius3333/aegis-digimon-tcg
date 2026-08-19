@@ -27,13 +27,26 @@ export interface Condition {
     | "attackTargetsPlayer"
     | "attackTargetMatchesFilter" // honors superlatives such as highest DP
     | "lastTargetDpAtLeast" // every permanent the preceding action selected still has >= `value` DP
+    | "lastTargetDpAtMostSelf" // every permanent the preceding action selected has DP <= this Digimon
+    | "lastTargetDpGreaterThanSelf" // every permanent the preceding action selected has DP > this Digimon
+    | "lastTargetCanTrashDigivolution" // the previous target still has stack cards and is not level 3 (EX5-055)
+    | "triggerRevealedFromDeck" // the source card is among the cards this effect revealed from a deck
+    | "triggerRevealedMatchesFilter" // any card in the current reveal window matches `filter`
+    | "triggerAttackBy" // the current attack was declared through the named attack mechanic
+    | "allYoursMatchFilter" // every permanent you control in the battle area matches `filter`
+    | "breedingAreaEmpty"
+    | "digivolutionCountCompare" // a selected Digimon's stack size vs the source/target stack
+    | "triggerPlayCostAtMostStackCount" // the triggered card's play cost <= a matching stack count
     | "selfDigivolutionStackHasTrait" // `filter.nameOrTrait` vs each stack card's Form ∪ Attribute ∪ Type (BT7-024)
+    | "selfDigivolutionStackDistinctNameCount" // distinct names in the SOURCE stack (EX6-006)
+    | "selfDigivolutionStackMatchesFilter" // any SOURCE stack card matches the full filter (BT17-101)
     | "selfDigivolutionStackHasColor" // BT8-082
     | "selfDigivolutionStackHasNonColor" // BT10-001
     | "selfDigivolutionStackDistinctColorCount"
     | "selfTopHasText" // `filter.nameOrTrait` vs the SOURCE top card's name/trait/effect text (EX11-070)
     | "selfDigivolutionCountAtLeast" // source stack size >= `value` (BT22-007; KB Q4858)
     | "selfDigivolutionStackCountAtLeast" // stack cards matching `filter.nameOrTrait` >= `count` (BT11-065)
+    | "selfDigivolutionStackHasSameLevelPair" // 2 or more SOURCE stack cards share a level (BT23-102)
     | "selfIsSuspended" // EX3-042, EX8-043
     | "selfUnsuspended" // P-199 only offers its by-suspending reduction while it can still be suspended
     | "selfDpAtLeast"
@@ -73,9 +86,11 @@ export interface Condition {
     | "digivolvedFromZone" // BT17-065
     | "playedFromZone" // BT7-018
     | "zoneCount" // `seat`'s `zone` size vs `value` via `op`; the superset of the memory/security/hand gates
+    | "combinedTrashCount" // both players' trash zones summed
     | "zoneColorCount" // distinct colors among battle-area permanents of `cardType` (ST20-10/ST21-10; KB Q4456)
     | "securityCompare" // your security count vs the opponent's; `op` is "lt" (P-127) or "gt" (P-129)
     | "securityAtMostSelfFaceDownDigivolutionCards" // EX9-029, KB Q4783
+    | "sourceWasFaceUpSecurity"
     | "totalSecurityCount" // both stacks summed
     | "totalDigimonCount" // both players' battle-area Digimon (BT9-110)
     | "totalDigimonGte" // legacy alias with an implicit gte (ST19-11)

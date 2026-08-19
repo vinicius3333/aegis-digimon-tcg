@@ -97,6 +97,14 @@ export interface PlayWithoutCostAction extends ActionBase {
 export interface PlayMultipleAction extends ActionBase {
   kind: "PlayMultiple";
   totalCost: number;
+  /** Dynamic budget: add `raise` to `base` for every `per` matching cards. */
+  totalCostScaling?: {
+    base: number;
+    raise: number;
+    per: number;
+    filter: Filter;
+    unit: "cards" | "digivolutionCards";
+  };
   filter: Filter;
   from: ZoneRef | ZoneRef[] | "digivolution";
   payCost: boolean;
@@ -149,15 +157,24 @@ export interface PlayPerLevelAction extends ActionBase {
   suppressOnPlayEffects?: boolean;
 }
 
+/** A synthetic token minted by an effect rather than printed as a card. */
+export interface TokenSpec {
+  name: string;
+  kind?: string;
+  color?: string;
+  dp?: number;
+  keywords?: Array<{ keyword: string; amount?: number; colors?: string[] }>;
+}
+
 /** "Play N [X] Token(s) without paying the cost". */
 export interface PlayTokenAction extends ActionBase {
   kind: "PlayToken";
   /** Token name tokens from `[X]` refs. */
-  tokens: string[];
+  tokens: Array<string | TokenSpec>;
   count: number;
   payCost: boolean;
   /** Alternative to `tokens`. */
-  token?: string;
+  token?: string | TokenSpec;
   /** Alternative to `count`. */
   amount?: number;
   /**

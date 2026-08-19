@@ -9,9 +9,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-075 — ScourgeChiropmon // Despair Blast (BT26 Purple/Yellow DUAL Digimon/Option).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-075 as of this port
-// (`node tools/kb/query.mjs card BT26-075` returned no knowledge-base entries — BT26 has
-// no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// The committed KB contains Q7100-Q7103 (2026-08-18), confirming simultaneous trigger
+// ordering, post-Security battle timing, DUAL effect classification, and Security suppression.
 //
 // [Digivolve] Lv.4 w/[Glowing Dawn] trait: Cost 3 — a digivolution-cost requirement, not
 //   an effect clause; already carried by CardDefinition.evoCosts, not implemented here.

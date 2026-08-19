@@ -19,139 +19,139 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - Delete lowest DP (the Delay bullet) is in a separate trigger:"Main" effect with
 //     keywords:[{keyword:"Delay"}] — it fires when the Delay resolves, not unconditionally
 //   - Removed the stray unconditional Delete that was outside the SubTrigger
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "zone": "field",
-              "controllerDefault": "mine",
-              "kind": ["Digimon", "Tamer"],
-              "nameOrTrait": [
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "field",
+              controllerDefault: "mine",
+              kind: ["Digimon", "Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": ["CS"],
-                  "match": "trait"
-                }
-              ]
-            },
-            "raw": "you have a Digimon or Tamer with the [CS] trait on the field (battle area or breeding area, per KB Q5364)"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "superlative": "lowestDP"
-            },
-            "count": 1
-          }
-        },
-        {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenAttacking",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": ["Digimon"],
-            "nameOrTrait": [
-              {
-                "tokens": ["CS"],
-                "match": "trait"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+                  tokens: ["CS"],
+                  match: "trait",
                 },
-                "count": 1,
-                "isSelf": true
-              },
-              "keyword": {
-                "keyword": "Delay",
-                "raw": "＜Delay＞"
-              },
-              "duration": "untilTurnEnd"
-            }
-          ],
-          "raw": "When one of your [CS] trait Digimon attacks, this card gains ＜Delay＞ until end of turn"
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "superlative": "lowestDP"
+              ],
             },
-            "count": 1
-          }
-        }
+            raw: "you have a Digimon or Tamer with the [CS] trait on the field (battle area or breeding area, per KB Q5364)",
+          },
+        },
       ],
-      "keywords": [
-        {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ]
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "superlative": "lowestDP"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestDP",
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              {
+                tokens: ["CS"],
+                match: "trait",
+              },
+            ],
+          },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              keyword: {
+                keyword: "Delay",
+                raw: "＜Delay＞",
+              },
+              duration: "untilTurnEnd",
+            },
+          ],
+          raw: "When one of your [CS] trait Digimon attacks, this card gains ＜Delay＞ until end of turn",
+        },
+      ],
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestDP",
+            },
+            count: 1,
+          },
+        },
+      ],
+      keywords: [
+        {
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestDP",
+            },
+            count: 1,
+          },
+        },
+        {
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT23-091", compiled);

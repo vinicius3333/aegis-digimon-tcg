@@ -6,11 +6,7 @@ import { toDuration } from "../duration.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
 import type { Action } from "@aegis/shared";
 
-export async function runCombatAction(
-  ctx: EffectContext,
-  action: Action,
-  scope: ActionScope,
-): Promise<boolean> {
+export async function runCombatAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { deferredCostSuspensions } = scope;
   switch (action.kind) {
     case "Attack": {

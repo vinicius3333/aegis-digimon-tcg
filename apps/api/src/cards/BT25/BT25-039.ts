@@ -2,7 +2,7 @@
 // HAND-FIXED IR for BT25-039 — do not regenerate.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "EndOfYourTurn",
@@ -36,6 +36,12 @@ const compiled: CompiledCard = {
             "count": 1,
             "isSelf": true
           },
+          "underFilter": {
+            "lastPlayed": true,
+            "controller": "mine",
+            "kind": ["Digimon"]
+          },
+          "position": "bottom",
           "condition": {
             "kind": "ifThisEffectActed"
           },
@@ -86,13 +92,6 @@ const compiled: CompiledCard = {
           "kind": "SecurityManipulation",
           "op": "placeAsSecurity",
           "controller": "mine",
-          "source": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
           "toTop": false,
           "faceUp": true,
           "optional": true

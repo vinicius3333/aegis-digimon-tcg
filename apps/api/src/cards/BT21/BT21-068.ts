@@ -7,83 +7,83 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q4575: if opponent has a Digimon with 4000 DP or less, you MUST choose and delete it.
 // KB Q4576: if chosen target has deletion protection, that counts as "didn't delete".
 // Inherited [On Deletion]: Gain 1 memory.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "dp": {
-                "op": "lte",
-                "value": 4000
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 4000,
+              },
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "TrashTopDeck",
-          "controller": "mine",
-          "amount": 2,
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "dp": {
-                "op": "lte",
-                "value": 4000
-              }
-            },
-            "count": 1
-          }
+          kind: "TrashTopDeck",
+          controller: "mine",
+          amount: 2,
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+          },
         },
-        {
-          "kind": "TrashTopDeck",
-          "controller": "mine",
-          "amount": 2,
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "GainMemory",
-          "amount": 1
-        }
       ],
-      "isInherited": true
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+    },
     {
-      "level": 3,
-      "names": ["Guilmon"],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 4000,
+              },
+            },
+            count: 1,
+          },
+        },
+        {
+          kind: "TrashTopDeck",
+          controller: "mine",
+          amount: 2,
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "GainMemory",
+          amount: 1,
+        },
+      ],
+      isInherited: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 3,
+      names: ["Guilmon"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT21-068", compiled);

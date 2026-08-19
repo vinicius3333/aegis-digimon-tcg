@@ -161,6 +161,8 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
         // Resolve it from the matching OR branch as well; cards such as BT13-019 combine
         // trash and breeding-area digivolution-card sources in one target.
         const matchedFilter = allFilters.find((filter) => definitionMatches(filter, def));
+        if (matchedFilter?.faceUp === true && cand.faceUp !== true) continue;
+        if (matchedFilter?.faceUp === false && cand.faceUp === true) continue;
         const hostFilter = matchedFilter?.hostFilter;
         if (zone === "digivolutionCards" && hostFilter && cand.hostPermanentId) {
           if (hostFilter.isSelfRef === true) {

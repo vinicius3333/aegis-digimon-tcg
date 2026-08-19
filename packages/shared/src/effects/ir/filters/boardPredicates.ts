@@ -21,6 +21,8 @@ export interface BoardPredicates {
    * the single card `position: "bottom"` selects.
    */
   withinBottomN?: number;
+  /** The card must have exactly one color. */
+  singleColor?: boolean;
   /** Cost-only: the stack card's level must be represented at least twice. */
   sameLevelPair?: boolean;
   suspended?: boolean;

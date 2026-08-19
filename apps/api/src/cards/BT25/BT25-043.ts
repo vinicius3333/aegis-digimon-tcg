@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
@@ -22,10 +22,16 @@ const compiled: CompiledCard = {
       "trigger": "WhenDigivolving",
       "actions": [
         {
+          "kind": "SecurityManipulation",
+          "op": "addTop",
+          "controller": "mine",
+          "source": "deck",
+          "amount": 1
+        },
+        {
           "kind": "RecoverByTrashingMostSecurity",
           "amount": 1,
-          "optional": true,
-          "abortOnDecline": true
+          "recover": false
         },
         {
           "kind": "Unsuspend",
@@ -45,10 +51,16 @@ const compiled: CompiledCard = {
       "trigger": "WhenAttacking",
       "actions": [
         {
+          "kind": "SecurityManipulation",
+          "op": "addTop",
+          "controller": "mine",
+          "source": "deck",
+          "amount": 1
+        },
+        {
           "kind": "RecoverByTrashingMostSecurity",
           "amount": 1,
-          "optional": true,
-          "abortOnDecline": true
+          "recover": false
         },
         {
           "kind": "Unsuspend",
@@ -71,20 +83,15 @@ const compiled: CompiledCard = {
           "kind": "Replacement",
           "event": "wouldLeavePlay",
           "mode": "prevent",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Glowing Dawn"
-                ],
-                "match": "trait"
-              }
-            ]
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [{ "tokens": ["Glowing Dawn"], "match": "trait" }]
+            },
+            "count": "all"
           },
+          "affectsAll": true,
           "cost": {
             "kind": "trash",
             "target": {

@@ -1,15 +1,39 @@
 import { CARD_POOL_CUTOFF_DATE, isCardInActivePool, releaseDateForSet } from "../cards/cardPool.js";
 import { isBanned } from "../banlist.js";
 import { getCardDefinition } from "../cards/registry.js";
-import { CardColor } from "../schema/enums.js";
-import importedCatalog from "./data/deck-lists.json" with { type: "json" };
-import communityTournamentCatalog from "./data/community-tournament-decks.json" with { type: "json" };
-import moreCommunityTournamentCatalog from "./data/community-tournament-decks-more.json" with { type: "json" };
-import diversifiedCommunityTournamentCatalog from "./data/community-tournament-decks-more-2.json" with { type: "json" };
-import activePoolCommunityTournamentCatalog from "./data/community-tournament-decks-bt10-backfill.json" with { type: "json" };
-import recentCommunityTournamentCatalog1 from "./data/community-tournament-decks-bt17-bt25-1.json" with { type: "json" };
-import recentCommunityTournamentCatalog2 from "./data/community-tournament-decks-bt17-bt25-2.json" with { type: "json" };
-import officialProductCatalog from "./data/official-product-decks.json" with { type: "json" };
+import { catalogDeck, type CatalogFile } from "./catalogSchema.js";
+import bt4Catalog from "./data/bt4.json" with { type: "json" };
+import bt7Catalog from "./data/bt7.json" with { type: "json" };
+import bt8Catalog from "./data/bt8.json" with { type: "json" };
+import bt9Catalog from "./data/bt9.json" with { type: "json" };
+import bt10Catalog from "./data/bt10.json" with { type: "json" };
+import bt11Catalog from "./data/bt11.json" with { type: "json" };
+import bt12Catalog from "./data/bt12.json" with { type: "json" };
+import bt13Catalog from "./data/bt13.json" with { type: "json" };
+import bt14Catalog from "./data/bt14.json" with { type: "json" };
+import bt15Catalog from "./data/bt15.json" with { type: "json" };
+import bt16Catalog from "./data/bt16.json" with { type: "json" };
+import bt17Catalog from "./data/bt17.json" with { type: "json" };
+import bt18Catalog from "./data/bt18.json" with { type: "json" };
+import bt19Catalog from "./data/bt19.json" with { type: "json" };
+import bt20Catalog from "./data/bt20.json" with { type: "json" };
+import bt21Catalog from "./data/bt21.json" with { type: "json" };
+import bt22Catalog from "./data/bt22.json" with { type: "json" };
+import bt23Catalog from "./data/bt23.json" with { type: "json" };
+import bt24Catalog from "./data/bt24.json" with { type: "json" };
+import bt25Catalog from "./data/bt25.json" with { type: "json" };
+import ex3Catalog from "./data/ex3.json" with { type: "json" };
+import ex4Catalog from "./data/ex4.json" with { type: "json" };
+import ex5Catalog from "./data/ex5.json" with { type: "json" };
+import ex6Catalog from "./data/ex6.json" with { type: "json" };
+import ex7Catalog from "./data/ex7.json" with { type: "json" };
+import ex8Catalog from "./data/ex8.json" with { type: "json" };
+import ex9Catalog from "./data/ex9.json" with { type: "json" };
+import ex10Catalog from "./data/ex10.json" with { type: "json" };
+import ex11Catalog from "./data/ex11.json" with { type: "json" };
+import ex12Catalog from "./data/ex12.json" with { type: "json" };
+import rb1Catalog from "./data/rb1.json" with { type: "json" };
+import ad1Catalog from "./data/ad1.json" with { type: "json" };
 import { BT1_DECKS } from "./bt1.js";
 import { BT2_DECKS } from "./bt2.js";
 import { BT3_DECKS } from "./bt3.js";
@@ -22,11 +46,11 @@ import { BT8_DECKS } from "./bt8.js";
 import { BT9_DECKS } from "./bt9.js";
 import { BT10_DECKS } from "./bt10.js";
 import { ADDITIONAL_COLLECTION_DECKS } from "./additionalCollections.js";
-import { defineMetaDeck, type DeckEntry, type FamousDeck } from "./types.js";
+import type { FamousDeck } from "./types.js";
 
 export type FamousDeckCutoffDate = `${number}-${number}-${number}`;
 
-/** Every sourced deck recipe, including entries ahead of the operational pool. */
+/** Hand-authored recipes that predate the stored catalog format. */
 export const VALIDATED_FAMOUS_DECKS: readonly FamousDeck[] = Object.freeze([
   ...BT1_DECKS,
   ...BT2_DECKS,
@@ -41,252 +65,62 @@ export const VALIDATED_FAMOUS_DECKS: readonly FamousDeck[] = Object.freeze([
   ...BT10_DECKS,
 ]);
 
-interface ImportedEntry {
-  cardId: string;
-  qty: number;
-}
+/** One stored file per collection, oldest collection first. */
+const CATALOG_FILES: readonly CatalogFile[] = [
+  bt4Catalog,
+  bt7Catalog,
+  bt8Catalog,
+  bt9Catalog,
+  bt10Catalog,
+  bt11Catalog,
+  bt12Catalog,
+  bt13Catalog,
+  bt14Catalog,
+  bt15Catalog,
+  bt16Catalog,
+  bt17Catalog,
+  bt18Catalog,
+  bt19Catalog,
+  bt20Catalog,
+  bt21Catalog,
+  bt22Catalog,
+  bt23Catalog,
+  bt24Catalog,
+  bt25Catalog,
+  ex3Catalog,
+  ex4Catalog,
+  ex5Catalog,
+  ex6Catalog,
+  ex7Catalog,
+  ex8Catalog,
+  ex9Catalog,
+  ex10Catalog,
+  ex11Catalog,
+  ex12Catalog,
+  rb1Catalog,
+  ad1Catalog,
+] as CatalogFile[];
 
-interface ImportedTournament {
-  name: string;
-  organizer: string;
-  date: string;
-  placement: number;
-  player: string;
-  location: string;
-}
-
-interface ImportedDeck {
-  id: string;
-  name?: string;
-  archetype: string;
-  colors: string[];
-  set: string;
-  source?: string;
-  tournament?: ImportedTournament;
-  mainDeck: ImportedEntry[];
-  eggDeck: ImportedEntry[];
-}
-
-interface OfficialProductDeck {
-  id: string;
-  name: string;
-  archetype: string;
-  colors: string[];
-  anchorProduct: string;
-  sourceType: "product_recipe";
-  provenance: { publisher: string; sourceUrl: string; retrievedAt: string };
-  mainDeck: ImportedEntry[];
-  eggDeck: ImportedEntry[];
-}
-
-interface CommunityTournamentDeck {
-  id: string;
-  revision?: number;
-  name: string;
-  archetype: string;
-  approximation?: string;
-  colors: string[];
-  anchorProduct: string;
-  sourceType: "community_tournament_deck";
-  tournament: {
-    name: string;
-    date: string;
-    region: string;
-    placement: number;
-    player: string;
-    participants?: number;
-    record?: string;
-  };
-  provenance: {
-    sourcePublisher: string;
-    sourceUrl: string;
-    contextPublisher?: string;
-    contextUrl?: string;
-  };
-  mainDeck: ImportedEntry[];
-  eggDeck: ImportedEntry[];
-}
-
-const knownColors = new Set<string>(Object.values(CardColor));
-
-function importedColor(color: string): CardColor {
-  if (!knownColors.has(color)) throw new Error(`Unknown imported deck color: ${color}`);
-  return color as CardColor;
-}
-
-function importedEntries(entries: readonly ImportedEntry[]): DeckEntry[] {
-  return entries.map(({ cardId, qty }) => ({ cardId, count: qty }));
-}
-
-function importedSource(deck: ImportedDeck): string {
-  if (!deck.tournament) return `Official ${deck.source ?? "Bandai"} deck recipe for ${deck.set}.`;
-  const event = deck.tournament;
-  return `${event.name}, ${event.date}: #${event.placement} ${event.player} (${event.organizer}, ${event.location}). Archived by ${importedCatalog.source}.`;
-}
-
-function importedDeck(value: unknown): ImportedDeck {
-  if (!value || typeof value !== "object") throw new Error("Imported deck must be an object");
-  const deck = value as Partial<ImportedDeck>;
-  const entriesAreValid = (entries: unknown): entries is ImportedEntry[] =>
-    Array.isArray(entries) &&
-    entries.every(
-      (entry) =>
-        !!entry &&
-        typeof entry === "object" &&
-        typeof (entry as ImportedEntry).cardId === "string" &&
-        Number.isInteger((entry as ImportedEntry).qty) &&
-        (entry as ImportedEntry).qty > 0,
-    );
-  if (
-    typeof deck.id !== "string" ||
-    typeof deck.archetype !== "string" ||
-    typeof deck.set !== "string" ||
-    !Array.isArray(deck.colors) ||
-    !deck.colors.every((color) => typeof color === "string") ||
-    !entriesAreValid(deck.mainDeck) ||
-    !entriesAreValid(deck.eggDeck)
-  ) {
-    throw new Error(`Invalid imported deck: ${deck.id ?? "unknown"}`);
-  }
-  return deck as ImportedDeck;
-}
-
-function defineImportedDeck(value: unknown): FamousDeck {
-  const deck = importedDeck(value);
-  return defineMetaDeck({
-    deckId: deck.id,
-    revision: 1,
-    name: deck.name ?? deck.archetype,
-    block: deck.set,
-    archetype: deck.archetype,
-    colors: deck.colors.map(importedColor),
-    source: importedSource(deck),
-    category: deck.tournament ? "tournament-result" : "official-recipe",
-    mainDeck: importedEntries(deck.mainDeck),
-    eggDeck: importedEntries(deck.eggDeck),
-  });
-}
-
-function officialProductDeck(value: unknown): FamousDeck {
-  if (!value || typeof value !== "object") throw new Error("Official product deck must be an object");
-  const deck = value as Partial<OfficialProductDeck>;
-  if (
-    typeof deck.id !== "string" ||
-    typeof deck.name !== "string" ||
-    typeof deck.archetype !== "string" ||
-    typeof deck.anchorProduct !== "string" ||
-    deck.sourceType !== "product_recipe" ||
-    !deck.provenance ||
-    typeof deck.provenance.sourceUrl !== "string" ||
-    !Array.isArray(deck.colors) ||
-    !Array.isArray(deck.mainDeck) ||
-    !Array.isArray(deck.eggDeck)
-  ) {
-    throw new Error(`Invalid official product deck: ${deck.id ?? "unknown"}`);
-  }
-  const mainDeck = importedEntries(deck.mainDeck);
-  const eggDeck = importedEntries(deck.eggDeck);
-  const mainCount = mainDeck.reduce((total, entry) => total + entry.count, 0);
-  const eggCount = eggDeck.reduce((total, entry) => total + entry.count, 0);
-  const unknownCard = [...mainDeck, ...eggDeck].find((entry) => !getCardDefinition(entry.cardId));
-  if (mainCount !== 50 || eggCount > 5 || unknownCard) {
-    throw new Error(
-      `Invalid official product deck composition: ${deck.id} (${mainCount} main, ${eggCount} egg, unknown ${unknownCard?.cardId ?? "none"})`,
-    );
-  }
-  return defineMetaDeck({
-    deckId: deck.id,
-    revision: 1,
-    name: deck.name,
-    block: deck.anchorProduct,
-    anchorProduct: deck.anchorProduct,
-    archetype: deck.archetype,
-    colors: deck.colors.map(importedColor),
-    source: `${deck.provenance.publisher} official recipe for ${deck.anchorProduct}, retrieved ${deck.provenance.retrievedAt}.`,
-    sourceUrl: deck.provenance.sourceUrl,
-    sourceType: deck.sourceType,
-    category: "official-recipe",
-    mainDeck,
-    eggDeck,
-  });
-}
-
-function communityTournamentDeck(value: unknown): FamousDeck {
-  if (!value || typeof value !== "object") throw new Error("Community tournament deck must be an object");
-  const deck = value as Partial<CommunityTournamentDeck>;
-  if (
-    typeof deck.id !== "string" ||
-    typeof deck.name !== "string" ||
-    typeof deck.archetype !== "string" ||
-    typeof deck.anchorProduct !== "string" ||
-    deck.sourceType !== "community_tournament_deck" ||
-    !deck.tournament ||
-    !deck.provenance ||
-    typeof deck.provenance.sourceUrl !== "string" ||
-    !Array.isArray(deck.colors) ||
-    !Array.isArray(deck.mainDeck) ||
-    !Array.isArray(deck.eggDeck)
-  ) {
-    throw new Error(`Invalid community tournament deck: ${deck.id ?? "unknown"}`);
-  }
-  const mainDeck = importedEntries(deck.mainDeck);
-  const eggDeck = importedEntries(deck.eggDeck);
-  const mainCount = mainDeck.reduce((total, entry) => total + entry.count, 0);
-  const eggCount = eggDeck.reduce((total, entry) => total + entry.count, 0);
-  const unknownCard = [...mainDeck, ...eggDeck].find((entry) => !getCardDefinition(entry.cardId));
-  if (mainCount !== 50 || eggCount > 5 || unknownCard) {
-    throw new Error(
-      `Invalid community tournament deck composition: ${deck.id} (${mainCount} main, ${eggCount} egg, unknown ${unknownCard?.cardId ?? "none"})`,
-    );
-  }
-  const event = deck.tournament;
-  return defineMetaDeck({
-    deckId: deck.id,
-    revision: deck.revision ?? 1,
-    name: deck.name,
-    block: deck.anchorProduct,
-    anchorProduct: deck.anchorProduct,
-    archetype: deck.archetype,
-    colors: deck.colors.map(importedColor),
-    source: `${event.player}, #${event.placement} at ${event.name} (${event.date}, ${event.region}). Archived by ${deck.provenance.sourcePublisher}.`,
-    sourceUrl: deck.provenance.sourceUrl,
-    sourceType: deck.sourceType,
-    category: "tournament-result",
-    approximation: deck.approximation,
-    mainDeck,
-    eggDeck,
-  });
-}
-
-/** Previously collected future recipes; availability is still governed card by card. */
-export const IMPORTED_FAMOUS_DECKS: readonly FamousDeck[] = Object.freeze(
-  [...importedCatalog.basicDecks, ...importedCatalog.metaDecks].map(defineImportedDeck),
+/** Every deck stored in `data/`, in collection order. */
+export const CATALOG_DECKS: readonly FamousDeck[] = Object.freeze(
+  CATALOG_FILES.flatMap((file) => file.decks.map(catalogDeck)),
 );
 
 /** Complete recipes published on official Bandai product pages. */
 export const OFFICIAL_PRODUCT_DECKS: readonly FamousDeck[] = Object.freeze(
-  officialProductCatalog.decks.map(officialProductDeck),
+  CATALOG_DECKS.filter((deck) => deck.sourceType === "product_recipe"),
 );
 
 /** Competitive results transcribed from community tournament archives. */
 export const COMMUNITY_TOURNAMENT_DECKS: readonly FamousDeck[] = Object.freeze(
-  [
-    ...communityTournamentCatalog.decks,
-    ...moreCommunityTournamentCatalog.decks,
-    ...diversifiedCommunityTournamentCatalog.decks,
-    ...activePoolCommunityTournamentCatalog.decks,
-    ...recentCommunityTournamentCatalog1.decks,
-    ...recentCommunityTournamentCatalog2.decks,
-  ].map(communityTournamentDeck),
+  CATALOG_DECKS.filter((deck) => deck.sourceType === "community_tournament_deck"),
 );
 
 /** Every sourced deck recipe, including entries ahead of the operational pool. */
 export const ALL_FAMOUS_DECKS: readonly FamousDeck[] = Object.freeze([
   ...VALIDATED_FAMOUS_DECKS,
-  ...IMPORTED_FAMOUS_DECKS,
-  ...OFFICIAL_PRODUCT_DECKS,
   ...ADDITIONAL_COLLECTION_DECKS,
-  ...COMMUNITY_TOURNAMENT_DECKS,
+  ...CATALOG_DECKS,
 ]);
 
 /** Finds a catalog preset by its stable identifier. */
@@ -339,4 +173,5 @@ export function famousDeckGroups(
 }
 
 export * from "./types.js";
+export type { CatalogDeck, CatalogEntry, CatalogFile, CatalogTournament } from "./catalogSchema.js";
 export { ADDITIONAL_COLLECTION_DECKS } from "./additionalCollections.js";

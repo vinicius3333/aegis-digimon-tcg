@@ -55,6 +55,10 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     action.kind !== "WaiveColorRequirement" &&
     action.optional
   ) {
+    // A Link clause is activated by a field permanent. When an Option's Main
+    // effect is resolving from hand there is no recipient source permanent;
+    // optional Link text is therefore unavailable, not an engine gap.
+    if (action.kind === "Link" && ctx.source.permanent() === undefined) return false;
     // An optional hatch is meaningful only when it can move the top Digi-Egg into
     // an empty breeding slot. Do this before opening the confirmation so the UI
     // never offers an action that the Hatch primitive would immediately no-op.
@@ -204,9 +208,9 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   // only upTo-Digi-Burst and has no scaling). Silently letting the paid count win
   // would drop a real scaling factor and produce a wrong multiplier — surface it
   // loudly instead of guessing how to combine them.
-  if (digiBurstScale !== undefined && action.kind !== "RawUnparsed" && action.scaling) {
-    unsupported(ctx, action, "upTo Digi-Burst cost combined with a scaling hint is ambiguous");
-  }
+  // For an up-to Digi-Burst cost, `digiBurstScale` is the authoritative
+  // multiplier. A coexisting scaling hint is the printed "for each card
+  // trashed" wording, not a second board count (EX10-033).
   // Scaling ("for each/every"): compute the multiplier from live state and apply it
   // to the amount (Draw/GainMemory/ModifyDP/ModifySecurityDP) or the target count
   // (Delete/Trash/Return/... ). A factor of 0 means the action does nothing.
@@ -327,6 +331,9 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "Replacement":
     case "Prevent":
     case "GainTriggeredEffect":
+    case "GainEffect":
+    case "CostGatedBlock":
+    case "RestrictEffect":
       return await runControlFlowAction(ctx, action);
     case "ActivateMain":
     case "ActivateOptionMain":

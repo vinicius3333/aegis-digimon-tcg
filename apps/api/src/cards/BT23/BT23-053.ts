@@ -7,7 +7,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // may digivolve into a Digimon with [Cyberdramon] in its name or the [CS] trait from hand
 // with the digivolution cost reduced by 2.
 // [Inherited] This Digimon gets +1000 DP.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "YourTurn",

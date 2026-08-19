@@ -35,7 +35,15 @@ import { EffectTiming, getCardDefinition, isOption } from "@aegis/shared";
 import type { CardEffect, CompiledCard } from "@aegis/shared";
 
 export function irCardModule(cardId: string, compiled: CompiledCard): EffectModule {
-  const effects: CardEffect[] = [...compiled.effects];
+  // A few legacy generated records encoded a shared clause as `trigger: [A, B]` even though the
+  // public IR type is intentionally a single trigger. Normalize that shape into one effect per
+  // timing so neither branch is silently routed to EffectTiming.None.
+  const effects: CardEffect[] = compiled.effects.flatMap((effect) => {
+    const trigger = (effect as CardEffect & { trigger?: unknown }).trigger;
+    return Array.isArray(trigger)
+      ? trigger.map((singleTrigger) => ({ ...effect, trigger: singleTrigger }) as CardEffect)
+      : [effect];
+  });
   // ＜Training＞ compiles two ways depending on the runtime record path: either as `effect.keywords`
   // metadata on the printed-keyword line, or (the common case for EX9's Digimon, e.g. EX9-008/
   // EX9-016) as a self-targeted `GainKeyword` ACTION inside a Static effect. Checking only
@@ -125,6 +133,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         if (isDelay && timing === EffectTiming.OnDeclaration) {
           return build({
             source,
+            irTrigger: effect.trigger,
             effectKey,
             description: describeEffect(effect),
             optional: true,
@@ -137,7 +146,11 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
             // the source must still be a battle-area permanent that entered on an earlier turn.
             canActivate: (ctx) => {
               const self = ctx.source.permanent();
-              return self !== undefined && self.enterFieldTurnCount !== ctx.game.state.turnCount;
+              return (
+                self !== undefined &&
+                self.enterFieldTurnCount !== ctx.game.state.turnCount &&
+                canActivateEffect(ctx, effect)
+              );
             },
             resolve: async (ctx) => {
               // "By trashing this card" — delete the source option permanent (the cost); only run
@@ -173,6 +186,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         if (isDelay && timing !== EffectTiming.None && !hasReactiveDelayAction) {
           return build({
             source,
+            irTrigger: effect.trigger,
             effectKey,
             description: describeEffect(effect),
             optional: effect.optional ?? false,
@@ -208,6 +222,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         const resolvedEffect = isDelay ? withIntrinsicDelayGate(frequencyBoundEffect) : frequencyBoundEffect;
         return build({
           source,
+          irTrigger: effect.trigger,
           effectKey,
           description: describeEffect(effect),
           optional: effect.optional ?? false,

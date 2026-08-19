@@ -53,6 +53,7 @@ export type SecurityOp =
   | "trash" // alias for trashTop (BT18-101)
   | "toHand" // top or bottom security card to hand
   | "placeAsSecurity"
+  | "placeFromDeck" // the top deck card onto the top/bottom of security
   | "flipFaceUp"
   | "addTop"
   | "addBottom"
@@ -143,6 +144,8 @@ export interface RecoverByTrashingMostSecurityAction extends ActionBase {
   kind: "RecoverByTrashingMostSecurity";
   /** Default 1. */
   amount?: number;
+  /** When false, only the most-security top-card trash happens; the recovery is modeled separately. */
+  recover?: boolean;
 }
 
 /**

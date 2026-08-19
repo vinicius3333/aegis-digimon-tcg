@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT16-074.js";
 import "../index.js";
 
 // A3 for BT16-074 (Climbmon) — [When Digivolving] dual branch at exactly 3 security:
@@ -18,12 +19,23 @@ import "../index.js";
 //   effectText (the `texts:["Pulsemon"]` gate in the digivolutionRequirement).
 // Trash target:   BT16-039 (Pulsemon, Lv.3, DP 1000) — Digimon named Pulsemon, DP ≤ 6000.
 
-const CLIMBMON = "BT16-074";   // Lv.5 Yellow, digivolves from Lv.4 w/Pulsemon in effectText, cost 3
-const RUNNERMON = "BT16-043";  // Lv.4 Yellow w/Pulsemon in effectText — the digivolve base
+const CLIMBMON = "BT16-074"; // Lv.5 Yellow, digivolves from Lv.4 w/Pulsemon in effectText, cost 3
+const RUNNERMON = "BT16-043"; // Lv.4 Yellow w/Pulsemon in effectText — the digivolve base
 const PULSEMON_L3 = "BT16-039"; // Lv.3 Yellow Pulsemon, DP 1000 (≤6000) — trash play target
-const FILLER = "BT16-001";     // any BT16 card for security/hand/deck filler
+const FILLER = "BT16-001"; // any BT16 card for security/hand/deck filler
 
 describe("BT16-074 Climbmon — [When Digivolving] dual branch at exactly 3 security (KB Q2661)", () => {
+  it("keeps both security branches and binds the played Digimon for delayed deletion", () => {
+    const effect = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving");
+    expect(effect?.actions[0]).toMatchObject({ kind: "Draw", condition: { kind: "securityAtLeast", value: 3 } });
+    expect(effect?.actions[2]).toMatchObject({
+      kind: "PlayWithoutCost",
+      condition: { kind: "securityAtMost", value: 3 },
+      from: ["trash"],
+    });
+    expect(effect?.actions[3]).toMatchObject({ kind: "DelayedDelete" });
+  });
+
   it("at exactly 3 security: draws 2 cards AND plays a Pulsemon from trash", async () => {
     const s = setupEngine(
       {
@@ -66,9 +78,7 @@ describe("BT16-074 Climbmon — [When Digivolving] dual branch at exactly 3 secu
     expect(result).toEqual({ ok: true });
 
     // Wait for [When Digivolving] to settle: Branch B played Pulsemon onto battle area.
-    await settle(
-      () => p0.battleArea.some((perm) => perm.topCard?.cardId === PULSEMON_L3),
-    );
+    await settle(() => p0.battleArea.some((perm) => perm.topCard?.cardId === PULSEMON_L3));
 
     // ---- Branch A: draw 2, then trash 1 from hand ----
     // We started with deck=5, drew 2 in branch A → deck ≤ 3.

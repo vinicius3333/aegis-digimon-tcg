@@ -1,6 +1,10 @@
 // Structured digivolution prerequisites, printed and granted.
 
+import type { Condition } from "../predicates/conditions.js";
+
 export interface DigivolutionRequirement {
+  /** Live condition that must hold for this alternate path to be available. */
+  whileCondition?: Condition;
   /** Required level of the card digivolved FROM ("Lv.5" / "from Lv.3"). */
   level?: number;
   levelMax?: number;

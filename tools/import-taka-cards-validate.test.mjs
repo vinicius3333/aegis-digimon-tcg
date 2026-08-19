@@ -9,9 +9,11 @@
 // tolerates documented, already-known deviations that should shrink over time.
 //
 // The snapshot at tools/fixtures/taka-community-db-snapshot.json is a subset of
-// TakaOtaku/Digimon-Card-App's src/assets/cardlists/DigimonCards.json (fetched 2026-08-06),
-// filtered to just the cardIds imported via this tool: BT26 (all), EX12 (all), and the 6
-// promo cards P-239..P-244. It is deterministic and committed so this test needs no
+// TakaOtaku/Digimon-Card-App's src/assets/cardlists/DigimonCards.json (fetched 2026-08-06;
+// the 13 BT26 cards unreleased at that date, plus BT26-060 and BT26-080 whose records were
+// still incomplete then, were re-fetched 2026-08-18), filtered to just
+// the cardIds imported via this tool: BT26 (all), EX12 (all), and the 6 promo cards
+// P-239..P-244. It is deterministic and committed so this test needs no
 // network access. If it is ever removed, the test skips with an explicit message instead
 // of silently passing — it never reports success without having actually compared records.
 //

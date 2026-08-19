@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",
@@ -107,47 +107,9 @@ const compiled: CompiledCard = {
               "Digimon"
             ]
           },
-          "actions": [
-            {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true
-              },
-              "into": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Flaremon"
-                    ],
-                    "match": "name"
-                  }
-                ]
-              },
-              "from": [
-                "hand"
-              ],
-              "reduceCost": 1,
-              "optional": true,
-              "condition": {
-                "kind": "raw",
-                "raw": "any of them are blue"
-              }
-            }
-          ]
-        },
-        {
-          "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ]
+          "fireCondition": {
+            "kind": "triggerSubjectHasColor",
+            "filter": { "colors": ["Blue"] }
           },
           "actions": [
             {
@@ -174,11 +136,49 @@ const compiled: CompiledCard = {
                 "hand"
               ],
               "reduceCost": 1,
-              "optional": true,
-              "condition": {
-                "kind": "raw",
-                "raw": "any of them are blue"
-              }
+              "optional": true
+            }
+          ]
+        },
+        {
+          "kind": "SubTrigger",
+          "event": "whenOneOfYoursDigivolves",
+          "sourceFilter": {
+            "controller": "mine",
+            "kind": [
+              "Digimon"
+            ]
+          },
+          "fireCondition": {
+            "kind": "triggerSubjectHasColor",
+            "filter": { "colors": ["Blue"] }
+          },
+          "actions": [
+            {
+              "kind": "Digivolve",
+              "target": {
+                "filter": {
+                  "isSelfRef": true
+                },
+                "count": 1,
+                "isSelf": true
+              },
+              "into": {
+                "controllerDefault": "mine",
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "Flaremon"
+                    ],
+                    "match": "name"
+                  }
+                ]
+              },
+              "from": [
+                "hand"
+              ],
+              "reduceCost": 1,
+              "optional": true
             }
           ]
         }

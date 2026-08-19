@@ -212,6 +212,20 @@ describe("friendly movement log", () => {
   });
 });
 
+describe("friendly memory log", () => {
+  it("does not expose internal engine reasons", () => {
+    const line = describeEvent(
+      { kind: "memoryChanged", from: 0, to: -5, reason: "playCard" },
+      0,
+      new Map(),
+      translator("pt-BR"),
+    );
+
+    expect(line?.text).toBe("Memória alterada: 0 → -5");
+    expect(line?.text).not.toContain("playCard");
+  });
+});
+
 describe("findDnaMaterialCombination", () => {
   it("finds distinct yellow and purple level 5 materials for Mastemon", () => {
     const permanent = (permanentId: string, cardId: string) =>

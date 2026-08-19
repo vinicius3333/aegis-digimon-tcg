@@ -5,53 +5,51 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Ghost"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Ghost"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldDigivolve",
-              "mode": "reduceCost",
-              "amount": 1,
-              "raw": "reduce the digivolution cost by 1"
-            }
-          ]
-        }
-      ]
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 1,
+              raw: "reduce the digivolution cost by 1",
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1
-        }
+          kind: "GainMemory",
+          amount: 1,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT21-065", compiled);

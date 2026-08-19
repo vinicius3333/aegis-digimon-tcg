@@ -57,7 +57,7 @@ const compiled: CompiledCard = {
           },
           "to": "deckBottom",
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectActed",
             "raw": "this effect suspended your Digimon"
           }
         }
@@ -92,7 +92,7 @@ const compiled: CompiledCard = {
           },
           "to": "deckBottom",
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectActed",
             "raw": "this effect suspended your Digimon"
           }
         }

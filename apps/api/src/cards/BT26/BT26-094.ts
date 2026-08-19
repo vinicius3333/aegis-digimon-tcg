@@ -10,11 +10,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 /**
  * BT26-094 — Keenan Crier (BT26, Purple Tamer).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-094` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * Q7156–Q7159 confirm bottom placement, immutable face-down stacking, visibility, and
+ * face-up trash handling for cards under this Tamer.
  *
  * Printed text:
  *   [Start of Your Main Phase] By placing 1 [DATA SQUAD] card from your hand face down
@@ -72,7 +69,12 @@ async function suspendSelf(ctx: EffectContext): Promise<boolean> {
 async function grantExecuteToDataSquadDigimon(ctx: EffectContext, source: CardSource): Promise<void> {
   const owner = ctx.game.player(source.ownerSeat);
   const candidates = owner.battleArea
-    .filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && hasDataSquadTrait(ctx.game.definitionOf(p.topCard)))
+    .filter(
+      (p) =>
+        p.topCard !== undefined &&
+        isDigimon(ctx.game.definitionOf(p.topCard)) &&
+        hasDataSquadTrait(ctx.game.definitionOf(p.topCard)),
+    )
     .map((p) => p.permanentId);
   if (candidates.length === 0) return;
 
@@ -107,7 +109,9 @@ const module: EffectModule = {
             if (selfPerm === undefined) return;
 
             const owner = ctx.game.player(ctx.source.ownerSeat);
-            const candidates = owner.hand.filter((c) => hasDataSquadTrait(ctx.game.definitionOf(c))).map((c) => c.instanceId);
+            const candidates = owner.hand
+              .filter((c) => hasDataSquadTrait(ctx.game.definitionOf(c)))
+              .map((c) => c.instanceId);
             if (candidates.length === 0) return;
 
             const chosen = await ctx.ask.selectCards(ctx, {

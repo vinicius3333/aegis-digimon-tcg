@@ -2,16 +2,14 @@
 
 import type { EffectContext } from "../../EffectContext.js";
 import { evaluateCondition } from "../conditions.js";
+import { payCost } from "../costs.js";
 import { runAction } from "../dispatch.js";
 import { runModal } from "./modal.js";
 import { runPrevent, runReplacement } from "./replacement.js";
 import { runGainTriggeredEffect, runSubTrigger } from "./subTrigger.js";
 import type { Action } from "@aegis/shared";
 
-export async function runControlFlowAction(
-  ctx: EffectContext,
-  action: Action,
-): Promise<boolean> {
+export async function runControlFlowAction(ctx: EffectContext, action: Action): Promise<boolean> {
   switch (action.kind) {
     case "Modal": {
       await runModal(ctx, action);
@@ -55,6 +53,33 @@ export async function runControlFlowAction(
     }
     case "GainTriggeredEffect": {
       await runGainTriggeredEffect(ctx, action);
+      return false;
+    }
+    case "GainEffect": {
+      await runGainTriggeredEffect(ctx, {
+        ...action,
+        kind: "GainTriggeredEffect",
+        gainedTrigger: action.grant.trigger,
+        gainedActions: action.grant.actions,
+      });
+      return false;
+    }
+    case "CostGatedBlock": {
+      // This wrapper owns the single payment; nested actions deliberately run without re-paying
+      // the wrapper cost (EX6-021, Q3719).
+      const paid = await payCost(ctx, action.cost);
+      if (!paid) return action.abortOnDecline === true;
+      for (const nested of action.actions) {
+        const abort = await runAction(ctx, nested);
+        if (abort) break;
+      }
+      return false;
+    }
+    case "RestrictEffect": {
+      if (action.scope === "thisEffect") {
+        ctx.effectRestrictions ??= new Set();
+        ctx.effectRestrictions.add(action.restriction);
+      }
       return false;
     }
     default:

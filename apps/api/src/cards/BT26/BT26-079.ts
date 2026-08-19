@@ -10,11 +10,9 @@ import { requireOpponentAsk } from "../../engine/decisions/decisionApi.js";
 /**
  * BT26-079 — ZombiePlutomon (BT26, Purple Lv.6 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-079` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * Q7109 confirms that [Trash] effects can only be activated while the card is in the trash;
+ * Q7110 confirms that Assembly can further reduce this card's play cost; and Q7111 confirms
+ * that each player chooses the cards trashed from their own hand.
  *
  * Printed text:
  *   [Digivolve] [Plutomon]: Cost 1
@@ -120,7 +118,8 @@ const module: EffectModule = {
           description: "＜Security A. +1＞",
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
-            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "SecurityAttack", EffectDuration.UntilEachTurnEnd, 1);
+            if (self !== undefined)
+              ctx.fx.grantKeyword(self.permanentId, "SecurityAttack", EffectDuration.UntilEachTurnEnd, 1);
           },
         }),
         staticModifier({
@@ -129,7 +128,8 @@ const module: EffectModule = {
           description: "＜Retaliation＞",
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
-            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Retaliation", EffectDuration.UntilEachTurnEnd);
+            if (self !== undefined)
+              ctx.fx.grantKeyword(self.permanentId, "Retaliation", EffectDuration.UntilEachTurnEnd);
           },
         }),
         staticModifier({
@@ -154,6 +154,7 @@ const module: EffectModule = {
             ctx.fx.subscribeSubTrigger({
               event: "whenPlayed",
               sourcePermanentId: self.permanentId,
+              oncePerTurnKey: `${cardId}/all-turns-opponent-play-or-digivolve-trash-down`,
               once: false,
               description: `${cardId}: opponent Digimon played -> both trash down to 4.`,
               matches: isOpponentSubject,
@@ -162,6 +163,7 @@ const module: EffectModule = {
             ctx.fx.subscribeSubTrigger({
               event: "whenOneOfYoursDigivolves",
               sourcePermanentId: self.permanentId,
+              oncePerTurnKey: `${cardId}/all-turns-opponent-play-or-digivolve-trash-down`,
               once: false,
               description: `${cardId}: opponent Digimon digivolves -> both trash down to 4.`,
               matches: isOpponentSubject,
@@ -220,8 +222,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/trash-main-play-with-cost-reduced`,
           description:
-            "[Trash] [Main] If your hand has 5 or fewer cards, play this card with the cost " +
-            "reduced by 4.",
+            "[Trash] [Main] If your hand has 5 or fewer cards, play this card with the cost " + "reduced by 4.",
           optional: true,
           isFromTrash: true,
           canActivate: (ctx) => ctx.game.player(ctx.source.ownerSeat).hand.length <= 5,

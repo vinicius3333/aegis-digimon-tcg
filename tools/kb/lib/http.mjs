@@ -9,7 +9,7 @@ import path from "node:path";
 import { setTimeout as sleep } from "node:timers/promises";
 import { USER_AGENT } from "./paths.mjs";
 
-const THROTTLE_MS = 1100;
+const THROTTLE_MS = Number(process.env.AEGIS_KB_THROTTLE_MS ?? 1100);
 const TIMEOUT_MS = 30000;
 const MAX_RETRIES = 3;
 

@@ -10,11 +10,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 /**
  * BT26-093 — Reina Sakuya (BT26, Black Tamer).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-093` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * The committed KB contains Q7151-Q7155 (2026-08-18), confirming bottom placement,
+ * face-down ordering/visibility, face-up trash handling, and the mandatory suspend cost.
  *
  * Printed text:
  *   [Start of Your Main Phase] By placing 1 [BEATBREAK] trait card from your hand face
@@ -61,7 +58,13 @@ function hasBeatbreakTrait(def: CardDefinition): boolean {
 function isOwnBeatbreakDigimon(ctx: EffectContext, source: CardSource): { permanentId: string }[] {
   return ctx.game
     .player(source.ownerSeat)
-    .battleArea.filter((p) => !p.inBreeding && p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && hasBeatbreakTrait(ctx.game.definitionOf(p.topCard)))
+    .battleArea.filter(
+      (p) =>
+        !p.inBreeding &&
+        p.topCard !== undefined &&
+        isDigimon(ctx.game.definitionOf(p.topCard)) &&
+        hasBeatbreakTrait(ctx.game.definitionOf(p.topCard)),
+    )
     .map((p) => ({ permanentId: p.permanentId }));
 }
 
@@ -114,7 +117,7 @@ const module: EffectModule = {
             });
             if (chosen.length === 0) return;
 
-            await ctx.fx.placeUnder(selfPerm.permanentId, chosen);
+            await ctx.fx.placeUnder(selfPerm.permanentId, chosen, { faceUp: false });
             await ctx.fx.draw(source.ownerSeat, 1);
             ctx.fx.gainMemory(1);
           },
@@ -154,8 +157,7 @@ const module: EffectModule = {
                 const owner = subCtx.game.player(source.ownerSeat);
                 const topCardInstance = owner.deck[0];
                 if (topCardInstance !== undefined) {
-                  topCardInstance.faceUp = false;
-                  await subCtx.fx.placeUnder(selfPerm.permanentId, [topCardInstance.instanceId]);
+                  await subCtx.fx.placeUnder(selfPerm.permanentId, [topCardInstance.instanceId], { faceUp: false });
                 }
 
                 await grantCollisionAndBlockerToOwnBeatbreakDigimon(subCtx, source);

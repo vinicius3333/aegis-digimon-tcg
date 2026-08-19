@@ -1,0 +1,1550 @@
+{
+  "collection": "BT23",
+  "generatedAt": "2026-08-19",
+  "decks": [
+    {
+      "id": "bt23-dgo-2025-10-25-1-magnamon",
+      "revision": 1,
+      "name": "BT23 Magnamon",
+      "archetype": "Magnamon",
+      "collection": "BT23",
+      "formatBlock": "BT23",
+      "colors": ["Red", "Blue", "Yellow", "White", "Black"],
+      "sourceType": "community_tournament_deck",
+      "tournament": {
+        "name": "Regionals — City Class Games Eventos",
+        "date": "2025-10-25",
+        "region": "latin-america",
+        "location": "Nikkey Palace Hotel",
+        "organizer": "City Class Games Eventos",
+        "eventFormat": "Offline",
+        "placement": 1,
+        "player": "Luis Maki"
+      },
+      "mainDeck": [
+        {
+          "cardId": "P-117",
+          "name": "Veemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-017",
+          "name": "Veemon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT21-032",
+          "name": "Veemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "ST17-13",
+          "name": "Magnamon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "P-137",
+          "name": "Flamedramon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT13-040",
+          "name": "Magnamon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT19-023",
+          "name": "Huankunmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX8-074",
+          "name": "MedievalGallantmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-102",
+          "name": "Magnamon (X Antibody)",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT9-112",
+          "name": "DeathXmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT20-021",
+          "name": "Jesmon GX",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT20-102",
+          "name": "Omnimon (X Antibody)",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT17-077",
+          "name": "Imperialdramon: Paladin Mode",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT21-102",
+          "name": "Tai Kamiya",
+          "qty": 2,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT4-109",
+          "name": "Final Zubagon Punch",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "LM-028",
+          "name": "Blue Scramble",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "LM-034",
+          "name": "Wisteria Memory Boost!",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-104",
+          "name": "Mental Training",
+          "qty": 3,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT9-109",
+          "name": "X Antibody",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "ST20-15",
+          "name": "Island of Adventure",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "ST21-15",
+          "name": "Gennai's House",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT4-104",
+          "name": "Blinding Ray",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT9-098",
+          "name": "Awakening of the Golden Knight",
+          "qty": 1,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT16-002",
+          "name": "DemiVeemon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "bt23-dgo-2025-11-08-1-hudiemon",
+      "revision": 1,
+      "name": "BT23 Hudiemon",
+      "archetype": "Hudiemon",
+      "collection": "BT23",
+      "formatBlock": "BT23",
+      "colors": ["Black", "Red", "Blue", "Purple", "Green", "Yellow", "White"],
+      "sourceType": "community_tournament_deck",
+      "tournament": {
+        "name": "CS-International GmbH Regionals",
+        "date": "2025-11-08",
+        "region": "europe",
+        "location": "Utrecht, Netherlands, Jaarbeurs Utrecht",
+        "participants": 185,
+        "placement": 1,
+        "player": "Henny H"
+      },
+      "mainDeck": [
+        {
+          "cardId": "BT23-048",
+          "name": "Gotsumon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-017",
+          "name": "Betamon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-040",
+          "name": "Wormmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT22-043",
+          "name": "Terriermon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-037",
+          "name": "Tentomon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-051",
+          "name": "Golemon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-050",
+          "name": "Ankylomon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-020",
+          "name": "Seadramon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-101",
+          "name": "Hudiemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-027",
+          "name": "Angemon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-032",
+          "name": "Shakkoumon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT10-042",
+          "name": "Venusmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-085",
+          "name": "Ryuji Mishima",
+          "qty": 3,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT23-084",
+          "name": "Erika Mishima",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT22-094",
+          "name": "Yuugo Kamishiro",
+          "qty": 2,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT23-090",
+          "name": "Keisuke Amasawa",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT23-081",
+          "name": "Chitose Imai",
+          "qty": 2,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT23-096",
+          "name": "Comet Hammer",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT23-092",
+          "name": "Ice Archery",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT23-091",
+          "name": "Wolkenapalm",
+          "qty": 2,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT23-002",
+          "name": "Yokomon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "bt23-dgo-2025-11-08-2-growlmon",
+      "revision": 1,
+      "name": "BT23 Growlmon",
+      "archetype": "Growlmon",
+      "collection": "BT23",
+      "formatBlock": "BT23",
+      "colors": ["Purple", "Red", "Yellow"],
+      "sourceType": "community_tournament_deck",
+      "tournament": {
+        "name": "CS-International GmbH Regionals",
+        "date": "2025-11-08",
+        "region": "europe",
+        "location": "Utrecht, Netherlands, Jaarbeurs Utrecht",
+        "participants": 185,
+        "placement": 2,
+        "player": "Monky"
+      },
+      "mainDeck": [
+        {
+          "cardId": "BT5-071",
+          "name": "Guilmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT21-064",
+          "name": "Guilmon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX4-006",
+          "name": "Guilmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX8-009",
+          "name": "Guilmon (X Antibody)",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT21-068",
+          "name": "Growlmon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX3-057",
+          "name": "Growlmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX8-012",
+          "name": "Growlmon (X Antibody)",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-075",
+          "name": "Cerberusmon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-061",
+          "name": "Cerberusmon (X Antibody)",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT21-072",
+          "name": "Arresterdramon: Superior Mode",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT7-077",
+          "name": "Nidhoggmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-063",
+          "name": "Leviamon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT13-111",
+          "name": "Gallantmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "P-186",
+          "name": "Gallantmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT4-111",
+          "name": "Jack Raid",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT5-106",
+          "name": "Demonic Disaster",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT7-107",
+          "name": "Calling From the Darkness",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "LM-032",
+          "name": "Purple Scramble",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-040",
+          "name": "Purple Memory Boost!",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-108",
+          "name": "Wisdom Training",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT1-090",
+          "name": "Gravity Crush",
+          "qty": 1,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "P-177",
+          "name": "Gigimon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "bt23-dgo-2025-11-29-1-gallantmon",
+      "revision": 1,
+      "name": "BT23 Gallantmon",
+      "archetype": "Gallantmon",
+      "collection": "BT23",
+      "formatBlock": "BT23",
+      "colors": ["Red", "Blue", "Yellow", "White", "Purple"],
+      "sourceType": "community_tournament_deck",
+      "tournament": {
+        "name": "Regionals — TAK Games",
+        "date": "2025-11-29",
+        "region": "oceania",
+        "location": "Marvel Stadium",
+        "organizer": "TAK Games",
+        "eventFormat": "Offline",
+        "placement": 1,
+        "player": "GuilmonBread"
+      },
+      "mainDeck": [
+        {
+          "cardId": "BT21-064",
+          "name": "Guilmon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "ST7-03",
+          "name": "Guilmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX4-006",
+          "name": "Guilmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX8-009",
+          "name": "Guilmon (X Antibody)",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT17-010",
+          "name": "Growlmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "ST7-05",
+          "name": "Growlmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX8-012",
+          "name": "Growlmon (X Antibody)",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT12-016",
+          "name": "WarGrowlmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT17-013",
+          "name": "WarGrowlmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX8-015",
+          "name": "WarGrowlmon (X Antibody)",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT13-111",
+          "name": "Gallantmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT17-016",
+          "name": "Gallantmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-014",
+          "name": "Gallantmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX8-073",
+          "name": "Gallantmon (X Antibody)",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "P-186",
+          "name": "Gallantmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT17-018",
+          "name": "Gallantmon: Crimson Mode",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT20-102",
+          "name": "Omnimon (X Antibody)",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT9-092",
+          "name": "Cool Boy",
+          "qty": 3,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT8-097",
+          "name": "Crimson Blaze",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "LM-027",
+          "name": "Red Scramble",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-035",
+          "name": "Red Memory Boost!",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-103",
+          "name": "Offense Training",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "EX5-070",
+          "name": "X Antibody Proto Form",
+          "qty": 2,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT12-001",
+          "name": "Gigimon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "bt23-dgo-2025-11-29-2-mastemon",
+      "revision": 1,
+      "name": "BT23 Mastemon",
+      "archetype": "Mastemon",
+      "collection": "BT23",
+      "formatBlock": "BT23",
+      "colors": ["Red", "Yellow", "Green", "White", "Black", "Purple"],
+      "sourceType": "community_tournament_deck",
+      "tournament": {
+        "name": "Regionals — Chile",
+        "date": "2025-11-29",
+        "region": "latin-america",
+        "location": "Hotel Gran Palace",
+        "organizer": "Chile",
+        "eventFormat": "Offline",
+        "placement": 2,
+        "player": "Undisclosed"
+      },
+      "mainDeck": [
+        {
+          "cardId": "BT22-054",
+          "name": "Hagurumon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT22-044",
+          "name": "Palmon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT22-043",
+          "name": "Terriermon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT22-056",
+          "name": "Guardromon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT22-046",
+          "name": "Gargomon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-027",
+          "name": "Angemon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT22-031",
+          "name": "GoldNumemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-067",
+          "name": "LadyDevimon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-031",
+          "name": "Angewomon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "P-187",
+          "name": "Mastemon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-102",
+          "name": "Mastemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT22-093",
+          "name": "Ami Aiba",
+          "qty": 3,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT22-094",
+          "name": "Yuugo Kamishiro",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT22-089",
+          "name": "Mirei Mikagura",
+          "qty": 2,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT22-099",
+          "name": "Kuremi Detective Agency",
+          "qty": 4,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT22-004",
+          "name": "Wanyamon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "bt23-dgo-2025-12-07-1-royal-knights",
+      "revision": 1,
+      "name": "BT23 Royal Knights",
+      "archetype": "Royal Knights",
+      "collection": "BT23",
+      "formatBlock": "BT23",
+      "colors": ["Red", "Blue", "Yellow", "White", "Black"],
+      "sourceType": "community_tournament_deck",
+      "tournament": {
+        "name": "Regionals — Versus Games",
+        "date": "2025-12-07",
+        "region": "north-america",
+        "location": "Oviedo Mall Boulevard",
+        "organizer": "Versus Games",
+        "eventFormat": "Offline",
+        "participants": 174,
+        "placement": 1,
+        "player": "AJ"
+      },
+      "mainDeck": [
+        {
+          "cardId": "ST12-12",
+          "name": "Sistermon Blanc",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-054",
+          "name": "Magnamon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT13-093",
+          "name": "Omekamon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT20-083",
+          "name": "Omekamon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-058",
+          "name": "Craniamon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT20-056",
+          "name": "Alphamon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT19-072",
+          "name": "LordKnightmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT20-017",
+          "name": "Jesmon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-014",
+          "name": "Gallantmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-035",
+          "name": "Dynasmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT17-018",
+          "name": "Gallantmon: Crimson Mode",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT20-060",
+          "name": "Alphamon: Ouryuken",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT13-112",
+          "name": "Omnimon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT20-102",
+          "name": "Omnimon (X Antibody)",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT13-102",
+          "name": "Keenan Crier",
+          "qty": 2,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT20-091",
+          "name": "Cool Boy",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT21-086",
+          "name": "Marcus Damon",
+          "qty": 1,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT8-097",
+          "name": "Crimson Blaze",
+          "qty": 3,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT13-110",
+          "name": "Royal Knights of the Purge",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT20-100",
+          "name": "The Last Guardian",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-206",
+          "name": "Digital Gate Open",
+          "qty": 2,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT13-007",
+          "name": "King Drasil_7D6",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "bt23-dgo-2025-12-13-1-leviamon",
+      "revision": 1,
+      "name": "BT23 Leviamon",
+      "archetype": "Leviamon",
+      "collection": "BT23",
+      "formatBlock": "BT23",
+      "colors": ["White", "Purple"],
+      "sourceType": "community_tournament_deck",
+      "tournament": {
+        "name": "Championship Finals — CS-International GmbH",
+        "date": "2025-12-13",
+        "region": "europe",
+        "location": "Congress Center Dusseldorf",
+        "organizer": "CS-International GmbH",
+        "eventFormat": "Offline",
+        "participants": 307,
+        "placement": 1,
+        "player": "YuXOH"
+      },
+      "mainDeck": [
+        {
+          "cardId": "EX5-015",
+          "name": "Gabumon (X Antibody)",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT14-070",
+          "name": "Goblimon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT3-077",
+          "name": "Gazimon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT8-071",
+          "name": "Psychemon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-057",
+          "name": "Labramon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-067",
+          "name": "Lopmon (X Antibody)",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-068",
+          "name": "Dobermon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-058",
+          "name": "Octomon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-059",
+          "name": "Dobermon (X Antibody)",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-075",
+          "name": "Cerberusmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-060",
+          "name": "Dragomon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-061",
+          "name": "Cerberusmon (X Antibody)",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT15-081",
+          "name": "Leviamon (X Antibody)",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-062",
+          "name": "Anubismon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-063",
+          "name": "Leviamon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX4-074",
+          "name": "ShineGreymon: Ruin Mode",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT15-100",
+          "name": "Seventh Lightning",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "EX5-069",
+          "name": "Biting Crush",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "LM-032",
+          "name": "Purple Scramble",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-040",
+          "name": "Purple Memory Boost!",
+          "qty": 3,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-108",
+          "name": "Wisdom Training",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "EX5-070",
+          "name": "X Antibody Proto Form",
+          "qty": 4,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT6-006",
+          "name": "Tsunomon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "bt23-dgo-2026-01-10-1-jesmon",
+      "revision": 1,
+      "name": "BT23 Jesmon",
+      "archetype": "Jesmon",
+      "collection": "BT23",
+      "formatBlock": "BT23",
+      "colors": ["Red", "White"],
+      "sourceType": "community_tournament_deck",
+      "tournament": {
+        "name": "Championship Finals — PlayLatam",
+        "date": "2026-01-10",
+        "region": "latin-america",
+        "location": "Expo Reforma",
+        "organizer": "PlayLatam",
+        "eventFormat": "Offline",
+        "placement": 1,
+        "player": "Heriberto Arizpe Hino Josa"
+      },
+      "mainDeck": [
+        {
+          "cardId": "BT20-008",
+          "name": "Huckmon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-006",
+          "name": "Huckmon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT6-009",
+          "name": "Huckmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-076",
+          "name": "Sistermon Blanc",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "ST12-12",
+          "name": "Sistermon Blanc",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT13-013",
+          "name": "BaoHuckmon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT20-013",
+          "name": "BaoHuckmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT20-084",
+          "name": "Sistermon Ciel (Awakened)",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-077",
+          "name": "Sistermon Ciel",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT6-084",
+          "name": "Sistermon Ciel",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT20-014",
+          "name": "SaviorHuckmon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT6-015",
+          "name": "SaviorHuckmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT8-084",
+          "name": "Kimeramon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT10-016",
+          "name": "Jesmon (X Antibody)",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-013",
+          "name": "Jesmon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT20-102",
+          "name": "Omnimon (X Antibody)",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT8-097",
+          "name": "Crimson Blaze",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "LM-027",
+          "name": "Red Scramble",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-035",
+          "name": "Red Memory Boost!",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "ST12-15",
+          "name": "From Master to Disciple",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT23-099",
+          "name": "The Sistermon Sisters Training Gym",
+          "qty": 1,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT8-001",
+          "name": "Gurimon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "bt23-dgo-2026-01-24-1-growlmon",
+      "revision": 1,
+      "name": "BT23 Growlmon",
+      "archetype": "Growlmon",
+      "collection": "BT23",
+      "formatBlock": "BT23",
+      "colors": ["Red", "Purple"],
+      "sourceType": "community_tournament_deck",
+      "tournament": {
+        "name": "Championship Finals — TAK Games",
+        "date": "2026-01-24",
+        "region": "oceania",
+        "location": "Marvel Stadium",
+        "organizer": "TAK Games",
+        "eventFormat": "Offline",
+        "placement": 1,
+        "player": "Ari Matsoukas"
+      },
+      "mainDeck": [
+        {
+          "cardId": "BT5-071",
+          "name": "Guilmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT21-064",
+          "name": "Guilmon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX4-006",
+          "name": "Guilmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX8-009",
+          "name": "Guilmon (X Antibody)",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT21-068",
+          "name": "Growlmon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX3-057",
+          "name": "Growlmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX8-012",
+          "name": "Growlmon (X Antibody)",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-075",
+          "name": "Cerberusmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-061",
+          "name": "Cerberusmon (X Antibody)",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT21-072",
+          "name": "Arresterdramon: Superior Mode",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT7-077",
+          "name": "Nidhoggmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-063",
+          "name": "Leviamon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT13-111",
+          "name": "Gallantmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "P-186",
+          "name": "Gallantmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT4-111",
+          "name": "Jack Raid",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT5-106",
+          "name": "Demonic Disaster",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT7-107",
+          "name": "Calling From the Darkness",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "LM-032",
+          "name": "Purple Scramble",
+          "qty": 3,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-040",
+          "name": "Purple Memory Boost!",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-108",
+          "name": "Wisdom Training",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT1-090",
+          "name": "Gravity Crush",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "EX5-070",
+          "name": "X Antibody Proto Form",
+          "qty": 2,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "P-177",
+          "name": "Gigimon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "bt23-hudiemon-bandai",
+      "revision": 1,
+      "name": "BT23 Hudiemon",
+      "archetype": "Hudiemon",
+      "collection": "BT23",
+      "formatBlock": "BT23",
+      "colors": ["Blue", "Purple", "Green", "Yellow", "Black", "Red", "White"],
+      "sourceType": "product_recipe",
+      "mainDeck": [
+        {
+          "cardId": "BT23-017",
+          "name": "Betamon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-037",
+          "name": "Tentomon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-040",
+          "name": "Wormmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-048",
+          "name": "Gotsumon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-020",
+          "name": "Seadramon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-027",
+          "name": "Angemon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-041",
+          "name": "Kabuterimon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-051",
+          "name": "Golemon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-101",
+          "name": "Hudiemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-032",
+          "name": "Shakkoumon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-059",
+          "name": "Justimon: Blitz Arm",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT23-081",
+          "name": "Chitose Imai",
+          "qty": 1,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT23-084",
+          "name": "Erika Mishima",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT23-085",
+          "name": "Ryuji Mishima",
+          "qty": 2,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT23-090",
+          "name": "Keisuke Amasawa",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT23-091",
+          "name": "Wolkenapalm",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT23-092",
+          "name": "Ice Archery",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT23-094",
+          "name": "Nanomachine Break",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT23-095",
+          "name": "Crescent Leaf",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT23-096",
+          "name": "Comet Hammer",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT23-100",
+          "name": "Hudie Net CafxE9",
+          "qty": 2,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT23-002",
+          "name": "Yokomon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    }
+  ]
+}

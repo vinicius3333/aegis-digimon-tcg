@@ -9,9 +9,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-042 — Okuwamon (BT26, Green Lv.5 Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-042 as of this port
-// (`node tools/kb/query.mjs card BT26-042` returned no knowledge-base entries — BT26
-// has no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// The committed KB contains Q7031-Q7033 (2026-08-18), confirming that the unsuspend lock
+// may target an already-unsuspended card, simultaneous deletion suppresses the inherited
+// trigger, and simultaneous effects may be ordered by their controller.
 //
 // Printed text:
 //   [Digivolve] Lv.4 w/[TS] trait: Cost 3 — a digivolution-cost requirement, not an
@@ -136,8 +136,7 @@ const module: EffectModule = {
             "[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon or Tamers. " +
             "Then, 1 of their Digimon or Tamers can't unsuspend until their turn ends.",
           optional: false,
-          canActivate: (ctx) =>
-            digimonOrTamerTargets(ctx, ctx.game.opponentOf(source.ownerSeat)).length > 0,
+          canActivate: (ctx) => digimonOrTamerTargets(ctx, ctx.game.opponentOf(source.ownerSeat)).length > 0,
           resolve: async (ctx) => {
             await resolveSuspendAndLock(ctx, source);
           },
@@ -167,8 +166,7 @@ const module: EffectModule = {
             "[On Play] [When Digivolving] Suspend 1 of your opponent's Digimon or Tamers. " +
             "Then, 1 of their Digimon or Tamers can't unsuspend until their turn ends.",
           optional: false,
-          canActivate: (ctx) =>
-            digimonOrTamerTargets(ctx, ctx.game.opponentOf(source.ownerSeat)).length > 0,
+          canActivate: (ctx) => digimonOrTamerTargets(ctx, ctx.game.opponentOf(source.ownerSeat)).length > 0,
           resolve: async (ctx) => {
             await resolveSuspendAndLock(ctx, source);
           },

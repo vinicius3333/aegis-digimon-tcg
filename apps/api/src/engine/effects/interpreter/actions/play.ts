@@ -4,17 +4,13 @@ import type { EffectContext } from "../../EffectContext.js";
 import type { ActionScope } from "../dispatch.js";
 import { definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
-import { scaleFactor } from "../scaling.js";
+import { countMatching, scaleFactor } from "../scaling.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { runPlayPerLevel } from "./dna.js";
-import { CardKind } from "@aegis/shared";
+import { CardKind, effectiveStaticNames } from "@aegis/shared";
 import type { Action, Seat, Target } from "@aegis/shared";
 
-export async function runPlayAction(
-  ctx: EffectContext,
-  action: Action,
-  scope: ActionScope,
-): Promise<boolean> {
+export async function runPlayAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
   switch (action.kind) {
     case "PlayMultiple": {
@@ -34,11 +30,16 @@ export async function runPlayAction(
       });
       const chosen: string[] = [];
       let usedCost = 0;
+      const budget = action.totalCostScaling
+        ? action.totalCostScaling.base +
+          Math.floor(countMatching(ctx, action.totalCostScaling.filter) / action.totalCostScaling.per) *
+            action.totalCostScaling.raise
+        : action.totalCost;
       for (const instanceId of selected) {
         const cand = candidates.find((c) => c.instanceId === instanceId);
         if (cand === undefined) continue;
         const playCost = ctx.game.definitionOf({ cardId: cand.cardId } as never).playCost;
-        if (playCost === undefined || usedCost + playCost > action.totalCost) continue;
+        if (playCost === undefined || usedCost + playCost > budget) continue;
         chosen.push(instanceId);
         usedCost += playCost;
       }
@@ -224,6 +225,19 @@ export async function runPlayAction(
       // from playing (the effect is attributed to ctx.source.ownerSeat, so the prohibition on
       // THAT seat applies — Q4676; the source player's own effects are unaffected — Q4675).
       candidates = candidates.filter((c) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, c.cardId, "play"));
+      if (ctx.effectRestrictions?.has("cannotPlaySameNameAsOwnDigimon")) {
+        const ownNames = new Set(
+          ctx.game
+            .player(ctx.source.ownerSeat)
+            .battleArea.flatMap((permanent) =>
+              permanent.topCard === undefined ? [] : effectiveStaticNames(ctx.game.definitionOf(permanent.topCard)),
+            ),
+        );
+        candidates = candidates.filter((candidate) => {
+          const names = effectiveStaticNames(ctx.game.definitionOf({ cardId: candidate.cardId } as never));
+          return !names.some((name) => ownNames.has(name));
+        });
+      }
       // sameLevelAsAttacker: restrict to cards whose printed level matches the open attacker
       // (EX12-069 "of the same level as the attacking Digimon"). Return no candidates when
       // no attack is open (no subject/attacker id in the trigger).
@@ -386,10 +400,24 @@ export async function runPlayAction(
       const placementSeat =
         action.placedAs === "opponentDigimon" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
       for (let i = 0; i < count; i++) {
-        for (const tokenName of tokenNames) {
-          await ctx.fx.playToken(placementSeat, tokenName, {
+        for (const tokenRef of tokenNames) {
+          // The catalog sometimes carries the complete synthetic-token descriptor rather
+          // than the registry alias. Resolve the printed descriptor to the shared token
+          // registry while preserving the card's authored stats for future token metadata.
+          const tokenName = typeof tokenRef === "string" ? tokenRef : tokenRef.name;
+          const registryName = tokenName === "Atho, René & Por" ? "AthoRenePor Token" : tokenName;
+          await ctx.fx.playToken(placementSeat, registryName, {
             payCost: action.payCost ?? false,
             suspended: action.suspended ?? false,
+            ...(typeof tokenRef === "string" || tokenRef.keywords === undefined
+              ? {}
+              : {
+                  keywords: tokenRef.keywords.map((keyword) => ({
+                    keyword: keyword.keyword,
+                    amount: keyword.amount,
+                    specifiers: keyword.colors,
+                  })),
+                }),
           });
         }
       }

@@ -5,11 +5,13 @@ import {
   Permanent,
   CardInstance,
   Phase,
+  EffectTiming,
   type Seat,
   type DecisionRequest,
 } from "@aegis/shared";
 import { GameEngine, type GameEngineHooks } from "../../engine/GameEngine.js";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
+import { module } from "./BT10-093.js";
 import "./BT10-093.js";
 
 // A3 for BT10-093 (Yuu Amano) — the cross-permanent + scaled play-cost reducer:
@@ -227,8 +229,7 @@ describe("BT10-093 [All Turns] purple-card-placed memory credits its OWNER, not 
     // turnSeat, so a seat's own-perspective value must be read accounting for whose
     // turn it is -- reading the raw sign of state.memory would silently pass for
     // whichever seat happens to be turnSeat, which is exactly the bug under test.
-    const memoryFor = (seat: 0 | 1): number =>
-      (seat === h.state.turnSeat ? h.state.memory : -h.state.memory) || 0; // normalize -0 -> 0
+    const memoryFor = (seat: 0 | 1): number => (seat === h.state.turnSeat ? h.state.memory : -h.state.memory) || 0; // normalize -0 -> 0
     expect(memoryFor(0)).toBe(0);
     expect(memoryFor(1)).toBe(0);
 
@@ -246,5 +247,12 @@ describe("BT10-093 [All Turns] purple-card-placed memory credits its OWNER, not 
     // is turnSeat when the card is placed.
     expect(memoryFor(0)).toBe(1);
     expect(memoryFor(1)).toBe(-1);
+  });
+});
+
+describe("BT10-093 Security", () => {
+  it("plays itself without cost from Security", () => {
+    const effect = module.effectsForTiming(EffectTiming.SecuritySkill, {} as any)[0];
+    expect(effect).toMatchObject({ isSecurity: true, optional: false });
   });
 });

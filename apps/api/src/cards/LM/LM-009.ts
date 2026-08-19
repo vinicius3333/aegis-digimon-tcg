@@ -1,94 +1,101 @@
-import { EffectTiming, EffectDuration, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+// Hand-audited IR for LM-009 (Airdramon).
+// The printed [Your Turn] effect is a pay-time replacement: suspend this
+// Digimon, then reduce the cost by 2 only for an Angoramon-text card.  The
+// previous generated module installed only the suspension watcher and never
+// reduced either play or digivolution costs.
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "LM-009";
-
-function hasAngoramonInText(def: CardDefinition): boolean {
-  return def.nameEn.includes("Angoramon");
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/angoramon-cost-reduction`,
-          description:
-            "[Your Turn] When a card with [Angoramon] in its text would be played, or one of your " +
-            "Digimon would digivolve into such a card, by suspending this Digimon, reduce the play " +
-            "or digivolution cost by 2.",
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "whenSuspended",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              description: `${cardId}: When suspended (other than own cost), give Rush to Angoramon.`,
-              matches: (subCtx) => {
-                if (!subCtx.source.isOnBattleArea() || !subCtx.source.isOwnersTurn()) return false;
-                if (self.isSuspended) return false;
-                return true;
-              },
-              run: async (subCtx) => {
-                const owner = subCtx.game.player(source.ownerSeat);
-                for (const p of owner.battleArea) {
-                  if (p.topCard !== undefined && hasAngoramonInText(subCtx.game.definitionOf(p.topCard))) {
-                    subCtx.fx.grantKeyword(p.permanentId, "Rush", EffectDuration.UntilEachTurnEnd);
-                  }
-                }
-              },
-            });
-          },
-        }),
-        staticModifier({
-          source,
-          effectKey: `${cardId}/angoramon-rush`,
-          description:
-            "[Your Turn] When this Digimon becomes suspended (other than by its own cost), " +
-            "1 of your Digimon with [Angoramon] in its text gains ＜Rush＞ for the turn.",
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "whenSuspended",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              description: `${cardId}: When suspended (other than own cost), give Rush to Angoramon.`,
-              matches: (subCtx) => {
-                if (!subCtx.source.isOnBattleArea() || !subCtx.source.isOwnersTurn()) return false;
-                return true;
-              },
-              run: async (subCtx) => {
-                const owner = subCtx.game.player(source.ownerSeat);
-                const targets = Array.from(owner.battleArea)
-                  .filter((p) => p.topCard !== undefined && hasAngoramonInText(subCtx.game.definitionOf(p.topCard)))
-                  .map((p) => p.permanentId);
-                if (targets.length > 0) {
-                  const chosen = await subCtx.ask.chooseTargets(subCtx, { candidates: targets, min: 1, max: 1 });
-                  if (chosen.length > 0) {
-                    subCtx.fx.grantKeyword(chosen[0]!, "Rush", EffectDuration.UntilEachTurnEnd);
-                  }
-                }
-              },
-            });
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+const angoramonText = {
+  nameOrTrait: [{ tokens: ["Angoramon"], match: "text" }],
 };
 
-registerCard(module);
-export default module;
+const suspendSelf = {
+  kind: "suspend",
+  target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+  raw: "by suspending this Digimon",
+};
+
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            ...angoramonText,
+          },
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 2,
+              cost: suspendSelf,
+              optional: true,
+              abortOnDecline: true,
+              raw: "reduce the play cost by 2",
+            },
+          ],
+        },
+        {
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            ...angoramonText,
+          },
+          into: { controllerDefault: "mine", kind: ["Digimon"], ...angoramonText },
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 2,
+              cost: suspendSelf,
+              optional: true,
+              abortOnDecline: true,
+              raw: "reduce the digivolution cost by 2",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  ...angoramonText,
+                },
+                count: 1,
+              },
+              keyword: { keyword: "Rush" },
+              duration: "forTheTurn",
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard("LM-009", compiled);

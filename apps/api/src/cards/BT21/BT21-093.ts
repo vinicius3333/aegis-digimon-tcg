@@ -1,24 +1,99 @@
 // @ts-nocheck
-import { EffectTiming, isDigimon } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { activated, security } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/** BT21-093 — Raging Serpentine (Red Option). Cost -4 if opponent has ≤3 security. [Main] Delete opponent's highest DP Digimon, place in battle area. [All Turns] When opponent security removed, Delay -> Digivolve into Reptile/Dragonkin from hand. [Security] Delete opponent's highest DP Digimon. */
-const cardId = "BT21-093";
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnUseOption) {
-      return [activated({ source, effectKey: `${cardId}/main`, description: "[Main] Delete opponent's highest DP Digimon, place this card in battle area.", optional: false, canActivate: (ctx: any) => { const opp = ctx.game.player(ctx.game.opponentOf(source.ownerSeat)); return opp.battleArea.some((p: any) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard))); }, resolve: async (ctx: any) => { const opp = ctx.game.player(ctx.game.opponentOf(source.ownerSeat)); const digis = opp.battleArea.filter((p: any) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard))); if (!digis.length) return; const maxDp = Math.max(...digis.map((p: any) => p.currentDP)); const candidates = digis.filter((p: any) => p.currentDP === maxDp).map((p: any) => p.permanentId); const s = await ctx.ask.selectPermanents(ctx, { candidates, min: 1, max: 1 }); if (s.length) await ctx.fx.deletePermanent(s); await ctx.fx.placeOptionAsPermanent?.(source.instanceId); } })];
-    }
-    if (timing === EffectTiming.SecuritySkill) {
-      return [security({ source, effectKey: `${cardId}/security-delete`, description: "[Security] Delete opponent's highest DP Digimon.", optional: false, resolve: async (ctx: any) => { const opp = ctx.game.player(ctx.game.opponentOf(source.ownerSeat)); const digis = opp.battleArea.filter((p: any) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard))); if (!digis.length) return; const maxDp = Math.max(...digis.map((p: any) => p.currentDP)); const candidates = digis.filter((p: any) => p.currentDP === maxDp).map((p: any) => p.permanentId); const s = await ctx.ask.selectPermanents(ctx, { candidates, min: 1, max: 1 }); if (s.length) await ctx.fx.deletePermanent(s); } })];
-    }
-    return [];
-  },
+// BT21-093 Raging Serpentine — manually verified against the printed card text.
+// The use-cost reduction is a replacement-style cost modifier, while the
+// security-removal clause arms a genuine Delay payload (rather than resolving
+// the digivolution immediately when security is removed).
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "CostModifier",
+          costType: "use",
+          mode: "reduce",
+          amount: 4,
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          duration: "permanent",
+          condition: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "security",
+            op: "lte",
+            value: 3,
+            raw: "if your opponent has 3 or fewer security cards",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], superlative: "highestDP" },
+            count: 1,
+          },
+        },
+        { kind: "PlaceInBattleAreaSelf" },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSecurityRemoved",
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              keyword: { keyword: "Delay", raw: "＜Delay＞" },
+              duration: "permanent",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
+      actions: [
+        {
+          kind: "Digivolve",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Reptile", "Dragonkin"], match: "trait" }],
+          },
+          payCost: false,
+          from: ["hand"],
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], superlative: "highestDP" },
+            count: 1,
+          },
+        },
+      ],
+      isSecurity: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
-registerCard(module);
-export default module;
+
+registerIrCard("BT21-093", compiled);
+export { compiled };

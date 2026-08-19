@@ -8,10 +8,7 @@ import { scaleFactor } from "../scaling.js";
 import { runActivateEffect, runActivateForeignEffect, runActivateMain, runUseOptionWithoutCost } from "./borrowed.js";
 import type { Action } from "@aegis/shared";
 
-export async function runMetaAction(
-  ctx: EffectContext,
-  action: Action,
-): Promise<boolean> {
+export async function runMetaAction(ctx: EffectContext, action: Action): Promise<boolean> {
   switch (action.kind) {
     case "ActivateMain": {
       // Some IR records carry declarative metadata for custom turn-end rules under the

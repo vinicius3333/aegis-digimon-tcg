@@ -41,7 +41,11 @@ const compiled: CompiledCard = {
                 "hand"
               ]
             },
-            "raw": "By placing 1 Level 5 or lower Digimon card with [Aqua]/[Sea Animal] in any of its traits from your hand as 1 of your Digimon's bottom digivolution card"
+            "raw": "By placing 1 Level 5 or lower Digimon card with [Aqua]/[Sea Animal] in any of its traits from your hand as 1 of your Digimon's bottom digivolution card",
+            "host": {
+              "filter": { "controller": "mine", "kind": ["Digimon"] },
+              "count": 1
+            }
           },
           "optional": true,
           "abortOnDecline": true
@@ -82,7 +86,11 @@ const compiled: CompiledCard = {
                 "hand"
               ]
             },
-            "raw": "By placing 1 Level 5 or lower Digimon card with [Aqua]/[Sea Animal] in any of its traits from your hand as 1 of your Digimon's bottom digivolution card"
+            "raw": "By placing 1 Level 5 or lower Digimon card with [Aqua]/[Sea Animal] in any of its traits from your hand as 1 of your Digimon's bottom digivolution card",
+            "host": {
+              "filter": { "controller": "mine", "kind": ["Digimon"] },
+              "count": 1
+            }
           },
           "optional": true,
           "abortOnDecline": true

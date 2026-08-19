@@ -9,9 +9,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [When Attacking] (inherited) [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP
 //   for the turn.
 //
-// ENGINE GAP: "can't attack Digimon" (can still attack players) requires restriction
-// "cantAttackDigimon" which is not yet in the Restriction enum. Both Restrict and GainKeyword
-// target the same 1 opponent Digimon via SelectBind. See LANE_H.md: cantAttackDigimon.
 const compiled: CompiledCard = {
   "effects": [
     {
@@ -115,10 +112,8 @@ const compiled: CompiledCard = {
       "frequency": "OncePerTurn"
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "cantAttackDigimon: restriction 'cantAttackDigimon' not yet in Restriction enum — engine needs to allow attacking players while blocking Digimon attacks; see LANE_H.md"
-  ]
+  "coverage": "full",
+  "residual": []
 };
 
 registerIrCard("P-135", compiled);

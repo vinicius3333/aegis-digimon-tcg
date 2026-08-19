@@ -5,99 +5,92 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon", "Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "TS"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["TS"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "you have an [TS] trait Digimon or Tamer on the field"
-          }
-        }
-      ]
+            raw: "you have an [TS] trait Digimon or Tamer on the field",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "TS"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["TS"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
+          rest: "deckBottom",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 2
-        }
+          kind: "GainMemory",
+          amount: 2,
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ]
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT24-100", compiled);

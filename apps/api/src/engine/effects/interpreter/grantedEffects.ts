@@ -121,6 +121,10 @@ export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect> = {
       {
         kind: "SubTrigger",
         event: "whenSuspended",
+        // "THIS Digimon becomes suspended": scope the watcher to the card the grant sits on.
+        // `whenSuspended` fires the whole bus with no source, so an unscoped watcher would
+        // charge 2 memory for every suspension on the board, not just the grantee's.
+        sourceFilter: { isSelfRef: true },
         actions: [
           {
             kind: "GainMemory",
@@ -236,6 +240,15 @@ export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect> = {
       } as Action,
     ],
   },
+  GRANTEFFECT23TOKEN: {
+    trigger: "StartOfYourMainPhase",
+    actions: [
+      {
+        kind: "Attack",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+      } as Action,
+    ],
+  },
   OnDeletionPlaySelfNoOnPlay: {
     trigger: "OnDeletion",
     actions: [
@@ -262,6 +275,16 @@ export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect> = {
   OnDeletionPlaySelf: {
     trigger: "OnDeletion",
     optional: true,
+    actions: [
+      {
+        kind: "PlayWithoutCost",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        payCost: false,
+      } as Action,
+    ],
+  },
+  OnDeletionPlaySelfMandatory: {
+    trigger: "OnDeletion",
     actions: [
       {
         kind: "PlayWithoutCost",

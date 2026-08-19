@@ -9,9 +9,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-098 — Green Option (BT26, Queen of Thorns).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-098 as of this port
-// (`node tools/kb/query.mjs card BT26-098` returned no knowledge-base entries). implemented
-// from the printed card text only; the [Main] clause mirrors the analogous BT25-096
+// The [Main] clause mirrors the analogous BT25-096
 // (same three-clause shape, Gaomon line -> Lalamon line).
 //
 // When this card would be used, by trashing the bottom face-down card from under any of
@@ -24,10 +22,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "BT26-098";
 
-function lalamonTargets(
-  ctx: EffectContext,
-  source: CardSource,
-): Permanent[] {
+function lalamonTargets(ctx: EffectContext, source: CardSource): Permanent[] {
   const owner = ctx.game.player(source.ownerSeat);
   return Array.from(owner.battleArea).filter((p) => {
     if (p.topCard == null || !isDigimon(ctx.game.definitionOf(p.topCard))) return false;
@@ -52,13 +47,15 @@ const module: EffectModule = {
               if (p.topCard == null) continue;
               const def = ctx.game.definitionOf(p.topCard);
               if (!def.kinds?.includes(CardKind.Tamer)) continue;
-              if (p.stack.some((c) => !c.faceUp)) return true;
+              const bottomCard = p.stack[0];
+              if (bottomCard != null && !bottomCard.faceUp) return true;
             }
             return false;
           },
           resolve: async (ctx) => {
             ctx.fx.changePlayCost(
-              (facts) => facts.def.nameEn === ctx.source.definition.nameEn && facts.controllerSeat === ctx.source.ownerSeat,
+              (facts) =>
+                facts.def.nameEn === ctx.source.definition.nameEn && facts.controllerSeat === ctx.source.ownerSeat,
               -2,
             );
           },
@@ -78,10 +75,8 @@ const module: EffectModule = {
             "paying the cost.",
           canActivate: (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
-            const hasSunflowmon = Array.from(owner.trash).some((c) =>
-              ctx.game.definitionOf(c).nameEn === "Sunflowmon");
-            const hasLilamon = Array.from(owner.trash).some((c) =>
-              ctx.game.definitionOf(c).nameEn === "Lilamon");
+            const hasSunflowmon = Array.from(owner.trash).some((c) => ctx.game.definitionOf(c).nameEn === "Sunflowmon");
+            const hasLilamon = Array.from(owner.trash).some((c) => ctx.game.definitionOf(c).nameEn === "Lilamon");
             if (!hasSunflowmon || !hasLilamon) return false;
             return lalamonTargets(ctx, source).length > 0;
           },
@@ -104,10 +99,10 @@ const module: EffectModule = {
               chosenLalamon = ctx.game.permanentById(chosen[0]!)!;
             }
 
-            const sunflowmonCards = Array.from(owner.trash).filter((c) =>
-              ctx.game.definitionOf(c).nameEn === "Sunflowmon");
-            const lilamonCards = Array.from(owner.trash).filter((c) =>
-              ctx.game.definitionOf(c).nameEn === "Lilamon");
+            const sunflowmonCards = Array.from(owner.trash).filter(
+              (c) => ctx.game.definitionOf(c).nameEn === "Sunflowmon",
+            );
+            const lilamonCards = Array.from(owner.trash).filter((c) => ctx.game.definitionOf(c).nameEn === "Lilamon");
 
             if (sunflowmonCards.length === 0 || lilamonCards.length === 0) return;
 
@@ -125,10 +120,13 @@ const module: EffectModule = {
             });
             if (lilamonChosen.length === 0) return;
 
-            await ctx.fx.placeUnder(chosenLalamon.permanentId, [...sunflowmonChosen, ...lilamonChosen]);
+            await ctx.fx.placeUnder(chosenLalamon.permanentId, [...sunflowmonChosen, ...lilamonChosen], {
+              faceUp: false,
+            });
 
-            const rosemonCards = Array.from(owner.hand).filter((c) =>
-              ctx.game.definitionOf(c).nameEn === "Rosemon" && isDigimon(ctx.game.definitionOf(c)));
+            const rosemonCards = Array.from(owner.hand).filter(
+              (c) => ctx.game.definitionOf(c).nameEn === "Rosemon" && isDigimon(ctx.game.definitionOf(c)),
+            );
 
             if (rosemonCards.length > 0) {
               let rosemonId: string;
@@ -165,10 +163,7 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
 
-            const candidates = [
-              ...Array.from(owner.hand),
-              ...Array.from(owner.trash),
-            ].filter((card) => {
+            const candidates = [...Array.from(owner.hand), ...Array.from(owner.trash)].filter((card) => {
               const name = ctx.game.definitionOf(card).nameEn;
               return name === "Lalamon" || name === "Yoshino Fujieda";
             });

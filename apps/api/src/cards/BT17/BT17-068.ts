@@ -40,9 +40,7 @@ const isDarkMastersLevel6Digimon = (def: CardDefinition): boolean =>
   ((def.types as string[] | undefined)?.includes("Dark Masters") ?? false);
 
 const isDarkMastersInText = (def: CardDefinition): boolean =>
-  def.level !== undefined &&
-  def.level <= 5 &&
-  (def.effectText?.includes("Dark Masters") ?? false);
+  def.level !== undefined && def.level <= 5 && (def.effectText?.includes("Dark Masters") ?? false);
 
 const module: EffectModule = {
   cardId,
@@ -60,15 +58,13 @@ const module: EffectModule = {
             "Digimon with the [Dark Masters] trait from your hand or trash without paying cost.",
           optional: true,
           canActivate: (ctx) => {
+            if (ctx.trigger?.removalCause !== "byEffect") return false;
             const owner = ctx.game.player(source.ownerSeat);
             const matchFn = (c: CardInstance): boolean => {
               const def = ctx.game.definitionOf(c);
               return isGulfmon(def) || isDarkMastersLevel6Digimon(def);
             };
-            return (
-              Array.from(owner.hand).some(matchFn) ||
-              Array.from(owner.trash).some(matchFn)
-            );
+            return Array.from(owner.hand).some(matchFn) || Array.from(owner.trash).some(matchFn);
           },
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
@@ -108,9 +104,7 @@ const module: EffectModule = {
           canActivate: (ctx) => {
             if (!ctx.source.isOnBattleArea()) return false;
             const owner = ctx.game.player(source.ownerSeat);
-            return Array.from(owner.trash).some((c) =>
-              isDarkMastersInText(ctx.game.definitionOf(c)),
-            );
+            return Array.from(owner.trash).some((c) => isDarkMastersInText(ctx.game.definitionOf(c)));
           },
           resolve: async (ctx) => {
             const self = ctx.source.permanent();

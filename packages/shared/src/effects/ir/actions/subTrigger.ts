@@ -27,12 +27,14 @@ export type SubTriggerEvent =
   | "whenUnsuspended"
   | "whenDeletesInBattle"
   | "whenOneOfYoursDigivolves"
+  | "whenAnyDigivolves" // `sourceFilter` narrows the controller
   | "onDeletionOf"
   | "whenSecurityRemoved"
   | "whenAddSecurity"
   | "onAddDigivolutionCards"
   | "whenPlayed"
   | "whenOptionPlayed" // the option-permanent placement seam
+  | "whenOptionInBattleAreaTrashed" // an Option permanent leaves the battle area for trash
   | "whenLeavesPlay" // a non-replacement reaction
   | "whenLinked"
   | "whenLinkTrashed" // a genuine trash, NOT a link-card replace (KB EX10-062 Q5172 / EX10-073 Q5188)
@@ -83,6 +85,11 @@ export interface SubTriggerAction extends ActionBase {
    * or Digimon with the [Puppet] trait is deleted"). Only a matching card fires the sub-effect.
    */
   sourceFilter?: Filter;
+  /**
+   * For onAddDigivolutionCards, filters the cards just placed under the subject. At least one
+   * added card must match for the watcher to fire.
+   */
+  addedDigivolutionCardFilter?: Filter;
   /** Restrict the card whose effect produced the event ("by [Rasenmon]'s effect"). */
   effectSourceFilter?: Filter;
   /** Do not fire when this card's own effect caused the deck trash (EX2-039). */

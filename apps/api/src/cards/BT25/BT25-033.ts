@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
@@ -34,7 +34,9 @@ const compiled: CompiledCard = {
           "amount": -5000,
           "duration": "forTheTurn",
           "cost": {
-            "kind": "raw",
+            "kind": "securityToHand",
+            "controller": "mine",
+            "amount": 1,
             "raw": "By adding your top security card to the hand"
           },
           "optional": true,
@@ -59,7 +61,9 @@ const compiled: CompiledCard = {
           "amount": -5000,
           "duration": "forTheTurn",
           "cost": {
-            "kind": "raw",
+            "kind": "securityToHand",
+            "controller": "mine",
+            "amount": 1,
             "raw": "By adding your top security card to the hand"
           },
           "optional": true,

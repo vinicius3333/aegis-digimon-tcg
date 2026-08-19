@@ -64,7 +64,7 @@ const compiled: CompiledCard = {
             "isSelf": true
           },
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectActed",
             "raw": "you did"
           }
         }

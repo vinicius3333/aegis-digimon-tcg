@@ -25,7 +25,7 @@ function oppHighestDpDigimons(
   const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
   const digimons = Array.from(opponent.battleArea).filter((p) => {
     if (p.topCard == null || !isDigimon(ctx.game.definitionOf(p.topCard))) return false;
-    return p.currentDP > 0;
+    return true;
   });
   if (digimons.length === 0) return [];
   const maxDp = Math.max(...digimons.map((p) => p.currentDP));
@@ -130,10 +130,10 @@ const module: EffectModule = {
             const oppMemory = source.ownerSeat === 0 ? -m : m;
 
             if (oppMemory >= 5) {
-              ctx.fx.restrict(perm.permanentId, "beAffected", EffectDuration.UntilOpponentTurnEnd);
+              ctx.fx.restrict(perm.permanentId, "beAffected", EffectDuration.UntilOpponentTurnEnd, { fromSourceKind: ["Digimon"] });
             }
             if (oppMemory <= 5) {
-              ctx.fx.restrict(perm.permanentId, "beAffected", EffectDuration.UntilOpponentTurnEnd);
+              ctx.fx.restrict(perm.permanentId, "beAffected", EffectDuration.UntilOpponentTurnEnd, { fromSourceKind: ["Option"] });
             }
           },
         }),

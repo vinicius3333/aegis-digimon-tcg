@@ -43,7 +43,8 @@ const compiled: CompiledCard = {
           "restriction": "suspend",
           "duration": "untilOpponentTurnEnd",
           "condition": {
-            "kind": "raw",
+            "kind": "digiXrosCount",
+            "minimum": 1,
             "raw": "DigiXrosing"
           }
         }
@@ -87,7 +88,8 @@ const compiled: CompiledCard = {
           "restriction": "suspend",
           "duration": "untilOpponentTurnEnd",
           "condition": {
-            "kind": "raw",
+            "kind": "digiXrosCount",
+            "minimum": 1,
             "raw": "DigiXrosing"
           }
         }

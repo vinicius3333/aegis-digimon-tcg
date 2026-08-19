@@ -7,7 +7,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   [All Turns] unsuspend + immunity moved inside SubTrigger(whenOptionInBattleAreaTrashed).
 //   New event `whenOptionInBattleAreaTrashed` specified in LANE_H.md (CAP-H-06).
 //   Q5323: the trash targets Option cards placed by "place this card in the battle area" effects.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
@@ -38,7 +38,6 @@ const compiled: CompiledCard = {
             "kind": "trash",
             "target": {
               "filter": {
-                "controller": "opponent",
                 "zone": "battleArea",
                 "kind": [
                   "Option"
@@ -48,7 +47,6 @@ const compiled: CompiledCard = {
             },
             "raw": "By trashing 1 Option card in the battle area (opponent's, per KB Q5323)"
           },
-          "optional": true,
           "abortOnDecline": true
         }
       ],
@@ -74,7 +72,6 @@ const compiled: CompiledCard = {
             "kind": "trash",
             "target": {
               "filter": {
-                "controller": "opponent",
                 "zone": "battleArea",
                 "kind": [
                   "Option"
@@ -84,7 +81,6 @@ const compiled: CompiledCard = {
             },
             "raw": "By trashing 1 Option card in the battle area (opponent's, per KB Q5323)"
           },
-          "optional": true,
           "abortOnDecline": true
         }
       ],
@@ -110,7 +106,6 @@ const compiled: CompiledCard = {
             "kind": "trash",
             "target": {
               "filter": {
-                "controller": "opponent",
                 "zone": "battleArea",
                 "kind": [
                   "Option"
@@ -120,7 +115,6 @@ const compiled: CompiledCard = {
             },
             "raw": "By trashing 1 Option card in the battle area (opponent's, per KB Q5323)"
           },
-          "optional": true,
           "abortOnDecline": true
         }
       ],

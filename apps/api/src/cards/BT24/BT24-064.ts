@@ -5,104 +5,92 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Piercing",
-          "raw": "＜Piercing＞"
-        }
-      ]
+          keyword: "Piercing",
+          raw: "＜Piercing＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "playCostLte": 7,
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                playCostLte: 7,
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "DigiPolice",
-                      "SEEKERS"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["DigiPolice", "SEEKERS"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "play",
-              "optional": true
-            }
+              count: 1,
+              to: "play",
+              optional: true,
+            },
           ],
-          "rest": "deckTopOrBottom"
-        }
-      ]
+          rest: "deckTopOrBottom",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon",
-              "Tamer"
-            ]
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: {
+            kind: ["Digimon", "Tamer"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "DeDigivolve",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "DeDigivolve",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "amount": 2
-            }
-          ]
-        }
+              amount: 2,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "traits": [
-        "DigiPolice",
-        "SEEKERS"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["DigiPolice", "SEEKERS"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT24-064", compiled);

@@ -43,7 +43,7 @@ describe("ST16-13 SkullMammothmon — whenHandTrashed plays Lv.4-or-lower purple
     const initialCount = p0.battleArea.length;
 
     // primitives.trash fires whenHandTrashed when the trashed card was in hand.
-    await primitivesOf(s).trash([handCardId]);
+    await primitivesOf(s).trash([handCardId], { byEffectSeat: 0 });
     await settle(() => p0.battleArea.length > initialCount);
 
     // BT10-074 should have been played from trash onto the battle area.

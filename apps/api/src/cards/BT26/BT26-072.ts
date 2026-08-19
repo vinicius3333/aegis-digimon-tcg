@@ -9,9 +9,9 @@ import { requireOpponentAsk } from "../../engine/decisions/decisionApi.js";
 
 // BT26-072 — Peckmon (BT26, Purple Lv.4 Digimon, Avian/DATA SQUAD).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-072 as of this port
-// (`node tools/kb/query.mjs card BT26-072` returned no knowledge-base entries). implemented
-// from the printed card text only; the trash-vs-place-under alt-cost chooser mirrors
+// The committed KB contains Q7094-Q7097 (2026-08-18), confirming bottom placement,
+// immutable face-down order, visibility, and face-up trash handling. The trash-vs-place-under
+// alt-cost chooser mirrors
 // BT26-026's chooseOption pattern (offer both live options via `ctx.ask.chooseOption`,
 // falling back to a plain trash when only one option is available), and the
 // opponent-Digimon-level-4-or-lower delete gate mirrors BT26-023's
@@ -82,7 +82,7 @@ async function resolveAltCostToDelete(ctx: EffectContext, source: CardSource): P
         if (picked.length === 0) return;
         chosenTamer = picked[0]!;
       }
-      await ctx.fx.placeUnder(chosenTamer, toUse);
+      await ctx.fx.placeUnder(chosenTamer, toUse, { faceUp: false });
     } else {
       await ctx.fx.trash(toUse);
     }

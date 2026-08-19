@@ -14,6 +14,7 @@ import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import {
   activated,
+  colorWaiverStatic,
   beforePayCost,
   inTrash,
   onDeletion,
@@ -920,7 +921,7 @@ export function lateBt12Module(cardId: string): EffectModule {
         case "BT12-103": {
           if (timing === EffectTiming.None)
             return [
-              staticModifier({
+              colorWaiverStatic({
                 source,
                 effectKey: `${cardId}/hunter-color-waiver`,
                 description: "A Hunter Tamer waives this Option's color requirement.",
@@ -1027,7 +1028,7 @@ export function lateBt12Module(cardId: string): EffectModule {
         case "BT12-106": {
           if (timing === EffectTiming.None)
             return [
-              staticModifier({
+              colorWaiverStatic({
                 source,
                 effectKey: `${cardId}/hunter-color-waiver`,
                 description: "A Hunter Tamer waives this Option's color requirement.",
@@ -1085,7 +1086,7 @@ export function lateBt12Module(cardId: string): EffectModule {
         case "BT12-108": {
           if (timing === EffectTiming.None)
             return [
-              staticModifier({
+              colorWaiverStatic({
                 source,
                 effectKey: `${cardId}/machine-color-waiver`,
                 description: "A level 6 Machine Digimon waives this Option's color requirement.",
@@ -1125,7 +1126,7 @@ export function lateBt12Module(cardId: string): EffectModule {
         case "BT12-109": {
           if (timing === EffectTiming.None)
             return [
-              staticModifier({
+              colorWaiverStatic({
                 source,
                 effectKey: `${cardId}/hunter-color-waiver`,
                 description: "A Hunter Tamer waives this Option's color requirement.",

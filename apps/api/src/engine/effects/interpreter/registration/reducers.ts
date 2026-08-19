@@ -60,6 +60,9 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "EX9-064", // trash 1 [Cyborg]/[Ver.x] from hand -> -2
   "EX9-044", // suspend 1 [WG] Digimon -> -4
   "P-170", // return 3 [Three Musketeers]-text from trash -> -6
+  "P-171", // face-up [Deep Savers] in security -> -4
+  "P-172", // face-up [Nature Spirits] in security -> -4
+  "P-174", // face-up [Nightmare Soldiers] in security -> -4
   "BT12-112", // place 1 [Shoutmon] as digivolution material -> -1 (KB Q2249-Q2256)
   "BT8-043", // delete 1 purple [Cherubimon] -> -8
   "BT9-097", // condition: you have a Digimon with [X Antibody] card name in play -> -2 (KB Q1902)

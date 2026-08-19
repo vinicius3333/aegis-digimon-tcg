@@ -5,65 +5,55 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                3
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levels: [3],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Puppet"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Puppet"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -2000,
-          "duration": "forTheTurn"
-        }
+          amount: -2000,
+          duration: "forTheTurn",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT22-032", compiled);

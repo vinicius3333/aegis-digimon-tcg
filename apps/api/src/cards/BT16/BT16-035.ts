@@ -8,6 +8,25 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   "effects": [
     {
+      "trigger": "Static",
+      "actions": [
+        {
+          "kind": "GrantStatic",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          },
+          "grant": "trait",
+          "tokens": [
+            "Angel"
+          ]
+        }
+      ]
+    },
+    {
       "trigger": "AllTurns",
       "actions": [
         {
@@ -25,20 +44,6 @@ const compiled: CompiledCard = {
               },
               "optional": true
             }
-          ]
-        },
-        {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "grant": "trait",
-          "tokens": [
-            "Angel"
           ]
         }
       ],

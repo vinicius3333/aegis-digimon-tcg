@@ -23,6 +23,30 @@ describe("BT8-091 Willis", () => {
     expect(player.eggDeck).toHaveLength(0);
   });
 
+  it("leaves the Digi-Egg deck unchanged when the optional hatch is declined", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT8-091", as: "source" }], eggDeck: [
+      { card: "BT8-005", as: "egg" },
+    ] } });
+    const player = s.state.players[0] as PlayerState;
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    const hatchDecision = s.decisions.find(({ req }) => req.kind === "optional")!.req;
+    expect(s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: hatchDecision.decisionId,
+      response: { kind: "optional", accept: false },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) =>
+      permanent.topCard?.cardId === "BT8-091"
+    ));
+
+    expect(player.breeding).toBeUndefined();
+    expect(player.eggDeck).toHaveLength(1);
+    expect(player.eggDeck[0]?.instanceId).toBe(s.inst("egg").instanceId);
+  });
+
   it("does not offer hatching when the Digi-Egg deck is empty", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT8-091", as: "source" }] } });
     s.state.memory = 3;

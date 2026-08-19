@@ -1,22 +1,73 @@
 // @ts-nocheck
-import { EffectTiming, isDigimon } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { turnTiming, security } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/** BT24-087 — Rei Katsura (Yellow Tamer). [Start Main] If opponent has Digimon, +1 memory. [Your Turn] When linked, suspend to Draw 1 + trash 1 from hand, then Digimon may app fuse into System/Life/Transmutation from trash. [Security] Play. */
-const cardId = "BT24-087";
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnStartMainPhase) {
-      return [turnTiming({ source, effectKey: `${cardId}/start-main`, description: "[Start Main] If opponent has Digimon, +1 memory.", optional: false, when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(), canActivate: (ctx) => ctx.game.player(ctx.game.opponentOf(source.ownerSeat)).battleArea.some((p: any) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard))), resolve: async (ctx) => ctx.fx.gainMemory(1) })];
-    }
-    if (timing === EffectTiming.SecuritySkill) return [security({ source, effectKey: `${cardId}/sec`, description: "[Security] Play.", optional: false, resolve: async (ctx) => { await ctx.fx.playInstances([source.instanceId], { payCost: false }); } })];
-    return [];
-  },
+// Rei Katsura. Start of Main: gain memory if the opponent has a Digimon. When
+// this Tamer's linked host gets linked on your turn, suspend this Tamer, draw,
+// trash a hand card, then optionally App Fuse one of your Digimon into a System,
+// Life, or Transmutation card from the trash.
+export const compiled = {
+  effects: [
+    {
+      trigger: "StartOfYourMainPhase",
+      actions: [
+        {
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "opponentHas",
+            filter: { controller: "opponent", kind: ["Digimon"] },
+            raw: "your opponent has a Digimon",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinked",
+          actions: [
+            {
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                raw: "by suspending this Tamer",
+              },
+            },
+            {
+              kind: "Trash",
+              target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+            },
+            {
+              kind: "AppFuse",
+              source: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["System", "Life", "Transmutation"], match: "trait" }],
+              },
+              from: ["trash"],
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
-registerCard(module);
-export default module;
+
+registerIrCard("BT24-087", compiled);

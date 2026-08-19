@@ -5,122 +5,89 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenAttacking",
-          "sourceFilter": {
-            "controller": "mine",
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          sourceFilter: {
+            controller: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Creepymon"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Creepymon"],
+                match: "name",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Trash",
-              "target": {
-                "filter": {
-                  "controller": "opponent"
-                },
-                "count": 1
-              },
-              "condition": {
-                "kind": "zoneCount",
-                "seat": "opponent",
-                "zone": "trash",
-                "op": "gte",
-                "value": 10,
-                "raw": "your opponent has 10 or more cards in their trash"
-              },
-              "cost": {
-                "kind": "raw",
-                "raw": "by digivolving it into this card without paying the cost"
-              },
-              "optional": true,
-              "abortOnDecline": true
-            }
-          ]
-        }
+              kind: "Digivolve",
+              target: { filter: {}, count: 1, sourceRef: "triggerSubject" },
+              into: { controller: "mine", zone: "trash", isSelfRef: true, kind: ["Digimon"] },
+              from: ["trash"],
+              payCost: false,
+              ignoreRequirements: true,
+              optional: true,
+              abortOnDecline: true,
+            },
+            {
+              kind: "SecurityManipulation",
+              op: "trashTop",
+              controller: "opponent",
+            },
+          ],
+        },
       ],
-      "isFromTrash": true
+      isFromTrash: true,
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestLevel"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestLevel",
             },
-            "count": "all"
-          }
-        },
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Evil",
-                    "Fallen Angel"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 4,
-            "upTo": true
+            count: "all",
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
         },
         {
-          "kind": "CostModifier",
-          "mode": "raiseCeiling",
-          "costType": "playcost",
-          "amount": 4,
-          "scaling": {
-            "per": 10,
-            "filter": {
-              "zone": "trash",
-              "controller": "opponent"
-            },
-            "unit": "cards"
-          }
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "Creepymon"
+          kind: "PlayMultiple",
+          filter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Evil", "Fallen Angel"], match: "trait" }],
+          },
+          from: ["trash"],
+          payCost: false,
+          totalCost: 4,
+          totalCostScaling: {
+            base: 4,
+            raise: 4,
+            per: 10,
+            filter: { zone: "trash", controller: "opponent" },
+            unit: "cards",
+          },
+          optional: true,
+        },
       ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Creepymon"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT24-078", compiled);

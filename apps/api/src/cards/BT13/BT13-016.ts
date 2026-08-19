@@ -104,7 +104,7 @@ const compiled: CompiledCard = {
           ],
           "payCost": false,
           "condition": {
-            "kind": "raw",
+            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens": ["Royal Knight"], "match": "trait"}]},
             "raw": "this Digimon has the [Royal Knight] trait"
           },
           "optional": true

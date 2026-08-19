@@ -1,0 +1,53 @@
+import { describe, expect, it } from "vitest";
+import { compiled } from "./BT22-087.js";
+
+describe("BT22-087 Torajiro Asuka", () => {
+  it("gains memory only when the opponent has a Digimon", () => {
+    const effect = compiled.effects.find((entry) => entry.trigger === "StartOfYourMainPhase");
+    expect(effect?.actions[0]).toMatchObject({
+      kind: "GainMemory",
+      amount: 1,
+      condition: {
+        kind: "opponentHas",
+        filter: { controllerDefault: "opponent", kind: ["Digimon"] },
+      },
+    });
+  });
+
+  it("reacts to any of your Digimon getting linked, then may app fuse", () => {
+    const effect = compiled.effects.find((entry) => entry.trigger === "YourTurn");
+    const trigger = effect?.actions[0] as any;
+    expect(trigger).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenLinked",
+      sourceFilter: { controller: "mine", kind: ["Digimon"] },
+    });
+    expect(trigger.actions[0]).toMatchObject({
+      kind: "ModifyDP",
+      target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+      amount: -2000,
+      duration: "forTheTurn",
+      cost: { kind: "suspend" },
+      optional: true,
+      abortOnDecline: true,
+    });
+    expect(trigger.actions[1]).toMatchObject({
+      kind: "AppFuse",
+      source: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+      into: { controllerDefault: "mine", kind: ["Digimon"] },
+      from: ["hand"],
+      optional: true,
+    });
+    expect(effect).not.toHaveProperty("frequency");
+  });
+
+  it("plays itself from security without paying the cost", () => {
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "Security",
+        isSecurity: true,
+        actions: [expect.objectContaining({ kind: "PlayWithoutCost", payCost: false })],
+      }),
+    );
+  });
+});

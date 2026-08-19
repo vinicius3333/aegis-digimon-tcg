@@ -5,123 +5,111 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
-      ]
+          payCost: false,
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "ADVENTURE"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "to": "hand",
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
+                  tokens: ["ADVENTURE"],
+                  match: "trait",
+                },
               ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "ADVENTURE"
-                  ],
-                  "match": "trait"
-                }
-              ]
             },
-            "count": 1
+            count: 1,
           },
-          "to": "hand",
-          "optional": true
-        }
-      ]
+          to: "hand",
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["ADVENTURE"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          to: "hand",
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
         },
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
             },
-            "count": 1
-          }
-        }
+            count: 1,
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "names": [
-        "Gabumon"
-      ],
-      "cost": 2,
-      "isAlternate": true
+      level: 3,
+      names: ["Gabumon"],
+      cost: 2,
+      isAlternate: true,
     },
     {
-      "traits": [
-        "ADVENTURE"
-      ],
-      "cost": 2,
-      "isAlternate": true,
-      "level": 3
-    }
-  ]
+      traits: ["ADVENTURE"],
+      cost: 2,
+      isAlternate: true,
+      level: 3,
+    },
+  ],
 };
 
 registerIrCard("BT21-067", compiled);

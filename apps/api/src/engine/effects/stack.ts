@@ -162,6 +162,24 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
   // change for the common single-pass case).
   const everActive = new Set<string>();
 
+  // Effects seen in SOME earlier collection pass this window (before the canActivate filter),
+  // and the subset of those that have since stopped being collected at all.
+  //
+  // Comprehensive Rules §15-4-4-3: "When a card with an effect that's pending activation becomes
+  // a new card before the effect activates, the effect can no longer be activated" — a card that
+  // leaves its area is a new card when it comes back. §15-4-4-5 says the same for an effect whose
+  // trigger conditions stop being met before it activates. Both show up here identically: the
+  // effect drops out of `collect(timing)`, which re-queries live state every pass. Without a
+  // record of the departure, a card that leaves and returns inside one window — or a condition
+  // that flickers off and back on — silently revives its pending trigger, because the fixpoint
+  // re-derives the activatable set purely from the current board.
+  //
+  // `inProgress` is excluded: the effect currently executing routinely removes its own source
+  // (a "by trashing this card" cost) and must not mark itself departed mid-body — it is dropped
+  // by `resolved` when it finishes instead.
+  const everCollected = new Set<string>();
+  const departed = new Set<string>();
+
   // Defensive bound. The source loop relies entirely on canActivate / maxPerTurn /
   // declines to terminate; a mis-implemented card with an unlimited, always-activatable
   // mandatory effect would otherwise spin forever and hang the match. Throwing (vs
@@ -183,15 +201,25 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
       if (env.isGameOver()) return;
 
       // Re-collect every pass: this is the TriggeredSkillProcess re-entry.
-      const active = env
-        .collect(timing)
-        .filter(
-          (c) =>
-            !declined.has(declineKey(c)) &&
-            !resolved.has(declineKey(c)) &&
-            !inProgress.has(declineKey(c)) &&
-            canActivate(c.effect, env.makeContext(c), env.tracker),
-        );
+      const collectedThisPass = env.collect(timing);
+
+      // Retire anything that was collectable earlier this window and is not any more (§15-4-4-3
+      // / §15-4-4-5, see `departed` above). Recorded before the activatable filter so a card
+      // that leaves and returns cannot come back with its pending trigger intact.
+      const presentKeys = new Set(collectedThisPass.map(declineKey));
+      for (const key of everCollected) {
+        if (!presentKeys.has(key) && !inProgress.has(key)) departed.add(key);
+      }
+      for (const key of presentKeys) everCollected.add(key);
+
+      const active = collectedThisPass.filter(
+        (c) =>
+          !declined.has(declineKey(c)) &&
+          !resolved.has(declineKey(c)) &&
+          !inProgress.has(declineKey(c)) &&
+          !departed.has(declineKey(c)) &&
+          canActivate(c.effect, env.makeContext(c), env.tracker),
+      );
       if (active.length === 0) return;
 
       // Split into freshly-active (derived this pass) vs already-pending (seen active in

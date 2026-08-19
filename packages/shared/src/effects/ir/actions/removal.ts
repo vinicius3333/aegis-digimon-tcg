@@ -171,6 +171,15 @@ export interface ReturnAction extends ActionBase {
    * overcount unrelated cards.
    */
   trackCount?: string;
+  /** Raise the play-cost ceiling a return target must fall under. */
+  playCostCeiling?: {
+    base: number;
+    raise: number;
+    per: number;
+    filter: Filter;
+    unit: "cards" | "digivolutionCards" | "digivolutionCardsOfFiltered";
+    raw?: string;
+  };
 }
 
 /**

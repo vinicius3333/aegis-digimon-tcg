@@ -107,9 +107,11 @@ export function triggerSubjectMatchesColor(ctx: EffectContext, filter: Filter | 
 
 export function triggerSubjectMatchesFilter(ctx: EffectContext, filter: Filter | undefined): boolean {
   if (filter === undefined) return false;
-  const subjectId = ctx.trigger.subjectPermanentId;
-  if (subjectId === undefined) return false;
-  const subject = ctx.game.permanentById(subjectId);
-  if (subject === undefined) return false;
-  return permanentMatchesFilter(ctx, subject, filter, ctx.source);
+  const subjectIds =
+    ctx.trigger.subjectPermanentIds ??
+    (ctx.trigger.subjectPermanentId === undefined ? [] : [ctx.trigger.subjectPermanentId]);
+  return subjectIds.some((subjectId) => {
+    const subject = ctx.game.permanentById(subjectId);
+    return subject !== undefined && permanentMatchesFilter(ctx, subject, filter, ctx.source);
+  });
 }

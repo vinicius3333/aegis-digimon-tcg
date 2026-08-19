@@ -9,7 +9,22 @@ const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
-      "actions": [],
+      "actions": [
+        {
+          "kind": "GrantStatic",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          },
+          "grant": "trait",
+          "tokens": [
+            "Angel"
+          ]
+        }
+      ],
       "keywords": [
         {
           "keyword": "Partition",
@@ -59,20 +74,6 @@ const compiled: CompiledCard = {
             "kind": "isDnaDigivolving",
             "raw": "DNA digivolving"
           }
-        },
-        {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "grant": "trait",
-          "tokens": [
-            "Angel"
-          ]
         }
       ]
     },

@@ -81,8 +81,9 @@ const module: EffectModule = {
               once: false,
               oncePerTurnKey: `${cardId}/hand-trashed-play-from-trash`,
               description: `${cardId}: hand trashed → play Lv.4-or-lower purple from trash`,
-              matches: (subCtx) =>
-                subCtx.trigger?.handTrashedSeat === source.ownerSeat,
+                matches: (subCtx) =>
+                subCtx.trigger?.handTrashedSeat === source.ownerSeat &&
+                subCtx.trigger?.byEffectSeat === source.ownerSeat,
               run: async (subCtx) => {
                 const host = subCtx.source.permanent();
                 if (host === undefined) return;

@@ -94,7 +94,7 @@ const compiled: CompiledCard = {
               "filter": "This Digimon gains all of the effects on cards with [Gammamon] in their names in this Digimon's digivolution cards"
             }
           },
-          "duration": "forTheTurn"
+          "duration": "permanent"
         }
       ]
     },
@@ -115,7 +115,7 @@ const compiled: CompiledCard = {
               "filter": "This Digimon gains all of the effects on cards with [Gammamon] in their names in this Digimon's digivolution cards"
             }
           },
-          "duration": "forTheTurn"
+          "duration": "permanent"
         }
       ],
       "isInherited": true

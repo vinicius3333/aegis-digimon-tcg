@@ -61,7 +61,8 @@ const module: EffectModule = {
               once: false,
               description: `${cardId}: hand trashed → suspend self + gain 1 memory`,
               matches: (subCtx) =>
-                subCtx.trigger?.handTrashedSeat === source.ownerSeat,
+                subCtx.trigger?.handTrashedSeat === source.ownerSeat &&
+                subCtx.trigger?.byEffectSeat === source.ownerSeat,
               run: async (subCtx) => {
                 const host = subCtx.source.permanent();
                 if (host === undefined) return;

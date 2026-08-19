@@ -4,228 +4,200 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-authored IR correction: the Your Turn effect's "then" attack belongs inside
 // each play/digivolve watcher and remains optional even when the [ADVENTURE] gate fails.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1,
-          "scaling": {
-            "per": 2,
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ]
+          amount: 1,
+          scaling: {
+            per: 2,
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
             },
-            "unit": "colors"
-          }
-        }
-      ]
+            unit: "colors",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1,
-          "scaling": {
-            "per": 2,
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ]
+          amount: 1,
+          scaling: {
+            per: 2,
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
             },
-            "unit": "colors"
-          }
-        }
-      ]
+            unit: "colors",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "keyword": {
-                "keyword": "Alliance",
-                "raw": "＜Alliance＞"
+              keyword: {
+                keyword: "Alliance",
+                raw: "＜Alliance＞",
               },
-              "duration": "forTheTurn",
-              "condition": {
-                "kind": "triggerSubjectMatchesFilter",
-                "filter": {
-                  "nameOrTrait": [
+              duration: "forTheTurn",
+              condition: {
+                kind: "triggerSubjectMatchesFilter",
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "ADVENTURE"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
-                }
-              }
+                      tokens: ["ADVENTURE"],
+                      match: "trait",
+                    },
+                  ],
+                },
+              },
             },
             {
-              "kind": "Attack",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "Attack",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "withoutSuspending": false,
-              "optional": true
-            }
+              withoutSuspending: false,
+              optional: true,
+            },
           ],
-          "raw": "whenPlayed"
+          raw: "whenPlayed",
         },
         {
-          "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "keyword": {
-                "keyword": "Alliance",
-                "raw": "＜Alliance＞"
+              keyword: {
+                keyword: "Alliance",
+                raw: "＜Alliance＞",
               },
-              "duration": "forTheTurn",
-              "condition": {
-                "kind": "triggerSubjectMatchesFilter",
-                "filter": {
-                  "nameOrTrait": [
+              duration: "forTheTurn",
+              condition: {
+                kind: "triggerSubjectMatchesFilter",
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "ADVENTURE"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
-                }
-              }
+                      tokens: ["ADVENTURE"],
+                      match: "trait",
+                    },
+                  ],
+                },
+              },
             },
             {
-              "kind": "Attack",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "Attack",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "withoutSuspending": false,
-              "optional": true
-            }
-          ],
-          "raw": "whenDigivolving"
-        }
-      ],
-      "frequency": "OncePerTurn"
-    },
-    {
-      "trigger": "Static",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+              withoutSuspending: false,
+              optional: true,
             },
-            "count": 1,
-            "isSelf": true
-          },
-          "keyword": {
-            "keyword": "Alliance"
-          },
-          "duration": "permanent"
-        }
+          ],
+          raw: "whenDigivolving",
+        },
       ],
-      "isInherited": true,
-      "keywords": []
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 4,
-      "names": [
-        "Greymon"
-      ],
-      "cost": 3,
-      "isAlternate": true
+      frequency: "OncePerTurn",
     },
     {
-      "traits": [
-        "ADVENTURE"
+      trigger: "Static",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          keyword: {
+            keyword: "Alliance",
+          },
+          duration: "permanent",
+        },
       ],
-      "cost": 3,
-      "isAlternate": true,
-      "level": 4
-    }
-  ]
+      isInherited: true,
+      keywords: [],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 4,
+      names: ["Greymon"],
+      cost: 3,
+      isAlternate: true,
+    },
+    {
+      traits: ["ADVENTURE"],
+      cost: 3,
+      isAlternate: true,
+      level: 4,
+    },
+  ],
 };
 
 registerIrCard("BT21-061", compiled);

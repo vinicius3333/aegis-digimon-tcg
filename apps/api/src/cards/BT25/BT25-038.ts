@@ -17,7 +17,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",
@@ -50,7 +50,7 @@ const compiled: CompiledCard = {
           "bothPlayers": true,
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "isDnaDigivolving",
             "raw": "DNA digivolving"
           }
         }
@@ -87,7 +87,7 @@ const compiled: CompiledCard = {
           "bothPlayers": true,
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "isDnaDigivolving",
             "raw": "DNA digivolving"
           }
         }
@@ -99,6 +99,9 @@ const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "whenAddSecurity",
+          "sourceFilter": {
+            "controller": "mine"
+          },
           "actions": [
             {
               "kind": "DeDigivolve",
@@ -125,6 +128,9 @@ const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "whenSecurityRemoved",
+          "sourceFilter": {
+            "controller": "mine"
+          },
           "actions": [
             {
               "kind": "ModifyDP",

@@ -27,7 +27,14 @@ export function countMatching(ctx: EffectContext, filter: Filter): number {
   // "battleArea" (the default for `youHave`/`opponentHas`, e.g. BT2-031) and any other
   // zone value must fall through to the default per-permanent scan below — special-
   // casing on `zone !== undefined` alone silently dropped that scan to 0 (regression).
-  const looseCardZones: readonly string[] = ["trash", "hand", "digivolutionCards"];
+  const looseCardZones: readonly string[] = ["trash", "hand", "security", "digivolutionCards"];
+  if (filter.zone === "breeding") {
+    for (const seat of seats) {
+      const permanent = ctx.game.player(seat).breeding;
+      if (permanent !== undefined && permanentMatchesFilter(ctx, permanent, filter, ctx.source)) n++;
+    }
+    return n;
+  }
   if (filter.zone !== undefined) {
     const zones = Array.isArray(filter.zone) ? filter.zone : [filter.zone];
     if (zones.some((z) => looseCardZones.includes(z))) {
@@ -43,6 +50,15 @@ export function countMatching(ctx: EffectContext, filter: Filter): number {
           for (const seat of seats) {
             const hand = ctx.game.player(seat).hand;
             for (const card of hand) {
+              if (definitionMatches(filter, ctx.game.definitionOf(card))) n++;
+            }
+          }
+        } else if (zone === "security") {
+          for (const seat of seats) {
+            const security = ctx.game.player(seat).security;
+            for (const card of security) {
+              if (filter.faceUp === true && card.faceUp !== true) continue;
+              if (filter.faceUp === false && card.faceUp === true) continue;
               if (definitionMatches(filter, ctx.game.definitionOf(card))) n++;
             }
           }

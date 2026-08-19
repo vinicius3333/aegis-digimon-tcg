@@ -7,206 +7,182 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [Your Turn] SubTrigger whenAttacking (CS trait Digimon): grant <Delay> to self.
 // [Main]+Delay keyword: delayed payoff — give 1 opponent Digimon SecurityAttack -1 + disable WD/WA.
 // [Security]: same effect as [Main] + place self.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon", "Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "CS"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "raw": "you have a Digimon or Tamer with the [CS] trait on the field"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1,
-            "bindAs": "BT23094MainTarget"
-          },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "＜Security A. -1＞"
-          },
-          "duration": "untilOpponentTurnEnd"
-        },
-        {
-          "kind": "DisableTimingEffect",
-          "target": {
-            "fromSelectionRef": "BT23094MainTarget",
-            "count": 1
-          },
-          "timings": [
-            "whenDigivolving",
-            "whenAttacking"
-          ],
-          "duration": "untilOpponentTurnEnd"
-        },
-        {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "keywords": [
-        {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ],
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1,
-            "bindAs": "BT23094DelayTarget"
-          },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "＜Security A. -1＞"
-          },
-          "duration": "untilOpponentTurnEnd"
-        },
-        {
-          "kind": "DisableTimingEffect",
-          "target": {
-            "fromSelectionRef": "BT23094DelayTarget",
-            "count": 1
-          },
-          "timings": [
-            "whenDigivolving",
-            "whenAttacking"
-          ],
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenAttacking",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "CS"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+                  tokens: ["CS"],
+                  match: "trait",
                 },
-                "count": 1,
-                "isSelf": true
-              },
-              "keyword": {
-                "keyword": "Delay",
-                "raw": "＜Delay＞"
-              },
-              "duration": "permanent"
-            }
-          ]
-        }
-      ]
+              ],
+            },
+            raw: "you have a Digimon or Tamer with the [CS] trait on the field",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "bindAs": "BT23094SecTarget"
+            count: 1,
+            bindAs: "BT23094MainTarget",
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -1,
-            "raw": "＜Security A. -1＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "＜Security A. -1＞",
           },
-          "duration": "untilOpponentTurnEnd"
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "DisableTimingEffect",
-          "target": {
-            "fromSelectionRef": "BT23094SecTarget",
-            "count": 1
+          kind: "DisableTimingEffect",
+          target: {
+            fromSelectionRef: "BT23094MainTarget",
+            count: 1,
           },
-          "timings": [
-            "whenDigivolving",
-            "whenAttacking"
-          ],
-          "duration": "untilOpponentTurnEnd"
+          timings: ["whenDigivolving", "whenAttacking"],
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "Main",
+      keywords: [
+        {
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+            bindAs: "BT23094DelayTarget",
+          },
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "＜Security A. -1＞",
+          },
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "DisableTimingEffect",
+          target: {
+            fromSelectionRef: "BT23094DelayTarget",
+            count: 1,
+          },
+          timings: ["whenDigivolving", "whenAttacking"],
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              {
+                tokens: ["CS"],
+                match: "trait",
+              },
+            ],
+          },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              keyword: {
+                keyword: "Delay",
+                raw: "＜Delay＞",
+              },
+              duration: "permanent",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+            bindAs: "BT23094SecTarget",
+          },
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -1,
+            raw: "＜Security A. -1＞",
+          },
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "DisableTimingEffect",
+          target: {
+            fromSelectionRef: "BT23094SecTarget",
+            count: 1,
+          },
+          timings: ["whenDigivolving", "whenAttacking"],
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT23-094", compiled);

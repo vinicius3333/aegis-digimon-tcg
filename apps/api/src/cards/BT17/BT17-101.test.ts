@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT17-101.js";
 import "../index.js";
 
 // A3 for BT17-101 (Fenriloogamon: Takemikazuchi, Purple Lv.7):
@@ -15,6 +16,32 @@ import "../index.js";
 const FENRILOOGAMON = "BT17-101";
 
 describe("BT17-101 Fenriloogamon: Takemikazuchi — [When Attacking] security trash", () => {
+  it("models the Trash trigger for a played level 6 Pulsemon-text Digimon", () => {
+    const effect = compiled.effects.find((entry) => entry.trigger === "YourTurn");
+    expect(effect).toMatchObject({ isFromTrash: true });
+    expect(effect?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenPlayed",
+      sourceFilter: {
+        controller: "mine",
+        kind: ["Digimon"],
+        levels: [6],
+        nameOrTrait: [{ tokens: ["Pulsemon"], match: "text" }],
+      },
+      actions: [{ kind: "DnaDigivolve", materials: { count: 2 }, optional: true }],
+    });
+  });
+
+  it("keeps the Tamer recovery branch independent from the DNA condition", () => {
+    const effect = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving");
+    expect(effect?.actions[1]).toMatchObject({ kind: "SetMemory", condition: { kind: "isDnaDigivolving" } });
+    expect(effect?.actions[2]).toMatchObject({
+      kind: "GainMemory",
+      condition: { kind: "selfDigivolutionStackMatchesFilter", filter: { kind: ["Tamer"] } },
+    });
+    expect(effect?.actions[3]).toMatchObject({ kind: "GainKeyword", keyword: { keyword: "Recovery", amount: 1 } });
+  });
+
   it("[When Attacking] trashes own top security to trash opponent's top security", async () => {
     // Seat 0 is the turn player.
     const s = setupEngine(

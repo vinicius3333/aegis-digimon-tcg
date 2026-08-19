@@ -5,70 +5,60 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Armor Purge",
-          "raw": "＜Armor Purge＞"
-        }
-      ]
+          keyword: "Armor Purge",
+          raw: "＜Armor Purge＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "TS"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["TS"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": true,
-          "reduceCostBy": 2,
-          "optional": true
-        }
+          from: ["hand"],
+          payCost: true,
+          reduceCostBy: 2,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Armadillomon"
-      ],
-      "cost": 2,
-      "isAlternate": true
+      names: ["Armadillomon"],
+      cost: 2,
+      isAlternate: true,
     },
     {
-      "level": 3,
-      "traits": [
-        "TS"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["TS"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT24-024", compiled);

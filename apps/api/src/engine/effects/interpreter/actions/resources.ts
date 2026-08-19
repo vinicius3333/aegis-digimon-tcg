@@ -10,11 +10,7 @@ import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardKind, isTamer } from "@aegis/shared";
 import type { Action, CardDefinition, Permanent, Seat, Target } from "@aegis/shared";
 
-export async function runResourceAction(
-  ctx: EffectContext,
-  action: Action,
-  scope: ActionScope,
-): Promise<boolean> {
+export async function runResourceAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
   switch (action.kind) {
     case "Draw": {

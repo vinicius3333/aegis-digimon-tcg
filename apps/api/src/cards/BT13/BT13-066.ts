@@ -24,7 +24,7 @@ const compiled: CompiledCard = {
             "amount": 1000
           },
           "while": {
-            "kind": "raw",
+            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens": ["X Antibody"], "match": "trait"}]},
             "raw": "this Digimon has the [X Antibody] trait"
           }
         }

@@ -8,218 +8,210 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // IF any of them have [ADVENTURE] trait, 1 of your Digimon MUST gain <Alliance> for the turn
 // (KB Q4588: mandatory when condition met). Then, 1 of your Digimon MAY attack (optional, KB Q4590).
 // KB Q4732: attack part runs even if ADVENTURE condition is not met.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "raw",
-            "raw": "your Tamers have 2 or more total colors"
-          }
+          condition: {
+            kind: "zoneColorCount",
+            cardType: "Tamer",
+            op: "gte",
+            value: 2,
+            raw: "your Tamers have 2 or more total colors",
+          },
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "raw",
-            "raw": "your Tamers don't have 2 or more total colors"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 5
-              }
-            },
-            "count": 1
+          condition: {
+            kind: "not",
+            condition: { kind: "zoneColorCount", cardType: "Tamer", op: "gte", value: 2 },
+            raw: "your Tamers don't have 2 or more total colors",
           },
-          "condition": {
-            "kind": "raw",
-            "raw": "your Tamers have 2 or more total colors"
-          }
         },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
-            },
-            "count": 1
-          },
-          "condition": {
-            "kind": "raw",
-            "raw": "your Tamers don't have 2 or more total colors"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
-              "keyword": {
-                "keyword": "Alliance",
-                "raw": "＜Alliance＞"
-              },
-              "duration": "forTheTurn",
-              "condition": {
-                "kind": "raw",
-                "raw": "any of them have the [ADVENTURE] trait"
-              }
-            }
-          ]
-        },
-        {
-          "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
-              "keyword": {
-                "keyword": "Alliance",
-                "raw": "＜Alliance＞"
-              },
-              "duration": "forTheTurn",
-              "condition": {
-                "kind": "raw",
-                "raw": "any of them have the [ADVENTURE] trait"
-              }
-            }
-          ]
-        },
-        {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "withoutSuspending": false,
-          "optional": true
-        }
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "keyword": "Alliance",
-          "raw": "＜Alliance＞"
-        }
-      ]
-    }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 5,
+              },
+            },
+            count: 1,
+          },
+          condition: {
+            kind: "zoneColorCount",
+            cardType: "Tamer",
+            op: "gte",
+            value: 2,
+            raw: "your Tamers have 2 or more total colors",
+          },
+        },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
+            },
+            count: 1,
+          },
+          condition: {
+            kind: "not",
+            condition: { kind: "zoneColorCount", cardType: "Tamer", op: "gte", value: 2 },
+            raw: "your Tamers don't have 2 or more total colors",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
+          },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              keyword: {
+                keyword: "Alliance",
+                raw: "＜Alliance＞",
+              },
+              duration: "forTheTurn",
+              condition: {
+                kind: "triggerSubjectMatchesFilter",
+                filter: {
+                  nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }],
+                },
+                raw: "any of them have the [ADVENTURE] trait",
+              },
+            },
+          ],
+        },
+        {
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
+          },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              keyword: {
+                keyword: "Alliance",
+                raw: "＜Alliance＞",
+              },
+              duration: "forTheTurn",
+              condition: {
+                kind: "triggerSubjectMatchesFilter",
+                filter: {
+                  nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }],
+                },
+                raw: "any of them have the [ADVENTURE] trait",
+              },
+            },
+          ],
+        },
+        {
+          kind: "Attack",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          withoutSuspending: false,
+          optional: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
+        {
+          keyword: "Alliance",
+          raw: "＜Alliance＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "names": [
-        "Garurumon"
-      ],
-      "cost": 3,
-      "isAlternate": true
+      level: 4,
+      names: ["Garurumon"],
+      cost: 3,
+      isAlternate: true,
     },
     {
-      "traits": [
-        "ADVENTURE"
-      ],
-      "cost": 3,
-      "isAlternate": true,
-      "level": 4
-    }
-  ]
+      traits: ["ADVENTURE"],
+      cost: 3,
+      isAlternate: true,
+      level: 4,
+    },
+  ],
 };
 
 registerIrCard("BT21-078", compiled);

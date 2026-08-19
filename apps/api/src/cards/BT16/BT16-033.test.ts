@@ -7,9 +7,8 @@ import "./BT16-033.js";
 // BT16-033 — Harpymon (Yellow Lv.4 Digimon).
 //
 // Implementable clause: <Armor Purge> static keyword (EffectTiming.None).
-// Engine-gap residual: [Your Turn] OnSecurityCheck branches (memory gain /
-// Recovery +1) cannot be implemented — the engine fires no event for the
-// security-attack check window.
+// OnSecurityCheck is a normal timing fired for each security check and carries
+// the attacking permanent id, so both branches are directly executable.
 
 function makeSource(overrides: Partial<CardSource> = {}): CardSource {
   return {
@@ -63,8 +62,11 @@ describe("BT16-033 Harpymon", () => {
     expect(module!.effectsForTiming(EffectTiming.OnPlay, makeSource())).toHaveLength(0);
   });
 
-  it("returns no effects at OnSecurityCheck (security-check window is engine-gap residual)", () => {
-    expect(module!.effectsForTiming(EffectTiming.OnSecurityCheck, makeSource())).toHaveLength(0);
+  it("exposes both OnSecurityCheck branches", () => {
+    const effects = module!.effectsForTiming(EffectTiming.OnSecurityCheck, makeSource());
+    expect(effects).toHaveLength(1);
+    expect(effects[0]?.description).toContain("recover 1");
+    expect(effects[0]?.maxPerTurn).toBe(-1);
   });
 
   it("returns no effects at WhenDigivolving", () => {

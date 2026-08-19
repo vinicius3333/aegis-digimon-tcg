@@ -138,7 +138,7 @@ const compiled: CompiledCard = {
           "withoutSuspending": true,
           "optional": true,
           "condition": {
-            "kind": "raw",
+            "kind": "selfDigivolutionCountAtLeast", "value": 5,
             "raw": "this Digimon has 5 or more digivolution cards"
           }
         }

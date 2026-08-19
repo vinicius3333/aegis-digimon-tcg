@@ -21,7 +21,7 @@ export async function runRecoverByTrashingMostSecurity(
   const mine = ctx.source.ownerSeat;
   const { trashed } = await ctx.fx.trashTopSecurityOfPlayerWithMostSecurity(mine);
   if (trashed.length === 0) return;
-  await ctx.fx.recoverToSecurity(mine, action.amount ?? 1);
+  if (action.recover !== false) await ctx.fx.recoverToSecurity(mine, action.amount ?? 1);
 }
 
 /** Security-stack manipulation: shuffle / trash top N / place cards as security. */
@@ -234,6 +234,26 @@ export async function runSecurityManipulation(
       });
       return;
     }
+    case "placeFromDeck": {
+      // "Place the top card of your deck on top/bottom of your security" (EX4-029 and
+      // related recovery clauses). addSecurity removes the loose card from the deck and
+      // applies the security face-down default.
+      const amount = Math.max(0, action.amount ?? 1);
+      const deckCards = ctx.game.player(seat).deck.slice(0, amount);
+      if (deckCards.length === 0) {
+        ctx.lastEffectActed = false;
+        return;
+      }
+      await ctx.fx.addSecurity(
+        seat,
+        deckCards.map((card) => card.instanceId),
+        {
+          toTop: action.toTop ?? true,
+        },
+      );
+      ctx.lastEffectActed = true;
+      return;
+    }
     case "addTop":
     case "addBottom":
     case "addTopOrBottom": {
@@ -370,11 +390,7 @@ async function runSecurityAdd(
   unsupported(ctx, action, `SecurityManipulation ${action.op} source ${String(source)} unsupported`);
 }
 
-export async function runSecurityAction(
-  ctx: EffectContext,
-  action: Action,
-  scope: ActionScope,
-): Promise<boolean> {
+export async function runSecurityAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
   switch (action.kind) {
     case "OpponentMayTrashSecurity": {

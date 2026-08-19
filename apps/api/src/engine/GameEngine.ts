@@ -76,7 +76,7 @@ import { digisorptionAmountFor, isDigisorptionRedirector } from "./cards/digisor
 import { tamerOntoDigivolveLevel } from "./cards/tamerOntoDigivolve.js";
 import { UseTracker, canActivate, canTrigger } from "./effects/kernel.js";
 import { runTiming, type EffectEnvironment, type ResolutionDeps } from "./effects/index.js";
-import { collectConferredEffects, effectsOf } from "./effects/collect.js";
+import { collectConferredEffects, collectGrantedCustomEffects, effectsOf } from "./effects/collect.js";
 import {
   applyWouldBePlayedSelfReducer,
   applyWouldDigivolveSelfReducer,
@@ -85,6 +85,7 @@ import {
   potentialWouldDigivolveSelfReduction,
   matchNameOrTrait,
   hasBlastDigivolveKeyword,
+  grantedTokenEffectsForTiming,
   resolveSelfWhenTrashedFromDeck,
   universalNameAliasesFor,
 } from "./effects/interpreter.js";
@@ -1246,6 +1247,10 @@ export class GameEngine {
           subjectPermanentId: permanent.permanentId,
           previousDigivolutionLevel: previousLevel,
         });
+        await this.fireSubTrigger("whenAnyDigivolves", {
+          subjectPermanentId: permanent.permanentId,
+          previousDigivolutionLevel: previousLevel,
+        });
       },
       emit: (event) => this.hooks.emit(event as ServerEvent),
     };
@@ -1729,6 +1734,34 @@ export class GameEngine {
         };
         await effect.resolve(ctx);
       }
+      // Named custom effect grants ("1 of your opponent's Digimon gains '[All Turns] When this
+      // Digimon becomes suspended, lose 2 memory.'"). Discrete timings already reach these through
+      // gatherTriggeredEffects -> collectGrantedCustomEffects, but a granted [All Turns]/Static
+      // clause lives in the CONTINUOUS window: its SubTrigger/Replacement watcher has to be
+      // installed by this pass or it is never armed at all. Without this the grant is recorded in
+      // the ledger, reads as active on the board, and silently never fires.
+      const grantedContinuous = collectGrantedCustomEffects(
+        EffectTiming.None,
+        this.continuous.listCustomEffectGrants(),
+        (instanceId) => sourceByInstanceId.get(instanceId),
+        (token, source) => grantedTokenEffectsForTiming(token, EffectTiming.None, source),
+        (source, effect) => ({
+          ...this.buildEffectContext(source, {}, noPromptAsk),
+          activeTiming: EffectTiming[EffectTiming.None],
+          activeEffectText: effect.description,
+        }),
+        this.tracker,
+      );
+      for (const { source, effect } of grantedContinuous) {
+        const ctx: EffectContext = {
+          ...this.buildEffectContext(source, {}, noPromptAsk),
+          activeTiming: EffectTiming[EffectTiming.None],
+          activeEffectText: effect.description,
+        };
+        if (!canActivate(effect, ctx, this.tracker)) continue;
+        await effect.resolve(ctx);
+      }
+
       // BT23-024 suspend-restriction-with-superlative-exception: for every ARMED source, re-derive
       // the affected opponent set (all opponent Digimon MINUS the highest-play-cost one) and record
       // a CONTINUOUS `suspend` restriction per affected permanent. Done here (not in a card's
@@ -2129,6 +2162,10 @@ export class GameEngine {
         subjectPermanentId,
         enteredByEffect: ownerSeat,
       });
+      await this.fireSubTrigger("whenAnyDigivolves", {
+        subjectPermanentId,
+        enteredByEffect: ownerSeat,
+      });
     }
   }
 
@@ -2224,7 +2261,20 @@ export class GameEngine {
     // that reduces the cost of a matching played card. Scanned so the early-return below does not
     // skip the pay-time window when only such a reducer applies.
     const crossWatchers = this.crossPermanentPlayReducerWatchers(instance, source.ownerSeat);
-    if (effects.length === 0 && selfReducers.length === 0 && crossWatchers.length === 0) return baseCost;
+    const breeding = this.state.players[source.ownerSeat]?.breeding;
+    const breedingResidentEffects = Array.from(breeding?.stack ?? []).flatMap((card) => {
+      const residentSource = this.cardSourceOf(card);
+      return effectsOf(EffectTiming.BeforePayCost, residentSource)
+        .filter((effect) => effect.isInherited)
+        .map((effect) => ({ effect, source: residentSource }));
+    });
+    if (
+      effects.length === 0 &&
+      selfReducers.length === 0 &&
+      crossWatchers.length === 0 &&
+      breedingResidentEffects.length === 0
+    )
+      return baseCost;
     // Seed `selections` so the interpreter's runEffect does NOT clone the context (it clones only
     // when `selections` is unset). The ReducePlayCost action writes the earned delta onto THIS
     // context's `playCostDelta`; a clone would strand the write and the reduction would be lost.
@@ -2233,6 +2283,28 @@ export class GameEngine {
       if (!canTrigger(effect, ctx, this.tracker)) continue;
       if (!canActivate(effect, ctx, this.tracker)) continue;
       await effect.resolve(ctx);
+    }
+    // [Breeding] inherited pay-time effects are supplied by cards in the owner's
+    // breeding-area stack (the card being played is still in hand, so its own
+    // module cannot host the watcher). Resolve these against the same shared
+    // play-cost context so their reductions are paid before memory is charged.
+    for (const { effect, source: residentSource } of breedingResidentEffects) {
+      const residentCtx: EffectContext = {
+        ...this.buildEffectContext(residentSource, {
+          wouldBePlayedInstanceId: instance.instanceId,
+          wouldBePlayedCardId: instance.cardId,
+        }),
+        selections: new Map(),
+        playCostDelta: ctx.playCostDelta,
+      };
+      if (!canTrigger(effect, residentCtx, this.tracker)) continue;
+      if (!canActivate(effect, residentCtx, this.tracker)) continue;
+      const beforeDelta = residentCtx.playCostDelta ?? 0;
+      await effect.resolve(residentCtx);
+      ctx.playCostDelta = residentCtx.playCostDelta;
+      if ((residentCtx.playCostDelta ?? 0) > beforeDelta && effect.maxPerTurn > 0) {
+        this.tracker.register(residentSource.instanceId, effect.effectKey);
+      }
     }
     for (const reducer of selfReducers) {
       await applyWouldBePlayedSelfReducer(ctx, reducer);
@@ -2243,6 +2315,10 @@ export class GameEngine {
     if (ctx.pendingSelfReducerRelocations && ctx.pendingSelfReducerRelocations.length > 0) {
       const pending = this.pendingSelfReducerRelocations.get(instance.instanceId) ?? [];
       this.pendingSelfReducerRelocations.set(instance.instanceId, [...pending, ...ctx.pendingSelfReducerRelocations]);
+    }
+    if (ctx.pendingSelfReducerPlacements && ctx.pendingSelfReducerPlacements.length > 0) {
+      const pending = this.pendingPlayReducerPlacements.get(instance.instanceId) ?? [];
+      this.pendingPlayReducerPlacements.set(instance.instanceId, [...pending, ...ctx.pendingSelfReducerPlacements]);
     }
     await this.runCrossPermanentPlayReducers(instance, ctx, crossWatchers);
     const delta = Math.max(0, ctx.playCostDelta ?? 0);
@@ -2901,7 +2977,8 @@ export class GameEngine {
           addedToSecuritySeat: info.seat,
           addedToSecurityInstanceIds: [info.instanceId],
         }),
-      resolveSecurityEffect: async (card, attackerPermanentId) => this.resolveSecurityEffect(card, attackerPermanentId),
+      resolveSecurityEffect: async (card, attackerPermanentId, wasFaceUp) =>
+        this.resolveSecurityEffect(card, attackerPermanentId, wasFaceUp),
       dpOf: (permanentId) => this.access.permanentById(permanentId)?.currentDP ?? 0,
       hasKeyword: (permanentId, keyword) => this.continuous.hasKeyword(permanentId, keyword),
       securityCardDp: (card) => {
@@ -2950,10 +3027,14 @@ export class GameEngine {
    * security skill), and the card leaves the security zone as part of resolving, so
    * a re-collection of the same instance must not re-offer it.
    */
-  private async resolveSecurityEffect(card: CardInstance, attackerPermanentId: string): Promise<boolean> {
+  private async resolveSecurityEffect(
+    card: CardInstance,
+    attackerPermanentId: string,
+    securityWasFaceUp?: boolean,
+  ): Promise<boolean> {
     const source = this.cardSourceOf(card);
     const securityEffects = effectsOf(EffectTiming.SecuritySkill, source).filter((effect) => {
-      const ctx = this.buildEffectContext(source, {});
+      const ctx = this.buildEffectContext(source, { securityWasFaceUp });
       return canTrigger(effect, ctx, this.tracker);
     });
     log(
@@ -2975,7 +3056,7 @@ export class GameEngine {
     }
 
     for (const effect of securityEffects) {
-      const ctx = this.buildEffectContext(source, {});
+      const ctx = this.buildEffectContext(source, { securityWasFaceUp });
       if (!canActivate(effect, ctx, this.tracker)) {
         log("[resolveSecurityEffect]", card.cardId, `canActivate=false for ${effect.effectKey}, skipping`);
         continue;
@@ -3031,6 +3112,11 @@ export class GameEngine {
           (effect) => effect.costWindow !== "digivolve",
         ) ||
         wouldBePlayedSelfReducersFor(instance.cardId).length > 0 ||
+        (this.state.players[this.cardSourceOf(instance).ownerSeat]?.breeding?.stack ?? []).some((card) =>
+          effectsOf(EffectTiming.BeforePayCost, this.cardSourceOf(card)).some(
+            (effect) => effect.isInherited && effect.costWindow === "play",
+          ),
+        ) ||
         this.crossPermanentPlayReducerWatchers(instance, this.cardSourceOf(instance).ownerSeat).length > 0,
       // After the played permanent is created (before On Play), place any cards a cross-permanent
       // reducer (BT10-093) committed under it, and relocate any whole permanent a SELF reducer's cost

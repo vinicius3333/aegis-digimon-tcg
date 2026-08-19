@@ -1,6 +1,7 @@
 // Costs paid to perform an action.
 
 import type { Filter, Target } from "../filters/filter.js";
+import type { Controller } from "../filters/zones.js";
 
 /**
  * A cost paid as part of an action ("by trashing 1 card", "by suspending this Tamer"). Modeled
@@ -8,6 +9,7 @@ import type { Filter, Target } from "../filters/filter.js";
  */
 export interface Cost {
   kind:
+    | "compound" // pay each nested cost in sequence
     | "trash"
     | "suspend"
     | "unsuspend" // BT14-054
@@ -17,13 +19,24 @@ export interface Cost {
     | "payMemory"
     | "flipSecurity" // flip your top face-up security card face down (BT23-043, EX11-031)
     | "trashSecurityTop" // ST23-05
+    | "trashBottomFaceDownUnderTamer"
     | "securityToHand"
     | "placeAsSecurity" // move a permanent to the security stack (BT19-048)
+    | "reveal" // reveal cards from a loose zone without moving them (EX4-023)
+    | "moveToBattleArea" // move the source from breeding to the battle area (BT18-086)
+    | "attack" // perform the source Digimon's attack (AD1-020)
+    | "digivolveSelf" // digivolve the source into the effect card (BT17-073)
     | "playFromDigivolutionCards" // play a card from a selected Digimon's stack (BT19-102)
     | "raw";
   target?: Target;
+  /** The nested costs a `compound` cost pays. */
+  costs?: Cost[];
   /** Host permanent selected before resolving a stack-card play cost (BT19-102). */
   hostTarget?: Target;
+  /** Whose stack a specialized cost draws from. */
+  controller?: Controller;
+  /** Cards required by a specialized fixed-card cost. */
+  count?: number;
   /** For `payMemory`. */
   memory?: number;
   /**
@@ -33,7 +46,7 @@ export interface Cost {
   optional?: boolean;
   raw?: string;
   /** For `return` costs; `"deckBottom"` sends the card under its owner's deck (BT19-002). */
-  to?: "hand" | "deckBottom";
+  to?: "hand" | "deckBottom" | "deckTop" | "deckTopOrBottom";
   /**
    * Store the returned Digimon's level in `EffectContext.namedCounts` under this name, so a
    * later `levelLte` can compare against it (BT19-002 "returnedDigimonLevel").
@@ -56,7 +69,7 @@ export interface Cost {
    * `"security"` (BT23-045, BT24-040, BT25-044) or `"digivolutionStack"` at `position`
    * (EX9-055 top; EX9-064 bottom, face down). Absent keeps the legacy placeUnder behavior.
    */
-  destination?: "security" | "digivolutionStack";
+  destination?: "security" | "digivolutionStack" | "battleArea";
   /**
    * Which end to place at. `"choice"` prompts per placed card (EX12-077). `"faceUpBottom"` is
    * `placeAsSecurity` only: face-up under the security stack (BT19-048).

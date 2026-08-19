@@ -76,6 +76,7 @@ export type SubTriggerEventName =
   | "whenSecurityBattleEnded"
   | "whenDeletesInBattle"
   | "whenOneOfYoursDigivolves"
+  | "whenAnyDigivolves"
   | "whenHatch"
   | "whenMovedFromBreeding"
   | "whenOpponentMovedFromBreeding"
@@ -87,6 +88,7 @@ export type SubTriggerEventName =
   | "onAddDigivolutionCards"
   | "whenPlayed"
   | "whenOptionPlayed"
+  | "whenOptionInBattleAreaTrashed"
   | "whenLeavesPlay"
   | "whenLinked"
   | "whenLinkTrashed"
@@ -144,7 +146,11 @@ export type RemovalCause = "byEffect" | "byBattle" | "byRule";
  * sections 2 and 10).
  */
 export interface TriggerInfo {
+  /** Card id being played during the pay-time cost window. */
+  wouldBePlayedCardId?: string;
   attackerPermanentId?: string;
+  /** Named attack procedure that caused the current attack watcher, when applicable. */
+  attackMechanic?: string;
   /** The defending permanent of the in-flight battle (the original target or the blocker). */
   defenderPermanentId?: string;
   /** The Digimon that declared a block this battle (＜Blocker＞ window). */
@@ -173,6 +179,10 @@ export interface TriggerInfo {
   deletedByDpZero?: boolean;
   /** Security card currently being checked. */
   securityInstanceId?: string;
+  /** Option permanent card instance that was trashed from the battle area. */
+  trashedOptionInstanceId?: string;
+  /** The checked security card was face-up before the check revealed it. */
+  securityWasFaceUp?: boolean;
   /** Permanent that was suspended (OnTappedAnyone). */
   suspendedPermanentId?: string;
   /**
@@ -232,6 +242,8 @@ export interface TriggerInfo {
   subjectPermanentIds?: string[];
   /** Card instances just added to the subject permanent's digivolution stack. */
   addedDigivolutionCardInstanceIds?: string[];
+  /** Stack position used by an effect placing cards under a Digimon. */
+  addedDigivolutionCardsPosition?: "top" | "bottom";
   /** Printed card id selected as the destination of an imminent digivolution. */
   digivolvingIntoCardId?: string;
   /** Printed level of the permanent's top card immediately before a digivolution. */
@@ -625,7 +637,7 @@ export interface Primitives {
   relocatePermanent(
     destPermanentId: string,
     sourcePermanentId: string,
-    opts?: { belowTop?: boolean; shedOwnCards?: boolean },
+    opts?: { belowTop?: boolean; shedOwnCards?: boolean; faceUp?: boolean },
   ): boolean;
   /**
    * Effect/cost form of `relocatePermanent`: after the move, opens the canonical
@@ -636,7 +648,7 @@ export interface Primitives {
   relocatePermanentByEffect?(
     destPermanentId: string,
     sourcePermanentId: string,
-    opts?: { belowTop?: boolean; shedOwnCards?: boolean },
+    opts?: { belowTop?: boolean; shedOwnCards?: boolean; faceUp?: boolean },
   ): Promise<boolean>;
   /**
    * Move a whole permanent (top + digivolution stack + linked cards) across the
@@ -1056,7 +1068,12 @@ export interface Primitives {
    * Confer all effects of a digivolution-stack card onto its owning permanent
    * (GrantStatic grant:"effects").
    */
-  conferStackEffects(targetPermanentId: string, stackInstanceId: string, duration: EffectDuration): void;
+  conferStackEffects(
+    targetPermanentId: string,
+    stackInstanceId: string,
+    duration: EffectDuration,
+    opts?: { trigger?: string },
+  ): void;
 
   // --- security-stack manipulation -------------------------------------------
   /** Shuffle a seat's security stack in place (uniform). */
@@ -1165,7 +1182,11 @@ export interface Primitives {
   playToken(
     seat: Seat,
     tokenName: string,
-    opts?: { payCost?: boolean; suspended?: boolean },
+    opts?: {
+      payCost?: boolean;
+      suspended?: boolean;
+      keywords?: Array<{ keyword: string; amount?: number; specifiers?: string[] }>;
+    },
   ): Promise<Permanent | undefined>;
   /** Apply a transient DP modifier to a seat's security Digimon during a check. */
   modifySecurityDp(seat: Seat, delta: number, opts?: { continuous?: boolean; duration?: EffectDuration }): void;
@@ -1501,6 +1522,8 @@ export interface EffectContext {
   activeTiming?: string;
   /** Exact rules clause currently resolving, including inherited/security provenance. Display-only. */
   activeEffectText?: string;
+  /** Temporary restrictions installed by a RestrictEffect action in this resolution. */
+  effectRestrictions?: Set<string>;
   game: GameAccess;
   fx: Primitives;
   ask: DecisionApi;
@@ -1593,6 +1616,8 @@ export interface EffectContext {
    * no self-reducer requested a relocation this play.
    */
   pendingSelfReducerRelocations?: string[];
+  /** Loose card instance ids committed under the card being played once its permanent exists. */
+  pendingSelfReducerPlacements?: string[];
   /**
    * The set of permanent ids ACTUALLY deleted by the most recent `DeleteByDPBudget` action in
    * this resolution (CAP-A3). Written by the executor after the batch delete; read by the

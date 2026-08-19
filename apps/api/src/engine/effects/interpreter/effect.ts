@@ -370,7 +370,12 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
     if (effect.turnCondition === "opponentsTurn" && isOwnerTurn) return;
   }
   // Fresh selection-binding store for this resolution (SelectBind -> later relativeTo refs).
-  const ctxWithSelections: EffectContext = ctx.selections ? ctx : { ...ctx, selections: new Map() };
+  const ctxWithSelections: EffectContext = {
+    ...(ctx.selections ? ctx : { ...ctx, selections: new Map() }),
+    // Restrictions belong to this effect resolution only.  Clone the inherited set so a
+    // nested/subsequent effect cannot accidentally retain a previous card's restriction.
+    effectRestrictions: new Set(ctx.effectRestrictions ?? []),
+  };
   ctxWithSelections.activeTiming = effect.trigger;
   ctxWithSelections.activeEffectText = effect.isInherited
     ? ctx.source.definition.inheritedEffectText
@@ -451,12 +456,15 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
  * activation on a guess).
  */
 export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boolean {
-  if (effect.condition && effect.condition.kind !== "raw" && !evaluateCondition(ctx, effect.condition)) return false;
+  // An unparsed condition is not evidence that the effect is activatable. Treat it as
+  // restrictive here, matching runAction's resolution behavior; otherwise the UI offers an
+  // effect that resolution will silently skip.
+  if (effect.condition && (effect.condition.kind === "raw" || !evaluateCondition(ctx, effect.condition))) return false;
   const relevantActions = (effect.actions ?? []).filter((action) => action.kind !== "RawUnparsed");
   const isGated = (action: Action) =>
     action.kind === "DnaDigivolve" ||
-    (action.kind !== "ConditionalBranch" && action.condition !== undefined && action.condition.kind !== "raw") ||
-    (action.cost !== undefined && action.cost.kind !== "raw");
+    (action.kind !== "ConditionalBranch" && action.condition !== undefined) ||
+    action.cost !== undefined;
   // A leading abort-on-decline action is the activation gate for the complete clause:
   // "If ..., by paying ..., do X. Then, do Y." The dependent `Then` action is often
   // mechanically ungated because it consumes a binding produced by X; treating Y as an
@@ -467,8 +475,7 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
     const intrinsicPossible = leadingAction.kind !== "DnaDigivolve" || canAttemptDnaDigivolve(ctx, leadingAction);
     const conditionMet =
       leadingAction.condition === undefined ||
-      leadingAction.condition.kind === "raw" ||
-      evaluateCondition(ctx, leadingAction.condition);
+      (leadingAction.condition.kind !== "raw" && evaluateCondition(ctx, leadingAction.condition));
     const costPayable = leadingAction.cost === undefined || canPayCost(ctx, leadingAction.cost);
     return intrinsicPossible && conditionMet && costPayable;
   }
@@ -478,7 +485,7 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
   return gatedActions.some((action) => {
     const intrinsicPossible = action.kind !== "DnaDigivolve" || canAttemptDnaDigivolve(ctx, action);
     const conditionMet =
-      action.condition === undefined || action.condition.kind === "raw" || evaluateCondition(ctx, action.condition);
+      action.condition === undefined || (action.condition.kind !== "raw" && evaluateCondition(ctx, action.condition));
     const costPayable = action.cost === undefined || canPayCost(ctx, action.cost);
     return intrinsicPossible && conditionMet && costPayable;
   });

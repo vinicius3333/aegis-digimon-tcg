@@ -2,7 +2,7 @@
 // Hand-authored override for BT25-075 (Vulcanusmon).
 // runtime-effect fix:
 // - Link target count: 2 cards (up to 2), upTo:true; KB Q6371: must have <Link> requirement.
-// - DeDigivolve scaling filter: kind:["Digimon"] added.
+// - DeDigivolve scaling counts all of the controller's link cards.
 // - YourTurn SubTrigger Attack target: kind:["Digimon"] added.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
@@ -74,8 +74,7 @@ const compiled: CompiledCard = {
           "scaling": {
             "per": 1,
             "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"]
+              "controller": "mine"
             },
             "unit": "cards"
           }
@@ -124,8 +123,7 @@ const compiled: CompiledCard = {
           "scaling": {
             "per": 1,
             "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"]
+              "controller": "mine"
             },
             "unit": "cards"
           }

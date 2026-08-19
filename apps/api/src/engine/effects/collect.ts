@@ -93,16 +93,17 @@ export function collectGrantedCustomEffects(
  */
 export function collectConferredEffects(
   timing: EffectTiming,
-  conferrals: readonly { targetPermanentId: string; stackInstanceId: string }[],
+  conferrals: readonly { targetPermanentId: string; stackInstanceId: string; trigger?: string }[],
   instanceById: (id: string) => CardSource | undefined,
   makeContext: (source: CardSource, effect: Effect, conferredToPermanentId: string) => EffectContext,
   tracker: UseTracker,
 ): CollectedEffect[] {
   const collected: CollectedEffect[] = [];
-  for (const { targetPermanentId, stackInstanceId } of conferrals) {
+  for (const { targetPermanentId, stackInstanceId, trigger } of conferrals) {
     const source = instanceById(stackInstanceId);
     if (source === undefined) continue;
     for (const effect of effectsOf(timing, source)) {
+      if (trigger !== undefined && effect.irTrigger !== trigger) continue;
       const ctx = makeContext(source, effect, targetPermanentId);
       if (canTrigger(effect, ctx, tracker) && canActivate(effect, ctx, tracker)) {
         collected.push({ source, effect, timing, conferredToPermanentId: targetPermanentId });

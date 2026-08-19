@@ -440,6 +440,25 @@ describe("primitives: playToken (PlayToken IR kind)", () => {
     expect(h.events.some((e) => e.kind === "cardsMoved" && e.to === "battleArea")).toBe(true);
   });
 
+  it("preserves descriptor keyword metadata on Atho, René & Por", async () => {
+    const h = harness();
+    const permanent = await h.fx.playToken(0, "AthoRenePor Token", {
+      payCost: false,
+      keywords: [
+        { keyword: "Reboot" },
+        { keyword: "Blocker" },
+        { keyword: "Decoy", specifiers: ["Red", "Black"] },
+      ],
+    });
+    expect(permanent).toBeDefined();
+    expect(h.continuous.grantedKeywords(permanent!.permanentId)).toEqual([
+      { keyword: "Reboot", amount: undefined },
+      { keyword: "Blocker", amount: undefined },
+      { keyword: "Decoy", amount: undefined },
+    ]);
+    expect(h.continuous.keywordSpecifiers(permanent!.permanentId, "Decoy")).toEqual(["Red", "Black"]);
+  });
+
   it("REVERT-CONFIRM-RED: an unknown token name creates nothing", async () => {
     // The token is resolved by name; an unresolvable name yields no permanent (the fails-when-
     // reverted lever: stubbing the playToken dispatch likewise produces no token).
@@ -1175,15 +1194,16 @@ describe("primitives: placeUnder / link", () => {
     });
     const destId = h.s.perm("dest").permanentId;
     const sourceId = h.s.perm("source").permanentId;
+    const sourceInstanceId = h.s.perm("source").topCard!.instanceId;
     expect(await h.fx.relocatePermanentByEffect?.(destId, sourceId)).toBe(true);
 
-    // The payload also carries the moved card ids; the destination is what this asserts.
-    expect(h.subTriggerFires).toContainEqual(
-      expect.objectContaining({
-        event: "onAddDigivolutionCards",
-        payload: expect.objectContaining({ subjectPermanentId: destId }),
-      }),
-    );
+    expect(h.subTriggerFires).toContainEqual({
+      event: "onAddDigivolutionCards",
+      payload: expect.objectContaining({ subjectPermanentId: destId }),
+    });
+    expect(h.subTriggerFires.find((entry) => entry.event === "onAddDigivolutionCards")?.payload).toMatchObject({
+      addedDigivolutionCardInstanceIds: [sourceInstanceId],
+    });
     expect(h.s.perm("dest").stack.map(({ cardId }) => cardId)).toContain(DIGIMON);
   });
 

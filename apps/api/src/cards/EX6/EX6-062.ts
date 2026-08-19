@@ -97,7 +97,7 @@ const compiled: CompiledCard = {
             }
           },
           "while": {
-            "kind": "raw",
+            "kind": "selfDigivolutionStackCountAtLeast", "count": 4, "filter": {"levels": [6]},
             "raw": "this Digimon has 4 or more level 6 cards in its digivolution cards"
           }
         },
@@ -118,7 +118,7 @@ const compiled: CompiledCard = {
             }
           },
           "while": {
-            "kind": "raw",
+            "kind": "selfDigivolutionStackCountAtLeast", "count": 4, "filter": {"levels": [6]},
             "raw": "this Digimon has 4 or more level 6 cards in its digivolution cards"
           }
         }

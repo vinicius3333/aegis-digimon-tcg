@@ -54,13 +54,21 @@ const compiled: CompiledCard = {
       "actions": [
         {
           "kind": "DnaDigivolve",
-          "materials": {
-            "filter": {
-              "isSelfRef": true
+          "materials": [
+            {
+              "filter": { "isSelfRef": true },
+              "count": 1,
+              "isSelf": true
             },
-            "count": 1,
-            "isSelf": true
-          },
+            {
+              "filter": {
+                "controller": "mine",
+                "kind": ["Digimon"],
+                "excludeSelf": true
+              },
+              "count": 1
+            }
+          ],
           "into": {
             "controller": "mine",
             "kind": [

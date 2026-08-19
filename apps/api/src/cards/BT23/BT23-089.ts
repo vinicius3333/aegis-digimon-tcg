@@ -8,7 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // you may pay: suspend this Tamer AND trash 2 same-level digivolution cards from 1 of
 // your [CS] Digimon → they don't leave.
 // [Security] Play this Tamer without paying the cost.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourMainPhase",
@@ -32,11 +32,18 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Replacement",
-          event: "wouldLeaveBattleArea",
+          event: "wouldLeavePlay",
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
             nameOrTrait: [{ tokens: ["CS"], match: "trait" }],
+          },
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["CS"], match: "trait" }],
+            },
           },
           // Compound cost: suspend this Tamer AND trash 2 same-level digivolution cards
           cost: {
@@ -51,17 +58,18 @@ const compiled: CompiledCard = {
                 },
               },
               {
-                kind: "trashDigivolutionCards",
+                kind: "trash",
                 target: {
                   filter: {
                     controller: "mine",
                     kind: ["Digimon"],
                     nameOrTrait: [{ tokens: ["CS"], match: "trait" }],
+                    zone: "digivolutionCards",
+                    sameHost: true,
+                    sameLevelPair: true,
                   },
-                  count: 1,
+                  count: 2,
                 },
-                amount: 2,
-                position: "sameLevel",
               },
             ],
             raw: "by suspending this Tamer and trashing 2 same-level digivolution cards from 1 of your [CS] trait Digimon",
@@ -73,25 +81,25 @@ const compiled: CompiledCard = {
       ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
+          payCost: false,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT23-089", compiled);

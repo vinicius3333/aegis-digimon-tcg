@@ -4,8 +4,10 @@ import { ContinuousEffectLedger } from "../../engine/effects/continuous.js";
 import { effectsOf } from "../../engine/effects/collect.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { validateDigivolve, type DigivolveIntent } from "../../engine/actions/digivolve.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
-import "../index.js"; // register compiled cards so the real OnPlay/activate/OnEndTurn paths run
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import "./EX10-035.js"; // register the audited override so the real paths run
 
 /**
  * A3 for EX10-035 — restricted-digivolve-target (digivolveExceptInto) + delayed-delete-played
@@ -111,6 +113,9 @@ async function fireOnPlayForInstance(s: EngineSetup, instanceId: string): Promis
 }
 
 async function fireEndTurn(s: EngineSetup): Promise<void> {
+  // Keep the privileged timing fire in the source owner's frame. Paying 6 may already
+  // advance the harness turn before this direct seam is invoked.
+  s.state.turnSeat = 0;
   await (s.engine as unknown as { fireTiming(t: EffectTiming): Promise<void> }).fireTiming(
     EffectTiming.OnEndTurn,
   );
@@ -121,6 +126,9 @@ function onField(s: EngineSetup, instanceId: string): boolean {
 }
 
 describe("EX10-035 — delayed-delete-played gates to the reduced-cost [Hand][Main] play (KB Q5737)", () => {
+  it("registers the audited delayed-delete action", () => {
+    expect(runtimeCompiledCard("EX10-035")!.effects[0]!.actions[1]!.kind).toBe("DelayedDeletePlayed");
+  });
   it("the [Hand][Main] effect plays EX10-035 for cost 11-5=6 and arms the turn-end self-delete", async () => {
     // EX10-035 in hand. A [Dark Masters]-text Digimon (BT15-027) on the board satisfies the
     // activation condition ("no Digimon OTHER than [Dark Masters]-text Digimon").
@@ -137,7 +145,7 @@ describe("EX10-035 — delayed-delete-played gates to the reduced-cost [Hand][Ma
     const inHand = s.inst("inHand");
 
     // Make the reduced cost (6) payable: seat 0 (turn player) can push the gauge by memory+10.
-    s.state.memory = 0; // maxAffordable for the turn player = 0 + 10 = 10 >= 6
+    s.state.memory = 6;
 
     // Activate the [Hand][Main] reduced-cost play through the real activateEffect verb.
     const effectKey = reducedCostPlayEffectKey(s, inHand);
@@ -145,11 +153,12 @@ describe("EX10-035 — delayed-delete-played gates to the reduced-cost [Hand][Ma
       ok: true,
     });
     await settle(() => onField(s, inHand.instanceId));
+    await settle();
 
     // It was played from hand (cost 6 paid: gauge 0 -> -6 for the turn player) and is on the field.
     expect(onField(s, inHand.instanceId)).toBe(true);
     expect(p0.hand.some((c) => c.instanceId === inHand.instanceId)).toBe(false);
-    expect(s.state.memory).toBe(-6); // 11 printed − 5 reduction = 6 paid (REVERT-RED: drop reduceCostBy => -11... unaffordable, no play)
+    expect(s.state.memory).toBe(0); // 11 printed − 5 reduction = 6 paid
 
     // End of the owner's turn: the armed watcher fires and deletes the card it played.
     // The play lands one continuation before the arming action, so flush the rest of the
@@ -206,5 +215,40 @@ describe("EX10-035 — delayed-delete-played gates to the reduced-cost [Hand][Ma
     // REVERT-CONFIRM-RED: drop the `excludeNameOrTrait` rejection in definitionMatches (so the
     // plain AD1-001 no longer counts against the gate) => `youHaveNone` holds => EX10-035 is
     // played => this assertion goes RED.
+  });
+});
+
+describe("EX10-035 — deletion and face-up security clauses", () => {
+  it("places itself face up in security on deletion when no black face-up security exists", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX10-035", as: "machinedramon" }] } });
+    const instanceId = s.perm("machinedramon").topCard.instanceId;
+
+    await advance(s.engine).verb.deletePermanent([s.perm("machinedramon").permanentId]);
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === instanceId));
+
+    expect(s.state.players[0]!.security.find((card) => card.instanceId === instanceId)?.faceUp).toBe(true);
+  });
+
+  it("plays a level 5 Dark Masters-text card when checked from face-up security", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: {
+          hand: [{ card: "BT15-027", as: "playTarget" }],
+          security: [{ card: "EX10-035", faceUp: true }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT15-027"));
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT15-027");
   });
 });

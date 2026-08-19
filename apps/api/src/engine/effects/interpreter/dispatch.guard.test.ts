@@ -49,9 +49,7 @@ describe("interpreter dispatch wiring", () => {
 
   it("interpreter.ts loads every installer module", () => {
     const entry = readFileSync(ENTRY_POINT, "utf8");
-    const unloaded = installers.filter(
-      (module) => !entry.includes(`./interpreter/${module.replace(/\.ts$/, ".js")}`),
-    );
+    const unloaded = installers.filter((module) => !entry.includes(`./interpreter/${module.replace(/\.ts$/, ".js")}`));
     expect(unloaded).toEqual([]);
   });
 });

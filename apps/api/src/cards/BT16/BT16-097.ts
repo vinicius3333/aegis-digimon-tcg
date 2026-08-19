@@ -60,7 +60,7 @@ const compiled: CompiledCard = {
           "source": "deck",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectDigivolved",
             "raw": "this effect DNA digivolved"
           }
         }

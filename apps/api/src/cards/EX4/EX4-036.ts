@@ -19,7 +19,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //
 // Digivolution fix: multicolor:true requires exactly 2+ colors AND must include green.
 // The existing IR uses multicolor:true + colors:['Green'] which is correct for "2-color w/green".
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "EndOfAttack",
@@ -35,7 +35,9 @@ const compiled: CompiledCard = {
             },
             "count": 1
           },
-          "fromTop": true
+          "fromTop": true,
+          "amount": 99,
+          "stopAtLevel": 3
         },
         {
           "kind": "DeDigivolve",
@@ -88,10 +90,8 @@ const compiled: CompiledCard = {
       "frequency": "OncePerTurn"
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "The 'stop trashing when you would trash a level 3 card or the last card' behavior is not represented; only the base TrashDigivolution action is encoded."
-  ],
+  "coverage": "full",
+  "residual": [],
   "digivolutionRequirement": [
     {
       "level": 4,

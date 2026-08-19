@@ -87,7 +87,17 @@ const compiled: CompiledCard = {
             "amount": 2000
           },
           "while": {
-            "kind": "raw",
+            "kind": "anyOf",
+            "conditions": [
+              { "kind": "allOf", "conditions": [
+                { "kind": "selfHasTrait", "filter": { "nameOrTrait": [{ "tokens": ["Beast", "Animal", "Sovereign"], "match": "trait" }] } },
+                { "kind": "not", "condition": { "kind": "selfHasTrait", "filter": { "nameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }] } } }
+              ] },
+              { "kind": "allOf", "conditions": [
+                { "kind": "selfHasTrait", "filter": { "nameOrTrait": [{ "tokens": ["Royal Knight"], "match": "trait" }] } },
+                { "kind": "not", "condition": { "kind": "selfHasTrait", "filter": { "nameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }] } } }
+              ] }
+            ],
             "raw": "this Digimon has [Beast], [Animal], or [Sovereign], other than [Sea Animal], in one of its traits or the [Royal Knight] trait"
           }
         }

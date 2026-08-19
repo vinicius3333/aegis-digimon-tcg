@@ -73,7 +73,7 @@ const compiled: CompiledCard = {
           ],
           "payCost": false,
           "condition": {
-            "kind": "raw",
+            "kind": "not", "condition": {"kind": "triggerRemovalCause", "removalCause": "byBattle"},
             "raw": "deleted outside of a battle"
           },
           "optional": true

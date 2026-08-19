@@ -34,17 +34,25 @@ export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefine
   whenBattleWon: "whenBattleWon",
   whenDeletesInBattle: "whenDeletesInBattle",
   whenOneOfYoursDigivolves: "whenOneOfYoursDigivolves",
+  whenAnyDigivolves: "whenAnyDigivolves",
   whenHatch: "whenHatch",
   whenMovedFromBreeding: "whenMovedFromBreeding",
   whenOpponentMovedFromBreeding: "whenOpponentMovedFromBreeding",
   onDeletionOf: "onDeletionOf",
   whenSecurityRemoved: "whenSecurityRemoved",
+  // Alias used by the ST15 hand-authored module; both spellings share the
+  // same security-removal payload and fire sites.
+  whenSecurityCardRemoved: "whenSecurityRemoved",
   whenEffectRemovesFromSecurity: "whenEffectRemovesFromSecurity",
   whenAddSecurity: "whenAddSecurity",
   whenFaceUpCardsAddedToOpponentSecurity: "whenFaceUpCardsAddedToOpponentSecurity",
   onAddDigivolutionCards: "onAddDigivolutionCards",
   whenPlayed: "whenPlayed",
   whenOptionPlayed: "whenOptionPlayed",
+  whenOptionInBattleAreaTrashed: "whenOptionInBattleAreaTrashed",
+  // Legacy wording for a deletion-driven watcher. The deletion seam carries the
+  // same subject permanent payload and source filters still narrow it precisely.
+  whenEffectDeletes: "onDeletionOf",
   // Parser wording for "place [Option] in the battle area". The placement primitive emits
   // `whenOptionPlayed` as the canonical engine event (distinct from using its [Main] effect).
   whenPlacedInBattleArea: "whenOptionPlayed",
@@ -504,6 +512,21 @@ export async function runSubTrigger(
     (event === "onAddDigivolutionCards" || ATTACK_TRIGGER_FILTER_EVENTS.has(event))
       ? (subCtx: EffectContext): boolean => subjectMatchesFilter(subCtx, action.triggerFilter!)
       : undefined;
+  const addedDigivolutionCardGate =
+    event === "onAddDigivolutionCards" && action.addedDigivolutionCardFilter !== undefined
+      ? (subCtx: EffectContext): boolean => {
+          const subjectId = subCtx.trigger?.subjectPermanentId;
+          const ids = subCtx.trigger?.addedDigivolutionCardInstanceIds ?? [];
+          if (subjectId === undefined || ids.length === 0) return false;
+          const subject = subCtx.game.permanentById(subjectId);
+          if (subject === undefined) return false;
+          return subject.stack.some(
+            (card) =>
+              ids.includes(card.instanceId) &&
+              definitionMatches(action.addedDigivolutionCardFilter!, subCtx.game.definitionOf(card)),
+          );
+        }
+      : undefined;
   // `sourceFilter.nameMatchesInheritedHost` (CAP-G2, BT2-059 Kurisarimon): fires ONLY when the
   // played card's name matches the HOST permanent's current top-card name. "This Digimon" in an
   // inherited effect text refers to the Digimon whose digivolution stack contains this card —
@@ -555,6 +578,7 @@ export async function runSubTrigger(
     digivolutionCardDiscardedGate,
     effectSourceGate,
     triggerFilterGate,
+    addedDigivolutionCardGate,
     inheritedHostNameGate,
     deleteCauseGate,
   ].filter((g): g is (subCtx: EffectContext) => boolean => g !== undefined);

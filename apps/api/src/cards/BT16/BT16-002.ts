@@ -24,7 +24,7 @@ const compiled: CompiledCard = {
             "amount": 1000
           },
           "while": {
-            "kind": "raw",
+            "kind": "selfColorCount", "value": 2,
             "raw": "this Digimon has 2 or more colors"
           }
         }

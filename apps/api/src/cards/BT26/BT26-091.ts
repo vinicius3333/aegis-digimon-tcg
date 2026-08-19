@@ -10,11 +10,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 /**
  * BT26-091 — Yoshino Fujieda (BT26, Green Tamer).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-091` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * Q7144–Q7148 confirm bottom placement, immutable face-down stacking, visibility, face-up
+ * trash handling, and that the reduced-cost effect may be activated even when another
+ * effect prevents cost reduction.
  *
  * Printed text:
  *   [Start of Your Main Phase] By placing 1 [DATA SQUAD] trait card from your hand face
@@ -94,7 +92,9 @@ async function suspendSelf(ctx: EffectContext): Promise<boolean> {
  */
 async function offerReducedCostDigivolve(ctx: EffectContext, source: CardSource): Promise<void> {
   const owner = ctx.game.player(source.ownerSeat);
-  const targets = owner.battleArea.filter((p) => !p.inBreeding && p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)));
+  const targets = owner.battleArea.filter(
+    (p) => !p.inBreeding && p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
+  );
   const handCards = Array.from(owner.hand).filter((c) => isEligibleDigivolveTarget(ctx.game.definitionOf(c)));
   if (targets.length === 0 || handCards.length === 0) return;
 
@@ -144,7 +144,9 @@ const module: EffectModule = {
             if (selfPerm === undefined) return;
 
             const owner = ctx.game.player(ctx.source.ownerSeat);
-            const candidates = owner.hand.filter((c) => hasDataSquadTrait(ctx.game.definitionOf(c))).map((c) => c.instanceId);
+            const candidates = owner.hand
+              .filter((c) => hasDataSquadTrait(ctx.game.definitionOf(c)))
+              .map((c) => c.instanceId);
             if (candidates.length === 0) return;
 
             const chosen = await ctx.ask.selectCards(ctx, {

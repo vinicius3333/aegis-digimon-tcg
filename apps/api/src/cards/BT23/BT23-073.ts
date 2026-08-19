@@ -5,150 +5,133 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //
 // The leave-play prevention uses an alternative cost: delete this Digimon OR place this
 // Digimon as the bottom digivolution card of a [Mother Eater] in breeding.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                3
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levels: [3],
             },
-            "count": 1
-          }
-        }
-      ]
+            count: 1,
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "leaveCause": "otherThanYourEffect",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanYourEffect",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Eater",
-                  "Hudie"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Eater", "Hudie"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Prevent",
-              "mode": "leavePlay",
-              "costOptions": [
+              kind: "Prevent",
+              mode: "leavePlay",
+              costOptions: [
                 {
-                  "kind": "deleteOwn",
-                  "target": {
-                    "filter": {
-                      "isSelfRef": true
+                  kind: "deleteOwn",
+                  target: {
+                    filter: {
+                      isSelfRef: true,
                     },
-                    "count": 1,
-                    "isSelf": true
+                    count: 1,
+                    isSelf: true,
                   },
-                  "raw": "deleting this Digimon"
+                  raw: "deleting this Digimon",
                 },
                 {
-                  "kind": "place",
-                  "target": {
-                    "filter": {
-                      "isSelfRef": true
+                  kind: "place",
+                  target: {
+                    filter: {
+                      isSelfRef: true,
                     },
-                    "count": 1,
-                    "isSelf": true
+                    count: 1,
+                    isSelf: true,
                   },
-                  "destination": "digivolutionStack",
-                  "position": "bottom",
-                  "host": {
-                    "filter": {
-                      "controller": "mine",
-                      "zone": "breeding",
-                      "kind": [
-                        "Digimon"
-                      ],
-                      "nameOrTrait": [
+                  destination: "digivolutionStack",
+                  position: "bottom",
+                  host: {
+                    filter: {
+                      controller: "mine",
+                      zone: "breeding",
+                      kind: ["Digimon"],
+                      nameOrTrait: [
                         {
-                          "tokens": [
-                            "Mother Eater"
-                          ],
-                          "match": "name"
-                        }
-                      ]
+                          tokens: ["Mother Eater"],
+                          match: "name",
+                        },
+                      ],
                     },
-                    "count": 1
+                    count: 1,
                   },
-                  "targetIsPermanent": true,
-                  "raw": "placing it as the bottom digivolution card of your [Mother Eater] in the breeding area"
-                }
+                  targetIsPermanent: true,
+                  raw: "placing it as the bottom digivolution card of your [Mother Eater] in the breeding area",
+                },
               ],
-              "optional": true,
-              "abortOnDecline": true
-            }
+              optional: true,
+              abortOnDecline: true,
+            },
           ],
-          "raw": "wouldLeavePlay"
-        }
+          raw: "wouldLeavePlay",
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Eater"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Eater"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 1,
-              "raw": "reduce the play costs by 1",
-              "optional": true
-            }
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 1,
+              raw: "reduce the play costs by 1",
+              optional: true,
+            },
           ],
-          "raw": "wouldBePlayed"
-        }
+          raw: "wouldBePlayed",
+        },
       ],
-      "isInherited": true,
-      "isBreeding": true,
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
-    }
+      isInherited: true,
+      isBreeding: true,
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT23-073", compiled);

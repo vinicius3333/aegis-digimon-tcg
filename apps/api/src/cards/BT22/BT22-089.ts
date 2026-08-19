@@ -40,10 +40,12 @@ export const compiled: CompiledCard = {
           payCost: false,
           cost: {
             kind: "return",
+            to: "deckBottom",
             target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
             raw: "By returning this Tamer to the bottom of the deck",
           },
           optional: true,
+          abortOnDecline: true,
         },
       ],
     },

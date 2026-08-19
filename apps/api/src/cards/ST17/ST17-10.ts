@@ -155,7 +155,7 @@ const compiled: CompiledCard = {
           },
           "duration": "forTheTurn",
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectDigivolved",
             "raw": "this effect digivolved"
           }
         }

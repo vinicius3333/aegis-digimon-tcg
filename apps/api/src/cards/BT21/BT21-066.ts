@@ -12,184 +12,151 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //
 // KB Q4574: "with X in its text" includes name, traits, effects, keywords, etc.
 
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Hunter",
-                    "Hero"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Hunter", "Hero"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Hunter",
-                    "Hero"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Hunter", "Hero"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Hero"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Hero"],
+                  match: "trait",
+                },
+              ],
             },
-            "orFilters": [
+            orFilters: [
               {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "keywords": [
-                  "Save"
-                ]
-              }
+                controller: "mine",
+                kind: ["Digimon"],
+                keywords: ["Save"],
+              },
             ],
-            "count": 1,
-            "from": [
-              "hand",
-              "trash"
-            ]
+            count: 1,
+            from: ["hand", "trash"],
           },
-          "underFilter": {
-            "controller": "mine",
-            "kind": [
-              "Tamer"
-            ]
+          underFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "underFilter": {
-            "controller": "mine",
-            "kind": [
-              "Tamer"
-            ],
-            "excludeToken": true
-          }
-        }
-      ]
+          underFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
+            excludeToken: true,
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+          amount: 2000,
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "texts": [
-        "Save"
-      ],
-      "cost": 2,
-      "isAlternate": true
+      level: 3,
+      texts: ["Save"],
+      cost: 2,
+      isAlternate: true,
     },
     {
-      "level": 3,
-      "traits": [
-        "Hero"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
+      level: 3,
+      traits: ["Hero"],
+      cost: 2,
+      isAlternate: true,
+    },
   ],
-  "digiXrosRequirement": [
+  digiXrosRequirement: [
     {
-      "materials": [
+      materials: [
         {
-          "desc": "1 Digimon card with ＜Save＞ in text"
-        }
+          desc: "1 Digimon card with ＜Save＞ in text",
+        },
       ],
-      "count": 2
-    }
-  ]
+      count: 2,
+    },
+  ],
 };
 
 registerIrCard("BT21-066", compiled);

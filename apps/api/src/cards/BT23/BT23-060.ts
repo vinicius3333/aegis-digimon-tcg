@@ -9,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // "ActivateForeignEffect"): borrow a face-up [Zaxon] trait security card's [On Play] effect
 // and run it as this Digimon's effect. KB Q5331 — the borrowed [On Play]'s "by" condition
 // must be processed (runEffect resolves the whole borrowed CardEffect, so it is).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",

@@ -39,7 +39,8 @@ const compiled: CompiledCard = {
           from: ["trash"],
           payCost: false,
           condition: {
-            kind: "raw",
+            kind: "not",
+            condition: { kind: "selfHasNoDigivolutionCards" },
             raw: "this card had digivolution cards",
           },
           optional: true,

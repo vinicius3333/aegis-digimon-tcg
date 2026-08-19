@@ -16,10 +16,6 @@ import { registerCard } from "../../engine/effects/registry.js";
  *   3. EffectTiming.OnSecurityCheck [Your Turn] — when this Digimon checks
  *      the opponent's security stack: if you have ≤2 security cards, Recovery +1;
  *      if ≥3, gain 1 memory.
- *      RESIDUAL: the engine fires no SubTrigger event for the security-attack
- *      check window; `whenChecksSecurity` / `whenChecksOpponentSecurity` are
- *      defined as SubTriggerEvent enum variants but have zero fire-call sites.
- *      This clause cannot be implemented until the engine fires that event.
  *      KB Q2629: "If this card leaves the battle area due to the revealed card's
  *      [Security] effect, this card's [Your Turn] effect does NOT activate."
  */
@@ -48,8 +44,31 @@ const module: EffectModule = {
       ];
     }
 
-    // [Your Turn] OnSecurityCheck — both branches (Recovery +1 / gain 1 memory)
-    // are engine-gap residuals: the engine never fires whenChecksOpponentSecurity.
+    if (timing === EffectTiming.OnSecurityCheck) {
+      const effect: Effect = {
+        effectKey: `${cardId}/on-security-check-recovery-or-memory`,
+        description:
+          "[Your Turn] When this Digimon checks your opponent's security stack, recover 1 if you have 2 or fewer security cards; otherwise gain 1 memory.",
+        optional: false,
+        isInherited: false,
+        isSecurity: false,
+        isLinked: false,
+        maxPerTurn: -1,
+        canTrigger: (ctx) => {
+          const self = source.permanent();
+          return self !== undefined && source.isOwnersTurn() && ctx.trigger.attackerPermanentId === self.permanentId;
+        },
+        canActivate: () => true,
+        resolve: async (ctx) => {
+          if (ctx.game.player(source.ownerSeat).security.length <= 2) {
+            await ctx.fx.recoverToSecurity(source.ownerSeat, 1);
+          } else {
+            ctx.fx.gainMemory(1);
+          }
+        },
+      };
+      return [effect];
+    }
 
     return [];
   },

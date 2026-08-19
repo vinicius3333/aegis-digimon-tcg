@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -22,14 +24,12 @@ const TAIKI = "BT21-083"; // the Tamer
 const XROS_HEART_DIGIMON = "BT10-008"; // Shoutmon — [Xros Heart] trait
 const PLAIN_DIGIMON = "BT1-009"; // Monodramon — no qualifying trait
 
-function fireTiming(
-  s: EngineSetup,
-  timing: EffectTiming,
-  trigger: Record<string, unknown> = {},
-): Promise<void> {
-  return (s.engine as unknown as {
-    fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
-  }).fireTiming(timing, trigger);
+function fireTiming(s: EngineSetup, timing: EffectTiming, trigger: Record<string, unknown> = {}): Promise<void> {
+  return (
+    s.engine as unknown as {
+      fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
+    }
+  ).fireTiming(timing, trigger);
 }
 
 describe("BT21-083 [Start of Main Phase] place Xros Heart Digimon under Tamer → draw + memory", () => {
@@ -93,5 +93,35 @@ describe("BT21-083 [Start of Main Phase] place Xros Heart Digimon under Tamer �
     expect(s.state.memory).toBe(memBefore);
     expect(p0?.deck.length).toBe(1);
     expect(s.perm("taiki").stack.length).toBe(0);
+  });
+});
+
+describe("BT21-083 module registration", () => {
+  it("registers the played/digivolved attack watcher and security skill", () => {
+    const module = getEffectModule(TAIKI);
+    expect(module).toBeDefined();
+    const definition: CardDefinition = {
+      cardId: TAIKI,
+      set: "BT21",
+      nameEn: "Taiki Kudo",
+      kinds: ["Tamer"] as never,
+      colors: ["Red", "Yellow"] as never,
+      playCost: 4,
+      dp: 0,
+      evoCosts: [],
+      maxCountInDeck: 4,
+    };
+    const source: CardSource = {
+      instanceId: "INST#TAIKI",
+      cardId: TAIKI,
+      ownerSeat: 0 as Seat,
+      definition,
+      permanent: () => undefined,
+      isOnBattleArea: () => true,
+      isOwnersTurn: () => true,
+      hasColor: () => false,
+    };
+    expect(module!.effectsForTiming(EffectTiming.OnEnterFieldAnyone, source)).toHaveLength(1);
+    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)[0]?.isSecurity).toBe(true);
   });
 });

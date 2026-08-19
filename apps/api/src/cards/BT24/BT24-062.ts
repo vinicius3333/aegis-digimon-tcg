@@ -5,125 +5,111 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Armor Purge",
-          "raw": "＜Armor Purge＞"
-        }
-      ]
+          keyword: "Armor Purge",
+          raw: "＜Armor Purge＞",
+        },
+      ],
     },
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "playCostLte": 5,
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              playCostLte: 5,
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Machine",
-                    "Cyborg",
-                    "TS"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Machine", "Cyborg", "TS"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
+            source: "thisDigimon",
           },
-          "from": [
-            "digivolutionCards"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+          from: ["digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "EndOfOpponentsTurn",
-      "actions": [
+      trigger: "EndOfOpponentsTurn",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "playCostLte": 5,
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              playCostLte: 5,
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Machine",
-                    "Cyborg",
-                    "TS"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Machine", "Cyborg", "TS"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
+            source: "thisDigimon",
           },
-          "from": [
-            "digivolutionCards"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+          from: ["digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Restrict",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "restriction": "attackTargetChange",
-          "duration": "permanent"
-        }
+          restriction: "attackTargetChange",
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "traits": [
-        "Machine",
-        "Cyborg",
-        "TS"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      traits: ["Machine", "Cyborg", "TS"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT24-062", compiled);

@@ -25,6 +25,7 @@ const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "mine",
+              "hasLinkRequirement": true,
               "nameOrTrait": [
                 {
                   "tokens": [
@@ -61,6 +62,7 @@ const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "mine",
+              "hasLinkRequirement": true,
               "nameOrTrait": [
                 {
                   "tokens": [

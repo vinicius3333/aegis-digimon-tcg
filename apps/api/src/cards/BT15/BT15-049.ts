@@ -39,7 +39,7 @@ const compiled: CompiledCard = {
             "isSelf": true
           },
           "condition": {
-            "kind": "raw",
+            "kind": "duringAttack",
             "raw": "one of their Digimon is attacking"
           },
           "optional": true
@@ -73,7 +73,7 @@ const compiled: CompiledCard = {
             "isSelf": true
           },
           "condition": {
-            "kind": "raw",
+            "kind": "duringAttack",
             "raw": "one of their Digimon is attacking"
           },
           "optional": true
@@ -95,7 +95,7 @@ const compiled: CompiledCard = {
           "grant": "immuneToOpponentDigimonEffects",
           "duration": "permanent",
           "condition": {
-            "kind": "raw",
+            "kind": "selfIsSuspended",
             "raw": "this Digimon is suspended"
           }
         }

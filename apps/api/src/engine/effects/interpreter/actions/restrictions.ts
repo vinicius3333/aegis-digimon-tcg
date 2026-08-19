@@ -7,10 +7,7 @@ import { seatsForController } from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import type { Action } from "@aegis/shared";
 
-export async function runRestrictionAction(
-  ctx: EffectContext,
-  action: Action,
-): Promise<boolean> {
+export async function runRestrictionAction(ctx: EffectContext, action: Action): Promise<boolean> {
   switch (action.kind) {
     case "Restrict": {
       const ids = await resolvePermanentTargets(ctx, action.target);

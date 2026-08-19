@@ -44,7 +44,7 @@ const compiled: CompiledCard = {
           "ignoreRequirements": true,
           "optional": true,
           "condition": {
-            "kind": "raw",
+            "kind": "lastTargetDpGreaterThanSelf",
             "raw": "attacked a Digimon with higher DP than this Digimon"
           }
         }
@@ -67,7 +67,7 @@ const compiled: CompiledCard = {
             "amount": 2000
           },
           "while": {
-            "kind": "raw",
+            "kind": "selfHasNameContaining", "names": ["Leomon"],
             "raw": "this Digimon has [Leomon] in its name"
           }
         }

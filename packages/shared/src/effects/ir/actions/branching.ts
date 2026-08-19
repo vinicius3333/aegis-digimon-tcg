@@ -23,6 +23,14 @@ export interface GainTriggeredEffectAction extends ActionBase {
   duration: EffectDurationRef;
 }
 
+/** Legacy compiler spelling for a timed trigger grant (EX5-048). */
+export interface GainEffectAction extends ActionBase {
+  kind: "GainEffect";
+  target: Target;
+  grant: { trigger: string; actions: Action[] };
+  duration: EffectDurationRef;
+}
+
 export interface DelayedEffectAction extends ActionBase {
   kind: "DelayedEffect";
   trigger: "nextEndOfOpponentTurn";

@@ -3,6 +3,7 @@
 import type { EffectDurationRef } from "../durations.js";
 import type { Filter, Target } from "../filters/filter.js";
 import type { Controller } from "../filters/zones.js";
+import type { Cost } from "../predicates/costs.js";
 import type { Action } from "./action.js";
 import type { ActionBase } from "./base.js";
 
@@ -134,4 +135,11 @@ export interface ReducePlayCostAction extends ActionBase {
         target: Target;
       };
   amount: { kind: "fixed"; value: number } | { kind: "deletedSacrificePlayCost" };
+}
+
+/** Run a group of actions only once one shared activation cost is paid. */
+export interface CostGatedBlockAction extends ActionBase {
+  kind: "CostGatedBlock";
+  cost: Cost;
+  actions: Action[];
 }

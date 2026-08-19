@@ -10,11 +10,7 @@ import { runLink, runMindLink } from "./link.js";
 import { runPlaceUnder, runTrashDigivolution } from "./placeUnder.js";
 import type { Action } from "@aegis/shared";
 
-export async function runDigivolutionAction(
-  ctx: EffectContext,
-  action: Action,
-  scope: ActionScope,
-): Promise<boolean> {
+export async function runDigivolutionAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
   switch (action.kind) {
     case "DeDigivolve": {

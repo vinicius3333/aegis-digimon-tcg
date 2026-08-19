@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { recordDigimonAttack, rollTurnActivity } from "../../engine/turnActivity.js";
 import "./ST5-04.js";
 
 describe("ST5-04 ToyAgumon", () => {
@@ -27,5 +28,14 @@ describe("ST5-04 ToyAgumon", () => {
     const handBeforeEndEffect = s.state.players[0]!.hand.length;
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
     expect(s.state.players[0]!.hand).toHaveLength(handBeforeEndEffect);
+  });
+
+  it("still draws when the opponent attacked on the previous turn but not this turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "ST5-08", under: ["ST5-04"], as: "host" }], deck: ["ST5-03"] } });
+    s.state.turnSeat = 1;
+    recordDigimonAttack(s.state, 1);
+    rollTurnActivity(s.state);
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
+    expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 });

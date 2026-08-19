@@ -46,7 +46,10 @@ function makeSource(): CardSource {
 describe("BT26-047 [On Play]/[When Digivolving]: may battle 1 opponent Digimon", () => {
   it("calls forceBattle against the chosen opponent target only when the player accepts", async () => {
     const oppDigimon = { permanentId: "opp-perm", topCard: { cardId: "AD1-001" }, inBreeding: false };
-    const players = [{ seat: 0 as Seat, battleArea: [] }, { seat: 1 as Seat, battleArea: [oppDigimon] }];
+    const players = [
+      { seat: 0 as Seat, battleArea: [] },
+      { seat: 1 as Seat, battleArea: [oppDigimon] },
+    ];
 
     const game: GameAccess = {
       player: (seat: Seat) => players[seat] as never,
@@ -82,7 +85,10 @@ describe("BT26-047 [On Play]/[When Digivolving]: may battle 1 opponent Digimon",
 
   it("does not battle when the player declines", async () => {
     const oppDigimon = { permanentId: "opp-perm", topCard: { cardId: "AD1-001" }, inBreeding: false };
-    const players = [{ seat: 0 as Seat, battleArea: [] }, { seat: 1 as Seat, battleArea: [oppDigimon] }];
+    const players = [
+      { seat: 0 as Seat, battleArea: [] },
+      { seat: 1 as Seat, battleArea: [oppDigimon] },
+    ];
 
     const game: GameAccess = {
       player: (seat: Seat) => players[seat] as never,
@@ -103,5 +109,47 @@ describe("BT26-047 [On Play]/[When Digivolving]: may battle 1 opponent Digimon",
     await battleEffect!.resolve(ctx);
 
     expect(battles).toEqual([]);
+  });
+});
+
+describe("BT26-047 suspend-cost clause", () => {
+  it("allows the opponent's Digimon to pay the suspend cost (Q7042)", async () => {
+    const own = { permanentId: "own-perm", topCard: { cardId: "OWN" }, inBreeding: false, isSuspended: true };
+    const opponent = {
+      permanentId: "opp-perm",
+      topCard: { cardId: "OPP" },
+      inBreeding: false,
+      isSuspended: false,
+    };
+    const players = [
+      { seat: 0 as Seat, battleArea: [own] },
+      { seat: 1 as Seat, battleArea: [opponent] },
+    ];
+    const game: GameAccess = {
+      player: (seat: Seat) => players[seat] as never,
+      opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
+      permanentById: (id: string) => [own, opponent].find((p) => p.permanentId === id) as never,
+      definitionOf: (card: { cardId: string }) =>
+        fakeDef({ cardId: card.cardId, types: card.cardId === "OPP" ? ["Insectoid"] : [] }),
+    } as unknown as GameAccess;
+    const suspended: string[][] = [];
+    const fx = {
+      suspend: vi.fn(async (ids: string[]) => suspended.push(ids)),
+      restrict: vi.fn(),
+      modifyDP: vi.fn(),
+    } as unknown as Primitives;
+    const ask = {
+      optional: vi.fn(async () => true),
+      chooseTargets: vi.fn(async () => [opponent.permanentId]),
+    } as unknown as EffectContext["ask"];
+    const source = makeSource();
+    const ctx = { source, trigger: {}, game, fx, ask } as unknown as EffectContext;
+    const effect = getEffectModule(CARD_ID)!
+      .effectsForTiming(EffectTiming.OnPlay, source)
+      .find((candidate) => candidate.effectKey.endsWith("on-play-suspend-buff"))!;
+
+    await effect.resolve(ctx);
+
+    expect(suspended).toEqual([[opponent.permanentId]]);
   });
 });

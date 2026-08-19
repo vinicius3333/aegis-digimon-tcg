@@ -9,10 +9,7 @@ import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardColor, CardKind } from "@aegis/shared";
 import type { Action } from "@aegis/shared";
 
-export async function runGrantStaticAction(
-  ctx: EffectContext,
-  action: Action,
-): Promise<boolean> {
+export async function runGrantStaticAction(ctx: EffectContext, action: Action): Promise<boolean> {
   switch (action.kind) {
     case "GrantStatic": {
       // Registration metadata consumed by the digivolve-cost path. Its live field/turn/OPT
@@ -88,6 +85,13 @@ export async function runGrantStaticAction(
         (action.tokens?.length ?? 0) > 0
       ) {
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
+        // EX4-074's generated catalog uses the literal phrase "get -5000DP" for a
+        // continuous grant, not a triggered ability. Installing it in the named-effect
+        // ledger would make it invisible to the DP calculator, so apply the duration-scoped
+        // modifier directly to the selected permanents.
+        if (action.tokens?.includes("get -5000DP")) {
+          for (const id of ids) ctx.fx.modifyDP(id, -5000, grantDuration);
+        }
         for (const id of ids) {
           // Anchor the grant on the granted Digimon's TOP-CARD instance (persists into trash) and
           // the granter's seat (the duration-sweep frame), so a granted [On Deletion] fires on the
@@ -96,6 +100,7 @@ export async function runGrantStaticAction(
           const top = permanent?.topCard;
           if (top === undefined) continue;
           for (const token of action.tokens ?? []) {
+            if (token === "get -5000DP") continue;
             ctx.fx.grantCustomEffect?.(top.instanceId, top.ownerSeat, token, grantDuration);
           }
         }
@@ -265,8 +270,12 @@ export async function runGrantStaticAction(
       // through the SAME `conferStackEffects` consumer the structured-filter "effects" grant
       // above uses. Unparseable text still fails loudly rather than being silently dropped.
       if (typeof action.grant === "object" && action.grant !== null && "copyEffectsFromDigivolution" in action.grant) {
-        const raw = (action.grant as { copyEffectsFromDigivolution?: { filter?: string } }).copyEffectsFromDigivolution
-          ?.filter;
+        const copySpec = (
+          action.grant as {
+            copyEffectsFromDigivolution?: { filter?: string; trigger?: string };
+          }
+        ).copyEffectsFromDigivolution;
+        const raw = copySpec?.filter;
         const parsedFilter = typeof raw === "string" ? parseCopyEffectsFilterText(raw) : undefined;
         if (parsedFilter === undefined) {
           unsupported(ctx, action, `GrantStatic copyEffectsFromDigivolution with unparseable filter "${raw}"`);
@@ -278,7 +287,7 @@ export async function runGrantStaticAction(
           for (const stackCard of permanent.stack) {
             const def = ctx.game.definitionOf(stackCard);
             if (!definitionMatches(parsedFilter, def as DefinitionFacts)) continue;
-            ctx.fx.conferStackEffects(permanentId, stackCard.instanceId, duration);
+            ctx.fx.conferStackEffects(permanentId, stackCard.instanceId, duration, { trigger: copySpec?.trigger });
           }
         }
         return false;
@@ -436,6 +445,19 @@ export async function runGrantStaticAction(
             continue;
           }
           for (const id of ids) ctx.fx.restrict(id, mapped, grantDuration, { byOpponentEffectsOnly: true });
+        }
+        return false;
+      }
+      // BT18-065: while the controller has no Digimon other than Vemmon,
+      // cards in that controller's trash are legal DigiXros materials. This
+      // uses the same per-seat expansion ledger as the Tamer expander cards;
+      // the enclosing static condition is re-evaluated on every recompute.
+      if (action.grant === "digixrosFromTrash") {
+        const grantDuration = toDuration(action.duration ?? "permanent");
+        for (const id of ids) {
+          const permanent = ctx.game.permanentById(id);
+          if (permanent === undefined) continue;
+          ctx.fx.expandDigiXrosZones?.(permanent.controllerSeat, ["trash"], grantDuration);
         }
         return false;
       }

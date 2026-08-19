@@ -36,7 +36,12 @@ import "./interpreter/actions/runAction.js";
 import "./interpreter/effect.js";
 
 export { linkCostOf } from "./interpreter/actions/link.js";
-export { runtimeCompiledCard, universalNameAliasesFor } from "./interpreter/compiledCards.js";
+export {
+  hasRegisteredCompiledCard,
+  runtimeCompiledCard,
+  universalNameAliasesFor,
+} from "./interpreter/compiledCards.js";
+export { evaluateCondition } from "./interpreter/conditions.js";
 export { payCost } from "./interpreter/costs.js";
 export { UnsupportedEffectError } from "./interpreter/errors.js";
 export { grantedTokenEffectsForTiming } from "./interpreter/grantedEffects.js";

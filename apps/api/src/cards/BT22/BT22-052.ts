@@ -5,151 +5,135 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true,
-      "keywords": [
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [
         {
-          "keyword": "BlastDigivolve",
-          "raw": "＜Blast Digivolve＞"
-        }
-      ]
+          keyword: "BlastDigivolve",
+          raw: "＜Blast Digivolve＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 5000
-              }
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 5000,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
+          from: ["hand"],
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "gte",
-                "value": 3
-              }
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "gte",
+                value: 3,
+              },
             },
-            "count": "all"
+            count: "all",
           },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
           },
-          "duration": "untilOpponentTurnEnd",
-          "optional": true
-        }
-      ]
+          duration: "untilOpponentTurnEnd",
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 5000
-              }
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 5000,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
+          from: ["hand"],
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "gte",
-                "value": 3
-              }
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "gte",
+                value: 3,
+              },
             },
-            "count": "all"
+            count: "all",
           },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
           },
-          "duration": "untilOpponentTurnEnd",
-          "optional": true
-        }
-      ]
+          duration: "untilOpponentTurnEnd",
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 2
-            }
-          ]
-        }
+              kind: "GainMemory",
+              amount: 2,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "traits": [
-        "CS"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["CS"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT22-052", compiled);

@@ -25,7 +25,11 @@ const compiled: CompiledCard = {
               "kind": "GainMemory",
               "amount": 1,
               "condition": {
-                "kind": "raw",
+                "kind": "anyOf",
+                "conditions": [
+                  { "kind": "triggerSubjectMatchesFilter", "filter": { "nameOrTrait": [{ "tokens": ["Free"], "match": "trait" }] } },
+                  { "kind": "triggerSubjectHasColor", "filter": { "colors": ["Yellow"] } }
+                ],
                 "raw": "it has the [Free] trait or is yellow"
               }
             }
@@ -46,7 +50,11 @@ const compiled: CompiledCard = {
               "kind": "GainMemory",
               "amount": 1,
               "condition": {
-                "kind": "raw",
+                "kind": "anyOf",
+                "conditions": [
+                  { "kind": "triggerSubjectMatchesFilter", "filter": { "nameOrTrait": [{ "tokens": ["Free"], "match": "trait" }] } },
+                  { "kind": "triggerSubjectHasColor", "filter": { "colors": ["Yellow"] } }
+                ],
                 "raw": "it has the [Free] trait or is yellow"
               }
             }

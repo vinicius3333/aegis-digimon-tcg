@@ -56,6 +56,71 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
         ids.every((id) => (ctx.game.permanentById(id)?.currentDP ?? -Infinity) >= (cond.value ?? Infinity))
       );
     }
+    case "lastTargetDpAtMostSelf": {
+      const source = ctx.source.permanent();
+      const ids = ctx.lastResolvedPermanentIds ?? [];
+      return (
+        source !== undefined &&
+        ids.length > 0 &&
+        ids.every((id) => (ctx.game.permanentById(id)?.currentDP ?? Infinity) <= source.currentDP)
+      );
+    }
+    case "lastTargetDpGreaterThanSelf": {
+      const source = ctx.source.permanent();
+      const ids = ctx.lastResolvedPermanentIds ?? [];
+      return (
+        source !== undefined &&
+        ids.length > 0 &&
+        ids.every((id) => (ctx.game.permanentById(id)?.currentDP ?? -Infinity) > source.currentDP)
+      );
+    }
+    case "lastTargetCanTrashDigivolution": {
+      const ids = ctx.lastResolvedPermanentIds ?? [];
+      return (
+        ids.length > 0 &&
+        ids.every((id) => {
+          const permanent = ctx.game.permanentById(id);
+          if (permanent === undefined || permanent.stack.length <= 1) return false;
+          const level = permanent.topCard === undefined ? undefined : ctx.game.definitionOf(permanent.topCard).level;
+          return level !== 3;
+        })
+      );
+    }
+    case "triggerRevealedFromDeck":
+      return (ctx.lastRevealedCards ?? []).some((card) => card.cardId === ctx.source.cardId);
+    case "triggerRevealedMatchesFilter":
+      return (
+        cond.filter !== undefined &&
+        (ctx.lastRevealedCards ?? []).some((card) =>
+          definitionMatches(cond.filter!, ctx.game.definitionOf(card as never)),
+        )
+      );
+    case "triggerAttackBy":
+      return ctx.trigger.attackMechanic === cond.keyword;
+    case "allYoursMatchFilter":
+      return ctx.game
+        .player(mine)
+        .battleArea.every(
+          (permanent) =>
+            cond.filter === undefined ||
+            permanentMatchesFilter(ctx, permanent, { ...cond.filter, controller: "mine" }, ctx.source),
+        );
+    case "breedingAreaEmpty":
+      return ctx.game.player(mine).breeding === undefined;
+    case "digivolutionCountCompare": {
+      const ids = ctx.lastResolvedPermanentIds ?? [];
+      const target = ids.length === 1 ? ctx.game.permanentById(ids[0]!) : undefined;
+      const source = ctx.source.permanent();
+      if (target === undefined || source === undefined) return false;
+      const targetCount = target.stack.length - 1;
+      const sourceCount = source.stack.length - 1;
+      return compareNumber(targetCount, cond.op, sourceCount);
+    }
+    case "triggerPlayCostAtMostStackCount": {
+      const source = ctx.source.permanent();
+      const playCost = ctx.trigger.playedPlayCost;
+      return source !== undefined && playCost !== undefined && playCost <= source.stack.length - 1;
+    }
     case "selfHasKeyword": {
       const permanent = ctx.source.permanent();
       return permanent !== undefined && cond.keyword !== undefined
@@ -133,6 +198,14 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       if (cond.op === "gt") return size > value;
       return cond.op === "lte" ? size <= value : size >= value;
     }
+    case "combinedTrashCount": {
+      const size = ctx.game.player(mine).trash.length + ctx.game.player(opp).trash.length;
+      const value = cond.value ?? 0;
+      if (cond.op === "eq") return size === value;
+      if (cond.op === "lt") return size < value;
+      if (cond.op === "gt") return size > value;
+      return cond.op === "lte" ? size <= value : size >= value;
+    }
     case "zoneColorCount": {
       // "Your Tamers have N or more total colors" counts each distinct printed color once,
       // even when multiple Tamers share it (KB Q4456). The condition's zone is intentionally
@@ -143,6 +216,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
         if (permanent.topCard === undefined) continue;
         const definition = ctx.game.definitionOf(permanent.topCard);
         if (cond.cardType !== undefined && !definition.kinds.includes(cond.cardType as never)) continue;
+        if (cond.filter !== undefined && !permanentMatchesFilter(ctx, permanent, cond.filter, ctx.source)) continue;
         for (const color of definition.colors) colors.add(color);
       }
       const value = cond.value ?? 0;
@@ -175,11 +249,14 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     case "totalDigimonGte": {
       // "There are N or more Digimon in play" counts BOTH players' battle areas (BT9-110
       // Q1924). Tamers and Options are excluded even though they share the same permanent zone.
+      // When a filter is present, it further restricts the counted Digimon (for example,
+      // "there are 2 or more suspended Digimon").
       let total = 0;
       for (const seat of [mine, opp]) {
         total += ctx.game.player(seat).battleArea.filter((permanent) => {
           if (permanent.topCard === undefined) return false;
-          return (ctx.game.definitionOf(permanent.topCard).kinds as string[]).includes(CardKind.Digimon);
+          if (!(ctx.game.definitionOf(permanent.topCard).kinds as string[]).includes(CardKind.Digimon)) return false;
+          return cond.filter === undefined || permanentMatchesFilter(ctx, permanent, cond.filter, ctx.source);
         }).length;
       }
       return compareNumber(total, cond.kind === "totalDigimonGte" ? "gte" : cond.op, cond.value ?? 3);
@@ -346,6 +423,20 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // `filter.nameOrTrait`, using the same Form ∪ Attribute ∪ Type union as every other trait
       // match. An unset filter never matches (we do not guess).
       return selfStackMatchesTrait(ctx, cond.filter);
+    case "selfDigivolutionStackDistinctNameCount": {
+      const self = ctx.source.permanent();
+      if (self === undefined) return false;
+      const names = new Set(self.stack.map((card) => ctx.game.definitionOf(card).nameEn.toLowerCase()));
+      return compareNumber(names.size, cond.op, cond.value ?? 0);
+    }
+    case "selfDigivolutionStackMatchesFilter": {
+      const self = ctx.source.permanent();
+      return (
+        self !== undefined &&
+        cond.filter !== undefined &&
+        self.stack.some((card) => definitionMatches(cond.filter!, ctx.game.definitionOf(card)))
+      );
+    }
     case "selfDigivolutionStackHasColor": {
       const self = ctx.source.permanent();
       const colors = cond.filter?.colors ?? [];
@@ -416,6 +507,14 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       }).length;
       return count >= (cond.count ?? 1);
     }
+    case "selfDigivolutionStackHasSameLevelPair": {
+      const self = ctx.source.permanent();
+      if (self === undefined) return false;
+      const levels = self.stack
+        .map((card) => ctx.game.definitionOf(card).level)
+        .filter((level): level is number => level !== undefined && level > 0);
+      return new Set(levels).size < levels.length;
+    }
     case "notEnteredThisTurn": {
       // ＜Delay＞ option gate: the SOURCE permanent must be on
       // the field AND have entered on a turn OTHER than the current one. An off-field source
@@ -423,6 +522,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const self = ctx.source.permanent();
       return self !== undefined && self.enterFieldTurnCount !== ctx.game.state.turnCount;
     }
+    case "sourceWasFaceUpSecurity":
+      return ctx.trigger.securityWasFaceUp === true;
     case "allOf":
       // Logical AND: every conjunct must hold (P-116: three distinct named Digimon in
       // play). An empty/missing list never passes (we do not guess an unparsed gate).

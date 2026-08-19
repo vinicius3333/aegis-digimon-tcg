@@ -98,6 +98,7 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   // Multicolored: two or more colors. With `colors` also set, the card must be
   // multicolored AND include one of those colors (handled by the `colors` check above).
   if (filter.multicolor && def.colors.length < 2) return false;
+  if (filter.singleColor === true && def.colors.length !== 1) return false;
   if (filter.levels && filter.levels.length > 0) {
     if (def.level === undefined || !filter.levels.includes(def.level)) return false;
   }
@@ -107,7 +108,8 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   // Static level threshold ("level N or lower/higher"). A `relativeTo:"lastDeleted"` comparison
   // (no static `value`) is resolved against context in permanentMatchesFilter and stripped before
   // delegating here, so a missing `value` at this static seam is a no-op (skip).
-  if (filter.levelComparison && filter.levelComparison.value !== undefined && def.level !== undefined) {
+  if (filter.levelComparison && filter.levelComparison.value !== undefined) {
+    if (def.level === undefined) return false;
     const { op, value } = filter.levelComparison;
     if (op === "lte" && !(def.level <= value)) return false;
     if (op === "gte" && !(def.level >= value)) return false;
@@ -258,7 +260,7 @@ export function matchNameOrTrait(
   const normalizeTrait = (value: string) => value.toLowerCase().replace(/[\s-]+/g, "");
   const traits = [...(def.types ?? []), ...(def.forms ?? []), ...(def.attributes ?? [])].map(normalizeTrait);
   const text = (def.effectText ?? "").toLowerCase();
-  const matches = ref.tokens.some((token) => {
+  const matches = (ref.tokens ?? []).some((token) => {
     const rawToken = token.toLowerCase();
     const nameToken = normalizeName(token);
     if (ref.match === "name") return names.some((name) => name.includes(nameToken));

@@ -1,15 +1,9 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import {
-  EffectTiming,
-  type CardDefinition,
-  type CardInstance,
-  type Permanent,
-  type Seat,
-} from "@aegis/shared";
+import { EffectTiming, type CardDefinition, type CardInstance, type Permanent, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
-import "./BT22-007.js";
+import { compiled } from "./BT22-007.js";
 
 /**
  * A3 for BT22-007's {Breeding}[Start of Your Main Phase] cluster (KB BT22-007; documented behavior):
@@ -96,7 +90,16 @@ function makeHarness(opts: {
   } as unknown as Permanent;
   const eggDeck: CardInstance[] = [instance(opts.eggTopIsMotherEater ? MOTHER_EATER : OTHER, false)];
   const players = [
-    { seat: 0, battleArea: opts.inBreeding === false ? [self] : [], breeding: opts.inBreeding === false ? undefined : self, security: [], hand: [], deck: [], trash: [], eggDeck },
+    {
+      seat: 0,
+      battleArea: opts.inBreeding === false ? [self] : [],
+      breeding: opts.inBreeding === false ? undefined : self,
+      security: [],
+      hand: [],
+      deck: [],
+      trash: [],
+      eggDeck,
+    },
     { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [], eggDeck: [] },
   ];
   const game: GameAccess = {
@@ -201,5 +204,27 @@ describe("BT22-007 — place-as-top + 10+-condition + play-from-own-stack", () =
     await runStartMain(h);
     expect(h.placeTopCalls).toBe(0);
     expect(h.playedInstanceIds.length).toBe(0);
+  });
+});
+
+describe("BT22-007 inherited leave-play replacement", () => {
+  it("places the leaving Eater under this Digimon, not an arbitrary owned permanent", () => {
+    const inherited = compiled.effects.find((entry) => entry.isInherited);
+    const watcher = inherited?.actions[0] as any;
+    expect(watcher).toMatchObject({
+      kind: "SubTrigger",
+      event: "wouldLeavePlay",
+      sourceFilter: {
+        controller: "mine",
+        kind: ["Digimon"],
+        includeToken: true,
+        nameOrTrait: [{ tokens: ["Eater"], match: "trait" }],
+      },
+      fireCondition: { kind: "not", condition: { kind: "effectSourceControllerIs", controller: "mine" } },
+    });
+    expect(watcher.actions[0]).toMatchObject({
+      kind: "PlaceUnder",
+      target: { filter: { isSelfRef: true }, isSelf: true },
+    });
   });
 });

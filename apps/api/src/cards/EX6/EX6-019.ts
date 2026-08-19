@@ -25,7 +25,7 @@ const compiled: CompiledCard = {
           "controller": "mine",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens": ["Angel","Archangel","Three Great Angels"], "match": "trait"}]},
             "raw": "this Digimon has the [Angel]/[Archangel]/[Three Great Angels] trait"
           }
         }

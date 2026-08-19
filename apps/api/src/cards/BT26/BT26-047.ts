@@ -48,10 +48,10 @@ function hasInsectoidOrTitan(def: CardDefinition): boolean {
   return cardHasTrait(def, "Insectoid") || cardHasTrait(def, "Titan");
 }
 
-function ownDigimonPermanentIds(ctx: EffectContext, source: CardSource): string[] {
-  return ctx.game
-    .player(source.ownerSeat)
-    .battleArea.filter((p) => !p.inBreeding && p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)))
+function digimonPermanentIds(ctx: EffectContext): string[] {
+  return [0, 1]
+    .flatMap((seat) => Array.from(ctx.game.player(seat as 0 | 1).battleArea))
+    .filter((p) => !p.inBreeding && p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)))
     .map((p) => p.permanentId);
 }
 
@@ -81,7 +81,7 @@ async function resolveMayBattle(ctx: EffectContext, source: CardSource): Promise
  * and they get +3000 DP."
  */
 async function resolveSuspendBuff(ctx: EffectContext, source: CardSource): Promise<void> {
-  const candidates = ownDigimonPermanentIds(ctx, source).filter((id) => {
+  const candidates = digimonPermanentIds(ctx).filter((id) => {
     const perm = ctx.game.permanentById(id);
     return perm !== undefined && !perm.isSuspended;
   });
@@ -95,9 +95,10 @@ async function resolveSuspendBuff(ctx: EffectContext, source: CardSource): Promi
   if (chosen === undefined) return;
   await ctx.fx.suspend([chosen]);
 
-  for (const permanentId of ownDigimonPermanentIds(ctx, source)) {
+  for (const permanentId of digimonPermanentIds(ctx)) {
     const perm = ctx.game.permanentById(permanentId);
     if (perm === undefined || !perm.isSuspended || perm.topCard === undefined) continue;
+    if (perm.controllerSeat !== source.ownerSeat) continue;
     if (!hasInsectoidOrTitan(ctx.game.definitionOf(perm.topCard))) continue;
     ctx.fx.restrict(permanentId, "beAffected", EffectDuration.UntilOpponentTurnEnd, { fromSourceKind: ["Option"] });
     ctx.fx.modifyDP(permanentId, 3000, EffectDuration.UntilOpponentTurnEnd);

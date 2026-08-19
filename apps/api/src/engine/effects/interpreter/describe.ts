@@ -43,7 +43,7 @@ export function describeAction(action: Action): string {
     case "Unsuspend":
       return `Unsuspend ${String(action.target.count)} target(s)`;
     case "GainKeyword":
-      return `Gain ${action.keyword.raw ?? action.keyword.keyword}`;
+      return `Gain ${action.keyword?.raw ?? action.keyword?.keyword ?? "keyword"}`;
     case "TrashTopDeck":
       return `Trash ${action.upTo ? "up to " : ""}${action.amount} card(s) from the top of the deck`;
     case "Hatch":

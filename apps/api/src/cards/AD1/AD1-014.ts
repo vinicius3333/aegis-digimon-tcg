@@ -218,7 +218,7 @@ const compiled: CompiledCard = {
           "restriction": "suspend",
           "duration": "untilOpponentTurnEnd",
           "condition": {
-            "kind": "raw",
+            "kind": "selfHasNameContaining", "names": ["Garurumon","Omnimon"],
             "raw": "this Digimon has [Garurumon] or [Omnimon] in its name"
           }
         }

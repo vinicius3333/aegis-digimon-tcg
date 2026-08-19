@@ -44,6 +44,19 @@ const module: EffectModule = {
                 return def.nameEn.includes("Lucemon");
               },
               run: async (subCtx) => {
+                // "By trashing 1 card in your hand" is a mandatory cost once the
+                // inherited trigger activates.  The prior implementation drew and
+                // gained memory without paying it, and could also activate with an
+                // empty hand.
+                const hand = subCtx.game.player(source.ownerSeat).hand;
+                if (hand.length === 0) return;
+                const chosen = await subCtx.ask.selectCards(subCtx, {
+                  candidates: hand.map((c) => c.instanceId),
+                  min: 1,
+                  max: 1,
+                });
+                if (chosen.length === 0) return;
+                await subCtx.fx.trash(chosen, { byEffectSeat: source.ownerSeat });
                 subCtx.fx.draw(source.ownerSeat, 1);
                 subCtx.fx.gainMemory(1);
               },

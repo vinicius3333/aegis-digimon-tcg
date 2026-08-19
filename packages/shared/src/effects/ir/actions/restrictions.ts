@@ -168,3 +168,10 @@ export interface GrantImmunityAction extends ActionBase {
   immuneFrom: "opponentEffects" | string;
   duration: EffectDurationRef;
 }
+
+/** A restriction scoped to the current effect resolution alone (BT23-013). */
+export interface RestrictEffectAction extends ActionBase {
+  kind: "RestrictEffect";
+  restriction: string;
+  scope: "thisEffect";
+}

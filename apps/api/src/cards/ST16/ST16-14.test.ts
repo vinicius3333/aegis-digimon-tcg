@@ -28,7 +28,7 @@ describe("ST16-14 Matt Ishida — whenHandTrashed: by suspending this Tamer, gai
     s.state.memory = 0;
     const handCardId = s.inst("handCard").instanceId;
 
-    await primitivesOf(s).trash([handCardId]);
+    await primitivesOf(s).trash([handCardId], { byEffectSeat: 0 });
     await settle(() => s.state.memory !== 0);
 
     expect(s.state.memory).toBe(1);

@@ -59,7 +59,7 @@ const compiled: CompiledCard = {
               "kind": "GainMemory",
               "amount": 1,
               "condition": {
-                "kind": "raw",
+                "kind": "triggerRemovalCause", "removalCause": "byEffect",
                 "raw": "that Digimon was deleted by an effect"
               }
             }
