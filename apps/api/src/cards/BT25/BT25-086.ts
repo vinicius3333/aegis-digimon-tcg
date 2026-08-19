@@ -76,7 +76,8 @@ const compiled: CompiledCard = {
             "count": 1,
             "isSelf": true
           },
-          "withoutSuspending": true
+          "withoutSuspending": false,
+          "optional": true
         }
       ]
     },
