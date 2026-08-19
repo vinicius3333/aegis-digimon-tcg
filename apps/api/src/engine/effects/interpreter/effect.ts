@@ -376,6 +376,9 @@ const RESULT_BINDING_KEYS = [
   "lastPlayedPermanentIds",
   "lastSuspendedPermanentIds",
   "lastRevealedCards",
+  "lastDeletedByThisEffectIds",
+  "namedCounts",
+  "boundPlayed",
 ] as const satisfies readonly (keyof EffectContext)[];
 
 function mirrorResultBindings(from: EffectContext, to: EffectContext): void {
