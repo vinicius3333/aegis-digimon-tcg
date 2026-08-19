@@ -4,7 +4,13 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { beforePayCost, onPlay, whenDigivolving, whenAttacking, staticModifier } from "../../engine/effects/builders.js";
+import {
+  beforePayCost,
+  onPlay,
+  whenDigivolving,
+  whenAttacking,
+  staticModifier,
+} from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-059 — Plutomon (BT26, Black/Purple Lv.6 Digimon).
@@ -85,8 +91,6 @@ function titanTrashCandidates(ctx: EffectContext, source: CardSource): CardInsta
  * [When Digivolving] and [When Attacking], all under one "Once Per Turn" budget.
  */
 async function resolveTrashHandToPlayTitanFromTrash(ctx: EffectContext, source: CardSource): Promise<void> {
-  if (!source.isOwnersTurn()) return;
-
   const owner = ctx.game.player(source.ownerSeat);
   if (owner.hand.length === 0) return;
 
@@ -114,6 +118,7 @@ async function resolveTrashHandToPlayTitanFromTrash(ctx: EffectContext, source: 
   if (chosenCost.length === 0) return;
 
   await ctx.fx.trash(chosenCost);
+  if (!source.isOwnersTurn()) return;
   await ctx.fx.playInstances([targetId], { payCost: true, costDelta: 7 });
 }
 
@@ -167,9 +172,7 @@ const module: EffectModule = {
           optional: true,
           maxPerTurn: 1,
           canActivate: (ctx) =>
-            source.isOwnersTurn() &&
-            ctx.game.player(source.ownerSeat).hand.length > 0 &&
-            titanTrashCandidates(ctx, source).length > 0,
+            ctx.game.player(source.ownerSeat).hand.length > 0 && titanTrashCandidates(ctx, source).length > 0,
           resolve: async (ctx) => {
             await resolveTrashHandToPlayTitanFromTrash(ctx, source);
           },
@@ -191,9 +194,7 @@ const module: EffectModule = {
           optional: true,
           maxPerTurn: 1,
           canActivate: (ctx) =>
-            source.isOwnersTurn() &&
-            ctx.game.player(source.ownerSeat).hand.length > 0 &&
-            titanTrashCandidates(ctx, source).length > 0,
+            ctx.game.player(source.ownerSeat).hand.length > 0 && titanTrashCandidates(ctx, source).length > 0,
           resolve: async (ctx) => {
             await resolveTrashHandToPlayTitanFromTrash(ctx, source);
           },
@@ -215,9 +216,7 @@ const module: EffectModule = {
           optional: true,
           maxPerTurn: 1,
           canActivate: (ctx) =>
-            source.isOwnersTurn() &&
-            ctx.game.player(source.ownerSeat).hand.length > 0 &&
-            titanTrashCandidates(ctx, source).length > 0,
+            ctx.game.player(source.ownerSeat).hand.length > 0 && titanTrashCandidates(ctx, source).length > 0,
           resolve: async (ctx) => {
             await resolveTrashHandToPlayTitanFromTrash(ctx, source);
           },
