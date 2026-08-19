@@ -5,114 +5,100 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "OnDiscardSecurity",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -8000,
-          "duration": "forTheTurn"
-        }
-      ]
+          amount: -8000,
+          duration: "forTheTurn",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              {
+                tokens: ["Kentaurosmon", "Mitamamon"],
+                match: "name",
+              },
+              {
+                tokens: ["CS"],
+                match: "trait",
+              },
             ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Kentaurosmon",
-                  "Mitamamon"
-                ],
-                "match": "name"
-              },
-              {
-                "tokens": [
-                  "CS"
-                ],
-                "match": "trait"
-              }
-            ]
           },
-          "from": [
-            "hand"
-          ],
-          "reduceCost": 2,
-          "optional": true,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "security"
+          from: ["hand"],
+          reduceCost: 2,
+          optional: true,
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "security",
+                position: "top",
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing your top security card"
+            raw: "By trashing your top security card",
           },
-          "abortOnDecline": true
-        }
-      ]
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -4000,
-          "duration": "forTheTurn"
-        }
+          amount: -4000,
+          duration: "forTheTurn",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "traits": [
-        "CS"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      traits: ["CS"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT22-037", compiled);
