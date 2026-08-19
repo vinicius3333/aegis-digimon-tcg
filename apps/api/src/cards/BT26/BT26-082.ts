@@ -11,11 +11,9 @@ import { requireOpponentAsk } from "../../engine/decisions/decisionApi.js";
 /**
  * BT26-082 — Ravemon (BT26, Purple Lv.6 Digimon, Cyborg/DATA SQUAD).
  *
- * BT26 is a new set with no source documented behavior reference. `node tools/kb/query.mjs card
- * BT26-082` returns no knowledge-base entries (no errata/Q&A/rules hits) — this port
- * is provisional, following the printed text directly and mirroring the closest
- * existing hand-written cards for each clause shape (convention per
- * apps/api/src/cards/BT26/BT26-098.ts). Re-check against the KB once BT26 rulings land.
+ * Q7117–Q7123 clarify Security timing, face-up security handling, and that the alternate
+ * cost must trash the full specified number of cards. The implementation follows those
+ * rulings; the engine still lacks an end-of-opponent-turn Security trigger seam.
  *
  * Printed text:
  *   [Digivolve] [Crowmon]/Lv.5 w/[DATA SQUAD] trait: Cost 3 — a digivolution-cost
@@ -97,19 +95,15 @@ function oppHighestDpDigimons(ctx: EffectContext, source: CardSource): Permanent
   return digimon.filter((p) => p.currentDP === maxDp);
 }
 
-/** Every face-down card sitting under one of `seat`'s Tamers (may span multiple Tamers). */
-function faceDownUnderTamersPool(
-  ctx: EffectContext,
-  seat: Seat,
-): { hostPermanentId: string; instanceId: string }[] {
+/** The bottom-most face-down card under each of `seat`'s Tamers (may span multiple Tamers). */
+function faceDownUnderTamersPool(ctx: EffectContext, seat: Seat): { hostPermanentId: string; instanceId: string }[] {
   const owner = ctx.game.player(seat);
   const pool: { hostPermanentId: string; instanceId: string }[] = [];
   for (const p of owner.battleArea) {
     if (p.inBreeding || p.topCard === undefined) continue;
     if (!ctx.game.definitionOf(p.topCard).kinds.includes(CardKind.Tamer)) continue;
-    for (const card of p.stack) {
-      if (!card.faceUp) pool.push({ hostPermanentId: p.permanentId, instanceId: card.instanceId });
-    }
+    const card = p.stack.find((candidate) => !candidate.faceUp);
+    if (card !== undefined) pool.push({ hostPermanentId: p.permanentId, instanceId: card.instanceId });
   }
   return pool;
 }
@@ -293,10 +287,7 @@ const module: EffectModule = {
 
             if (ctx.game.player(opponentSeat).hand.length > 7) return;
 
-            const willPlace = await ctx.ask.optional(
-              ctx,
-              "Place this card face up as the bottom security card?",
-            );
+            const willPlace = await ctx.ask.optional(ctx, "Place this card face up as the bottom security card?");
             if (!willPlace) return;
             await ctx.fx.addSecurity(source.ownerSeat, [ctx.source.instanceId], { faceUp: true });
           },
