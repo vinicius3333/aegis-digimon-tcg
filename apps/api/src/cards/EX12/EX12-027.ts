@@ -96,7 +96,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "handAtLeast", "value": 7,
             "raw": "your hand has 7 or more cards"
           }
         }

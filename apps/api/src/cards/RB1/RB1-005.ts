@@ -66,7 +66,7 @@ const compiled: CompiledCard = {
             "amount": 2000
           },
           "while": {
-            "kind": "raw",
+            "kind": "selfTopHasText", "filter": {"nameOrTrait": [{"tokens": ["Gammamon"], "match": "text"}]},
             "raw": "this Digimon has [Gammamon] in its text"
           }
         }

@@ -72,7 +72,7 @@ const compiled: CompiledCard = {
           ],
           "optional": true,
           "condition": {
-            "kind": "raw",
+            "kind": "isOpponentsTurn",
             "raw": "it's their turn"
           }
         }
@@ -126,7 +126,7 @@ const compiled: CompiledCard = {
           ],
           "optional": true,
           "condition": {
-            "kind": "raw",
+            "kind": "isOpponentsTurn",
             "raw": "it's their turn"
           }
         }
