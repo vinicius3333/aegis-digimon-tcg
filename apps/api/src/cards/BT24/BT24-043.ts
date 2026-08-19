@@ -5,109 +5,93 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "or": [
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                or: [
                   {
-                    "nameOrTrait": [
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "Shaman"
-                        ],
-                        "match": "trait"
-                      }
-                    ]
+                        tokens: ["Shaman"],
+                        match: "trait",
+                      },
+                    ],
                   },
                   {
-                    "nameOrTrait": [
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "Beast",
-                          "Animal",
-                          "Sovereign"
-                        ],
-                        "match": "trait"
-                      }
+                        tokens: ["Beast", "Animal", "Sovereign"],
+                        match: "trait",
+                      },
                     ],
-                    "excludeNameOrTrait": [
+                    excludeNameOrTrait: [
                       {
-                        "tokens": [
-                          "Sea Animal"
-                        ],
-                        "match": "trait"
-                      }
-                    ]
-                  }
-                ]
+                        tokens: ["Sea Animal"],
+                        match: "trait",
+                      },
+                    ],
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "TS"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["TS"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
-        }
-      ]
+          rest: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
-        }
+            count: 1,
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 2,
-      "traits": [
-        "TS"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      level: 2,
+      traits: ["TS"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT24-043", compiled);
