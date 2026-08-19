@@ -2258,6 +2258,14 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
       if (cond.op === "gt") return size > value;
       return cond.op === "lte" ? size <= value : size >= value;
     }
+    case "combinedTrashCount": {
+      const size = ctx.game.player(mine).trash.length + ctx.game.player(opp).trash.length;
+      const value = cond.value ?? 0;
+      if (cond.op === "eq") return size === value;
+      if (cond.op === "lt") return size < value;
+      if (cond.op === "gt") return size > value;
+      return cond.op === "lte" ? size <= value : size >= value;
+    }
     case "zoneColorCount": {
       // "Your Tamers have N or more total colors" counts each distinct printed color once,
       // even when multiple Tamers share it (KB Q4456). The condition's zone is intentionally

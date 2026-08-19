@@ -1048,6 +1048,7 @@ export interface Condition {
     | "digivolvedFromZone" // WhenDigivolving: the card that caused this window came from `zone` (BT17-065 "this digivolved from the trash").
     | "playedFromZone" // OnPlay: the played card originated from `zone` (BT7-018).
     | "zoneCount" // "if you/your opponent have exactly/more/fewer than N cards in your/their hand|trash|security|deck" — compares `seat`'s `zone` size against `value` via `op` (gte|lte|gt|lt|eq). Generic resource-count gate (the seat×zone superset of memory/security/hand At-Least/Most).
+    | "combinedTrashCount" // total cards in both players' trash zones
     | "zoneColorCount" // "if your Tamers have N or more total colors" — counts distinct printed colors among battle-area permanents of `cardType` (ST20-10/ST21-10; KB Q4456).
     | "securityCompare" // "if you have fewer/more security cards than your opponent" — cross-player relative comparison of YOUR security-stack size vs the OPPONENT's (P-127 fewer → documented behavior Owner.SecurityCards.Count < Enemy; P-129 more → >). `op` is "lt" (fewer) or "gt" (more); no fixed `value`.
     | "securityAtMostSelfFaceDownDigivolutionCards" // "if you have as many or fewer security cards as this Digimon has face-down digivolution cards" — compares the watcher's security-stack size against the SOURCE permanent's face-down (faceUp !== true) stack-card count (EX9-029, KB Q4783).
