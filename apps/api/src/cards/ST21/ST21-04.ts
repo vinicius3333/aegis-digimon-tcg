@@ -136,7 +136,7 @@ const compiled: CompiledCard = {
               },
               "duration": "forTheTurn",
               "condition": {
-                "kind": "raw",
+                "kind": "triggerSubjectMatchesFilter", "filter": {"nameOrTrait": [{"tokens": ["ADVENTURE"], "match": "trait"}]},
                 "raw": "any of them have the [ADVENTURE] trait"
               }
             }
@@ -170,7 +170,7 @@ const compiled: CompiledCard = {
               },
               "duration": "forTheTurn",
               "condition": {
-                "kind": "raw",
+                "kind": "triggerSubjectMatchesFilter", "filter": {"nameOrTrait": [{"tokens": ["ADVENTURE"], "match": "trait"}]},
                 "raw": "any of them have the [ADVENTURE] trait"
               }
             }

@@ -67,7 +67,7 @@ const compiled: CompiledCard = {
             "amount": 2000
           },
           "while": {
-            "kind": "raw",
+            "kind": "selfHasNameContaining", "names": ["Leomon"],
             "raw": "this Digimon has [Leomon] in its name"
           }
         }

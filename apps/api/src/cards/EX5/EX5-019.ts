@@ -74,7 +74,7 @@ const compiled: CompiledCard = {
           "kind": "GainMemory",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens": ["Four Sovereigns","God Beast"], "match": "trait"}]},
             "raw": "this Digimon has the [Four Sovereigns]/[God Beast] trait"
           }
         }

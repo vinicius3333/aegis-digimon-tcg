@@ -27,7 +27,7 @@ const compiled: CompiledCard = {
           },
           "to": "hand",
           "condition": {
-            "kind": "raw",
+            "kind": "selfDigivolutionStackCountAtLeast", "count": 1, "filter": {"kind": ["Digimon"], "levels": [3]},
             "raw": "a level 3 Digimon card Is in this Digimon's digivolution cards"
           }
         },
@@ -80,7 +80,7 @@ const compiled: CompiledCard = {
           },
           "to": "hand",
           "condition": {
-            "kind": "raw",
+            "kind": "selfDigivolutionStackCountAtLeast", "count": 1, "filter": {"kind": ["Digimon"], "levels": [3]},
             "raw": "a level 3 Digimon card Is in this Digimon's digivolution cards"
           }
         },

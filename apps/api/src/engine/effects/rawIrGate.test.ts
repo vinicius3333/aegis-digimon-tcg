@@ -39,7 +39,7 @@ describe("raw IR guard", () => {
     // inline runtime modules currently expose 278 nodes / 209 cards after the
     // after the common condition re-encodings. The upstream effects.json
     // fallback is excluded because it is not the runtime source for hand-written modules.
-    expect({ nodes: nodes.length, cards: cards.size }).toEqual({ nodes: 248, cards: 183 });
+    expect({ nodes: nodes.length, cards: cards.size }).toEqual({ nodes: 90, cards: 58 });
     expect(nodes.every((node) => node.raw.length > 0)).toBe(true);
   });
 

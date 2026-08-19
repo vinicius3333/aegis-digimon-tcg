@@ -37,7 +37,7 @@ const compiled: CompiledCard = {
           "ignoreRequirements": true,
           "optional": true,
           "condition": {
-            "kind": "raw",
+            "kind": "triggerEnteredByEffect",
             "raw": "played by an effect"
           },
           "cost": {

@@ -17,7 +17,7 @@ const compiled: CompiledCard = {
         }
       ],
       "condition": {
-        "kind": "raw",
+        "kind": "selfColorCount", "value": 2,
         "raw": "this Digimon has 2 or more colors"
       },
       "isInherited": true

@@ -63,7 +63,7 @@ const compiled: CompiledCard = {
           "restriction": "attack",
           "duration": "untilOpponentTurnEnd",
           "condition": {
-            "kind": "raw",
+            "kind": "selfHasName", "names": ["GreyKnightsmon"],
             "raw": "this Digimon is [GreyKnightsmon]"
           }
         }

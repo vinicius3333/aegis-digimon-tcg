@@ -19,7 +19,7 @@ const compiled: CompiledCard = {
           "kind": "GainMemory",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "playedFromZone", "zone": "digivolutionCards",
             "raw": "played from digivolution cards"
           }
         }

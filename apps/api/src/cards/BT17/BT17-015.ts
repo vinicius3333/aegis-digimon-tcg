@@ -185,7 +185,7 @@ const compiled: CompiledCard = {
           "controller": "opponent",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "selfHasNameContaining", "names": ["Omnimon"],
             "raw": "this Digimon has [Omnimon] in its name"
           }
         }

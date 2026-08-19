@@ -52,7 +52,7 @@ const compiled: CompiledCard = {
           "amount": 3000,
           "duration": "untilOpponentTurnEnd",
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectActed",
             "raw": "this effect suspended your Digimon"
           }
         }
@@ -103,7 +103,7 @@ const compiled: CompiledCard = {
           "amount": 3000,
           "duration": "untilOpponentTurnEnd",
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectActed",
             "raw": "this effect suspended your Digimon"
           }
         }

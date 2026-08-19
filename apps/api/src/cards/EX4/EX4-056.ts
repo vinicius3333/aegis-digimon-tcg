@@ -70,7 +70,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "not", "condition": {"kind": "triggerRemovalCause", "removalCause": "byBattle"},
             "raw": "deleted outside of a battle"
           }
         }

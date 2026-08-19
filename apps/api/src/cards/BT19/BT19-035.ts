@@ -139,7 +139,7 @@ const compiled: CompiledCard = {
           "amount": -2000,
           "duration": "forTheTurn",
           "condition": {
-            "kind": "raw",
+            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens": ["Xros Heart"], "match": "trait"}]},
             "raw": "this Digimon has the [Xros Heart] trait"
           }
         }

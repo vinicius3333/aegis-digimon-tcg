@@ -100,7 +100,7 @@ const compiled: CompiledCard = {
           ],
           "toTop": false,
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectDigivolved",
             "raw": "this effect digivolved"
           },
           "optional": true

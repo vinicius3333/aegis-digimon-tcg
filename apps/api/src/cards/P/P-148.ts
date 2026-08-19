@@ -15,7 +15,7 @@ const compiled: CompiledCard = {
           "controller": "mine",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens": ["NSp"], "match": "trait"}]},
             "raw": "this Digimon has the [NSp] trait"
           }
         }

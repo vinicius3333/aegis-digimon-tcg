@@ -24,7 +24,7 @@ const compiled: CompiledCard = {
             "amount": 2000
           },
           "while": {
-            "kind": "raw",
+            "kind": "youHave", "filter": {"kind": ["Tamer"]},
             "raw": "there's a Tamer"
           }
         }

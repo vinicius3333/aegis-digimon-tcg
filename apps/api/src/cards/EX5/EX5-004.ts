@@ -15,7 +15,7 @@ const compiled: CompiledCard = {
           "controller": "mine",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "selfHasNameContaining", "names": ["Leomon"],
             "raw": "this Digimon has [Leomon] in its name"
           }
         }

@@ -102,7 +102,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectDidNotDelete",
             "raw": "this didn't delete"
           }
         }
@@ -141,7 +141,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectDidNotDelete",
             "raw": "this didn't delete"
           }
         }
