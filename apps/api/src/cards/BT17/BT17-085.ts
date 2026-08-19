@@ -102,7 +102,7 @@ const compiled: CompiledCard = {
           },
           "to": "hand",
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectDigivolved",
             "raw": "digivolved by this effect"
           },
           "optional": true
