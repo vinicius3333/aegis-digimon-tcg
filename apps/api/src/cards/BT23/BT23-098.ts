@@ -2,135 +2,114 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Ghostmon",
-                    "Violet Inboots"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Ghostmon", "Violet Inboots"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true,
-          "abortOnDecline": true
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "sourceFilter": {
-            "controller": "mine",
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: {
+            controller: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Violet Inboots"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true
+                tokens: ["Violet Inboots"],
+                match: "name",
               },
-              "keyword": {
-                "keyword": "Delay",
-                "raw": "＜Delay＞",
-                "option": {
-                  "kind": "Digivolve",
-                  "target": {
-                    "filter": {
-                      "controller": "mine",
-                      "kind": [
-                        "Digimon"
-                      ],
-                      "nameOrTrait": [
+            ],
+          },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              keyword: {
+                keyword: "Delay",
+                raw: "＜Delay＞",
+                option: {
+                  kind: "Digivolve",
+                  target: {
+                    filter: {
+                      controller: "mine",
+                      kind: ["Digimon"],
+                      nameOrTrait: [
                         {
-                          "tokens": [
-                            "Ghost"
-                          ],
-                          "match": "trait"
-                        }
-                      ]
+                          tokens: ["Ghost"],
+                          match: "trait",
+                        },
+                      ],
                     },
-                    "count": 1
+                    count: 1,
                   },
-                  "into": {
-                    "controllerDefault": "mine",
-                    "kind": [
-                      "Digimon"
-                    ],
-                    "allNameOrTraits": [
+                  into: {
+                    controllerDefault: "mine",
+                    kind: ["Digimon"],
+                    allNameOrTraits: [
                       {
-                        "tokens": [
-                          "Ghost"
-                        ],
-                        "match": "trait"
+                        tokens: ["Ghost"],
+                        match: "trait",
                       },
                       {
-                        "tokens": [
-                          "LIBERATOR"
-                        ],
-                        "match": "trait"
-                      }
-                    ]
+                        tokens: ["LIBERATOR"],
+                        match: "trait",
+                      },
+                    ],
                   },
-                  "from": [
-                    "hand"
-                  ],
-                  "reduceCost": 3,
-                  "optional": true
-                }
+                  from: ["hand"],
+                  reduceCost: 3,
+                  optional: true,
+                },
               },
-              "duration": "untilUsed"
-            }
-          ]
-        }
-      ]
+              duration: "untilUsed",
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT23-098", compiled);
