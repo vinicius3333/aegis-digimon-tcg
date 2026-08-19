@@ -2910,6 +2910,7 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
  * `securityToHand`, and `payMemory`; extend as other provable cases arise.
  */
 function canPayCost(ctx: EffectContext, cost: Cost): boolean {
+  if (cost.kind === "raw") return false;
   if (cost.kind === "compound") {
     return cost.costs !== undefined && cost.costs.length > 0 && cost.costs.every((nested) => canPayCost(ctx, nested));
   }
@@ -10907,12 +10908,15 @@ async function runEffect(ctx: EffectContext, effect: CardEffect): Promise<void> 
  * activation on a guess).
  */
 function canActivateEffect(ctx: EffectContext, effect: CardEffect): boolean {
-  if (effect.condition && effect.condition.kind !== "raw" && !evaluateCondition(ctx, effect.condition)) return false;
+  // An unparsed condition is not evidence that the effect is activatable. Treat it
+  // as restrictive here, matching runAction's resolution behavior; otherwise the
+  // UI offers an effect that resolution will silently skip.
+  if (effect.condition && (effect.condition.kind === "raw" || !evaluateCondition(ctx, effect.condition))) return false;
   const relevantActions = (effect.actions ?? []).filter((action) => action.kind !== "RawUnparsed");
   const isGated = (action: Action) =>
     action.kind === "DnaDigivolve" ||
-    (action.kind !== "ConditionalBranch" && action.condition !== undefined && action.condition.kind !== "raw") ||
-    (action.cost !== undefined && action.cost.kind !== "raw");
+    (action.kind !== "ConditionalBranch" && action.condition !== undefined) ||
+    action.cost !== undefined;
   // A leading abort-on-decline action is the activation gate for the complete clause:
   // "If ..., by paying ..., do X. Then, do Y." The dependent `Then` action is often
   // mechanically ungated because it consumes a binding produced by X; treating Y as an
@@ -10923,8 +10927,7 @@ function canActivateEffect(ctx: EffectContext, effect: CardEffect): boolean {
     const intrinsicPossible = leadingAction.kind !== "DnaDigivolve" || canAttemptDnaDigivolve(ctx, leadingAction);
     const conditionMet =
       leadingAction.condition === undefined ||
-      leadingAction.condition.kind === "raw" ||
-      evaluateCondition(ctx, leadingAction.condition);
+      (leadingAction.condition.kind !== "raw" && evaluateCondition(ctx, leadingAction.condition));
     const costPayable = leadingAction.cost === undefined || canPayCost(ctx, leadingAction.cost);
     return intrinsicPossible && conditionMet && costPayable;
   }
@@ -10934,7 +10937,7 @@ function canActivateEffect(ctx: EffectContext, effect: CardEffect): boolean {
   return gatedActions.some((action) => {
     const intrinsicPossible = action.kind !== "DnaDigivolve" || canAttemptDnaDigivolve(ctx, action);
     const conditionMet =
-      action.condition === undefined || action.condition.kind === "raw" || evaluateCondition(ctx, action.condition);
+      action.condition === undefined || (action.condition.kind !== "raw" && evaluateCondition(ctx, action.condition));
     const costPayable = action.cost === undefined || canPayCost(ctx, action.cost);
     return intrinsicPossible && conditionMet && costPayable;
   });
