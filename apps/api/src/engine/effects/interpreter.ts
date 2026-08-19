@@ -7889,7 +7889,7 @@ async function runRecoverByTrashingMostSecurity(
   const mine = ctx.source.ownerSeat;
   const { trashed } = await ctx.fx.trashTopSecurityOfPlayerWithMostSecurity(mine);
   if (trashed.length === 0) return;
-  await ctx.fx.recoverToSecurity(mine, action.amount ?? 1);
+  if (action.recover !== false) await ctx.fx.recoverToSecurity(mine, action.amount ?? 1);
 }
 
 /** Security-stack manipulation: shuffle / trash top N / place cards as security. */

@@ -3133,6 +3133,8 @@ export interface RecoverByTrashingMostSecurityAction extends ActionBase {
   kind: "RecoverByTrashingMostSecurity";
   /** ＜Recovery +N＞ (default 1). */
   amount?: number;
+  /** When false, perform only the most-security top-card trash (the recovery is modeled separately). */
+  recover?: boolean;
 }
 
 /**
