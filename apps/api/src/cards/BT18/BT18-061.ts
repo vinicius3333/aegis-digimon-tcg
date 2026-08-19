@@ -15,19 +15,27 @@ const compiled: CompiledCard = {
           "revealCount": 3,
           "add": [
             {
+              // "1 Tamer card OR 1 level 4 or lower black card": two independent branches. As one
+              // filter it demanded all three at once — a black Tamer of level 4 or lower — and a
+              // Tamer carries no level, so nothing could ever be placed.
               "filter": {
                 "controllerDefault": "mine",
                 "kind": [
                   "Tamer"
-                ],
-                "colors": [
-                  "Black"
-                ],
-                "levelComparison": {
-                  "op": "lte",
-                  "value": 4
-                }
+                ]
               },
+              "orFilters": [
+                {
+                  "controllerDefault": "mine",
+                  "colors": [
+                    "Black"
+                  ],
+                  "levelComparison": {
+                    "op": "lte",
+                    "value": 4
+                  }
+                }
+              ],
               "count": 1,
               "to": "placeUnder",
               "optional": true
