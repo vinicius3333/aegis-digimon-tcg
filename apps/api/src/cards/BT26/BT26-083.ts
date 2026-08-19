@@ -84,7 +84,7 @@ const module: EffectModule = {
           description: "＜Rush＞",
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
-            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Rush", EffectDuration.UntilEachTurnEnd);
+            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Rush", EffectDuration.Permanent);
           },
         }),
         staticModifier({
@@ -93,7 +93,7 @@ const module: EffectModule = {
           description: "＜Piercing＞",
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
-            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Piercing", EffectDuration.UntilEachTurnEnd);
+            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Piercing", EffectDuration.Permanent);
           },
         }),
         staticModifier({
@@ -102,7 +102,7 @@ const module: EffectModule = {
           description: "＜Execute＞",
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
-            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Execute", EffectDuration.UntilEachTurnEnd);
+            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Execute", EffectDuration.Permanent);
           },
         }),
       ];
