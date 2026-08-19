@@ -611,9 +611,38 @@ function stackGatesSatisfied(req: DigivolutionRequirement, base: Permanent): boo
  * grant needs `opponent` (the digivolving seat's opponent) to evaluate its activation gate.
  * Returns the matched grant, or undefined.
  */
+function baseGrantConditionHolds(
+  condition: NonNullable<BaseGrantedDigivolve["condition"]>,
+  viewer: PlayerState | undefined,
+  opponent: PlayerState | undefined,
+): boolean {
+  if (condition.kind === "anyOf") {
+    return condition.conditions.some((nested) => baseGrantConditionHolds(nested, viewer, opponent));
+  }
+  if (condition.kind === "opponentHasDigimonLevelAtLeast") {
+    if (!opponent) return false;
+    return opponent.battleArea.some((p) => {
+      const def = p.topCard ? getCardDefinition(p.topCard.cardId) : undefined;
+      return def?.kinds.includes(CardKind.Digimon) && def.level !== undefined && def.level >= condition.level;
+    });
+  }
+  if (condition.kind === "distinctNamedTamersWithTrait") {
+    if (!viewer) return false;
+    const names = new Set<string>();
+    for (const p of viewer.battleArea) {
+      const def = p.topCard ? getCardDefinition(p.topCard.cardId) : undefined;
+      if (!def?.kinds.includes(CardKind.Tamer) || !cardHasTrait(def, condition.trait)) continue;
+      names.add(def.nameEn);
+    }
+    return names.size >= condition.count;
+  }
+  return false;
+}
+
 function baseGrantedMatch(
   handDef: NonNullable<ReturnType<typeof getCardDefinition>>,
   base: Permanent,
+  viewer: PlayerState | undefined,
   opponent: PlayerState | undefined,
 ): BaseGrantedDigivolve | undefined {
   if (base.inBreeding || !base.topCard) return undefined;
@@ -626,14 +655,9 @@ function baseGrantedMatch(
       Boolean(t.names?.some((n) => handDef.nameEn.includes(n))) ||
       Boolean(t.traits?.some((tr) => cardHasTrait(handDef, tr)));
     if (!targetMatch) return false;
-    if (g.condition === undefined) return true;
-    // Conditional grant: needs opponent state to evaluate; without it, don't highlight (the server
-    // still validates). opponentHasDigimonLevelAtLeast: an opponent battle-area Digimon ≥ level N.
-    if (!opponent) return false;
-    return opponent.battleArea.some((p) => {
-      const def = p.topCard ? getCardDefinition(p.topCard.cardId) : undefined;
-      return def?.kinds.includes(CardKind.Digimon) && def.level !== undefined && def.level >= g.condition!.level;
-    });
+    // A conditional grant needs the board state its gate reads; without it, do not highlight
+    // (the server still validates).
+    return g.condition === undefined || baseGrantConditionHolds(g.condition, viewer, opponent);
   });
 }
 
@@ -696,7 +720,7 @@ export function getDigivolveCostOptions(
   }
 
   // Base-granted path (ST7-03/BT6-060): a fixed-cost path the base offers this card.
-  const granted = baseGrantedMatch(hand, base, opponent);
+  const granted = baseGrantedMatch(hand, base, viewer, opponent);
   if (granted) {
     const gate = granted.target.traits?.length
       ? `[${granted.target.traits.join("/")}]`

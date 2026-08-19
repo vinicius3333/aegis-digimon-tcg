@@ -37,27 +37,45 @@ const compiled: CompiledCard = {
           "costOverride": 4,
           "ignoreRequirements": true,
           "optional": true,
+          // Two independent alternatives, not one filter: flattened together they demanded a
+          // single [Hero] level-6 permanent the opponent controls, which is neither branch.
+          // The Tamer half mirrors BT21-010's encoding of the same printed clause.
           "condition": {
-            "kind": "opponentHas",
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "levelComparison": {
-                "op": "gte",
-                "value": 6
-              },
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Hero"
+            "kind": "orConditions",
+            "conditions": [
+              {
+                "kind": "opponentHas",
+                "filter": {
+                  "kind": [
+                    "Digimon"
                   ],
-                  "match": "trait"
+                  "levelComparison": {
+                    "op": "gte",
+                    "value": 6
+                  }
                 }
-              ]
-            },
+              },
+              {
+                "kind": "permanentCount",
+                "seat": "mine",
+                "filter": {
+                  "kind": [
+                    "Tamer"
+                  ],
+                  "nameOrTrait": [
+                    {
+                      "tokens": [
+                        "Hero"
+                      ],
+                      "match": "trait"
+                    }
+                  ],
+                  "distinctNames": true
+                },
+                "op": "gte",
+                "value": 3
+              }
+            ],
             "raw": "your opponent has a level 6 or higher Digimon or you have 3 or more [Hero] trait Tamers with different names"
           }
         }

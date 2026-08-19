@@ -1358,6 +1358,9 @@ export class GameEngine {
 
   /** Evaluate a base-granted path's activation condition against live state. */
   private baseGrantConditionHolds(seat: Seat, condition: NonNullable<BaseGrantedDigivolve["condition"]>): boolean {
+    if (condition.kind === "anyOf") {
+      return condition.conditions.some((nested) => this.baseGrantConditionHolds(seat, nested));
+    }
     if (condition.kind === "opponentHasDigimonLevelAtLeast") {
       const opponentSeat = this.access.opponentOf(seat);
       return this.access.player(opponentSeat).battleArea.some((perm) => {
@@ -1365,6 +1368,16 @@ export class GameEngine {
         const level = lookupDefinition(perm.topCard.cardId)?.level;
         return level !== undefined && level >= condition.level;
       });
+    }
+    if (condition.kind === "distinctNamedTamersWithTrait") {
+      // "N or more [trait] Tamers with different names": same-named Tamers collapse to one.
+      const names = new Set<string>();
+      for (const perm of this.access.player(seat).battleArea) {
+        const definition = perm.topCard === undefined ? undefined : lookupDefinition(perm.topCard.cardId);
+        if (definition === undefined || !isTamer(definition) || !cardHasTrait(definition, condition.trait)) continue;
+        names.add(definition.nameEn);
+      }
+      return names.size >= condition.count;
     }
     return false;
   }

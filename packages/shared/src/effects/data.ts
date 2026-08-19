@@ -544,6 +544,23 @@ export const BASE_GRANTED_DIGIVOLVE: Record<string, BaseGrantedDigivolve[]> = {
       condition: { kind: "opponentHasDigimonLevelAtLeast", level: 6 },
     },
   ],
+  // BT21-040 Agumon: the ST7-03 shape with a second printed alternative — "while your opponent has
+  // a level 6 or higher Digimon OR you have 3 or more [Hero] trait Tamers with different names",
+  // a [ShineGreymon] from hand digivolves onto this for 4, ignoring requirements.
+  "BT21-040": [
+    {
+      target: { namesExact: ["ShineGreymon"] },
+      cost: 4,
+      ignoreRequirements: true,
+      condition: {
+        kind: "anyOf",
+        conditions: [
+          { kind: "opponentHasDigimonLevelAtLeast", level: 6 },
+          { kind: "distinctNamedTamersWithTrait", trait: "Hero", count: 3 },
+        ],
+      },
+    },
+  ],
   // BT6-060 Deputymon: a Digimon card with the [Three Musketeers] trait from hand digivolves onto
   // this for 6, ignoring requirements — no opponent gate (documented behavior — CardTraits.Contains).
   "BT6-060": [

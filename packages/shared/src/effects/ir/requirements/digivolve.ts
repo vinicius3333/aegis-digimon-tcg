@@ -129,5 +129,15 @@ export interface BaseGrantedDigivolve {
    * card is a battle-area permanent on its controller's turn — those two requirements live in
    * the digivolve verb and the matcher, not here.
    */
-  condition?: { kind: "opponentHasDigimonLevelAtLeast"; level: number };
+  condition?: BaseGrantedDigivolveCondition;
 }
+
+/**
+ * A granted path's activation gate. `anyOf` carries the printed "A or B" alternatives (BT21-040);
+ * the leaf kinds are the board reads those alternatives are stated in.
+ */
+export type BaseGrantedDigivolveCondition =
+  | { kind: "opponentHasDigimonLevelAtLeast"; level: number }
+  /** "you have N or more [trait] Tamers with different names" */
+  | { kind: "distinctNamedTamersWithTrait"; trait: string; count: number }
+  | { kind: "anyOf"; conditions: BaseGrantedDigivolveCondition[] };
