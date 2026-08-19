@@ -26,7 +26,7 @@ function tamerWithFaceDownUnder(game: GameAccess, ownerSeat: Seat): string[] {
       if (p.inBreeding || p.topCard === undefined) return false;
       const def = game.definitionOf(p.topCard);
       if (!def.kinds.includes(CardKind.Tamer)) return false;
-      return p.stack.length > 0;
+      return p.stack.some((card) => card.faceUp !== true);
     })
     .map((p) => p.permanentId);
 }
@@ -61,11 +61,8 @@ const module: EffectModule = {
           optional: true,
           when: (ctx) => {
             if (!ctx.source.isOnBattleArea()) return false;
-            const ownerSeat = ctx.source.ownerSeat;
-            const addedSeat = ctx.trigger.addedToSecuritySeat;
             // whenSecurityRemoved triggers for the seat whose security was removed.
-            // Check that it's the owner's security.
-            return true;
+            return ctx.trigger.removedFromSecuritySeat === ctx.source.ownerSeat;
           },
           canActivate: (ctx) => {
             const perm = ctx.source.permanent();
@@ -136,7 +133,7 @@ const module: EffectModule = {
             if (tamerPerm === undefined || tamerPerm.stack.length === 0) return;
 
             // Trash the bottom card of the chosen Tamer's digivolution stack
-            const bottomCard = tamerPerm.stack[tamerPerm.stack.length - 1];
+            const bottomCard = tamerPerm.stack.find((card) => card.faceUp !== true);
             if (bottomCard === undefined) return;
 
             await ctx.fx.trashDigivolutionCards(chosenTamer[0]!, [bottomCard.instanceId]);
