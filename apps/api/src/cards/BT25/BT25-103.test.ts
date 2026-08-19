@@ -3,8 +3,28 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { compiled } from "./BT25-103.js";
 
 describe("BT25-103 GraceNovamon", () => {
+  it("models the shared When Attacking/Counter once-per-turn effect per this stack", () => {
+    const attack = compiled.effects.find(
+      (entry) => entry.trigger === "WhenAttacking" && entry.frequency === "OncePerTurn",
+    );
+    const counter = compiled.effects.find((entry) => entry.trigger === "Counter");
+
+    expect(attack).toMatchObject({ frequency: "OncePerTurn" });
+    expect(attack?.actions).toMatchObject([
+      {
+        kind: "TrashDigivolution",
+        amount: 1,
+        optional: true,
+        scaling: { per: 1, unit: "digivolutionCards" },
+      },
+      { kind: "EndAttack", optional: true },
+    ]);
+    expect(counter).toMatchObject({ trigger: "Counter", frequency: "OncePerTurn" });
+  });
+
   it("returns an opponent Digimon with no more digivolution cards to deck bottom when digivolving", async () => {
     const s = setupEngine(
       {
@@ -24,12 +44,19 @@ describe("BT25-103 GraceNovamon", () => {
   it("exposes its printed Security Attack, Ice Clad, and Partition keywords", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT25-103", as: "grace" }] } });
     await s.ready();
-    const continuous = (s.engine as unknown as {
-      continuous: { hasKeyword(id: string, keyword: string): boolean; grantedKeywords(id: string): { keyword: string; amount?: number }[] };
-    }).continuous;
+    const continuous = (
+      s.engine as unknown as {
+        continuous: {
+          hasKeyword(id: string, keyword: string): boolean;
+          grantedKeywords(id: string): { keyword: string; amount?: number }[];
+        };
+      }
+    ).continuous;
     const id = s.perm("grace").permanentId;
     expect(continuous.hasKeyword(id, "IceClad")).toBe(true);
     expect(continuous.hasKeyword(id, "Partition")).toBe(true);
-    expect(continuous.grantedKeywords(id).some((grant) => grant.keyword === "SecurityAttack" && grant.amount === 1)).toBe(true);
+    expect(
+      continuous.grantedKeywords(id).some((grant) => grant.keyword === "SecurityAttack" && grant.amount === 1),
+    ).toBe(true);
   });
 });
