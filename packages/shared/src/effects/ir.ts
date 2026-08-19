@@ -1703,6 +1703,8 @@ export interface GainKeywordAction extends ActionBase {
   kind: "GainKeyword";
   target: Target;
   keyword: KeywordRef;
+  /** Legacy compiler shape for granting several keywords in one action. */
+  keywords?: KeywordRef[];
   duration: EffectDurationRef;
   /**
    * How many times the keyword is granted to each target. Defaults to 1.
@@ -1909,6 +1911,28 @@ export interface GainTriggeredEffectAction extends ActionBase {
   gainedActions: Action[];
   /** How long the granted triggered effect lasts before it is swept. */
   duration: EffectDurationRef;
+}
+
+/** Legacy compiler spelling for a timed trigger grant (EX5-048). */
+export interface GainEffectAction extends ActionBase {
+  kind: "GainEffect";
+  target: Target;
+  grant: { trigger: string; actions: Action[] };
+  duration: EffectDurationRef;
+}
+
+/** Execute a group of actions only after one shared activation cost is paid. */
+export interface CostGatedBlockAction extends ActionBase {
+  kind: "CostGatedBlock";
+  cost: Cost;
+  actions: Action[];
+}
+
+/** Restriction that applies only to the current effect resolution (BT23-013). */
+export interface RestrictEffectAction extends ActionBase {
+  kind: "RestrictEffect";
+  restriction: string;
+  scope: "thisEffect";
 }
 export interface DelayedEffectAction extends ActionBase {
   kind: "DelayedEffect";
@@ -3078,6 +3102,7 @@ export type SecurityOp =
   | "trash" // alias for trashTop — "trash top security card" (BT18-101; semantically identical to trashTop)
   | "toHand" // "add your top/bottom security card to the hand"
   | "placeAsSecurity" // "place <X> as/on (top/bottom of) security stack"
+  | "placeFromDeck" // "place the top card of your deck on top/bottom of security"
   | "flipFaceUp" // "flip <controller>'s top face-down security card face up"
   | "addTop" // "add to the top of security"
   | "addBottom" // "add to the bottom of security"
@@ -3295,15 +3320,24 @@ export interface AppFuseAction extends ActionBase {
   from: ZoneRef[];
 }
 
+export interface TokenSpec {
+  /** Printed/display name of a synthetic token (for example, "Atho, René & Por"). */
+  name: string;
+  kind?: string;
+  color?: string;
+  dp?: number;
+  keywords?: Array<{ keyword: string; amount?: number; colors?: string[] }>;
+}
+
 /** "Play N [X] Token(s) without paying the cost". */
 export interface PlayTokenAction extends ActionBase {
   kind: "PlayToken";
   /** Token name tokens (from `[X]` refs). */
-  tokens: string[];
+  tokens: Array<string | TokenSpec>;
   count: number;
   payCost: boolean;
   /** Single token name (alternative to tokens array). */
-  token?: string;
+  token?: string | TokenSpec;
   /** Single count (alternative to `count`). */
   amount?: number;
   /**
@@ -3376,6 +3410,7 @@ export type SubTriggerEvent =
   | "onAddDigivolutionCards" // "When [Tamer] cards are placed in this Digimon's digivolution cards"
   | "whenPlayed" // "When [a Digimon matching sourceFilter] is played" / "When you play [X]"
   | "whenOptionPlayed" // "When an Option card is placed in the battle area" (option-permanent placement seam)
+  | "whenOptionInBattleAreaTrashed" // "When an Option permanent leaves the battle area for trash"
   | "whenLeavesPlay" // "When [this/a] Digimon leaves the battle area" (non-replacement reaction)
   | "whenLinked" // "When this Digimon gets linked" / "When a card is linked to this Digimon"
   | "whenLinkTrashed" // "When a link card is trashed (by an effect)" — a genuine trash, NOT a link-card replace (KB EX10-062 Q5172 / EX10-073 Q5188)
@@ -3679,6 +3714,9 @@ export type Action =
   | PlayMultipleAction
   | PlayFromZoneAction
   | GainTriggeredEffectAction
+  | GainEffectAction
+  | CostGatedBlockAction
+  | RestrictEffectAction
   | DelayedEffectAction
   | GrantAuraToOpponentsAction
   | DigiXrosMaterialZoneExpansionAction

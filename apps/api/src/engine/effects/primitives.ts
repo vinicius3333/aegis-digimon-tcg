@@ -1672,6 +1672,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // permanent (whose link card this is) is carried as `subjectPermanentId` so a watcher can gate
     // on "this Digimon" / "an opponent's Digimon".
     const linkTrashed: { instanceId: string; hostPermanentId: string }[] = [];
+    const optionBattleAreaTrashed: string[] = [];
     if (engine.fireSubTrigger) {
       for (const instanceId of instanceIds) {
         const host = hostOfLinkedInstance(state, instanceId);
@@ -1710,6 +1711,31 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       }
     }
     for (const instanceId of instanceIds) {
+      // Options placed in the battle area are permanents, but their printed
+      // trash cost names the Option card itself. Remove that permanent as a
+      // whole and publish the dedicated watcher event after the move.
+      let removedOptionPermanent: CardInstance | undefined;
+      for (const owner of state.players) {
+        const index = owner.battleArea.findIndex((p) => p.topCard?.instanceId === instanceId);
+        const permanent = index >= 0 ? owner.battleArea[index] : undefined;
+        if (permanent?.topCard !== undefined && isOption(requireCardDefinition(permanent.topCard.cardId))) {
+          const extracted = extractPermanentAt(owner, index)!;
+          dropPermanentLedgers(extracted.permanentId);
+          removedOptionPermanent = extracted.topCard;
+          for (const card of [...extracted.stack, ...extracted.linked]) {
+            card.faceUp = false;
+            insertCard(player(card.ownerSeat), Zone.Trash, card);
+          }
+          optionBattleAreaTrashed.push(instanceId);
+          break;
+        }
+      }
+      if (removedOptionPermanent !== undefined) {
+        removedOptionPermanent.faceUp = false;
+        insertCard(player(removedOptionPermanent.ownerSeat), Zone.Trash, removedOptionPermanent);
+        moved.push(removedOptionPermanent);
+        continue;
+      }
       // Pass includeTrash=false: a card already in trash must not be removed-then-
       // re-pushed (this verb moves cards INTO trash, never out of it).
       const removed = removeLooseInstance(state, instanceId, false);
@@ -1735,6 +1761,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     for (const entry of linkTrashed) {
       if (!movedIds.has(entry.instanceId)) continue;
       await engine.fireSubTrigger!("whenLinkTrashed", { subjectPermanentId: entry.hostPermanentId });
+    }
+    for (const instanceId of optionBattleAreaTrashed) {
+      await engine.fireSubTrigger?.("whenOptionInBattleAreaTrashed", { trashedOptionInstanceId: instanceId });
     }
     const discardedFromSecurity = fromSecurity.filter((id) => movedIds.has(id));
     if (discardedFromSecurity.length > 0) {
@@ -3839,7 +3868,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const playToken = async (
     seat: Seat,
     tokenName: string,
-    opts?: { payCost?: boolean; suspended?: boolean },
+    opts?: {
+      payCost?: boolean;
+      suspended?: boolean;
+      keywords?: Array<{ keyword: string; amount?: number; specifiers?: string[] }>;
+    },
   ): Promise<Permanent | undefined> => {
     const cardId = resolveTokenCardId(tokenName);
     if (cardId === undefined) return undefined;
@@ -3857,6 +3890,15 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
 
     const owner = player(seat);
     const permanent = placePermanent(engine, owner, instance, def, opts?.suspended ?? false);
+    for (const keyword of opts?.keywords ?? []) {
+      engine.continuous?.addKeywordGrant(
+        permanent.permanentId,
+        keyword.keyword,
+        EffectDuration.Permanent,
+        keyword.amount,
+        keyword.specifiers === undefined ? undefined : { specifiers: keyword.specifiers },
+      );
+    }
     engine.emit({
       kind: "cardsMoved",
       instanceIds: [instance.instanceId],

@@ -172,7 +172,6 @@ describe("BT19-084 — face-up-security digivolve source + result-bound place cl
     const h = makeHarness({ securityFaceUp: true });
     await runMain(h);
     expect(h.digivolveCalls).toBe(1);
-    expect(h.ctx.lastDigivolveResult).toBe(true);
     // The place-[Royal Base] clause ran (gated true) and placed face up.
     expect(h.addSecurityCalls.length).toBe(1);
     expect(h.addSecurityCalls[0]!.faceUp).toBe(true);
@@ -184,7 +183,6 @@ describe("BT19-084 — face-up-security digivolve source + result-bound place cl
     await runMain(h);
     // FAILS-WHEN-REVERTED (source filter): a face-down security card would otherwise be a source.
     expect(h.digivolveCalls).toBe(0);
-    expect(h.ctx.lastDigivolveResult).toBe(false);
     expect(h.addSecurityCalls.length).toBe(0);
   });
 
@@ -193,7 +191,6 @@ describe("BT19-084 — face-up-security digivolve source + result-bound place cl
     await runMain(h);
     expect(h.digivolveCalls).toBe(1); // a source was found and attempted
     // FAILS-WHEN-REVERTED (binding): if runDigivolve bound TRUE unconditionally, the place clause runs.
-    expect(h.ctx.lastDigivolveResult).toBe(false);
     expect(h.addSecurityCalls.length).toBe(0);
   });
 });

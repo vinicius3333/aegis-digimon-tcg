@@ -88,8 +88,8 @@ const compiled: CompiledCard = {
           },
           "actions": [
             {
-              "kind": "ChooseTarget",
-              "chooser": "mine",
+              "kind": "SelectBind",
+              "chooser": "controller",
               "target": {
                 "filter": {
                   "controller": "opponent",

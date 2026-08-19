@@ -104,6 +104,10 @@ export const compiled: CompiledCard = {
               op: "placeAsSecurity",
               controller: "mine",
               from: ["deck"],
+              source: {
+                filter: { controllerDefault: "mine", kind: ["Digimon"] },
+                count: 1,
+              },
               toTop: true,
               amount: 1,
               condition: {

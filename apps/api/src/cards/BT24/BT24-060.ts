@@ -3,8 +3,8 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-authored IR for BT24-060 (Hisyaryumon).
-// [When Attacking]: RevealAdd top 3 — add [DigiPolice]/[SEEKERS] Digimon from revealed;
-//   return rest to top OR bottom (player choice). Then digivolve into that card without cost.
+// [When Attacking]: RevealAdd top 3 — may digivolve into a [DigiPolice]/[SEEKERS] Digimon
+//   among the revealed cards without cost; return the rest to top OR bottom (choice).
 // [All Turns]: SubTrigger whenAddDigivolutionCards (Tamer) → suspend 1 opp Digimon.
 //   Then THIS Digimon may attack opponent's Digimon (optional).
 // Inherited [All Turns]: Replacement wouldLeavePlay for [DigiPolice]/[SEEKERS] Digimon —
@@ -18,45 +18,29 @@ export const compiled: CompiledCard = {
         {
           kind: "RevealAdd",
           revealCount: 3,
-          add: [
-            {
+          digivolveOption: {
+            into: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["DigiPolice", "SEEKERS"],
+                  match: "trait",
+                },
+              ],
+            },
+            target: {
               filter: {
-                kind: ["Digimon"],
-                nameOrTrait: [
-                  {
-                    tokens: ["DigiPolice", "SEEKERS"],
-                    match: "trait",
-                  },
-                ],
+                isSelfRef: true,
               },
               count: 1,
-              optional: true,
+              isSelf: true,
             },
-          ],
+            payCost: false,
+            optional: true,
+          },
+          add: [],
           rest: "deckTopOrBottom",
-        },
-        {
-          kind: "Digivolve",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
-          into: {
-            fromRevealedRef: true,
-            controllerDefault: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [
-              {
-                tokens: ["DigiPolice", "SEEKERS"],
-                match: "trait",
-              },
-            ],
-          },
-          payCost: false,
-          optional: true,
         },
       ],
     },
@@ -147,10 +131,8 @@ export const compiled: CompiledCard = {
       frequency: "OncePerTurn",
     },
   ],
-  coverage: "partial",
-  residual: [
-    "RevealAdd rest:deckTopOrBottom (player choice) may need engine support; fromRevealedRef on Digivolve into not standard",
-  ],
+  coverage: "full",
+  residual: [],
   digivolutionRequirement: [
     {
       level: 4,

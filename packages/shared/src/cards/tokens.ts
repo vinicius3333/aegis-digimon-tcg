@@ -13,7 +13,7 @@ export const tokenDefinitions: readonly CardDefinition[] = [
   tok("WarGrowlmon Token", { level: 5, dp: 5000, playCost: 5, colors: [CardColor.Red] }),
   tok("Taomon Token", { level: 4, dp: 4000, playCost: 4, colors: [CardColor.Yellow] }),
   tok("Rapidmon Token", { level: 5, dp: 5000, playCost: 5, colors: [CardColor.Yellow] }),
-  tok("AthoRenePor Token", { level: 6, dp: 6000, playCost: 6, colors: [CardColor.Blue] }),
+  tok("AthoRenePor Token", { level: 6, dp: 6000, playCost: 6, colors: [CardColor.White] }),
   tok("Petrification Token", { level: 2, dp: 2000, playCost: 2, colors: [CardColor.Black] }),
   tok("Hinukamuy Token", { level: 5, dp: 5000, playCost: 5, colors: [CardColor.Red] }),
   tok("Fujitsumon Token", { level: 4, dp: 4000, playCost: 4, colors: [CardColor.Blue] }),

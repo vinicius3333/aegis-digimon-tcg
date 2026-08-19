@@ -5,8 +5,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //
 // The AUTO-GENERATED header was removed (card-module contract) to preserve this hand-edit
 // across regeneration. Only the [On Play] hatch clause is changed: the runtime record had no
-// hatch-from-effect verb, so it emitted RawUnparsed ("hatch 1 Digi-Egg card to an empty
-// space in your breeding area"). With the engine's new Hatch primitive (breeding.ts; wired
+// hatch-from-effect verb, so it emitted an unstructured hatch clause ("hatch 1 Digi-Egg card
+// to an empty space in your breeding area"). With the engine's new Hatch primitive (breeding.ts; wired
 // through interpreter.ts case "Hatch") the clause is now the structured `Hatch` action, which
 // flips the top of the controller's Digi-Egg deck into the empty breeding slot (Comprehensive
 // Rules §4-17-1). The remaining clauses are the unchanged declarative effect record.
