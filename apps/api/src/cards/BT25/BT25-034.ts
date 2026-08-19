@@ -6,7 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // directly trashed from security (not revealed, not searched). EffectTiming.OnDiscardSecurity
 // fires only from that effect-driven trash-from-security seam (GameEngine.fireDiscardedFromSecurity),
 // so it is effect-only and self-scoped by construction — no SubTrigger wrapper needed.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnDiscardSecurity",
