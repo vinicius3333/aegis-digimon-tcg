@@ -48,7 +48,7 @@ function linkedHost(source: CardSource): ReturnType<CardSource["permanent"]> {
 function ownerDigimonPermanentIds(ctx: EffectContext, source: CardSource): string[] {
   const owner = ctx.game.player(source.ownerSeat);
   const ids: string[] = [];
-  for (const permanent of owner.battleArea) {
+  for (const permanent of [...owner.battleArea, ...(owner.breeding === undefined ? [] : [owner.breeding])]) {
     if (permanent.topCard == null) continue;
     if (isDigimon(ctx.game.definitionOf(permanent.topCard))) ids.push(permanent.permanentId);
   }
