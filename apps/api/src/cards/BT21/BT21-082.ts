@@ -7,107 +7,105 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // reduce this effect's digivolution cost by 1.
 // KB Q4595: If only this card is in battle area, cost is reduced by 1 (counts itself).
 // [Your Turn] (inherited): when security removed, may play 1 red Tamer from hand free.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
-      ]
+          payCost: false,
+        },
+      ],
     },
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon", "Tamer"]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": ["Digimon"],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": ["Hybrid", "Hero"],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Hybrid", "Hero"],
+                match: "trait",
+              },
+            ],
           },
-          "from": ["hand"],
+          from: ["hand"],
           // Printed text has no "ignoring digivolution requirements" clause and it pays the
           // (reduced) digivolution cost, so this is a paid digivolve: the chosen base must
           // still satisfy the target Hybrid's digivolution requirement (level/name). payCost
           // drives enforceRequirements in runDigivolve — without it the gate is skipped and
           // any base could evolve into any Hybrid/Hero.
-          "payCost": true,
-          "optional": true,
+          payCost: true,
+          optional: true,
           // documented behavior passes reduceCostTuple straight into DigivolveIntoHandOrTrashCard, so the
           // reduction belongs to THIS digivolve. Modelling it as a sibling `wouldDigivolve`
           // replacement (the previous encoding) installed a modifier that could never reach
           // the digivolve in the same action list, so the full cost was always charged.
-          "reduceCostScaling": {
-            "per": 1,
-            "unit": "distinctNames",
-            "filter": {
-              "controller": "mine",
-              "kind": ["Tamer"],
-              "colors": ["Red"]
-            }
-          }
-        }
-      ]
+          reduceCostScaling: {
+            per: 1,
+            unit: "distinctNames",
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
+              colors: ["Red"],
+            },
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSecurityRemoved",
-          "raw": "when your opponent's security stack is removed from, you may play 1 red Tamer card from your hand without paying the cost",
-          "fireCondition": {
-            "kind": "raw",
-            "raw": "the removed security card was from the opponent's stack"
+          kind: "SubTrigger",
+          event: "whenSecurityRemoved",
+          raw: "when your opponent's security stack is removed from, you may play 1 red Tamer card from your hand without paying the cost",
+          fireCondition: {
+            kind: "triggerRemovedSecuritySeat",
+            seat: "opponent",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": ["Tamer"],
-                  "colors": ["Red"]
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Tamer"],
+                  colors: ["Red"],
                 },
-                "count": 1
+                count: 1,
               },
-              "from": ["hand"],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
+              from: ["hand"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "partial",
-  "residual": [
-    "SubTrigger fireCondition 'opponent security removed' uses raw fallback — needs Condition kind 'triggerSecurityIsOpponent' (inverse of triggerSecurityIsYours)"
-  ]
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT21-082", compiled);
