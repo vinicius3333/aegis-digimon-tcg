@@ -39,6 +39,7 @@ describe("A3 BT14-001 — inherited draw on opponent security removal", () => {
     const handBefore = p0.hand.length;
     const deckBefore = p0.deck.length;
 
+    await s.engine.recomputeContinuousEffects();
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -47,8 +48,12 @@ describe("A3 BT14-001 — inherited draw on opponent security removal", () => {
       }),
     ).toEqual({ ok: true });
 
-    await settle(() => s.events.some((e) => e.kind === "securityChecked"));
-    await settle(() => false, 60);
+    const attackerId = s.perm("attacker").permanentId;
+    // Both halves: the battle deletion AND the deferred draw (which the removal armed before it).
+    await settle(
+      () => p0.hand.length > handBefore && !p0.battleArea.some((perm) => perm.permanentId === attackerId),
+      5000,
+    );
 
     // The battle still happened and still killed the attacker...
     expect(() => s.perm("attacker")).toThrow();

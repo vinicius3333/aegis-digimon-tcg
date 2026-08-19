@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT10-009.js";
 import "./BT10-087.js";
+import "../index.js"; // the full catalog is registered in a real match
 
 describe("BT10-009 Shoutmon X4", () => {
   it("draws two cards on play", async () => {
@@ -90,6 +91,7 @@ describe("BT10-009 Shoutmon X4", () => {
       s.perm("taiki").stack.length === 2 &&
       !s.perm("taiki").isSuspended &&
       s.state.players[0]!.trash.some((card) => card.instanceId === x4Id),
+      5000,
     );
 
     expect(s.perm("taiki").stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining([

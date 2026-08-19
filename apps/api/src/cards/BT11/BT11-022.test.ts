@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT11-022.js";
+import "../index.js"; // the full catalog is always registered in a real match
 
 describe("BT11-022 Dracomon", () => {
   it("draws once when another Blue Flare Digimon is played", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT11-022", as: "dracomon" }],
-        hand: [{ card: "BT10-019", as: "qualifier" }],
-        // Keep the expected draw on top: BT10-019's own On Play module is not
-        // imported by this focused test, so no separate reveal effect consumes
-        // the initial deck cards.
+        // A [Blue Flare] Digimon whose own printed effects never touch the deck, so the
+        // expected draw stays on top with the whole catalog registered.
+        hand: [{ card: "BT19-022", as: "qualifier" }],
         deck: [{ card: "BT1-001", as: "drawn" }, "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
       },
     });

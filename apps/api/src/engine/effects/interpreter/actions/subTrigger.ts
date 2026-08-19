@@ -238,12 +238,14 @@ export async function runSubTrigger(
     event === "whenHandTrashed"
       ? (subCtx: EffectContext): boolean => subCtx.trigger?.handTrashedSeat === subCtx.source.ownerSeat
       : undefined;
-  // "When THIS Digimon's attack target is switched" is host-scoped even when the IR has no
-  // explicit sourceFilter. The event bus broadcasts every switch to every watcher, so bind the
-  // payload attacker to the permanent carrying this effect. Without this gate BT11-008/010/014
-  // reacted to a neighboring Digimon being blocked or using Raid.
+  // "When THIS Digimon's attack target is switched" is host-scoped, which the IR marks with a
+  // self-referencing sourceFilter. The event bus broadcasts every switch to every watcher, so
+  // bind the payload attacker to the permanent carrying this effect. Without this gate
+  // BT11-008/010/014 reacted to a neighboring Digimon being blocked or using Raid. A watcher
+  // that is NOT self-referencing (BT22-083's Tamer grants to another Digimon) keeps the
+  // broader subject gate instead.
   const attackTargetSwitchedGate =
-    event === "whenAttackTargetSwitched" && anchorPermanentId !== undefined
+    event === "whenAttackTargetSwitched" && sourceFilter?.isSelfRef === true && anchorPermanentId !== undefined
       ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === anchorPermanentId
       : undefined;
   // `whenEffectSuspends` without an explicit sourceFilter is the printed self-scoped form:

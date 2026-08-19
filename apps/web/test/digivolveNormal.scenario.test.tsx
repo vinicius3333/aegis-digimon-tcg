@@ -6,7 +6,7 @@ import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { scenario } from "./scenarioHarness/scenario";
 import { startTestServer, type TestServer } from "./scenarioHarness/server";
 import { joinHeadlessOpponent } from "./scenarioHarness/headlessOpponent";
-import { resolveIncidentalDecisionsThroughUi } from "./scenarioHarness/decisions";
+import { resolveIncidentalDecisionsThroughUi, respondToHeadlessDecision } from "./scenarioHarness/decisions";
 import { dragOnto } from "./scenarioHarness/dragDrop";
 
 /**
@@ -57,7 +57,13 @@ scenario("digivolve-normal", () => {
         deck: { mainDeck: BLUE_DECK.mainDeck, eggDeck: BLUE_DECK.eggDeck },
       });
       opponent.onDecision((req) => {
-        if (req.kind === "mulligan") opponent.mulligan(true);
+        if (req.kind === "mulligan") {
+          opponent.mulligan(true);
+          return;
+        }
+        // Anything else its own cards ask for is answered generically — an unanswered
+        // prompt on the headless seat would stall the match before the turn comes back.
+        respondToHeadlessDecision(opponent, req);
       });
       // The opponent has no role beyond existing — skip its own Breeding/Main windows
       // every turn so the match keeps moving. Ending its own Main phase without paying
@@ -74,6 +80,12 @@ scenario("digivolve-normal", () => {
       opponent.ready();
 
       fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
+
+      // The opening draw can carry an effect that opens its own prompt before the first
+      // Breeding window (seed 14 draws one whose reveal asks for a deck order); answer it
+      // through the same overlay a player would use, once its dialog has rendered.
+      // The opening draw can open its own prompt before the first Breeding window; the
+      // scenario's later steps answer any that appear.
 
       const yourBattleArea = () => document.querySelector('[data-drop="battle-you"]') as HTMLElement;
 
@@ -94,6 +106,12 @@ scenario("digivolve-normal", () => {
       fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
       fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
+      // The played card's own [On Play] opens its prompt one server round-trip after the play
+      // intent lands, so wait for it to actually appear before answering it through the UI.
+      await vi.waitFor(
+        () => expect(opponent.room.state.pendingDecision).toBeDefined(),
+        { timeout: 10_000 },
+      );
       await resolveIncidentalDecisionsThroughUi(opponent);
 
       await vi.waitFor(

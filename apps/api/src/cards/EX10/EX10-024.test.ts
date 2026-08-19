@@ -24,7 +24,8 @@ describe("EX10-024 [When Attacking] trash 1 link card → De-Digivolve 1 opponen
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT21-041", dp: 1000, as: "host", linked: [{ card: "EX10-024", as: "kabemonLink" }] }] },
-        1: { battleArea: [{ card: "BT1-009", dp: 5000, as: "oppTarget", under: ["BT1-009", "BT1-009"] }] },
+        // Lv.4 top: <De-Digivolve> cannot trash from a level 3 or lower Digimon (rules 16-12-4).
+        1: { battleArea: [{ card: "AD1-001", dp: 5000, as: "oppTarget", under: ["BT1-009", "BT1-009"] }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

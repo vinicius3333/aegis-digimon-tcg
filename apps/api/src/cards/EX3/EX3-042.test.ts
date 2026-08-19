@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX3-042.js";
+import "../index.js"; // the full catalog is registered in a real match
 
 const whenDigivolving = "[When Digivolving] If this Digimon is suspended, suspend 1 of your opponent's Digimon.";
 const inherited =
@@ -147,7 +148,7 @@ describe("EX3-042 Toropiamon", () => {
         0: {
           battleArea: [
             { card: "EX3-041", under: ["EX3-042"], as: "host" },
-            { card: "EX3-038", as: "vegetationAlly" },
+            { card: "BT5-048", as: "vegetationAlly" },
           ],
         },
         1: {
@@ -205,7 +206,7 @@ describe("EX3-042 Toropiamon", () => {
       0: {
         battleArea: [
           { card: "EX3-041", under: ["EX3-042"], as: "host" },
-          { card: "EX3-038", as: "attacker" },
+          { card: "BT5-048", as: "attacker" },
         ],
       },
       1: {
@@ -239,8 +240,8 @@ describe("EX3-042 Toropiamon", () => {
         0: {
           battleArea: [
             { card: "EX3-041", under: ["EX3-042"], as: "host" },
-            { card: "EX3-038", as: "firstAlly" },
-            { card: "EX3-038", as: "secondAlly" },
+            { card: "BT5-048", as: "firstAlly" },
+            { card: "BT5-048", as: "secondAlly" },
           ],
         },
         1: {
@@ -270,7 +271,7 @@ describe("EX3-042 Toropiamon", () => {
       0: {
         battleArea: [
           { card: "EX3-041", under: ["EX3-042"], as: "host" },
-          { card: "EX3-038", as: "ally" },
+          { card: "BT5-048", as: "ally" },
         ],
       },
       1: { battleArea: [{ card: "BT1-028", as: "target" }] },
@@ -293,9 +294,9 @@ describe("EX3-042 Toropiamon", () => {
         0: {
           battleArea: [
             { card: "EX3-041", under: ["EX3-042"], as: "host" },
-            { card: "EX3-038", as: "firstAlly" },
-            { card: "EX3-038", as: "secondAlly" },
-            { card: "EX3-038", as: "nextTurnAlly" },
+            { card: "BT5-048", as: "firstAlly" },
+            { card: "BT5-048", as: "secondAlly" },
+            { card: "BT5-048", as: "nextTurnAlly" },
           ],
           deck: ["BT1-001", "BT1-002"],
         },
@@ -340,7 +341,7 @@ describe("EX3-042 Toropiamon", () => {
           battleArea: [
             { card: "EX3-041", under: ["EX3-042"], as: "firstHost" },
             { card: "EX3-041", under: ["EX3-042"], as: "secondHost" },
-            { card: "EX3-038", as: "ally" },
+            { card: "BT5-048", as: "ally" },
           ],
         },
         1: {

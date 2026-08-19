@@ -56,17 +56,32 @@ const compiled: CompiledCard = {
             },
             "count": 1
           },
-          "keywords": [
-            {
-              "keyword": "Blocker",
-              "raw": "＜Blocker＞"
+          "duration": "untilOpponentTurnEnd",
+          "keyword": {
+            "keyword": "Blocker",
+            "raw": "＜Blocker＞"
+          }
+        },
+        {
+          "kind": "GainKeyword",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ],
+              "colors": [
+                "Purple"
+              ]
             },
-            {
-              "keyword": "Retaliation",
-              "raw": "＜Retaliation＞"
-            }
-          ],
-          "duration": "untilOpponentTurnEnd"
+            "count": 1,
+            "sameTarget": true
+          },
+          "duration": "untilOpponentTurnEnd",
+          "keyword": {
+            "keyword": "Retaliation",
+            "raw": "＜Retaliation＞"
+          }
         }
       ]
     },
@@ -87,17 +102,32 @@ const compiled: CompiledCard = {
             },
             "count": 1
           },
-          "keywords": [
-            {
-              "keyword": "Blocker",
-              "raw": "＜Blocker＞"
+          "duration": "untilOpponentTurnEnd",
+          "keyword": {
+            "keyword": "Blocker",
+            "raw": "＜Blocker＞"
+          }
+        },
+        {
+          "kind": "GainKeyword",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ],
+              "colors": [
+                "Purple"
+              ]
             },
-            {
-              "keyword": "Retaliation",
-              "raw": "＜Retaliation＞"
-            }
-          ],
-          "duration": "untilOpponentTurnEnd"
+            "count": 1,
+            "sameTarget": true
+          },
+          "duration": "untilOpponentTurnEnd",
+          "keyword": {
+            "keyword": "Retaliation",
+            "raw": "＜Retaliation＞"
+          }
         }
       ]
     },

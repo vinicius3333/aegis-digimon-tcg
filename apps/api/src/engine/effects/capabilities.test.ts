@@ -10729,11 +10729,16 @@ describe("CAP-F2: return cost to deckBottom + storeAs (BT19-002)", () => {
         }],
       }],
     } as unknown as CompiledCard;
-    let capturedCtx: EffectContext | undefined;
+    // A SubTrigger's activation cost is paid when the watcher FIRES, not when it installs, so
+    // the install is captured here and run to reach the cost.
+    let installed: { run: (subCtx: EffectContext) => Promise<void> } | undefined;
     const fxWithCapture: Primitives = {
-      returnToDeck: async () => { capturedCtx = ctx; return []; },
+      returnToDeck: async () => [],
       returnToHand: async () => [],
-      subscribeSubTrigger: () => 0,
+      subscribeSubTrigger: (sub: { run: (subCtx: EffectContext) => Promise<void> }) => {
+        installed = sub;
+        return 1;
+      },
     } as unknown as Primitives;
     const ctxWithCapture: EffectContext = { ...ctx, fx: fxWithCapture };
     ctxWithCapture.game = {
@@ -10745,6 +10750,8 @@ describe("CAP-F2: return cost to deckBottom + storeAs (BT19-002)", () => {
     } as never;
     const effects = irCardModule("F2-store-test", costIr).effectsForTiming(EffectTiming.OnUseOption, src);
     await effects[0]!.resolve(ctxWithCapture);
+    expect(installed, "the SubTrigger must install a watcher").toBeDefined();
+    await installed!.run(ctxWithCapture);
     // After the cost, namedCounts should have "returnedDigimonLevel" = LEVEL
     expect(ctxWithCapture.namedCounts?.get("returnedDigimonLevel")).toBe(LEVEL);
   });

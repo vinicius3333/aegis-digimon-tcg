@@ -152,8 +152,11 @@ describe("EX10-035 — delayed-delete-played gates to the reduced-cost [Hand][Ma
     expect(s.state.memory).toBe(-6); // 11 printed − 5 reduction = 6 paid (REVERT-RED: drop reduceCostBy => -11... unaffordable, no play)
 
     // End of the owner's turn: the armed watcher fires and deletes the card it played.
+    // The play lands one continuation before the arming action, so flush the rest of the
+    // resolution before firing the window — otherwise the watcher installs after it.
+    await settle(() => false, 200);
     void fireEndTurn(s);
-    await settle(() => !onField(s, inHand.instanceId));
+    await settle(() => !onField(s, inHand.instanceId), 5000);
     expect(onField(s, inHand.instanceId)).toBe(false);
     // REVERT-CONFIRM-RED: drop the `DelayedDeletePlayed` action (or its `ctx.fx.delayedDeletePlayed`
     // call) => EX10-035 survives the turn end => this assertion goes RED.

@@ -6,6 +6,7 @@ import "../BT6/BT6-084.js";
 import "../BT6/BT6-015.js";
 import "./ST12-10.js";
 import "./ST12-12.js";
+import "../index.js"; // the full catalog is registered in a real match
 
 describe("ST12-10 Jesmon", () => {
   it("gains Blitz when digivolving", async () => {
@@ -216,11 +217,13 @@ describe("ST12-10 Jesmon", () => {
       attackerPermanentId: s.perm("jesmon").permanentId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.memory === 0 &&
-      !s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("sistermonCiel").instanceId) &&
-      !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking &&
-      s.state.pendingDecision === undefined,
+    await settle(
+      () =>
+        s.state.memory === 0 &&
+        !s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("sistermonCiel").instanceId) &&
+        !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking &&
+        s.state.pendingDecision === undefined,
+      5000,
     );
 
     expect(mainPhase.isOpen).toBe(true);

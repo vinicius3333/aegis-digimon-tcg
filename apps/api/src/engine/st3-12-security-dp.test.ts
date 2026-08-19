@@ -18,9 +18,9 @@ import "../cards/index.js";
  */
 
 interface SecurityDpLedgerLike {
-  add(seat: Seat, delta: number): void;
+  add(seat: Seat, delta: number, opts?: { continuous?: boolean }): void;
   deltaFor(seat: Seat): number;
-  clear(): void;
+  clearContinuous(): void;
 }
 
 function securityDpLedger(s: EngineSetup): SecurityDpLedgerLike {
@@ -39,8 +39,8 @@ async function recomputedSecurityDelta(s: EngineSetup, seat: Seat): Promise<numb
 
 /**
  * Drive a REAL security battle where `seat 1` attacks `seat 0` as a player, re-applying the
- * REAL recomputed ST3-12 delta during the check (`runSecurityCheck` clears the ledger at the
- * start of each check; a continuous source re-applies afterwards — this wraps `clear` to
+ * REAL recomputed ST3-12 delta during the check (the continuous recompute clears the ledger's
+ * continuous tier; a continuous source re-applies afterwards — this wraps `clearContinuous` to
  * re-seed the delta ST3-12's recompute actually produced, exercising the real `add`/`deltaFor`
  * read path). Returns whether the attacker SURVIVED the security battle.
  */
@@ -52,10 +52,11 @@ async function securityBattleAttackerSurvives(s: EngineSetup, realDelta: number)
   s.give(0, Zone.Security, SEC_DIGIMON); // one face-down security Digimon to battle
 
   const dp = securityDpLedger(s);
-  const originalClear = dp.clear.bind(dp);
-  dp.clear = () => {
+  const originalClear = dp.clearContinuous.bind(dp);
+  dp.clearContinuous = () => {
     originalClear();
-    if (realDelta !== 0) dp.add(0, realDelta); // re-apply the REAL recomputed continuous delta
+    // re-apply the REAL recomputed continuous delta
+    if (realDelta !== 0) dp.add(0, realDelta, { continuous: true });
   };
   try {
     expect(
@@ -70,7 +71,7 @@ async function securityBattleAttackerSurvives(s: EngineSetup, realDelta: number)
     assertNoLoudGap(s);
     return p1.battleArea.some((p) => p.permanentId === attacker.permanentId);
   } finally {
-    dp.clear = originalClear;
+    dp.clearContinuous = originalClear;
     originalClear();
   }
 }

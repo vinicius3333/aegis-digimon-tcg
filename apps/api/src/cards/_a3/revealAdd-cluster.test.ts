@@ -147,9 +147,19 @@ function makeContext(opts: {
   digivolutionStack?: CardInstance[];
   installed?: SubTriggerInstall[];
 }): EffectContext {
+  // `eggDeck` is read by the Hatch action's legality check (BT16-082's optional tail), so both
+  // seats carry one egg — a player with an empty egg deck cannot hatch at all.
   const players = [
-    { seat: 0 as Seat, battleArea: [], security: [], hand: [], deck: [...opts.deckTop], trash: [] },
-    { seat: 1 as Seat, battleArea: [], security: [], hand: [], deck: [], trash: [] },
+    {
+      seat: 0 as Seat,
+      battleArea: [],
+      security: [],
+      hand: [],
+      deck: [...opts.deckTop],
+      trash: [],
+      eggDeck: [fakeCardInstance("DIGIEGG", "egg-top")],
+    },
+    { seat: 1 as Seat, battleArea: [], security: [], hand: [], deck: [], trash: [], eggDeck: [] },
   ];
   const state = { memory: 3, players, turnSeat: 0 } as unknown as GameState;
 
@@ -182,7 +192,12 @@ function makeContext(opts: {
     // BT5-046's <Digi-Burst 1> cost trashes a digivolution-stack card via the dedicated
     // trashDigivolutionCards seam (not the flat `trash` primitive), so stack-trash watchers
     // fire correctly (see subTriggerSeams.test.ts). Recorded, not asserted on by these cases.
-    trashDigivolutionCards: record("trashDigivolutionCards"),
+    // The engine treats the returned ids as the cards that actually moved (a Digi-Burst cost is
+    // unpaid when fewer come back), so the mock echoes what it was asked to trash.
+    trashDigivolutionCards: async (permanentId: string, instanceIds: string[], options?: unknown) => {
+      opts.recorder.calls.push({ verb: "trashDigivolutionCards", args: [permanentId, instanceIds, options] });
+      return instanceIds;
+    },
     redirectDigivolutionTrashHosts: async (hostPermanentIds: string[]) => {
       opts.recorder.calls.push({ verb: "redirectDigivolutionTrashHosts", args: [hostPermanentIds] });
       return hostPermanentIds;
@@ -232,7 +247,12 @@ async function resolveCard(
   const module = getEffectModule(cardId);
   expect(module, `${cardId} must self-register on import`).toBeDefined();
   const source = ctx.source as CardSource;
-  const effects = module!.effectsForTiming(timing, source);
+  // Handwritten [On Play] modules register on the board-wide companion window the engine fires
+  // alongside OnPlay (see engine/effects/builders.ts `onPlay`), so read both before failing.
+  const effects =
+    module!.effectsForTiming(timing, source).length > 0 || timing !== EffectTiming.OnPlay
+      ? module!.effectsForTiming(timing, source)
+      : module!.effectsForTiming(EffectTiming.OnEnterFieldAnyone, source);
   expect(effects.length, `${cardId} must expose an effect at ${String(timing)}`).toBeGreaterThanOrEqual(1);
   await effects[index]!.resolve(ctx);
 }
@@ -466,7 +486,7 @@ describe("RevealAdd cluster A3 — ST15-04 (rest -> trash)", () => {
 // identical to LM-033 (reveal 3, add 1 Red/Black Digimon to hand, rest deck bottom).
 // FAILS-WHEN-REVERTED: reverting the revealSpan to 1400 (or reverting the
 // per-condition-class fix) causes the BT10-097 Kiriha Aonuma `to` to become
-// "hand" and EX7-048's `to` to become "hand", making `playFromHand` never called
+// "hand" and EX7-048's `to` to become "hand", making `playInstances` never called
 // (returning the card to hand instead of playing it) — those assertions go RED.
 
 // ---------------------------------------------------------------------------
@@ -578,13 +598,13 @@ describe("RevealAdd cluster A3 — ST21-14 (reveal 3, add 1 ADVENTURE Digimon to
 // ---------------------------------------------------------------------------
 // EX7-048: single-add [Three Musketeers] trait Option card, to PLAY (not hand).
 // This is the fails-when-reverted discriminator for the per-condition-class fix:
-// reverting the fix causes EX7-048 to emit to:"hand" and playFromHand is never
-// called — only returnToHand is called, and the playFromHand assertion goes RED.
+// reverting the fix causes EX7-048 to emit to:"hand" and playInstances is never
+// called — only returnToHand is called, and the playInstances assertion goes RED.
 // ---------------------------------------------------------------------------
 
 describe("RevealAdd cluster A3 — EX7-048 (reveal 6, add 1 Three Musketeers Option to PLAY, Phase 10.1-01)", () => {
-  it("reveals 6, calls returnToHand then playFromHand for the matched card (to:play path), rest -> chosen deck end", async () => {
-    const playFromHandCalls: unknown[][] = [];
+  it("reveals 6, calls returnToHand then playInstances for the matched card (to:play path), rest -> chosen deck end", async () => {
+    const playInstancesCalls: unknown[][] = [];
     const recorder: Recorder = { calls: [] };
     const matchCard = fakeCardInstance("THREEMUSKE-OPT", "ex7048-match");
     const fillers = Array.from({ length: 5 }, (_, i) => fakeCardInstance("FILLER", `ex7048-f${i}`));
@@ -599,13 +619,13 @@ describe("RevealAdd cluster A3 — EX7-048 (reveal 6, add 1 Three Musketeers Opt
       },
     });
 
-    // Extend the fx mock to support playFromHand (needed for to:"play" disposition).
+    // Extend the fx mock to support playInstances (needed for to:"play" disposition).
     const ctx: typeof baseCtx = {
       ...baseCtx,
       fx: {
         ...baseCtx.fx,
-        playFromHand: async (ids: string[], _opts: unknown) => {
-          playFromHandCalls.push(ids);
+        playInstances: async (ids: string[], _opts: unknown) => {
+          playInstancesCalls.push(ids);
           return [] as never;
         },
       } as never,
@@ -618,12 +638,12 @@ describe("RevealAdd cluster A3 — EX7-048 (reveal 6, add 1 Three Musketeers Opt
     expect(reveals[0]!.args[1]).toBe(6);
 
     // The matched card must be returned to hand first (runRevealAdd calls returnToHand
-    // then playFromHand for the to:"play" disposition — NOT only returnToHand).
+    // then playInstances for the to:"play" disposition — NOT only returnToHand).
     expect(handedIds(recorder)).toContain("ex7048-match");
 
     // Then played from hand (free) — this is the discriminating assertion.
-    expect(playFromHandCalls.length).toBeGreaterThanOrEqual(1);
-    expect(playFromHandCalls.some((ids) => (ids as string[]).includes("ex7048-match"))).toBe(true);
+    expect(playInstancesCalls.length).toBeGreaterThanOrEqual(1);
+    expect(playInstancesCalls.some((ids) => (ids as string[]).includes("ex7048-match"))).toBe(true);
 
     // "Return the rest to the top or bottom of the deck" — the mock's chooseOption picks
     // option 0 ("Top of deck"), so the non-matching revealed cards go to the deck TOP.
@@ -687,12 +707,12 @@ describe("RevealAdd cluster A3 — P-112 (reveal 3, add 1 Eosmon + 1 Menoa Bellu
 // BT10-097: two-add — Blue Flare trait count:2 to:hand + Kiriha Aonuma count:1 to:play.
 // The Kiriha Aonuma to:play is the discriminating assertion for the revealSpan fix:
 // reverting to 1400 causes the second condition's mode/coroutineRef to be cut off,
-// defaulting to to:"hand", and the playFromHand assertion goes RED.
+// defaulting to to:"hand", and the playInstances assertion goes RED.
 // ---------------------------------------------------------------------------
 
 describe("RevealAdd cluster A3 — BT10-097 (reveal 6: Blue Flare x2 to hand + Kiriha Aonuma x1 to play, Phase 10.1-01)", () => {
   it("reveals 6, adds 2 Blue Flare to hand and 1 Kiriha Aonuma to PLAY, rest -> deck bottom", async () => {
-    const playFromHandCalls: unknown[][] = [];
+    const playInstancesCalls: unknown[][] = [];
     const recorder: Recorder = { calls: [] };
     const bf1 = fakeCardInstance("BLUE-FLARE-1", "bt10097-bf1");
     const bf2 = fakeCardInstance("BLUE-FLARE-2", "bt10097-bf2");
@@ -711,13 +731,13 @@ describe("RevealAdd cluster A3 — BT10-097 (reveal 6: Blue Flare x2 to hand + K
       },
     });
 
-    // Extend the fx mock to support playFromHand.
+    // Extend the fx mock to support playInstances.
     const ctx: typeof baseCtx = {
       ...baseCtx,
       fx: {
         ...baseCtx.fx,
-        playFromHand: async (ids: string[], _opts: unknown) => {
-          playFromHandCalls.push(ids);
+        playInstances: async (ids: string[], _opts: unknown) => {
+          playInstancesCalls.push(ids);
           return [] as never;
         },
       } as never,
@@ -734,10 +754,10 @@ describe("RevealAdd cluster A3 — BT10-097 (reveal 6: Blue Flare x2 to hand + K
     expect(handed).toContain("bt10097-bf1");
     expect(handed).toContain("bt10097-bf2");
 
-    // Kiriha Aonuma -> play (returnToHand then playFromHand — the discriminating assertion).
+    // Kiriha Aonuma -> play (returnToHand then playInstances — the discriminating assertion).
     expect(handed).toContain("bt10097-kiriha");
-    expect(playFromHandCalls.length).toBeGreaterThanOrEqual(1);
-    expect(playFromHandCalls.some((ids) => (ids as string[]).includes("bt10097-kiriha"))).toBe(true);
+    expect(playInstancesCalls.length).toBeGreaterThanOrEqual(1);
+    expect(playInstancesCalls.some((ids) => (ids as string[]).includes("bt10097-kiriha"))).toBe(true);
 
     // Fillers -> deck bottom.
     const bottom = deckBottomIds(recorder);

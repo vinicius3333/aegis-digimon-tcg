@@ -2,7 +2,7 @@ import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
-import { turnTiming, security, whenDigivolving } from "../../engine/effects/builders.js";
+import { turnTiming, security, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "BT19-080";
@@ -15,8 +15,8 @@ const module: EffectModule = {
         turnTiming({
           source,
           effectKey: `${cardId}/start-of-turn-set-memory-3`,
-          description: "[Start of Your Turn] Set your memory to 3.",
-          when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn(),
+          description: "[Start of Your Turn] If you have 2 or less memory, set your memory to 3.",
+          when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn() && ctx.game.state.memory <= 2,
           resolve: async (ctx) => {
             ctx.fx.setMemory(3);
           },
@@ -24,46 +24,47 @@ const module: EffectModule = {
       ];
     }
 
-    if (timing === EffectTiming.WhenDigivolving) {
+    // This is a Tamer watcher. The Digimon that digivolves is the sub-trigger
+    // subject; the Tamer itself does not have a When Digivolving effect.
+    if (timing === EffectTiming.OnEnterFieldAnyone) {
       return [
-        // [Your Turn] When a Digimon digivolves into Growlmon/Gallantmon, by
-        // suspending this Tamer (cost), grant Raid + force attack a player.
-        whenDigivolving({
+        staticModifier({
           source,
           effectKey: `${cardId}/digivolve-growlmon-grant-raid-attack`,
           description:
             "[Your Turn] When any of your Digimon digivolve into a Digimon with [Growlmon]/[Gallantmon] in its name, " +
             "by suspending this Tamer, that Digimon gains <Raid> for the turn. Then, that Digimon attacks a player.",
           when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn(),
-          canActivate: (ctx) => {
-            const perm = ctx.source.permanent();
-            if (perm === undefined || perm.isSuspended || perm.inBreeding) return false;
-            // Check affectability (beAffected restriction)
-            return true;
-          },
           resolve: async (ctx) => {
-            const subjectId = ctx.trigger.subjectPermanentId;
-            if (subjectId === undefined) return;
-            const subject = ctx.game.permanentById(subjectId);
-            if (subject === undefined || subject.topCard === undefined) return;
-
-            const def = ctx.game.definitionOf(subject.topCard);
-            if (!def.kinds.includes(CardKind.Digimon)) return;
-            const name = def.nameEn;
-            if (!name.includes("Growlmon") && !name.includes("Gallantmon")) return;
-            if (subject.controllerSeat !== ctx.source.ownerSeat) return;
-
-            // Activation cost: suspend self
-            const selfPerm = ctx.source.permanent();
-            if (selfPerm === undefined) return;
-            const paid = ctx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
-            if (!paid) return;
-
-            // Grant Raid
-            ctx.fx.grantKeyword(subjectId, "Raid", EffectDuration.UntilEachTurnEnd);
-
-            // Force attack a player
-            await ctx.fx.forceAttack(subjectId, { withoutSuspending: true });
+            const self = ctx.source.permanent();
+            if (self === undefined) return;
+            ctx.fx.subscribeSubTrigger({
+              event: "whenOneOfYoursDigivolves",
+              sourcePermanentId: self.permanentId,
+              once: false,
+              description: `${cardId}: Growlmon/Gallantmon digivolution`,
+              matches: (subCtx) => {
+                const subjectId = subCtx.trigger.subjectPermanentId;
+                if (subjectId === undefined) return false;
+                const subject = subCtx.game.permanentById(subjectId);
+                if (subject === undefined || subject.topCard === undefined) return false;
+                if (subject.controllerSeat !== source.ownerSeat) return false;
+                const def = subCtx.game.definitionOf(subject.topCard);
+                return (
+                  def.kinds.includes(CardKind.Digimon) &&
+                  (def.nameEn.includes("Growlmon") || def.nameEn.includes("Gallantmon"))
+                );
+              },
+              run: async (subCtx) => {
+                const selfPerm = subCtx.game.permanentById(self.permanentId);
+                const subjectId = subCtx.trigger.subjectPermanentId;
+                if (selfPerm === undefined || selfPerm.isSuspended || subjectId === undefined) return;
+                const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
+                if (!paid) return;
+                subCtx.fx.grantKeyword(subjectId, "Raid", EffectDuration.UntilEachTurnEnd);
+                await subCtx.fx.forceAttack(subjectId, { withoutSuspending: true });
+              },
+            });
           },
         }),
       ];
@@ -74,9 +75,9 @@ const module: EffectModule = {
         security({
           source,
           effectKey: `${cardId}/security-play`,
-          description: "[Security] Play this card.",
+          description: "[Security] Play this card without paying its cost.",
           resolve: async (ctx) => {
-            await ctx.fx.playFromSecurity(ctx.source.instanceId);
+            await ctx.fx.playFromSecurity(ctx.source.instanceId, { payCost: false });
           },
         }),
       ];

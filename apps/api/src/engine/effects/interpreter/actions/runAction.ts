@@ -229,7 +229,13 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   // with an empty security stack sets the cost to 0). That case resolves its own value.
   const isSetCostModifier = action.kind === "CostModifier" && action.mode === "set";
   const isDeleteLevelCeilingScaling = action.kind === "Delete" && action.scaling?.levelCeilingAdd !== undefined;
-  if (scale !== undefined && scale === 0 && !isSetCostModifier && !isDeleteLevelCeilingScaling) return false;
+  // A budget scaling ("for every 2 [Argomon] in its digivolution cards, +1 to the maximum",
+  // BT17-051) raises a BASE budget the action carries on its own. Zero units means no bonus,
+  // never "the action does nothing" — the base budget still deletes.
+  const isBudgetScaling = action.kind !== "RawUnparsed" && action.scaling?.budgetAdd !== undefined;
+  if (scale !== undefined && scale === 0 && !isSetCostModifier && !isDeleteLevelCeilingScaling && !isBudgetScaling) {
+    return false;
+  }
 
   // Everything the prologue worked out that a case body still needs.
   const scope: ActionScope = { scale, deferredCostSuspensions };

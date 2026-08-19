@@ -331,38 +331,37 @@ describe("§16-17 <Delay> (comprehensive-0235)", () => {
   });
 });
 
-describe("§16-18 <Decoy> (comprehensive-0236) — DIVERGENCE: not the printed rule", () => {
+describe("§16-18 <Decoy> (comprehensive-0236)", () => {
   it(
-    "NOW MET: a <Decoy>-protected Digimon should stay deletable, protected only by trashing the Decoy card as a one-time cost",
+    "a <Decoy>-protected Digimon stays deletable: the protection is paid by deleting the Decoy holder",
     async () => {
       cite(
         "comprehensive-0236",
-        "DIVERGENCE: §16-18-1 <Decoy (X)>: 'When another of your specified Digimon would be " +
-          "deleted by an opponent's effect, by deleting the Digimon with this effect, this " +
-          "effect prevents the Digimon specified by this effect from being deleted.' BT11-082 " +
-          "(the only <Decoy> printer in the corpus) compiles the keyword to an empty-actions " +
-          "Static marker (label only) PLUS an unrelated `AllTurns Restrict(beDeleted, " +
-          "duration:'permanent')` on [Yuu Amano] — an ABSOLUTE, PERMANENT can't-be-deleted " +
-          "restriction with no cost, no opponent-effect qualifier, and no consumption of the " +
-          "Decoy card itself. This is not a mistranslation of the same rule; it is a different " +
-          "mechanic (unconditional immortality) standing in for a one-shot redirect-by-sacrifice.",
+        "§16-18-1 <Decoy (X)>: 'When another of your specified Digimon would be deleted by an " +
+          "opponent's effect, by deleting the Digimon with this effect, this effect prevents the " +
+          "Digimon specified by this effect from being deleted.' The protection is a one-shot " +
+          "cost paid at the deletion consult, never a standing can't-be-deleted restriction.",
       );
 
       const s = setup();
       const p0 = s.state.players[0] as PlayerState;
       const decoy = digimon(0, 3000, "BT11-082"); // printed <Decoy ([Bagra Army])>
-      const yuuAmano = digimon(0, 1000, "BT10-093"); // a real permanent actually named [Yuu Amano]
-      p0.battleArea.push(decoy, yuuAmano);
-      await s.engine.recomputeContinuousEffects(); // pick up BT11-082's AllTurns restriction
+      const protectedAlly = digimon(0, 1000, "BT10-070"); // a [Bagra Army] Digimon it covers
+      p0.battleArea.push(decoy, protectedAlly);
+      await s.engine.recomputeContinuousEffects();
       const reader = (s.engine as unknown as { continuous: { hasRestriction(id: string, r: string): boolean } })
         .continuous;
 
-      // EXPECTED (per §16-18-1): nothing is unconditionally undeletable — protection requires
-      // deleting the Decoy card AS A COST, each time, not a blanket restriction. The engine's
-      // ACTUAL behavior (confirmed here) is the opposite: [Yuu Amano] is unconditionally
-      // shielded from deletion for the rest of the game, with no cost and no consumption of
-      // the Decoy card at all — proving the divergence directly, not just its absence.
-      expect(reader.hasRestriction(yuuAmano.permanentId, "beDeleted")).toBe(false);
+      // The covered ally carries NO standing restriction: it is deletable until the Decoy
+      // holder is actually deleted as the cost at the consult.
+      expect(reader.hasRestriction(protectedAlly.permanentId, "beDeleted")).toBe(false);
+      // The <Decoy> marker itself is the keyword grant the deletion consult reads.
+      expect(
+        (s.engine as unknown as { continuous: { hasKeyword(id: string, k: string): boolean } }).continuous.hasKeyword(
+          decoy.permanentId,
+          "Decoy",
+        ),
+      ).toBe(true);
     },
   );
 });

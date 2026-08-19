@@ -1177,10 +1177,13 @@ describe("primitives: placeUnder / link", () => {
     const sourceId = h.s.perm("source").permanentId;
     expect(await h.fx.relocatePermanentByEffect?.(destId, sourceId)).toBe(true);
 
-    expect(h.subTriggerFires).toContainEqual({
-      event: "onAddDigivolutionCards",
-      payload: { subjectPermanentId: destId },
-    });
+    // The payload also carries the moved card ids; the destination is what this asserts.
+    expect(h.subTriggerFires).toContainEqual(
+      expect.objectContaining({
+        event: "onAddDigivolutionCards",
+        payload: expect.objectContaining({ subjectPermanentId: destId }),
+      }),
+    );
     expect(h.s.perm("dest").stack.map(({ cardId }) => cardId)).toContain(DIGIMON);
   });
 

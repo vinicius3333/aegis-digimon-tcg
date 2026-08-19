@@ -5,6 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX3-027.js";
 import "./EX3-035.js";
 import "./EX3-069.js";
+import "../index.js"; // the full catalog is registered in a real match
 
 describe("EX3-027 Agumon", () => {
   it("has the official identity, inherited text, and digivolves from yellow level 2 for 0", async () => {
@@ -229,9 +230,11 @@ describe("EX3-027 Agumon", () => {
       0: {
         battleArea: [{ card: "BT1-050", under: [{ card: "EX3-027" }], as: "host" }],
         hand: [
-          { card: "EX3-035", as: "firstDragon" },
-          { card: "EX3-036", as: "secondDragon" },
-          { card: "BT1-029", as: "unrelated" },
+          // [Four Great Dragons] Digimon whose own printed effects never touch the deck, so
+          // the deck count below measures Agumon's inherited draw alone.
+          { card: "BT3-029", as: "firstDragon" },
+          { card: "BT3-029", as: "secondDragon" },
+          { card: "BT1-049", as: "unrelated" },
         ],
         deck: ["BT1-049", "BT1-048"],
       },
@@ -306,7 +309,7 @@ describe("EX3-027 Agumon", () => {
           { card: "EX3-027", as: "topAgumon" },
         ],
         hand: [
-          { card: "BT1-029", as: "unrelated" },
+          { card: "BT1-049", as: "unrelated" },
           { card: "EX3-035", as: "dragonOnOpponentTurn" },
         ],
         deck: ["BT1-049", "BT1-048"],

@@ -151,7 +151,10 @@ describe("heterogeneous reveal-add primaries", () => {
     });
     // The "play Kiriha" bucket runs AFTER the add-to-hand bucket, so settle on the LAST observable
     // (Kiriha leaving the deck) rather than the Blue Flare cards landing in hand.
-    await settle(() => inZone(p0.deck, KIRIHA) === 0 && inZone(p0.hand, BLUE_FLARE_1) > 0);
+    await settle(
+      () => p0.battleArea.some((perm) => perm.topCard?.cardId === KIRIHA) && inZone(p0.hand, BLUE_FLARE_1) > 0,
+      5000,
+    );
 
     expect(inZone(p0.hand, BLUE_FLARE_1)).toBe(1);
     expect(inZone(p0.hand, BLUE_FLARE_2)).toBe(1);

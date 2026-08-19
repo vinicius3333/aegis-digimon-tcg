@@ -272,6 +272,13 @@ export class GameEngine {
   private readonly deferredSecurityRemovalTriggers: Array<{
     payload: TriggerInfo;
     subscriptions: SubTriggerSubscription[];
+    /**
+     * Contexts bound when the removal HAPPENED, not when the reaction runs. The trigger has
+     * already activated by then (KB Q2611/Q2629), so a watcher whose anchor dies in the battle
+     * that follows the removal — an inherited ＜Draw 1＞ on the attacker's Digi-Egg, BT14-001 —
+     * still resolves instead of being dropped for a missing anchor at flush time.
+     */
+    contexts: Map<number, EffectContext>;
   }> = [];
   private flushingDeferredSecurityRemovalTriggers = false;
 
@@ -310,7 +317,7 @@ export class GameEngine {
       while (this.deferredSecurityRemovalTriggers.length > 0) {
         const deferred = this.deferredSecurityRemovalTriggers.shift();
         if (deferred !== undefined) {
-          await this.fireSubTriggerSnapshot(deferred.subscriptions, deferred.payload);
+          await this.fireSubTriggerSnapshot(deferred.subscriptions, deferred.payload, deferred.contexts);
         }
       }
     } finally {
@@ -908,6 +915,10 @@ export class GameEngine {
     // (23-card cluster). Covers both the turn player's own unsuspend and the opponent's
     // ＜Reboot＞ unsuspend — both are genuine suspended -> unsuspended transitions.
     for (const permanentId of allFlipped) {
+      // Both seams of "becomes unsuspended": the timing window handwritten modules listen on
+      // (BT11-032's bounce) and the SubTrigger bus the compiled watchers use. The effect-driven
+      // unsuspend primitive fires the same pair, so a turn-start unsuspend must not fire fewer.
+      await this.fireTiming(EffectTiming.OnUnTappedAnyone, { unsuspendedPermanentId: permanentId });
       await this.fireSubTrigger("whenUnsuspended", { unsuspendedPermanentId: permanentId });
     }
     return allFlipped;
@@ -1510,10 +1521,14 @@ export class GameEngine {
       this.activeWindowToken !== undefined &&
       !this.flushingDeferredSecurityRemovalTriggers
     ) {
-      this.deferredSecurityRemovalTriggers.push({
-        payload: { ...payload },
-        subscriptions: [...this.subTriggers.subscriptionsFor(event)],
-      });
+      const pending = [...this.subTriggers.subscriptionsFor(event)];
+      const boundPayload = { ...payload };
+      const contexts = new Map<number, EffectContext>();
+      for (const sub of pending) {
+        const ctx = this.buildSubTriggerContext(sub, boundPayload);
+        if (ctx !== undefined) contexts.set(sub.id, ctx);
+      }
+      this.deferredSecurityRemovalTriggers.push({ payload: boundPayload, subscriptions: pending, contexts });
       return;
     }
     // A SubTrigger body is a triggered, duration-scoped effect even when its watcher was
@@ -1573,28 +1588,31 @@ export class GameEngine {
     await this.recomputeContinuousEffects();
   }
 
+  private buildSubTriggerContext(sub: SubTriggerSubscription, payload: TriggerInfo): EffectContext | undefined {
+    if (sub.sourceInstanceId !== undefined) {
+      const loose = this.findLooseInstance(sub.sourceInstanceId);
+      if (loose === undefined) return undefined;
+      return this.buildEffectContext(this.cardSourceOf(loose), payload);
+    }
+    if (sub.sourcePermanentId !== undefined) {
+      const srcPerm = this.access.permanentById(sub.sourcePermanentId);
+      if (srcPerm?.topCard === undefined) return undefined;
+      return this.buildEffectContext(this.cardSourceOf(srcPerm.topCard), payload);
+    }
+    if (sub.activationContext !== undefined) {
+      return { ...sub.activationContext, trigger: payload, selections: new Map() };
+    }
+    return undefined;
+  }
+
   private async fireSubTriggerSnapshot(
     subscriptions: readonly SubTriggerSubscription[],
     payload: TriggerInfo,
+    boundContexts?: ReadonlyMap<number, EffectContext>,
   ): Promise<void> {
     await this.subTriggers.fireSnapshot(
       subscriptions,
-      (sub) => {
-        if (sub.sourceInstanceId !== undefined) {
-          const loose = this.findLooseInstance(sub.sourceInstanceId);
-          if (loose === undefined) return undefined;
-          return this.buildEffectContext(this.cardSourceOf(loose), payload);
-        }
-        if (sub.sourcePermanentId !== undefined) {
-          const srcPerm = this.access.permanentById(sub.sourcePermanentId);
-          if (srcPerm?.topCard === undefined) return undefined;
-          return this.buildEffectContext(this.cardSourceOf(srcPerm.topCard), payload);
-        }
-        if (sub.activationContext !== undefined) {
-          return { ...sub.activationContext, trigger: payload, selections: new Map() };
-        }
-        return undefined;
-      },
+      (sub) => boundContexts?.get(sub.id) ?? this.buildSubTriggerContext(sub, payload),
       this.activeWindowToken,
       {
         hasFired: (key) => this.tracker.count(key, "subtrigger") > 0,

@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX3-031.js";
+import "../index.js"; // the full catalog is registered in a real match
 
 function candidates(payloadJson: string): string[] {
   return (JSON.parse(payloadJson) as { candidateInstanceIds?: string[] }).candidateInstanceIds ?? [];
@@ -403,7 +404,10 @@ describe("EX3-031 Veedramon", () => {
     await s.ready();
     await advance(s.engine).recompute();
     await advance(s.engine).recompute();
-    expect(observe(s.engine).subscriptions("whenPlayed")).toHaveLength(2);
+    // Scoped to the two hosts: other registered cards on the board install their own
+    // `whenPlayed` watchers, which say nothing about these two inherited copies.
+    expect(observe(s.engine).subscriptions("whenPlayed", s.perm("firstHost").permanentId)).toHaveLength(1);
+    expect(observe(s.engine).subscriptions("whenPlayed", s.perm("secondHost").permanentId)).toHaveLength(1);
 
     await advance(s.engine).verb.playInstances([s.inst("firstDragon").instanceId]);
     const first = s.state.players[0]!.battleArea.find(
@@ -424,7 +428,8 @@ describe("EX3-031 Veedramon", () => {
     expect(observe(s.engine).hasKeyword(first, "Rush")).toBe(true);
     expect(observe(s.engine).hasKeyword(second, "Rush")).toBe(false);
     expect(observe(s.engine).hasKeyword(third, "Rush")).toBe(false);
-    expect(observe(s.engine).subscriptions("whenPlayed")).toHaveLength(2);
+    expect(observe(s.engine).subscriptions("whenPlayed", s.perm("firstHost").permanentId)).toHaveLength(1);
+    expect(observe(s.engine).subscriptions("whenPlayed", s.perm("secondHost").permanentId)).toHaveLength(1);
   });
 
   it("Q3664 triggers once for a simultaneous play and lets the player give Rush to either of those Digimon", async () => {

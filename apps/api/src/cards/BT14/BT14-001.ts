@@ -13,6 +13,9 @@ const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "whenSecurityRemoved",
+          // "removed from your OPPONENT's security stack" — without this the watcher
+          // defaults to the controller's own stack and never fires.
+          "sourceFilter": { "controller": "opponent" },
           "actions": [
             {
               "kind": "Draw",

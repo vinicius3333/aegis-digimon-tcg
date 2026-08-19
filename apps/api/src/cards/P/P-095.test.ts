@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-090.js";
 import "./P-095.js";
+import "../index.js"; // the full catalog is registered in a real match
 
 describe("P-095 Pause Plug-In P", () => {
   it("requires a color source without a Tamer, but any off-color Tamer waives that requirement", async () => {
@@ -152,7 +153,8 @@ describe("P-095 Pause Plug-In P", () => {
         0: { security: [{ card: "P-095", as: "securityOption" }] },
         1: {
           battleArea: [
-            { card: "BT1-025", as: "attacker" },
+            // BT1-025 WarGreymon would suppress the [Security] skill on Option cards it checks.
+            { card: "BT1-024", as: "attacker" },
             { card: "BT1-075", dp: 12000, as: "securityTarget" },
           ],
         },

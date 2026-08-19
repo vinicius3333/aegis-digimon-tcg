@@ -118,6 +118,8 @@ function makeContext(opts: {
       const over = definitionOverrides?.get(card.cardId) ?? {};
       return fakeDefinition({ cardId: card.cardId, nameEn: card.cardId, kinds: ["Digimon"] as never, ...over });
     },
+    hasKeyword: (permanentId: string, keyword: string) =>
+      (grantedByPermanent?.get(permanentId) ?? []).some((entry) => entry.keyword === keyword),
   } as unknown as GameAccess;
 
   const fx: Primitives = {
@@ -155,8 +157,10 @@ describe("cost-modification cluster A3 — BT12-040 conditional self play-cost -
     expect(module, "BT12-040 must self-register on import").toBeDefined();
   });
 
-  it("the Static play-cost reducer lives at the None timing", () => {
-    const effects = module!.effectsForTiming(EffectTiming.None, makeSource());
+  it("the play-cost reducer lives at the pay-time window", () => {
+    // "When you would play this card from your hand … reduce its play cost by 3" is the
+    // pay-time window (BeforePayCost), not a board-wide Static modifier.
+    const effects = module!.effectsForTiming(EffectTiming.BeforePayCost, makeSource());
     expect(effects.length).toBeGreaterThanOrEqual(1);
   });
 
@@ -181,13 +185,14 @@ describe("cost-modification cluster A3 — BT12-040 conditional self play-cost -
       source: makeSource({ permanent: () => selfPermanent }),
     } as EffectContext;
 
-    const effects = module!.effectsForTiming(EffectTiming.None, ctx.source);
-    for (const effect of effects) await effect.resolve(ctx);
+    const effects = module!.effectsForTiming(EffectTiming.BeforePayCost, ctx.source);
+    expect(effects.length, "the conditional self-cost reducer must be installed").toBe(1);
+    const reducer = effects[0]!;
+    expect(reducer.canTrigger?.(ctx) ?? true, "the SA condition must hold").toBe(true);
+    await reducer.resolve(ctx);
 
-    const costCalls = recorder.calls.filter((c) => c.verb === "changePlayCost");
-    expect(costCalls.length, "the conditional self-cost reducer must be installed").toBe(1);
-    // arg[1] is the signed delta passed to changePlayCost.
-    expect(costCalls[0]!.args[1]).toBe(-3);
+    // `playCostDelta` is the reduction the play action subtracts: max(0, cost - delta).
+    expect(ctx.playCostDelta).toBe(3);
   });
 
   it("REVERT-CONFIRM-RED: with NO opponent <Security Attack> Digimon, the reducer is NOT installed", async () => {
@@ -208,11 +213,12 @@ describe("cost-modification cluster A3 — BT12-040 conditional self play-cost -
       source: makeSource({ permanent: () => selfPermanent }),
     } as EffectContext;
 
-    const effects = module!.effectsForTiming(EffectTiming.None, ctx.source);
-    for (const effect of effects) await effect.resolve(ctx);
+    const effects = module!.effectsForTiming(EffectTiming.BeforePayCost, ctx.source);
+    for (const effect of effects) {
+      expect(effect.canTrigger?.(ctx) ?? true, "no discount may apply without the SA condition").toBe(false);
+    }
 
-    const costCalls = recorder.calls.filter((c) => c.verb === "changePlayCost");
-    expect(costCalls, "no discount may apply without the SA condition").toHaveLength(0);
+    expect(ctx.playCostDelta, "no discount may apply without the SA condition").toBeUndefined();
   });
 });
 

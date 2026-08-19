@@ -87,11 +87,17 @@ describe("canTrigger / canActivate gating", () => {
     expect(canTrigger(eff, ctx, tracker)).toBe(false);
   });
 
-  it("canTrigger ANDs the builder's on-field base guard with the card's when", () => {
-    const offField = fakeSource({ isOnBattleArea: () => false });
-    const eff = onPlay({ source: offField, effectKey: "k", description: "", when: () => true, resolve: async () => {} });
-    // base guard (on-field) is false => does not trigger despite when() true.
-    expect(canTrigger(eff, fakeContext(offField), new UseTracker())).toBe(false);
+  it("canTrigger ANDs the builder's entering-subject base guard with the card's when", () => {
+    const source = fakeSource({ permanent: () => ({ permanentId: "MINE" }) as never });
+    const eff = onPlay({ source, effectKey: "k", description: "", when: () => true, resolve: async () => {} });
+    // The board-wide broadcast names ANOTHER permanent as the entering subject, so this
+    // source's [On Play] stays silent despite when() being true.
+    const otherEntered: EffectContext = {
+      ...fakeContext(source),
+      trigger: { subjectPermanentId: "SOMEONE-ELSE" },
+    };
+    expect(canTrigger(eff, otherEntered, new UseTracker())).toBe(false);
+    expect(canTrigger(eff, fakeContext(source), new UseTracker())).toBe(true);
   });
 
   it("security and onDeletion builders do NOT require on-field", () => {
