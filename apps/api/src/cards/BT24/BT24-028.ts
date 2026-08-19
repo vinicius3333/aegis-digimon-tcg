@@ -183,10 +183,8 @@ export const compiled: CompiledCard = {
       frequency: "OncePerTurn",
     },
   ],
-  coverage: "partial",
-  residual: [
-    "GainKeyword additionalEffect GrantStatic cannotBeDeletedInBattle not a standard primitive — needs GrantStatic or separate ModifyFlags action",
-  ],
+  coverage: "full",
+  residual: [],
   digivolutionRequirement: [
     {
       level: 4,

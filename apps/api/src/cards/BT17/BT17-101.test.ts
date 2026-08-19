@@ -35,7 +35,10 @@ describe("BT17-101 Fenriloogamon: Takemikazuchi — [When Attacking] security tr
   it("keeps the Tamer recovery branch independent from the DNA condition", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving");
     expect(effect?.actions[1]).toMatchObject({ kind: "SetMemory", condition: { kind: "isDnaDigivolving" } });
-    expect(effect?.actions[2]).toMatchObject({ kind: "GainMemory", condition: { kind: "raw" } });
+    expect(effect?.actions[2]).toMatchObject({
+      kind: "GainMemory",
+      condition: { kind: "selfDigivolutionStackMatchesFilter", filter: { kind: ["Tamer"] } },
+    });
     expect(effect?.actions[3]).toMatchObject({ kind: "GainKeyword", keyword: { keyword: "Recovery", amount: 1 } });
   });
 

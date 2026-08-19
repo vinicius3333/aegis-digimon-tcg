@@ -13,20 +13,25 @@ describe("BT23-013 Jesmon", () => {
   it("offers the token/Sistermon modal on both timings", () => {
     for (const trigger of ["WhenDigivolving", "WhenAttacking"]) {
       const actions = (compiled.effects.find((entry) => entry.trigger === trigger) as any).actions;
-      expect(actions[0]).toMatchObject({ kind: "Modal", optional: true, options: expect.any(Array) });
-      expect(actions[0].options[0][0]).toMatchObject({
+      expect(actions[0]).toMatchObject({ kind: "RestrictEffect", scope: "thisEffect" });
+      expect(actions[1]).toMatchObject({ kind: "Modal", optional: true, options: expect.any(Array) });
+      expect(actions[1].options[0][0]).toMatchObject({
         kind: "PlayToken",
-        token: { name: "Atho, René & Por", dp: 6000, color: "White" },
+        token: {
+          name: "Atho, René & Por",
+          dp: 6000,
+          color: "White",
+          keywords: [
+            { keyword: "Reboot" },
+            { keyword: "Blocker" },
+            { keyword: "Decoy", colors: ["Red", "Black"] },
+          ],
+        },
       });
-      expect(actions[0].options[1][0]).toMatchObject({
+      expect(actions[1].options[1][0]).toMatchObject({
         kind: "PlayWithoutCost",
         from: ["hand", "trash"],
         payCost: false,
-      });
-      expect(actions[1]).toMatchObject({
-        kind: "RestrictEffect",
-        restriction: "cannotPlaySameNameAsOwnDigimon",
-        scope: "thisEffect",
       });
     }
   });

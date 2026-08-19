@@ -10,9 +10,19 @@ import { registerCard } from "../../engine/effects/registry.js";
 const cardId = "BT21-058";
 
 function hasVemmonInText(def: CardDefinition): boolean {
-  // "Vemmon in its text": name contains "Vemmon" OR traits/types contain "Vemmon"
-  if (def.nameEn.includes("Vemmon")) return true;
-  return def.types?.includes("Vemmon") ?? false;
+  // "Vemmon in its text" includes the card's printed effect text, not only its
+  // name or trait list.  BT11-065 (Snatchmon), for example, qualifies because
+  // its [When Digivolving] text mentions [Vemmon] while its name and types do not.
+  const printedText = [
+    def.nameEn,
+    def.effectText,
+    def.inheritedEffectText,
+    def.securityEffectText,
+    ...(def.forms ?? []),
+    ...(def.attributes ?? []),
+    ...(def.types ?? []),
+  ];
+  return printedText.some((text) => text?.includes("Vemmon") === true);
 }
 
 function isVemmon(def: CardDefinition): boolean {

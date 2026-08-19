@@ -1,122 +1,104 @@
-// @ts-nocheck
-// HAND-FIXED IR for P-199 (Dan Yuki) — do not regenerate. The "[Your Turn] When any of
-// your [TS]-trait Digimon would be played, by suspending this Tamer, reduce their play
-// costs by 1" was compiled as a `wouldBePlayed` Replacement with no consume site (the play
-// path never read it). Modeled instead with existing primitives: a continuous play-cost
-// `CostModifier` (-1 for [TS] Digimon, gated on this Tamer being unsuspended so it lapses
-// once the cost is paid) plus a `whenPlayed` watcher that suspends this Tamer when a [TS]
-// Digimon enters — the "by suspending this Tamer" cost.
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { CardKind, EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import { security, staticModifier, turnTiming } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
-    {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
+const cardId = "P-199";
+
+const module: EffectModule = {
+  cardId,
+  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
+    if (timing === EffectTiming.OnStartMainPhase) {
+      return [
+        turnTiming({
+          source,
+          effectKey: `${cardId}/start-main-dp`,
+          description: "If you have 4 or less memory, 1 of your Digimon gets +3000 DP for the turn.",
+          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn() && ctx.game.state.memory <= 4,
+          resolve: async (ctx) => {
+            const candidates = ctx.game
+              .player(source.ownerSeat)
+              .battleArea.filter(
+                (permanent) => permanent.topCard !== undefined && isDigimon(ctx.game.definitionOf(permanent.topCard)),
+              )
+              .map((permanent) => permanent.permanentId);
+            const chosen = await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 });
+            if (chosen.length > 0) ctx.fx.modifyDP(chosen[0]!, 3000, EffectDuration.UntilEachTurnEnd);
           },
-          "amount": 3000,
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "memoryAtMost",
-            "value": 4
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "CostModifier",
-          "mode": "reduce",
-          "costType": "play",
-          "amount": -1,
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "TS"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            }
+        }),
+        turnTiming({
+          source,
+          effectKey: `${cardId}/ts-play-cost-this-turn`,
+          description: "[Your Turn] Reduce the play cost of your TS Digimon by 1.",
+          when: () => source.isOnBattleArea() && source.isOwnersTurn() && !source.permanent()?.isSuspended,
+          resolve: async (ctx) => {
+            ctx.fx.changePlayCost(
+              ({ def }) => def.kinds.includes(CardKind.Digimon) && (def.types ?? []).includes("TS"),
+              -1,
+            );
           },
-          "condition": {
-            "kind": "selfUnsuspended"
-          }
-        },
-        {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "TS"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Suspend",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "payCost": false
-        }
-      ],
-      "isSecurity": true
+        }),
+      ];
     }
-  ],
-  "coverage": "partial",
-  "residual": []
+
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/ts-play-cost`,
+          description:
+            "[Your Turn] When a TS Digimon would be played, by suspending this Tamer, reduce its play cost by 1.",
+          when: () => {
+            const self = source.permanent();
+            return source.isOnBattleArea() && source.isOwnersTurn() && self !== undefined && !self.isSuspended;
+          },
+          resolve: async (ctx) => {
+            const self = source.permanent();
+            if (self === undefined) return;
+            ctx.fx.subscribeSubTrigger({
+              event: "whenPlayed",
+              sourcePermanentId: self.permanentId,
+              once: false,
+              description: `${cardId}: pay the TS play-cost reduction by suspending this Tamer`,
+              matches: (subCtx) => {
+                const playedId = subCtx.trigger.subjectPermanentId;
+                if (playedId === undefined) return false;
+                const played = subCtx.game.permanentById(playedId);
+                return (
+                  played?.controllerSeat === source.ownerSeat &&
+                  played.topCard !== undefined &&
+                  isDigimon(subCtx.game.definitionOf(played.topCard)) &&
+                  (subCtx.game.definitionOf(played.topCard).types ?? []).includes("TS")
+                );
+              },
+              run: async (subCtx) => {
+                const current = source.permanent();
+                if (current !== undefined && !current.isSuspended) await subCtx.fx.suspend([current.permanentId]);
+              },
+            });
+          },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.SecuritySkill) {
+      return [
+        security({
+          source,
+          effectKey: `${cardId}/security-play`,
+          description: "[Security] Play this card without paying its memory cost.",
+          resolve: async (ctx) => {
+            await ctx.fx.playFromSecurity(source.instanceId, { payCost: false });
+          },
+        }),
+      ];
+    }
+
+    return [];
+  },
 };
 
-registerIrCard("P-199", compiled);
+registerCard(module);
+export default module;

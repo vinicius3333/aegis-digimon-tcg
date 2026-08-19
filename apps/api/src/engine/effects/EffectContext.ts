@@ -88,6 +88,7 @@ export type SubTriggerEventName =
   | "onAddDigivolutionCards"
   | "whenPlayed"
   | "whenOptionPlayed"
+  | "whenOptionInBattleAreaTrashed"
   | "whenLeavesPlay"
   | "whenLinked"
   | "whenLinkTrashed"
@@ -178,6 +179,8 @@ export interface TriggerInfo {
   deletedByDpZero?: boolean;
   /** Security card currently being checked. */
   securityInstanceId?: string;
+  /** Option permanent card instance that was trashed from the battle area. */
+  trashedOptionInstanceId?: string;
   /** The checked security card was face-up before the check revealed it. */
   securityWasFaceUp?: boolean;
   /** Permanent that was suspended (OnTappedAnyone). */
@@ -1179,7 +1182,11 @@ export interface Primitives {
   playToken(
     seat: Seat,
     tokenName: string,
-    opts?: { payCost?: boolean; suspended?: boolean },
+    opts?: {
+      payCost?: boolean;
+      suspended?: boolean;
+      keywords?: Array<{ keyword: string; amount?: number; specifiers?: string[] }>;
+    },
   ): Promise<Permanent | undefined>;
   /** Apply a transient DP modifier to a seat's security Digimon during a check. */
   modifySecurityDp(seat: Seat, delta: number, opts?: { continuous?: boolean; duration?: EffectDuration }): void;
@@ -1515,6 +1522,8 @@ export interface EffectContext {
   activeTiming?: string;
   /** Exact rules clause currently resolving, including inherited/security provenance. Display-only. */
   activeEffectText?: string;
+  /** Temporary restrictions installed by a RestrictEffect action in this resolution. */
+  effectRestrictions?: Set<string>;
   game: GameAccess;
   fx: Primitives;
   ask: DecisionApi;

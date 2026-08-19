@@ -1,76 +1,70 @@
-// @ts-nocheck
-// hand-authored override
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import { onDiscardSecurity, staticModifier } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
-// BT15-037 Sunarizamon (BT15, Red Digimon).
-//
-// Printed text (no errata):
-//   [When Trashed From Security] You may play this card without paying its memory cost.
-//   [All Turns][Once Per Turn] When your security stack is removed from, gain 1 memory.
-//   [Inherited][All Turns] When this Digimon would be deleted in battle, by trashing
-//   the top card of your security stack, prevent that deletion (＜Barrier＞, native combat
-//   keyword — not modeled as an IR action).
-//
-// Migration note: the prior hand-written module modeled clause 1 as a dead
-// "whenTrashedFromSecurity" SubTrigger event (declared, never fired) with a literal no-op
-// resolve, and wrongly modeled clause 2 under EffectTiming.OnDiscardSecurity (which means
-// "an effect trashed THIS card from security" — the opposite direction of "your security stack
-// was removed from"). Fixed: clause 1 now uses the real EffectTiming.OnDiscardSecurity path
-// (fires only from GameEngine.fireDiscardedFromSecurity); clause 2 uses the already-live
-// whenSecurityRemoved SubTrigger event nested under AllTurns (precedent: EX12-045, BT4-088).
-const compiled: CompiledCard = {
-  "effects": [
-    {
-      "trigger": "OnDiscardSecurity",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
+const cardId = "BT15-037";
+
+const module: EffectModule = {
+  cardId,
+  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
+    if (timing === EffectTiming.OnDiscardSecurity) {
+      return [
+        onDiscardSecurity({
+          source,
+          effectKey: `${cardId}/play-from-security-trash`,
+          description: "When an effect trashes this card from security, you may play it without paying the cost.",
+          optional: true,
+          resolve: async (ctx) => {
+            await ctx.fx.playInstances([source.instanceId], { payCost: false });
           },
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenSecurityRemoved",
-          "sourceFilter": {
-            "isSelfRef": true
-          },
-          "actions": [
-            {
-              "kind": "GainMemory",
-              "amount": 1
-            }
-          ]
-        }
-      ],
-      "frequency": "OncePerTurn"
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
-        {
-          "keyword": "Barrier",
-          "raw": "＜Barrier＞"
-        }
-      ]
+        }),
+      ];
     }
-  ],
-  "coverage": "full",
-  "residual": []
+
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/security-removed-memory`,
+          description: "[All Turns][Once Per Turn] When a card is removed from your security stack, gain 1 memory.",
+          maxPerTurn: 1,
+          resolve: async (ctx) => {
+            const self = source.permanent();
+            if (self === undefined) return;
+            ctx.fx.subscribeSubTrigger({
+              event: "whenSecurityRemoved",
+              sourcePermanentId: self.permanentId,
+              once: false,
+              oncePerTurnKey: `${cardId}/security-removed-memory`,
+              description: `${cardId}: gain memory when your security is removed`,
+              matches: (subCtx) => subCtx.trigger.removedFromSecuritySeat === source.ownerSeat,
+              run: async (subCtx) => {
+                subCtx.fx.gainMemoryForSeat(source.ownerSeat, 1);
+              },
+            });
+          },
+        }),
+        staticModifier({
+          source,
+          effectKey: `${cardId}/inherited-barrier`,
+          description: "Inherited ＜Barrier＞.",
+          isInherited: true,
+          resolve: async (ctx) => {
+            const self = source.permanent();
+            if (self !== undefined && isDigimon(ctx.game.definitionOf(self.topCard!))) {
+              ctx.fx.grantKeyword(self.permanentId, "Barrier", EffectDuration.Permanent);
+            }
+          },
+        }),
+      ];
+    }
+
+    return [];
+  },
 };
 
-registerIrCard("BT15-037", compiled);
+registerCard(module);
+export default module;

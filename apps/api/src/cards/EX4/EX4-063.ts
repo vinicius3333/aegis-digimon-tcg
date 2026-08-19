@@ -6,7 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // runtime-effect fixes based on errata (before: name check, after: digivolution cards check):
 // - [Start of Your Main Phase] Restrict: must target the Digimon PLAYED by this effect
 //   (targetPlayedByThisEffect:true), not the opponent's Digimon. Also adds a
-//   DeleteAtEndOfOpponentTurn action on the same played Digimon (KB Q5724: deleted at end
+//   DelayedDelete action on the same played Digimon (KB Q5724: deleted at end
 //   of opponent's first turn after it's played). These require new engine cap CAP-C-18.
 // - [Your Turn] Replacement sourceFilter: errata changes name check to digivolution cards —
 //   use digivolutionStackNameOrTrait to check for Terriermon/Lopmon in digivolution cards.
@@ -62,13 +62,7 @@ const compiled: CompiledCard = {
           "duration": "permanent"
         },
         {
-          "kind": "DeleteAtEndOfOpponentTurn",
-          "target": {
-            "filter": {
-              "targetPlayedByThisEffect": true
-            },
-            "count": 1
-          }
+          "kind": "DelayedDelete"
         }
       ]
     },

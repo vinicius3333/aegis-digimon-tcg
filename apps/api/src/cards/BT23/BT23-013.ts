@@ -36,6 +36,12 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          kind: "RestrictEffect",
+          restriction: "cannotPlaySameNameAsOwnDigimon",
+          scope: "thisEffect",
+          raw: "This effect can't play cards with the same names as any of your Digimon",
+        },
+        {
           kind: "Modal",
           optional: true,
           options: [
@@ -76,12 +82,6 @@ export const compiled: CompiledCard = {
               },
             ],
           ],
-        },
-        {
-          kind: "RestrictEffect",
-          restriction: "cannotPlaySameNameAsOwnDigimon",
-          scope: "thisEffect",
-          raw: "This effect can't play cards with the same names as any of your Digimon",
         },
       ],
     },
@@ -89,6 +89,12 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          kind: "RestrictEffect",
+          restriction: "cannotPlaySameNameAsOwnDigimon",
+          scope: "thisEffect",
+          raw: "This effect can't play cards with the same names as any of your Digimon",
+        },
+        {
           kind: "Modal",
           optional: true,
           options: [
@@ -129,12 +135,6 @@ export const compiled: CompiledCard = {
               },
             ],
           ],
-        },
-        {
-          kind: "RestrictEffect",
-          restriction: "cannotPlaySameNameAsOwnDigimon",
-          scope: "thisEffect",
-          raw: "This effect can't play cards with the same names as any of your Digimon",
         },
       ],
     },
@@ -168,8 +168,8 @@ export const compiled: CompiledCard = {
       frequency: "OncePerTurn",
     },
   ],
-  coverage: "partial",
-  residual: ["PlayToken primitive needed for Atho/René/Por token; RestrictEffect scope=thisEffect needed"],
+  coverage: "full",
+  residual: [],
   digivolutionRequirement: [
     {
       names: ["SaviorHuckmon"],

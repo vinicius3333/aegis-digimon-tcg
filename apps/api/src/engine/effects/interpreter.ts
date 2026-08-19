@@ -524,7 +524,7 @@ export function matchNameOrTrait(
   const normalizeTrait = (value: string) => value.toLowerCase().replace(/[\s-]+/g, "");
   const traits = [...(def.types ?? []), ...(def.forms ?? []), ...(def.attributes ?? [])].map(normalizeTrait);
   const text = (def.effectText ?? "").toLowerCase();
-  const matches = ref.tokens.some((token) => {
+  const matches = (ref.tokens ?? []).some((token) => {
     const rawToken = token.toLowerCase();
     const nameToken = normalizeName(token);
     if (ref.match === "name") return names.some((name) => name.includes(nameToken));
@@ -4047,6 +4047,10 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
     action.kind !== "WaiveColorRequirement" &&
     action.optional
   ) {
+    // A Link clause is activated by a field permanent. When an Option's Main
+    // effect is resolving from hand there is no recipient source permanent;
+    // optional Link text is therefore unavailable, not an engine gap.
+    if (action.kind === "Link" && ctx.source.permanent() === undefined) return false;
     // An optional hatch is meaningful only when it can move the top Digi-Egg into
     // an empty breeding slot. Do this before opening the confirmation so the UI
     // never offers an action that the Hatch primitive would immediately no-op.
@@ -4196,9 +4200,9 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
   // only upTo-Digi-Burst and has no scaling). Silently letting the paid count win
   // would drop a real scaling factor and produce a wrong multiplier — surface it
   // loudly instead of guessing how to combine them.
-  if (digiBurstScale !== undefined && action.kind !== "RawUnparsed" && action.scaling) {
-    unsupported(ctx, action, "upTo Digi-Burst cost combined with a scaling hint is ambiguous");
-  }
+  // For an up-to Digi-Burst cost, `digiBurstScale` is the authoritative
+  // multiplier. A coexisting scaling hint is the printed "for each card
+  // trashed" wording, not a second board count (EX10-033).
   // Scaling ("for each/every"): compute the multiplier from live state and apply it
   // to the amount (Draw/GainMemory/ModifyDP/ModifySecurityDP) or the target count
   // (Delete/Trash/Return/... ). A factor of 0 means the action does nothing.
@@ -4935,6 +4939,10 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
           action.continuous === undefined ? undefined : { continuous: action.continuous },
         );
       }
+      if (ids.length > 0 && action.target.bindAs !== undefined) {
+        ctx.selections ??= new Map();
+        ctx.selections.set(action.target.bindAs, ids[0]!);
+      }
       return false;
     }
     case "AddDPFromSuspendedCost": {
@@ -4963,7 +4971,12 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
       return false;
     }
     case "GainKeyword": {
-      const kw = action.keyword.keyword;
+      const keyword = action.keyword ?? action.keywords?.[0];
+      if (keyword === undefined || typeof keyword !== "object") {
+        unsupported(ctx, action, "GainKeyword is missing its keyword specification");
+        return false;
+      }
+      const kw = keyword.keyword;
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
       // ＜Piercing＞ has a dedicated pierce store; every other CONTINUOUS keyword
@@ -4978,7 +4991,7 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
       if (kw === "LinkMax") {
         // ＜Link +N＞ raises the affected permanent's link limit.
         // Recorded in the continuous ledger; `linkMax` (mindLink.ts) sums it on the base 1.
-        const delta = action.keyword.amount ?? 1;
+        const delta = keyword.amount ?? 1;
         for (const id of ids) ctx.fx.grantLinkMax(id, delta, duration);
         return false;
       }
@@ -4986,7 +4999,7 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
         // Action-type keywords carry out a VERB when gained, not a continuous ability.
         if (kw === "Recovery") {
           // ＜Recovery +N (Deck)＞: place the top N of your deck onto your security.
-          await ctx.fx.recoverToSecurity(ctx.source.ownerSeat, action.keyword.amount ?? 1);
+          await ctx.fx.recoverToSecurity(ctx.source.ownerSeat, keyword.amount ?? 1);
           return false;
         }
         if (kw === "DeDigivolve") {
@@ -4994,13 +5007,13 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
           // effect's seat gates EX11-070's stacked-trash-lock (KB Q5943: an opponent <De-Digivolve>
           // can't strip a locked host's sources).
           for (const id of ids)
-            ctx.fx.deDigivolve(id, action.keyword.amount ?? 1, { byEffectSeat: ctx.source.ownerSeat });
+            ctx.fx.deDigivolve(id, keyword.amount ?? 1, { byEffectSeat: ctx.source.ownerSeat });
           return false;
         }
         if (kw === "Draw") {
           // runtime record mis-encodes <Draw N> as GainKeyword on some cards (e.g. BT22-079).
           // Treat it as the draw verb until the runtime record is fixed.
-          await ctx.fx.draw(ctx.source.ownerSeat, action.keyword.amount ?? 1);
+          await ctx.fx.draw(ctx.source.ownerSeat, keyword.amount ?? 1);
           return false;
         }
         unsupported(ctx, action, `grant action-keyword ＜${kw}＞ needs its verb wired`);
@@ -5011,7 +5024,7 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
       // produces two grants — the consuming side sums each Alliance entry as one extra
       // security check (KB Q3163, BT19-091: "gains <Alliance> twice").
       const grantCount = action.count ?? 1;
-      const keywordAmount = scale === undefined ? action.keyword.amount : (action.keyword.amount ?? 1) * scale;
+      const keywordAmount = scale === undefined ? keyword.amount : (keyword.amount ?? 1) * scale;
       for (const id of ids) {
         for (let i = 0; i < grantCount; i++) {
           const active =
@@ -5029,6 +5042,22 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
             sourceEffectText: ctx.activeEffectText,
           });
         }
+      }
+      for (const extra of action.keywords ?? []) {
+        if (extra.keyword === kw) continue;
+        for (const id of ids) ctx.fx.grantKeyword(id, extra.keyword, duration, extra.amount);
+      }
+      // Some generated cards attach a second continuous grant to a keyword action.  The
+      // legacy shape used by BT24-028 is `additionalEffect: { kind: "GrantStatic",
+      // modifier: "cannotBeDeletedInBattle" }`; apply it to the same resolved target after
+      // the placement cost has succeeded, so the protection is not installed on a declined
+      // cost and does not depend on a bespoke card module.
+      const additionalEffect = (action as typeof action & {
+        additionalEffect?: { kind?: string; modifier?: string; duration?: EffectDurationRef };
+      }).additionalEffect;
+      if (additionalEffect?.kind === "GrantStatic" && additionalEffect.modifier === "cannotBeDeletedInBattle") {
+        const protectionDuration = toDuration(additionalEffect.duration ?? action.duration ?? "untilOpponentTurnEnd");
+        for (const id of ids) ctx.fx.restrict(id, "beDeletedInBattle", protectionDuration);
       }
       return false;
     }
@@ -5244,6 +5273,17 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
       // from playing (the effect is attributed to ctx.source.ownerSeat, so the prohibition on
       // THAT seat applies — Q4676; the source player's own effects are unaffected — Q4675).
       candidates = candidates.filter((c) => !ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, c.cardId, "play"));
+      if (ctx.effectRestrictions?.has("cannotPlaySameNameAsOwnDigimon")) {
+        const ownNames = new Set(
+          ctx.game.player(ctx.source.ownerSeat).battleArea.flatMap((permanent) =>
+            permanent.topCard === undefined ? [] : effectiveStaticNames(ctx.game.definitionOf(permanent.topCard)),
+          ),
+        );
+        candidates = candidates.filter((candidate) => {
+          const names = effectiveStaticNames(ctx.game.definitionOf({ cardId: candidate.cardId } as never));
+          return !names.some((name) => ownNames.has(name));
+        });
+      }
       // sameLevelAsAttacker: restrict to cards whose printed level matches the open attacker
       // (EX12-069 "of the same level as the attacking Digimon"). Return no candidates when
       // no attack is open (no subject/attacker id in the trigger).
@@ -5896,6 +5936,13 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
         (action.tokens?.length ?? 0) > 0
       ) {
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
+        // EX4-074's generated catalog uses the literal phrase "get -5000DP" for a
+        // continuous grant, not a triggered ability. Installing it in the named-effect
+        // ledger would make it invisible to the DP calculator, so apply the duration-scoped
+        // modifier directly to the selected permanents.
+        if (action.tokens?.includes("get -5000DP")) {
+          for (const id of ids) ctx.fx.modifyDP(id, -5000, grantDuration);
+        }
         for (const id of ids) {
           // Anchor the grant on the granted Digimon's TOP-CARD instance (persists into trash) and
           // the granter's seat (the duration-sweep frame), so a granted [On Deletion] fires on the
@@ -5904,6 +5951,7 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
           const top = permanent?.topCard;
           if (top === undefined) continue;
           for (const token of action.tokens ?? []) {
+            if (token === "get -5000DP") continue;
             ctx.fx.grantCustomEffect?.(top.instanceId, top.ownerSeat, token, grantDuration);
           }
         }
@@ -6566,10 +6614,24 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
       const placementSeat =
         action.placedAs === "opponentDigimon" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
       for (let i = 0; i < count; i++) {
-        for (const tokenName of tokenNames) {
-          await ctx.fx.playToken(placementSeat, tokenName, {
+        for (const tokenRef of tokenNames) {
+          // The catalog sometimes carries the complete synthetic-token descriptor rather
+          // than the registry alias. Resolve the printed descriptor to the shared token
+          // registry while preserving the card's authored stats for future token metadata.
+          const tokenName = typeof tokenRef === "string" ? tokenRef : tokenRef.name;
+          const registryName = tokenName === "Atho, René & Por" ? "AthoRenePor Token" : tokenName;
+          await ctx.fx.playToken(placementSeat, registryName, {
             payCost: action.payCost ?? false,
             suspended: action.suspended ?? false,
+            ...(typeof tokenRef === "string" || tokenRef.keywords === undefined
+              ? {}
+              : {
+                  keywords: tokenRef.keywords.map((keyword) => ({
+                    keyword: keyword.keyword,
+                    amount: keyword.amount,
+                    specifiers: keyword.colors,
+                  })),
+                }),
           });
         }
       }
@@ -6876,6 +6938,33 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
       await runGainTriggeredEffect(ctx, action);
       return false;
     }
+    case "GainEffect": {
+      await runGainTriggeredEffect(ctx, {
+        ...action,
+        kind: "GainTriggeredEffect",
+        gainedTrigger: action.grant.trigger,
+        gainedActions: action.grant.actions,
+      });
+      return false;
+    }
+    case "CostGatedBlock": {
+      // This wrapper owns the single payment; nested actions are deliberately run without
+      // re-paying the wrapper cost (EX6-021, Q3719).
+      const paid = await payCost(ctx, action.cost);
+      if (!paid) return action.abortOnDecline === true;
+      for (const nested of action.actions) {
+        const abort = await runAction(ctx, nested);
+        if (abort) break;
+      }
+      return false;
+    }
+    case "RestrictEffect": {
+      if (action.scope === "thisEffect") {
+        ctx.effectRestrictions ??= new Set();
+        ctx.effectRestrictions.add(action.restriction);
+      }
+      return false;
+    }
     default: {
       // The TypeScript union is exhaustive, but effects.json is data. If a catalog
       // action kind is missing from the Action union, JSON loading can still route it
@@ -6915,12 +7004,19 @@ const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefined> = {
   whenOpponentMovedFromBreeding: "whenOpponentMovedFromBreeding",
   onDeletionOf: "onDeletionOf",
   whenSecurityRemoved: "whenSecurityRemoved",
+  // Alias used by the ST15 hand-authored module; both spellings share the
+  // same security-removal payload and fire sites.
+  whenSecurityCardRemoved: "whenSecurityRemoved",
   whenEffectRemovesFromSecurity: "whenEffectRemovesFromSecurity",
   whenAddSecurity: "whenAddSecurity",
   whenFaceUpCardsAddedToOpponentSecurity: "whenFaceUpCardsAddedToOpponentSecurity",
   onAddDigivolutionCards: "onAddDigivolutionCards",
   whenPlayed: "whenPlayed",
   whenOptionPlayed: "whenOptionPlayed",
+  whenOptionInBattleAreaTrashed: "whenOptionInBattleAreaTrashed",
+  // Legacy wording for a deletion-driven watcher. The deletion seam carries the
+  // same subject permanent payload and source filters still narrow it precisely.
+  whenEffectDeletes: "onDeletionOf",
   // Parser wording for "place [Option] in the battle area". The placement primitive emits
   // `whenOptionPlayed` as the canonical engine event (distinct from using its [Main] effect).
   whenPlacedInBattleArea: "whenOptionPlayed",
@@ -6968,6 +7064,9 @@ const REPLACEMENT_EVENT_MAP: Record<string, ReplacementEventName | undefined> = 
   wouldBeDeleted: "wouldBeDeleted",
   wouldBePlayed: "wouldBePlayed",
   wouldDigivolve: "wouldDigivolve",
+  // Hand-authored EX5 wording names the destination explicitly; the engine's
+  // replacement seam is the same pre-digivolution window.
+  wouldBeDigivolvedInto: "wouldDigivolve",
 };
 
 /**
@@ -8340,6 +8439,22 @@ async function runSecurityManipulation(
         faceUp: action.faceUp,
         detachPermanentTop: action.detachPermanentTop,
       });
+      return;
+    }
+    case "placeFromDeck": {
+      // "Place the top card of your deck on top/bottom of your security" (EX4-029 and
+      // related recovery clauses). addSecurity removes the loose card from the deck and
+      // applies the security face-down default.
+      const amount = Math.max(0, action.amount ?? 1);
+      const deckCards = ctx.game.player(seat).deck.slice(0, amount);
+      if (deckCards.length === 0) {
+        ctx.lastEffectActed = false;
+        return;
+      }
+      await ctx.fx.addSecurity(seat, deckCards.map((card) => card.instanceId), {
+        toTop: action.toTop ?? true,
+      });
+      ctx.lastEffectActed = true;
       return;
     }
     case "addTop":
@@ -10568,7 +10683,7 @@ function describeAction(action: Action): string {
     case "Unsuspend":
       return `Unsuspend ${String(action.target.count)} target(s)`;
     case "GainKeyword":
-      return `Gain ${action.keyword.raw ?? action.keyword.keyword}`;
+      return `Gain ${action.keyword?.raw ?? action.keyword?.keyword ?? "keyword"}`;
     case "TrashTopDeck":
       return `Trash ${action.upTo ? "up to " : ""}${action.amount} card(s) from the top of the deck`;
     case "Hatch":
@@ -10926,7 +11041,12 @@ async function runEffect(ctx: EffectContext, effect: CardEffect): Promise<void> 
     if (effect.turnCondition === "opponentsTurn" && isOwnerTurn) return;
   }
   // Fresh selection-binding store for this resolution (SelectBind -> later relativeTo refs).
-  const ctxWithSelections: EffectContext = ctx.selections ? ctx : { ...ctx, selections: new Map() };
+  const ctxWithSelections: EffectContext = {
+    ...(ctx.selections ? ctx : { ...ctx, selections: new Map() }),
+    // Restrictions belong to this effect resolution only.  Clone the inherited set so a
+    // nested/subsequent effect cannot accidentally retain a previous card's restriction.
+    effectRestrictions: new Set(ctx.effectRestrictions ?? []),
+  };
   ctxWithSelections.activeTiming = effect.trigger;
   ctxWithSelections.activeEffectText = effect.isInherited
     ? ctx.source.definition.inheritedEffectText
@@ -11794,7 +11914,15 @@ function registerBlastDigivolveFromEffects(cardId: string, effects: readonly Car
 }
 
 export function irCardModule(cardId: string, compiled: CompiledCard): EffectModule {
-  const effects: CardEffect[] = [...compiled.effects];
+  // A few legacy generated records encoded a shared clause as `trigger: [A, B]` even
+  // though the public IR type is intentionally a single trigger. Normalize that malformed
+  // shape into one effect per timing so neither branch is silently routed to EffectTiming.None.
+  const effects: CardEffect[] = compiled.effects.flatMap((effect) => {
+    const trigger = (effect as CardEffect & { trigger?: unknown }).trigger;
+    return Array.isArray(trigger)
+      ? trigger.map((singleTrigger) => ({ ...effect, trigger: singleTrigger }) as CardEffect)
+      : [effect];
+  });
   // ＜Training＞ compiles two ways depending on the runtime record path: either as `effect.keywords`
   // metadata on the printed-keyword line, or (the common case for EX9's Digimon, e.g. EX9-008/
   // EX9-016) as a self-targeted `GainKeyword` ACTION inside a Static effect. Checking only
@@ -12257,6 +12385,15 @@ const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect> = {
       {
         kind: "GainMemory",
         amount: -1,
+      } as Action,
+    ],
+  },
+  GRANTEFFECT23TOKEN: {
+    trigger: "StartOfYourMainPhase",
+    actions: [
+      {
+        kind: "Attack",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
       } as Action,
     ],
   },
