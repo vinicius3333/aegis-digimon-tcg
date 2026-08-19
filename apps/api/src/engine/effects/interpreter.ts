@@ -2299,11 +2299,14 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
     case "totalDigimonGte": {
       // "There are N or more Digimon in play" counts BOTH players' battle areas (BT9-110
       // Q1924). Tamers and Options are excluded even though they share the same permanent zone.
+      // When a filter is present, it further restricts the counted Digimon (for example,
+      // "there are 2 or more suspended Digimon").
       let total = 0;
       for (const seat of [mine, opp]) {
         total += ctx.game.player(seat).battleArea.filter((permanent) => {
           if (permanent.topCard === undefined) return false;
-          return (ctx.game.definitionOf(permanent.topCard).kinds as string[]).includes(CardKind.Digimon);
+          if (!(ctx.game.definitionOf(permanent.topCard).kinds as string[]).includes(CardKind.Digimon)) return false;
+          return cond.filter === undefined || permanentMatchesFilter(ctx, permanent, cond.filter, ctx.source);
         }).length;
       }
       return compareNumber(total, cond.kind === "totalDigimonGte" ? "gte" : cond.op, cond.value ?? 3);
