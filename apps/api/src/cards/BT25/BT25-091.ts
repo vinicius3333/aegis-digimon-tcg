@@ -3,7 +3,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { turnTiming, onPlay, security } from "../../engine/effects/builders.js";
+import { turnTiming, onPlay, security, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT25-091 — Black Tamer (BT25, Monica Simmons).
@@ -35,6 +35,58 @@ const module: EffectModule = {
           },
           resolve: async (ctx) => {
             ctx.fx.setMemory(3);
+          },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/your-turn-when-ts-option-used`,
+          description:
+            "[Your Turn] When you use a [TS] trait Option card, by suspending this Tamer, 1 of your opponent's Digimon can't attack until their turn ends.",
+          when: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const self = source.permanent();
+            if (self === undefined) return;
+            ctx.fx.subscribeSubTrigger({
+              event: "whenOptionUsed",
+              sourcePermanentId: self.permanentId,
+              once: false,
+              oncePerTiming: true,
+              description: `${cardId}: when a [TS] Option is used, suspend this Tamer to restrict an opponent Digimon's attack.`,
+              matches: (subCtx) => {
+                if (!subCtx.source.isOwnersTurn()) return false;
+                const usedId = subCtx.trigger?.subjectPermanentId;
+                if (usedId === undefined) return false;
+                const opponentSeat = subCtx.game.opponentOf(source.ownerSeat);
+                const cards = [
+                  ...Array.from(subCtx.game.player(source.ownerSeat).trash),
+                  ...Array.from(subCtx.game.player(source.ownerSeat).hand),
+                  ...Array.from(subCtx.game.player(opponentSeat).trash),
+                  ...Array.from(subCtx.game.player(opponentSeat).hand),
+                ];
+                const used = cards.find((card) => card.instanceId === usedId);
+                if (used === undefined) return false;
+                const def = subCtx.game.definitionOf(used);
+                return def.kinds?.includes(CardKind.Option) === true && (def.types ?? []).includes("TS");
+              },
+              run: async (subCtx) => {
+                const host = subCtx.source.permanent();
+                if (host === undefined || host.isSuspended) return;
+                const opponent = subCtx.game.player(subCtx.game.opponentOf(source.ownerSeat));
+                const targets = opponent.battleArea
+                  .filter((perm) => perm.topCard !== undefined && isDigimon(subCtx.game.definitionOf(perm.topCard)))
+                  .map((perm) => perm.permanentId);
+                if (targets.length === 0) return;
+                const chosen = await subCtx.ask.chooseTargets(subCtx, { candidates: targets, min: 1, max: 1 });
+                if (chosen.length === 0) return;
+                await subCtx.fx.suspend([host.permanentId]);
+                subCtx.fx.restrict(chosen[0]!, "attack", EffectDuration.UntilOpponentTurnEnd);
+              },
+            });
           },
         }),
       ];
@@ -78,9 +130,6 @@ const module: EffectModule = {
         }),
       ];
     }
-
-    // BLOCKED: [Your Turn] whenOptionUsed SubTrigger with TS trait gate + suspend Tamer cost
-    //   + restrict opponent Digimon from attacking. Requires OnUseOption timing support.
 
     if (timing === EffectTiming.SecuritySkill) {
       return [
