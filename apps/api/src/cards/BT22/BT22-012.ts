@@ -12,89 +12,89 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - Condition changed from youHave (>=1) to permanentCount <= 1.
 //   - Filter changed from AND (colors+cost+trait) to orFilters: two separate options
 //     (red/black Tamer cost<=4) OR (CS-trait Tamer).
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Raid",
-          "raw": "＜Raid＞"
-        }
-      ]
+          keyword: "Raid",
+          raw: "＜Raid＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": ["Tamer"],
-              "colors": ["Red", "Black"],
-              "playCostLte": 4
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+              colors: ["Red", "Black"],
+              playCostLte: 4,
             },
-            "orFilters": [
+            orFilters: [
               {
-                "controllerDefault": "mine",
-                "kind": ["Tamer"],
-                "nameOrTrait": [
+                controllerDefault: "mine",
+                kind: ["Tamer"],
+                nameOrTrait: [
                   {
-                    "tokens": ["CS"],
-                    "match": "trait"
-                  }
-                ]
-              }
+                    tokens: ["CS"],
+                    match: "trait",
+                  },
+                ],
+              },
             ],
-            "count": 1
+            count: 1,
           },
-          "payCost": false,
-          "optional": true,
-          "condition": {
-            "kind": "permanentCount",
-            "seat": "mine",
-            "filter": {
-              "controller": "mine",
-              "kind": ["Tamer"]
+          payCost: false,
+          optional: true,
+          condition: {
+            kind: "permanentCount",
+            seat: "mine",
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
             },
-            "op": "lte",
-            "value": 1,
-            "raw": "you have 1 or fewer Tamers"
-          }
-        }
-      ]
+            op: "lte",
+            value: 1,
+            raw: "you have 1 or fewer Tamers",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "SecurityAttack",
-          "amount": 1,
-          "raw": "＜Security Attack +1＞"
-        }
-      ]
-    }
+          keyword: "SecurityAttack",
+          amount: 1,
+          raw: "＜Security Attack +1＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "names": ["Greymon"],
-      "cost": 3,
-      "isAlternate": true
+      level: 4,
+      names: ["Greymon"],
+      cost: 3,
+      isAlternate: true,
     },
     {
-      "traits": ["CS"],
-      "cost": 3,
-      "isAlternate": true,
-      "level": 4
-    }
-  ]
+      traits: ["CS"],
+      cost: 3,
+      isAlternate: true,
+      level: 4,
+    },
+  ],
 };
 
 registerIrCard("BT22-012", compiled);
