@@ -77,7 +77,7 @@ async function placeHandCardToReturnOpponent(ctx: EffectContext, source: CardSou
 
   const toPlace = await ctx.ask.selectCards(ctx, { candidates: handIds, min: 0, max: 1 });
   if (toPlace.length === 0) return;
-  await ctx.fx.placeUnder(self.permanentId, toPlace);
+  await ctx.fx.placeUnder(self.permanentId, toPlace, { faceUp: false });
 
   let chosenId: string;
   if (targets.length === 1) {
