@@ -259,13 +259,13 @@
         {
           "cardId": "BT4-098",
           "name": "Atomic Inferno",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
           "cardId": "BT1-090",
           "name": "Gravity Crush",
-          "qty": 2,
+          "qty": 1,
           "type": "Option"
         }
       ],
@@ -276,7 +276,9 @@
           "qty": 4,
           "type": "Egg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: BT1-090 reduced to 1; the freed slots reinforce Atomic Inferno."
     },
     {
       "id": "bt12-nin10joe-ukge-2023",
@@ -1351,7 +1353,7 @@
         {
           "cardId": "BT4-009",
           "name": "Flamemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1429,7 +1431,7 @@
         {
           "cardId": "BT1-090",
           "name": "Gravity Crush",
-          "qty": 2,
+          "qty": 1,
           "type": "Option"
         }
       ],
@@ -1440,7 +1442,9 @@
           "qty": 4,
           "type": "Egg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: BT1-090 reduced to 1; the freed slots reinforce Flamemon."
     },
     {
       "id": "bt12-cob-ukge-2023",

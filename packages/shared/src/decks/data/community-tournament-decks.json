@@ -43,7 +43,7 @@
         {
           "cardId": "BT4-009",
           "name": "Flamemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -121,7 +121,7 @@
         {
           "cardId": "BT1-090",
           "name": "Gravity Crush",
-          "qty": 2,
+          "qty": 1,
           "type": "Option"
         }
       ],
@@ -132,7 +132,9 @@
           "qty": 4,
           "type": "Egg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: BT1-090 reduced to 1; the freed slots reinforce Flamemon."
     },
     {
       "id": "bt13-royal-knights-tens-2023",
@@ -157,30 +159,103 @@
         "retrievedAt": "2026-08-14"
       },
       "mainDeck": [
-        { "cardId": "ST12-13", "qty": 2 },
-        { "cardId": "BT13-040", "qty": 4 },
-        { "cardId": "BT13-093", "qty": 3 },
-        { "cardId": "BT13-081", "qty": 1 },
-        { "cardId": "BT3-075", "qty": 1 },
-        { "cardId": "BT13-017", "qty": 2 },
-        { "cardId": "BT13-019", "qty": 3 },
-        { "cardId": "BT13-030", "qty": 3 },
-        { "cardId": "BT13-046", "qty": 2 },
-        { "cardId": "BT13-056", "qty": 3 },
-        { "cardId": "BT13-075", "qty": 2 },
-        { "cardId": "BT13-077", "qty": 2 },
-        { "cardId": "BT13-087", "qty": 4 },
-        { "cardId": "BT13-090", "qty": 2 },
-        { "cardId": "BT13-111", "qty": 2 },
-        { "cardId": "BT13-112", "qty": 4 },
-        { "cardId": "BT13-059", "qty": 1 },
-        { "cardId": "ST2-12", "qty": 1 },
-        { "cardId": "BT13-095", "qty": 2 },
-        { "cardId": "ST3-15", "qty": 1 },
-        { "cardId": "BT10-101", "qty": 1 },
-        { "cardId": "BT13-110", "qty": 4 }
+        {
+          "cardId": "ST12-13",
+          "qty": 2
+        },
+        {
+          "cardId": "BT13-040",
+          "qty": 4
+        },
+        {
+          "cardId": "BT13-093",
+          "qty": 3
+        },
+        {
+          "cardId": "BT13-081",
+          "qty": 1
+        },
+        {
+          "cardId": "BT3-075",
+          "qty": 1
+        },
+        {
+          "cardId": "BT13-017",
+          "qty": 2
+        },
+        {
+          "cardId": "BT13-019",
+          "qty": 4
+        },
+        {
+          "cardId": "BT13-030",
+          "qty": 4
+        },
+        {
+          "cardId": "BT13-046",
+          "qty": 2
+        },
+        {
+          "cardId": "BT13-056",
+          "qty": 4
+        },
+        {
+          "cardId": "BT13-075",
+          "qty": 2
+        },
+        {
+          "cardId": "BT13-077",
+          "qty": 2
+        },
+        {
+          "cardId": "BT13-087",
+          "qty": 4
+        },
+        {
+          "cardId": "BT13-090",
+          "qty": 2
+        },
+        {
+          "cardId": "BT13-111",
+          "qty": 2
+        },
+        {
+          "cardId": "BT13-112",
+          "qty": 4
+        },
+        {
+          "cardId": "BT13-059",
+          "qty": 1
+        },
+        {
+          "cardId": "ST2-12",
+          "qty": 1
+        },
+        {
+          "cardId": "BT13-095",
+          "qty": 2
+        },
+        {
+          "cardId": "ST3-15",
+          "qty": 1
+        },
+        {
+          "cardId": "BT10-101",
+          "qty": 1
+        },
+        {
+          "cardId": "BT13-110",
+          "qty": 1
+        }
       ],
-      "eggDeck": [{ "cardId": "BT13-007", "qty": 4 }]
+      "eggDeck": [
+        {
+          "cardId": "BT13-007",
+          "qty": 4
+        }
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: BT13-110 reduced to 1; the freed slots reinforce Gankoomon, UlforceVeedramon, Leopardmon."
     },
     {
       "id": "bt14-red-hybrid-saf-ope-2024",
@@ -205,24 +280,79 @@
         "retrievedAt": "2026-08-14"
       },
       "mainDeck": [
-        { "cardId": "BT4-009", "qty": 2 },
-        { "cardId": "BT7-008", "qty": 4 },
-        { "cardId": "BT7-081", "qty": 2 },
-        { "cardId": "P-123", "qty": 2 },
-        { "cardId": "BT12-009", "qty": 4 },
-        { "cardId": "BT7-011", "qty": 3 },
-        { "cardId": "BT12-012", "qty": 4 },
-        { "cardId": "BT12-013", "qty": 4 },
-        { "cardId": "BT7-014", "qty": 4 },
-        { "cardId": "BT7-016", "qty": 1 },
-        { "cardId": "BT12-017", "qty": 4 },
-        { "cardId": "BT7-085", "qty": 4 },
-        { "cardId": "BT12-088", "qty": 4 },
-        { "cardId": "BT1-090", "qty": 3 },
-        { "cardId": "BT4-098", "qty": 2 },
-        { "cardId": "BT8-097", "qty": 3 }
+        {
+          "cardId": "BT4-009",
+          "qty": 3
+        },
+        {
+          "cardId": "BT7-008",
+          "qty": 4
+        },
+        {
+          "cardId": "BT7-081",
+          "qty": 2
+        },
+        {
+          "cardId": "P-123",
+          "qty": 1
+        },
+        {
+          "cardId": "BT12-009",
+          "qty": 4
+        },
+        {
+          "cardId": "BT7-011",
+          "qty": 4
+        },
+        {
+          "cardId": "BT12-012",
+          "qty": 4
+        },
+        {
+          "cardId": "BT12-013",
+          "qty": 4
+        },
+        {
+          "cardId": "BT7-014",
+          "qty": 4
+        },
+        {
+          "cardId": "BT7-016",
+          "qty": 1
+        },
+        {
+          "cardId": "BT12-017",
+          "qty": 4
+        },
+        {
+          "cardId": "BT7-085",
+          "qty": 4
+        },
+        {
+          "cardId": "BT12-088",
+          "qty": 4
+        },
+        {
+          "cardId": "BT1-090",
+          "qty": 1
+        },
+        {
+          "cardId": "BT4-098",
+          "qty": 2
+        },
+        {
+          "cardId": "BT8-097",
+          "qty": 4
+        }
       ],
-      "eggDeck": [{ "cardId": "BT14-001", "qty": 4 }]
+      "eggDeck": [
+        {
+          "cardId": "BT14-001",
+          "qty": 4
+        }
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: P-123 reduced to 1; BT1-090 reduced to 1; the freed slots reinforce BurningGreymon, Crimson Blaze, Flamemon."
     },
     {
       "id": "bt16-numemon-brandon-playtcg-2024",
@@ -247,28 +377,87 @@
         "retrievedAt": "2026-08-14"
       },
       "mainDeck": [
-        { "cardId": "BT3-077", "qty": 2 },
-        { "cardId": "BT8-071", "qty": 2 },
-        { "cardId": "P-123", "qty": 4 },
-        { "cardId": "BT16-082", "qty": 4 },
-        { "cardId": "BT11-063", "qty": 4 },
-        { "cardId": "RB1-017", "qty": 2 },
-        { "cardId": "BT14-058", "qty": 3 },
-        { "cardId": "BT15-057", "qty": 4 },
-        { "cardId": "RB1-018", "qty": 4 },
-        { "cardId": "EX5-048", "qty": 2 },
-        { "cardId": "BT15-040", "qty": 4 },
-        { "cardId": "BT14-066", "qty": 3 },
-        { "cardId": "BT16-013", "qty": 4 },
-        { "cardId": "BT9-112", "qty": 2 },
-        { "cardId": "EX4-074", "qty": 2 },
-        { "cardId": "BT14-086", "qty": 2 },
-        { "cardId": "EX5-070", "qty": 2 }
+        {
+          "cardId": "BT3-077",
+          "qty": 4
+        },
+        {
+          "cardId": "BT8-071",
+          "qty": 2
+        },
+        {
+          "cardId": "P-123",
+          "qty": 1
+        },
+        {
+          "cardId": "BT16-082",
+          "qty": 4
+        },
+        {
+          "cardId": "BT11-063",
+          "qty": 4
+        },
+        {
+          "cardId": "RB1-017",
+          "qty": 2
+        },
+        {
+          "cardId": "BT14-058",
+          "qty": 4
+        },
+        {
+          "cardId": "BT15-057",
+          "qty": 1
+        },
+        {
+          "cardId": "RB1-018",
+          "qty": 4
+        },
+        {
+          "cardId": "EX5-048",
+          "qty": 2
+        },
+        {
+          "cardId": "BT15-040",
+          "qty": 4
+        },
+        {
+          "cardId": "BT14-066",
+          "qty": 4
+        },
+        {
+          "cardId": "BT16-013",
+          "qty": 4
+        },
+        {
+          "cardId": "BT9-112",
+          "qty": 2
+        },
+        {
+          "cardId": "EX4-074",
+          "qty": 2
+        },
+        {
+          "cardId": "BT14-086",
+          "qty": 4
+        },
+        {
+          "cardId": "EX5-070",
+          "qty": 2
+        }
       ],
       "eggDeck": [
-        { "cardId": "BT3-006", "qty": 1 },
-        { "cardId": "BT15-006", "qty": 4 }
-      ]
+        {
+          "cardId": "BT3-006",
+          "qty": 1
+        },
+        {
+          "cardId": "BT15-006",
+          "qty": 4
+        }
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: P-123 reduced to 1; BT15-057 reduced to 1; the freed slots reinforce Numemon, PlatinumNumemon, Satsuki Tamahime, Gazimon."
     }
   ]
 }

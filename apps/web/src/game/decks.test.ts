@@ -14,7 +14,7 @@ function copyLimitViolations(deck: DeckListing): string[] {
 
 describe("active card pool deck filtering", () => {
   it("silently excludes inactive cards from imported lists", () => {
-    const deck = parseDeckList("2 Agumon BT1-009\n2 Active later card BT11-005");
+    const deck = parseDeckList("2 Agumon BT1-009\n2 Active later card BT21-005");
 
     expect(deck.mainDeck).toEqual(["BT1-009", "BT1-009"]);
     expect(deck.skipped).toBe(0);
@@ -26,9 +26,9 @@ describe("active card pool deck filtering", () => {
       name: "Saved deck",
       color: "Red",
       blurb: "",
-      mainDeck: ["BT1-009", "BT11-005"],
-      eggDeck: ["BT1-001", "BT11-001"],
-      coverCardId: "BT11-005",
+      mainDeck: ["BT1-009", "BT21-005"],
+      eggDeck: ["BT1-001", "BT21-001"],
+      coverCardId: "BT21-005",
     };
 
     expect(filterDeckToActivePool(deck)).toMatchObject({

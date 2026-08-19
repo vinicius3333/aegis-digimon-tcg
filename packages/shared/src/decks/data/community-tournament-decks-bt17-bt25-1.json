@@ -6,9 +6,7 @@
       "id": "bt17-dgo-2024-10-05-1-miragegaogamon",
       "name": "BT17 MirageGaogamon — Xlr8Alpha",
       "archetype": "MirageGaogamon",
-      "colors": [
-        "Blue"
-      ],
+      "colors": ["Blue"],
       "anchorProduct": "BT17",
       "formatBlock": "BT17",
       "sourceType": "community_tournament_deck",
@@ -30,7 +28,7 @@
         {
           "cardId": "BT11-020",
           "name": "Gaomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -90,19 +88,19 @@
         {
           "cardId": "BT11-033",
           "name": "MirageGaogamon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT13-033",
           "name": "MirageGaogamon: Burst Mode",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT13-097",
           "name": "Thomas H. Norstein",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -143,20 +141,15 @@
           "qty": 1,
           "type": "DigiEgg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: BT11-033 reduced to 1; the freed slots reinforce Gaomon, MirageGaogamon: Burst Mode, Thomas H. Norstein."
     },
     {
       "id": "bt17-dgo-2024-10-05-2-fenriloogamon-takemikazuchi",
       "name": "BT17 Fenriloogamon Takemikazuchi — Nostalgia",
       "archetype": "Fenriloogamon Takemikazuchi",
-      "colors": [
-        "Purple",
-        "Red",
-        "White",
-        "Black",
-        "Yellow",
-        "Green"
-      ],
+      "colors": ["Purple", "Red", "White", "Black", "Yellow", "Green"],
       "anchorProduct": "BT17",
       "formatBlock": "BT17",
       "sourceType": "community_tournament_deck",
@@ -184,13 +177,13 @@
         {
           "cardId": "BT15-071",
           "name": "Loogamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT16-082",
           "name": "Ukkomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -214,7 +207,7 @@
         {
           "cardId": "BT10-080",
           "name": "SkullBaluchimon",
-          "qty": 2,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -232,13 +225,13 @@
         {
           "cardId": "BT17-069",
           "name": "Fenriloogamon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT17-040",
           "name": "Kazuchimon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -268,7 +261,7 @@
         {
           "cardId": "BT16-099",
           "name": "The Demon Wolf of the Castle of Nine Wolves",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         }
       ],
@@ -279,21 +272,15 @@
           "qty": 4,
           "type": "DigiEgg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: BT10-080 reduced to 1; BT17-069 reduced to 1; the freed slots reinforce Loogamon, Ukkomon, The Demon Wolf of the Castle of Nine Wolves, Kazuchimon."
     },
     {
       "id": "bt21-dgo-2025-06-29-1-adventure",
       "name": "BT21 Adventure — DigiBurst",
       "archetype": "Adventure",
-      "colors": [
-        "Green",
-        "Red",
-        "White",
-        "Black",
-        "Blue",
-        "Purple",
-        "Yellow"
-      ],
+      "colors": ["Green", "Red", "White", "Black", "Blue", "Purple", "Yellow"],
       "anchorProduct": "BT21",
       "formatBlock": "BT21",
       "sourceType": "community_tournament_deck",
@@ -439,13 +426,7 @@
       "id": "bt21-dgo-2025-06-29-2-gallantmon",
       "name": "BT21 Gallantmon — Jeffry",
       "archetype": "Gallantmon",
-      "colors": [
-        "Purple",
-        "Red",
-        "Blue",
-        "Yellow",
-        "White"
-      ],
+      "colors": ["Purple", "Red", "Blue", "Yellow", "White"],
       "anchorProduct": "BT21",
       "formatBlock": "BT21",
       "sourceType": "community_tournament_deck",
@@ -585,14 +566,7 @@
       "id": "bt22-dgo-2025-09-20-1-gallantmon",
       "name": "BT22 Gallantmon — GtGaming",
       "archetype": "Gallantmon",
-      "colors": [
-        "Purple",
-        "Red",
-        "Green",
-        "Blue",
-        "Yellow",
-        "White"
-      ],
+      "colors": ["Purple", "Red", "Green", "Blue", "Yellow", "White"],
       "anchorProduct": "BT22",
       "formatBlock": "BT22",
       "sourceType": "community_tournament_deck",
@@ -757,13 +731,7 @@
       "id": "bt22-dgo-2025-09-20-2-leviamon",
       "name": "BT22 Leviamon — Momin Khan",
       "archetype": "Leviamon",
-      "colors": [
-        "Blue",
-        "Purple",
-        "Green",
-        "Yellow",
-        "White"
-      ],
+      "colors": ["Blue", "Purple", "Green", "Yellow", "White"],
       "anchorProduct": "BT22",
       "formatBlock": "BT22",
       "sourceType": "community_tournament_deck",

@@ -6,13 +6,7 @@
       "id": "bt18-dgo-2024-11-09-7-purple-hybrid",
       "name": "BT18 Purple Hybrid — Stevendigi",
       "archetype": "Purple Hybrid",
-      "colors": [
-        "Purple",
-        "White",
-        "Yellow",
-        "Black",
-        "Green"
-      ],
+      "colors": ["Purple", "White", "Yellow", "Black", "Green"],
       "anchorProduct": "BT18",
       "formatBlock": "BT18-19",
       "sourceType": "community_tournament_deck",
@@ -142,7 +136,7 @@
         {
           "cardId": "BT18-094",
           "name": "Koichi Kimura",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -154,7 +148,7 @@
         {
           "cardId": "BT4-111",
           "name": "Jack Raid",
-          "qty": 2,
+          "qty": 1,
           "type": "Option"
         }
       ],
@@ -165,19 +159,15 @@
           "qty": 4,
           "type": "DigiEgg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: BT4-111 reduced to 1; the freed slots reinforce Koichi Kimura."
     },
     {
       "id": "bt18-dgo-2024-11-16-4-ancientgreymon",
       "name": "BT18 AncientGreymon — Dane Struyf",
       "archetype": "AncientGreymon",
-      "colors": [
-        "Red",
-        "White",
-        "Purple",
-        "Yellow",
-        "Blue"
-      ],
+      "colors": ["Red", "White", "Purple", "Yellow", "Blue"],
       "anchorProduct": "BT18",
       "formatBlock": "BT18-19",
       "sourceType": "community_tournament_deck",
@@ -348,13 +338,7 @@
       "id": "bt19-dgo-2024-11-09-10-lordknightmon",
       "name": "BT19 LordKnightmon — Wes",
       "archetype": "LordKnightmon",
-      "colors": [
-        "Purple",
-        "Black",
-        "White",
-        "Yellow",
-        "Red"
-      ],
+      "colors": ["Purple", "Black", "White", "Yellow", "Red"],
       "anchorProduct": "BT19",
       "formatBlock": "BT18-19",
       "sourceType": "community_tournament_deck",
@@ -382,7 +366,7 @@
         {
           "cardId": "BT3-077",
           "name": "Gazimon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -400,31 +384,31 @@
         {
           "cardId": "BT14-073",
           "name": "Ogremon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "EX5-059",
           "name": "Dobermon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT19-069",
           "name": "Deltamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT16-075",
           "name": "Cerberusmon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
           "cardId": "EX5-061",
           "name": "Cerberusmon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -448,13 +432,13 @@
         {
           "cardId": "BT19-072",
           "name": "LordKnightmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT19-073",
           "name": "LordKnightmon (X Antibody)",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -501,17 +485,15 @@
           "qty": 4,
           "type": "DigiEgg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: EX5-059 reduced to 1; EX5-061 reduced to 1; the freed slots reinforce Ogremon, Deltamon, LordKnightmon, LordKnightmon (X Antibody), Gazimon, Cerberusmon."
     },
     {
       "id": "bt19-dgo-2025-03-15-3-sakuyamon",
       "name": "BT19 Sakuyamon — Kurova90",
       "archetype": "Sakuyamon",
-      "colors": [
-        "Yellow",
-        "Purple",
-        "Green"
-      ],
+      "colors": ["Yellow", "Purple", "Green"],
       "anchorProduct": "BT19",
       "formatBlock": "BT19-20",
       "sourceType": "community_tournament_deck",
@@ -538,7 +520,7 @@
         {
           "cardId": "EX2-019",
           "name": "Renamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -580,13 +562,13 @@
         {
           "cardId": "BT17-038",
           "name": "Sakuyamon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT19-040",
           "name": "Sakuyamon",
-          "qty": 2,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -616,7 +598,7 @@
         {
           "cardId": "EX2-070",
           "name": "Digivolution Plug-In S",
-          "qty": 3,
+          "qty": 1,
           "type": "Option"
         },
         {
@@ -651,20 +633,15 @@
           "qty": 4,
           "type": "DigiEgg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: BT19-040 reduced to 1; EX2-070 reduced to 1; the freed slots reinforce Renamon, Sakuyamon."
     },
     {
       "id": "bt20-dgo-2025-03-15-1-galaxy",
       "name": "BT20 Galaxy — Douraku",
       "archetype": "Galaxy",
-      "colors": [
-        "Blue",
-        "Red",
-        "Black",
-        "Yellow",
-        "White",
-        "Green"
-      ],
+      "colors": ["Blue", "Red", "Black", "Yellow", "White", "Green"],
       "anchorProduct": "BT20",
       "formatBlock": "BT19-20",
       "sourceType": "community_tournament_deck",
@@ -822,13 +799,7 @@
       "id": "bt20-dgo-2025-04-12-2-imperialdramon-virus",
       "name": "BT20 Imperialdramon Virus — Nick Hutchens",
       "archetype": "Imperialdramon Virus",
-      "colors": [
-        "Green",
-        "Purple",
-        "Red",
-        "Yellow",
-        "White"
-      ],
+      "colors": ["Green", "Purple", "Red", "Yellow", "White"],
       "anchorProduct": "BT20",
       "formatBlock": "BT19-20",
       "sourceType": "community_tournament_deck",
@@ -981,15 +952,7 @@
       "id": "bt23-dgo-2025-11-08-1-hudiemon",
       "name": "BT23 Hudiemon — Henny H",
       "archetype": "Hudiemon",
-      "colors": [
-        "Black",
-        "Red",
-        "Blue",
-        "Purple",
-        "Green",
-        "Yellow",
-        "White"
-      ],
+      "colors": ["Black", "Red", "Blue", "Purple", "Green", "Yellow", "White"],
       "anchorProduct": "BT23",
       "formatBlock": "BT23",
       "sourceType": "community_tournament_deck",
@@ -1142,11 +1105,7 @@
       "id": "bt23-dgo-2025-11-08-2-growlmon",
       "name": "BT23 Growlmon — Monky",
       "archetype": "Growlmon",
-      "colors": [
-        "Purple",
-        "Red",
-        "Yellow"
-      ],
+      "colors": ["Purple", "Red", "Yellow"],
       "anchorProduct": "BT23",
       "formatBlock": "BT23",
       "sourceType": "community_tournament_deck",
@@ -1305,10 +1264,7 @@
       "id": "bt24-dgo-2026-03-15-1-styracomon",
       "name": "BT24 Styracomon — Choijooyeon",
       "archetype": "Styracomon",
-      "colors": [
-        "Red",
-        "White"
-      ],
+      "colors": ["Red", "White"],
       "anchorProduct": "BT24",
       "formatBlock": "BT24",
       "sourceType": "community_tournament_deck",
@@ -1443,15 +1399,7 @@
       "id": "bt24-dgo-2026-03-15-2-olympus-xii",
       "name": "BT24 Olympus XII — Billy",
       "archetype": "Olympus XII",
-      "colors": [
-        "Blue",
-        "Green",
-        "Yellow",
-        "Red",
-        "Black",
-        "Purple",
-        "White"
-      ],
+      "colors": ["Blue", "Green", "Yellow", "Red", "Black", "Purple", "White"],
       "anchorProduct": "BT24",
       "formatBlock": "BT24",
       "sourceType": "community_tournament_deck",
@@ -1580,12 +1528,7 @@
       "id": "bt25-dgo-2026-06-06-1-angels",
       "name": "BT25 Angels — MINE Shane",
       "archetype": "Angels",
-      "colors": [
-        "Yellow",
-        "Black",
-        "Blue",
-        "Purple"
-      ],
+      "colors": ["Yellow", "Black", "Blue", "Purple"],
       "anchorProduct": "BT25",
       "formatBlock": "BT25",
       "sourceType": "community_tournament_deck",
@@ -1720,14 +1663,7 @@
       "id": "bt25-dgo-2026-06-06-2-beelstarmon",
       "name": "BT25 BeelStarmon — LowRoIIer",
       "archetype": "BeelStarmon",
-      "colors": [
-        "Purple",
-        "Red",
-        "Black",
-        "Yellow",
-        "Green",
-        "White"
-      ],
+      "colors": ["Purple", "Red", "Black", "Yellow", "Green", "White"],
       "anchorProduct": "BT25",
       "formatBlock": "BT25",
       "sourceType": "community_tournament_deck",

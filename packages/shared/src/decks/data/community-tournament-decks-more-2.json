@@ -31,13 +31,13 @@
         {
           "cardId": "BT14-070",
           "name": "Goblimon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "ST16-03",
           "name": "Gabumon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -67,7 +67,7 @@
         {
           "cardId": "EX5-059",
           "name": "Dobermon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -85,13 +85,13 @@
         {
           "cardId": "EX5-061",
           "name": "Cerberusmon (X Antibody)",
-          "qty": 3,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT15-078",
           "name": "WaruSeadramon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -115,7 +115,7 @@
         {
           "cardId": "BT15-081",
           "name": "Leviamon (X Antibody)",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -133,7 +133,7 @@
         {
           "cardId": "EX5-069",
           "name": "Biting Crush",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -168,7 +168,9 @@
           "qty": 4,
           "type": "Egg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: EX5-059 reduced to 1; EX5-061 reduced to 1; the freed slots reinforce Goblimon, Leviamon (X Antibody), Biting Crush, Gabumon, WaruSeadramon."
     },
     {
       "id": "bt15-thatdude-2024-05-12",
@@ -553,13 +555,13 @@
         {
           "cardId": "P-123",
           "name": "Ukkomon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT3-021",
           "name": "Veemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -589,13 +591,13 @@
         {
           "cardId": "BT7-021",
           "name": "Kumamon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
           "cardId": "BT14-026",
           "name": "Zudomon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -619,13 +621,13 @@
         {
           "cardId": "P-130",
           "name": "Lui Ohwada",
-          "qty": 4,
+          "qty": 1,
           "type": "Tamer"
         },
         {
           "cardId": "BT3-093",
           "name": "Davis Motomiya",
-          "qty": 2,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -660,7 +662,9 @@
           "qty": 1,
           "type": "Egg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: P-123 reduced to 1; P-130 reduced to 1; the freed slots reinforce Veemon, Zudomon, Davis Motomiya, Kumamon."
     },
     {
       "id": "bt15-novaboltah-2024-05-12",
@@ -823,7 +827,7 @@
         {
           "cardId": "P-123",
           "name": "Ukkomon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -835,7 +839,7 @@
         {
           "cardId": "BT3-061",
           "name": "Chuumon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -859,7 +863,7 @@
         {
           "cardId": "BT15-057",
           "name": "Numemon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -883,7 +887,7 @@
         {
           "cardId": "BT15-065",
           "name": "WaruMonzaemon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -901,7 +905,7 @@
         {
           "cardId": "BT10-042",
           "name": "Venusmon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -925,7 +929,7 @@
         {
           "cardId": "BT14-086",
           "name": "Satsuki Tamahime",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -948,7 +952,9 @@
           "qty": 4,
           "type": "Egg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: P-123 reduced to 1; BT15-057 reduced to 1; the freed slots reinforce Satsuki Tamahime, Chuumon, Venusmon, WaruMonzaemon."
     },
     {
       "id": "bt15-kbeeds-2024-05-12",
@@ -997,7 +1003,7 @@
         {
           "cardId": "P-123",
           "name": "Ukkomon",
-          "qty": 3,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -1033,7 +1039,7 @@
         {
           "cardId": "BT14-026",
           "name": "Zudomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1051,25 +1057,25 @@
         {
           "cardId": "P-130",
           "name": "Lui Ohwada",
-          "qty": 3,
+          "qty": 1,
           "type": "Tamer"
         },
         {
           "cardId": "BT8-095",
           "name": "Fire Rocket",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
           "cardId": "EX4-068",
           "name": "Heaven's Judgement",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
           "cardId": "P-104",
           "name": "Mental Training",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -1092,7 +1098,9 @@
           "qty": 1,
           "type": "Egg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: P-123 reduced to 1; P-130 reduced to 1; the freed slots reinforce Zudomon, Fire Rocket, Heaven's Judgement, Mental Training."
     },
     {
       "id": "bt15-xtitan24-2024-05-12",
@@ -1135,13 +1143,13 @@
         {
           "cardId": "P-123",
           "name": "Ukkomon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT4-009",
           "name": "Flamemon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1165,7 +1173,7 @@
         {
           "cardId": "BT7-011",
           "name": "BurningGreymon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1201,13 +1209,13 @@
         {
           "cardId": "BT1-090",
           "name": "Gravity Crush",
-          "qty": 2,
+          "qty": 1,
           "type": "Option"
         },
         {
           "cardId": "BT4-098",
           "name": "Atomic Inferno",
-          "qty": 2,
+          "qty": 3,
           "type": "Option"
         },
         {
@@ -1230,7 +1238,9 @@
           "qty": 4,
           "type": "Egg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: P-123 reduced to 1; BT1-090 reduced to 1; the freed slots reinforce BurningGreymon, Flamemon, Atomic Inferno."
     },
     {
       "id": "ex6-kallig-2024-07-20",
@@ -1393,7 +1403,7 @@
         {
           "cardId": "P-123",
           "name": "Ukkomon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -1405,7 +1415,7 @@
         {
           "cardId": "BT3-061",
           "name": "Chuumon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1423,13 +1433,13 @@
         {
           "cardId": "BT15-057",
           "name": "Numemon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT14-058",
           "name": "Numemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1465,13 +1475,13 @@
         {
           "cardId": "BT10-042",
           "name": "Venusmon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT14-066",
           "name": "PlatinumNumemon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1495,13 +1505,13 @@
         {
           "cardId": "BT14-086",
           "name": "Satsuki Tamahime",
-          "qty": 2,
+          "qty": 3,
           "type": "Tamer"
         },
         {
           "cardId": "P-130",
           "name": "Lui Ohwada",
-          "qty": 2,
+          "qty": 1,
           "type": "Tamer"
         },
         {
@@ -1530,7 +1540,9 @@
           "qty": 1,
           "type": "Egg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: P-123 reduced to 1; BT15-057 reduced to 1; P-130 reduced to 1; the freed slots reinforce Numemon, Chuumon, Venusmon, PlatinumNumemon, Satsuki Tamahime."
     },
     {
       "id": "ex6-lectro-2024-07-20",
@@ -1567,19 +1579,19 @@
         {
           "cardId": "P-123",
           "name": "Ukkomon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT3-061",
           "name": "Chuumon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "ST13-08",
           "name": "Chikurimon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1591,13 +1603,13 @@
         {
           "cardId": "BT15-057",
           "name": "Numemon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT14-058",
           "name": "Numemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1627,13 +1639,13 @@
         {
           "cardId": "BT14-066",
           "name": "PlatinumNumemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT16-013",
           "name": "Valkyrimon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1645,13 +1657,13 @@
         {
           "cardId": "BT14-086",
           "name": "Satsuki Tamahime",
-          "qty": 2,
+          "qty": 4,
           "type": "Tamer"
         },
         {
           "cardId": "P-130",
           "name": "Lui Ohwada",
-          "qty": 2,
+          "qty": 1,
           "type": "Tamer"
         },
         {
@@ -1680,7 +1692,9 @@
           "qty": 1,
           "type": "Egg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: P-123 reduced to 1; BT15-057 reduced to 1; P-130 reduced to 1; the freed slots reinforce Numemon, PlatinumNumemon, Valkyrimon, Chuumon, Chikurimon, Satsuki Tamahime."
     },
     {
       "id": "ex6-albertzero-2024-07-20",
@@ -1741,13 +1755,13 @@
         {
           "cardId": "BT13-040",
           "name": "Magnamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT8-038",
           "name": "Magnamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1789,13 +1803,13 @@
         {
           "cardId": "BT4-104",
           "name": "Blinding Ray",
-          "qty": 3,
+          "qty": 1,
           "type": "Option"
         },
         {
           "cardId": "P-036",
           "name": "Blue Memory Boost!",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -1807,7 +1821,7 @@
         {
           "cardId": "BT9-098",
           "name": "Awakening of the Golden Knight",
-          "qty": 2,
+          "qty": 1,
           "type": "Option"
         },
         {
@@ -1824,7 +1838,9 @@
           "qty": 4,
           "type": "Egg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: BT4-104 reduced to 1; BT9-098 reduced to 1; the freed slots reinforce Magnamon, Magnamon, Blue Memory Boost!."
     },
     {
       "id": "ex6-imb-2024-07-20",
@@ -1879,7 +1895,7 @@
         {
           "cardId": "BT8-039",
           "name": "Rapidmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1891,7 +1907,7 @@
         {
           "cardId": "BT15-038",
           "name": "Angewomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1927,13 +1943,13 @@
         {
           "cardId": "BT14-084",
           "name": "T.K. Takaishi",
-          "qty": 4,
+          "qty": 1,
           "type": "Tamer"
         },
         {
           "cardId": "BT1-087",
           "name": "T.K. Takaishi",
-          "qty": 2,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -1945,13 +1961,13 @@
         {
           "cardId": "BT9-098",
           "name": "Awakening of the Golden Knight",
-          "qty": 3,
+          "qty": 1,
           "type": "Option"
         },
         {
           "cardId": "P-105",
           "name": "Physical Training",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -1980,7 +1996,9 @@
           "qty": 4,
           "type": "Egg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: BT14-084 reduced to 1; BT9-098 reduced to 1; the freed slots reinforce Angewomon, Rapidmon, Physical Training, T.K. Takaishi."
     },
     {
       "id": "ex6-asefron-2024-07-20",
@@ -2185,7 +2203,7 @@
         {
           "cardId": "P-123",
           "name": "Ukkomon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -2197,7 +2215,7 @@
         {
           "cardId": "BT3-061",
           "name": "Chuumon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -2221,13 +2239,13 @@
         {
           "cardId": "BT15-057",
           "name": "Numemon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT14-058",
           "name": "Numemon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -2257,7 +2275,7 @@
         {
           "cardId": "BT14-066",
           "name": "PlatinumNumemon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -2287,7 +2305,7 @@
         {
           "cardId": "BT14-086",
           "name": "Satsuki Tamahime",
-          "qty": 2,
+          "qty": 3,
           "type": "Tamer"
         },
         {
@@ -2316,7 +2334,9 @@
           "qty": 1,
           "type": "Egg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: P-123 reduced to 1; BT15-057 reduced to 1; the freed slots reinforce Chuumon, Numemon, PlatinumNumemon, Satsuki Tamahime."
     },
     {
       "id": "ex6-iscovk-2024-07-20",
@@ -2353,7 +2373,7 @@
         {
           "cardId": "P-123",
           "name": "Ukkomon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -2377,13 +2397,13 @@
         {
           "cardId": "BT15-057",
           "name": "Numemon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT14-058",
           "name": "Numemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -2419,13 +2439,13 @@
         {
           "cardId": "BT14-066",
           "name": "PlatinumNumemon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT16-013",
           "name": "Valkyrimon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -2455,7 +2475,7 @@
         {
           "cardId": "BT14-086",
           "name": "Satsuki Tamahime",
-          "qty": 2,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -2490,7 +2510,9 @@
           "qty": 4,
           "type": "Egg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: P-123 reduced to 1; BT15-057 reduced to 1; the freed slots reinforce Numemon, PlatinumNumemon, Satsuki Tamahime, Valkyrimon."
     }
   ]
 }

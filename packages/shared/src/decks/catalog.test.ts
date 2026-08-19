@@ -13,10 +13,10 @@ import {
 } from "./index.js";
 
 const futureDeck: FamousDeck = {
-  deckId: "future-ex3-example",
-  deckVersion: "future-ex3-example@1",
+  deckId: "future-bt21-example",
+  deckVersion: "future-bt21-example@1",
   name: "Future example",
-  block: "EX3",
+  block: "BT21",
   archetype: "Future example",
   colors: [CardColor.Red],
   source: "Test fixture",
@@ -24,27 +24,43 @@ const futureDeck: FamousDeck = {
 };
 
 describe("famous deck catalog", () => {
-  it("keeps the historical catalog available through the operational BT10 cutoff", () => {
+  it("keeps the historical catalog available through the operational BT20 cutoff", () => {
     expect(ALL_FAMOUS_DECKS).toHaveLength(124);
-    expect(famousDeckGroups().flatMap((group) => group.decks)).toHaveLength(33);
+    expect(famousDeckGroups().flatMap((group) => group.decks)).toHaveLength(91);
   });
 
   it("withholds a whole future deck instead of truncating its list", () => {
     expect(isFamousDeckAvailable(futureDeck)).toBe(false);
-    expect(isFamousDeckAvailable(futureDeck, "2022-11-11")).toBe(true);
+    expect(isFamousDeckAvailable(futureDeck, "2025-04-25")).toBe(true);
     expect(futureDeck.decklist.mainDeck).toEqual(["EX3-001"]);
   });
 
   it("withholds a future-format result even when all of its cards are older", () => {
-    const bt12OldCards = COMMUNITY_TOURNAMENT_DECKS.find((deck) => deck.deckId === "bt12-tj-ukge-2023");
-    if (!bt12OldCards) throw new Error("BT12 old-card fixture is missing");
-    expect(isFamousDeckAvailable(bt12OldCards)).toBe(false);
+    const bt22OldCards = COMMUNITY_TOURNAMENT_DECKS.find((deck) => deck.deckId === "bt22-dgo-2025-09-20-2-leviamon");
+    if (!bt22OldCards) throw new Error("BT22 old-card fixture is missing");
+    expect(isFamousDeckAvailable(bt22OldCards)).toBe(false);
   });
 
   it("groups available decks from the most recent format collection to the oldest", () => {
     const groups = famousDeckGroups([...ALL_FAMOUS_DECKS, futureDeck]);
 
     expect(groups.map((group) => group.collection)).toEqual([
+      "BT20",
+      "BT19",
+      "EX8",
+      "BT18",
+      "EX7",
+      "BT17",
+      "EX6",
+      "BT16",
+      "BT15",
+      "BT14",
+      "RB1",
+      "BT13",
+      "EX4",
+      "BT12",
+      "BT11",
+      "EX3",
       "BT10",
       "BT9",
       "EX2",
@@ -92,7 +108,7 @@ describe("famous deck catalog", () => {
     expect(OFFICIAL_PRODUCT_DECKS.every((deck) => deck.sourceUrl?.startsWith("https://world.digimoncard.com/"))).toBe(
       true,
     );
-    expect(famousDeckGroups().flatMap((group) => group.decks)).toHaveLength(33);
+    expect(famousDeckGroups().flatMap((group) => group.decks)).toHaveLength(91);
   });
 
   it("covers every booster collection represented in the registry", () => {

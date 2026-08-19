@@ -183,7 +183,7 @@
         {
           "cardId": "BT13-030",
           "name": "UlforceVeedramon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -195,13 +195,13 @@
         {
           "cardId": "BT13-056",
           "name": "Leopardmon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
           "cardId": "BT13-075",
           "name": "Alphamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -243,7 +243,7 @@
         {
           "cardId": "BT13-110",
           "name": "Royal Knights of the Purge",
-          "qty": 4,
+          "qty": 1,
           "type": "Option"
         }
       ],
@@ -254,7 +254,9 @@
           "qty": 4,
           "type": "Egg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: BT13-110 reduced to 1; the freed slots reinforce UlforceVeedramon, Alphamon, Leopardmon."
     },
     {
       "id": "bt14-loogamon-bandai",
@@ -415,7 +417,7 @@
         {
           "cardId": "BT15-027",
           "name": "Scorpiomon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -463,7 +465,7 @@
         {
           "cardId": "BT15-102",
           "name": "Apocalymon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -475,7 +477,7 @@
         {
           "cardId": "BT14-099",
           "name": "Dark Wings Delusion",
-          "qty": 2,
+          "qty": 4,
           "type": "Option"
         }
       ],
@@ -486,7 +488,9 @@
           "qty": 4,
           "type": "Egg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: BT15-102 reduced to 1; the freed slots reinforce Dark Wings Delusion, Scorpiomon."
     },
     {
       "id": "bt16-silphymon-bandai",
@@ -1013,7 +1017,7 @@
         {
           "cardId": "BT13-019",
           "name": "Gankoomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1055,7 +1059,7 @@
         {
           "cardId": "BT20-056",
           "name": "Alphamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1085,7 +1089,7 @@
         {
           "cardId": "BT13-110",
           "name": "Royal Knights of the Purge",
-          "qty": 3,
+          "qty": 1,
           "type": "Option"
         },
         {
@@ -1102,7 +1106,9 @@
           "qty": 4,
           "type": "Egg"
         }
-      ]
+      ],
+      "revision": 2,
+      "approximation": "Adapted to the current banlist: BT13-110 reduced to 1; the freed slots reinforce Gankoomon, Alphamon."
     },
     {
       "id": "bt21-gaiamon-bandai",
