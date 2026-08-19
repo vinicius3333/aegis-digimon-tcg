@@ -11,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // card from hand or trash without cost.
 // [Security] play 1 [Sistermon] from hand or trash without cost; you may place this
 // card in the battle area.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",

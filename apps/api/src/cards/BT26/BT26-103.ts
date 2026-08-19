@@ -4,17 +4,14 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { whenDigivolving, staticModifier } from "../../engine/effects/builders.js";
+import { activated, whenDigivolving, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**
  * BT26-103 — Jupitermon: Wrath Mode (BT26, Yellow/Red/Black Lv.7 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-103` returns no errata/Q&A hits), so this port is
- * provisional: it follows the printed text directly and mirrors the closest existing
- * hand-written cards for each clause shape. Re-check against the KB once BT26 rulings
- * are scraped.
+ * Q7187–Q7189 confirm Counter timing, activation with zero security cards, and the
+ * ordering of security-removal triggers relative to Security effects.
  *
  * Printed text:
  *   [Digivolve] Lv.6 w/[Olympos XII] trait: Cost 5
@@ -28,13 +25,12 @@ import { registerCard } from "../../engine/effects/registry.js";
  *   [Digivolve] — a digivolution-cost requirement, not an effect clause.
  *   ＜Piercing＞ / ＜Reboot＞ / ＜Blocker＞ — printed keywords on this card's own text,
  *     resolved by the engine's printed-keyword reader (engine/combat/keywords.ts).
- *   ＜Succession＞ — KNOWN GAP: the engine has no ＜Succession＞ mechanic (no matcher in
- *     combat/keywords.ts, no primitive), so this keyword is not modeled here. It is
- *     inert rather than wrong: nothing in this module claims to implement it.
- *   EffectTiming.WhenDigivolving — "Trash your top security card, and ＜Recovery +2＞",
- *     [Once Per Turn] via `maxPerTurn: 1`. [Counter] marks the window in which the
- *     printed effect may be used; the engine has no separate counter-timing gate, so
- *     the clause resolves in its ordinary When Digivolving window.
+ *   ＜Succession ([Jupitermon])＞ — continuously confer every non-Succession effect of
+ *     the topmost [Jupitermon] digivolution card through the engine's stack-effect
+ *     conferral ledger. A conferred copy of this clause is suppressed to implement the
+ *     comprehensive rule's explicit "other than ＜Succession＞" exclusion.
+ *   EffectTiming.WhenDigivolving / OnCounterTiming — the combined tagged effect is
+ *     available in both windows and shares one [Once Per Turn] budget via its effectKey.
  *   EffectTiming.None — the [All Turns] watcher. "Security stacks" is plural and
  *     unqualified, so it fires for a removal from EITHER player's stack, and it covers
  *     both removal routes the engine distinguishes: `whenSecurityRemoved` (a security
@@ -46,22 +42,19 @@ const cardId = "BT26-103";
 
 const DP_PENALTY = -15000;
 const ONCE_PER_TURN_KEY = `${cardId}/security-removed-dp`;
+const TRASH_RECOVER_KEY = `${cardId}/trash-recover`;
 
 /** "1 of your opponent's Digimon gets -15000 DP until their turn ends." */
 async function penalizeOneOpponentDigimon(ctx: EffectContext, ownerSeat: Seat): Promise<void> {
   const opponentSeat = ctx.game.opponentOf(ownerSeat);
   const candidates = ctx.game
     .player(opponentSeat)
-    .battleArea.filter(
-      (p) => !p.inBreeding && p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
-    )
+    .battleArea.filter((p) => !p.inBreeding && p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)))
     .map((p) => p.permanentId);
   if (candidates.length === 0) return;
 
   const chosen =
-    candidates.length === 1
-      ? candidates[0]!
-      : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
+    candidates.length === 1 ? candidates[0]! : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
   if (chosen === undefined) return;
 
   ctx.fx.modifyDP(chosen, DP_PENALTY, EffectDuration.UntilOpponentTurnEnd);
@@ -74,10 +67,9 @@ const module: EffectModule = {
       return [
         whenDigivolving({
           source,
-          effectKey: `${cardId}/when-digivolving-trash-recover`,
+          effectKey: TRASH_RECOVER_KEY,
           description:
-            "[When Digivolving] [Counter] [Once Per Turn] Trash your top security card, and " +
-            "＜Recovery +2＞",
+            "[When Digivolving] [Counter] [Once Per Turn] Trash your top security card, and " + "＜Recovery +2＞",
           optional: false,
           maxPerTurn: 1,
           resolve: async (ctx) => {
@@ -88,8 +80,44 @@ const module: EffectModule = {
       ];
     }
 
+    if (timing === EffectTiming.OnCounterTiming) {
+      return [
+        activated({
+          source,
+          effectKey: TRASH_RECOVER_KEY,
+          description:
+            "[When Digivolving] [Counter] [Once Per Turn] Trash your top security card, and " + "＜Recovery +2＞",
+          optional: false,
+          maxPerTurn: 1,
+          canActivate: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            await ctx.fx.trashFromSecurity(source.ownerSeat, 1, { fromTop: true });
+            await ctx.fx.recoverToSecurity(source.ownerSeat, 2);
+          },
+        }),
+      ];
+    }
+
     if (timing === EffectTiming.None) {
       return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/succession-jupitermon`,
+          description:
+            "＜Succession ([Jupitermon])＞ This Digimon gains all effects other than " +
+            "＜Succession＞ on its topmost [Jupitermon] digivolution card.",
+          when: (ctx) => ctx.source.isOnBattleArea() && ctx.conferredToPermanentId === undefined,
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self === undefined) return;
+            for (let index = self.stack.length - 1; index >= 0; index -= 1) {
+              const stackCard = self.stack[index]!;
+              if (!stackCard.faceUp || ctx.game.definitionOf(stackCard).nameEn !== "Jupitermon") continue;
+              ctx.fx.conferStackEffects(self.permanentId, stackCard.instanceId, EffectDuration.Permanent);
+              break;
+            }
+          },
+        }),
         staticModifier({
           source,
           effectKey: `${cardId}/security-removed-watchers`,

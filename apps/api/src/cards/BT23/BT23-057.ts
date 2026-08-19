@@ -17,7 +17,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - Delete: optional:false — text says "Then, delete 1..." (mandatory)
 //   - CostModifier: retained as closest model for "add 3 to play cost maximum per other Digimon";
 //     moves BEFORE Delete so the ceiling is computed before target resolution
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
@@ -44,6 +44,7 @@ const compiled: CompiledCard = {
               },
               "count": 3
             },
+            "to": "deckTopOrBottom",
             "raw": "by returning 3 cards with [Huckmon], [Sistermon] or [Jesmon] in their names from your trash to the top or bottom of the deck, reduce the play cost by 5"
           },
           "mode": "reduceCost",
@@ -130,10 +131,8 @@ const compiled: CompiledCard = {
       ]
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "Static Replacement cost: text says 'to the top or bottom of the deck' (player's choice). Cost.kind='return' has no 'to' field — deckTopOrBottom destination can't be encoded; raw captures the intent."
-  ],
+  "coverage": "full",
+  "residual": [],
   "digivolutionRequirement": [
     {
       "level": 5,

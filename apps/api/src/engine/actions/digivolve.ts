@@ -295,6 +295,27 @@ export interface DigivolveOutcome {
   carriedSuspended: boolean;
 }
 
+/** Evaluate live gates attached to alternate digivolution requirements. */
+function alternateRequirementAvailable(state: GameState, seat: Seat, requirement: DigivolutionRequirement): boolean {
+  const condition = requirement.whileCondition;
+  if (condition === undefined) return true;
+  if (condition.kind !== "zoneCount" || condition.value === undefined) return false;
+  const targetSeat = condition.seat === "opponent" ? (seat === 0 ? 1 : 0) : seat;
+  const player = playerAt(state, targetSeat);
+  if (player === undefined) return false;
+  const count =
+    condition.zone === "trash"
+      ? player.trash.length
+      : condition.zone === "hand"
+        ? player.hand.length
+        : condition.zone === "security"
+          ? player.security.length
+          : 0;
+  if (condition.op === "gte") return count >= condition.value;
+  if (condition.op === "lte") return count <= condition.value;
+  return count === condition.value;
+}
+
 /**
  * Validate a digivolve intent against current authoritative state. Pure: mutates
  * nothing. Checks run in the API-CONTRACT order (seat/turn/phase -> open-decision
@@ -374,7 +395,11 @@ export function validateDigivolve(
   const evoCost = deps.colorWaived?.(state, found.instance)
     ? matchingEvoCostIgnoringColor(definition, baseDef)
     : matchingEvoCost(definition, baseDef, derivedBaseColors);
-  const altRequirement = matchingAlternateDigivolutionRequirement(definition, baseDef);
+  const matchedAlternateRequirement = matchingAlternateDigivolutionRequirement(definition, baseDef);
+  const altRequirement =
+    matchedAlternateRequirement !== undefined && alternateRequirementAvailable(state, seat, matchedAlternateRequirement)
+      ? matchedAlternateRequirement
+      : undefined;
   // Base-GRANTED path (ST7-03/BT6-060): a static on the BASE permanent lets this specific card
   // digivolve onto it for a fixed cost, ignoring the printed color/level requirement. An
   // independent third path — legal even when neither the EvoCost nor an alternate requirement match.

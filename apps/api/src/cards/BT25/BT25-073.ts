@@ -13,10 +13,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 1. Cost filter must target a link card (zone:"linked") of a Digimon — not any Digimon.
 //    zone:"linked" is a new vocabulary; see LANE_C.md for LinkedZone capability spec.
 //    The cost raw field describes the intent; the filter is the faithful shape.
-// 2. "play or use" — the text allows using Option cards too, but PlayWithoutCost only
-//    plays Digimon/Tamer. A "UseOption" or Modal action is needed for the Option path.
-//    See LANE_C.md for PlayOrUseWithoutCost capability spec.
-//    For now: PlayWithoutCost covers Digimon/Tamer; Option use is a residual.
+// 2. "play or use" is represented by a Modal choosing between a free permanent play and a free
+//    Option use, both restricted to TS cards with cost 5 or less.
 // 3. The inherited Replacement cost targets "its link cards" — the linked zone of the
 //    Digimon that would leave play (self-ref Digimon's linked cards).
 const compiled: CompiledCard = {
@@ -35,26 +33,40 @@ const compiled: CompiledCard = {
       "trigger": "OnPlay",
       "actions": [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "TS"
-                  ],
-                  "match": "trait"
-                }
-              ],
-              "playCostLte": 5
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
+          "kind": "Modal",
+          "choose": 1,
+          "labels": ["Play a TS Digimon", "Use a TS Option"],
+          "options": [
+            [
+              {
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }],
+                    "playCostLte": 5
+                  },
+                  "count": 1
+                },
+                "from": ["hand"],
+                "payCost": false
+              }
+            ],
+            [
+              {
+                "kind": "UseOptionWithoutCost",
+                "filter": {
+                  "controller": "mine",
+                  "kind": ["Option"],
+                  "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }],
+                  "playCostLte": 5
+                },
+                "from": ["hand"],
+                "payCost": false
+              }
+            ]
           ],
-          "payCost": false,
           "cost": {
             "kind": "trash",
             "target": {
@@ -78,26 +90,40 @@ const compiled: CompiledCard = {
       "trigger": "WhenDigivolving",
       "actions": [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "TS"
-                  ],
-                  "match": "trait"
-                }
-              ],
-              "playCostLte": 5
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
+          "kind": "Modal",
+          "choose": 1,
+          "labels": ["Play a TS Digimon", "Use a TS Option"],
+          "options": [
+            [
+              {
+                "kind": "PlayWithoutCost",
+                "target": {
+                  "filter": {
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }],
+                    "playCostLte": 5
+                  },
+                  "count": 1
+                },
+                "from": ["hand"],
+                "payCost": false
+              }
+            ],
+            [
+              {
+                "kind": "UseOptionWithoutCost",
+                "filter": {
+                  "controller": "mine",
+                  "kind": ["Option"],
+                  "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }],
+                  "playCostLte": 5
+                },
+                "from": ["hand"],
+                "payCost": false
+              }
+            ]
           ],
-          "payCost": false,
           "cost": {
             "kind": "trash",
             "target": {
@@ -143,10 +169,8 @@ const compiled: CompiledCard = {
       "isInherited": true
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "use 1 [TS] trait Option card with a use cost of 5 or less from your hand without paying the cost"
-  ],
+  "coverage": "full",
+  "residual": [],
   "digivolutionRequirement": [
     {
       "level": 4,

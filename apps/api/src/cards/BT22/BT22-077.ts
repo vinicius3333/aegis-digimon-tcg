@@ -11,21 +11,17 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     to bottom of deck.
 // [End of Your Turn]: inherited unsuspend effect is a separate effect from the
 // non-inherited one (both fire, once per turn each).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
       actions: [],
-      keywords: [
-        { keyword: "IceClad", raw: "＜Ice Clad＞" },
-      ],
+      keywords: [{ keyword: "IceClad", raw: "＜Ice Clad＞" }],
     },
     {
       trigger: "Static",
       actions: [],
-      keywords: [
-        { keyword: "Blocker", raw: "＜Blocker＞" },
-      ],
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
     },
     {
       trigger: "WhenDigivolving",

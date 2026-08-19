@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT20-078.js";
 import "../index.js";
 
 // A3 for BT20-078 (Reapermon — Purple Lv.6 Digimon).
@@ -18,6 +19,29 @@ const AGUMON = "BT1-010";
 const METAL_GREYMON = "BT1-012";
 
 describe("BT20-078 Reapermon — On Deletion deletes cheap opponent permanent", () => {
+  it("watches opponent effect-driven digivolutions and de-digivolves once per turn", () => {
+    const allTurns = compiled.effects.find((effect) => effect.trigger === "AllTurns");
+    expect(allTurns).toMatchObject({ frequency: "OncePerTurn" });
+    expect(allTurns?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenAnyDigivolves",
+      sourceFilter: { controllerDefault: "opponent", kind: ["Digimon"] },
+      actions: [
+        {
+          kind: "DeDigivolve",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          amount: 1,
+        },
+      ],
+    });
+  });
+
+  it("grants Collision and Blocker as static keywords", () => {
+    expect(
+      compiled.effects.filter((effect) => effect.trigger === "Static").map((effect) => effect.keywords?.[0]?.keyword),
+    ).toEqual(["Collision", "Blocker"]);
+  });
+
   it("[On Deletion] deletes opponent Digimon with play cost <= 4 when Reapermon is deleted", async () => {
     const s = setupEngine(
       {

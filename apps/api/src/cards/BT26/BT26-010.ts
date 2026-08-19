@@ -10,11 +10,8 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
 /**
  * BT26-010 — Roleplaymon (BT26, Red Lv.3 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-010` returns no errata/Q&A hits), so this port is
- * provisional: it follows the printed text directly and mirrors the closest existing
- * hand-written cards for each clause shape. Re-check against the KB once BT26 rulings
- * are scraped.
+ * KB Q6964 confirms that a link-effect Piercing clause is unavailable after Detach has
+ * removed this linked card before the battle deletion resolves.
  *
  * Printed text:
  *   [Digivolve] Lv.2 w/[Appmon] trait: Cost 0
@@ -57,8 +54,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/when-attacking-trash-draw`,
           description:
-            "[When Attacking] By trashing 1 [Game], [Open] or [Seven Code] trait card from " +
-            "your hand, ＜Draw 2＞",
+            "[When Attacking] By trashing 1 [Game], [Open] or [Seven Code] trait card from " + "your hand, ＜Draw 2＞",
           optional: false,
           when: (ctx) => ctx.source.isOnBattleArea(),
           resolve: async (ctx) => {

@@ -16,7 +16,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // `IsOwnerTurn`. Both are expressed as the SubTrigger `fireCondition` (allOf of
 // `triggerSubjectHasColor:{red}` + `isYourTurn`); the watcher body is skipped entirely when the
 // gate does not hold, so the (mandatory once activated) digivolve never runs on a non-red event.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",

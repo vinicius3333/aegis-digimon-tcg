@@ -290,6 +290,8 @@ export interface StackEffectConferral {
   targetPermanentId: string;
   stackInstanceId: string;
   continuous?: boolean;
+  /** Limit the copied effects to the printed trigger (for example, only [Main]). */
+  trigger?: string;
 }
 
 /**
@@ -1206,15 +1208,23 @@ export class ContinuousEffectLedger {
   }
 
   /** Confer a stack card's effects onto its owning permanent. */
-  conferStackEffects(targetPermanentId: string, stackInstanceId: string, opts?: { continuous?: boolean }): void {
+  conferStackEffects(
+    targetPermanentId: string,
+    stackInstanceId: string,
+    opts?: { continuous?: boolean; trigger?: string },
+  ): void {
     const exists = this.stackEffectConferrals.some(
-      (c) => c.targetPermanentId === targetPermanentId && c.stackInstanceId === stackInstanceId,
+      (c) =>
+        c.targetPermanentId === targetPermanentId &&
+        c.stackInstanceId === stackInstanceId &&
+        c.trigger === opts?.trigger,
     );
     if (exists) return;
     this.stackEffectConferrals.push({
       targetPermanentId,
       stackInstanceId,
       continuous: opts?.continuous,
+      trigger: opts?.trigger,
     });
   }
 

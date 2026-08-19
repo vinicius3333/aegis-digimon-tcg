@@ -120,19 +120,12 @@ const compiled: CompiledCard = {
           "op": "toHand",
           "controller": "mine",
           "amount": 1,
-          "toTop": false
+          "toTop": true
         },
         {
           "kind": "SecurityManipulation",
           "op": "placeAsSecurity",
           "controller": "mine",
-          "source": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
           "toTop": false,
           "faceUp": true
         },

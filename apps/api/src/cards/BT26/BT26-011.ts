@@ -6,6 +6,7 @@ import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { onPlay, whenDigivolving, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 
 // BT26-011 — Buraimon (BT26, Red Lv.4 Digimon).
 //
@@ -35,15 +36,13 @@ import { registerCard } from "../../engine/effects/registry.js";
 const cardId = "BT26-011";
 
 const hasChronomonTextOrShamanTrait = (def: CardDefinition): boolean =>
-  (typeof def.effectText === "string" && def.effectText.includes("Chronomon")) ||
-  (def.types ?? []).includes("Shaman");
+  matchNameOrTrait(def, { tokens: ["Chronomon"], match: "text" }) ||
+  matchNameOrTrait(def, { tokens: ["Shaman"], match: "trait" });
 
 /** [On Play] [When Digivolving] By trashing 1 matching card from hand, draw 2. */
 async function trashForDrawTwo(ctx: EffectContext, source: CardSource): Promise<void> {
   const owner = ctx.game.player(source.ownerSeat);
-  const candidates = Array.from(owner.hand).filter((c) =>
-    hasChronomonTextOrShamanTrait(ctx.game.definitionOf(c)),
-  );
+  const candidates = Array.from(owner.hand).filter((c) => hasChronomonTextOrShamanTrait(ctx.game.definitionOf(c)));
   if (candidates.length === 0) return;
 
   // Optional all-or-nothing cost (mirrors BT24-008's canNoSelect:true): decline or no
@@ -59,7 +58,7 @@ async function trashForDrawTwo(ctx: EffectContext, source: CardSource): Promise<
   await ctx.fx.draw(source.ownerSeat, 2);
 }
 
-const module: EffectModule = {
+export const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     if (timing === EffectTiming.OnPlay) {

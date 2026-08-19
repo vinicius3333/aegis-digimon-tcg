@@ -1336,6 +1336,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       await engine.fireSubTrigger?.("onAddDigivolutionCards", {
         subjectPermanentId: targetPermanentId,
         addedDigivolutionCardInstanceIds: placed.map((card) => card.instanceId),
+        addedDigivolutionCardsPosition: opts?.belowTop ? "bottom" : "top",
       });
     }
     return placed;
@@ -1405,7 +1406,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const relocatePermanent = (
     destPermanentId: string,
     sourcePermanentId: string,
-    opts?: { belowTop?: boolean; shedOwnCards?: boolean },
+    opts?: { belowTop?: boolean; shedOwnCards?: boolean; faceUp?: boolean },
   ): boolean => {
     if (destPermanentId === sourcePermanentId) return false;
     // The host may sit in the battle area OR the breeding area: BT13-007's [Breeding] effect
@@ -1448,7 +1449,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const belowTop = opts?.belowTop ?? true;
     const toAttach: CardInstance[] = shed ? [source.topCard] : [source.topCard, ...source.stack, ...source.linked];
     for (const card of toAttach) {
-      card.faceUp = false;
+      card.faceUp = opts?.faceUp ?? false;
       if (belowTop) dest.stack.push(card);
       else dest.stack.unshift(card);
     }
@@ -3485,8 +3486,16 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     continuous.addColorWaiver(instanceId, duration, continuousOpt());
   };
 
-  const conferStackEffects = (targetPermanentId: string, stackInstanceId: string, _duration: EffectDuration): void => {
-    continuous.conferStackEffects(targetPermanentId, stackInstanceId, continuousOpt());
+  const conferStackEffects = (
+    targetPermanentId: string,
+    stackInstanceId: string,
+    _duration: EffectDuration,
+    opts?: { trigger?: string },
+  ): void => {
+    continuous.conferStackEffects(targetPermanentId, stackInstanceId, {
+      ...continuousOpt(),
+      trigger: opts?.trigger,
+    });
   };
 
   // A named custom effect grant is a one-shot, DURATION-scoped grant (NOT continuous): it is

@@ -1,4 +1,4 @@
-import { CardKind,  EffectTiming, isDigimon } from "@aegis/shared";
+import { CardKind, EffectTiming, isDigimon } from "@aegis/shared";
 import type { Permanent } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -105,18 +105,15 @@ const module: EffectModule = {
             const hostDef = ctx.game.definitionOf(host.topCard!);
             const traits = hostDef.types ?? [];
             const relevantTrait =
-              traits.includes("Galaxy") ||
-              traits.includes("Night Claw") ||
-              traits.includes("Light Fang");
+              traits.includes("Galaxy") || traits.includes("Night Claw") || traits.includes("Light Fang");
             if (!relevantTrait) return;
 
             ctx.fx.subscribeReplacement({
-              event: "wouldLeavePlay",
+              event: "wouldBeDeleted",
               sourcePermanentId: host.permanentId,
               mode: "prevent",
-              description:
-                "[All Turns] Trash 2 same-level digivolution cards to prevent deletion.",
-              causeAllows: (cause) => cause === "byEffect",
+              oncePerTurnKey: `${cardId}/inherited-prevent-deletion/${host.permanentId}`,
+              description: "[All Turns] Trash 2 same-level digivolution cards to prevent deletion.",
               protects: (_subCtx, leavingId) => leavingId === host.permanentId,
               preventCheck: async (subCtx) => {
                 const current = subCtx.game.permanentById(host.permanentId);

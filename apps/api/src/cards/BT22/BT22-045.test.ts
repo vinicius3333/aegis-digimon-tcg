@@ -1,0 +1,36 @@
+import { describe, expect, it } from "vitest";
+import { compiled } from "./BT22-045.js";
+
+describe("BT22-045 WezenGammamon", () => {
+  it("uses the Gammamon hand card as the cost for Blocker and +3000 DP", () => {
+    for (const trigger of ["OnPlay", "WhenDigivolving"]) {
+      const effect = compiled.effects.find((entry) => entry.trigger === trigger);
+      expect(effect?.actions).toHaveLength(2);
+      expect(effect?.actions[0]).toMatchObject({
+        kind: "GainKeyword",
+        keyword: { keyword: "Blocker" },
+        duration: "untilOpponentTurnEnd",
+        cost: {
+          kind: "place",
+          destination: "digivolutionStack",
+          position: "bottom",
+          target: {
+            filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Gammamon"], match: "name" }] },
+            count: 1,
+            from: ["hand"],
+          },
+        },
+      });
+      expect(effect?.actions[1]).toMatchObject({
+        kind: "ModifyDP",
+        amount: 3000,
+        duration: "untilOpponentTurnEnd",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+      });
+    }
+  });
+
+  it("retains inherited Piercing", () => {
+    expect(compiled.effects.find((entry) => entry.isInherited)?.keywords).toMatchObject([{ keyword: "Piercing" }]);
+  });
+});

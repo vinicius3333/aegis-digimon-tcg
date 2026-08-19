@@ -53,6 +53,7 @@ function opponentLevel4OrLowerDigimonIds(ctx: EffectContext, source: CardSource)
   const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
   return opponent.battleArea
     .filter((p) => {
+      if (p.inBreeding) return false;
       if (p.topCard === undefined) return false;
       const def = ctx.game.definitionOf(p.topCard);
       return isDigimon(def) && (def.level ?? 0) <= 4;
@@ -97,12 +98,10 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/on-play-delete-own-to-delete-opponent`,
           description:
-            "[On Play] By deleting 1 of your Digimon, delete 1 of your opponent's " +
-            "level 4 or lower Digimon.",
+            "[On Play] By deleting 1 of your Digimon, delete 1 of your opponent's " + "level 4 or lower Digimon.",
           optional: false,
           canActivate: (ctx) =>
-            opponentLevel4OrLowerDigimonIds(ctx, source).length > 0 &&
-            battleAreaDigimon(ctx, source).length > 0,
+            opponentLevel4OrLowerDigimonIds(ctx, source).length > 0 && battleAreaDigimon(ctx, source).length > 0,
           resolve: async (ctx) => {
             await resolveDeleteOwnToDeleteOpponent(ctx, source);
           },
@@ -120,8 +119,7 @@ const module: EffectModule = {
             "opponent's level 4 or lower Digimon.",
           optional: false,
           canActivate: (ctx) =>
-            opponentLevel4OrLowerDigimonIds(ctx, source).length > 0 &&
-            battleAreaDigimon(ctx, source).length > 0,
+            opponentLevel4OrLowerDigimonIds(ctx, source).length > 0 && battleAreaDigimon(ctx, source).length > 0,
           resolve: async (ctx) => {
             await resolveDeleteOwnToDeleteOpponent(ctx, source);
           },

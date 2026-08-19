@@ -112,7 +112,7 @@ export interface SecurityCheckDeps {
    * identifies the attacking permanent so a security-effect disable attached to it
    * (DisableSecurityEffect) can skip the effect while still trashing the card (KB Q886).
    */
-  resolveSecurityEffect(card: CardInstance, attackerPermanentId: string): Promise<boolean>;
+  resolveSecurityEffect(card: CardInstance, attackerPermanentId: string, wasFaceUp?: boolean): Promise<boolean>;
 
   /** currentDP of a field permanent (for the battle compare). */
   dpOf(permanentId: string): number;
@@ -232,7 +232,8 @@ export async function runSecurityCheck(
     // (playFromSecurity) must still be able to locate the card in security at
     // resolution time. The battle, if any, happens after the removal triggers below.
     const hadSecurityEffect =
-      relocatedByOnSecurityCheck || (await deps.resolveSecurityEffect(revealed, attacker.permanentId));
+      relocatedByOnSecurityCheck ||
+      (await deps.resolveSecurityEffect(revealed, attacker.permanentId, wasAlreadyFaceUp));
     // An attacker that already left play (e.g. via the [Security] effect) never battles.
     const remainsInSecurity = defender.security.some((card) => card.instanceId === revealed.instanceId);
     const battlesAttacker =

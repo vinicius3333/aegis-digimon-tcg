@@ -210,10 +210,7 @@ const compiled: CompiledCard = {
     }
   ],
   "coverage": "full",
-  "residual": [
-    "digivolutionRequirement.whileCondition (20+ cards in trash) not implemented — alternate digivolve available regardless of trash count. See LANE_D.md.",
-    "Delete.playCostCeiling not implemented — the ceiling does not scale with trash count at runtime; it remains fixed at 6. See LANE_D.md."
-  ],
+  "residual": [],
   "digivolutionRequirement": [
     {
       "level": 3,

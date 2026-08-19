@@ -7,15 +7,12 @@ import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { whenDigivolving, turnTiming, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
-
 const cardId = "BT17-034";
 
 function hasLeonAlexanderInStack(ctx: EffectContext, source: CardSource): boolean {
   const self = source.permanent();
   if (self === undefined) return false;
-  return self.stack.some(
-    (card) => ctx.game.definitionOf(card).nameEn === "Leon Alexander",
-  );
+  return self.stack.some((card) => ctx.game.definitionOf(card).nameEn === "Leon Alexander");
 }
 
 function opponentBattleAreaDigimon(ctx: EffectContext, source: CardSource): Permanent[] {
@@ -25,7 +22,7 @@ function opponentBattleAreaDigimon(ctx: EffectContext, source: CardSource): Perm
   );
 }
 
-const module: EffectModule = {
+export const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     // [When Digivolving]: dual-branch at security threshold 3.
@@ -51,9 +48,7 @@ const module: EffectModule = {
             const candidates = opponentBattleAreaDigimon(ctx, source);
             if (candidates.length === 0) return;
 
-            const byTopCard = new Map<string, Permanent>(
-              candidates.map((p) => [p.topCard!.instanceId, p]),
-            );
+            const byTopCard = new Map<string, Permanent>(candidates.map((p) => [p.topCard!.instanceId, p]));
 
             // Branch 1: ≥3 security → -3000 DP to 1 opponent Digimon.
             if (securityCount >= 3) {
@@ -64,11 +59,7 @@ const module: EffectModule = {
               });
               const chosenPerm = chosen[0] !== undefined ? byTopCard.get(chosen[0]) : undefined;
               if (chosenPerm !== undefined) {
-                ctx.fx.modifyDP(
-                  chosenPerm.permanentId,
-                  -3000,
-                  EffectDuration.UntilEachTurnEnd,
-                );
+                ctx.fx.modifyDP(chosenPerm.permanentId, -3000, EffectDuration.UntilEachTurnEnd);
               }
             }
 
@@ -76,16 +67,13 @@ const module: EffectModule = {
             // Refresh byTopCard in case the board changed.
             const candidatesAfter = opponentBattleAreaDigimon(ctx, source);
             if (securityCount <= 3 && candidatesAfter.length > 0) {
-              const byTopCardAfter = new Map<string, Permanent>(
-                candidatesAfter.map((p) => [p.topCard!.instanceId, p]),
-              );
+              const byTopCardAfter = new Map<string, Permanent>(candidatesAfter.map((p) => [p.topCard!.instanceId, p]));
               const chosen = await ctx.ask.chooseTargets(ctx, {
                 candidates: Array.from(byTopCardAfter.keys()),
                 min: 1,
                 max: 1,
               });
-              const chosenPerm =
-                chosen[0] !== undefined ? byTopCardAfter.get(chosen[0]) : undefined;
+              const chosenPerm = chosen[0] !== undefined ? byTopCardAfter.get(chosen[0]) : undefined;
               if (chosenPerm !== undefined) {
                 await ctx.fx.suspend([chosenPerm.permanentId]);
               }
@@ -134,8 +122,7 @@ const module: EffectModule = {
         staticModifier({
           source,
           effectKey: `${cardId}/inherited-pulsemon-plus-1000dp`,
-          description:
-            "[Inherited] While this Digimon's top card has [Pulsemon] in its text, it gets +1000 DP.",
+          description: "[Inherited] While this Digimon's top card has [Pulsemon] in its text, it gets +1000 DP.",
           isInherited: true,
           when: (ctx) => {
             if (!ctx.source.isOnBattleArea()) return false;

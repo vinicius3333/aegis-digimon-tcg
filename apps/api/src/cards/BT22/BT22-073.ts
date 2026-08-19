@@ -1,4 +1,4 @@
-import { CardKind,  EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
 import type { Permanent } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -38,8 +38,21 @@ const module: EffectModule = {
     if (timing === EffectTiming.None) {
       const effects: Effect[] = [];
 
-      // ＜Jamming＞ — BLOCKED: keyword not yet in engine keyword system.
-      // When keyword support lands, grantKeyword("Jamming") will activate.
+      // ＜Jamming＞ — intrinsic keyword.
+      effects.push(
+        staticModifier({
+          source,
+          effectKey: `${cardId}/jamming`,
+          description: "＜Jamming＞",
+          optional: false,
+          resolve: async (ctx) => {
+            const self = source.permanent();
+            if (self !== undefined) {
+              ctx.fx.grantKeyword(self.permanentId, "Jamming", EffectDuration.Permanent);
+            }
+          },
+        }),
+      );
 
       // Inherited: when-would-be-deleted prevention (same pattern as BT22-072).
       effects.push(
@@ -51,6 +64,7 @@ const module: EffectModule = {
             "or [Galaxy] trait would be deleted, by trashing 2 same-level cards from its " +
             "digivolution cards, it isn't deleted.",
           isInherited: true,
+          maxPerTurn: 1,
           when: (ctx) => ctx.source.isOnBattleArea(),
           resolve: async (ctx) => {
             const host = ctx.source.permanent();
@@ -59,18 +73,14 @@ const module: EffectModule = {
             const hostDef = ctx.game.definitionOf(host.topCard!);
             const traits = hostDef.types ?? [];
             const relevantTrait =
-              traits.includes("Galaxy") ||
-              traits.includes("Night Claw") ||
-              traits.includes("Light Fang");
+              traits.includes("Galaxy") || traits.includes("Night Claw") || traits.includes("Light Fang");
             if (!relevantTrait) return;
 
             ctx.fx.subscribeReplacement({
-              event: "wouldLeavePlay",
+              event: "wouldBeDeleted",
               sourcePermanentId: host.permanentId,
               mode: "prevent",
-              description:
-                "[All Turns] Trash 2 same-level digivolution cards to prevent deletion.",
-              causeAllows: (cause) => cause === "byEffect",
+              description: "[All Turns] Trash 2 same-level digivolution cards to prevent deletion.",
               protects: (_subCtx, leavingId) => leavingId === host.permanentId,
               preventCheck: async (subCtx) => {
                 const current = subCtx.game.permanentById(host.permanentId);
@@ -133,7 +143,7 @@ const module: EffectModule = {
             "[When Digivolving] <Draw 1> and trash 1 card in your hand. Then, if this " +
             "Digimon's stack has 2 or more same-level cards, 1 of your opponent's Digimon " +
             "or Tamers can't suspend until their turn ends.",
-          optional: true,
+          optional: false,
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
 
@@ -141,7 +151,9 @@ const module: EffectModule = {
               await ctx.fx.draw(source.ownerSeat, 1);
             }
 
-            if (owner.handCount > 0) {
+            // Read the live hand collection after Draw 1; the denormalized handCount can lag
+            // until the state snapshot is synchronized.
+            if (owner.hand.length > 0) {
               const handCards = Array.from(owner.hand);
               const chosen = await ctx.ask.selectCards(ctx, {
                 candidates: handCards.map((c) => c.instanceId),

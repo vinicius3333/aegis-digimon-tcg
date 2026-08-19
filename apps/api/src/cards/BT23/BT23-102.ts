@@ -23,89 +23,87 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //      the engine supports it.
 //   2. AllTurns: wrap SecurityManipulation in SubTrigger whenSecurityRemoved.
 //   3. AllTurns SecurityManipulation: controller "any" (KB Q5391 — either player).
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Barrier",
-          "raw": "＜Barrier＞"
-        }
-      ]
+          keyword: "Barrier",
+          raw: "＜Barrier＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Partition",
-          "raw": "＜Partition ([Angewomon] & [LadyDevimon])＞"
-        }
-      ]
+          keyword: "Partition",
+          raw: "＜Partition ([Angewomon] & [LadyDevimon])＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "colors": ["Yellow", "Purple"],
-              "levelComparison": { "op": "lte", "value": 5 }
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              colors: ["Yellow", "Purple"],
+              levelComparison: { op: "lte", value: 5 },
             },
-            "count": 1
+            count: 1,
           },
-          "from": ["hand", "trash"],
-          "payCost": false,
-          "optional": true
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "trashTopUntilCount",
-          "bothPlayers": true,
-          "targetCount": 3,
-          "condition": {
-            "kind": "selfDigivolutionStackSameLevelCount",
-            "minCount": 2,
-            "raw": "this Digimon's stack has 2 or more same-level cards"
-          }
-        }
-      ]
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "mine",
+          bothPlayers: true,
+          leaveCount: 3,
+          condition: {
+            kind: "selfDigivolutionStackHasSameLevelPair",
+            raw: "this Digimon's stack has 2 or more same-level cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSecurityRemoved",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenSecurityRemoved",
+          actions: [
             {
-              "kind": "SecurityManipulation",
-              "op": "addBottom",
-              "controller": "any",
-              "amount": 1,
-              "source": {
-                "filter": {
-                  "isDigimon": true
+              kind: "SecurityManipulation",
+              op: "addBottom",
+              controller: "any",
+              amount: 1,
+              source: {
+                filter: {
+                  isDigimon: true,
                 },
-                "count": 1,
-                "upTo": false
+                count: 1,
+                upTo: false,
               },
-              "optional": true
-            }
-          ]
-        }
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "partial",
-  "residual": [
-    "trashTopUntilCount: trash both players' security stacks until each has 3 cards (engine capability missing)"
-  ]
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT23-102", compiled);

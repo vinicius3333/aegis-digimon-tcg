@@ -22,6 +22,26 @@ const RYUDAMON = "BT20-010";
 const AGUMON = "BT1-010";
 
 describe("BT20-056 Alphamon — On Play Recovery +1", () => {
+  it("does not use the breeding-area digivolution clause outside an attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: ALPHAMON }, { card: RYUDAMON, as: "candidate" }],
+          breeding: { card: RYUDAMON, as: "breeding" },
+          deck: [AGUMON],
+          security: [AGUMON],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 12;
+    const alpha = s.state.players[0]!.hand.find((card) => card.cardId === ALPHAMON)!;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: alpha.instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 2);
+
+    expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe(RYUDAMON);
+  });
+
   it("[On Play] ＜Recovery +1 (Deck)＞ — a card moves from deck to security", async () => {
     const s = setupEngine(
       {

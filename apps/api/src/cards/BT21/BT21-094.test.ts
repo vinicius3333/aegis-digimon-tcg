@@ -6,6 +6,7 @@ import {
   setupEngine as setup,
   settle,
 } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT21-094.js";
 import "../index.js";
 
 // A3 for BT21-094 (Armor Digivolution) — [Main]/[Security]:
@@ -53,5 +54,26 @@ describe("BT21-094 [Main] reveal-and-add", () => {
     // The option itself is placed in the battle area (not trashed).
     expect(p0.battleArea.some((perm) => perm.topCard?.cardId === "BT21-094")).toBe(true);
     expect(p0.trash.some((c) => c.cardId === "BT21-094")).toBe(false);
+  });
+});
+
+describe("BT21-094 Delay watcher", () => {
+  it("keeps the Armor Form trash watcher separate from its Delay payload", () => {
+    const allTurns = compiled.effects.filter((entry) => entry.trigger === "AllTurns");
+    expect(allTurns).toHaveLength(2);
+    expect(allTurns[0]?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenDigivolutionTrashed",
+      sourceFilter: { nameOrTrait: [{ tokens: ["Armor Form"], match: "trait" }] },
+    });
+    expect(allTurns[1]?.keywords).toEqual([{ keyword: "Delay", raw: "＜Delay＞" }]);
+    expect(allTurns[1]?.actions[0]).toMatchObject({
+      kind: "Digivolve",
+      payCost: false,
+      from: ["hand"],
+      optional: true,
+      into: { nameOrTrait: [{ tokens: ["Armor Form"], match: "trait" }] },
+    });
+    expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "Security", isSecurity: true }));
   });
 });

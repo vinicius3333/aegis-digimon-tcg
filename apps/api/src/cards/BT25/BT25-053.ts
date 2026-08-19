@@ -40,17 +40,17 @@ const compiled: CompiledCard = {
                 "Tamer"
               ]
             },
-            "count": 1
+            "count": 1,
+            "bindAs": "suspendedTarget"
           }
         },
         {
           "kind": "Restrict",
           "target": {
             "filter": {
-              "isSelfRef": true
+              "fromSelectionRef": "suspendedTarget"
             },
-            "count": 1,
-            "isSelf": true
+            "count": 1
           },
           "restriction": "unsuspend",
           "duration": "untilOpponentTurnEnd"
@@ -113,17 +113,17 @@ const compiled: CompiledCard = {
                 "Tamer"
               ]
             },
-            "count": 1
+            "count": 1,
+            "bindAs": "suspendedTarget"
           }
         },
         {
           "kind": "Restrict",
           "target": {
             "filter": {
-              "isSelfRef": true
+              "fromSelectionRef": "suspendedTarget"
             },
-            "count": 1,
-            "isSelf": true
+            "count": 1
           },
           "restriction": "unsuspend",
           "duration": "untilOpponentTurnEnd"

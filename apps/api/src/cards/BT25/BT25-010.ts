@@ -14,14 +14,15 @@ import { registerCard } from "../../engine/effects/registry.js";
 //   [Beast], [Animal] or [Sovereign] in its traits, reduce the digivolution cost by 1.
 // [Your Turn] (inherited) This Digimon gets +2000 DP.
 //
-// The "(other than [Sea Animal])" exclusion from the printed text cannot be expressed.
+// The "(other than [Sea Animal])" exclusion is part of the target predicate.
 
 const cardId = "BT25-010";
 
 const intoTraits = ["Avian", "Bird", "Beast", "Animal", "Sovereign"];
 
 function matchesIntoTrait(def: CardDefinition): boolean {
-  return (def.types ?? []).some((t) => intoTraits.includes(t));
+  const traits = def.types ?? [];
+  return !traits.includes("Sea Animal") && traits.some((t) => intoTraits.includes(t));
 }
 
 const module: EffectModule = {

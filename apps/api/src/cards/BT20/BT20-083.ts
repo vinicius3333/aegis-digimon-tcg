@@ -14,149 +14,150 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [On Deletion]: Fixed target from wrong {zone:"hand"} to isSelf (this deleted card),
 // and underFilter to King Drasil_7D6 (controller:mine). The text says "place this card
 // as the bottom digivolution card of your [King Drasil_7D6] in the breeding area."
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "name",
-          "tokens": [
-            "Also treated as [X Antibody]",
-            "X Antibody"
-          ]
-        }
-      ]
+          grant: "name",
+          tokens: ["Also treated as [X Antibody]", "X Antibody"],
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "keywords": [],
-      "actions": [
+      trigger: "Static",
+      keywords: [],
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Blocker"
+          keyword: {
+            keyword: "Blocker",
           },
-          "duration": "permanent"
-        }
-      ]
+          duration: "permanent",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Digivolve",
-          "condition": {
-            "kind": "securityAtMost",
-            "value": 1
+          kind: "Digivolve",
+          condition: {
+            kind: "securityAtMost",
+            value: 1,
           },
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Omnimon (X Antibody)"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "payCost": false,
-          "ignoreRequirements": true,
-          "from": [
-            "hand"
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "optional": true,
-      "actions": [
-        {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "underFilter": {
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "King Drasil_7D6"
-                ],
-                "match": "name"
-              }
+                tokens: ["Omnimon (X Antibody)"],
+                match: "name",
+              },
             ],
-            "controller": "mine"
           },
-          "position": "bottom"
-        }
-      ]
+          payCost: false,
+          ignoreRequirements: true,
+          from: ["hand"],
+        },
+      ],
     },
     {
-      "trigger": "OpponentsTurn",
-      "isInherited": true,
-      "optional": true,
-      "actions": [
+      trigger: "OnDeletion",
+      optional: true,
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Omekamon"
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          underFilter: {
+            nameOrTrait: [
+              {
+                tokens: ["King Drasil_7D6"],
+                match: "name",
+              },
+            ],
+            controller: "mine",
+          },
+          position: "bottom",
+        },
+      ],
+    },
+    {
+      trigger: "OpponentsTurn",
+      isInherited: true,
+      optional: true,
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSecurityRemoved",
+          raw: "when your security stack is removed from, by suspending this Digimon, play 1 [Omekamon] from this Digimon's digivolution cards without paying the cost",
+          fireCondition: {
+            kind: "triggerRemovedSecuritySeat",
+            seat: "mine",
+          },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  nameOrTrait: [
+                    {
+                      tokens: ["Omekamon"],
+                      match: "name",
+                    },
                   ],
-                  "match": "name"
-                }
-              ]
+                },
+                count: 1,
+                upTo: true,
+              },
+              from: ["digivolutionCards"],
+              payCost: false,
+              cost: {
+                kind: "suspend",
+                target: {
+                  filter: {
+                    isSelfRef: true,
+                  },
+                  count: 1,
+                  isSelf: true,
+                },
+              },
             },
-            "count": 1,
-            "upTo": true
-          },
-          "from": [
-            "digivolutionCards"
           ],
-          "payCost": false,
-          "cost": {
-            "kind": "suspend"
-          }
-        }
-      ]
-    }
+        },
+      ],
+    },
   ],
-  "coverage": "partial",
-  "residual": [
-    "OpponentsTurn PlayWithoutCost: security-removal activation condition not implemented"
-  ],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT20-083", compiled);

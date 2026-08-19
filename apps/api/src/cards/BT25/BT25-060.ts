@@ -8,9 +8,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    — text says "opponent's Digimon effects don't affect it" (KB Q6358/Q6363).
 // 2. AllTurns SubTrigger: added a second SubTrigger for "whenUnsuspended" (the text
 //    fires on "gets linked OR unsuspends").
-// 3. KB Q6357: the linked card must itself carry <Link> (hasLinkRequirement filter
-//    added to the cost target in WhenDigivolving/WhenAttacking raw cost description).
-//    The cost remains raw (no Cost.kind:"link" exists); see LANE_H.md.
+// 3. KB Q6357: the linked card must itself carry <Link>; the link is modeled as an explicit
+//    free Link action followed by the dependent unsuspend.
 const compiled: CompiledCard = {
   "effects": [
     {
@@ -49,30 +48,26 @@ const compiled: CompiledCard = {
       "trigger": "WhenDigivolving",
       "actions": [
         {
-          "kind": "Unsuspend",
+          "kind": "Link",
           "target": {
             "filter": {
               "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+              "kind": ["Digimon"],
+              "nameOrTrait": [{ "tokens": ["Appmon"], "match": "trait" }],
+              "hasLinkRequirement": true
             },
             "count": 1
           },
-          "optional": true,
-          "cost": {
-            "kind": "raw",
-            "raw": "By linking 1 [Appmon] trait Digimon card with <Link> from your hand or this Digimon's digivolution cards to this Digimon without paying the cost"
+          "recipient": {
+            "filter": { "isSelfRef": true },
+            "count": 1,
+            "isSelf": true
           },
+          "from": ["hand", "digivolutionCards"],
+          "payCost": false,
+          "optional": true,
           "abortOnDecline": true
-        }
-      ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
+        },
         {
           "kind": "Unsuspend",
           "target": {
@@ -84,12 +79,48 @@ const compiled: CompiledCard = {
             },
             "count": 1
           },
-          "optional": true,
-          "cost": {
-            "kind": "raw",
-            "raw": "By linking 1 [Appmon] trait Digimon card with <Link> from your hand or this Digimon's digivolution cards to this Digimon without paying the cost"
+          "optional": true
+        }
+      ],
+      "frequency": "OncePerTurn",
+      "sharedUseKey": "ir-shared-0"
+    },
+    {
+      "trigger": "WhenAttacking",
+      "actions": [
+        {
+          "kind": "Link",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [{ "tokens": ["Appmon"], "match": "trait" }],
+              "hasLinkRequirement": true
+            },
+            "count": 1
           },
+          "recipient": {
+            "filter": { "isSelfRef": true },
+            "count": 1,
+            "isSelf": true
+          },
+          "from": ["hand", "digivolutionCards"],
+          "payCost": false,
+          "optional": true,
           "abortOnDecline": true
+        },
+        {
+          "kind": "Unsuspend",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ]
+            },
+            "count": 1
+          },
+          "optional": true
         }
       ],
       "frequency": "OncePerTurn",
@@ -175,10 +206,8 @@ const compiled: CompiledCard = {
       "frequency": "OncePerTurn"
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "Link-as-cost (Cost.kind:link) not yet implemented"
-  ],
+  "coverage": "full",
+  "residual": [],
   "appFusionRequirement": [
     {
       "names": [

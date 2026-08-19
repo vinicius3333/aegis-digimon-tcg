@@ -99,18 +99,16 @@ const module: EffectModule = {
         activated({
           source,
           effectKey: `${cardId}/main`,
-          description:
-            "[Main] Trash 1 card in your hand. Then, ＜De-Digivolve 3＞ 1 of your " +
-            "opponent's Digimon.",
-          canActivate: (ctx) => ctx.game.player(source.ownerSeat).hand.length > 0,
+          description: "[Main] Trash 1 card in your hand. Then, ＜De-Digivolve 3＞ 1 of your " + "opponent's Digimon.",
+          canActivate: (ctx) => opponentDigimonTargets(ctx, source).length > 0,
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             const handIds = Array.from(owner.hand).map((c) => c.instanceId);
-            if (handIds.length === 0) return;
-
-            const toTrash = await ctx.ask.selectCards(ctx, { candidates: handIds, min: 1, max: 1 });
-            if (toTrash.length === 0) return;
-            await ctx.fx.trash(toTrash);
+            if (handIds.length > 0) {
+              const toTrash = await ctx.ask.selectCards(ctx, { candidates: handIds, min: 1, max: 1 });
+              if (toTrash.length === 0) return;
+              await ctx.fx.trash(toTrash);
+            }
 
             const targets = opponentDigimonTargets(ctx, source);
             if (targets.length === 0) return;

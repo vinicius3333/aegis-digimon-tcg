@@ -9,9 +9,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-066 — Salamon (BT26, Purple Lv.3 Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-066 as of this port
-// (`node tools/kb/query.mjs card BT26-066` returned no knowledge-base entries — BT26 has
-// no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// The committed KB contains Q7089 (2026-08-18), confirming that an Alliance granted by
+// a digivolution performed during the inherited trigger cannot activate for the attack
+// that already occurred.
 //
 // Printed text:
 //   [Digivolve] Lv.2 w/[TS] trait: Cost 0 — a digivolution-cost requirement, not an

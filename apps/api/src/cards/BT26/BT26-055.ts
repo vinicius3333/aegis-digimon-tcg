@@ -32,16 +32,12 @@ import { registerCard } from "../../engine/effects/registry.js";
 //     area, trash your opponent's top security card.
 //
 // Clause mapping:
-//   EffectTiming.OnPlay / EffectTiming.WhenDigivolving / EffectTiming.OnDeclaration
+//   EffectTiming.OnPlay / EffectTiming.WhenDigivolving / EffectTiming.OnCounterTiming
 //   (shared body, "Once Per Turn" shared across all three via one effectKey — mirrors
 //   BT26-016's shared-budget convention for a multi-timing ability): "[Counter]"
-//   compiles to EffectTiming.OnDeclaration (interpreter.ts timingForTrigger's
-//   `case "Counter": return EffectTiming.OnDeclaration`) — the engine has no distinct
-//   combat Counter-Timing window yet (ch11-attacking.test.ts §11-3, comprehensive-0146,
-//   documents this as a known unmet gap), so this clause is exposed the same way any
-//   other [Counter] ability is: a player-activated OnDeclaration ability on the
-//   permanent, gated only by being on the battle area — not gated to an in-progress
-//   attack, which the engine cannot express today.
+//   routes to EffectTiming.OnCounterTiming, the engine's dedicated §11-3 response window,
+//   so this clause is exposed as a counter response on the permanent and remains distinct
+//   from the turn player's OnDeclaration abilities.
 //     "You may place 1 card in your hand face down as this Digimon's bottom
 //     digivolution card." — an independent optional action (no "if you did" ties it to
 //     what follows). `ctx.fx.placeUnder` always sets the placed instance face-down
@@ -140,9 +136,7 @@ async function resolvePlaceThenMaybeDelete(ctx: EffectContext, source: CardSourc
   if (ownChoice !== undefined) await ctx.fx.deletePermanent([ownChoice]);
 
   if (opponentTargets.length > 0) {
-    const lowestCost = Math.min(
-      ...opponentTargets.map((p) => ctx.game.definitionOf(p.topCard!).playCost ?? 0),
-    );
+    const lowestCost = Math.min(...opponentTargets.map((p) => ctx.game.definitionOf(p.topCard!).playCost ?? 0));
     const toDelete = opponentTargets
       .filter((p) => (ctx.game.definitionOf(p.topCard!).playCost ?? 0) === lowestCost)
       .map((p) => p.permanentId);
@@ -191,7 +185,7 @@ const module: EffectModule = {
       ];
     }
 
-    if (timing === EffectTiming.OnDeclaration) {
+    if (timing === EffectTiming.OnCounterTiming) {
       return [
         activated({
           source,

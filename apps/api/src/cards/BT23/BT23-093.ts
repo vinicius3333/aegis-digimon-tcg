@@ -7,128 +7,117 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   moved inside SubTrigger. Link target is the suspending Digimon (isTriggerSource).
 //   Linked card filter is [Appmon] trait from hand (engine enforces <Link> requirement per Q5367).
 //   Q5366: "on the field" includes battle area and breeding area.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "zone": ["battleArea", "breedingArea"],
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              zone: ["battleArea", "breedingArea"],
+              kind: ["Digimon", "Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Appmon"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Appmon"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "you have a Digimon or Tamer with the [Appmon] trait on the field (includes breeding area, per Q5366)"
-          }
-        }
-      ]
+            raw: "you have a Digimon or Tamer with the [Appmon] trait on the field (includes breeding area, per Q5366)",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Appmon"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Appmon"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Link",
-              "target": {
-                "filter": {
-                  "isTriggerSource": true
+              kind: "Link",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Appmon"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "linkCardFilter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Appmon"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+              recipient: {
+                filter: {
+                  isTriggerSource: true,
+                },
+                count: 1,
+                isSelf: true,
               },
-              "from": [
-                "hand"
-              ],
-              "payCost": false,
-              "optional": true
-            }
+              from: ["hand"],
+              payCost: false,
+              optional: true,
+            },
           ],
-          "raw": "When any of your [Appmon] trait Digimon suspend"
-        }
+          raw: "When any of your [Appmon] trait Digimon suspend",
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ]
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT23-093", compiled);

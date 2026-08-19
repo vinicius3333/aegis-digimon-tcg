@@ -12,6 +12,8 @@ import type { EffectContext } from "./EffectContext.js";
  */
 export interface BuilderOptions {
   source: CardSource;
+  /** Original declarative trigger, when the effect came from the IR interpreter. */
+  irTrigger?: string;
   effectKey: string;
   description: string;
   optional?: boolean; // source `optional`
@@ -61,12 +63,14 @@ const onField = (ctx: EffectContext): boolean => ctx.source.isOnBattleArea();
 const inBreedingArea = (ctx: EffectContext): boolean => ctx.source.isOnBreedingArea?.() ?? false;
 const inTrashZone = (ctx: EffectContext): boolean => ctx.source.isInTrash?.() ?? false;
 const inHandZone = (ctx: EffectContext): boolean => ctx.source.isInHand?.() ?? false;
+const inFaceUpSecurity = (ctx: EffectContext): boolean => ctx.source.isInSecurity?.() ?? false;
 
 function build(opts: BuilderOptions, flags: BuilderFlags): Effect {
   const baseGuard = flags.baseGuard ?? onField;
   const extra = opts.when;
   const activate = opts.canActivate;
   return {
+    ...(opts.irTrigger !== undefined ? { irTrigger: opts.irTrigger } : {}),
     effectKey: opts.effectKey,
     description: opts.description,
     optional: opts.optional ?? false,
@@ -351,6 +355,9 @@ export const handResidentStatic = (opts: BuilderOptions): Effect => build(opts, 
  * untouched, so this does not let unrelated statics leak off the battle area.
  */
 export const colorWaiverStatic = (opts: BuilderOptions): Effect => build(opts, { baseGuard: () => true });
+
+/** Persistent effects whose source is a face-up card in the security stack. */
+export const securityStatic = (opts: BuilderOptions): Effect => build(opts, { baseGuard: inFaceUpSecurity });
 
 /**
  * `[Breeding]`-region resident effects (source effects gated on

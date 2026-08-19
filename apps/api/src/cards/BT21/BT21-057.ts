@@ -5,132 +5,108 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "grant": "tokenEffect",
-          "tokens": [
-            "GRANTEFFECT23TOKEN"
-          ],
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          grant: "tokenEffect",
+          tokens: ["GRANTEFFECT23TOKEN"],
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Tai Kamiya"
-                  ],
-                  "match": "name"
+                  tokens: ["Tai Kamiya"],
+                  match: "name",
                 },
                 {
-                  "tokens": [
-                    "ADVENTURE"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["ADVENTURE"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "you have [Tai Kamiya] or a Tamer with the [ADVENTURE] trait"
-          }
-        }
-      ]
+            raw: "you have [Tai Kamiya] or a Tamer with the [ADVENTURE] trait",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "grant": "tokenEffect",
-          "tokens": [
-            "GRANTEFFECT23TOKEN"
-          ],
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          grant: "tokenEffect",
+          tokens: ["GRANTEFFECT23TOKEN"],
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Tai Kamiya"
-                  ],
-                  "match": "name"
+                  tokens: ["Tai Kamiya"],
+                  match: "name",
                 },
                 {
-                  "tokens": [
-                    "ADVENTURE"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["ADVENTURE"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "you have [Tai Kamiya] or a Tamer with the [ADVENTURE] trait"
-          }
-        }
-      ]
+            raw: "you have [Tai Kamiya] or a Tamer with the [ADVENTURE] trait",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Reboot",
-          "raw": "＜Reboot＞"
-        }
-      ]
-    }
+          keyword: "Reboot",
+          raw: "＜Reboot＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "names": [
-        "Agumon"
-      ],
-      "cost": 2,
-      "isAlternate": true
+      level: 3,
+      names: ["Agumon"],
+      cost: 2,
+      isAlternate: true,
     },
     {
-      "traits": [
-        "ADVENTURE"
-      ],
-      "cost": 2,
-      "isAlternate": true,
-      "level": 3
-    }
-  ]
+      traits: ["ADVENTURE"],
+      cost: 2,
+      isAlternate: true,
+      level: 3,
+    },
+  ],
 };
 
 registerIrCard("BT21-057", compiled);

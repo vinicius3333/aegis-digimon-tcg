@@ -75,7 +75,7 @@ async function resolveOnDeletion(ctx: EffectContext, source: CardSource): Promis
   }
 }
 
-const module: EffectModule = {
+export const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     // [When Digivolving] If this Digimon's name is [Koromon], +3000 DP for the turn.

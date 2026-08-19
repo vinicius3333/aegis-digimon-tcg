@@ -9,118 +9,118 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    The Trash was incorrectly at AllTurns.actions[] as a sibling of SubTrigger.
 // 2. Trash action source is opponent's top security card, not a generic opponent card.
 //    Using trashSecurityTop with controller:"opponent", count:1.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Piercing",
-          "raw": "＜Piercing＞"
-        }
-      ]
+          keyword: "Piercing",
+          raw: "＜Piercing＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Evade",
-          "raw": "＜Evade＞"
-        }
-      ]
+          keyword: "Evade",
+          raw: "＜Evade＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon", "Tamer"]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": "all"
-          }
+            count: "all",
+          },
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "suspended": true,
-              "kind": ["Digimon", "Tamer"]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              suspended: true,
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
-          }
-        }
-      ]
+            count: 1,
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Unsuspend",
-              "target": {
-                "filter": { "isSelfRef": true },
-                "count": 1,
-                "isSelf": true
-              }
+              kind: "Unsuspend",
+              target: {
+                filter: { isSelfRef: true },
+                count: 1,
+                isSelf: true,
+              },
             },
             {
-              "kind": "trashSecurityTop",
-              "controller": "opponent",
-              "count": 1,
-              "condition": {
-                "kind": "selfDigivolutionStackHasTrait",
-                "filter": {
-                  "nameOrTrait": [
+              kind: "trashSecurityTop",
+              controller: "opponent",
+              count: 1,
+              condition: {
+                kind: "selfDigivolutionStackHasTrait",
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": ["Examon"],
-                      "match": "name"
+                      tokens: ["Examon"],
+                      match: "name",
                     },
                     {
-                      "tokens": ["X Antibody"],
-                      "match": "trait"
-                    }
-                  ]
+                      tokens: ["X Antibody"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                "raw": "[Examon]/[X Antibody] is in this Digimon's digivolution cards"
-              }
-            }
-          ]
-        }
+                raw: "[Examon]/[X Antibody] is in this Digimon's digivolution cards",
+              },
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": ["Examon"],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      names: ["Examon"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT21-052", compiled);

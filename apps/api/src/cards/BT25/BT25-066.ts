@@ -33,8 +33,9 @@ const compiled: CompiledCard = {
               "cost": {
                 "kind": "trash",
                 "target": {
-                  "filter": {
-                    "controllerDefault": "mine"
+                "filter": {
+                  "isSelfRef": true,
+                  "zone": "linked"
                   },
                   "count": 1
                 },

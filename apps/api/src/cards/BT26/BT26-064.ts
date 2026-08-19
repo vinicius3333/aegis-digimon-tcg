@@ -60,7 +60,7 @@ const module: EffectModule = {
             if (evilKinMatches.length > 0) {
               const picked = await ctx.ask.selectCards(ctx, {
                 candidates: evilKinMatches.map((c) => c.instanceId),
-                min: 0,
+                min: 1,
                 max: 1,
               });
               if (picked.length > 0) {
@@ -75,7 +75,7 @@ const module: EffectModule = {
             if (tsMatches.length > 0) {
               const picked = await ctx.ask.selectCards(ctx, {
                 candidates: tsMatches.map((c) => c.instanceId),
-                min: 0,
+                min: 1,
                 max: 1,
               });
               if (picked.length > 0) {

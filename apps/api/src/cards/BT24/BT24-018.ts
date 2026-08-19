@@ -24,143 +24,141 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     (protects ALL such Digimon, per KB Q5598)
 //   - Replacement cost: changed from deleteOwn (deletes own cards) to raw cost describing
 //     "delete 1 of your opponent's lowest DP Digimon" — NEW CAPABILITY: deleteOpponent cost.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Progress",
-          "raw": "＜Progress＞"
-        }
-      ]
+          keyword: "Progress",
+          raw: "＜Progress＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Piercing",
-          "raw": "＜Piercing＞"
-        }
-      ]
+          keyword: "Piercing",
+          raw: "＜Piercing＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Armor Purge",
-          "raw": "＜Armor Purge＞"
-        }
-      ]
+          keyword: "Armor Purge",
+          raw: "＜Armor Purge＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "zone": "security"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "opponent",
+              zone: "security",
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSecurityRemoved",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenSecurityRemoved",
+          actions: [
             {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controllerDefault": "opponent",
-                  "kind": ["Digimon"]
+              kind: "Delete",
+              target: {
+                filter: {
+                  controllerDefault: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1
+                count: 1,
               },
-              "optional": true
-            }
-          ]
-        }
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": ["Digimon"],
-            "nameOrTrait": [
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": ["Reptile", "Dragonkin"],
-                "match": "trait"
-              }
-            ]
-          },
-          "actions": [],
-          "cost": {
-            "kind": "raw",
-            "target": {
-              "filter": {
-                "controller": "opponent",
-                "kind": ["Digimon"],
-                "superlative": "lowestDP"
+                tokens: ["Reptile", "Dragonkin"],
+                match: "trait",
               },
-              "count": 1
+            ],
+          },
+          actions: [],
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "opponent",
+                kind: ["Digimon"],
+                superlative: "lowestDP",
+              },
+              count: 1,
             },
-            "raw": "by deleting 1 of your opponent's lowest DP Digimon, they don't leave"
-          }
-        }
+            raw: "by deleting 1 of your opponent's lowest DP Digimon, they don't leave",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "partial",
-  "residual": [
-    "Replacement cost 'deleteOpponent' (delete opponent's Digimon as cost) not yet a named cost kind — using raw cost. Spec in LANE_F.md."
-  ],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": ["Owen Dreadnought", "Lamiamon"],
-      "cost": 6,
-      "isAlternate": true
-    }
-  ]
+      names: ["Owen Dreadnought", "Lamiamon"],
+      cost: 6,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT24-018", compiled);

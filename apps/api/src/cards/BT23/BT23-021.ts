@@ -175,31 +175,6 @@ const module: EffectModule = {
             });
           },
         }),
-
-        // [When Linking] This Digimon can't be deleted in battle until your opponent's
-        // turn ends.
-        staticModifier({
-          source,
-          effectKey: `${cardId}/when-linking-battle-immunity`,
-          description:
-            "[When Linking] This Digimon can't be deleted in battle until your opponent's turn ends.",
-          isLinked: true,
-          when: () => source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "whenLinked",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              description:
-                "[When Linking] This Digimon can't be deleted in battle until your opponent's turn ends.",
-              run: async (subCtx) => {
-                await applyCannotBeDeletedInBattle(subCtx, source);
-              },
-            });
-          },
-        }),
       ];
     }
 

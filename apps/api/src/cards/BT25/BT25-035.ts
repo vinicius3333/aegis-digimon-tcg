@@ -7,7 +7,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // with faceDown:true — the text says "trash 2 bottom face-down cards from under
 // any of your Tamers" (KB Q6300/Q6301: all 2 must come from underTamers,
 // may be spread across multiple Tamers).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",
@@ -55,15 +55,9 @@ const compiled: CompiledCard = {
           ],
           "optional": true,
           "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "underTamers",
-                "faceDown": true
-              },
-              "count": 2
-            },
+            "kind": "trashBottomFaceDownUnderTamer",
+            "controller": "mine",
+            "count": 2,
             "raw": "by trashing 2 bottom face-down cards from under any of your Tamers"
           },
           "abortOnDecline": true
@@ -116,15 +110,9 @@ const compiled: CompiledCard = {
           ],
           "optional": true,
           "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "underTamers",
-                "faceDown": true
-              },
-              "count": 2
-            },
+            "kind": "trashBottomFaceDownUnderTamer",
+            "controller": "mine",
+            "count": 2,
             "raw": "by trashing 2 bottom face-down cards from under any of your Tamers"
           },
           "abortOnDecline": true

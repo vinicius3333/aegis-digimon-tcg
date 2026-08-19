@@ -10,11 +10,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 /**
  * BT26-048 — BloomLordmon (BT26, Green/Yellow Lv.6 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-048` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * The committed KB contains Q7050-Q7051 (2026-08-18), confirming that simultaneous
+ * trashing activates this effect only once and that a Digimon played by the attack
+ * effect can still be suspended for Alliance.
  *
  * Printed text:
  *   [Digivolve] Lv.5 w/[DM] trait: Cost 3
@@ -54,8 +52,8 @@ import { registerCard } from "../../engine/effects/registry.js";
  *     shape for an "[All Turns]" reactive ability with no per-turn budget: `when` gates
  *     only `isOnBattleArea()` (no `isOwnersTurn()`, since the trashing effect can
  *     resolve on either player's turn), and the one-shot `resolve` installs a
- *     `once: false` subscription on "whenDigivolutionTrashed" (the SubTrigger fired by
- *     `trashDigivolutionCards`, per its own doc comment) filtered to a subject whose
+ *     `once: false` subscription on "onDigivolutionCardsDiscardedBatch" (the batch
+ *     SubTrigger fired by `trashDigivolutionCards`, per its own doc comment) filtered to a subject whose
  *     controller IS this card's owner (the mirror of EX11-057's opponent-only filter).
  *     `ctx.fx.modifyDP(targetId, -6000, EffectDuration.UntilEachTurnEnd)` is the "for
  *     the turn" DP penalty (BT26-008's own "for the turn" grant pattern, negated).
@@ -177,11 +175,12 @@ const module: EffectModule = {
             const self = source.permanent();
             if (self === undefined) return;
             ctx.fx.subscribeSubTrigger({
-              event: "whenDigivolutionTrashed",
+              event: "onDigivolutionCardsDiscardedBatch",
               sourcePermanentId: self.permanentId,
               once: false,
               description: `${cardId}: -6000 DP for the turn to 1 opponent Digimon when a digivolution card is trashed from one of your Digimon.`,
               matches: (subCtx) => {
+                if (subCtx.trigger?.byEffectSeat === undefined) return false;
                 const subjectId = subCtx.trigger?.subjectPermanentId;
                 if (subjectId === undefined) return false;
                 const subject = subCtx.game.permanentById(subjectId);

@@ -19,10 +19,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "BT23-025";
 
-function oppLowestLevelDigimons(
-  ctx: EffectContext,
-  source: CardSource,
-): Permanent[] {
+function oppLowestLevelDigimons(ctx: EffectContext, source: CardSource): Permanent[] {
   const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
   const digimons = Array.from(opponent.battleArea).filter((p) => {
     if (p.topCard == null) return false;
@@ -94,8 +91,7 @@ const module: EffectModule = {
         onPlay({
           source,
           effectKey: `${cardId}/on-play`,
-          description:
-            "[On Play] Return 1 of your opponent's Digimon with the lowest level to the hand.",
+          description: "[On Play] Return 1 of your opponent's Digimon with the lowest level to the hand.",
           canActivate: (ctx) => oppLowestLevelDigimons(ctx, source).length > 0,
           resolve: async (ctx) => {
             const targets = oppLowestLevelDigimons(ctx, source);
@@ -121,8 +117,7 @@ const module: EffectModule = {
         whenDigivolving({
           source,
           effectKey: `${cardId}/when-digivolving`,
-          description:
-            "[When Digivolving] Return 1 of your opponent's Digimon with the lowest level to the hand.",
+          description: "[When Digivolving] Return 1 of your opponent's Digimon with the lowest level to the hand.",
           canActivate: (ctx) => oppLowestLevelDigimons(ctx, source).length > 0,
           resolve: async (ctx) => {
             const targets = oppLowestLevelDigimons(ctx, source);
@@ -150,7 +145,18 @@ const module: EffectModule = {
           effectKey: `${cardId}/security`,
           description: "[Security] Play this Digimon without paying its memory cost.",
           resolve: async (ctx) => {
-            await ctx.fx.playInstances([ctx.source.instanceId], { payCost: false });
+            ctx.fx.subscribeSubTrigger({
+              event: "whenSecurityBattleEnded",
+              sourceInstanceId: source.instanceId,
+              once: true,
+              expiresOnTurnEndOf: source.ownerSeat,
+              description: "BT23-025: play this card at the end of the battle, then delete it at turn end",
+              run: async (subCtx) => {
+                const played = await subCtx.fx.playInstances([source.instanceId], { payCost: false });
+                const permanentId = played[0]?.permanentId;
+                if (permanentId !== undefined) subCtx.fx.delayedDeletePlayed?.(permanentId);
+              },
+            });
           },
         }),
       ];

@@ -8,9 +8,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-069 — Dobermon (BT26, Purple Lv.4 Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-069 as of this port
-// (`node tools/kb/query.mjs card BT26-069` returned no knowledge-base entries — BT26 has
-// no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// The committed KB contains Q7090-Q7091 (2026-08-18), confirming inherited timing after
+// an attack and that hand-size conditions are checked at each effect's activation timing.
 //
 // Printed text:
 //   [Digivolve] Lv.3 w/[TS] trait: Cost 2 — a digivolution-cost requirement, not an

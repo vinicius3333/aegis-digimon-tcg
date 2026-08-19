@@ -2,137 +2,134 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Link",
-          "amount": 1,
-          "raw": "＜Link +1＞"
-        }
-      ]
+          keyword: "Link",
+          amount: 1,
+          raw: "＜Link +1＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Link",
-          "source": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [
+          kind: "Link",
+          source: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": ["Appmon"],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Appmon"],
+                  match: "trait",
+                },
+              ],
             },
-            "from": ["hand", "digivolutionCards"]
+            from: ["hand", "digivolutionCards"],
           },
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"]
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Link",
-          "source": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [
+          kind: "Link",
+          source: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": ["Appmon"],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Appmon"],
+                  match: "trait",
+                },
+              ],
             },
-            "from": ["hand", "digivolutionCards"]
+            from: ["hand", "digivolutionCards"],
           },
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"]
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenLinked",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenLinked",
+          actions: [
             {
-              "kind": "Trash",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "zone": "security",
-                  "position": "top"
+              kind: "Trash",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  zone: "security",
+                  position: "top",
                 },
-                "count": 1
+                count: 1,
               },
-              "cost": {
-                "kind": "unsuspend",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
+              cost: {
+                kind: "unsuspend",
+                target: {
+                  filter: {
+                    isSelfRef: true,
                   },
-                  "count": 1,
-                  "isSelf": true
+                  count: 1,
+                  isSelf: true,
                 },
-                "raw": "by unsuspending this Digimon"
+                raw: "by unsuspending this Digimon",
               },
-              "optional": true,
-              "abortOnDecline": true
-            }
-          ]
-        }
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "appFusionRequirement": [
+  coverage: "full",
+  residual: [],
+  appFusionRequirement: [
     {
-      "names": [
-        "Globemon",
-        "Charismon"
-      ],
-      "cost": 0
-    }
-  ]
+      names: ["Globemon", "Charismon"],
+      cost: 0,
+    },
+  ],
 };
 
 registerIrCard("BT21-101", compiled);

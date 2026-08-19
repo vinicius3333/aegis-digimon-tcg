@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "StartOfYourMainPhase",
@@ -27,7 +27,6 @@ const compiled: CompiledCard = {
             },
             "raw": "By trash 1 card with the [Undead], [Dark Animal] or [CS] trait from your hand"
           },
-          "optional": true,
           "abortOnDecline": true
         }
       ]

@@ -24,7 +24,7 @@ function isPurple(def: { colors?: string[] }): boolean {
   return (def.colors as CardColor[] | undefined)?.includes(CardColor.Purple) ?? false;
 }
 
-const module: EffectModule = {
+export const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     // [All Turns][Once Per Turn] When a purple card is placed under this Tamer,

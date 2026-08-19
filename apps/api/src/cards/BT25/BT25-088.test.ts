@@ -28,7 +28,7 @@ describe("BT25-088 [All Turns] on security removal, suspend → place top 2 deck
     // Drive the real OnLoseSecurity window (the same seam the security-loss path fires).
     await (s.engine as unknown as {
       fireTiming: (t: EffectTiming, trigger?: Record<string, unknown>) => Promise<void>;
-    }).fireTiming(EffectTiming.OnLoseSecurity, { addedToSecuritySeat: 0 });
+    }).fireTiming(EffectTiming.OnLoseSecurity, { removedFromSecuritySeat: 0 });
     await settle(() => s.perm("kyo").stack.length >= 2);
 
     // 2 face-down cards from the deck top are now under the Tamer; the Tamer is suspended (cost).

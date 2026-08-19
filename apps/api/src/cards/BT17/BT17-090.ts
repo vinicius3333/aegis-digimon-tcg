@@ -1,10 +1,10 @@
-import { EffectTiming } from "@aegis/shared";
+import { CardKind, EffectTiming } from "@aegis/shared";
 import type { CardDefinition, CardInstance, Permanent } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { security, turnTiming } from "../../engine/effects/builders.js";
+import { security, staticModifier, turnTiming } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**
@@ -27,8 +27,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 const cardId = "BT17-090";
 
 const isDexOrDeathX = (def: CardDefinition): boolean =>
-  (def.kinds as string[]).includes("Digimon") &&
-  (def.nameEn.includes("Dex") || def.nameEn.includes("DeathX"));
+  (def.kinds as string[]).includes("Digimon") && (def.nameEn.includes("Dex") || def.nameEn.includes("DeathX"));
 
 function hasTamerInDigivolution(perm: Permanent, ctx: EffectContext): boolean {
   return perm.stack.some((c: CardInstance) => {
@@ -37,9 +36,51 @@ function hasTamerInDigivolution(perm: Permanent, ctx: EffectContext): boolean {
   });
 }
 
+function addedCardIsTamer(ctx: EffectContext, hostId: string): boolean {
+  const addedIds = ctx.trigger.addedDigivolutionCardInstanceIds ?? [];
+  const host = ctx.game.permanentById(hostId);
+  if (host === undefined || addedIds.length === 0) return false;
+  return addedIds.some((id) => {
+    const card = host.stack.find((candidate) => candidate.instanceId === id);
+    return card !== undefined && ctx.game.definitionOf(card).kinds.includes(CardKind.Tamer);
+  });
+}
+
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/when-tamer-placed-gain-memory`,
+          description:
+            "[Your Turn] When an effect places a Tamer card in one of your Digimon's digivolution cards, by suspending this Tamer, gain 1 memory.",
+          maxPerTurn: 1,
+          when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn(),
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self === undefined) return;
+            ctx.fx.subscribeSubTrigger({
+              event: "onAddDigivolutionCards",
+              sourcePermanentId: self.permanentId,
+              once: false,
+              oncePerTurnKey: `${cardId}/when-tamer-placed-gain-memory`,
+              matches: (subCtx) =>
+                subCtx.trigger.subjectPermanentId === self.permanentId && addedCardIsTamer(subCtx, self.permanentId),
+              run: async (subCtx) => {
+                const tamer = source.permanent();
+                if (tamer === undefined || tamer.isSuspended) return;
+                tamer.isSuspended = true;
+                subCtx.fx.gainMemory(1);
+              },
+              description: `${cardId}: suspend this Tamer and gain 1 memory when a Tamer enters a Digimon stack`,
+            });
+          },
+        }),
+      ];
+    }
+
     // [End of Opponent's Turn][Once Per Turn] If this Tamer is suspended, 1 of your
     // Digimon with a Tamer card in its digivolution cards may digivolve into a [Dex]/
     // [DeathX] Digimon from your trash without paying cost.

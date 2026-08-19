@@ -5,94 +5,98 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Omnimon"
-                    ],
-                    "match": "text"
-                  }
-                ]
+                    tokens: ["Omnimon"],
+                    match: "text",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "CS"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["CS"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
-        }
-      ]
+          rest: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "EndOfYourTurn",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "DnaDigivolve",
-          "materials": {
-            "filter": {
-              "isSelfRef": true
+          kind: "DnaDigivolve",
+          materials: [
+            {
+              filter: {
+                isSelfRef: true,
+              },
+              count: 1,
+              isSelf: true,
+              zone: "battleArea",
             },
-            "count": 1,
-            "isSelf": true
+            {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                excludeSelf: true,
+              },
+              count: 1,
+              zone: "battleArea",
+            },
+          ],
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            zone: "hand",
+            hasDnaDigivolutionRequirement: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "payCost": true,
-          "optional": true
-        }
+          payCost: true,
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Tsunomon"
-      ],
-      "cost": 0,
-      "isAlternate": true
+      names: ["Tsunomon"],
+      cost: 0,
+      isAlternate: true,
     },
     {
-      "level": 2,
-      "traits": [
-        "CS"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      level: 2,
+      traits: ["CS"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT22-017", compiled);

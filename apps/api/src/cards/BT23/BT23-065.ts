@@ -2,14 +2,14 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Main",
       "actions": [
         {
-          "kind": "PlaceAsDigivolutionCard",
-          "source": {
+          "kind": "PlaceUnder",
+          "target": {
             "filter": {
               "controller": "mine",
               "zone": "trash",
@@ -24,43 +24,29 @@ const compiled: CompiledCard = {
             },
             "count": 1
           },
-          "onto": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Ghostmon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
+          "underFilter": {
+            "controller": "mine",
+            "kind": [
+              "Digimon"
+            ],
+            "nameOrTrait": [
+              {
+                "tokens": [
+                  "Ghostmon"
+                ],
+                "match": "name"
+              }
+            ]
           },
-          "position": "bottom"
+          "position": "bottom",
+          "bindHostAs": "ghostmonHost"
         },
         {
           "kind": "Digivolve",
           "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Ghostmon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
+            "filter": {},
+            "count": 1,
+            "fromSelectionRef": "ghostmonHost"
           },
           "into": {
             "filter": {

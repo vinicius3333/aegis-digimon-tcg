@@ -1,10 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  EffectTiming,
-  type CardDefinition,
-  type Permanent,
-  type Seat,
-} from "@aegis/shared";
+import { EffectTiming, type CardDefinition, type Permanent, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type {
   DecisionApi,
@@ -55,6 +50,7 @@ function makeDefinition(cardId: string): CardDefinition {
     nameEn: cardId,
     kinds: ["Digimon"],
     colors: [],
+    level: 6,
     playCost: 0,
     dp: 6000,
     evoCosts: [],

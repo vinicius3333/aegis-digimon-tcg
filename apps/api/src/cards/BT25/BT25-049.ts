@@ -65,18 +65,8 @@ const compiled: CompiledCard = {
           },
           "actions": [],
           "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "digivolutionCards",
-                "hostFilter": {
-                  "kind": ["Tamer"],
-                  "controller": "mine"
-                }
-              },
-              "count": 1
-            },
+            "kind": "trashBottomFaceDownUnderTamer",
+            "controller": "mine",
             "raw": "by trashing the bottom face-down card under any of your Tamers"
           }
         }

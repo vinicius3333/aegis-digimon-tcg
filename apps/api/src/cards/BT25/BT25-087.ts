@@ -30,7 +30,7 @@ const compiled: CompiledCard = {
               "kind": "PlaceUnder",
               "target": {
                 "filter": {
-                  "isSelfRef": true
+                  "controller": "mine"
                 },
                 "count": 1
               },
@@ -48,7 +48,9 @@ const compiled: CompiledCard = {
                   "isSelf": true
                 },
                 "raw": "by suspending this Tamer"
-              }
+              },
+              "optional": true,
+              "abortOnDecline": true
             }
           ]
         }
@@ -67,6 +69,9 @@ const compiled: CompiledCard = {
             ]
           },
           "intoFilter": {
+            "kind": [
+              "Digimon"
+            ],
             "trait": [
               "DATA SQUAD"
             ]
@@ -74,7 +79,7 @@ const compiled: CompiledCard = {
           "actions": [
             {
               "kind": "Replacement",
-              "event": "wouldBePlayed",
+              "event": "wouldDigivolve",
               "mode": "reduceCost",
               "amount": 1,
               "raw": "reduce the cost by 1",
@@ -90,7 +95,9 @@ const compiled: CompiledCard = {
                   "count": 1
                 },
                 "raw": "by trashing the bottom face-down card from under any of your Tamers"
-              }
+              },
+              "optional": true,
+              "abortOnDecline": true
             }
           ]
         }

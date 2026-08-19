@@ -5,153 +5,151 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 3000,
-          "duration": "forTheTurn"
+          amount: 3000,
+          duration: "forTheTurn",
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Raid",
-            "raw": "＜Raid＞"
+          keyword: {
+            keyword: "Raid",
+            raw: "＜Raid＞",
           },
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "raw",
-            "raw": "this Digimon's stack has 2 or more same-level cards"
-          }
+          duration: "forTheTurn",
+          condition: {
+            kind: "stackHasSameLevelCards",
+            count: 2,
+            raw: "this Digimon's stack has 2 or more same-level cards",
+          },
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Piercing",
-            "raw": "＜Piercing＞"
+          keyword: {
+            keyword: "Piercing",
+            raw: "＜Piercing＞",
           },
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "raw",
-            "raw": "this Digimon's stack has 2 or more same-level cards"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
+          duration: "forTheTurn",
+          condition: {
+            kind: "stackHasSameLevelCards",
+            count: 2,
+            raw: "this Digimon's stack has 2 or more same-level cards",
           },
-          "amount": 3000,
-          "duration": "forTheTurn"
         },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "keyword": {
-            "keyword": "Raid",
-            "raw": "＜Raid＞"
-          },
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "raw",
-            "raw": "this Digimon's stack has 2 or more same-level cards"
-          }
-        },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "keyword": {
-            "keyword": "Piercing",
-            "raw": "＜Piercing＞"
-          },
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "raw",
-            "raw": "this Digimon's stack has 2 or more same-level cards"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "amount": 2000,
-          "duration": "permanent"
-        }
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: 3000,
+          duration: "forTheTurn",
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          keyword: {
+            keyword: "Raid",
+            raw: "＜Raid＞",
+          },
+          duration: "forTheTurn",
+          condition: {
+            kind: "stackHasSameLevelCards",
+            count: 2,
+            raw: "this Digimon's stack has 2 or more same-level cards",
+          },
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          keyword: {
+            keyword: "Piercing",
+            raw: "＜Piercing＞",
+          },
+          duration: "forTheTurn",
+          condition: {
+            kind: "stackHasSameLevelCards",
+            count: 2,
+            raw: "this Digimon's stack has 2 or more same-level cards",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          amount: 2000,
+          duration: "permanent",
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "traits": [
-        "CS"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["CS"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT22-048", compiled);
