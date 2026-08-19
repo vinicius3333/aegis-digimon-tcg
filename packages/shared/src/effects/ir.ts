@@ -3353,6 +3353,7 @@ export type SubTriggerEvent =
   | "whenUnsuspended" // "When this Digimon/Tamer becomes unsuspended"
   | "whenDeletesInBattle" // "When this Digimon deletes [an opponent's Digimon] in battle"
   | "whenOneOfYoursDigivolves" // "When one of your Digimon digivolves"
+  | "whenAnyDigivolves" // "When any Digimon digivolves" (controller is narrowed by sourceFilter)
   | "onDeletionOf" // "When [a Digimon] is deleted"
   | "whenSecurityRemoved" // "When a card is removed from your/your opponent's security"
   | "whenAddSecurity" // "When cards are added to your/your opponent's security stack" (documented behavior EffectTiming.OnAddSecurity)
