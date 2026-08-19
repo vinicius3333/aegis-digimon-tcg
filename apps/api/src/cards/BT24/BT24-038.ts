@@ -5,102 +5,109 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Fortitude",
-          "raw": "＜Fortitude＞"
-        }
-      ]
+          keyword: "Fortitude",
+          raw: "＜Fortitude＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Link",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
-            },
-            "count": 1
-          },
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Link",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
-            },
-            "count": 1
-          },
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenLinked",
-          "actions": [
-            {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
+          kind: "Link",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "amount": -7000,
-              "duration": "forTheTurn"
-            }
-          ]
-        }
+            },
+            count: 1,
+          },
+          from: ["hand", "digivolutionCards"],
+          recipient: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          payCost: false,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "appFusionRequirement": [
+    },
     {
-      "names": [
-        "Docmon",
-        "Medicmon"
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Link",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
+            },
+            count: 1,
+          },
+          from: ["hand", "digivolutionCards"],
+          recipient: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          payCost: false,
+          optional: true,
+        },
       ],
-      "cost": 0
-    }
-  ]
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinked",
+          actions: [
+            {
+              kind: "ModifyDP",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              amount: -7000,
+              duration: "forTheTurn",
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  appFusionRequirement: [
+    {
+      names: ["Docmon", "Medicmon"],
+      cost: 0,
+    },
+  ],
 };
 
 registerIrCard("BT24-038", compiled);
