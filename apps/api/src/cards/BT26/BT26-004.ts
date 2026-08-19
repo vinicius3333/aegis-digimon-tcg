@@ -83,7 +83,7 @@ const module: EffectModule = {
               targetPermanentId = chosen[0]!;
             }
 
-            await ctx.fx.placeUnder(targetPermanentId, cardChosen);
+            await ctx.fx.placeUnder(targetPermanentId, cardChosen, { faceUp: false });
             await ctx.fx.draw(source.ownerSeat, 1);
           },
         }),
