@@ -145,7 +145,12 @@ async function resolveMayBuffAndAttack(ctx: EffectContext, ownerSeat: Seat): Pro
 function hostHasChronomonText(ctx: EffectContext, host: Permanent): boolean {
   if (host.topCard === undefined) return false;
   const def: CardDefinition = ctx.game.definitionOf(host.topCard);
-  return matchNameOrTrait(def, { tokens: [CHRONOMON_TOKEN], match: "text" });
+  return (
+    matchNameOrTrait(def, { tokens: [CHRONOMON_TOKEN], match: "text" }) ||
+    [def.inheritedEffectText, def.securityEffectText, def.linkEffect, def.optionEffect].some((text) =>
+      text?.toLowerCase().includes(CHRONOMON_TOKEN.toLowerCase()),
+    )
+  );
 }
 
 const module: EffectModule = {
