@@ -26,7 +26,7 @@ function tamerWithFaceDownUnder(game: GameAccess, ownerSeat: Seat): string[] {
       if (p.inBreeding || p.topCard === undefined) return false;
       const def = game.definitionOf(p.topCard);
       if (!def.kinds.includes(CardKind.Tamer)) return false;
-      return p.stack.length > 0;
+      return p.stack.some((card) => card.faceUp !== true);
     })
     .map((p) => p.permanentId);
 }
@@ -125,7 +125,7 @@ const module: EffectModule = {
             const tamerPerm = ctx.game.permanentById(chosenTamer[0]!);
             if (tamerPerm === undefined || tamerPerm.stack.length === 0) return;
 
-            const bottomCard = tamerPerm.stack[tamerPerm.stack.length - 1];
+            const bottomCard = tamerPerm.stack.find((card) => card.faceUp !== true);
             if (bottomCard === undefined) return;
 
             await ctx.fx.trashDigivolutionCards(chosenTamer[0]!, [bottomCard.instanceId]);
