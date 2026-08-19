@@ -30,7 +30,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "Link",
-          source: {
+          target: {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
@@ -41,9 +41,10 @@ export const compiled: CompiledCard = {
                 },
               ],
             },
-            from: ["hand", "digivolutionCards"],
+            count: 1,
           },
-          target: {
+          from: ["hand", "digivolutionCards"],
+          recipient: {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
@@ -60,7 +61,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "Link",
-          source: {
+          target: {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
@@ -71,9 +72,10 @@ export const compiled: CompiledCard = {
                 },
               ],
             },
-            from: ["hand", "digivolutionCards"],
+            count: 1,
           },
-          target: {
+          from: ["hand", "digivolutionCards"],
+          recipient: {
             filter: {
               controller: "mine",
               kind: ["Digimon"],

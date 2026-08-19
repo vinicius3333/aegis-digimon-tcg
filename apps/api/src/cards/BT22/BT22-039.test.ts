@@ -27,11 +27,17 @@ describe("BT22-039 Ouranosmon", () => {
       actions: [
         {
           kind: "Link",
-          source: {
-            from: ["digivolutionCards"],
-            filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] },
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "digivolutionCards",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+            },
+            count: 1,
           },
-          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          from: ["digivolutionCards"],
+          recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           payCost: false,
           optional: true,
         },

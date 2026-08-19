@@ -21,7 +21,7 @@ import { irCardModule } from "../effects/interpreter.js";
 import { MemoryGauge } from "../MemoryGauge.js";
 import { ModifierLedger } from "../effects/modifiers.js";
 // The real authored IR for the one compiled card that drives the `Link` action directly.
-import { compiled as BT25_045 } from "../../cards/BT25/BT25-045.js";
+import "../../cards/BT25/BT25-045.js";
 // The real (hand-written, non-IR) EffectModule for the card whose [On Play] links its OWN
 // already-on-field permanent — the exact branch comprehensive-0140's divergence named.
 import EX11_027 from "../../cards/EX11/EX11-027.js";
@@ -96,11 +96,30 @@ function fixture(subTriggerLog?: string[]): Fixture {
   return { state, events, fx };
 }
 
-/** A clone of BT25-045's IR keeping only its plain [Main] Link clause (drops the reduced-cost [Your Turn] one). */
-function onlyPlainMainLink(compiled: CompiledCard): CompiledCard {
-  const clone: CompiledCard = JSON.parse(JSON.stringify(compiled));
-  clone.effects = (clone.effects ?? []).filter((e) => e.trigger === "Main");
-  return clone;
+/**
+ * A minimal [Main] "link 1 card to this Digimon" record. BT25-045 itself prints only the
+ * recipient-side cost REDUCTION, so the plain-cost rule this chapter cites has to be driven by a
+ * clause that actually declares a link. Everything below it — candidate resolution, the printed
+ * `Cost N` read, and the memory payment — is the real interpreter and the real primitives.
+ */
+function plainMainLink(): CompiledCard {
+  return {
+    effects: [
+      {
+        trigger: "Main",
+        actions: [
+          {
+            kind: "Link",
+            target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+            from: ["hand"],
+            payCost: true,
+          },
+        ],
+      },
+    ],
+    coverage: "full",
+    residual: [],
+  } as unknown as CompiledCard;
 }
 
 const LINKABLE = "BT21-009"; // [Social] [Appmon] trait, printed "[Link] [Appmon] trait: Cost 1"
@@ -159,8 +178,7 @@ async function runPlainMainLink(): Promise<{ memoryPaid: number; linkedCount: nu
   };
   const fx = createPrimitives(engine);
   const game = createGameAccess(state);
-  const compiled = onlyPlainMainLink(BT25_045);
-  const module = irCardModule("BT25-045", compiled);
+  const module = irCardModule("BT25-045", plainMainLink());
   const src = createCardSource(recipient.topCard!, stateLookup);
   // BT25-045's plain [Main] Link clause files under OnDeclaration (a player-activated [Main]
   // ability on a permanent, `timingsForTrigger`'s Main -> OnDeclaration co-home).
