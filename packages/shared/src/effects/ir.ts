@@ -1001,6 +1001,8 @@ export interface Condition {
     | "attackTargetMatchesFilter" // true when the attacked permanent matches `filter`, including superlatives such as highest DP
     | "lastTargetDpAtLeast" // true when every permanent selected by the preceding action currently has at least `value` DP
     | "lastTargetDpAtMostSelf" // true when every permanent selected by the preceding action has DP <= this source Digimon
+    | "lastTargetDpGreaterThanSelf" // true when every permanent selected by the preceding action has DP > this source Digimon
+    | "lastTargetCanTrashDigivolution" // true when the previous target still has stack cards and is not level 3 (EX5-055)
     | "triggerRevealedFromDeck" // true when this source card is among the cards revealed from a deck by the current effect
     | "triggerRevealedMatchesFilter" // true when any card in the current reveal window matches `filter`
     | "triggerAttackBy" // true when the current attack was declared through the named attack mechanic
@@ -1009,6 +1011,7 @@ export interface Condition {
     | "digivolutionCountCompare" // compares a selected Digimon's stack size with the source/target stack
     | "triggerPlayCostAtMostStackCount" // true when the triggered card's play cost is <= a matching stack count
     | "selfDigivolutionStackHasTrait" // "while a card with [X] in its traits is in THIS Digimon's digivolution cards" (BT7-024); `filter.nameOrTrait` carries the trait token(s), matched against each stack card's trait union (Form ∪ Attribute ∪ Type)
+    | "selfDigivolutionStackDistinctNameCount" // compares the number of distinct card names in the SOURCE stack (EX6-006)
     | "selfDigivolutionStackMatchesFilter" // true when any card in the SOURCE stack matches the full filter (BT17-101 Tamer card)
     | "selfDigivolutionStackHasColor" // true when a SOURCE stack card has one of `filter.colors` (BT8-082)
     | "selfDigivolutionStackHasNonColor" // true when a SOURCE stack card has none of `filter.colors` (BT10-001)
@@ -1170,6 +1173,10 @@ export interface Cost {
     | "trashBottomFaceDownUnderTamer" // trash the bottom face-down card under one of your Tamers
     | "securityToHand" // add your top/bottom security card to hand as a cost
     | "placeAsSecurity" // move a permanent to the security stack as a cost (BT19-048)
+    | "reveal" // reveal/select cards from a loose zone without moving them (EX4-023)
+    | "moveToBattleArea" // move the source permanent from breeding to battle area (BT18-086)
+    | "attack" // perform the source Digimon's attack as a cost (AD1-020)
+    | "digivolveSelf" // digivolve the source permanent into the effect card as a cost (BT17-073)
     | "playFromDigivolutionCards" // play a selected card from a selected Digimon's stack as a cost (BT19-102)
     | "raw";
   target?: Target;

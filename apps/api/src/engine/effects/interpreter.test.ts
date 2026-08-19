@@ -228,6 +228,21 @@ describe("new typed RAW-elimination conditions", () => {
     expect(evaluateCondition(ctx, { kind: "triggerPlayCostAtMostStackCount" })).toBe(true);
     ctx.trigger.playedPlayCost = 2;
     expect(evaluateCondition(ctx, { kind: "triggerPlayCostAtMostStackCount" })).toBe(false);
+
+    const stackTarget = makeFakePermanent({
+      permanentId: "STACK-TARGET",
+      controllerSeat: 1 as Seat,
+      stack: [
+        { instanceId: "under", cardId: "UNDER", ownerSeat: 1, faceUp: true },
+        { instanceId: "top", cardId: "TOP", ownerSeat: 1, faceUp: true },
+      ] as never,
+    });
+    ctx.lastResolvedPermanentIds = ["STACK-TARGET"];
+    ctx.game.permanentById = (id) => (id === "STACK-TARGET" ? stackTarget : undefined);
+    ctx.game.definitionOf = (card) => makeFakeDefinition({ cardId: card.cardId, level: card.cardId === "TOP" ? 4 : 3 });
+    expect(evaluateCondition(ctx, { kind: "lastTargetCanTrashDigivolution" })).toBe(true);
+    stackTarget.stack = [stackTarget.stack[1]!] as never;
+    expect(evaluateCondition(ctx, { kind: "lastTargetCanTrashDigivolution" })).toBe(false);
   });
 
   it("matches the event subject and stack cards through their full definitions", () => {

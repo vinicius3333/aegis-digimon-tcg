@@ -69,7 +69,9 @@ const compiled: CompiledCard = {
           "kind": "GainMemory",
           "amount": 2,
           "condition": {
-            "kind": "raw",
+            "kind": "selfDigivolutionStackCountAtLeast",
+            "count": 4,
+            "filter": { "nameOrTrait": [{ "tokens": ["Hybrid"], "match": "trait" }] },
             "raw": "there are 4 or more [Hybrid] trait cards under this Tamer"
           }
         }
@@ -121,7 +123,9 @@ const compiled: CompiledCard = {
           "kind": "GainMemory",
           "amount": 2,
           "condition": {
-            "kind": "raw",
+            "kind": "selfDigivolutionStackCountAtLeast",
+            "count": 4,
+            "filter": { "nameOrTrait": [{ "tokens": ["Hybrid"], "match": "trait" }] },
             "raw": "there are 4 or more [Hybrid] trait cards under this Tamer"
           }
         }
@@ -146,7 +150,7 @@ const compiled: CompiledCard = {
           },
           "duration": "forTheAttack",
           "cost": {
-            "kind": "raw",
+            "kind": "attack",
             "raw": "By attacking with this Digimon with the [Hybrid] or [Ten Warriors] trait"
           },
           "optional": true,

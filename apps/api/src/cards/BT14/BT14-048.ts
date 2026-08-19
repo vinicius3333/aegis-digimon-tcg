@@ -44,7 +44,7 @@ const compiled: CompiledCard = {
           "ignoreRequirements": true,
           "optional": true,
           "condition": {
-            "kind": "raw",
+            "kind": "lastTargetDpGreaterThanSelf",
             "raw": "attacked a Digimon with higher DP than this Digimon"
           }
         }

@@ -2195,6 +2195,20 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
         ids.every((id) => (ctx.game.permanentById(id)?.currentDP ?? Infinity) <= source.currentDP)
       );
     }
+    case "lastTargetDpGreaterThanSelf": {
+      const source = ctx.source.permanent();
+      const ids = ctx.lastResolvedPermanentIds ?? [];
+      return source !== undefined && ids.length > 0 && ids.every((id) => (ctx.game.permanentById(id)?.currentDP ?? -Infinity) > source.currentDP);
+    }
+    case "lastTargetCanTrashDigivolution": {
+      const ids = ctx.lastResolvedPermanentIds ?? [];
+      return ids.length > 0 && ids.every((id) => {
+        const permanent = ctx.game.permanentById(id);
+        if (permanent === undefined || permanent.stack.length <= 1) return false;
+        const level = permanent.topCard === undefined ? undefined : ctx.game.definitionOf(permanent.topCard).level;
+        return level !== 3;
+      });
+    }
     case "triggerRevealedFromDeck":
       return (ctx.lastRevealedCards ?? []).some((card) => card.cardId === ctx.source.cardId);
     case "triggerRevealedMatchesFilter":
@@ -2527,6 +2541,12 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // `filter.nameOrTrait`, using the same Form ∪ Attribute ∪ Type union as every other trait
       // match. An unset filter never matches (we do not guess).
       return selfStackMatchesTrait(ctx, cond.filter);
+    case "selfDigivolutionStackDistinctNameCount": {
+      const self = ctx.source.permanent();
+      if (self === undefined) return false;
+      const names = new Set(self.stack.map((card) => ctx.game.definitionOf(card).nameEn.toLowerCase()));
+      return compareNumber(names.size, cond.op, cond.value ?? 0);
+    }
     case "selfDigivolutionStackMatchesFilter": {
       const self = ctx.source.permanent();
       return self !== undefined && cond.filter !== undefined && self.stack.some((card) => definitionMatches(cond.filter!, ctx.game.definitionOf(card)));
@@ -2960,6 +2980,17 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
  */
 function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   if (cost.kind === "raw") return false;
+  if (cost.kind === "moveToBattleArea") {
+    const self = ctx.source.permanent();
+    return self !== undefined && self.inBreeding && ctx.game.player(ctx.source.ownerSeat).battleArea.length === 0;
+  }
+  if (cost.kind === "attack" || cost.kind === "digivolveSelf") return ctx.source.permanent() !== undefined;
+  if (cost.kind === "reveal") {
+    if (cost.target === undefined) return false;
+    const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
+    const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
+    return required > 0 && candidates.length >= required;
+  }
   if (cost.kind === "compound") {
     return cost.costs !== undefined && cost.costs.length > 0 && cost.costs.every((nested) => canPayCost(ctx, nested));
   }
@@ -3079,6 +3110,21 @@ export async function payCost(
   opts?: { deferSuspendTriggers?: boolean },
 ): Promise<boolean> {
   switch (cost.kind) {
+    case "moveToBattleArea": {
+      const self = ctx.source.permanent();
+      return self !== undefined && (await ctx.fx.movePermanentZone(self.permanentId, "toBattle"));
+    }
+    case "attack":
+    case "digivolveSelf":
+      return false;
+    case "reveal": {
+      if (cost.target === undefined) return false;
+      const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
+      const count = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
+      if (count <= 0 || candidates.length < count) return false;
+      const chosen = await pickLoose(ctx, { ...cost.target, count }, candidates);
+      return chosen.length === count;
+    }
     case "compound": {
       if (cost.costs === undefined || cost.costs.length === 0) return false;
       for (const nested of cost.costs) {
@@ -3620,6 +3666,10 @@ export async function payCost(
         if (level !== undefined && level > 0) maxLevel = Math.max(maxLevel ?? 0, level);
       }
       if (maxLevel !== undefined) ctx.lastDeletedLevel = maxLevel;
+      if (cost.bindResultAs !== undefined) {
+        ctx.boundPlayed ??= new Map();
+        ctx.boundPlayed.set(cost.bindResultAs, new Set(ids));
+      }
       await ctx.fx.deletePermanent(ids);
       return true;
     }

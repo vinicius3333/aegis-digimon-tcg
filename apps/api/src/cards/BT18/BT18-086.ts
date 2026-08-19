@@ -56,7 +56,7 @@ const compiled: CompiledCard = {
               "kind": "Prevent",
               "mode": "leavePlay",
               "cost": {
-                "kind": "raw",
+                "kind": "moveToBattleArea",
                 "raw": "by moving this Digimon to battle area"
               },
               "optional": true,
