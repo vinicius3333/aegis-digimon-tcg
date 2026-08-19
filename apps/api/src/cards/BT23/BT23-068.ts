@@ -9,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [All Turns] [Once Per Turn] When any of your Digimon digivolve FROM THE TRASH,
 // delete ALL of your opponent's lowest-level Digimon.
 // KB Q5336: also triggers when digivolving into this card itself from the trash.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "StartOfYourMainPhase",
