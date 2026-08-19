@@ -47,15 +47,17 @@ function makeSource(stack: { instanceId: string; cardId: string }[]): CardSource
 describe("BT26-037 [On Play]/[When Digivolving]: link a level-3 eligible-trait digivolution card", () => {
   it("offers only the eligible ([Navi]/[System]/[Seven Code]) stack card and links it", async () => {
     const eligible = { instanceId: "stack-eligible", cardId: "NAVI-003" };
+    const sameTraitWithoutLink = { instanceId: "stack-no-link", cardId: "NAVI-004" };
     const ineligible = { instanceId: "stack-ineligible", cardId: "OTHER-003" };
-    const source = makeSource([eligible, ineligible]);
+    const source = makeSource([eligible, sameTraitWithoutLink, ineligible]);
 
     const game: GameAccess = {
       definitionOf: (card: { cardId: string }) =>
         fakeDef({
           cardId: card.cardId,
           level: 3,
-          types: card.cardId === "NAVI-003" ? ["Navi"] : [],
+          types: card.cardId === "NAVI-003" || card.cardId === "NAVI-004" ? ["Navi"] : [],
+          linkRequirement: card.cardId === "NAVI-003" ? "[Link] [Appmon] trait: Cost 1" : undefined,
         }),
     } as unknown as GameAccess;
 

@@ -32,7 +32,11 @@ const compiled: CompiledCard = {
           "actions": [
             {
               "kind": "GainMemory",
-              "amount": -2
+              "amount": -2,
+              "condition": {
+                "kind": "attackTargetsPlayer",
+                "raw": "this Digimon attacks a player"
+              }
             }
           ]
         }

@@ -5,176 +5,158 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -2,
-            "raw": "＜Security Attack -2＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -2,
+            raw: "＜Security Attack -2＞",
           },
-          "duration": "untilOpponentTurnEnd"
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "PlatinumNumemon"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "payCost": true,
-          "from": [
-            "hand"
-          ],
-          "costOverride": 4,
-          "ignoreRequirements": true,
-          "optional": true,
-          "condition": {
-            "kind": "stackHasSameLevelCards",
-            "count": 2,
-            "raw": "this Digimon's stack has 2 or more same-level cards"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -2,
-            "raw": "＜Security Attack -2＞"
-          },
-          "duration": "untilOpponentTurnEnd"
-        },
-        {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "PlatinumNumemon"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "payCost": true,
-          "from": [
-            "hand"
-          ],
-          "costOverride": 4,
-          "ignoreRequirements": true,
-          "optional": true,
-          "condition": {
-            "kind": "stackHasSameLevelCards",
-            "count": 2,
-            "raw": "this Digimon's stack has 2 or more same-level cards"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "sourceFilter": {
-            "isSelfRef": true
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
+                tokens: ["PlatinumNumemon"],
+                match: "name",
+              },
             ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "CS"
-                ],
-                "match": "trait"
-              }
-            ]
           },
-          "actions": [
-            {
-              "kind": "Replacement",
-              "event": "wouldDigivolve",
-              "mode": "reduceCost",
-              "amount": 1,
-              "raw": "reduce the digivolution cost by 1"
-            }
-          ]
-        }
+          payCost: true,
+          from: ["hand"],
+          costOverride: 4,
+          ignoreRequirements: true,
+          optional: true,
+          condition: {
+            kind: "stackHasSameLevelCards",
+            count: 2,
+            raw: "this Digimon's stack has 2 or more same-level cards",
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 4,
-      "names": ["Numemon"],
-      "cost": 2,
-      "isAlternate": true
     },
     {
-      "level": 3,
-      "traits": [
-        "CS"
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -2,
+            raw: "＜Security Attack -2＞",
+          },
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          into: {
+            controllerDefault: "mine",
+            nameOrTrait: [
+              {
+                tokens: ["PlatinumNumemon"],
+                match: "name",
+              },
+            ],
+          },
+          payCost: true,
+          from: ["hand"],
+          costOverride: 4,
+          ignoreRequirements: true,
+          optional: true,
+          condition: {
+            kind: "stackHasSameLevelCards",
+            count: 2,
+            raw: "this Digimon's stack has 2 or more same-level cards",
+          },
+        },
       ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              {
+                tokens: ["CS"],
+                match: "trait",
+              },
+            ],
+          },
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 1,
+              raw: "reduce the digivolution cost by 1",
+            },
+          ],
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 4,
+      names: ["Numemon"],
+      cost: 2,
+      isAlternate: true,
+    },
+    {
+      level: 3,
+      traits: ["CS"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT22-031", compiled);

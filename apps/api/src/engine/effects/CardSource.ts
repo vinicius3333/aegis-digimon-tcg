@@ -41,6 +41,8 @@ export interface CardSource {
    * (the `activated` builder treats absent as not-in-hand).
    */
   isInHand?(): boolean;
+  /** Is this card currently face-up in its owner's security stack? */
+  isInSecurity?(): boolean;
   /** source the effect runtime.IsOwnerTurn(card) */
   isOwnersTurn(): boolean;
   /** source cardSource.HasCardColor(...) */

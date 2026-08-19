@@ -5,262 +5,222 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenTrashedFromHand",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "SubTrigger",
+          event: "whenTrashedFromHand",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Draw",
-              "controller": "mine",
-              "amount": 1,
-              "condition": {
-                "kind": "zoneCount",
-                "seat": "mine",
-                "zone": "hand",
-                "op": "lte",
-                "value": 5,
-                "raw": "you have 5 or fewer cards in your hand"
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Demon",
-                    "Shaman",
-                    "Titan"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "Jamming",
-            "raw": "＜Jamming＞"
-          },
-          "duration": "untilOpponentTurnEnd",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine"
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+              condition: {
+                kind: "zoneCount",
+                seat: "mine",
+                zone: "hand",
+                op: "lte",
+                value: 5,
+                raw: "you have 5 or fewer cards in your hand",
               },
-              "count": 1
             },
-            "raw": "By trashing 1 card in your hand"
-          },
-          "optional": true,
-          "abortOnDecline": true
+          ],
         },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Demon",
-                    "Shaman",
-                    "Titan"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1,
-            "sameTarget": true
-          },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
-          },
-          "duration": "untilOpponentTurnEnd"
-        }
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Demon",
-                    "Shaman",
-                    "Titan"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "Jamming",
-            "raw": "＜Jamming＞"
-          },
-          "duration": "untilOpponentTurnEnd",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine"
-              },
-              "count": 1
-            },
-            "raw": "By trashing 1 card in your hand"
-          },
-          "optional": true,
-          "abortOnDecline": true
-        },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Demon",
-                    "Shaman",
-                    "Titan"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1,
-            "sameTarget": true
-          },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
-          },
-          "duration": "untilOpponentTurnEnd"
-        }
-      ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenHandTrashed",
-          "actions": [
-            {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+                  tokens: ["Demon", "Shaman", "Titan"],
+                  match: "trait",
                 },
-                "count": 1,
-                "isSelf": true
+              ],
+            },
+            count: 1,
+          },
+          keyword: {
+            keyword: "Jamming",
+            raw: "＜Jamming＞",
+          },
+          duration: "untilOpponentTurnEnd",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
               },
-              "into": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              count: 1,
+            },
+            raw: "By trashing 1 card in your hand",
+          },
+          abortOnDecline: true,
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Demon", "Shaman", "Titan"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+            sameTarget: true,
+          },
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
+          },
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Demon", "Shaman", "Titan"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          keyword: {
+            keyword: "Jamming",
+            raw: "＜Jamming＞",
+          },
+          duration: "untilOpponentTurnEnd",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+              },
+              count: 1,
+            },
+            raw: "By trashing 1 card in your hand",
+          },
+          abortOnDecline: true,
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Demon", "Shaman", "Titan"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+            sameTarget: true,
+          },
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
+          },
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenHandTrashed",
+          actions: [
+            {
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Titamon"
-                    ],
-                    "match": "name"
+                    tokens: ["Titamon"],
+                    match: "name",
                   },
                   {
-                    "tokens": [
-                      "Titan"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Titan"],
+                    match: "trait",
+                  },
+                ],
               },
-              "from": [
-                "trash"
-              ],
-              "reduceCost": 1,
-              "optional": true,
-              "condition": {
-                "kind": "selfHasTrait",
-                "filter": {
-                  "nameOrTrait": [
+              from: ["trash"],
+              reduceCost: 1,
+              optional: true,
+              condition: {
+                kind: "selfHasTrait",
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Demon",
-                        "Titan"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
+                      tokens: ["Demon", "Titan"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                "raw": "this Digimon has the [Demon] or [Titan] trait"
-              }
-            }
-          ]
-        }
+                raw: "this Digimon has the [Demon] or [Titan] trait",
+              },
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "traits": [
-        "Demon",
-        "TS"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["Demon", "TS"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT24-026", compiled);

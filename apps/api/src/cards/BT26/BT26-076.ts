@@ -9,9 +9,10 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-076 — Crowmon (BT26, Purple Lv.5 Digimon, Mysterious Bird/DATA SQUAD).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-076 as of this port
-// (`node tools/kb/query.mjs card BT26-076` returned no knowledge-base entries — BT26 has
-// no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// Q7104 confirms that in "a level 4 or lower Digimon card with [CS] trait or yellow/black"
+// style wording, the level restriction applies to either side of the OR. This card's
+// opponent target is explicitly a level 4 or lower Digimon, so its filter already matches
+// the ruling.
 //
 // Printed text:
 //   [Digivolve] Lv.4 w/[DATA SQUAD] trait: Cost 3 — a digivolution-cost requirement, not
@@ -256,8 +257,7 @@ const module: EffectModule = {
               once: false,
               oncePerTurnKey: `${cardId}/opponent-hand-or-tamer-trash-may-digivolve`,
               description: `${cardId}: when your opponent's hand is trashed from, may digivolve from trash.`,
-              matches: (subCtx) =>
-                subCtx.trigger?.handTrashedSeat === subCtx.game.opponentOf(source.ownerSeat),
+              matches: (subCtx) => subCtx.trigger?.handTrashedSeat === subCtx.game.opponentOf(source.ownerSeat),
               run: async (subCtx) => {
                 await mayDigivolveFromTrash(subCtx, source, hostPermanentId);
               },
@@ -269,8 +269,7 @@ const module: EffectModule = {
               once: false,
               oncePerTurnKey: `${cardId}/opponent-hand-or-tamer-trash-may-digivolve`,
               description: `${cardId}: when effects trash cards from under your Tamers, may digivolve from trash.`,
-              matches: (subCtx) =>
-                isControlledTamer(subCtx, subCtx.trigger?.subjectPermanentId, source.ownerSeat),
+              matches: (subCtx) => isControlledTamer(subCtx, subCtx.trigger?.subjectPermanentId, source.ownerSeat),
               run: async (subCtx) => {
                 await mayDigivolveFromTrash(subCtx, source, hostPermanentId);
               },

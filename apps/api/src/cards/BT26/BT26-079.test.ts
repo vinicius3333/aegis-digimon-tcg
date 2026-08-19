@@ -102,7 +102,10 @@ describe("BT26-079 [On Play]/[When Digivolving]/[When Attacking]: trash-cost del
 
   it("does not delete when the player declines to pay the trash cost", async () => {
     const oppLow = { permanentId: "opp-low", topCard: { cardId: "AD1-001" }, inBreeding: false };
-    const players = [{ seat: 0 as Seat, hand: [{ instanceId: "hand-1", cardId: "H-1" }] }, { seat: 1 as Seat, battleArea: [oppLow] }];
+    const players = [
+      { seat: 0 as Seat, hand: [{ instanceId: "hand-1", cardId: "H-1" }] },
+      { seat: 1 as Seat, battleArea: [oppLow] },
+    ];
 
     const game: GameAccess = {
       player: (seat: Seat) => players[seat] as never,
@@ -176,5 +179,36 @@ describe("BT26-079 [Trash][Main]: play this card from the trash with the cost re
     await playFromTrash!.resolve(ctx);
 
     expect(played).toEqual([[["zombieplutomon-top"], { payCost: true, costDelta: 4 }]]);
+  });
+});
+
+describe("BT26-079 [All Turns] once-per-turn hand trash trigger", () => {
+  it("shares a once-per-turn key across opponent play and digivolve triggers", async () => {
+    const source = makeSource();
+    const subscriptions: Array<{ event: string; oncePerTurnKey?: string }> = [];
+    const module = getEffectModule(CARD_ID);
+    const staticEffects = module!.effectsForTiming(EffectTiming.None, source);
+    const triggerEffect = staticEffects.find(
+      (effect) => effect.effectKey === `${CARD_ID}/all-turns-opponent-play-or-digivolve-trash-down`,
+    );
+    expect(triggerEffect).toBeDefined();
+
+    const ctx = {
+      source,
+      game: { player: () => ({ battleArea: [] }) },
+      fx: {
+        subscribeSubTrigger: vi.fn((options: { event: string; oncePerTurnKey?: string }) =>
+          subscriptions.push(options),
+        ),
+      },
+    } as unknown as EffectContext;
+
+    await triggerEffect!.resolve(ctx);
+
+    expect(subscriptions).toHaveLength(2);
+    expect(subscriptions.map((subscription) => subscription.event)).toEqual(["whenPlayed", "whenOneOfYoursDigivolves"]);
+    expect(new Set(subscriptions.map((subscription) => subscription.oncePerTurnKey))).toEqual(
+      new Set([`${CARD_ID}/all-turns-opponent-play-or-digivolve-trash-down`]),
+    );
   });
 });

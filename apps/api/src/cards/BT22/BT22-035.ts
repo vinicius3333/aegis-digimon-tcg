@@ -5,121 +5,104 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Alliance",
-          "raw": "＜Alliance＞"
-        }
-      ]
+          keyword: "Alliance",
+          raw: "＜Alliance＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Link",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
+          kind: "Link",
+          source: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "hasLinkRequirement": true
+              hasLinkRequirement: true,
             },
-            "count": 1
+            from: ["hand", "digivolutionCards"],
           },
-          "payCost": false,
-          "optional": true,
-          "from": [
-            "hand",
-            "digivolutionCards"
-          ]
-        }
-      ]
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Link",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
+          kind: "Link",
+          source: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "hasLinkRequirement": true
+              hasLinkRequirement: true,
             },
-            "count": 1
+            from: ["hand", "digivolutionCards"],
           },
-          "payCost": false,
-          "optional": true,
-          "from": [
-            "hand",
-            "digivolutionCards"
-          ]
-        }
-      ]
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenLinked",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenLinked",
+          actions: [
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "playCostLte": 4,
-                  "nameOrTrait": [
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  playCostLte: 4,
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Appmon"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
+                      tokens: ["Appmon"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "from": [
-                "hand"
-              ],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
+              from: ["hand"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "appFusionRequirement": [
+  coverage: "full",
+  residual: [],
+  appFusionRequirement: [
     {
-      "names": [
-        "Mediamon",
-        "Dreammon"
-      ],
-      "cost": 0
-    }
-  ]
+      names: ["Mediamon", "Dreammon"],
+      cost: 0,
+    },
+  ],
 };
 
 registerIrCard("BT22-035", compiled);

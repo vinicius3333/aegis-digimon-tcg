@@ -26,11 +26,7 @@ function isShotoKazama(def: { nameEn: string }): boolean {
   return matchNameOrTrait(def, { tokens: ["Shoto Kazama"], match: "nameExact" });
 }
 
-function isAvianBirdOrVortexWarriors(def: {
-  types?: string[];
-  forms?: string[];
-  attributes?: string[];
-}): boolean {
+function isAvianBirdOrVortexWarriors(def: { types?: string[]; forms?: string[]; attributes?: string[] }): boolean {
   return matchNameOrTrait(def, {
     tokens: ["Avian", "Bird", "Vortex Warriors"],
     match: "trait",
@@ -70,18 +66,12 @@ const module: EffectModule = {
             await ctx.fx.suspend(s);
 
             const owner = ctx.game.player(source.ownerSeat);
-            const suspendedOwnDigimon = owner.battleArea.some(
-              (p: any) => p.permanentId === s[0],
-            );
+            const suspendedOwnDigimon = owner.battleArea.some((p: any) => p.permanentId === s[0]);
             if (!suspendedOwnDigimon) return;
 
             const revealed = await ctx.fx.reveal(source.ownerSeat, 3);
 
             const shotoCandidates = revealed.filter((c: any) => isShotoKazama(ctx.game.definitionOf(c)));
-            const avianCandidates = revealed.filter((c: any) =>
-              isAvianBirdOrVortexWarriors(ctx.game.definitionOf(c)),
-            );
-
             let selected: string[] = [];
 
             if (shotoCandidates.length > 0) {
@@ -92,6 +82,10 @@ const module: EffectModule = {
               });
               selected = selected.concat(pick);
             }
+
+            const avianCandidates = revealed.filter(
+              (c: any) => !selected.includes(c.instanceId) && isAvianBirdOrVortexWarriors(ctx.game.definitionOf(c)),
+            );
 
             if (avianCandidates.length > 0) {
               const pick = await ctx.ask.selectCards(ctx, {
@@ -107,9 +101,7 @@ const module: EffectModule = {
               await ctx.fx.returnToHand(Array.from(selectedSet));
             }
 
-            const rest = revealed
-              .filter((c: any) => !selectedSet.has(c.instanceId))
-              .map((c: any) => c.instanceId);
+            const rest = revealed.filter((c: any) => !selectedSet.has(c.instanceId)).map((c: any) => c.instanceId);
             if (rest.length > 0) {
               await ctx.fx.returnToDeck(rest, { toTop: false });
             }
@@ -122,8 +114,7 @@ const module: EffectModule = {
         turnTiming({
           source,
           effectKey: `${cardId}/battle-delete`,
-          description:
-            "[All Turns][Once Per Turn] When deletes opponent Digimon in battle, +1 memory.",
+          description: "[All Turns][Once Per Turn] When deletes opponent Digimon in battle, +1 memory.",
           optional: false,
           isInherited: true,
           maxPerTurn: 1,

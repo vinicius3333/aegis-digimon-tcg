@@ -4,145 +4,144 @@
 // position:bottom (places Yuuko Kamishiro from hand or trash under this Digimon).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Raid",
-          "raw": "＜Raid＞"
-        }
-      ]
+          keyword: "Raid",
+          raw: "＜Raid＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": ["Digimon"]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd"
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": ["Yuuko Kamishiro"],
-                  "match": "name"
-                }
-              ]
-            },
-            "from": ["hand", "trash"],
-            "count": 1
-          },
-          "underFilter": {
-            "isSelfRef": true
-          },
-          "position": "bottom",
-          "condition": {
-            "kind": "selfHasNoDigivolutionCards",
-            "raw": "this Digimon has no digivolution cards"
-          },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": ["Digimon"]
-            },
-            "count": 1
-          },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd"
-        },
-        {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": ["Yuuko Kamishiro"],
-                  "match": "name"
-                }
-              ]
-            },
-            "from": ["hand", "trash"],
-            "count": 1
-          },
-          "underFilter": {
-            "isSelfRef": true
-          },
-          "position": "bottom",
-          "condition": {
-            "kind": "selfHasNoDigivolutionCards",
-            "raw": "this Digimon has no digivolution cards"
-          },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": ["Digimon"]
-          },
-          "actions": [
-            {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "nameOrTrait": [
-                    {
-                      "tokens": ["Yuuko Kamishiro"],
-                      "match": "name"
-                    }
-                  ]
+                  tokens: ["Yuuko Kamishiro"],
+                  match: "name",
                 },
-                "count": 1
-              },
-              "from": ["digivolutionCards"],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+              ],
+            },
+            from: ["hand", "trash"],
+            count: 1,
+          },
+          underFilter: {
+            isSelfRef: true,
+          },
+          position: "bottom",
+          condition: {
+            kind: "selfHasNoDigivolutionCards",
+            raw: "this Digimon has no digivolution cards",
+          },
+          optional: true,
+        },
+      ],
+    },
     {
-      "names": ["Yuuko Kamishiro"],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Yuuko Kamishiro"],
+                  match: "name",
+                },
+              ],
+            },
+            from: ["hand", "trash"],
+            count: 1,
+          },
+          underFilter: {
+            isSelfRef: true,
+          },
+          position: "bottom",
+          condition: {
+            kind: "selfHasNoDigivolutionCards",
+            raw: "this Digimon has no digivolution cards",
+          },
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [
+                    {
+                      tokens: ["Yuuko Kamishiro"],
+                      match: "name",
+                    },
+                  ],
+                },
+                count: 1,
+              },
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Yuuko Kamishiro"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT22-081", compiled);

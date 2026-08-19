@@ -9,9 +9,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-005 — Pinamon (BT26, Purple In-Training Digimon / Digi-Egg).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-005 as of this port
-// (`node tools/kb/query.mjs card BT26-005` returned no knowledge-base entries). implemented
-// from the printed card text only.
+// KB Q6958 confirms that the card just trashed from under the Tamer may be the card
+// played from the trash by this inherited effect.
 //
 // Inherited Effect:
 //   [On Deletion] By trashing the bottom face-down card from under any of your Tamers,
@@ -29,10 +28,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 const cardId = "BT26-005";
 
 /** Battle-area Tamers this seat controls whose digivolution stack has >=1 face-down card. */
-function tamersWithBottomFaceDown(
-  ctx: EffectContext,
-  seat: Seat,
-): { permanentId: string; instanceId: string }[] {
+function tamersWithBottomFaceDown(ctx: EffectContext, seat: Seat): { permanentId: string; instanceId: string }[] {
   const owner = ctx.game.player(seat);
   const results: { permanentId: string; instanceId: string }[] = [];
   for (const p of owner.battleArea) {
@@ -80,10 +76,7 @@ const module: EffectModule = {
         isInherited: true,
         canActivate: (ctx) => {
           const ownerSeat = source.ownerSeat;
-          return (
-            tamersWithBottomFaceDown(ctx, ownerSeat).length > 0 &&
-            eligibleTrashCards(ctx, ownerSeat).length > 0
-          );
+          return tamersWithBottomFaceDown(ctx, ownerSeat).length > 0 && eligibleTrashCards(ctx, ownerSeat).length > 0;
         },
         resolve: async (ctx) => {
           const ownerSeat = source.ownerSeat;
@@ -111,9 +104,7 @@ const module: EffectModule = {
             chosenTamer = match;
           }
 
-          const trashed = await ctx.fx.trashDigivolutionCards(chosenTamer.permanentId, [
-            chosenTamer.instanceId,
-          ]);
+          const trashed = await ctx.fx.trashDigivolutionCards(chosenTamer.permanentId, [chosenTamer.instanceId]);
           if (trashed.length === 0) return;
 
           const candidates = eligibleTrashCards(ctx, ownerSeat);

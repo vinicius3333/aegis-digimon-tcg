@@ -42,10 +42,9 @@ function tamersWithBottomFaceDown(
   for (const p of owner.battleArea) {
     if (p.inBreeding || p.topCard === undefined) continue;
     if (!ctx.game.definitionOf(p.topCard).kinds.includes(CardKind.Tamer)) continue;
-    // `stack` is ordered bottom (index 0) -> top (last); scan from the bottom for the
-    // first face-down card.
-    const bottomFaceDown = p.stack.find((card) => !card.faceUp);
-    if (bottomFaceDown !== undefined) {
+    // `stack` is ordered bottom (index 0) -> top (last); only the bottom card qualifies.
+    const bottomFaceDown = p.stack[0];
+    if (bottomFaceDown !== undefined && !bottomFaceDown.faceUp) {
       results.push({ permanentId: p.permanentId, instanceId: bottomFaceDown.instanceId });
     }
   }
@@ -97,6 +96,17 @@ const module: EffectModule = {
           const hasSecurity = ctx.game.player(seat).security.length > 0;
           if (eligibleTamers.length === 0 && !hasSecurity) return;
 
+          const chosenOption = await ctx.ask.selectCards(ctx, {
+            candidates: optionCandidates.map((c) => c.instanceId),
+            min: 0,
+            max: 1,
+          });
+          if (chosenOption.length === 0) return;
+
+          const optionInstance = optionCandidates.find((c) => c.instanceId === chosenOption[0]!);
+          if (optionInstance === undefined) return;
+          const def = ctx.game.definitionOf(optionInstance);
+
           // Which cost the controller wants to pay for the reduction: a Tamer's bottom
           // face-down card, the top security card, or neither (decline the whole effect).
           const payChoices: string[] = [];
@@ -142,17 +152,6 @@ const module: EffectModule = {
             const trashed = await ctx.fx.trashFromSecurity(seat, 1, { fromTop: true });
             if (trashed.length === 0) return;
           }
-
-          const chosenOption = await ctx.ask.selectCards(ctx, {
-            candidates: optionCandidates.map((c) => c.instanceId),
-            min: 0,
-            max: 1,
-          });
-          if (chosenOption.length === 0) return;
-
-          const optionInstance = optionCandidates.find((c) => c.instanceId === chosenOption[0]!);
-          if (optionInstance === undefined) return;
-          const def = ctx.game.definitionOf(optionInstance);
 
           const reducedCost = Math.max(0, (def.playCost ?? 0) - 2);
           if (reducedCost > 0) ctx.fx.gainMemory(-reducedCost);

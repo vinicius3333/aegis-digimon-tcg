@@ -232,6 +232,8 @@ export type FilterKeyword = Keyword;
  * are optional and AND together; an empty Filter matches "any card in scope".
  */
 export interface Filter {
+  /** Require a card to have exactly one color ("single-color" cards). */
+  singleColor?: boolean;
   /** Cost-only hint: a selectable stack card must belong to a level represented at least twice. */
   sameLevelPair?: boolean;
   /** Restrict an onDeletionOf watcher to deletion caused by DP reaching 0. */
@@ -752,6 +754,8 @@ export interface Filter {
    * cards" — EX9-073), rather than the single bottom card `position: "bottom"` selects.
    */
   withinBottomN?: number;
+  /** Cost-only: all selected digivolution cards must come from one host permanent. */
+  sameHost?: boolean;
   /** False when self is allowed. */
   type?: { kind: string };
   /** Count constraint (used in or-filter groups). */
@@ -1003,6 +1007,7 @@ export interface Condition {
     | "selfTopHasText" // "while THIS permanent's top card has [X] in its text" (EX11-070's inherited [All Turns] gate: host TopCard.HasText("Maquinamon")); `filter.nameOrTrait` carries the text token(s), matched against the SOURCE permanent's (the inherited host's) top-card name/trait/effect text
     | "selfDigivolutionCountAtLeast" // "if this Digimon has N or more digivolution cards" — reads the SOURCE permanent's digivolution-stack size >= `value` (BT22-007 "10 or more digivolution cards"; KB Q4858)
     | "selfDigivolutionStackCountAtLeast" // "if N or more cards matching [filter] are in THIS Digimon's digivolution cards" — counts SOURCE-permanent stack cards matching `filter.nameOrTrait` >= `count` (BT11-065 "4+ [Vemmon]")
+    | "selfDigivolutionStackHasSameLevelPair" // "if this Digimon's stack has 2 or more cards of the same level" (BT23-102)
     | "selfIsSuspended" // "while/if this Digimon is suspended" — true when the SOURCE permanent's isSuspended flag is set (EX3-042, EX8-043)
     | "selfUnsuspended" // "while this is unsuspended" — true when the SOURCE permanent is NOT suspended (P-199's by-suspending-this-Tamer reduction is only offered while it can still be suspended)
     | "selfDpAtLeast" // the SOURCE permanent's current DP is at least `value`
@@ -1043,9 +1048,11 @@ export interface Condition {
     | "digivolvedFromZone" // WhenDigivolving: the card that caused this window came from `zone` (BT17-065 "this digivolved from the trash").
     | "playedFromZone" // OnPlay: the played card originated from `zone` (BT7-018).
     | "zoneCount" // "if you/your opponent have exactly/more/fewer than N cards in your/their hand|trash|security|deck" — compares `seat`'s `zone` size against `value` via `op` (gte|lte|gt|lt|eq). Generic resource-count gate (the seat×zone superset of memory/security/hand At-Least/Most).
+    | "combinedTrashCount" // total cards in both players' trash zones
     | "zoneColorCount" // "if your Tamers have N or more total colors" — counts distinct printed colors among battle-area permanents of `cardType` (ST20-10/ST21-10; KB Q4456).
     | "securityCompare" // "if you have fewer/more security cards than your opponent" — cross-player relative comparison of YOUR security-stack size vs the OPPONENT's (P-127 fewer → documented behavior Owner.SecurityCards.Count < Enemy; P-129 more → >). `op` is "lt" (fewer) or "gt" (more); no fixed `value`.
     | "securityAtMostSelfFaceDownDigivolutionCards" // "if you have as many or fewer security cards as this Digimon has face-down digivolution cards" — compares the watcher's security-stack size against the SOURCE permanent's face-down (faceUp !== true) stack-card count (EX9-029, KB Q4783).
+    | "sourceWasFaceUpSecurity"
     | "totalSecurityCount" // "there are N or fewer/more total cards in both players' security stacks" — sums both security stacks then compares with `op`/`value`.
     | "totalDigimonCount" // total battle-area Digimon controlled by both players, compared with `op`/`value` (BT9-110).
     | "totalDigimonGte" // legacy alias for totalDigimonCount with an implicit gte comparison (ST19-11).
@@ -1141,6 +1148,7 @@ export interface Condition {
  */
 export interface Cost {
   kind:
+    | "compound" // pay each nested cost in sequence (e.g. suspend AND trash)
     | "trash"
     | "suspend"
     | "unsuspend" // unsuspend a permanent (usually "By unsuspending this Digimon", BT14-054)
@@ -1150,11 +1158,14 @@ export interface Cost {
     | "payMemory"
     | "flipSecurity" // flip your top face-up security card face down (BT23-043, EX11-031)
     | "trashSecurityTop" // trash your own top security card (ST23-05)
+    | "trashBottomFaceDownUnderTamer" // trash the bottom face-down card under one of your Tamers
     | "securityToHand" // add your top/bottom security card to hand as a cost
     | "placeAsSecurity" // move a permanent to the security stack as a cost (BT19-048)
     | "playFromDigivolutionCards" // play a selected card from a selected Digimon's stack as a cost (BT19-102)
     | "raw";
   target?: Target;
+  /** Nested costs that must all be paid for a compound cost. */
+  costs?: Cost[];
   /** Host permanent selected before resolving a stack-card play cost (BT19-102). */
   hostTarget?: Target;
   /** For "payMemory": the memory amount paid (e.g. "By paying 1 cost" => 1). */
@@ -1164,12 +1175,16 @@ export interface Cost {
    * Distinct from a "You may" on the whole action.
    */
   optional?: boolean;
+  /** Controller for specialized costs that target a relative player's stack. */
+  controller?: Controller;
+  /** Number of cards required by a specialized fixed-card cost. */
+  count?: number;
   raw?: string;
   /**
    * Return destination for `kind:"return"` costs. `"deckBottom"` sends the card to the bottom
    * of its owner's deck instead of the hand (BT19-002). Absent defaults to hand.
    */
-  to?: "hand" | "deckBottom";
+  to?: "hand" | "deckBottom" | "deckTop" | "deckTopOrBottom";
   /**
    * After the `return` cost is paid, store the returned Digimon's level in
    * `EffectContext.namedCounts` under this name so a subsequent `levelLte` filter
@@ -1198,12 +1213,13 @@ export interface Cost {
    *   - "security": onto the controller's security stack (BT23-045, BT24-040, BT25-044).
    *   - "digivolutionStack": under a host's digivolution stack at `position`
    *     (EX9-055 "as this Digimon's top digivolution card"; EX9-064 bottom, face down).
+   *   - "battleArea": as an Option permanent in its owner's battle area (P-179).
    * `position` picks the end ("top"/"bottom"); `host` selects whose stack
    * ("self" = the source permanent, "target" = the `underFilter` host). `faceDown`
    * forces a face-down placement for the "security" destination (digivolution cards
    * are always face-down regardless). Absent => the legacy placeUnder behavior.
    */
-  destination?: "security" | "digivolutionStack";
+  destination?: "security" | "digivolutionStack" | "battleArea";
   /**
    * Which end of the target to place at: "top", "bottom", or "choice"
    * (prompt the controller to choose top or bottom per placed card). EX12-077's
@@ -1558,6 +1574,15 @@ export interface ReturnAction extends ActionBase {
    * from re-counting a live filter, which can overcount unrelated cards).
    */
   trackCount?: string;
+  /** Dynamically raise the play-cost ceiling of a permanent return target. */
+  playCostCeiling?: {
+    base: number;
+    raise: number;
+    per: number;
+    filter: Filter;
+    unit: "cards" | "digivolutionCards" | "digivolutionCardsOfFiltered";
+    raw?: string;
+  };
 }
 export interface SuspendAction extends ActionBase {
   kind: "Suspend";
@@ -1792,6 +1817,14 @@ export interface PlayWithoutCostAction extends ActionBase {
 export interface PlayMultipleAction extends ActionBase {
   kind: "PlayMultiple";
   totalCost: number;
+  /** Optional dynamic budget: add `raise` for every `per` matching cards. */
+  totalCostScaling?: {
+    base: number;
+    raise: number;
+    per: number;
+    filter: Filter;
+    unit: "cards" | "digivolutionCards";
+  };
   filter: Filter;
   from: ZoneRef | ZoneRef[] | "digivolution";
   payCost: boolean;
@@ -3129,6 +3162,8 @@ export interface RecoverByTrashingMostSecurityAction extends ActionBase {
   kind: "RecoverByTrashingMostSecurity";
   /** ＜Recovery +N＞ (default 1). */
   amount?: number;
+  /** When false, perform only the most-security top-card trash (the recovery is modeled separately). */
+  recover?: boolean;
 }
 
 /**
@@ -3318,6 +3353,7 @@ export type SubTriggerEvent =
   | "whenUnsuspended" // "When this Digimon/Tamer becomes unsuspended"
   | "whenDeletesInBattle" // "When this Digimon deletes [an opponent's Digimon] in battle"
   | "whenOneOfYoursDigivolves" // "When one of your Digimon digivolves"
+  | "whenAnyDigivolves" // "When any Digimon digivolves" (controller is narrowed by sourceFilter)
   | "onDeletionOf" // "When [a Digimon] is deleted"
   | "whenSecurityRemoved" // "When a card is removed from your/your opponent's security"
   | "whenAddSecurity" // "When cards are added to your/your opponent's security stack" (documented behavior EffectTiming.OnAddSecurity)
@@ -3412,6 +3448,11 @@ export interface SubTriggerAction extends ActionBase {
   _innerText?: string;
   /** Filter that must match the triggering card. */
   triggerFilter?: Filter;
+  /**
+   * For onAddDigivolutionCards, filter the cards that were just placed under the
+   * event subject. At least one added card must match for the watcher to fire.
+   */
+  addedDigivolutionCardFilter?: Filter;
   /**
    * When several permanents satisfy the watcher's event simultaneously (e.g. multiple matching
    * Digimon leave at once), the controller picks ONE to drive the body (BT19-099 ＜Delay＞:
@@ -3766,6 +3807,8 @@ export interface CardEffect {
 export type Coverage = "full" | "partial" | "none";
 
 export interface DigivolutionRequirement {
+  /** Live condition that must hold for this alternate path to be available. */
+  whileCondition?: Condition;
   /** Required level of the card digivolved FROM, when stated ("Lv.5" / "from Lv.3"). */
   level?: number;
   /** Maximum level when the documented behavior uses `.Level <= N` on the source. */

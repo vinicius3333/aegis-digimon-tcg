@@ -5,107 +5,72 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Raid",
-          "raw": "＜Raid＞"
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Gabumon",
-                    "Nokia Shiramine"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": true,
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "isSelfRef": true
-              },
-              "count": 1,
-              "isSelf": true
-            },
-            "raw": "By placing this Digimon's top stacked card as its bottom digivolution card"
-          },
-          "optional": true,
-          "abortOnDecline": true
+          keyword: "Raid",
+          raw: "＜Raid＞",
         },
-        {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "mode": "reduceCost",
-          "amount": 2,
-          "raw": "play 1 [Gabumon] or [Nokia Shiramine] from your hand with the play cost reduced by 2",
-          "optional": true,
-          "abortOnDecline": true
-        }
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Gabumon", "Nokia Shiramine"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
           },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+          from: ["hand"],
+          payCost: true,
+          reduceCostBy: 2,
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                isSelfRef: true,
+              },
+              count: 1,
+              isSelf: true,
+            },
+            raw: "By placing this Digimon's top stacked card as its bottom digivolution card",
+          },
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "isInherited": true
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "names": [
-        "Agumon"
-      ],
-      "cost": 2,
-      "isAlternate": true
+      level: 3,
+      names: ["Agumon"],
+      cost: 2,
+      isAlternate: true,
     },
     {
-      "traits": [
-        "CS"
-      ],
-      "cost": 2,
-      "isAlternate": true,
-      "level": 3
-    }
-  ]
+      traits: ["CS"],
+      cost: 2,
+      isAlternate: true,
+      level: 3,
+    },
+  ],
 };
 
 registerIrCard("BT23-008", compiled);

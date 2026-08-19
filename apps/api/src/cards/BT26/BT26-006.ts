@@ -60,7 +60,7 @@ function bagraArmyDigivolutionPool(
   return pool;
 }
 
-const module: EffectModule = {
+export const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     if (timing !== EffectTiming.OnAllyAttack) return [];
@@ -77,8 +77,7 @@ const module: EffectModule = {
         optional: true,
         maxPerTurn: 1,
         canActivate: (ctx) =>
-          bagraArmyDigivolutionPool(ctx, source).length >= 2 &&
-          bagraArmyTraitHandCards(ctx, source).length > 0,
+          bagraArmyDigivolutionPool(ctx, source).length >= 2 && bagraArmyTraitHandCards(ctx, source).length > 0,
         resolve: async (ctx) => {
           const pool = bagraArmyDigivolutionPool(ctx, source);
           if (pool.length < 2) return;
@@ -125,7 +124,7 @@ const module: EffectModule = {
             if (reducedCost > 0) ctx.fx.gainMemory(-reducedCost);
             await ctx.fx.useOptionFromHand(ctx, chosenCard.instanceId, def.playCost);
           } else {
-            await ctx.fx.playInstances([chosenCard.instanceId], { payCost: true, costDelta: 2 });
+            await ctx.fx.playInstances([chosenCard.instanceId], { payCost: true, costDelta: -2 });
           }
         },
       }),

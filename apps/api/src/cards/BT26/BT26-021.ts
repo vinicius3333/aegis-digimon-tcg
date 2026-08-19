@@ -11,11 +11,9 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
 /**
  * BT26-021 — Gekomon (BT26, Blue/Purple Lv.4 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-021` returns no errata/Q&A hits), so this port is
- * provisional: it follows the printed text directly and mirrors the closest existing
- * hand-written cards for each clause shape. Re-check against the KB once BT26 rulings
- * are scraped.
+ * The committed KB contains Q6983-Q6984 (2026-08-18), confirming that simultaneous play
+ * activations are not combined and that the cost reduction is ignored when reductions are
+ * prohibited by another effect.
  *
  * Printed text:
  *   [Digivolve] Lv.3 w/[TS] trait: Cost 2
@@ -63,9 +61,7 @@ async function lockTsAttackTarget(ctx: EffectContext, ownerSeat: Seat): Promise<
   if (candidates.length === 0) return;
 
   const chosen =
-    candidates.length === 1
-      ? candidates[0]!
-      : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
+    candidates.length === 1 ? candidates[0]! : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
   if (chosen === undefined) return;
 
   ctx.fx.restrict(chosen, "attackTargetChange", EffectDuration.UntilEachTurnEnd);
@@ -84,7 +80,7 @@ async function trashHandThenBottomTwo(ctx: EffectContext, ownerSeat: Seat): Prom
         !p.inBreeding &&
         p.topCard !== undefined &&
         isDigimon(ctx.game.definitionOf(p.topCard)) &&
-        p.stack.length > 0,
+        p.stack.length >= BOTTOM_CARDS_TRASHED,
     )
     .map((p) => p.permanentId);
   if (targets.length === 0) return;
@@ -98,9 +94,7 @@ async function trashHandThenBottomTwo(ctx: EffectContext, ownerSeat: Seat): Prom
   await ctx.fx.trash(paid);
 
   const chosen =
-    targets.length === 1
-      ? targets[0]!
-      : (await ctx.ask.chooseTargets(ctx, { candidates: targets, min: 1, max: 1 }))[0];
+    targets.length === 1 ? targets[0]! : (await ctx.ask.chooseTargets(ctx, { candidates: targets, min: 1, max: 1 }))[0];
   if (chosen === undefined) return;
 
   const host = ctx.game.permanentById(chosen);
@@ -119,8 +113,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/on-play-attack-target-lock`,
           description:
-            "[On Play] [When Digivolving] 1 of your [TS] trait Digimon's attack target can't " +
-            "change for the turn.",
+            "[On Play] [When Digivolving] 1 of your [TS] trait Digimon's attack target can't " + "change for the turn.",
           optional: false,
           resolve: async (ctx) => lockTsAttackTarget(ctx, source.ownerSeat),
         }),
@@ -133,8 +126,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/when-digivolving-attack-target-lock`,
           description:
-            "[On Play] [When Digivolving] 1 of your [TS] trait Digimon's attack target can't " +
-            "change for the turn.",
+            "[On Play] [When Digivolving] 1 of your [TS] trait Digimon's attack target can't " + "change for the turn.",
           optional: false,
           resolve: async (ctx) => lockTsAttackTarget(ctx, source.ownerSeat),
         }),

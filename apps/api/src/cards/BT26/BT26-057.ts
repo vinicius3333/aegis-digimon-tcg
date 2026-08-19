@@ -9,9 +9,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-057 — Bearcatmon // Penetrate Blow (BT26 Black/Red DUAL Digimon/Option).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-057 as of this port
-// (`node tools/kb/query.mjs card BT26-057` returned no knowledge-base entries — BT26 has
-// no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// The committed KB contains Q7060-Q7066 (2026-08-18), confirming that effect immunity
+// suppresses triggered effects at trigger time while still allowing selection and granting.
 //
 // [Digivolve] Lv.4 w/[Glowing Dawn] trait: Cost 3 — a digivolution-cost requirement, not an
 //   effect clause; already carried by CardDefinition.evoCosts, not implemented here.
@@ -201,8 +200,7 @@ const module: EffectModule = {
               once: false,
               oncePerTurnKey: `${cardId}/attack-switch-or-tamer-trash-may-unsuspend`,
               description: `${cardId}: effect trashes cards under your Tamer -> may unsuspend.`,
-              matches: (subCtx) =>
-                isControlledTamer(subCtx, subCtx.trigger?.subjectPermanentId, source.ownerSeat),
+              matches: (subCtx) => isControlledTamer(subCtx, subCtx.trigger?.subjectPermanentId, source.ownerSeat),
               run: async (subCtx) => {
                 await mayUnsuspendSelf(subCtx, hostId);
               },
@@ -219,7 +217,7 @@ const module: EffectModule = {
           effectKey: `${cardId}/main`,
           description:
             "[Main] ″De-Digivolve 1″ 1 of your opponent's Digimon. Then, give 1 " +
-            "of your opponent's Digimon \"[Start of Your Main Phase] This Digimon attacks.\" " +
+            'of your opponent\'s Digimon "[Start of Your Main Phase] This Digimon attacks." ' +
             "until their turn ends.",
           canActivate: (ctx) => opponentDigimonTargets(ctx, source).length > 0,
           resolve: async (ctx) => {

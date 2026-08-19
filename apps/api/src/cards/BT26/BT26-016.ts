@@ -9,9 +9,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-016 — Chronomon: Holy Mode (BT26, Red/Yellow Lv.6 Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-016 as of this port
-// (`node tools/kb/query.mjs card BT26-016` returned no knowledge-base entries — BT26
-// has no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// The committed KB contains Q6976-Q6981 (2026-08-18), which confirms the three-card
+// payment requirement, mixed-owner trash selection, activating-player ordering, Digi-Egg
+// bottom-deck handling, pending On Deletion timing, and face-down security handling.
 //
 // [Digivolve] Lv.5 w/[TS] trait: Cost 3 — handled centrally by
 //   ALTERNATE_DIGIVOLUTION_OVERRIDES, not an effect clause here.
@@ -44,11 +44,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 const cardId = "BT26-016";
 
 /** Opponent battle-area Digimon with DP no greater than `self`'s current DP. */
-function deletableOpponentTargets(
-  ctx: EffectContext,
-  source: CardSource,
-  self: Permanent,
-): Permanent[] {
+function deletableOpponentTargets(ctx: EffectContext, source: CardSource, self: Permanent): Permanent[] {
   const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
   return Array.from(opponent.battleArea).filter(
     (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && p.currentDP <= self.currentDP,
@@ -80,9 +76,7 @@ async function resolveDeleteThenRecovery(ctx: EffectContext, source: CardSource)
   const owner = ctx.game.player(source.ownerSeat);
   const opponentSeat = ctx.game.opponentOf(source.ownerSeat);
   const opponent = ctx.game.player(opponentSeat);
-  const trashCandidates = [...Array.from(owner.trash), ...Array.from(opponent.trash)].map(
-    (c) => c.instanceId,
-  );
+  const trashCandidates = [...Array.from(owner.trash), ...Array.from(opponent.trash)].map((c) => c.instanceId);
   if (trashCandidates.length < 3) return;
 
   const wantToPay = await ctx.ask.optional(

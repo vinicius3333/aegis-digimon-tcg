@@ -28,7 +28,9 @@ const compiled: CompiledCard = {
               ],
               "zone": "hand"
             },
-            "count": 1
+            "count": 1,
+            "optional": true,
+            "abortOnDecline": true
           },
           "raw": "By trashing 1 card with [Three Musketeers] in its text or the [TS] trait from your hand"
         },
@@ -77,7 +79,9 @@ const compiled: CompiledCard = {
                 "zone": "digivolutionCards"
               }
             ],
-            "count": 1
+            "count": 1,
+            "optional": true,
+            "abortOnDecline": true
           }
         },
         {

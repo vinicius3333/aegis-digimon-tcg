@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { Phase } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 
 // A3 for BT17-068 (Mephistomon):
@@ -24,26 +24,14 @@ describe("BT17-068 Mephistomon — [On Deletion] play Gulfmon from hand", () => 
           battleArea: [{ card: MEPHISTOMON, dp: 7000, as: "meph" }],
           hand: [{ card: GULFMON, as: "gulfmon" }],
         },
-        1: { battleArea: [{ card: "BT1-007", dp: 20000, as: "oppDigimon", suspended: true }] },
+        1: {},
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const p0 = s.state.players[0];
     const mephPermId = s.perm("meph").permanentId;
     const gulfId = s.inst("gulfmon").instanceId;
-    const oppDigimonId = s.perm("oppDigimon").permanentId;
-
-    s.state.phase = Phase.Main;
-    s.state.turnSeat = 0;
-
-    const res = s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: mephPermId,
-      target: { kind: "permanent", permanentId: oppDigimonId },
-    });
-    expect(res.ok).toBe(true);
-
-    // Wait for Mephistomon to leave the battle area (deleted in battle).
+    await advance(s.engine).verb.deletePermanent([mephPermId], "byEffect");
     await settle(() => !p0?.battleArea.some((p) => p.permanentId === mephPermId), 1000);
 
     // Verify Mephistomon was actually deleted (not still alive).

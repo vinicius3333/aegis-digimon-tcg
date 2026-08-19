@@ -1,4 +1,3 @@
-
 // Hand override (was auto-generated): the IR compiler mis-modeled the [On Play]/[When
 // Digivolving] clause as a plain Trash of an opponent Digimon's TOP card. The card
 // (SkullSeadramon, documented behavior) trashes up to 3 *digivolution cards* from one opponent
@@ -17,7 +16,7 @@ const trashThreeSources: Action = {
   amount: 3,
 };
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       // INSIDE the shared coroutine (documented behavior), so it runs only on [On Play] by an
@@ -86,29 +85,23 @@ const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      "level": 4,
-      "traits": [
-        "Aqua"
-      ],
-      "cost": 3,
-      "isAlternate": true
+      level: 4,
+      traits: ["Aqua"],
+      cost: 3,
+      isAlternate: true,
     },
     {
-      "traits": [
-        "Sea Animal"
-      ],
-      "cost": 3,
-      "isAlternate": true,
-      "level": 4
+      traits: ["Sea Animal"],
+      cost: 3,
+      isAlternate: true,
+      level: 4,
     },
     {
-      "traits": [
-        "TS"
-      ],
-      "cost": 3,
-      "isAlternate": true,
-      "level": 4
-    }
+      traits: ["TS"],
+      cost: 3,
+      isAlternate: true,
+      level: 4,
+    },
   ],
 };
 

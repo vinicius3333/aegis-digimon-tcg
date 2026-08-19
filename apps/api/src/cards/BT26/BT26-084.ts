@@ -11,11 +11,8 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
 /**
  * BT26-084 — Copipemon (BT26, White Lv.3 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-084` returns no errata/Q&A hits), so this port is
- * provisional: it follows the printed text directly and mirrors the closest existing
- * hand-written cards for each clause shape. Re-check against the KB once BT26 rulings
- * are scraped.
+ * The committed KB contains Q7125-Q7128 (2026-08-18), confirming Link eligibility,
+ * reveal-return timing around play/use, and the linked-card trigger ordering.
  *
  * Printed text:
  *   [Digivolve] Lv.2 w/[Appmon] trait: Cost 0
@@ -75,8 +72,10 @@ async function revealPlayAndReturn(ctx: EffectContext, ownerSeat: Seat): Promise
       // the same staging `runRevealAdd` performs for its own play specs.
       await ctx.fx.returnToHand([pickedId], { silent: true });
       if (isOption(ctx.game.definitionOf(picked))) {
-        const reducedCost = Math.max(0, (ctx.game.definitionOf(picked).playCost ?? 0) - COST_REDUCTION);
-        await ctx.fx.useOptionFromHand(ctx, pickedId, reducedCost);
+        const originalCost = ctx.game.definitionOf(picked).playCost ?? 0;
+        const reducedCost = Math.max(0, originalCost - COST_REDUCTION);
+        if (reducedCost > 0) ctx.fx.gainMemory(-reducedCost);
+        await ctx.fx.useOptionFromHand(ctx, pickedId, originalCost);
       } else {
         await ctx.fx.playFromHand([pickedId], { costDelta: -COST_REDUCTION });
       }

@@ -4,6 +4,7 @@ import { setupEngine as setup, settle, assertNoLoudGap } from "../../engine/test
 // Self-registers every card module (boot side-effect) so the engine can look up
 // AD1-010's inherited <Jamming> keyword grant.
 import "../index.js";
+import { compiled } from "./AD1-010.js";
 
 /**
  * A3 for AD1-010 (Garurumon) — Inherited Effect ＜Jamming＞ ("can't be deleted in
@@ -29,6 +30,22 @@ import "../index.js";
  * permanent IS deleted — the survival assertion goes RED.
  */
 describe("AD1-010 Inherited Effect <Jamming> — survives a losing Security Digimon battle from the stack", () => {
+  it("models both play/digivolve watchers and alternate digivolution requirements", () => {
+    const allTurns = compiled.effects.find((effect) => effect.trigger === "AllTurns");
+    expect(allTurns?.actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ event: "whenPlayed" }),
+        expect.objectContaining({ event: "whenOneOfYoursDigivolves" }),
+      ]),
+    );
+    expect(compiled.digivolutionRequirement).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ level: 3, texts: ["Omnimon"], cost: 2 }),
+        expect.objectContaining({ level: 3, traits: ["ADVENTURE"], cost: 2 }),
+      ]),
+    );
+  });
+
   it("a low-DP top card stacked over AD1-010 is NOT deleted by a higher-DP Security Digimon (Jamming)", async () => {
     // The permanent's top card is a plain 1000-DP Digimon that would normally lose a
     // security battle against a 3000-DP Security Digimon and be deleted (CR 13-1-8-3).
@@ -45,9 +62,10 @@ describe("AD1-010 Inherited Effect <Jamming> — survives a losing Security Digi
     // pass; force it here for the hand-laid board (mirrors engine/continuousColor.test.ts).
     await s.engine.recomputeContinuousEffects();
     expect(
-      (
-        s.engine as unknown as { continuous: { hasKeyword(id: string, k: string): boolean } }
-      ).continuous.hasKeyword(attacker.permanentId, "Jamming"),
+      (s.engine as unknown as { continuous: { hasKeyword(id: string, k: string): boolean } }).continuous.hasKeyword(
+        attacker.permanentId,
+        "Jamming",
+      ),
     ).toBe(true);
 
     expect(

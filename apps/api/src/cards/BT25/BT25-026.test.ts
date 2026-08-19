@@ -17,7 +17,6 @@ import type {
 import { getEffectModule } from "../../engine/effects/registry.js";
 import "./BT25-026.js";
 
-
 let seq = 0;
 
 function makeDefinition(over: Partial<CardDefinition> = {}): CardDefinition {

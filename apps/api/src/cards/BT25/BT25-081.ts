@@ -18,8 +18,8 @@ const compiled: CompiledCard = {
               "kind": [
                 "Tamer"
               ],
-              "colors": [
-                "Purple"
+            "excludeColors": [
+              "Purple"
               ]
             },
             "count": 1
@@ -38,8 +38,8 @@ const compiled: CompiledCard = {
               "kind": [
                 "Tamer"
               ],
-              "colors": [
-                "Purple"
+            "excludeColors": [
+              "Purple"
               ]
             },
             "count": 1

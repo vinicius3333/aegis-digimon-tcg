@@ -17,144 +17,93 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - GrantAuraToOpponents effectText updated to describe the actual granted trigger
 //   - Replacement filter changed from AND (colors+CS) to orFilters: yellow/black OR CS-trait
 //   - leaveCause added: otherThanYourEffect (text: "other than by your effects")
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GrantAuraToOpponents",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
+          kind: "GrantAuraToOpponents",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "effectText": "[Start of Your Main Phase] This Digimon attacks.",
-          "duration": "untilOpponentTurnEnd"
+          effectText: "[Start of Your Main Phase] This Digimon attacks.",
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1,
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "DNA digivolving"
-          }
-        }
-      ]
+          amount: 1,
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "leaveCause": "otherThanYourEffect",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanYourEffect",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": ["Digimon"],
-                  "colors": ["Yellow", "Black"],
-                  "levelComparison": {
-                    "op": "lte",
-                    "value": 4
-                  }
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  colors: ["Yellow", "Black"],
+                  levelComparison: {
+                    op: "lte",
+                    value: 4,
+                  },
                 },
-                "orFilters": [
+                orFilters: [
                   {
-                    "controller": "mine",
-                    "kind": ["Digimon"],
-                    "nameOrTrait": [
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    nameOrTrait: [
                       {
-                        "tokens": ["CS"],
-                        "match": "trait"
-                      }
+                        tokens: ["CS"],
+                        match: "trait",
+                      },
                     ],
-                    "levelComparison": {
-                      "op": "lte",
-                      "value": 4
-                    }
-                  }
+                    levelComparison: {
+                      op: "lte",
+                      value: 4,
+                    },
+                  },
                 ],
-                "count": 1
+                count: 1,
               },
-              "from": ["digivolutionCards"],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "leaveCause": "otherThanYourEffect",
-          "sourceFilter": {
-            "isSelfRef": true
-          },
-          "actions": [
-            {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": ["Digimon"],
-                  "colors": ["Yellow", "Black"],
-                  "levelComparison": {
-                    "op": "lte",
-                    "value": 4
-                  }
-                },
-                "orFilters": [
-                  {
-                    "controller": "mine",
-                    "kind": ["Digimon"],
-                    "nameOrTrait": [
-                      {
-                        "tokens": ["CS"],
-                        "match": "trait"
-                      }
-                    ],
-                    "levelComparison": {
-                      "op": "lte",
-                      "value": 4
-                    }
-                  }
-                ],
-                "count": 1
-              },
-              "from": ["digivolutionCards"],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
-      ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT23-032", compiled);

@@ -24,7 +24,15 @@ const compiled: CompiledCard = {
               "amount": 4,
               "raw": "reduce the play cost by 4",
               "condition": {
-                "kind": "raw",
+                "kind": "youHave",
+                "filter": {
+                  "controller": "mine",
+                  "zone": "security",
+                  "faceUp": true,
+                  "nameOrTrait": [
+                    { "tokens": ["Deep Savers"], "match": "nameExact" }
+                  ]
+                },
                 "raw": "[Deep Savers] is face-up in your security stack"
               }
             }

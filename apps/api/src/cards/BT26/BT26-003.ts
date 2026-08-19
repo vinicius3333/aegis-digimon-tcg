@@ -59,7 +59,7 @@ function glowingDawnDigimonTargets(ctx: EffectContext, source: CardSource): stri
     .map((p) => p.permanentId);
 }
 
-const module: EffectModule = {
+export const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     if (timing === EffectTiming.OnAllyAttack) {
@@ -79,13 +79,11 @@ const module: EffectModule = {
             const attacker = ctx.game.permanentById(attackerId);
             return attacker !== undefined && attacker.controllerSeat !== source.ownerSeat;
           },
-          canActivate: (ctx) =>
-            tamerWithFaceDownUnder(ctx, source).length > 0 &&
-            glowingDawnDigimonTargets(ctx, source).length > 0,
+          canActivate: (ctx) => tamerWithFaceDownUnder(ctx, source).length > 0,
           resolve: async (ctx) => {
             const tamerIds = tamerWithFaceDownUnder(ctx, source);
             const digimonTargets = glowingDawnDigimonTargets(ctx, source);
-            if (tamerIds.length === 0 || digimonTargets.length === 0) return;
+            if (tamerIds.length === 0) return;
 
             const wantToPay = await ctx.ask.optional(
               ctx,
@@ -114,7 +112,7 @@ const module: EffectModule = {
 
             await ctx.fx.trashDigivolutionCards(chosenTamerId, [bottomCard.instanceId]);
 
-            await ctx.fx.redirectAttack(digimonTargets);
+            if (digimonTargets.length > 0) await ctx.fx.redirectAttack(digimonTargets);
           },
         }),
       ];

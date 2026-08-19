@@ -43,6 +43,10 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          fireCondition: {
+            kind: "triggerRemovedSecuritySeat",
+            seat: "opponent",
+          },
           raw: "When your opponent's security stack is removed from, gain 1 memory.",
           actions: [{ kind: "GainMemory", amount: 1 }],
         },

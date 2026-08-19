@@ -11,11 +11,9 @@ import { cardHasTrait, isPermanentKind } from "../../engine/cards/cardData.js";
 /**
  * BT26-081 — Mervamon (BT26, Purple/Yellow/Black Lv.6 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-081` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * The committed KB contains Q7115-Q7116 (2026-08-18), confirming that the DP reduction
+ * is independent of whether a card was played and that resulting 0-DP deletion waits for
+ * the rule-check timing after the whole effect resolves.
  *
  * Printed text:
  *   [Digivolve] [Minervamon]: Cost 2

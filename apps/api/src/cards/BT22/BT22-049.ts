@@ -5,97 +5,82 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "EndOfYourTurn",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Ver.2"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "optional": true,
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Ver.2"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                tokens: ["Ver.2"],
+                match: "trait",
               },
-              "count": 3,
-              "from": [
-                "trash"
-              ]
-            },
-            "raw": "By placing 3 Digimon cards with the [Ver.2] trait from your trash face down as this Digimon's bottom digivolution cards",
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "self",
-            "faceDown": true
+            ],
           },
-          "abortOnDecline": true
-        }
+          from: ["hand", "trash"],
+          optional: true,
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
+                  {
+                    tokens: ["Ver.2"],
+                    match: "trait",
+                  },
+                ],
+              },
+              count: 3,
+              from: ["trash"],
+            },
+            raw: "By placing 3 Digimon cards with the [Ver.2] trait from your trash face down as this Digimon's bottom digivolution cards",
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
+            faceDown: true,
+          },
+          abortOnDecline: true,
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Piercing",
-          "raw": "＜Piercing＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 3,
-      "traits": [
-        "DM"
+          keyword: "Piercing",
+          raw: "＜Piercing＞",
+        },
       ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 3,
+      traits: ["DM"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT22-049", compiled);

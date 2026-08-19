@@ -13,146 +13,127 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   [End of Opponent's Turn] [Once Per Turn] Delete 1 of your opponent's lowest play cost
 //   Digimon.
 // Fixes vs AUTO-GENERATED:
-//   - CostModifier: moved before Return so ceiling is set before target resolution
-//   - Scaling filter: added zone:"breedingArea" to restrict to Mother Eater in breeding area
+//   - Dynamic return ceiling counts Mother Eater digivolution cards in the breeding area
 //   - Replacement: added leaveCause:"otherThanYourEffect" (text: "other than by your effects")
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "CostModifier",
-          "mode": "raiseCeiling",
-          "costType": "playcost",
-          "amount": 1,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine",
-              "zone": "breedingArea",
-              "nameOrTrait": [
-                {
-                  "tokens": ["Mother Eater"],
-                  "match": "name"
-                }
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+              playCostLte: 6,
             },
-            "unit": "digivolutionCards"
-          }
+            count: 1,
+          },
+          playCostCeiling: {
+            base: 6,
+            raise: 1,
+            per: 1,
+            filter: {
+              controller: "mine",
+              zone: "breeding",
+              nameOrTrait: [{ tokens: ["Mother Eater"], match: "name" }],
+            },
+            unit: "digivolutionCardsOfFiltered",
+          },
+          to: "deckBottom",
         },
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon", "Tamer"],
-              "playCostLte": 6
-            },
-            "count": 1
-          },
-          "to": "deckBottom"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "CostModifier",
-          "mode": "raiseCeiling",
-          "costType": "playcost",
-          "amount": 1,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine",
-              "zone": "breedingArea",
-              "nameOrTrait": [
-                {
-                  "tokens": ["Mother Eater"],
-                  "match": "name"
-                }
-              ]
-            },
-            "unit": "digivolutionCards"
-          }
-        },
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon", "Tamer"],
-              "playCostLte": 6
-            },
-            "count": 1
-          },
-          "to": "deckBottom"
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "leaveCause": "otherThanYourEffect",
-          "sourceFilter": {
-            "isSelfRef": true
-          },
-          "actions": [
-            {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": ["Digimon"],
-                  "nameOrTrait": [
-                    {
-                      "tokens": ["Eater"],
-                      "match": "trait"
-                    }
-                  ]
-                },
-                "count": 1
-              },
-              "from": ["hand"],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "EndOfOpponentsTurn",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "superlative": "lowestPlayCost"
-            },
-            "count": 1
-          }
-        }
       ],
-      "frequency": "OncePerTurn"
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+    },
     {
-      "names": ["Eater Legion"],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+              playCostLte: 6,
+            },
+            count: 1,
+          },
+          playCostCeiling: {
+            base: 6,
+            raise: 1,
+            per: 1,
+            filter: {
+              controller: "mine",
+              zone: "breeding",
+              nameOrTrait: [{ tokens: ["Mother Eater"], match: "name" }],
+            },
+            unit: "digivolutionCardsOfFiltered",
+          },
+          to: "deckBottom",
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanYourEffect",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Eater"],
+                      match: "trait",
+                    },
+                  ],
+                },
+                count: 1,
+              },
+              from: ["hand"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "EndOfOpponentsTurn",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestPlayCost",
+            },
+            count: 1,
+          },
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Eater Legion"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT23-075", compiled);

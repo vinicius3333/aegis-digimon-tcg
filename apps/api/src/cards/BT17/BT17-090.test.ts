@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { getEffectModule } from "../../engine/effects/registry.js";
 import "../index.js";
 
 // A3 for BT17-090 (Tomonori Ryusenji, Tamer):
@@ -16,6 +18,12 @@ const TOMONORI = "BT17-090";
 const SECURITY_DIGIMON = "AD1-001"; // attacker with enough DP to force a security check
 
 describe("BT17-090 Tomonori Ryusenji — [Security] play self", () => {
+  it("installs the Your Turn Tamer-stack watcher", () => {
+    const effect = getEffectModule(TOMONORI)!.effectsForTiming(EffectTiming.None, {} as any)[0] as any;
+    expect(effect).toBeDefined();
+    expect(effect.description).toContain("places a Tamer card");
+  });
+
   it("[Security] plays this Tamer to the battle area when hit as a security card", async () => {
     // Seat 1 is the turn player attacking into seat 0's security.
     const s = setupEngine({

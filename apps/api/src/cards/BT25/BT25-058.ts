@@ -31,6 +31,14 @@ function oppDigimonOrTamer(
   });
 }
 
+function oppDigimon(ctx: EffectContext, source: CardSource): Permanent[] {
+  const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
+  return Array.from(opponent.battleArea).filter((p) => {
+    if (p.topCard == null) return false;
+    return isDigimon(ctx.game.definitionOf(p.topCard));
+  });
+}
+
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
@@ -186,8 +194,47 @@ const module: EffectModule = {
       ];
     }
 
-    // BLOCKED: [All Turns] When effects play/digivolve → De-Digivolve 1 + may battle.
-    // Requires OnEnterFieldAnyone SubTrigger with IsByEffect gate.
+    if (timing === EffectTiming.OnEnterFieldAnyone) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/all-turns-effect-entry-dedigivolve-battle`,
+          description:
+            "[All Turns] When an effect plays or digivolves any Digimon, De-Digivolve 1 an opponent's Digimon; then this Digimon may battle.",
+          maxPerTurn: 1,
+          when: (ctx) => ctx.source.isOnBattleArea() && ctx.trigger.enteredByEffect !== undefined,
+          resolve: async (ctx) => {
+            const ownerSeat = source.ownerSeat;
+            const deDigivolveTargets = oppDigimon(ctx, source);
+            if (deDigivolveTargets.length > 0) {
+              const chosen =
+                deDigivolveTargets.length === 1
+                  ? deDigivolveTargets[0]!.permanentId
+                  : (await ctx.ask.chooseTargets(ctx, {
+                      candidates: deDigivolveTargets.map((p) => p.permanentId),
+                      min: 1,
+                      max: 1,
+                    }))[0];
+              if (chosen !== undefined) ctx.fx.deDigivolve(chosen, 1, { byEffectSeat: ownerSeat });
+            }
+
+            const self = ctx.source.permanent();
+            const battleTargets = oppDigimon(ctx, source);
+            if (self === undefined || battleTargets.length === 0) return;
+            if (!(await ctx.ask.optional(ctx, "Battle 1 of your opponent's Digimon?"))) return;
+            const chosen =
+              battleTargets.length === 1
+                ? battleTargets[0]!.permanentId
+                : (await ctx.ask.chooseTargets(ctx, {
+                    candidates: battleTargets.map((p) => p.permanentId),
+                    min: 1,
+                    max: 1,
+                  }))[0];
+            if (chosen !== undefined) await ctx.fx.forceBattle?.(self.permanentId, chosen);
+          },
+        }),
+      ];
+    }
 
     return [];
   },

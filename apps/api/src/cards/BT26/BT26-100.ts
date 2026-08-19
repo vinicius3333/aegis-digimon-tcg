@@ -4,14 +4,14 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { activated, security, staticModifier } from "../../engine/effects/builders.js";
+import { activated, colorWaiverStatic, security, securityStatic } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-100 — Dark Field (BT26, Purple/Black Option, [Titan]/[TS] trait).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-100 as of this port
-// (`node tools/kb/query.mjs card BT26-100` returned no knowledge-base entries — BT26 has
-// no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// Q7174–Q7181 confirm the no-face-up-security condition, zero-security Main activation,
+// face-up security behavior, Security timing, and that the DP/Blocker grant only applies
+// to [Titan] trait Digimon.
 //
 // Printed text:
 //   While you have no face-up security cards, you can ignore this card's color
@@ -25,7 +25,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 //     [Titan] trait Digimon card from your hand or trash without paying the cost.
 //
 // Clause mapping (mirrors the reviewed hand-written EX12-072, the same "recycle bottom
-// security" Option shape, down to its own `staticModifier`-gated `[Security][All Turns]`
+// security" Option shape, down to its own `securityStatic`-gated `[Security][All Turns]`
 // grant and its `[Main]`/`securityEffectText` split; and BT9-109's inline conditional
 // color-requirement-waiver idiom):
 //
@@ -36,18 +36,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 //     `ctx.fx.waiveColorRequirement`, unlike the bracket-header `<Use Req.>` gap
 //     documented on BT26-101/BT26-033).
 //
-//   - "[Security] [All Turns] All of your [Titan] trait Digimon gain <Blocker>. While
-//     you have a Digimon with [Plutomon] or [Titamon] in its name, they also get +3000
-//     DP." -> EffectTiming.None, `staticModifier` gated `source.isOnBattleArea()` — the
-//     SAME gate EX12-072 uses for its own `[Security][All Turns]` grant. NOTE: the
-//     engine has no builder/gate that expresses "continuous grant while this card sits
-//     FACE-UP IN THE SECURITY STACK" (comprehensive rules §15-14-5-1's literal
-//     semantics for a `{Security}`-icon effect) — `staticModifier`'s only zone gate is
-//     battle-area residency, and `EffectTiming.SecuritySkill` (the `security` builder)
-//     fires once, at the security-check reveal, not continuously. This card's own
-//     `[Main]` never places it in the battle area, so as implemented (mirroring EX12-072)
-//     this grant is inert for this card's normal lifecycle. Flagging rather than
-//     inventing a new engine gate; EX12-072 carries the identical, unremarked gap.
+//   - "[Security] [All Turns] ..." -> EffectTiming.None, `securityStatic` gated on
+//     this card being face-up in Security, so the grant remains live between checks.
 //
 //   - "[Main] Add your bottom security card to the hand and place this card face up as
 //     the bottom security card." -> EffectTiming.OnUseOption, `activated`, using the
@@ -81,7 +71,10 @@ function namedPlutomonOrTitamon(def: CardDefinition): boolean {
 function titanBattleTargets(ctx: EffectContext, source: CardSource): Permanent[] {
   const owner = ctx.game.player(source.ownerSeat);
   return Array.from(owner.battleArea).filter(
-    (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && hasTitanTrait(ctx.game.definitionOf(p.topCard)),
+    (p) =>
+      p.topCard !== undefined &&
+      isDigimon(ctx.game.definitionOf(p.topCard)) &&
+      hasTitanTrait(ctx.game.definitionOf(p.topCard)),
   );
 }
 
@@ -89,7 +82,10 @@ function titanBattleTargets(ctx: EffectContext, source: CardSource): Permanent[]
 function hasPlutomonOrTitamonDigimon(ctx: EffectContext, source: CardSource): boolean {
   const owner = ctx.game.player(source.ownerSeat);
   return Array.from(owner.battleArea).some(
-    (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && namedPlutomonOrTitamon(ctx.game.definitionOf(p.topCard)),
+    (p) =>
+      p.topCard !== undefined &&
+      isDigimon(ctx.game.definitionOf(p.topCard)) &&
+      namedPlutomonOrTitamon(ctx.game.definitionOf(p.topCard)),
   );
 }
 
@@ -136,11 +132,10 @@ const module: EffectModule = {
       return [
         // While you have no face-up security cards, you can ignore this card's color
         // requirements.
-        staticModifier({
+        colorWaiverStatic({
           source,
           effectKey: `${cardId}/color-waiver-no-face-up-security`,
-          description:
-            "While you have no face-up security cards, you can ignore this card's color requirements.",
+          description: "While you have no face-up security cards, you can ignore this card's color requirements.",
           optional: false,
           when: (ctx) => hasNoFaceUpSecurity(ctx, source),
           resolve: async (ctx) => {
@@ -153,7 +148,7 @@ const module: EffectModule = {
         // get +3000 DP. See the header note: gated on battle-area residency (the
         // EX12-072 convention), not on security-stack residency — the engine has no
         // gate for the latter.
-        staticModifier({
+        securityStatic({
           source,
           effectKey: `${cardId}/security-all-turns-titan-blocker-dp`,
           description:
@@ -161,7 +156,7 @@ const module: EffectModule = {
             "While you have a Digimon with [Plutomon] or [Titamon] in its name, they " +
             "also get +3000 DP.",
           optional: false,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (ctx) => source.isInSecurity?.() === true,
           resolve: async (ctx) => {
             const withBonus = hasPlutomonOrTitamonDigimon(ctx, source);
             for (const perm of titanBattleTargets(ctx, source)) {

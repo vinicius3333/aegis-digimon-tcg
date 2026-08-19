@@ -86,18 +86,16 @@ async function drawAndTrashFromHand(ctx: EffectContext, source: CardSource): Pro
   }
 }
 
-/** Every face-down card sitting under one of `seat`'s Tamers (may span multiple Tamers). */
-function faceDownUnderTamersPool(
-  ctx: EffectContext,
-  seat: Seat,
-): { hostPermanentId: string; instanceId: string }[] {
+/** The bottom-most face-down card under each of `seat`'s Tamers (may span multiple Tamers). */
+function faceDownUnderTamersPool(ctx: EffectContext, seat: Seat): { hostPermanentId: string; instanceId: string }[] {
   const owner = ctx.game.player(seat);
   const pool: { hostPermanentId: string; instanceId: string }[] = [];
   for (const p of owner.battleArea) {
     if (p.inBreeding || p.topCard === undefined) continue;
     if (!ctx.game.definitionOf(p.topCard).kinds.includes(CardKind.Tamer)) continue;
-    for (const card of p.stack) {
-      if (!card.faceUp) pool.push({ hostPermanentId: p.permanentId, instanceId: card.instanceId });
+    const bottomFaceDown = p.stack.find((card) => !card.faceUp);
+    if (bottomFaceDown !== undefined) {
+      pool.push({ hostPermanentId: p.permanentId, instanceId: bottomFaceDown.instanceId });
     }
   }
   return pool;
@@ -162,10 +160,7 @@ const module: EffectModule = {
           when: (ctx) => ctx.source.isOnBattleArea(),
           canActivate: (ctx) => {
             const seat = source.ownerSeat;
-            return (
-              faceDownUnderTamersPool(ctx, seat).length >= 2 &&
-              glowingDawnOptionTrashCards(ctx, seat).length > 0
-            );
+            return faceDownUnderTamersPool(ctx, seat).length >= 2 && glowingDawnOptionTrashCards(ctx, seat).length > 0;
           },
           resolve: async (ctx) => {
             const seat = source.ownerSeat;

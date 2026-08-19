@@ -135,14 +135,20 @@ const module: EffectModule = {
               event: "onAddDigivolutionCards",
               sourcePermanentId: self.permanentId,
               once: false,
-              description: `${cardId}: face-down card placed under one of your Digimon — ` +
+              description:
+                `${cardId}: face-down card placed under one of your Digimon — ` +
                 "<Delay>: trash this card to digivolve that Digimon for free.",
               matches: (subCtx) => {
                 const subjectId = subCtx.trigger?.subjectPermanentId;
                 if (subjectId === undefined) return false;
                 const subject = subCtx.game.permanentById(subjectId);
                 if (subject === undefined) return false;
-                return subject.controllerSeat === source.ownerSeat;
+                if (subject.controllerSeat !== source.ownerSeat) return false;
+                const addedIds = subCtx.trigger?.addedDigivolutionCardInstanceIds ?? [];
+                return addedIds.some((instanceId) => {
+                  const added = subject.stack.find((card) => card.instanceId === instanceId);
+                  return added !== undefined && !added.faceUp;
+                });
               },
               run: async (subCtx) => {
                 const selfPerm = subCtx.source.permanent();

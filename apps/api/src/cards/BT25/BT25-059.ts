@@ -118,12 +118,6 @@ const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "whenSuspended",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ]
-          },
           "actions": [
             {
               "kind": "ModifyDP",
@@ -143,7 +137,7 @@ const compiled: CompiledCard = {
           "scaling": {
             "per": 1,
             "filter": {
-              "controllerDefault": "mine",
+              "controllerDefault": "any",
               "suspended": true,
               "kind": [
                 "Digimon"

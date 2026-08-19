@@ -16,19 +16,20 @@ function hasChronicleTraitLv6OrLower(def: CardDefinition): boolean {
 }
 
 /** Shared resolve body for [On Play] and [When Digivolving]. */
-async function recoveryAndBreedingDigivolve(
-  ctx: Parameters<Effect["resolve"]>[0],
-): Promise<void> {
+async function recoveryAndBreedingDigivolve(ctx: Parameters<Effect["resolve"]>[0]): Promise<void> {
   const seat = ctx.source.ownerSeat;
 
   // ＜Recovery +1 (Deck)＞: move the top card of our deck to the top of our security (capped at 5).
   await ctx.fx.recoverToSecurity(seat, 1);
 
+  // The breeding-area digivolution is conditional on an attack; Recovery is not.
+  if (ctx.trigger?.attackerPermanentId === undefined) return;
+
   // Then, if there is a Digimon in our breeding area and a Chronicle Lv.<=6 card in hand/trash,
   // optionally digivolve it.
   // Note: "if during an attack" guard is a residual.
   const owner = ctx.game.player(seat);
-  const breedingPermanent = owner.battleArea.find((p) => p.inBreeding === true);
+  const breedingPermanent = owner.breeding;
   if (breedingPermanent === undefined) return;
   if (breedingPermanent.topCard === undefined) return;
 
@@ -78,6 +79,35 @@ const module: EffectModule = {
             if (perm !== undefined) {
               ctx.fx.grantKeyword(perm.permanentId, "Barrier", EffectDuration.UntilEachTurnEnd);
             }
+          },
+        }),
+        staticModifier({
+          source,
+          effectKey: `${cardId}/inherited-leave-prevention`,
+          description: "[All Turns] [Once Per Turn] Alphamon: Ouryuken leave prevention.",
+          isInherited: true,
+          maxPerTurn: 1,
+          when: (ctx) => {
+            const host = ctx.source.permanent();
+            return host?.topCard !== undefined && ctx.game.definitionOf(host.topCard).nameEn === "Alphamon: Ouryuken";
+          },
+          resolve: async (ctx) => {
+            const host = ctx.source.permanent();
+            if (host === undefined) return;
+            ctx.fx.subscribeReplacement({
+              event: "wouldLeavePlay",
+              sourcePermanentId: host.permanentId,
+              mode: "prevent",
+              causeAllows: (cause, resolvingSeat) => !(cause === "byEffect" && resolvingSeat === source.ownerSeat),
+              oncePerTurnKey: `${cardId}/${host.permanentId}/leave-prevention`,
+              description: "Prevent Alphamon: Ouryuken from leaving by trashing your top security card.",
+              preventCheck: async (subCtx) => {
+                const current = subCtx.game.permanentById(host.permanentId);
+                if (current === undefined || current.isSuspended) return false;
+                const trashed = await subCtx.fx.trashFromSecurity(source.ownerSeat, 1, { fromTop: true });
+                return trashed.length > 0;
+              },
+            });
           },
         }),
       ];
@@ -160,11 +190,6 @@ const module: EffectModule = {
         }),
       ];
     }
-
-    // [Inherited] [All Turns] [Once Per Turn] When this Digimon would leave the battle area
-    // other than by your effects, if this Digimon is [Alphamon: Ouryuken], by trashing your
-    // top security card, it doesn't leave.
-    // RESIDUAL: WhenRemoveField replacement event not available in EffectModule API.
 
     return [];
   },

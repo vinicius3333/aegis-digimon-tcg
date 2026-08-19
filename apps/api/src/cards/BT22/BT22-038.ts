@@ -2,187 +2,192 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": ["Digimon"],
-            "nameOrTrait": [
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": ["Ver.1"],
-                "match": "trait"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Replacement",
-              "event": "wouldDigivolve",
-              "mode": "reduceCost",
-              "amount": 1,
-              "raw": "reduce the digivolution cost by 1",
-              "scaling": {
-                "per": 1,
-                "filter": {
-                  "controllerDefault": "mine",
-                  "faceDown": true
-                },
-                "unit": "digivolutionCards"
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
-        {
-          "keyword": "Armor Purge",
-          "raw": "＜Armor Purge＞"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
-            },
-            "count": 1
-          },
-          "amount": -4000,
-          "duration": "untilOpponentTurnEnd",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "isSelfRef": true,
-                "digivolutionCardPosition": "bottom",
-                "faceDown": true
+                tokens: ["Ver.1"],
+                match: "trait",
               },
-              "count": 1,
-              "isSelf": true
-            },
-            "raw": "By trashing this Digimon's bottom face-down digivolution card"
+            ],
           },
-          "also": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Monzaemon"], match: "name" }],
+          },
+          actions: [
             {
-              "kind": "Restrict",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": ["Digimon"]
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 1,
+              raw: "reduce the digivolution cost by 1",
+              scaling: {
+                per: 1,
+                filter: {
+                  controllerDefault: "mine",
+                  faceDown: true,
                 },
-                "count": 1,
-                "sameTarget": true
+                unit: "digivolutionCards",
               },
-              "restriction": "cantActivateWhenDigivolving",
-              "duration": "untilOpponentTurnEnd"
-            }
+            },
           ],
-          "optional": true,
-          "abortOnDecline": true
-        }
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
+          keyword: "Armor Purge",
+          raw: "＜Armor Purge＞",
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -4000,
-          "duration": "untilOpponentTurnEnd",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "isSelfRef": true,
-                "digivolutionCardPosition": "bottom",
-                "faceDown": true
+          amount: -4000,
+          duration: "untilOpponentTurnEnd",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                isSelfRef: true,
+                digivolutionCardPosition: "bottom",
+                faceDown: true,
               },
-              "count": 1,
-              "isSelf": true
+              count: 1,
+              isSelf: true,
             },
-            "raw": "By trashing this Digimon's bottom face-down digivolution card"
+            raw: "By trashing this Digimon's bottom face-down digivolution card",
           },
-          "also": [
+          also: [
             {
-              "kind": "Restrict",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": ["Digimon"]
+              kind: "Restrict",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
                 },
-                "count": 1,
-                "sameTarget": true
+                count: 1,
+                sameTarget: true,
               },
-              "restriction": "cantActivateWhenDigivolving",
-              "duration": "untilOpponentTurnEnd"
-            }
+              restriction: "cantActivateWhenDigivolving",
+              duration: "untilOpponentTurnEnd",
+            },
           ],
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -4000,
-          "duration": "forTheTurn"
-        }
+          amount: -4000,
+          duration: "untilOpponentTurnEnd",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                isSelfRef: true,
+                digivolutionCardPosition: "bottom",
+                faceDown: true,
+              },
+              count: 1,
+              isSelf: true,
+            },
+            raw: "By trashing this Digimon's bottom face-down digivolution card",
+          },
+          also: [
+            {
+              kind: "Restrict",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+                sameTarget: true,
+              },
+              restriction: "cantActivateWhenDigivolving",
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: -4000,
+          duration: "forTheTurn",
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": ["Numemon"],
-      "cost": 3,
-      "isAlternate": true
+      names: ["Numemon"],
+      cost: 3,
+      isAlternate: true,
     },
     {
-      "level": 4,
-      "traits": ["DM"],
-      "cost": 4,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      traits: ["DM"],
+      cost: 4,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT22-038", compiled);

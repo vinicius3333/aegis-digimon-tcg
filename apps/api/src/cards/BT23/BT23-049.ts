@@ -30,14 +30,14 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
-                nameOrTrait: [
-                  { tokens: ["Dragonkin", "Cyborg", "Device", "CS"], match: "trait" },
-                ],
+                zone: "hand",
+                nameOrTrait: [{ tokens: ["Dragonkin", "Cyborg", "Device", "CS"], match: "trait" }],
               },
               count: 1,
             },
             raw: "By trashing 1 card with the [Dragonkin], [Cyborg], [Device] or [CS] trait from your hand",
           },
+          abortOnDecline: true,
         },
         { kind: "GainMemory", amount: 1 },
       ],
@@ -57,9 +57,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [
-    { level: 2, traits: ["CS"], cost: 0, isAlternate: true },
-  ],
+  digivolutionRequirement: [{ level: 2, traits: ["CS"], cost: 0, isAlternate: true }],
 };
 
 registerIrCard("BT23-049", compiled);

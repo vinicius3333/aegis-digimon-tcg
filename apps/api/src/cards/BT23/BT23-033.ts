@@ -5,132 +5,120 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Barrier",
-          "raw": "＜Barrier＞"
-        }
-      ]
+          keyword: "Barrier",
+          raw: "＜Barrier＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Link",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
+          kind: "Link",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash",
-            "digivolutionCards"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["trash", "digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Link",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
+          kind: "Link",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash",
-            "digivolutionCards"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["trash", "digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenLinked",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenLinked",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
             {
-              "kind": "SecurityManipulation",
-              "op": "addTop",
-              "controller": "mine",
-              "source": "deck",
-              "amount": 1,
-              "condition": {
-                "kind": "zoneCount",
-                "seat": "mine",
-                "zone": "security",
-                "op": "lte",
-                "value": 5,
-                "raw": "you have 5 or fewer security cards"
-              }
-            }
-          ]
+              kind: "SecurityManipulation",
+              op: "addTop",
+              controller: "mine",
+              source: "deck",
+              amount: 1,
+              condition: {
+                kind: "zoneCount",
+                seat: "mine",
+                zone: "security",
+                op: "lte",
+                value: 5,
+                raw: "you have 5 or fewer security cards",
+              },
+            },
+          ],
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -1000,
-          "duration": "untilOpponentTurnEnd",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine"
+          amount: -1000,
+          duration: "untilOpponentTurnEnd",
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
             },
-            "unit": "security"
-          }
-        }
+            unit: "security",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "appFusionRequirement": [
+  coverage: "full",
+  residual: [],
+  appFusionRequirement: [
     {
-      "names": [
-        "Coordemon",
-        "Consulmon"
-      ],
-      "cost": 0
-    }
-  ]
+      names: ["Coordemon", "Consulmon"],
+      cost: 0,
+    },
+  ],
 };
 
 registerIrCard("BT23-033", compiled);

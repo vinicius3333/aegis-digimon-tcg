@@ -1,10 +1,5 @@
 import { EffectTiming, type CardInstance, type Seat } from "@aegis/shared";
-import {
-  createEffectContext,
-  createGameAccess,
-  gatherTriggeredEffects,
-  type EffectEnvironment,
-} from "./context.js";
+import { createEffectContext, createGameAccess, gatherTriggeredEffects, type EffectEnvironment } from "./context.js";
 import type { CollectedEffect } from "./collect.js";
 import type { EffectContext } from "./EffectContext.js";
 import { resolveTiming, type ResolutionEnv } from "./stack.js";
@@ -127,10 +122,6 @@ export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps)
  * ResolutionDeps (createResolverDecisions + candidate-zone enumeration + the rule
  * sweep). Until then `fireTiming` stays a documented no-op.
  */
-export async function runTiming(
-  timing: EffectTiming,
-  env: EffectEnvironment,
-  deps: ResolutionDeps,
-): Promise<void> {
+export async function runTiming(timing: EffectTiming, env: EffectEnvironment, deps: ResolutionDeps): Promise<void> {
   await resolveTiming(timing, buildResolutionEnv(env, deps));
 }

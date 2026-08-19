@@ -12,8 +12,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q4110: if opponent plays Lv.3 AND Lv.4+ simultaneously, both conditions fire.
 // KB Q4111: even if multiple Lv.3 are played at once, Draw 1 fires only once (once per trigger).
 //
-// Note: a `triggerSubjectHasLevel` condition type is not in the IR schema;
-// the level-conditional actions are encoded with `raw` conditions (LANE_E.md).
 const compiled: CompiledCard = {
   "effects": [
     {
@@ -52,7 +50,11 @@ const compiled: CompiledCard = {
               "kind": "GainMemory",
               "amount": 1,
               "condition": {
-                "kind": "raw",
+                "kind": "triggerSubjectMatchesFilter",
+                "filter": {
+                  "kind": ["Digimon"],
+                  "levelComparison": { "op": "gte", "value": 4 }
+                },
                 "raw": "that Digimon is level 4 or higher"
               }
             },
@@ -61,7 +63,11 @@ const compiled: CompiledCard = {
               "amount": 1,
               "controller": "mine",
               "condition": {
-                "kind": "raw",
+                "kind": "triggerSubjectMatchesFilter",
+                "filter": {
+                  "kind": ["Digimon"],
+                  "levelComparison": { "op": "eq", "value": 3 }
+                },
                 "raw": "that Digimon is level 3"
               }
             }
@@ -94,10 +100,8 @@ const compiled: CompiledCard = {
       "isSecurity": true
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "GainMemory/Draw level conditions on trigger subject encoded as raw; triggerSubjectHasLevel not in IR schema (LANE_E.md)"
-  ]
+  "coverage": "full",
+  "residual": []
 };
 
 registerIrCard("RB1-035", compiled);

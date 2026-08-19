@@ -6,7 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // <Overclock ([Puppet] Trait)> is a Static keyword, not an EndOfYourTurn grant.
 // The keyword means: at end of your turn, delete 1 of your Tokens or other [Puppet]
 // trait Digimon → this Digimon attacks a player without suspending.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",

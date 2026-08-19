@@ -135,7 +135,7 @@ const module: EffectModule = {
             });
             if (chosen.length === 0) return;
 
-            await ctx.fx.placeUnder(selfPerm.permanentId, chosen);
+            await ctx.fx.placeUnder(selfPerm.permanentId, chosen, { faceUp: false });
             await ctx.fx.draw(source.ownerSeat, 1);
             ctx.fx.gainMemory(1);
           },

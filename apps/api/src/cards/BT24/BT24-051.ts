@@ -16,219 +16,221 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - OnPlay/WhenDigivolving: added Attack action after ModifyDP (mandatory, target same Digimon)
 //   - The ModifyDP+Attack is optional as a unit (you may choose whether to buff+attack),
 //     but once you choose to buff, the attack is mandatory per KB Q5641.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 5,
-              "raw": "reduce the play cost by 5",
-              "condition": {
-                "kind": "raw",
-                "raw": "there are 3 or more Digimon"
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon", "Tamer"]
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 5,
+              raw: "reduce the play cost by 5",
+              condition: {
+                kind: "raw",
+                raw: "there are 3 or more Digimon",
+              },
             },
-            "count": 2
-          }
+          ],
         },
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"]
-            },
-            "count": 1
-          },
-          "amount": 5000,
-          "duration": "forTheTurn",
-          "optional": true,
-          "abortOnDecline": false
-        },
-        {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"]
-            },
-            "count": 1,
-            "sameTarget": true
-          },
-          "withoutSuspending": false,
-          "optional": false,
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "if a Digimon got +5000 DP this effect"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon", "Tamer"]
-            },
-            "count": 2
-          }
-        },
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"]
-            },
-            "count": 1
-          },
-          "amount": 5000,
-          "duration": "forTheTurn",
-          "optional": true,
-          "abortOnDecline": false
-        },
-        {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"]
-            },
-            "count": 1,
-            "sameTarget": true
-          },
-          "withoutSuspending": false,
-          "optional": false,
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "if a Digimon got +5000 DP this effect"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"]
-            },
-            "count": 1
-          },
-          "optional": true
-        }
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 2,
           },
-          "optional": true
-        }
-      ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [
-                {
-                  "tokens": ["Iliad"],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": "all"
-          },
-          "keyword": {
-            "keyword": "Rush",
-            "raw": "＜Rush＞"
-          },
-          "duration": "permanent"
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [
-                {
-                  "tokens": ["Iliad"],
-                  "match": "trait"
-                }
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Piercing",
-            "raw": "＜Piercing＞"
+          amount: 5000,
+          duration: "forTheTurn",
+          optional: true,
+          abortOnDecline: false,
+        },
+        {
+          kind: "Attack",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+            sameTarget: true,
           },
-          "duration": "permanent"
-        }
-      ]
-    }
+          withoutSuspending: false,
+          attackPlayer: false,
+          optional: false,
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "if a Digimon got +5000 DP this effect",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
+            },
+            count: 2,
+          },
+        },
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: 5000,
+          duration: "forTheTurn",
+          optional: true,
+          abortOnDecline: false,
+        },
+        {
+          kind: "Attack",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+            sameTarget: true,
+          },
+          withoutSuspending: false,
+          attackPlayer: false,
+          optional: false,
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "if a Digimon got +5000 DP this effect",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          optional: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          optional: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Iliad"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: "all",
+          },
+          keyword: {
+            keyword: "Rush",
+            raw: "＜Rush＞",
+          },
+          duration: "permanent",
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Iliad"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: "all",
+          },
+          keyword: {
+            keyword: "Piercing",
+            raw: "＜Piercing＞",
+          },
+          duration: "permanent",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "traits": ["Beastkin", "TS"],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["Beastkin", "TS"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT24-051", compiled);

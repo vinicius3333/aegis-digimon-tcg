@@ -357,6 +357,7 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   // Multicolored: two or more colors. With `colors` also set, the card must be
   // multicolored AND include one of those colors (handled by the `colors` check above).
   if (filter.multicolor && def.colors.length < 2) return false;
+  if (filter.singleColor === true && def.colors.length !== 1) return false;
   if (filter.levels && filter.levels.length > 0) {
     if (def.level === undefined || !filter.levels.includes(def.level)) return false;
   }
@@ -366,7 +367,8 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   // Static level threshold ("level N or lower/higher"). A `relativeTo:"lastDeleted"` comparison
   // (no static `value`) is resolved against context in permanentMatchesFilter and stripped before
   // delegating here, so a missing `value` at this static seam is a no-op (skip).
-  if (filter.levelComparison && filter.levelComparison.value !== undefined && def.level !== undefined) {
+  if (filter.levelComparison && filter.levelComparison.value !== undefined) {
+    if (def.level === undefined) return false;
     const { op, value } = filter.levelComparison;
     if (op === "lte" && !(def.level <= value)) return false;
     if (op === "gte" && !(def.level >= value)) return false;
@@ -1652,6 +1654,8 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
         // Resolve it from the matching OR branch as well; cards such as BT13-019 combine
         // trash and breeding-area digivolution-card sources in one target.
         const matchedFilter = allFilters.find((filter) => definitionMatches(filter, def));
+        if (matchedFilter?.faceUp === true && cand.faceUp !== true) continue;
+        if (matchedFilter?.faceUp === false && cand.faceUp === true) continue;
         const hostFilter = matchedFilter?.hostFilter;
         if (zone === "digivolutionCards" && hostFilter && cand.hostPermanentId) {
           if (hostFilter.isSelfRef === true) {
@@ -1931,7 +1935,14 @@ function countMatching(ctx: EffectContext, filter: Filter): number {
   // "battleArea" (the default for `youHave`/`opponentHas`, e.g. BT2-031) and any other
   // zone value must fall through to the default per-permanent scan below — special-
   // casing on `zone !== undefined` alone silently dropped that scan to 0 (regression).
-  const looseCardZones: readonly string[] = ["trash", "hand", "digivolutionCards"];
+  const looseCardZones: readonly string[] = ["trash", "hand", "security", "digivolutionCards"];
+  if (filter.zone === "breeding") {
+    for (const seat of seats) {
+      const permanent = ctx.game.player(seat).breeding;
+      if (permanent !== undefined && permanentMatchesFilter(ctx, permanent, filter, ctx.source)) n++;
+    }
+    return n;
+  }
   if (filter.zone !== undefined) {
     const zones = Array.isArray(filter.zone) ? filter.zone : [filter.zone];
     if (zones.some((z) => looseCardZones.includes(z))) {
@@ -1947,6 +1958,15 @@ function countMatching(ctx: EffectContext, filter: Filter): number {
           for (const seat of seats) {
             const hand = ctx.game.player(seat).hand;
             for (const card of hand) {
+              if (definitionMatches(filter, ctx.game.definitionOf(card))) n++;
+            }
+          }
+        } else if (zone === "security") {
+          for (const seat of seats) {
+            const security = ctx.game.player(seat).security;
+            for (const card of security) {
+              if (filter.faceUp === true && card.faceUp !== true) continue;
+              if (filter.faceUp === false && card.faceUp === true) continue;
               if (definitionMatches(filter, ctx.game.definitionOf(card))) n++;
             }
           }
@@ -2238,6 +2258,14 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
       if (cond.op === "gt") return size > value;
       return cond.op === "lte" ? size <= value : size >= value;
     }
+    case "combinedTrashCount": {
+      const size = ctx.game.player(mine).trash.length + ctx.game.player(opp).trash.length;
+      const value = cond.value ?? 0;
+      if (cond.op === "eq") return size === value;
+      if (cond.op === "lt") return size < value;
+      if (cond.op === "gt") return size > value;
+      return cond.op === "lte" ? size <= value : size >= value;
+    }
     case "zoneColorCount": {
       // "Your Tamers have N or more total colors" counts each distinct printed color once,
       // even when multiple Tamers share it (KB Q4456). The condition's zone is intentionally
@@ -2280,11 +2308,14 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
     case "totalDigimonGte": {
       // "There are N or more Digimon in play" counts BOTH players' battle areas (BT9-110
       // Q1924). Tamers and Options are excluded even though they share the same permanent zone.
+      // When a filter is present, it further restricts the counted Digimon (for example,
+      // "there are 2 or more suspended Digimon").
       let total = 0;
       for (const seat of [mine, opp]) {
         total += ctx.game.player(seat).battleArea.filter((permanent) => {
           if (permanent.topCard === undefined) return false;
-          return (ctx.game.definitionOf(permanent.topCard).kinds as string[]).includes(CardKind.Digimon);
+          if (!(ctx.game.definitionOf(permanent.topCard).kinds as string[]).includes(CardKind.Digimon)) return false;
+          return cond.filter === undefined || permanentMatchesFilter(ctx, permanent, cond.filter, ctx.source);
         }).length;
       }
       return compareNumber(total, cond.kind === "totalDigimonGte" ? "gte" : cond.op, cond.value ?? 3);
@@ -2521,6 +2552,14 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
       }).length;
       return count >= (cond.count ?? 1);
     }
+    case "selfDigivolutionStackHasSameLevelPair": {
+      const self = ctx.source.permanent();
+      if (self === undefined) return false;
+      const levels = self.stack
+        .map((card) => ctx.game.definitionOf(card).level)
+        .filter((level): level is number => level !== undefined && level > 0);
+      return new Set(levels).size < levels.length;
+    }
     case "notEnteredThisTurn": {
       // ＜Delay＞ option gate: the SOURCE permanent must be on
       // the field AND have entered on a turn OTHER than the current one. An off-field source
@@ -2528,6 +2567,8 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
       const self = ctx.source.permanent();
       return self !== undefined && self.enterFieldTurnCount !== ctx.game.state.turnCount;
     }
+    case "sourceWasFaceUpSecurity":
+      return ctx.trigger.securityWasFaceUp === true;
     case "allOf":
       // Logical AND: every conjunct must hold (P-116: three distinct named Digimon in
       // play). An empty/missing list never passes (we do not guess an unparsed gate).
@@ -2699,87 +2740,89 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
           const level = top === undefined ? undefined : ctx.game.definitionOf(top).level;
           return level !== undefined && level >= Number(selfLevelAtLeast[1]);
         }
-      if (/this Digimon is suspended/i.test(cond.raw ?? "")) {
-        return ctx.source.permanent()?.isSuspended === true;
-      }
-      {
-        // Multicolor inherited conditions (BT16-001–004 and peers) refer to the
-        // host Digimon's effective colors, including continuous color grants.
-        const m = /this Digimon has (\d+) or more colors/i.exec(cond.raw ?? "");
-        if (m) {
+        if (/this Digimon is suspended/i.test(cond.raw ?? "")) {
+          return ctx.source.permanent()?.isSuspended === true;
+        }
+        {
+          // Multicolor inherited conditions (BT16-001–004 and peers) refer to the
+          // host Digimon's effective colors, including continuous color grants.
+          const m = /this Digimon has (\d+) or more colors/i.exec(cond.raw ?? "");
+          if (m) {
+            const self = ctx.source.permanent();
+            const top = self?.topCard;
+            if (self === undefined || top === undefined) return false;
+            const definition = ctx.game.definitionOf(top);
+            const colors = ctx.game.effectiveColors?.(self) ?? definition.colors;
+            return new Set(colors).size >= Number(m[1]);
+          }
+        }
+        {
+          const m = /this Digimon is \[([^\]]+)\]/i.exec(cond.raw ?? "");
+          if (m) {
+            const self = ctx.source.permanent();
+            const top = self?.topCard;
+            return top !== undefined && (ctx.game.definitionOf(top).nameEn ?? "").toLowerCase() === m[1]!.toLowerCase();
+          }
+        }
+        {
+          const m = /this Digimon has (.+?) in its name/i.exec(cond.raw ?? "");
+          if (m) {
+            const self = ctx.source.permanent();
+            const top = self?.topCard;
+            if (top === undefined) return false;
+            const name = (ctx.game.definitionOf(top).nameEn ?? "").toLowerCase();
+            const names = [...m[1]!.matchAll(/\[([^\]]+)\]/g)].map((x) => x[1]!.toLowerCase());
+            return names.some((token) => name.includes(token));
+          }
+        }
+        if (/deleted outside of a battle/i.test(cond.raw ?? "")) {
+          return ctx.trigger.removalCause !== "byBattle";
+        }
+        if (/attacked a Digimon with higher DP than this Digimon/i.test(cond.raw ?? "")) {
           const self = ctx.source.permanent();
-          const top = self?.topCard;
-          if (self === undefined || top === undefined) return false;
-          const definition = ctx.game.definitionOf(top);
-          const colors = ctx.game.effectiveColors?.(self) ?? definition.colors;
-          return new Set(colors).size >= Number(m[1]);
+          const targetId = ctx.trigger.targetPermanentId ?? ctx.trigger.defenderPermanentId;
+          const target = targetId !== undefined ? ctx.game.permanentById(targetId) : undefined;
+          return self?.currentDP !== undefined && target?.currentDP !== undefined && target.currentDP > self.currentDP;
         }
-      }
-      {
-        const m = /this Digimon is \[([^\]]+)\]/i.exec(cond.raw ?? "");
-        if (m) {
-          const self = ctx.source.permanent();
-          const top = self?.topCard;
-          return top !== undefined && (ctx.game.definitionOf(top).nameEn ?? "").toLowerCase() === m[1]!.toLowerCase();
+        // Counter-window gate: "one of their Digimon is attacking" is true only while the
+        // combat controller has an in-flight attacker bound to the trigger context (BT15-049).
+        if (/one of their Digimon is attacking/i.test(cond.raw ?? "")) {
+          return ctx.trigger.attackerPermanentId !== undefined;
         }
-      }
-      {
-        const m = /this Digimon has (.+?) in its name/i.exec(cond.raw ?? "");
-        if (m) {
-          const self = ctx.source.permanent();
-          const top = self?.topCard;
-          if (top === undefined) return false;
-          const name = (ctx.game.definitionOf(top).nameEn ?? "").toLowerCase();
-          const names = [...m[1]!.matchAll(/\[([^\]]+)\]/g)].map((x) => x[1]!.toLowerCase());
-          return names.some((token) => name.includes(token));
+        {
+          const m = /this Digimon has the \[([^\]]+)\] trait/i.exec(cond.raw ?? "");
+          if (m) {
+            const self = ctx.source.permanent();
+            if (self === undefined) return false;
+            return self.stack.some((card) =>
+              matchNameOrTrait(ctx.game.definitionOf(card), { tokens: [m[1]!], match: "trait" }),
+            );
+          }
         }
-      }
-      if (/deleted outside of a battle/i.test(cond.raw ?? "")) {
-        return ctx.trigger.removalCause !== "byBattle";
-      }
-      if (/attacked a Digimon with higher DP than this Digimon/i.test(cond.raw ?? "")) {
-        const self = ctx.source.permanent();
-        const targetId = ctx.trigger.targetPermanentId ?? ctx.trigger.defenderPermanentId;
-        const target = targetId !== undefined ? ctx.game.permanentById(targetId) : undefined;
-        return self?.currentDP !== undefined && target?.currentDP !== undefined && target.currentDP > self.currentDP;
-      }
-      // Counter-window gate: "one of their Digimon is attacking" is true only while the
-      // combat controller has an in-flight attacker bound to the trigger context (BT15-049).
-      if (/one of their Digimon is attacking/i.test(cond.raw ?? "")) {
-        return ctx.trigger.attackerPermanentId !== undefined;
-      }
-      {
-        const m = /this Digimon has the \[([^\]]+)\] trait/i.exec(cond.raw ?? "");
-        if (m) {
-          const self = ctx.source.permanent();
-          if (self === undefined) return false;
-          return self.stack.some((card) => matchNameOrTrait(ctx.game.definitionOf(card), { tokens: [m[1]!], match: "trait" }));
+        {
+          const rawHasTrait = /this Digimon has (.+?) trait/i.exec(cond.raw ?? "");
+          if (rawHasTrait) {
+            const self = ctx.source.permanent();
+            const top = self?.topCard;
+            if (top === undefined) return false;
+            const def = ctx.game.definitionOf(top);
+            const tokens = [...rawHasTrait[1]!.matchAll(/\[([^\]]+)\]/g)].map((x) => x[1]!);
+            return tokens.some((token) => matchNameOrTrait(def, { tokens: [token], match: "trait" }));
+          }
         }
-      }
-      {
-        const rawHasTrait = /this Digimon has (.+?) trait/i.exec(cond.raw ?? "");
-        if (rawHasTrait) {
-          const self = ctx.source.permanent();
-          const top = self?.topCard;
-          if (top === undefined) return false;
-          const def = ctx.game.definitionOf(top);
-          const tokens = [...rawHasTrait[1]!.matchAll(/\[([^\]]+)\]/g)].map((x) => x[1]!);
-          return tokens.some((token) => matchNameOrTrait(def, {tokens: [token], match: "trait"}));
+        // "this Digimon had [X] or [Y] in its name" (BT13-062/EX5-045): on-deletion
+        // inherited effects must inspect the deleted host's top card, not the inherited
+        // source card that remains as the trigger owner.
+        {
+          const m = /this Digimon had (?:\[([^\]]+)\](?:\s+or\s+)?)+ in its name/i.exec(cond.raw ?? "");
+          if (m) {
+            const deleted = ctx.trigger.deletedTopCardId;
+            const def = deleted !== undefined ? ctx.game.definitionOf({ cardId: deleted } as never) : undefined;
+            const name = (def?.nameEn ?? "").toLowerCase();
+            const names = [...(cond.raw ?? "").matchAll(/\[([^\]]+)\]/g)].map((x) => x[1]!.toLowerCase());
+            return names.some((token) => name.includes(token));
+          }
         }
-      }
-      // "this Digimon had [X] or [Y] in its name" (BT13-062/EX5-045): on-deletion
-      // inherited effects must inspect the deleted host's top card, not the inherited
-      // source card that remains as the trigger owner.
-      {
-        const m = /this Digimon had (?:\[([^\]]+)\](?:\s+or\s+)?)+ in its name/i.exec(cond.raw ?? "");
-        if (m) {
-          const deleted = ctx.trigger.deletedTopCardId;
-          const def = deleted !== undefined ? ctx.game.definitionOf({ cardId: deleted } as never) : undefined;
-          const name = (def?.nameEn ?? "").toLowerCase();
-          const names = [...(cond.raw ?? "").matchAll(/\[([^\]]+)\]/g)].map((x) => x[1]!.toLowerCase());
-          return names.some((token) => name.includes(token));
-        }
-      }
       }
       // Known runtime record-raw phrases that map onto effect-result bindings the parser
       // did not normalize: "this effect digivolved" (BT16-024's place-as-security gate)
@@ -2867,6 +2910,17 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
  * `securityToHand`, and `payMemory`; extend as other provable cases arise.
  */
 function canPayCost(ctx: EffectContext, cost: Cost): boolean {
+  if (cost.kind === "compound") {
+    return cost.costs !== undefined && cost.costs.length > 0 && cost.costs.every((nested) => canPayCost(ctx, nested));
+  }
+  if (cost.kind === "trashBottomFaceDownUnderTamer") {
+    const seat = cost.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
+    const candidates = ctx.game.player(seat).battleArea.filter((permanent) => {
+      if (permanent.topCard === undefined || !isTamer(ctx.game.definitionOf(permanent.topCard))) return false;
+      return permanent.stack.some((card) => !card.faceUp);
+    });
+    return candidates.length >= (cost.count ?? 1);
+  }
   if (cost.kind === "deleteOwn") {
     if (cost.target === undefined) return false;
     const candidates = candidatePermanents(ctx, cost.target);
@@ -2894,6 +2948,18 @@ function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const n = cost.target.count === "all" ? available : cost.target.count;
     return n > 0 && available >= n;
   }
+  if (cost.kind === "trash" && cost.target?.filter.zone === "digivolutionCards") {
+    const candidates = candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
+    const required = cost.target.count === "all" ? candidates.length : cost.target.count;
+    if (required <= 0) return false;
+    if (cost.target.filter.sameHost !== true) return candidates.length >= required;
+    const counts = new Map<string, number>();
+    for (const candidate of candidates) {
+      if (candidate.hostPermanentId === undefined) continue;
+      counts.set(candidate.hostPermanentId, (counts.get(candidate.hostPermanentId) ?? 0) + 1);
+    }
+    return [...counts.values()].some((count) => count >= required);
+  }
   if (cost.kind === "securityToHand") {
     return ctx.game.player(ctx.source.ownerSeat).security.length > 0;
   }
@@ -2919,7 +2985,7 @@ function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
     if (required <= 0 || (!cost.target.upTo && candidates.length < required)) return false;
 
-    if (cost.destination === "security") return true;
+    if (cost.destination === "security" || cost.destination === "battleArea") return true;
     if (cost.underFilter !== undefined) {
       return (
         candidatePermanents(ctx, {
@@ -2963,6 +3029,51 @@ export async function payCost(
   opts?: { deferSuspendTriggers?: boolean },
 ): Promise<boolean> {
   switch (cost.kind) {
+    case "compound": {
+      if (cost.costs === undefined || cost.costs.length === 0) return false;
+      for (const nested of cost.costs) {
+        if (!(await payCost(ctx, nested, undefined, opts))) return false;
+      }
+      return true;
+    }
+    case "trashBottomFaceDownUnderTamer": {
+      const seat = cost.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
+      const hosts = ctx.game.player(seat).battleArea.filter((permanent) => {
+        if (permanent.topCard === undefined || !isTamer(ctx.game.definitionOf(permanent.topCard))) return false;
+        return permanent.stack.some((card) => !card.faceUp);
+      });
+      const candidates = hosts.flatMap((host) => {
+        const bottomFaceDown = host.stack.find((card) => !card.faceUp);
+        return bottomFaceDown === undefined ? [] : [{ hostId: host.permanentId, cardId: bottomFaceDown.instanceId }];
+      });
+      const count = cost.count ?? 1;
+      if (candidates.length < count) return false;
+      const chosen =
+        candidates.length === count
+          ? candidates
+          : (
+              await ctx.ask.selectCards(ctx, {
+                candidates: candidates.map((candidate) => candidate.cardId),
+                min: count,
+                max: count,
+              })
+            )
+              .map((cardId) => candidates.find((candidate) => candidate.cardId === cardId)!)
+              .filter(Boolean);
+      if (chosen.length !== count) return false;
+      const byHost = new Map<string, string[]>();
+      for (const candidate of chosen)
+        byHost.set(candidate.hostId, [...(byHost.get(candidate.hostId) ?? []), candidate.cardId]);
+      let movedCount = 0;
+      for (const [hostId, cardIds] of byHost) {
+        const moved = await ctx.fx.trashDigivolutionCards(hostId, cardIds, {
+          byEffectSeat: ctx.source.ownerSeat,
+          byEffectCardId: ctx.source.cardId,
+        });
+        movedCount += moved.length;
+      }
+      return movedCount === count;
+    }
     case "suspend": {
       // "by suspending this Tamer" etc.
       const ids = cost.target
@@ -3186,9 +3297,36 @@ export async function payCost(
         // cost unpayable; engine-audit finding 6). An empty pool is unpayable outright
         // (n <= 0), matching the isSelfRef branch above.
         const zones = trashStackZone === undefined ? ["digivolutionCards" as const] : [trashStackZone];
-        const candidates = candidateLooseInstances(ctx, cost.target, zones);
+        let candidates = candidateLooseInstances(ctx, cost.target, zones);
         const n = cost.target.count === "all" ? candidates.length : cost.target.count;
         if (n <= 0 || candidates.length < n) return false;
+        if (cost.target.filter.sameHost === true) {
+          const byHost = new Map<string, LooseCandidate[]>();
+          for (const candidate of candidates) {
+            if (candidate.hostPermanentId === undefined) continue;
+            const group = byHost.get(candidate.hostPermanentId) ?? [];
+            group.push(candidate);
+            byHost.set(candidate.hostPermanentId, group);
+          }
+          const eligibleHosts = [...byHost.entries()].filter(([, group]) => group.length >= n);
+          if (eligibleHosts.length === 0) return false;
+          const hostId =
+            eligibleHosts.length === 1
+              ? eligibleHosts[0]![0]
+              : (
+                  await ctx.ask.chooseTargets(ctx, {
+                    candidates: eligibleHosts.map(([id]) => id),
+                    min: 1,
+                    max: 1,
+                  })
+                )[0];
+          if (hostId === undefined) return false;
+          candidates = byHost.get(hostId) ?? [];
+          if (cost.bindHostAs !== undefined) {
+            ctx.selections ??= new Map();
+            ctx.selections.set(cost.bindHostAs, hostId);
+          }
+        }
         const chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
         if (chosen.length < n) return false;
         const byHost = new Map<string, string[]>();
@@ -3275,6 +3413,13 @@ export async function payCost(
     }
     case "return": {
       if (!cost.target) return false;
+      const returnToTop = async (): Promise<boolean> => {
+        if (cost.to === "deckTopOrBottom") {
+          return (await ctx.ask.chooseOption(ctx, ["Top of deck", "Bottom of deck"])) === 0;
+        }
+        if (cost.to === "deckTop") return true;
+        return /\bto the top\b/i.test(cost.raw ?? "");
+      };
       // Combined trash-OR-digivolution-cards return cost ("by returning 4 [Negamon] from your
       // trash or your Digimon's digivolution cards to the bottom of the Digi-Egg deck" —
       // EX9-057). All-or-nothing across the pooled candidates from both zones; always returns
@@ -3287,7 +3432,7 @@ export async function payCost(
         if (n <= 0 || candidates.length < n) return false;
         const chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
         if (chosen.length < n) return false;
-        await ctx.fx.returnToDeck(chosen, { toTop: /to the top/i.test(cost.raw ?? "") });
+        await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
         if (out) out.paidCount = chosen.length;
         return true;
       }
@@ -3350,7 +3495,7 @@ export async function payCost(
             if (id === undefined) return false;
             chosen.push(id);
           }
-          await ctx.fx.returnToDeck(chosen, { toTop: /to the top/i.test(cost.raw ?? "") });
+          await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
           if (out) out.paidCount = chosen.length;
           return true;
         }
@@ -3374,7 +3519,7 @@ export async function payCost(
                 destination: /to the top/i.test(cost.raw ?? "") ? "deckTop" : "deckBottom",
               })) ?? chosen;
           }
-          const toTop = /to the top/i.test(cost.raw ?? "");
+          const toTop = await returnToTop();
           await ctx.fx.returnToDeck(toTop ? [...chosen].reverse() : chosen, { toTop });
           if (out) out.paidCount = chosen.length;
           return true;
@@ -3387,7 +3532,7 @@ export async function payCost(
           max: n,
         });
         if (chosen.length < n) return false;
-        await ctx.fx.returnToDeck(chosen, { toTop: /to the top/i.test(cost.raw ?? "") });
+        await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
         if (out) out.paidCount = chosen.length;
         return true;
       }
@@ -3630,6 +3775,16 @@ export async function payCost(
             faceUp: cost.faceDown !== true,
           });
           if (out) out.paidCount = picked.length;
+          return true;
+        }
+        if (cost.destination === "battleArea") {
+          const placed: string[] = [];
+          for (const instanceId of picked) {
+            const permanent = await ctx.fx.placeOptionAsPermanent?.(instanceId);
+            if (permanent !== undefined) placed.push(permanent.permanentId);
+          }
+          if (placed.length !== picked.length) return false;
+          if (out) out.paidCount = placed.length;
           return true;
         }
         // digivolutionStack: resolve the host (self or the underFilter target) and
@@ -4471,10 +4626,29 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
       return false;
     }
     case "Return": {
+      const returnTarget =
+        action.playCostCeiling === undefined
+          ? action.target
+          : {
+              ...action.target,
+              filter: {
+                ...action.target.filter,
+                playCostLte:
+                  action.playCostCeiling.base +
+                  Math.floor(
+                    scaleFactor(ctx, {
+                      per: action.playCostCeiling.per,
+                      filter: action.playCostCeiling.filter,
+                      unit: action.playCostCeiling.unit,
+                    }),
+                  ) *
+                    action.playCostCeiling.raise,
+              },
+            };
       // Security effects such as BT10-109 encode "add this card to its owner's hand"
       // as Return(isSelfRef). The source is a loose security card, so it has no
       // permanent for resolvePermanentTargets to find.
-      if (action.target.isSelf || action.target.filter.isSelfRef) {
+      if (returnTarget.isSelf || returnTarget.filter.isSelfRef) {
         if (action.to === "hand") await ctx.fx.returnToHand([ctx.source.instanceId]);
         else await ctx.fx.returnToDeck([ctx.source.instanceId], { toTop: action.to === "deckTop" });
         return false;
@@ -4484,17 +4658,17 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
       // resolvePermanentTargets only scans battleArea and would always find zero candidates,
       // silently no-opping the whole effect. Route through the same loose-instance resolution
       // the "Trash" case already uses for its hand-zone branch.
-      const zone = action.target.filter.zone;
+      const zone = returnTarget.filter.zone;
       const looseZones = action.from ?? (zone !== undefined && zone !== "battleArea" ? [zone] : undefined);
       if (looseZones !== undefined) {
-        const candidates = candidateLooseInstances(ctx, action.target, looseZones);
+        const candidates = candidateLooseInstances(ctx, returnTarget, looseZones);
         const visibleZoneIds =
           looseZones.length === 1 && (looseZones[0] === "trash" || looseZones[0] === "hand")
-            ? seatsForController(ctx, action.target.filter).flatMap((seat) =>
+            ? seatsForController(ctx, returnTarget.filter).flatMap((seat) =>
                 looseCardsInZone(ctx, seat, looseZones[0]!).map((candidate) => candidate.instanceId),
               )
             : undefined;
-        const chosen = await pickLoose(ctx, action.target, candidates, undefined, ctx.ask, visibleZoneIds);
+        const chosen = await pickLoose(ctx, returnTarget, candidates, undefined, ctx.ask, visibleZoneIds);
         if (chosen.length === 0) {
           if (action.trackCount !== undefined) {
             if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
@@ -4536,7 +4710,7 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
         }
         return false;
       }
-      const ids = topInstanceIds(ctx, await resolvePermanentTargets(ctx, action.target));
+      const ids = topInstanceIds(ctx, await resolvePermanentTargets(ctx, returnTarget));
       if (ids.length === 0) {
         if (action.trackCount !== undefined) {
           if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
@@ -4775,11 +4949,16 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
       });
       const chosen: string[] = [];
       let usedCost = 0;
+      const budget = action.totalCostScaling
+        ? action.totalCostScaling.base +
+          Math.floor(countMatching(ctx, action.totalCostScaling.filter) / action.totalCostScaling.per) *
+            action.totalCostScaling.raise
+        : action.totalCost;
       for (const instanceId of selected) {
         const cand = candidates.find((c) => c.instanceId === instanceId);
         if (cand === undefined) continue;
         const playCost = ctx.game.definitionOf({ cardId: cand.cardId } as never).playCost;
-        if (playCost === undefined || usedCost + playCost > action.totalCost) continue;
+        if (playCost === undefined || usedCost + playCost > budget) continue;
         chosen.push(instanceId);
         usedCost += playCost;
       }
@@ -5365,8 +5544,13 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
     case "DelayedDeletePlayed": {
       // EX10-035: "at turn end, delete the Digimon this effect played." The played permanent is
       // deletes it at the owner's turn end, expiring at that same boundary.
-      const self = ctx.source.permanent();
-      if (self !== undefined) ctx.fx.delayedDeletePlayed?.(self.permanentId);
+      const playedIds = ctx.lastPlayedPermanentIds ?? [];
+      if (playedIds.length > 0) {
+        for (const permanentId of playedIds) ctx.fx.delayedDeletePlayed?.(permanentId);
+      } else {
+        const self = ctx.source.permanent();
+        if (self !== undefined) ctx.fx.delayedDeletePlayed?.(self.permanentId);
+      }
       return false;
     }
     case "DelayedDelete": {
@@ -5789,8 +5973,12 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
       // through the SAME `conferStackEffects` consumer the structured-filter "effects" grant
       // above uses. Unparseable text still fails loudly rather than being silently dropped.
       if (typeof action.grant === "object" && action.grant !== null && "copyEffectsFromDigivolution" in action.grant) {
-        const raw = (action.grant as { copyEffectsFromDigivolution?: { filter?: string } }).copyEffectsFromDigivolution
-          ?.filter;
+        const copySpec = (
+          action.grant as {
+            copyEffectsFromDigivolution?: { filter?: string; trigger?: string };
+          }
+        ).copyEffectsFromDigivolution;
+        const raw = copySpec?.filter;
         const parsedFilter = typeof raw === "string" ? parseCopyEffectsFilterText(raw) : undefined;
         if (parsedFilter === undefined) {
           unsupported(ctx, action, `GrantStatic copyEffectsFromDigivolution with unparseable filter "${raw}"`);
@@ -5802,7 +5990,7 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
           for (const stackCard of permanent.stack) {
             const def = ctx.game.definitionOf(stackCard);
             if (!definitionMatches(parsedFilter, def as DefinitionFacts)) continue;
-            ctx.fx.conferStackEffects(permanentId, stackCard.instanceId, duration);
+            ctx.fx.conferStackEffects(permanentId, stackCard.instanceId, duration, { trigger: copySpec?.trigger });
           }
         }
         return false;
@@ -6608,6 +6796,7 @@ const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefined> = {
   whenBattleWon: "whenBattleWon",
   whenDeletesInBattle: "whenDeletesInBattle",
   whenOneOfYoursDigivolves: "whenOneOfYoursDigivolves",
+  whenAnyDigivolves: "whenAnyDigivolves",
   whenHatch: "whenHatch",
   whenMovedFromBreeding: "whenMovedFromBreeding",
   whenOpponentMovedFromBreeding: "whenOpponentMovedFromBreeding",
@@ -7080,6 +7269,21 @@ async function runSubTrigger(ctx: EffectContext, action: Extract<Action, { kind:
     (event === "onAddDigivolutionCards" || ATTACK_TRIGGER_FILTER_EVENTS.has(event))
       ? (subCtx: EffectContext): boolean => subjectMatchesFilter(subCtx, action.triggerFilter!)
       : undefined;
+  const addedDigivolutionCardGate =
+    event === "onAddDigivolutionCards" && action.addedDigivolutionCardFilter !== undefined
+      ? (subCtx: EffectContext): boolean => {
+          const subjectId = subCtx.trigger?.subjectPermanentId;
+          const ids = subCtx.trigger?.addedDigivolutionCardInstanceIds ?? [];
+          if (subjectId === undefined || ids.length === 0) return false;
+          const subject = subCtx.game.permanentById(subjectId);
+          if (subject === undefined) return false;
+          return subject.stack.some(
+            (card) =>
+              ids.includes(card.instanceId) &&
+              definitionMatches(action.addedDigivolutionCardFilter!, subCtx.game.definitionOf(card)),
+          );
+        }
+      : undefined;
   // `sourceFilter.nameMatchesInheritedHost` (CAP-G2, BT2-059 Kurisarimon): fires ONLY when the
   // played card's name matches the HOST permanent's current top-card name. "This Digimon" in an
   // inherited effect text refers to the Digimon whose digivolution stack contains this card —
@@ -7131,6 +7335,7 @@ async function runSubTrigger(ctx: EffectContext, action: Extract<Action, { kind:
     digivolutionCardDiscardedGate,
     effectSourceGate,
     triggerFilterGate,
+    addedDigivolutionCardGate,
     inheritedHostNameGate,
     deleteCauseGate,
   ].filter((g): g is (subCtx: EffectContext) => boolean => g !== undefined);
@@ -7425,11 +7630,13 @@ function triggerSubjectMatchesColor(ctx: EffectContext, filter: Filter | undefin
 
 function triggerSubjectMatchesFilter(ctx: EffectContext, filter: Filter | undefined): boolean {
   if (filter === undefined) return false;
-  const subjectId = ctx.trigger.subjectPermanentId;
-  if (subjectId === undefined) return false;
-  const subject = ctx.game.permanentById(subjectId);
-  if (subject === undefined) return false;
-  return permanentMatchesFilter(ctx, subject, filter, ctx.source);
+  const subjectIds =
+    ctx.trigger.subjectPermanentIds ??
+    (ctx.trigger.subjectPermanentId === undefined ? [] : [ctx.trigger.subjectPermanentId]);
+  return subjectIds.some((subjectId) => {
+    const subject = ctx.game.permanentById(subjectId);
+    return subject !== undefined && permanentMatchesFilter(ctx, subject, filter, ctx.source);
+  });
 }
 
 /**
@@ -7809,7 +8016,7 @@ async function runRecoverByTrashingMostSecurity(
   const mine = ctx.source.ownerSeat;
   const { trashed } = await ctx.fx.trashTopSecurityOfPlayerWithMostSecurity(mine);
   if (trashed.length === 0) return;
-  await ctx.fx.recoverToSecurity(mine, action.amount ?? 1);
+  if (action.recover !== false) await ctx.fx.recoverToSecurity(mine, action.amount ?? 1);
 }
 
 /** Security-stack manipulation: shuffle / trash top N / place cards as security. */
@@ -11060,6 +11267,9 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "EX9-064", // trash 1 [Cyborg]/[Ver.x] from hand -> -2
   "EX9-044", // suspend 1 [WG] Digimon -> -4
   "P-170", // return 3 [Three Musketeers]-text from trash -> -6
+  "P-171", // face-up [Deep Savers] in security -> -4
+  "P-172", // face-up [Nature Spirits] in security -> -4
+  "P-174", // face-up [Nightmare Soldiers] in security -> -4
   "BT12-112", // place 1 [Shoutmon] as digivolution material -> -1 (KB Q2249-Q2256)
   "BT8-043", // delete 1 purple [Cherubimon] -> -8
   "BT9-097", // condition: you have a Digimon with [X Antibody] card name in play -> -2 (KB Q1902)
@@ -11559,6 +11769,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         if (isDelay && timing === EffectTiming.OnDeclaration) {
           return build({
             source,
+            irTrigger: effect.trigger,
             effectKey,
             description: describeEffect(effect),
             optional: true,
@@ -11571,7 +11782,11 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
             // the source must still be a battle-area permanent that entered on an earlier turn.
             canActivate: (ctx) => {
               const self = ctx.source.permanent();
-              return self !== undefined && self.enterFieldTurnCount !== ctx.game.state.turnCount;
+              return (
+                self !== undefined &&
+                self.enterFieldTurnCount !== ctx.game.state.turnCount &&
+                canActivateEffect(ctx, effect)
+              );
             },
             resolve: async (ctx) => {
               // "By trashing this card" — delete the source option permanent (the cost); only run
@@ -11607,6 +11822,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         if (isDelay && timing !== EffectTiming.None && !hasReactiveDelayAction) {
           return build({
             source,
+            irTrigger: effect.trigger,
             effectKey,
             description: describeEffect(effect),
             optional: effect.optional ?? false,
@@ -11642,6 +11858,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         const resolvedEffect = isDelay ? withIntrinsicDelayGate(frequencyBoundEffect) : frequencyBoundEffect;
         return build({
           source,
+          irTrigger: effect.trigger,
           effectKey,
           description: describeEffect(effect),
           optional: effect.optional ?? false,

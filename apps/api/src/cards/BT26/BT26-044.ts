@@ -105,16 +105,12 @@ async function resolveMaySuspendAndLock(ctx: EffectContext, source: CardSource):
   const opponentSeat = ctx.game.opponentOf(source.ownerSeat);
   if (digimonOrTamerTargets(ctx, opponentSeat).length === 0) return;
 
-  const wantToActivate = await ctx.ask.optional(
-    ctx,
-    "Suspend 1 of your opponent's Digimon or Tamers, then keep 1 of their Digimon or " +
-      "Tamers from unsuspending until their turn ends?",
-  );
-  if (!wantToActivate) return;
-
-  const suspendTargetId = await chooseOne(ctx, digimonOrTamerTargets(ctx, opponentSeat));
-  if (suspendTargetId !== undefined) {
-    await ctx.fx.suspend([suspendTargetId]);
+  const wantToSuspend = await ctx.ask.optional(ctx, "Suspend 1 of your opponent's Digimon or Tamers?");
+  if (wantToSuspend) {
+    const suspendTargetId = await chooseOne(ctx, digimonOrTamerTargets(ctx, opponentSeat));
+    if (suspendTargetId !== undefined) {
+      await ctx.fx.suspend([suspendTargetId]);
+    }
   }
 
   const lockTargetId = await chooseOne(ctx, digimonOrTamerTargets(ctx, opponentSeat));
@@ -217,7 +213,7 @@ const module: EffectModule = {
           description:
             "[On Play] [When Digivolving] You may suspend 1 of your opponent's Digimon or " +
             "Tamers. Then, 1 of their Digimon or Tamers can't unsuspend until their turn ends.",
-          optional: true,
+          optional: false,
           canActivate: (ctx) =>
             digimonOrTamerTargets(ctx, ctx.game.opponentOf(source.ownerSeat)).length > 0,
           resolve: async (ctx) => {
@@ -235,7 +231,7 @@ const module: EffectModule = {
           description:
             "[On Play] [When Digivolving] You may suspend 1 of your opponent's Digimon or " +
             "Tamers. Then, 1 of their Digimon or Tamers can't unsuspend until their turn ends.",
-          optional: true,
+          optional: false,
           canActivate: (ctx) =>
             digimonOrTamerTargets(ctx, ctx.game.opponentOf(source.ownerSeat)).length > 0,
           resolve: async (ctx) => {

@@ -4,14 +4,19 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { beforePayCost, onPlay, whenDigivolving, whenAttacking, staticModifier } from "../../engine/effects/builders.js";
+import {
+  beforePayCost,
+  onPlay,
+  whenDigivolving,
+  whenAttacking,
+  staticModifier,
+} from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-045 — GranKuwagamon (BT26, Green Lv.6 Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-045 as of this port
-// (`node tools/kb/query.mjs card BT26-045` returned no knowledge-base entries — BT26 has
-// no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// The committed KB contains Q7036-Q7038 and Q7077 (2026-08-18), confirming the hand-size
+// timing, free-play/Alliance interaction, and stacked cost reductions for this card.
 //
 // Printed text:
 //   [Digivolve] Lv.5 w/[Insectoid]/[TS] trait: Cost 3 — a digivolution-cost requirement,
@@ -77,10 +82,7 @@ function freePlayHandCandidates(ctx: EffectContext, source: CardSource) {
   return Array.from(owner.hand).filter((c) => {
     const def = ctx.game.definitionOf(c);
     return (
-      isDigimon(def) &&
-      def.level !== undefined &&
-      def.level <= MAX_HAND_PLAY_LEVEL &&
-      hasInsectoidOrTitanTrait(def)
+      isDigimon(def) && def.level !== undefined && def.level <= MAX_HAND_PLAY_LEVEL && hasInsectoidOrTitanTrait(def)
     );
   });
 }

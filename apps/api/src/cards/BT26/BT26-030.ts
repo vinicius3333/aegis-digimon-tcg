@@ -10,11 +10,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 /**
  * BT26-030 — Pumpkinmon (BT26, Yellow/Purple Lv.5 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-030` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * The committed KB contains Q6996 (2026-08-18), confirming that a Digimon played by the
+ * Security effect battles the attacking Digimon after its Security effect resolves.
  *
  * Printed text:
  *   [Digivolve] Lv.4 w/[TS] trait: Cost 3
@@ -56,7 +53,10 @@ function hasIliadTrait(def: CardDefinition): boolean {
 function iliadTargets(ctx: EffectContext, source: CardSource): Permanent[] {
   const owner = ctx.game.player(source.ownerSeat);
   return Array.from(owner.battleArea).filter(
-    (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && hasIliadTrait(ctx.game.definitionOf(p.topCard)),
+    (p) =>
+      p.topCard !== undefined &&
+      isDigimon(ctx.game.definitionOf(p.topCard)) &&
+      hasIliadTrait(ctx.game.definitionOf(p.topCard)),
   );
 }
 

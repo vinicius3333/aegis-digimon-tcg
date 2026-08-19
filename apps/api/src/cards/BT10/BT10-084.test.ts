@@ -244,8 +244,20 @@ describe("BT10-084 (Tactimon)", () => {
       ownerTrash: [trashCard1, trashCard2],
       playedPermanents: [playedPerm1, playedPerm2],
       definitions: {
-        "BT10-BAG1": { cardId: "BT10-BAG1", nameEn: "BagraDigimon1", kinds: [CardKind.Digimon] as never, level: 4, types: ["Bagra Army"] as never },
-        "BT10-BAG2": { cardId: "BT10-BAG2", nameEn: "BagraDigimon2", kinds: [CardKind.Digimon] as never, level: 3, types: ["Bagra Army"] as never },
+        "BT10-BAG1": {
+          cardId: "BT10-BAG1",
+          nameEn: "BagraDigimon1",
+          kinds: [CardKind.Digimon] as never,
+          level: 4,
+          types: ["Bagra Army"] as never,
+        },
+        "BT10-BAG2": {
+          cardId: "BT10-BAG2",
+          nameEn: "BagraDigimon2",
+          kinds: [CardKind.Digimon] as never,
+          level: 3,
+          types: ["Bagra Army"] as never,
+        },
       },
       record,
     });
@@ -331,7 +343,9 @@ function setupEngine(acceptOptional: boolean): { engine: GameEngine; state: Game
     seed: 1,
     requestDecision: (seat, req) => {
       const response =
-        req.kind === "optional" ? ({ kind: "optional", accept: acceptOptional } as DecisionResponse) : safeDecisionResponse(req);
+        req.kind === "optional"
+          ? ({ kind: "optional", accept: acceptOptional } as DecisionResponse)
+          : safeDecisionResponse(req);
       engineRef?.applyIntent(seat, { type: "respondDecision", decisionId: req.decisionId, response });
     },
     emit: (_e: ServerEvent) => {},

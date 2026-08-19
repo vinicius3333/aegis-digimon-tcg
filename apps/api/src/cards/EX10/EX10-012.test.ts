@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming, type CardInstance } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js"; // register compiled cards so the real activate / OnEndTurn paths run
 
@@ -53,7 +54,7 @@ describe.each(SIBLINGS)("%s — [Hand][Main] reduced-cost play + turn-end delete
     const p0 = s.state.players[0]!;
     const inHand = s.inst("inHand");
     const bystanderId = s.perm("bystander").topCard!.instanceId;
-    s.state.memory = 0; // the turn player can afford up to memory + 10
+    s.state.memory = 6;
 
     const effectKey = reducedCostPlayEffectKey(s, inHand, cardId);
     expect(
@@ -64,11 +65,12 @@ describe.each(SIBLINGS)("%s — [Hand][Main] reduced-cost play + turn-end delete
       }),
     ).toEqual({ ok: true });
     await settle(() => onField(s, inHand.instanceId));
+    await settle();
 
     // Played from hand for 11 − 5 = 6.
     expect(onField(s, inHand.instanceId)).toBe(true);
     expect(p0.hand.some((c) => c.instanceId === inHand.instanceId)).toBe(false);
-    expect(s.state.memory).toBe(-6);
+    expect(s.state.memory).toBe(0);
     // REVERT-CONFIRM-RED: restore the old `Replacement`/`wouldBePlayed` Main effect => nothing is
     // ever played, the card stays in hand => this goes RED.
 
@@ -98,5 +100,48 @@ describe.each(SIBLINGS)("%s — [Hand][Main] reduced-cost play + turn-end delete
     // REVERT-CONFIRM-RED: moving the delete under OnPlay (or leaving the old always-armed
     // SubTrigger on the Main effect) deletes a normally-played copy => this goes RED. The delete
     // is bound ONLY to the reduced-cost [Hand][Main] play (KB Q5737, as for EX10-035).
+  });
+});
+
+describe("EX10-012 MetalSeadramon — card-specific effects", () => {
+  it("prevents one opposing Digimon and one opposing Tamer from suspending", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX10-012", as: "metal" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "digimon" }, { card: "BT1-085", as: "tamer" }] },
+    });
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("metal"));
+    const ledger = advance(s.engine).ledgers.continuous;
+    expect(ledger.hasRestriction(s.perm("digimon").permanentId, "suspend")).toBe(true);
+    expect(ledger.hasRestriction(s.perm("tamer").permanentId, "suspend")).toBe(true);
+  });
+
+  it("places itself face up in security on deletion when no blue face-up security exists", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX10-012", as: "metal" }] } });
+    const instanceId = s.perm("metal").topCard.instanceId;
+    await advance(s.engine).verb.deletePermanent([s.perm("metal").permanentId]);
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === instanceId));
+    expect(s.state.players[0]!.security.find((card) => card.instanceId === instanceId)?.faceUp).toBe(true);
+  });
+
+  it("plays a level 5 Dark Masters-text card when checked from face-up security", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: {
+          hand: [{ card: "BT15-027", as: "playTarget" }],
+          security: [{ card: "EX10-012", faceUp: true }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT15-027"));
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT15-027");
   });
 });

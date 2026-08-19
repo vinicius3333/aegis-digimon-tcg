@@ -35,8 +35,8 @@ function isBlackBeatbreak(def: CardDefinition): boolean {
 }
 
 /**
- * Reveal the top 3 cards of the owner's deck. Add up to 1 [Glowing Dawn]-trait card and
- * up to 1 black [BEATBREAK]-trait card among them to the hand (a single revealed card can
+ * Reveal the top 3 cards of the owner's deck. Add 1 [Glowing Dawn]-trait card and 1 black
+ * [BEATBREAK]-trait card among them to the hand when available (a single revealed card can
  * only fill one of the two slots, since it can only move to the hand once), then return
  * whatever is left to the bottom of the deck.
  */
@@ -54,7 +54,7 @@ async function resolveRevealAndAddToHand(ctx: EffectContext, source: CardSource)
   if (glowingDawnCandidates.length > 0) {
     glowingDawnPick = await ctx.ask.selectCards(ctx, {
       candidates: glowingDawnCandidates,
-      min: 0,
+      min: 1,
       max: 1,
     });
   }
@@ -67,7 +67,7 @@ async function resolveRevealAndAddToHand(ctx: EffectContext, source: CardSource)
   if (beatbreakCandidates.length > 0) {
     beatbreakPick = await ctx.ask.selectCards(ctx, {
       candidates: beatbreakCandidates,
-      min: 0,
+      min: 1,
       max: 1,
     });
   }

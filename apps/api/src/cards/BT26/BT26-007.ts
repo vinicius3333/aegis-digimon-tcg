@@ -12,11 +12,7 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
 /**
  * BT26-007 — Swipemon (BT26, White Lv.2 DigiEgg).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-007` returns no errata/Q&A hits), so this port is
- * provisional: it follows the printed text directly and mirrors the closest existing
- * hand-written cards for each clause shape. Re-check against the KB once BT26 rulings
- * are scraped.
+ * KB Q6962 confirms that the linked card must itself have the ＜Link＞ keyword.
  *
  * Printed text (this card has no own effect text — a DigiEgg's clause is inherited):
  *   (inherited) [When Attacking] [Once Per Turn] You may link 1 [Seven Code] trait
@@ -30,7 +26,7 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
  *     Candidates are drawn from the controller's hand and from the host's own
  *     digivolution cards (`permanent.stack`), filtered to ＜Link＞-eligible [Seven Code]
  *     Digimon cards — the same server-authoritative eligibility gate `runLink` applies
- *     (KB Q4881), so a non-＜Link＞ card is never selectable.
+ *     (KB Q4881/Q6962), so a non-＜Link＞ card is never selectable.
  *     The cost is the printed link cost reduced by 2 and floored at 0 (`linkCostOf`),
  *     paid through the shared memory plumbing exactly as `runLink` does, before the
  *     `link` primitive plugs the card in.

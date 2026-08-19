@@ -14,106 +14,106 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - ModifyDP: removed optional:true — text says "Then, give -3000 DP" (mandatory)
 //   - ActivateEffect target: self (isSelfRef:true) not opponent's Digimon — text says
 //     "activate 1 of THIS DIGIMON's [When Digivolving] effects"
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Overclock",
-          "raw": "＜Overclock ([Puppet] Trait)＞"
-        }
-      ]
+          keyword: "Overclock",
+          raw: "＜Overclock ([Puppet] Trait)＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "nameOrTrait": [
+              nameOrTrait: [
                 {
-                  "tokens": ["Puppet"],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Puppet"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": ["hand"],
-          "payCost": false,
-          "optional": true
+          from: ["hand"],
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -3000,
-          "duration": "untilOpponentTurnEnd",
-          "optional": false,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"]
+          amount: -3000,
+          duration: "untilOpponentTurnEnd",
+          optional: false,
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "unit": "cards"
-          }
-        }
-      ]
+            unit: "cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": ["Digimon"]
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "ActivateEffect",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "ActivateEffect",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "effectType": "WhenDigivolving",
-              "optional": true
-            }
-          ]
-        }
+              effectType: "WhenDigivolving",
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": ["Arisa Kinosaki", "Chaperomon"],
-      "cost": 6,
-      "isAlternate": true
-    }
-  ]
+      names: ["Arisa Kinosaki", "Chaperomon"],
+      cost: 6,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT22-042", compiled);

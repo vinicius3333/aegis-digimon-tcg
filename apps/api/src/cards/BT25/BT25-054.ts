@@ -65,33 +65,32 @@ const compiled: CompiledCard = {
       "trigger": "AllTurns",
       "actions": [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Callismon",
-                  "Marsmon"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "payCost": false,
-          "from": [
-            "hand"
-          ],
-          "optional": true
+          "kind": "SubTrigger",
+          "event": "whenBattleWon",
+          "actions": [
+            {
+              "kind": "Digivolve",
+              "target": {
+                "filter": {
+                  "isSelfRef": true
+                },
+                "count": 1,
+                "isSelf": true
+              },
+              "into": {
+                "controllerDefault": "mine",
+                "nameOrTrait": [
+                  {
+                    "tokens": ["Callismon", "Marsmon"],
+                    "match": "name"
+                  }
+                ]
+              },
+              "payCost": false,
+              "from": ["hand"],
+              "optional": true
+            }
+          ]
         }
       ]
     },

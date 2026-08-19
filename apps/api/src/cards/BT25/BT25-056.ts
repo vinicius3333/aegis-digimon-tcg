@@ -28,6 +28,7 @@ const compiled: CompiledCard = {
               "kind": [
                 "Digimon"
               ],
+              "hasLinkRequirement": true,
               "nameOrTrait": [
                 {
                   "tokens": [
@@ -61,6 +62,7 @@ const compiled: CompiledCard = {
               "kind": [
                 "Digimon"
               ],
+              "hasLinkRequirement": true,
               "nameOrTrait": [
                 {
                   "tokens": [
@@ -94,6 +96,7 @@ const compiled: CompiledCard = {
               "kind": [
                 "Digimon"
               ],
+              "hasLinkRequirement": true,
               "nameOrTrait": [
                 {
                   "tokens": [

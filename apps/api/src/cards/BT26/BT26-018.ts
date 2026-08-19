@@ -1,4 +1,4 @@
-import { EffectDuration, EffectTiming } from "@aegis/shared";
+import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
 import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -57,9 +57,7 @@ async function resolveRevealAndTrashBottom(ctx: EffectContext, source: CardSourc
   const owner = ctx.game.player(source.ownerSeat);
   if (owner.deck.length > 0) {
     const revealed = await ctx.fx.reveal(source.ownerSeat, 3);
-    const candidates = revealed
-      .filter((c) => matchesRevealFilter(ctx.game.definitionOf(c)))
-      .map((c) => c.instanceId);
+    const candidates = revealed.filter((c) => matchesRevealFilter(ctx.game.definitionOf(c))).map((c) => c.instanceId);
 
     let selected: string[] = [];
     if (candidates.length > 0) {
@@ -73,7 +71,9 @@ async function resolveRevealAndTrashBottom(ctx: EffectContext, source: CardSourc
 
   // Then, trash the bottom digivolution card of 1 of your opponent's Digimon.
   const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
-  const targets = opponent.battleArea.filter((p) => p.stack.length > 0);
+  const targets = opponent.battleArea.filter(
+    (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && p.stack.length > 0,
+  );
   if (targets.length === 0) return;
 
   let chosenId: string;
