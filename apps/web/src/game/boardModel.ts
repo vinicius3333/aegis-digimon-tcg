@@ -874,6 +874,35 @@ export function decisionEffectSource(request: DecisionRequest, events: ServerEve
   return lastEffectSource(events, request.seat);
 }
 
+/**
+ * The most recent `limit` events as match-log lines, newest first.
+ *
+ * A paid play emits separate `playCard` and `payCost` memory events carrying the same
+ * before/after values, which would render as duplicate player-facing lines; consecutive identical
+ * MEMORY lines therefore collapse into one. Nothing else collapses: two identical lines of any
+ * other kind are two things that really happened, and both players milling 2 cards reads the same
+ * way while being two distinct moves.
+ */
+export function buildMatchLog(
+  events: readonly ServerEvent[],
+  viewerSeat: Seat,
+  instanceIndex: Map<string, string>,
+  t: Translate,
+  limit = 30,
+): LogLine[] {
+  const log: LogLine[] = [];
+  for (let i = events.length - 1; i >= 0 && log.length < limit; i -= 1) {
+    const event = events[i]!;
+    const line = describeEvent(event, viewerSeat, instanceIndex, t);
+    if (!line) continue;
+    const previous = log.at(-1);
+    const duplicateMemoryLine =
+      event.kind === "memoryChanged" && previous?.text === line.text && previous.kind === line.kind;
+    if (!duplicateMemoryLine) log.push(line);
+  }
+  return log;
+}
+
 /** Turn the server's event into a one-line match-log entry, or null to skip it. */
 export function describeEvent(
   event: ServerEvent,
