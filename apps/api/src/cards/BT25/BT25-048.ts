@@ -14,7 +14,8 @@ const compiled: CompiledCard = {
           "kind": "Replacement",
           "event": "wouldDigivolve",
           "sourceFilter": {
-            "isSelfRef": true
+            "isSelfRef": true,
+            "zone": "battleArea"
           },
           "into": {
             "controllerDefault": "mine",
