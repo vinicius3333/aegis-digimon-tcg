@@ -6151,6 +6151,19 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
         }
         return false;
       }
+      // BT18-065: while the controller has no Digimon other than Vemmon,
+      // cards in that controller's trash are legal DigiXros materials. This
+      // uses the same per-seat expansion ledger as the Tamer expander cards;
+      // the enclosing static condition is re-evaluated on every recompute.
+      if (action.grant === "digixrosFromTrash") {
+        const grantDuration = toDuration(action.duration ?? "permanent");
+        for (const id of ids) {
+          const permanent = ctx.game.permanentById(id);
+          if (permanent === undefined) continue;
+          ctx.fx.expandDigiXrosZones?.(permanent.controllerSeat, ["trash"], grantDuration);
+        }
+        return false;
+      }
       // String grants with no enforcement path yet (would need a new subsystem — DNA-digivolve
       // level overrides, attacking a Digimon directly, DigiXros-from-trash, an alternate-color
       // rules layer, etc.), not just a missing primitive wire-up. Failing loudly here — instead
