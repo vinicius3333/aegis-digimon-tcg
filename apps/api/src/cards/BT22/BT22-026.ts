@@ -9,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [WarGreymon] from hand without cost, ignoring requirements.
 // option B = return opponent's lowest-level Digimon to hand.
 // [Inherited][When Attacking]: if this Digimon has [Omnimon] in name, unsuspend once/turn.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",
@@ -19,6 +19,7 @@ const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
+              zone: "battleArea",
               kind: ["Digimon"],
               nameOrTrait: [{ tokens: ["Gabumon"], match: "name" }],
             },
