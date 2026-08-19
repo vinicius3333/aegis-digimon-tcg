@@ -144,12 +144,11 @@ const module: EffectModule = {
           optional: true,
           isInherited: true,
           maxPerTurn: 1,
-          canActivate: (ctx) => ctx.game.player(source.ownerSeat).security.length > 0,
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
-            if (owner.security.length === 0) return;
-
-            await ctx.fx.securityToHand(source.ownerSeat, 1, { fromTop: true });
+            if (owner.security.length > 0) {
+              await ctx.fx.securityToHand(source.ownerSeat, 1, { fromTop: true });
+            }
 
             if (ctx.game.player(source.ownerSeat).security.length === 0) {
               await ctx.fx.recoverToSecurity(source.ownerSeat, 1);
