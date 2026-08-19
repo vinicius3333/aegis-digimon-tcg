@@ -8,7 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // until the end of your opponent's turn.
 // KB Q5265: also triggers when this card itself is played.
 // KB Q5266-Q5270: restriction prevents all [When Digivolving] activations (direct & via effects).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
@@ -54,61 +54,22 @@ const compiled: CompiledCard = {
       ],
       frequency: "OncePerTurn",
     },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
-              "amount": -4000,
-              "duration": "forTheTurn"
-            }
-          ]
-        }
-      ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Turuiemon",
-        "Wendigomon"
-      ],
-      "cost": 3,
-      "isAlternate": true
+      names: ["Turuiemon", "Wendigomon"],
+      cost: 3,
+      isAlternate: true,
     },
     {
-      "level": 4,
-      "traits": [
-        "CS"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      traits: ["CS"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT23-029", compiled);
