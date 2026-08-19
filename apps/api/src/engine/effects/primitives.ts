@@ -3486,8 +3486,16 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     continuous.addColorWaiver(instanceId, duration, continuousOpt());
   };
 
-  const conferStackEffects = (targetPermanentId: string, stackInstanceId: string, _duration: EffectDuration): void => {
-    continuous.conferStackEffects(targetPermanentId, stackInstanceId, continuousOpt());
+  const conferStackEffects = (
+    targetPermanentId: string,
+    stackInstanceId: string,
+    _duration: EffectDuration,
+    opts?: { trigger?: string },
+  ): void => {
+    continuous.conferStackEffects(targetPermanentId, stackInstanceId, {
+      ...continuousOpt(),
+      trigger: opts?.trigger,
+    });
   };
 
   // A named custom effect grant is a one-shot, DURATION-scoped grant (NOT continuous): it is

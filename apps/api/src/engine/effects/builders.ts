@@ -12,6 +12,8 @@ import type { EffectContext } from "./EffectContext.js";
  */
 export interface BuilderOptions {
   source: CardSource;
+  /** Original declarative trigger, when the effect came from the IR interpreter. */
+  irTrigger?: string;
   effectKey: string;
   description: string;
   optional?: boolean; // source `optional`
@@ -68,6 +70,7 @@ function build(opts: BuilderOptions, flags: BuilderFlags): Effect {
   const extra = opts.when;
   const activate = opts.canActivate;
   return {
+    ...(opts.irTrigger !== undefined ? { irTrigger: opts.irTrigger } : {}),
     effectKey: opts.effectKey,
     description: opts.description,
     optional: opts.optional ?? false,

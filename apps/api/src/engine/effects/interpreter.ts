@@ -5973,8 +5973,12 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
       // through the SAME `conferStackEffects` consumer the structured-filter "effects" grant
       // above uses. Unparseable text still fails loudly rather than being silently dropped.
       if (typeof action.grant === "object" && action.grant !== null && "copyEffectsFromDigivolution" in action.grant) {
-        const raw = (action.grant as { copyEffectsFromDigivolution?: { filter?: string } }).copyEffectsFromDigivolution
-          ?.filter;
+        const copySpec = (
+          action.grant as {
+            copyEffectsFromDigivolution?: { filter?: string; trigger?: string };
+          }
+        ).copyEffectsFromDigivolution;
+        const raw = copySpec?.filter;
         const parsedFilter = typeof raw === "string" ? parseCopyEffectsFilterText(raw) : undefined;
         if (parsedFilter === undefined) {
           unsupported(ctx, action, `GrantStatic copyEffectsFromDigivolution with unparseable filter "${raw}"`);
@@ -5986,7 +5990,7 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
           for (const stackCard of permanent.stack) {
             const def = ctx.game.definitionOf(stackCard);
             if (!definitionMatches(parsedFilter, def as DefinitionFacts)) continue;
-            ctx.fx.conferStackEffects(permanentId, stackCard.instanceId, duration);
+            ctx.fx.conferStackEffects(permanentId, stackCard.instanceId, duration, { trigger: copySpec?.trigger });
           }
         }
         return false;
@@ -11765,6 +11769,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         if (isDelay && timing === EffectTiming.OnDeclaration) {
           return build({
             source,
+            irTrigger: effect.trigger,
             effectKey,
             description: describeEffect(effect),
             optional: true,
@@ -11817,6 +11822,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         if (isDelay && timing !== EffectTiming.None && !hasReactiveDelayAction) {
           return build({
             source,
+            irTrigger: effect.trigger,
             effectKey,
             description: describeEffect(effect),
             optional: effect.optional ?? false,
@@ -11852,6 +11858,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         const resolvedEffect = isDelay ? withIntrinsicDelayGate(frequencyBoundEffect) : frequencyBoundEffect;
         return build({
           source,
+          irTrigger: effect.trigger,
           effectKey,
           description: describeEffect(effect),
           optional: effect.optional ?? false,

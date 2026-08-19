@@ -1061,7 +1061,12 @@ export interface Primitives {
    * Confer all effects of a digivolution-stack card onto its owning permanent
    * (GrantStatic grant:"effects").
    */
-  conferStackEffects(targetPermanentId: string, stackInstanceId: string, duration: EffectDuration): void;
+  conferStackEffects(
+    targetPermanentId: string,
+    stackInstanceId: string,
+    duration: EffectDuration,
+    opts?: { trigger?: string },
+  ): void;
 
   // --- security-stack manipulation -------------------------------------------
   /** Shuffle a seat's security stack in place (uniform). */

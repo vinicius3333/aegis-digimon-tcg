@@ -334,7 +334,7 @@ export function gatherTriggeredEffects(
   timing: EffectTiming,
   candidateInstances: readonly CardInstance[],
   grantSnapshot?: {
-    stackEffectConferrals: readonly { targetPermanentId: string; stackInstanceId: string }[];
+    stackEffectConferrals: readonly { targetPermanentId: string; stackInstanceId: string; trigger?: string }[];
     customEffectGrants: readonly { instanceId: string; token: string }[];
   },
 ): CollectedEffect[] {
