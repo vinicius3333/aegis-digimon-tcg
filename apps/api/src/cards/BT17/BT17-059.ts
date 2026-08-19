@@ -59,7 +59,7 @@ const diaboromonRedirectTargets = (ctx: EffectContext): string[] =>
     .battleArea.filter((permanent) => hasDiaboromonName(ctx, permanent))
     .map((permanent) => permanent.permanentId);
 
-const module: EffectModule = {
+export const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     // Effect 2 — [Opponent's Turn] [Once Per Turn] redirect (combat). The combat
@@ -106,11 +106,26 @@ const module: EffectModule = {
             "Digimon's bottom digivolution card, you may play 2 [Diaboromon] Tokens.",
           optional: true,
           resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self === undefined) return;
+            const owner = ctx.game.player(source.ownerSeat);
+            const clockCandidates = [...owner.hand, ...owner.trash]
+              .filter((card) => ctx.game.definitionOf(card).nameEn === "Doomsday Clock")
+              .map((card) => card.instanceId);
+            if (clockCandidates.length === 0) return;
+            const chosen = await ctx.ask.selectCards(ctx, {
+              candidates: clockCandidates,
+              min: 0,
+              max: 1,
+            });
+            if (chosen.length === 0) return;
+            await ctx.fx.placeUnder(self.permanentId, chosen, { belowTop: false });
+            const playTokens = await ctx.ask.optional(ctx, "Play 2 [Diaboromon] Tokens without paying their costs?");
+            if (!playTokens) return;
             // eslint-disable-next-line no-console -- loud gap until the token-spawning subsystem exists.
-            console.warn(
-              `[${cardId}] unsupported: "play 2 [Diaboromon] Tokens" needs the token-spawning subsystem`,
-              { trigger: ctx.trigger },
-            );
+            console.warn(`[${cardId}] unsupported: "play 2 [Diaboromon] Tokens" needs the token-spawning subsystem`, {
+              trigger: ctx.trigger,
+            });
           },
         }),
       ];
