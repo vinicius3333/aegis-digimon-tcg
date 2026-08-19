@@ -2901,6 +2901,9 @@ function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
  * `securityToHand`, and `payMemory`; extend as other provable cases arise.
  */
 function canPayCost(ctx: EffectContext, cost: Cost): boolean {
+  if (cost.kind === "compound") {
+    return cost.costs !== undefined && cost.costs.length > 0 && cost.costs.every((nested) => canPayCost(ctx, nested));
+  }
   if (cost.kind === "trashBottomFaceDownUnderTamer") {
     const seat = cost.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
     const candidates = ctx.game.player(seat).battleArea.filter((permanent) => {
@@ -3017,6 +3020,13 @@ export async function payCost(
   opts?: { deferSuspendTriggers?: boolean },
 ): Promise<boolean> {
   switch (cost.kind) {
+    case "compound": {
+      if (cost.costs === undefined || cost.costs.length === 0) return false;
+      for (const nested of cost.costs) {
+        if (!(await payCost(ctx, nested, undefined, opts))) return false;
+      }
+      return true;
+    }
     case "trashBottomFaceDownUnderTamer": {
       const seat = cost.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
       const hosts = ctx.game.player(seat).battleArea.filter((permanent) => {

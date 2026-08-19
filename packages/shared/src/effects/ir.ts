@@ -1145,6 +1145,7 @@ export interface Condition {
  */
 export interface Cost {
   kind:
+    | "compound" // pay each nested cost in sequence (e.g. suspend AND trash)
     | "trash"
     | "suspend"
     | "unsuspend" // unsuspend a permanent (usually "By unsuspending this Digimon", BT14-054)
@@ -1160,6 +1161,8 @@ export interface Cost {
     | "playFromDigivolutionCards" // play a selected card from a selected Digimon's stack as a cost (BT19-102)
     | "raw";
   target?: Target;
+  /** Nested costs that must all be paid for a compound cost. */
+  costs?: Cost[];
   /** Host permanent selected before resolving a stack-card play cost (BT19-102). */
   hostTarget?: Target;
   /** For "payMemory": the memory amount paid (e.g. "By paying 1 cost" => 1). */
