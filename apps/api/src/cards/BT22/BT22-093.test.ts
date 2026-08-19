@@ -20,14 +20,12 @@ import "../index.js";
 const AMI_AIBA = "BT22-093";
 const OPPONENT_DIGIMON = "BT1-009"; // Monodramon — any Digimon works
 
-function fireTiming(
-  s: EngineSetup,
-  timing: EffectTiming,
-  trigger: Record<string, unknown> = {},
-): Promise<void> {
-  return (s.engine as unknown as {
-    fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
-  }).fireTiming(timing, trigger);
+function fireTiming(s: EngineSetup, timing: EffectTiming, trigger: Record<string, unknown> = {}): Promise<void> {
+  return (
+    s.engine as unknown as {
+      fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
+    }
+  ).fireTiming(timing, trigger);
 }
 
 describe("BT22-093 [Start of Main Phase] gain 1 memory if opponent has Digimon", () => {
@@ -59,5 +57,68 @@ describe("BT22-093 [Start of Main Phase] gain 1 memory if opponent has Digimon",
     for (let i = 0; i < 50; i++) await Promise.resolve();
 
     expect(s.state.memory).toBe(memBefore);
+  });
+});
+
+describe("BT22-093 [Your Turn] CS digivolution chain", () => {
+  it("suspends Ami and digivolves a qualifying CS Digimon into a CS card from hand for free", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: AMI_AIBA, as: "ami" },
+            // Level 5 CS Digimon with a same-level card in its stack.
+            { card: "BT22-011", under: ["BT22-011"], as: "subject" },
+          ],
+          hand: ["BT22-013"], // Level 6 [CS] Digimon.
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    const subject = s.perm("subject");
+    await fireTiming(s, EffectTiming.OnEnterFieldAnyone, { subjectPermanentId: subject.permanentId });
+    await settle(() => s.perm("subject").topCard?.cardId === "BT22-013", 400);
+
+    expect(s.perm("ami").isSuspended).toBe(true);
+    expect(s.perm("subject").topCard?.cardId).toBe("BT22-013");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT22-013")).toBe(false);
+  });
+
+  it("does not activate for a CS Digimon without a same-level stack card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: AMI_AIBA, as: "ami" },
+            { card: "BT22-011", under: ["BT22-010"], as: "subject" },
+          ],
+          hand: ["BT22-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await fireTiming(s, EffectTiming.OnEnterFieldAnyone, { subjectPermanentId: s.perm("subject").permanentId });
+    await settle(() => false, 80);
+
+    expect(s.perm("ami").isSuspended).toBe(false);
+    expect(s.perm("subject").topCard?.cardId).toBe("BT22-011");
+  });
+});
+
+describe("BT22-093 [Security]", () => {
+  it("plays itself from security without paying its play cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: AMI_AIBA, as: "ami", faceUp: true }] } });
+
+    await (
+      s.engine as unknown as { fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void> }
+    ).fireTiming(EffectTiming.SecuritySkill, { sourceInstanceId: s.inst("ami").instanceId });
+    await settle(
+      () => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("ami").instanceId),
+      300,
+    );
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("ami").instanceId)).toBe(true);
   });
 });
