@@ -4611,10 +4611,29 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
       return false;
     }
     case "Return": {
+      const returnTarget =
+        action.playCostCeiling === undefined
+          ? action.target
+          : {
+              ...action.target,
+              filter: {
+                ...action.target.filter,
+                playCostLte:
+                  action.playCostCeiling.base +
+                  Math.floor(
+                    scaleFactor(ctx, {
+                      per: action.playCostCeiling.per,
+                      filter: action.playCostCeiling.filter,
+                      unit: action.playCostCeiling.unit,
+                    }),
+                  ) *
+                    action.playCostCeiling.raise,
+              },
+            };
       // Security effects such as BT10-109 encode "add this card to its owner's hand"
       // as Return(isSelfRef). The source is a loose security card, so it has no
       // permanent for resolvePermanentTargets to find.
-      if (action.target.isSelf || action.target.filter.isSelfRef) {
+      if (returnTarget.isSelf || returnTarget.filter.isSelfRef) {
         if (action.to === "hand") await ctx.fx.returnToHand([ctx.source.instanceId]);
         else await ctx.fx.returnToDeck([ctx.source.instanceId], { toTop: action.to === "deckTop" });
         return false;
@@ -4624,17 +4643,17 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
       // resolvePermanentTargets only scans battleArea and would always find zero candidates,
       // silently no-opping the whole effect. Route through the same loose-instance resolution
       // the "Trash" case already uses for its hand-zone branch.
-      const zone = action.target.filter.zone;
+      const zone = returnTarget.filter.zone;
       const looseZones = action.from ?? (zone !== undefined && zone !== "battleArea" ? [zone] : undefined);
       if (looseZones !== undefined) {
-        const candidates = candidateLooseInstances(ctx, action.target, looseZones);
+        const candidates = candidateLooseInstances(ctx, returnTarget, looseZones);
         const visibleZoneIds =
           looseZones.length === 1 && (looseZones[0] === "trash" || looseZones[0] === "hand")
-            ? seatsForController(ctx, action.target.filter).flatMap((seat) =>
+            ? seatsForController(ctx, returnTarget.filter).flatMap((seat) =>
                 looseCardsInZone(ctx, seat, looseZones[0]!).map((candidate) => candidate.instanceId),
               )
             : undefined;
-        const chosen = await pickLoose(ctx, action.target, candidates, undefined, ctx.ask, visibleZoneIds);
+        const chosen = await pickLoose(ctx, returnTarget, candidates, undefined, ctx.ask, visibleZoneIds);
         if (chosen.length === 0) {
           if (action.trackCount !== undefined) {
             if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
@@ -4676,7 +4695,7 @@ async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
         }
         return false;
       }
-      const ids = topInstanceIds(ctx, await resolvePermanentTargets(ctx, action.target));
+      const ids = topInstanceIds(ctx, await resolvePermanentTargets(ctx, returnTarget));
       if (ids.length === 0) {
         if (action.trackCount !== undefined) {
           if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();

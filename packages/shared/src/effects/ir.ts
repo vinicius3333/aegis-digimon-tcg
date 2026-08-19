@@ -1573,6 +1573,15 @@ export interface ReturnAction extends ActionBase {
    * from re-counting a live filter, which can overcount unrelated cards).
    */
   trackCount?: string;
+  /** Dynamically raise the play-cost ceiling of a permanent return target. */
+  playCostCeiling?: {
+    base: number;
+    raise: number;
+    per: number;
+    filter: Filter;
+    unit: "cards" | "digivolutionCards" | "digivolutionCardsOfFiltered";
+    raw?: string;
+  };
 }
 export interface SuspendAction extends ActionBase {
   kind: "Suspend";
