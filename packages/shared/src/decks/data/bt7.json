@@ -1,0 +1,426 @@
+{
+  "collection": "BT7",
+  "generatedAt": "2026-08-19",
+  "decks": [
+    {
+      "id": "bt7-dgo-2022-04-23-1-blue-hybrid",
+      "revision": 2,
+      "name": "BT7 Blue Hybrid",
+      "archetype": "Blue Hybrid",
+      "collection": "BT7",
+      "formatBlock": "BT7",
+      "colors": ["Blue", "White", "Purple"],
+      "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: ST2-13 was reduced to 1; the freed slots reinforce the existing Bokomon and Howling Memory Boost! package.",
+      "tournament": {
+        "name": "Ultimate Cup",
+        "date": "2022-04-23",
+        "region": "north-america",
+        "placement": 1,
+        "player": "Undisclosed"
+      },
+      "mainDeck": [
+        {
+          "cardId": "BT4-023",
+          "name": "Strabimon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT5-021",
+          "name": "Syakomon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT6-021",
+          "name": "ModokiBetamon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT7-081",
+          "name": "Bokomon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT4-027",
+          "name": "KendoGarurumon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT7-021",
+          "name": "Kumamon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT7-023",
+          "name": "Korikakumon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT7-025",
+          "name": "Beowolfmon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT6-029",
+          "name": "Azulongmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT3-093",
+          "name": "Davis Motomiya",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT5-088",
+          "name": "Sora Takenouchi & Joe Kido",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT7-086",
+          "name": "Tommy Himi",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "ST2-12",
+          "name": "Matt Ishida",
+          "qty": 1,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT3-096",
+          "name": "Mimi Tachikawa",
+          "qty": 1,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT6-097",
+          "name": "Howling Memory Boost!",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "EX1-068",
+          "name": "Ice Wall!",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "ST2-13",
+          "name": "Hammer Spark",
+          "qty": 1,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT1-003",
+          "name": "Upamon",
+          "qty": 1,
+          "type": "DigiEgg"
+        },
+        {
+          "cardId": "BT6-002",
+          "name": "Kyaromon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "bt7-dgo-2022-04-23-4-green-hybrid",
+      "revision": 2,
+      "name": "BT7 Green Hybrid",
+      "archetype": "Green Hybrid",
+      "collection": "BT7",
+      "formatBlock": "BT7",
+      "colors": ["Blue", "White", "Green"],
+      "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: BT3-054 was reduced to 1; the freed slot adds another existing Howling Memory Boost!.",
+      "tournament": {
+        "name": "Ultimate Cup",
+        "date": "2022-04-23",
+        "region": "north-america",
+        "placement": 4,
+        "player": "Undisclosed"
+      },
+      "mainDeck": [
+        {
+          "cardId": "BT5-021",
+          "name": "Syakomon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT6-021",
+          "name": "ModokiBetamon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT7-081",
+          "name": "Bokomon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT6-049",
+          "name": "Arbormon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT7-046",
+          "name": "Beetlemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT7-047",
+          "name": "MetalKabuterimon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT3-054",
+          "name": "Blossomon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT7-051",
+          "name": "RhinoKabuterimon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT4-062",
+          "name": "Nidhoggmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT5-058",
+          "name": "Argomon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT7-054",
+          "name": "AncientBeetlemon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT1-088",
+          "name": "Izzy Izumi",
+          "qty": 3,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT1-089",
+          "name": "Mimi Tachikawa",
+          "qty": 3,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT7-089",
+          "name": "J.P. Shibayama",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT6-096",
+          "name": "Forbidden Trident",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT6-097",
+          "name": "Howling Memory Boost!",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "EX1-068",
+          "name": "Ice Wall!",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT7-101",
+          "name": "Thunder Laser",
+          "qty": 2,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT1-003",
+          "name": "Upamon",
+          "qty": 4,
+          "type": "DigiEgg"
+        },
+        {
+          "cardId": "BT1-004",
+          "name": "Wanyamon",
+          "qty": 1,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "bt7-dgo-2022-04-23-5-lilithmon",
+      "revision": 2,
+      "name": "BT7 Lilithmon",
+      "archetype": "Lilithmon",
+      "collection": "BT7",
+      "formatBlock": "BT7",
+      "colors": ["Purple", "White"],
+      "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: BT2-069, BT7-069, BT7-072, BT4-111 and BT7-107 were reduced to 1; the freed slots reinforce existing purple Digimon lines.",
+      "tournament": {
+        "name": "Ultimate Cup",
+        "date": "2022-04-23",
+        "region": "north-america",
+        "placement": 5,
+        "player": "Undisclosed"
+      },
+      "mainDeck": [
+        {
+          "cardId": "BT2-069",
+          "name": "Gabumon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT3-077",
+          "name": "Gazimon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT3-079",
+          "name": "Tsukaimon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT6-070",
+          "name": "Elecmon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT6-071",
+          "name": "Kinkakumon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT6-075",
+          "name": "Ginkakumon Promote",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT7-069",
+          "name": "Eyesmon: Scatter Mode",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT7-072",
+          "name": "Eyesmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT4-083",
+          "name": "Cerberusmon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT4-086",
+          "name": "Cerberusmon: Werewolf Mode",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT3-091",
+          "name": "Lilithmon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT4-087",
+          "name": "Anubismon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT7-077",
+          "name": "Nidhoggmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT5-087",
+          "name": "Omnimon Zwart",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX1-066",
+          "name": "Analog Youth",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT4-111",
+          "name": "Jack Raid",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT7-107",
+          "name": "Calling From the Darkness",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "ST6-15",
+          "name": "Death Claw",
+          "qty": 3,
+          "type": "Option"
+        },
+        {
+          "cardId": "EX1-071",
+          "name": "Win Rate: 60%!",
+          "qty": 2,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT3-006",
+          "name": "DemiMeramon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1317 @@
+{
+  "collection": "EX7",
+  "generatedAt": "2026-08-19",
+  "decks": [
+    {
+      "id": "ex7-dgo-2024-09-28-1-seven-great-demon-lords",
+      "revision": 1,
+      "name": "EX7 Seven Great Demon Lords",
+      "archetype": "Seven Great Demon Lords",
+      "collection": "EX7",
+      "formatBlock": "EX7",
+      "colors": ["Red", "Yellow", "Green", "Black", "Purple"],
+      "sourceType": "community_tournament_deck",
+      "tournament": {
+        "name": "Regionals — Carta Magica",
+        "date": "2024-09-28",
+        "region": "north-america",
+        "location": "Discord",
+        "organizer": "Carta Magica",
+        "eventFormat": "Online",
+        "participants": 375,
+        "placement": 1,
+        "player": "Sergiy Chernyshov"
+      },
+      "mainDeck": [
+        {
+          "cardId": "EX6-018",
+          "name": "Lucemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT13-081",
+          "name": "Porcupamon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX6-054",
+          "name": "Lucemon: Chaos Mode",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT13-088",
+          "name": "Belphemon: Sleep Mode",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT15-081",
+          "name": "Leviamon (X Antibody)",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-063",
+          "name": "Leviamon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX6-057",
+          "name": "Lilithmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX6-056",
+          "name": "Beelzemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX6-061",
+          "name": "Leviamon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX6-060",
+          "name": "Belphemon: Rage Mode",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX6-058",
+          "name": "Creepymon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX6-073",
+          "name": "Ogudomon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX4-074",
+          "name": "ShineGreymon: Ruin Mode",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX7-064",
+          "name": "Shoto Kazama",
+          "qty": 3,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT13-103",
+          "name": "Akihiro Kurata",
+          "qty": 1,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT8-094",
+          "name": "Digimon Emperor",
+          "qty": 2,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT15-100",
+          "name": "Seventh Lightning",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT7-107",
+          "name": "Calling From the Darkness",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT8-108",
+          "name": "Mist Memory Boost!",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "EX5-069",
+          "name": "Biting Crush",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "EX6-069",
+          "name": "Rise of the Seven Great Demon Lords",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "ST14-12",
+          "name": "Rivals' Barrage",
+          "qty": 2,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "EX6-006",
+          "name": "Gate of Deadly Sins",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "ex7-dgo-2024-10-05-1-leviamon",
+      "revision": 1,
+      "name": "EX7 Leviamon",
+      "archetype": "Leviamon",
+      "collection": "EX7",
+      "formatBlock": "EX7",
+      "colors": ["White", "Purple"],
+      "sourceType": "community_tournament_deck",
+      "tournament": {
+        "name": "Regionals — TAK Games",
+        "date": "2024-10-05",
+        "region": "oceania",
+        "location": "Discord",
+        "organizer": "TAK Games",
+        "eventFormat": "Online",
+        "participants": 128,
+        "placement": 1,
+        "player": "Will Dawson"
+      },
+      "mainDeck": [
+        {
+          "cardId": "BT14-070",
+          "name": "Goblimon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT3-077",
+          "name": "Gazimon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT8-071",
+          "name": "Psychemon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-056",
+          "name": "Syakomon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-057",
+          "name": "Labramon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-067",
+          "name": "Lopmon (X Antibody)",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-068",
+          "name": "Dobermon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-058",
+          "name": "Octomon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-059",
+          "name": "Dobermon (X Antibody)",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-075",
+          "name": "Cerberusmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-060",
+          "name": "Dragomon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-061",
+          "name": "Cerberusmon (X Antibody)",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT15-081",
+          "name": "Leviamon (X Antibody)",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-062",
+          "name": "Anubismon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-063",
+          "name": "Leviamon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX4-074",
+          "name": "ShineGreymon: Ruin Mode",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT15-100",
+          "name": "Seventh Lightning",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "EX5-069",
+          "name": "Biting Crush",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-040",
+          "name": "Purple Memory Boost!",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-108",
+          "name": "Wisdom Training",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "EX5-070",
+          "name": "X Antibody Proto Form",
+          "qty": 4,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT6-006",
+          "name": "Tsunomon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "ex7-dgo-2024-10-05-2-magnamon",
+      "revision": 1,
+      "name": "EX7 Magnamon",
+      "archetype": "Magnamon",
+      "collection": "EX7",
+      "formatBlock": "EX7",
+      "colors": ["Red", "Blue", "Yellow", "Green", "Black"],
+      "sourceType": "community_tournament_deck",
+      "tournament": {
+        "name": "Regionals — TAK Games",
+        "date": "2024-10-05",
+        "region": "oceania",
+        "location": "Discord",
+        "organizer": "TAK Games",
+        "eventFormat": "Online",
+        "participants": 128,
+        "placement": 2,
+        "player": "Chia Lun Ku"
+      },
+      "mainDeck": [
+        {
+          "cardId": "BT12-021",
+          "name": "Veemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "P-117",
+          "name": "Veemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-017",
+          "name": "Veemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "ST17-13",
+          "name": "Magnamon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "P-137",
+          "name": "Flamedramon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT13-040",
+          "name": "Magnamon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT8-038",
+          "name": "Magnamon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-102",
+          "name": "Magnamon (X Antibody)",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT9-112",
+          "name": "DeathXmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT17-077",
+          "name": "Imperialdramon: Paladin Mode",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT5-088",
+          "name": "Sora Takenouchi & Joe Kido",
+          "qty": 2,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT16-085",
+          "name": "Davis Motomiya & Ken Ichijoji",
+          "qty": 3,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT4-109",
+          "name": "Final Zubagon Punch",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT9-103",
+          "name": "Kongou",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "EX2-068",
+          "name": "High-Speed Plug-In D",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-036",
+          "name": "Blue Memory Boost!",
+          "qty": 3,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-104",
+          "name": "Mental Training",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT17-097",
+          "name": "Return to the Primogenitor",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT4-104",
+          "name": "Blinding Ray",
+          "qty": 3,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT9-098",
+          "name": "Awakening of the Golden Knight",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "EX4-068",
+          "name": "Heaven's Judgement",
+          "qty": 2,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT16-002",
+          "name": "DemiVeemon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "ex7-dgo-2024-10-12-1-miragegaogamon-galaxy",
+      "revision": 1,
+      "name": "EX7 MirageGaogamon Galaxy",
+      "archetype": "MirageGaogamon Galaxy",
+      "collection": "EX7",
+      "formatBlock": "EX7",
+      "colors": ["Red", "Blue", "White"],
+      "sourceType": "community_tournament_deck",
+      "tournament": {
+        "name": "Ultimate Cup — Versus Games",
+        "date": "2024-10-12",
+        "region": "north-america",
+        "location": "Discord",
+        "organizer": "Versus Games",
+        "eventFormat": "Online",
+        "participants": 415,
+        "placement": 1,
+        "player": "Charles"
+      },
+      "mainDeck": [
+        {
+          "cardId": "EX5-016",
+          "name": "Lunamon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-007",
+          "name": "Coronamon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "ST12-03",
+          "name": "Solarmon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-082",
+          "name": "Ukkomon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-020",
+          "name": "GaoGamon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-017",
+          "name": "Lekismon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-008",
+          "name": "Firamon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX4-019",
+          "name": "MachGaogamon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-020",
+          "name": "Crescemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX6-014",
+          "name": "Huankunmon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-012",
+          "name": "Flaremon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT11-033",
+          "name": "MirageGaogamon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX7-023",
+          "name": "Hexeblaumon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT17-028",
+          "name": "AncientGarurumon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-014",
+          "name": "Apollomon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT17-077",
+          "name": "Imperialdramon: Paladin Mode",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX5-064",
+          "name": "Koh &amp; Sayo",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT13-105",
+          "name": "Full Moon Meteor Impact",
+          "qty": 1,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "EX5-001",
+          "name": "Sunmon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "ex7-dgo-2024-10-12-2-ancientgarurumon",
+      "revision": 1,
+      "name": "EX7 AncientGarurumon",
+      "archetype": "AncientGarurumon",
+      "collection": "EX7",
+      "formatBlock": "EX7",
+      "colors": ["Blue", "Yellow", "White"],
+      "sourceType": "community_tournament_deck",
+      "tournament": {
+        "name": "Regionals — Organized Play Events",
+        "date": "2024-10-12",
+        "region": "europe",
+        "location": "C7 conference center",
+        "organizer": "Organized Play Events",
+        "eventFormat": "Offline",
+        "participants": 175,
+        "placement": 2,
+        "player": "Callum Logan"
+      },
+      "mainDeck": [
+        {
+          "cardId": "BT14-020",
+          "name": "Gomamon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT17-020",
+          "name": "Strabimon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-082",
+          "name": "Ukkomon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT7-081",
+          "name": "Bokomon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "P-123",
+          "name": "Ukkomon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "P-030",
+          "name": "Lobomon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT17-022",
+          "name": "Lobomon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT17-023",
+          "name": "KendoGarurumon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT17-028",
+          "name": "AncientGarurumon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT17-083",
+          "name": "Koji Minamoto",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT7-087",
+          "name": "Koji Minamoto",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "EX1-066",
+          "name": "Analog Youth",
+          "qty": 2,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "P-130",
+          "name": "Lui Ohwada",
+          "qty": 1,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "EX1-068",
+          "name": "Ice Wall!",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "EX4-067",
+          "name": "Full Metal Blaze",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-036",
+          "name": "Blue Memory Boost!",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "ST2-13",
+          "name": "Hammer Spark",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT17-094",
+          "name": "Ancient Guardian Deity",
+          "qty": 2,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT11-002",
+          "name": "Wanyamon",
+          "qty": 4,
+          "type": "DigiEgg"
+        },
+        {
+          "cardId": "BT14-002",
+          "name": "Bukamon",
+          "qty": 1,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "ex7-dgo-2024-10-19-1-fenriloogamon-takemikazuchi",
+      "revision": 1,
+      "name": "EX7 Fenriloogamon Takemikazuchi",
+      "archetype": "Fenriloogamon Takemikazuchi",
+      "collection": "EX7",
+      "formatBlock": "EX7",
+      "colors": ["Red", "Yellow", "Green", "White", "Black", "Purple"],
+      "sourceType": "community_tournament_deck",
+      "tournament": {
+        "name": "Regionals — The Booster Box",
+        "date": "2024-10-19",
+        "region": "north-america",
+        "location": "Discord",
+        "organizer": "The Booster Box",
+        "eventFormat": "Online",
+        "participants": 382,
+        "placement": 1,
+        "player": "PopcornPossums"
+      },
+      "mainDeck": [
+        {
+          "cardId": "BT14-071",
+          "name": "Loogamon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT15-071",
+          "name": "Loogamon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-082",
+          "name": "Ukkomon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-058",
+          "name": "Dorugamon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT17-065",
+          "name": "DexDorugamon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT15-011",
+          "name": "Tyrannomon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT10-080",
+          "name": "SkullBaluchimon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT14-078",
+          "name": "Helloogarmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-076",
+          "name": "Soloogarmon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT17-069",
+          "name": "Fenriloogamon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT17-040",
+          "name": "Kazuchimon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT17-101",
+          "name": "Fenriloogamon: Takemikazuchi",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT14-087",
+          "name": "Eiji Nagasumi",
+          "qty": 2,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT17-091",
+          "name": "Cracker Fang",
+          "qty": 3,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "EX1-066",
+          "name": "Analog Youth",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT16-099",
+          "name": "The Demon Wolf of the Castle of Nine Wolves",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT7-107",
+          "name": "Calling From the Darkness",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "BT8-108",
+          "name": "Mist Memory Boost!",
+          "qty": 2,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT14-006",
+          "name": "Bowmon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "ex7-dgo-2024-10-20-1-miragegaogamon",
+      "revision": 1,
+      "name": "EX7 MirageGaogamon",
+      "archetype": "MirageGaogamon",
+      "collection": "EX7",
+      "formatBlock": "EX7",
+      "colors": ["Blue"],
+      "sourceType": "community_tournament_deck",
+      "tournament": {
+        "name": "Regionals — Sangsang",
+        "date": "2024-10-20",
+        "region": "latin-america",
+        "location": "Hotel El Ejecutivo",
+        "organizer": "Sangsang",
+        "eventFormat": "Offline",
+        "placement": 1,
+        "player": "Vicente Pimentel Godinez"
+      },
+      "mainDeck": [
+        {
+          "cardId": "BT11-020",
+          "name": "Gaomon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX4-015",
+          "name": "Gaomon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX6-012",
+          "name": "Biyomon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT12-024",
+          "name": "Lanamon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT13-025",
+          "name": "GaoGamon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-020",
+          "name": "GaoGamon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX4-017",
+          "name": "Gaogamon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT13-029",
+          "name": "MachGaogamon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT14-026",
+          "name": "Zudomon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX4-019",
+          "name": "MachGaogamon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT11-033",
+          "name": "MirageGaogamon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT13-031",
+          "name": "MirageGaogamon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT13-033",
+          "name": "MirageGaogamon: Burst Mode",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT13-097",
+          "name": "Thomas H. Norstein",
+          "qty": 3,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT4-093",
+          "name": "Thomas H. Norstein",
+          "qty": 3,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "EX1-068",
+          "name": "Ice Wall!",
+          "qty": 1,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-036",
+          "name": "Blue Memory Boost!",
+          "qty": 3,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-104",
+          "name": "Mental Training",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "ST2-13",
+          "name": "Hammer Spark",
+          "qty": 1,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT11-002",
+          "name": "Wanyamon",
+          "qty": 4,
+          "type": "DigiEgg"
+        },
+        {
+          "cardId": "BT14-002",
+          "name": "Bukamon",
+          "qty": 1,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "ex7-dgo-2024-11-09-1-three-great-angels",
+      "revision": 1,
+      "name": "EX7 Three Great Angels",
+      "archetype": "Three Great Angels",
+      "collection": "EX7",
+      "formatBlock": "EX7",
+      "colors": ["Blue", "Yellow", "Purple"],
+      "sourceType": "community_tournament_deck",
+      "tournament": {
+        "name": "Regionals — NoHEROES TCG",
+        "date": "2024-11-09",
+        "region": "europe",
+        "location": "Jaarbeurs Utrecht",
+        "organizer": "NoHEROES TCG",
+        "eventFormat": "Offline",
+        "participants": 82,
+        "placement": 1,
+        "player": "Anil Deger"
+      },
+      "mainDeck": [
+        {
+          "cardId": "BT14-033",
+          "name": "Patamon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT9-033",
+          "name": "Pillomon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX6-017",
+          "name": "Luxmon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT14-102",
+          "name": "Angemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT15-037",
+          "name": "Gatomon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX6-019",
+          "name": "Angemon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT16-024",
+          "name": "MagnaAngemon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT14-037",
+          "name": "MagnaAngemon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT15-038",
+          "name": "Angewomon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX6-035",
+          "name": "Cherubimon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX6-030",
+          "name": "Dominimon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX6-027",
+          "name": "Ophanimon",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX4-074",
+          "name": "ShineGreymon: Ruin Mode",
+          "qty": 1,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "BT4-097",
+          "name": "Kari Kamiya",
+          "qty": 4,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT1-087",
+          "name": "T.K. Takaishi",
+          "qty": 2,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT14-084",
+          "name": "T.K. Takaishi",
+          "qty": 1,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "BT15-092",
+          "name": "Revelation of Light",
+          "qty": 3,
+          "type": "Option"
+        },
+        {
+          "cardId": "EX6-067",
+          "name": "Final Excalibur",
+          "qty": 2,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-037",
+          "name": "Yellow Memory Boost!",
+          "qty": 1,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "BT14-003",
+          "name": "Tokomon",
+          "qty": 4,
+          "type": "DigiEgg"
+        },
+        {
+          "cardId": "EX6-003",
+          "name": "Cupimon",
+          "qty": 1,
+          "type": "DigiEgg"
+        }
+      ]
+    },
+    {
+      "id": "ex7-three-musketeers-bandai",
+      "revision": 1,
+      "name": "EX7 Three Musketeers",
+      "archetype": "Three Musketeers",
+      "collection": "EX7",
+      "formatBlock": "EX7",
+      "colors": ["Red", "Black", "Purple"],
+      "sourceType": "product_recipe",
+      "mainDeck": [
+        {
+          "cardId": "EX7-008",
+          "name": "ToyAgumon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX7-040",
+          "name": "ToyAgumon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX7-051",
+          "name": "Sparrowmon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX7-010",
+          "name": "Deputymon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX7-043",
+          "name": "Tankmon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX7-011",
+          "name": "Megadramon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX7-044",
+          "name": "Gigadramon",
+          "qty": 4,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX7-013",
+          "name": "MagnaKidmon",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX7-048",
+          "name": "Gundramon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX7-059",
+          "name": "BeelStarmon",
+          "qty": 3,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "EX7-073",
+          "name": "BeelStarmon (X Antibody)",
+          "qty": 2,
+          "type": "Digimon"
+        },
+        {
+          "cardId": "ST16-14",
+          "name": "Matt Ishida",
+          "qty": 2,
+          "type": "Tamer"
+        },
+        {
+          "cardId": "EX7-066",
+          "name": "Chaos Triangular",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "EX7-070",
+          "name": "Der Blitz",
+          "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "EX7-071",
+          "name": "Hurricane Screw Shot",
+          "qty": 4,
+          "type": "Option"
+        }
+      ],
+      "eggDeck": [
+        {
+          "cardId": "EX7-005",
+          "name": "Kapurimon",
+          "qty": 4,
+          "type": "DigiEgg"
+        }
+      ]
+    }
+  ]
+}

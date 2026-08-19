@@ -4,6 +4,7 @@ import { CardColor } from "../schema/enums.js";
 import {
   ALL_FAMOUS_DECKS,
   ADDITIONAL_COLLECTION_DECKS,
+  CATALOG_DECKS,
   COMMUNITY_TOURNAMENT_DECKS,
   OFFICIAL_PRODUCT_DECKS,
   famousDeckById,
@@ -13,38 +14,55 @@ import {
 } from "./index.js";
 
 const futureDeck: FamousDeck = {
-  deckId: "future-ex3-example",
-  deckVersion: "future-ex3-example@1",
+  deckId: "future-ex12-example",
+  deckVersion: "future-ex12-example@1",
   name: "Future example",
-  block: "EX3",
+  block: "EX12",
   archetype: "Future example",
   colors: [CardColor.Red],
   source: "Test fixture",
-  decklist: { mainDeck: ["EX3-001"], eggDeck: [] },
+  decklist: { mainDeck: ["EX12-001"], eggDeck: [] },
 };
 
 describe("famous deck catalog", () => {
-  it("keeps the historical catalog available through the operational BT10 cutoff", () => {
-    expect(ALL_FAMOUS_DECKS).toHaveLength(124);
-    expect(famousDeckGroups().flatMap((group) => group.decks)).toHaveLength(33);
+  it("keeps the historical catalog available through the operational cutoff", () => {
+    expect(ALL_FAMOUS_DECKS).toHaveLength(337);
+    expect(famousDeckGroups().flatMap((group) => group.decks)).toHaveLength(229);
   });
 
   it("withholds a whole future deck instead of truncating its list", () => {
     expect(isFamousDeckAvailable(futureDeck)).toBe(false);
-    expect(isFamousDeckAvailable(futureDeck, "2022-11-11")).toBe(true);
-    expect(futureDeck.decklist.mainDeck).toEqual(["EX3-001"]);
+    expect(isFamousDeckAvailable(futureDeck, "2026-07-03")).toBe(true);
+    expect(futureDeck.decklist.mainDeck).toEqual(["EX12-001"]);
   });
 
   it("withholds a future-format result even when all of its cards are older", () => {
     const bt12OldCards = COMMUNITY_TOURNAMENT_DECKS.find((deck) => deck.deckId === "bt12-tj-ukge-2023");
     if (!bt12OldCards) throw new Error("BT12 old-card fixture is missing");
-    expect(isFamousDeckAvailable(bt12OldCards)).toBe(false);
+    expect(isFamousDeckAvailable(bt12OldCards, "2022-12-31")).toBe(false);
   });
 
   it("groups available decks from the most recent format collection to the oldest", () => {
     const groups = famousDeckGroups([...ALL_FAMOUS_DECKS, futureDeck]);
 
     expect(groups.map((group) => group.collection)).toEqual([
+      "BT20",
+      "BT19",
+      "EX8",
+      "BT18",
+      "EX7",
+      "BT17",
+      "EX6",
+      "BT16",
+      "BT15",
+      "EX5",
+      "BT14",
+      "RB1",
+      "BT13",
+      "EX4",
+      "BT12",
+      "BT11",
+      "EX3",
       "BT10",
       "BT9",
       "EX2",
@@ -81,6 +99,10 @@ describe("famous deck catalog", () => {
       "BT22",
       "BT23",
       "BT24",
+      "BT25",
+      "BT25",
+      "BT25",
+      "BT25",
       "EX4",
       "EX5",
       "EX6",
@@ -88,11 +110,10 @@ describe("famous deck catalog", () => {
       "EX8",
       "EX9",
       "EX10",
+      "EX11",
     ]);
-    expect(OFFICIAL_PRODUCT_DECKS.every((deck) => deck.sourceUrl?.startsWith("https://world.digimoncard.com/"))).toBe(
-      true,
-    );
-    expect(famousDeckGroups().flatMap((group) => group.decks)).toHaveLength(33);
+    expect(OFFICIAL_PRODUCT_DECKS.every((deck) => deck.category === "official-recipe")).toBe(true);
+    expect(famousDeckGroups().flatMap((group) => group.decks)).toHaveLength(229);
   });
 
   it("covers every booster collection represented in the registry", () => {
@@ -120,26 +141,40 @@ describe("famous deck catalog", () => {
     }
   });
 
+  it("names every stored deck the same way", () => {
+    for (const deck of CATALOG_DECKS) {
+      expect({ deckId: deck.deckId, name: deck.name }).toEqual({
+        deckId: deck.deckId,
+        name: `${deck.block} ${deck.archetype}`,
+      });
+    }
+  });
+
   it("keeps competitive meta decks distinct from official product recipes", () => {
-    expect(COMMUNITY_TOURNAMENT_DECKS).toHaveLength(66);
+    expect(COMMUNITY_TOURNAMENT_DECKS).toHaveLength(289);
     expect(COMMUNITY_TOURNAMENT_DECKS[0]).toMatchObject({
-      block: "BT12",
+      block: "BT4",
       category: "tournament-result",
       sourceType: "community_tournament_deck",
     });
   });
 
-  it("stores two sourced Digital Gate Open results for every format from BT17 through BT25", () => {
-    for (let collection = 17; collection <= 25; collection += 1) {
-      const decks = COMMUNITY_TOURNAMENT_DECKS.filter((deck) => deck.anchorProduct === `BT${collection}`);
-      expect(decks).toHaveLength(2);
-      expect(
-        decks.every(
-          (deck) =>
-            deck.sourceType === "community_tournament_deck" &&
-            deck.sourceUrl?.startsWith("https://digitalgateopen.com/deck-tournament/") === true,
-        ),
-      ).toBe(true);
+  it("stores at least eight sourced tournament results for every collection released after BT10", () => {
+    const collections = [
+      ...Array.from({ length: 15 }, (_, index) => `BT${index + 11}`),
+      ...Array.from({ length: 10 }, (_, index) => `EX${index + 3}`),
+      "RB1",
+      "AD1",
+    ];
+    for (const collection of collections) {
+      const decks = COMMUNITY_TOURNAMENT_DECKS.filter((deck) => deck.anchorProduct === collection);
+      const archetypes = new Set(decks.map((deck) => deck.archetype));
+      expect({
+        collection,
+        sourced: decks.length >= 8,
+        distinctArchetypes: archetypes.size >= 6,
+        credited: decks.every((deck) => deck.source.includes("#")),
+      }).toEqual({ collection, sourced: true, distinctArchetypes: true, credited: true });
     }
   });
 
