@@ -31,6 +31,11 @@ const command = args[0];
 const force = args.includes("--force");
 const limitArg = args.indexOf("--limit");
 const limit = limitArg !== -1 ? Number(args[limitArg + 1]) : Infinity;
+const startArg = args.indexOf("--start");
+const start = startArg !== -1 ? Number(args[startArg + 1]) : 0;
+const outputArg = args.indexOf("--output");
+const qaOutput = outputArg !== -1 ? path.resolve(args[outputArg + 1]) : QA_PATH;
+const noManifest = args.includes("--no-manifest");
 
 function log(message) {
   process.stdout.write(`${message}\n`);
@@ -80,8 +85,8 @@ async function scrapeBanlist() {
 }
 
 async function scrapeQa() {
-  const cardIds = loadCardIds().slice(0, limit);
-  const qa = force ? {} : readJson(QA_PATH, {}) ?? {};
+  const cardIds = loadCardIds().slice(start, start + limit);
+  const qa = force ? {} : readJson(qaOutput, {}) ?? {};
   let withRulings = 0;
   let fetched = 0;
   let processed = 0;
@@ -116,18 +121,20 @@ async function scrapeQa() {
     processed++;
     if (processed % 100 === 0) {
       log(`  qa: ${processed}/${cardIds.length} processed, ${fetched} fetched, ${failed.length} failed...`);
-      writeJson(QA_PATH, qa); // checkpoint
+      writeJson(qaOutput, qa); // checkpoint
     }
   }
 
-  writeJson(QA_PATH, qa);
-  updateManifest("qa", {
-    url: SOURCES.qa("<card_no>"),
-    cardsScanned: cardIds.length,
-    cardsWithRulings: Object.keys(qa).length,
-    lastFetched: fetched,
-    failed,
-  });
+  writeJson(qaOutput, qa);
+  if (!noManifest) {
+    updateManifest("qa", {
+      url: SOURCES.qa("<card_no>"),
+      cardsScanned: cardIds.length,
+      cardsWithRulings: Object.keys(qa).length,
+      lastFetched: fetched,
+      failed,
+    });
+  }
   log(
     `qa: scanned ${cardIds.length} cards, ${Object.keys(qa).length} have rulings ` +
       `(${withRulings} updated this run, ${fetched} fetched, ${failed.length} failed) -> ${rel(QA_PATH)}`,
@@ -158,7 +165,7 @@ async function main() {
       await scrapeQa();
       break;
     default:
-      log("usage: node tools/kb/scrape.mjs <errata|banlist|qa|all> [--limit N] [--force]");
+      log("usage: node tools/kb/scrape.mjs <errata|banlist|qa|all> [--start N] [--limit N] [--output FILE] [--no-manifest] [--force]");
       process.exit(command ? 1 : 0);
   }
 }

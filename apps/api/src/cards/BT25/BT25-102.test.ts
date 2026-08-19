@@ -19,11 +19,12 @@ describe("BT25-102 Factorial Area", () => {
     const areaId = s.inst("area").instanceId;
     const topSecurityId = s.inst("topSecurity").instanceId;
 
+    type PlayCardIntentWithUseAs = Parameters<typeof s.engine.applyIntent>[1] & { useAs?: "digimon" | "option" };
     expect(s.engine.applyIntent(0, {
       type: "playCard",
       instanceId: areaId,
       useAs: "option",
-    })).toEqual({ ok: true });
+    } as PlayCardIntentWithUseAs)).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === areaId));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === topSecurityId)).toBe(true);
