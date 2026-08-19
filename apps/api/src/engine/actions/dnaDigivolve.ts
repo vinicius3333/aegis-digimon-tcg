@@ -7,6 +7,7 @@ import {
   type Seat,
 } from "@aegis/shared";
 import { definitionOf, isDigimon } from "../cards/cardData.js";
+import { blastDnaMaterialNames, blastDnaMaterialsMatch } from "../cards/blastDnaMaterials.js";
 import { findBattleAreaPermanent, findInHand, playerAt } from "./digivolveState.js";
 
 /**
@@ -28,12 +29,11 @@ import { findBattleAreaPermanent, findInHand, playerAt } from "./digivolveState.
  * ＜Blast DNA Digivolve＞ (§16-31-1): "One of your Digimon specified in this effect and a card
  * from your hand may digivolve into a card with this keyword effect in the hand without paying
  * the cost." `costWaived` (bound to `hasBlastDigivolveKeyword`, the same compiled-IR registry
- * §16-26's ＜Blast Digivolve＞ waiver reads) skips the memory payment. The keyword's specific
- * named materials ("[WarGreymon] + [MetalGarurumon]") are not currently parsed into structured
- * data (no `dnaDigivolveRequirement` compiles for a Blast-DNA-Digivolve-keyworded card), so on
- * the waived path only the structural minimum (>=2 battle-area Digimon materials) is enforced —
- * a documented data gap, not a logic bug (mirrors how §16-26 still enforces the printed EvoCost
- * because that data DOES exist).
+ * §16-26's ＜Blast Digivolve＞ waiver reads) skips the memory payment. What it does NOT skip is
+ * the keyword's own named materials ("[WarGreymon] + [MetalGarurumon]"): no
+ * `dnaDigivolveRequirement` compiles for these cards, so the names are read off the printed text
+ * by `blastDnaMaterialNames` and matched here. This mirrors §16-26, where the waived path still
+ * enforces the printed EvoCost.
  *
  * Server-authoritative and platform-independent. `validateDnaDigivolve` mutates nothing; `applyDnaDigivolve`
  * mutates only what the injected `dnaDigivolveInto` primitive mutates.
@@ -173,11 +173,17 @@ export function validateDnaDigivolve(
     return { ok: false, reason: "invalid-evolution" };
   }
 
-  // 4. ＜Blast DNA Digivolve＞ (§16-31-1): "without paying the cost" — skip the printed
-  //    DNA-digivolve requirement match (no structured data compiles for its named-materials
-  //    keyword text today) and the memory cost.
+  // 4. ＜Blast DNA Digivolve＞ (§16-31-1): "without paying the cost" waives the memory cost and
+  //    the printed DNA-digivolve requirement (these cards print none), but NOT the materials the
+  //    keyword itself names — "([WarGreymon] + [MetalGarurumon])" is the requirement for this
+  //    path. They are read off the printed text because no structured field compiles for them.
   const costWaived = deps.costWaived?.(state, found.instance) === true;
   if (costWaived) {
+    const required = blastDnaMaterialNames(found.instance.cardId);
+    if (required !== undefined) {
+      const materialNames = materials.map((material) => definitionOf(material.topCard!.cardId).nameEn);
+      if (!blastDnaMaterialsMatch(materialNames, required)) return { ok: false, reason: "invalid-evolution" };
+    }
     return { ok: true, instance: found.instance, definition, materials, costWaived: true, cost: 0 };
   }
 

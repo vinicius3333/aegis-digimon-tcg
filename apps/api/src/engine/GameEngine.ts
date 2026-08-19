@@ -76,7 +76,7 @@ import { digisorptionAmountFor, isDigisorptionRedirector } from "./cards/digisor
 import { tamerOntoDigivolveLevel } from "./cards/tamerOntoDigivolve.js";
 import { UseTracker, canActivate, canTrigger } from "./effects/kernel.js";
 import { runTiming, type EffectEnvironment, type ResolutionDeps } from "./effects/index.js";
-import { collectConferredEffects, effectsOf } from "./effects/collect.js";
+import { collectConferredEffects, collectGrantedCustomEffects, effectsOf } from "./effects/collect.js";
 import {
   applyWouldBePlayedSelfReducer,
   applyWouldDigivolveSelfReducer,
@@ -85,6 +85,7 @@ import {
   potentialWouldDigivolveSelfReduction,
   matchNameOrTrait,
   hasBlastDigivolveKeyword,
+  grantedTokenEffectsForTiming,
   resolveSelfWhenTrashedFromDeck,
   universalNameAliasesFor,
 } from "./effects/interpreter.js";
@@ -1712,6 +1713,34 @@ export class GameEngine {
         };
         await effect.resolve(ctx);
       }
+      // Named custom effect grants ("1 of your opponent's Digimon gains '[All Turns] When this
+      // Digimon becomes suspended, lose 2 memory.'"). Discrete timings already reach these through
+      // gatherTriggeredEffects -> collectGrantedCustomEffects, but a granted [All Turns]/Static
+      // clause lives in the CONTINUOUS window: its SubTrigger/Replacement watcher has to be
+      // installed by this pass or it is never armed at all. Without this the grant is recorded in
+      // the ledger, reads as active on the board, and silently never fires.
+      const grantedContinuous = collectGrantedCustomEffects(
+        EffectTiming.None,
+        this.continuous.listCustomEffectGrants(),
+        (instanceId) => sourceByInstanceId.get(instanceId),
+        (token, source) => grantedTokenEffectsForTiming(token, EffectTiming.None, source),
+        (source, effect) => ({
+          ...this.buildEffectContext(source, {}, noPromptAsk),
+          activeTiming: EffectTiming[EffectTiming.None],
+          activeEffectText: effect.description,
+        }),
+        this.tracker,
+      );
+      for (const { source, effect } of grantedContinuous) {
+        const ctx: EffectContext = {
+          ...this.buildEffectContext(source, {}, noPromptAsk),
+          activeTiming: EffectTiming[EffectTiming.None],
+          activeEffectText: effect.description,
+        };
+        if (!canActivate(effect, ctx, this.tracker)) continue;
+        await effect.resolve(ctx);
+      }
+
       // BT23-024 suspend-restriction-with-superlative-exception: for every ARMED source, re-derive
       // the affected opponent set (all opponent Digimon MINUS the highest-play-cost one) and record
       // a CONTINUOUS `suspend` restriction per affected permanent. Done here (not in a card's

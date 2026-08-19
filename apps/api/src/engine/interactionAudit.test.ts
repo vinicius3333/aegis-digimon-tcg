@@ -8,6 +8,7 @@ import {
   type EngineSetup,
 } from "./testkit/harness.js";
 import { advance } from "./testkit/advance.js";
+import { observe } from "./testkit/observe.js";
 import { MemoryGauge } from "./MemoryGauge.js";
 import "../cards/index.js";
 
@@ -714,35 +715,177 @@ describe("a granted 'when this Digimon suspends' watcher (§15-8-3)", () => {
   });
 });
 
-describe("an activated effect with nothing to act on (§15-5-2)", () => {
-  it("does not pay the activation cost when the payload has no legal target", async () => {
-    // Activation costs and payloads are one transaction. If the payload can find nothing to do,
-    // the activation must not happen at all — otherwise the player pays (here, suspends their
-    // Tamer) and gets nothing back.
+describe('an optional processing condition — "by X, Y" (§15-7-5)', () => {
+  it("is still offered when nothing would come of the processing after the condition", async () => {
+    // §15-7-5, verbatim: "A player can choose to execute the content of optional processing
+    // conditions, regardless of whether or not the content after the conditions can be executed",
+    // with the example of trashing your top security card for a -5000 DP effect while the opponent
+    // has no Digimon at all. The cost is the player's to pay; an empty payload is not a reason to
+    // withhold the whole ability — paying a cost to move a card to the trash, or to suspend
+    // something, is regularly the point of activating it.
     const s = setup({
-      0: {
-        // P-242 Rei Katsura: [Main] By suspending this Tamer, you may link 1 [System]/[Life (App
-        // Name)]/[Transmutation (App Name)] trait card from your trash to 1 of your Digimon.
-        battleArea: [
-          { card: "P-242", as: "rei" },
-          { card: VANILLA, as: "host" },
-        ],
-        trash: [VANILLA], // nothing with a linkable trait
+      // BT15-009: [Main] [Once Per Turn] By paying 2 cost, delete 1 of your opponent's Digimon
+      // with DP less than or equal to this Digimon's DP. The opponent's board is empty, so the
+      // deletion half has nothing to do — the cost is still the player's to pay.
+      0: { battleArea: [{ card: "BT15-009", as: "source" }] },
+      1: {},
+    });
+    await s.ready();
+    s.state.memory = 5;
+
+    const entry = activatableEffects(s, s.perm("source")).find(
+      (e) => e.instanceId === s.perm("source").topCard?.instanceId,
+    );
+    expect(entry, "the [Main] ability is offered even with nothing to delete").toBeDefined();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: entry!.instanceId,
+        effectKey: entry!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((e) => e.kind === "effectActivated"), 3000);
+
+    expect(s.state.memory).toBe(3); // the cost was paid; the payload simply found nothing
+  });
+});
+
+describe("deletion by an effect is not deletion in battle (§4-14)", () => {
+  it("does not trigger ＜Retaliation＞ when the holder is deleted by an effect", async () => {
+    // KB BT4-101/LM-003: a Digimon removed by an effect was not "deleted in battle", so the
+    // battle-scoped reactions stay silent. This is the boundary the combat pipeline has to keep:
+    // ＜Retaliation＞ (§16-13-1) reads the battle result, not "this Digimon died somehow".
+    const s = setup(
+      {
+        0: { battleArea: [{ card: VANILLA, as: "bystander" }] },
+        1: { battleArea: [{ card: "BT10-078", as: "retaliator", under: ["BT21-010"] }] },
       },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("retaliator"), "Retaliation")).toBe(true);
+
+    await advance(s.engine).verb.deletePermanent([s.perm("retaliator").permanentId]);
+    await settle(() => false, 3000);
+
+    expect(battleArea(s, 1).length).toBe(0);
+    expect(battleArea(s, 0).length).toBe(1); // no battle happened, so nothing retaliates
+  });
+
+  it("does not run a ＜Piercing＞ security check when the Digimon is removed by an effect", async () => {
+    // §16-7-1 scopes ＜Piercing＞ to "when this Digimon ATTACKS and deletes an opponent's Digimon
+    // in battle". A piercing Digimon that removes an opponent by effect has neither attacked nor
+    // battled, so the defending player's security stack is untouched.
+    const s = setup({
+      0: { battleArea: [{ card: "EX8-051", as: "piercer" }] },
+      1: { battleArea: [{ card: VANILLA, as: "victim" }], security: [VANILLA, VANILLA] },
     });
     await s.ready();
 
-    const entry = activatableEffects(s, s.perm("rei")).find((e) => e.instanceId === s.perm("rei").topCard?.instanceId);
-    if (entry !== undefined) {
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: entry.instanceId,
-        effectKey: entry.effectKey,
-      });
-      await settle(() => false, 3000);
-    }
+    await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId]);
+    await settle(() => false, 3000);
 
-    expect(s.perm("rei").isSuspended).toBe(false);
-    expect(s.perm("host").linked.length).toBe(0);
+    expect(battleArea(s, 1).length).toBe(0);
+    expect((s.state.players[1] as PlayerState).security.length).toBe(2);
+  });
+});
+
+describe("an effect coming from a digivolution card (§4-5)", () => {
+  it("stops applying the moment that card leaves the digivolution stack", async () => {
+    // A card under a Digimon confers its effect only while it is there (KB BT4-006: "You lose
+    // this card's inherited effect when it is placed in the trash"). BT10-078 gains
+    // ＜Retaliation＞ from its own Aura only "while a [Gammamon] card is in its digivolution
+    // cards", so trashing that card has to take the keyword with it — a grant that outlives its
+    // source is a keyword the board still shows and the rules no longer support.
+    const s = setup({
+      1: { battleArea: [{ card: "BT10-078", as: "holder", under: [{ card: "BT21-010", as: "gammamon" }] }] },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("holder"), "Retaliation")).toBe(true);
+
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("holder").permanentId, [s.inst("gammamon").instanceId]);
+    await settle(() => false, 3000);
+
+    expect(s.perm("holder").stack.length).toBe(0);
+    expect(observe(s.engine).hasKeyword(s.perm("holder"), "Retaliation")).toBe(false);
+  });
+});
+
+describe("scaling counts only what the effect says it counts", () => {
+  it("ignores the Digimon's own colors when counting colors in its digivolution cards", async () => {
+    // "For each color in this Digimon's digivolution cards" names one zone. Folding the top
+    // card's own colors into the count inflates every such effect by up to three — and it is
+    // invisible on a mono-colour board, which is where these effects are usually tested.
+    // BT19-014 is Red/Yellow/Black; a stack of two Blue cards is exactly 1 color.
+    const s = setup({
+      0: { battleArea: [{ card: "BT19-014", as: "shoutmon", under: ["BT1-027", "BT1-028"] }] },
+      1: { battleArea: [{ card: VANILLA, as: "victim" }] },
+    });
+    await s.ready();
+    const dpBefore = s.perm("victim").currentDP;
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("shoutmon"));
+    await settle(() => false, 3000);
+
+    expect(s.perm("victim").currentDP).toBe(dpBefore - 1000);
+  });
+});
+
+describe("a conditional restriction (§15-11)", () => {
+  it("is not created at all when the condition that gates it is false", async () => {
+    // EX3-012 Volcanicdramon only restricts the opponent "if no Digimon is deleted by this
+    // effect". With an opponent Digimon on the board the deletion happens, so the restriction
+    // half never applies — the discriminator for the "restricts only the opponent" case above,
+    // and the shape that goes wrong when a conditional clause is stored unconditionally.
+    const s = setup(
+      {
+        0: {
+          battleArea: [{ card: "EX3-012", as: "volcanic" }],
+          hand: [{ card: "BT1-009", as: "smallDigimon" }],
+        },
+        1: { battleArea: [{ card: VANILLA, as: "prey" }] },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("volcanic"));
+    await settle(() => false, 3000);
+    expect(battleArea(s, 1).length).toBe(0); // the deletion half happened
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("smallDigimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => false, 2000);
+    expect(battleArea(s, 0).some((p) => p.topCard?.cardId === "BT1-009")).toBe(true);
+  });
+});
+
+describe("one trigger condition triggers once (§15-5-2)", () => {
+  it("fires a 'when a card is removed from your security stack' watcher once for a 2-card removal", async () => {
+    // §15-5-2 uses this exact example: an effect reading "[Opponent's Turn] When a card is removed
+    // from your security stack, ..." triggers ONCE even when 2 or more cards leave the stack at the
+    // same time. A watcher driven per removed card instead of per removal event multiplies the
+    // effect by however many cards happened to move.
+    const s = setup(
+      {
+        // BT11-045 ClavisAngemon: [Opponent's Turn] When a card is removed from your security
+        // stack, 1 of your opponent's Digimon gets -4000 DP for the turn.
+        0: { battleArea: [{ card: "BT11-045", as: "clavis" }], security: [VANILLA, VANILLA, VANILLA] },
+        1: { battleArea: [{ card: VANILLA, as: "victim" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1; // [Opponent's Turn] — seat 0's watcher is live during seat 1's turn
+    const dpBefore = s.perm("victim").currentDP;
+
+    await advance(s.engine).verb.trashFromSecurity(0, 2, { fromTop: true });
+    await settle(() => false, 3000);
+
+    expect((s.state.players[0] as PlayerState).security.length).toBe(1);
+    expect(s.perm("victim").currentDP).toBe(dpBefore - 4000);
   });
 });

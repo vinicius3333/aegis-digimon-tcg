@@ -459,18 +459,23 @@ describe("resolveTiming: pass-cap overflow (Comprehensive Rules §18-3-2 infinit
   });
 });
 
-describe("resolveTiming: a pending effect whose source leaves and comes back (§15-4-4-3)", () => {
-  it("does not activate an effect whose source left its area mid-window and returned", async () => {
+describe("resolveTiming: a pending effect whose source stops being collectable (§15-4-4-3/5)", () => {
+  it("does not activate an effect whose source left its area mid-window and later returned", async () => {
     // §15-4-4-3: "When a card with an effect that's pending activation becomes a new card before
     // the effect activates, the effect can no longer be activated." Leaving an area and coming
-    // back to it makes a card a new card, so a round trip inside one resolution window kills the
-    // pending trigger — it does not park it until the card is home again.
+    // back makes a card a new card, so the round trip kills the pending trigger — it does not
+    // park it until the card is home again. §15-4-4-5 says the same for an effect whose trigger
+    // conditions stop being met while it is pending. Both look identical from here: the effect
+    // drops out of `collect(timing)`.
     //
-    // The window here holds two effects. `mover` resolves first and, in its body, takes `pending`
-    // out of the collectable set (the card left its area) and then puts it back (it returned).
-    // Because the loop re-collects only between resolutions, `pending` is collectable again by
-    // the time the next pass runs — so a resolver that re-derives the activatable set purely
-    // from live state, with no memory of the departure, will resolve it.
+    // `mover` resolves first and takes `pending` out of the collectable set (its card left the
+    // area). `restorer` resolves next and puts it back (the card returned). Without a record of
+    // the departure the fixpoint — which re-derives the activatable set purely from live state —
+    // sees `pending` sitting there again on the following pass and resolves it.
+    //
+    // Known limit: a card that leaves and returns inside ONE effect body is invisible here, since
+    // the loop only re-collects between resolutions. Catching that needs the zone-move seam to
+    // report the departure, not a per-pass snapshot.
     const resolvedKeys: string[] = [];
     const pending = fakeEffect("pending", { onResolve: () => resolvedKeys.push("pending") });
     const pendingEntry = collected(0, "pending-card", pending);
@@ -480,15 +485,32 @@ describe("resolveTiming: a pending effect whose source leaves and comes back (§
       onResolve: () => {
         resolvedKeys.push("mover");
         collectable = collectable.filter((c) => c !== pendingEntry); // the card leaves its area
-        collectable = [...collectable, pendingEntry]; // ...and returns, as a new card
       },
     });
-    const moverEntry = collected(0, "mover-card", mover);
-    collectable = [moverEntry, pendingEntry];
+    const restorer = fakeEffect("restorer", {
+      onResolve: () => {
+        resolvedKeys.push("restorer");
+        collectable = [...collectable, pendingEntry]; // ...and comes back, as a new card
+      },
+    });
+    collectable = [collected(0, "mover-card", mover), collected(0, "restorer-card", restorer), pendingEntry];
 
     const { env } = envOver([], { collect: () => collectable });
     await resolveTiming(EffectTiming.OnPlay, env);
 
-    expect(resolvedKeys).toEqual(["mover"]);
+    expect(resolvedKeys).toEqual(["mover", "restorer"]);
+  });
+
+  it("still resolves an effect that stays collectable for the whole window", async () => {
+    // The discriminator: nothing departs, so every collected effect resolves as usual.
+    const resolvedKeys: string[] = [];
+    const first = fakeEffect("first", { onResolve: () => resolvedKeys.push("first") });
+    const second = fakeEffect("second", { onResolve: () => resolvedKeys.push("second") });
+    const collectable = [collected(0, "a", first), collected(0, "b", second)];
+
+    const { env } = envOver([], { collect: () => collectable });
+    await resolveTiming(EffectTiming.OnPlay, env);
+
+    expect(resolvedKeys).toEqual(["first", "second"]);
   });
 });
