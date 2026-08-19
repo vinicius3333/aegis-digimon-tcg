@@ -2524,6 +2524,10 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // `filter.nameOrTrait`, using the same Form ∪ Attribute ∪ Type union as every other trait
       // match. An unset filter never matches (we do not guess).
       return selfStackMatchesTrait(ctx, cond.filter);
+    case "selfDigivolutionStackMatchesFilter": {
+      const self = ctx.source.permanent();
+      return self !== undefined && cond.filter !== undefined && self.stack.some((card) => definitionMatches(cond.filter!, ctx.game.definitionOf(card)));
+    }
     case "selfDigivolutionStackHasColor": {
       const self = ctx.source.permanent();
       const colors = cond.filter?.colors ?? [];

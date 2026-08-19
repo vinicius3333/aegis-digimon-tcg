@@ -188,6 +188,54 @@ describe("new typed RAW-elimination conditions", () => {
     ctx.trigger.playedPlayCost = 1;
     expect(evaluateCondition(ctx, { kind: "triggerPlayCostAtMostStackCount" })).toBe(true);
   });
+
+  it("keeps the new predicates conservative at their boundaries", () => {
+    const targetA = makeFakePermanent({ permanentId: "TARGET-A", controllerSeat: 1 as Seat, currentDP: 7000 });
+    const targetB = makeFakePermanent({ permanentId: "TARGET-B", controllerSeat: 1 as Seat, currentDP: 6999 });
+    const { ctx } = conditionContext({ opponentBattleArea: [targetA, targetB] });
+    ctx.lastResolvedPermanentIds = ["TARGET-A", "TARGET-B"];
+    expect(evaluateCondition(ctx, { kind: "lastTargetDpAtMostSelf" })).toBe(true);
+    targetA.currentDP = 7001;
+    expect(evaluateCondition(ctx, { kind: "lastTargetDpAtMostSelf" })).toBe(false);
+
+    ctx.lastResolvedPermanentIds = ["TARGET-A"];
+    ctx.trigger.playedPlayCost = 1;
+    expect(evaluateCondition(ctx, { kind: "triggerPlayCostAtMostStackCount" })).toBe(true);
+    ctx.trigger.playedPlayCost = 2;
+    expect(evaluateCondition(ctx, { kind: "triggerPlayCostAtMostStackCount" })).toBe(false);
+  });
+
+  it("matches the event subject and stack cards through their full definitions", () => {
+    const subject = makeFakePermanent({
+      permanentId: "SUBJECT",
+      controllerSeat: 0 as Seat,
+      topCard: { instanceId: "subject-card", cardId: "ADVENTURE", ownerSeat: 0, faceUp: true } as never,
+    });
+    const tamer = { instanceId: "stack-tamer", cardId: "TAMER", ownerSeat: 0, faceUp: true } as never;
+    const sourcePermanent = makeFakePermanent({
+      permanentId: "SOURCE",
+      controllerSeat: 0 as Seat,
+      stack: [tamer, { instanceId: "source-top", cardId: "SOURCE", ownerSeat: 0, faceUp: true }] as never,
+    });
+    const { ctx } = conditionContext({
+      ownBattleArea: [sourcePermanent, subject],
+      trigger: { subjectPermanentId: "SUBJECT" },
+      definitionOf: (id) => {
+        if (id === "TAMER") return makeFakeDefinition({ cardId: id, kinds: [CardKind.Tamer] });
+        if (id === "ADVENTURE") return makeFakeDefinition({ cardId: id, kinds: [CardKind.Digimon], types: ["ADVENTURE"] });
+        return makeFakeDefinition({ cardId: id, kinds: [CardKind.Digimon] });
+      },
+    });
+    ctx.source.permanent = () => sourcePermanent;
+    expect(evaluateCondition(ctx, {
+      kind: "triggerSubjectMatchesFilter",
+      filter: { nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }] },
+    })).toBe(true);
+    expect(evaluateCondition(ctx, {
+      kind: "selfDigivolutionStackMatchesFilter",
+      filter: { kind: ["Tamer"] },
+    })).toBe(true);
+  });
 });
 
 describe("Return result bindings", () => {

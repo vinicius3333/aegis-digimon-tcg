@@ -36,10 +36,10 @@ describe("raw IR guard", () => {
     const nodes = collectRawNodes();
     const cards = new Set(nodes.map((node) => node.cardId));
     // The plan's historical main-tree baseline was 281 nodes / 216 cards. The
-    // inline runtime modules currently expose 278 nodes / 209 cards after the
-    // after the common condition re-encodings. The upstream effects.json
+    // inline runtime modules currently expose 59 nodes / 40 cards after the
+    // latest typed condition re-encodings. The upstream effects.json
     // fallback is excluded because it is not the runtime source for hand-written modules.
-    expect({ nodes: nodes.length, cards: cards.size }).toEqual({ nodes: 74, cards: 48 });
+    expect({ nodes: nodes.length, cards: cards.size }).toEqual({ nodes: 59, cards: 40 });
     expect(nodes.every((node) => node.raw.length > 0)).toBe(true);
   });
 

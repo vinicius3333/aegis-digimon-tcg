@@ -127,7 +127,10 @@ export const compiled: CompiledCard = {
             },
           },
           while: {
-            kind: "raw",
+            kind: "anyOf",
+            conditions: [
+              { kind: "selfHasName", names: ["Hudiemon", "Eater Legion", "Eater EDEN"] },
+            ],
             raw: "this Digimon is [Hudiemon], [Eater Legion] or [Eater EDEN]",
           },
         },

@@ -9,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Trigger: SubTrigger on whenOptionUsed, not YourTurn free-fire.
 // KB Q5407: activates after the used Option card's [Main] effect resolves.
 // KB Q5408: does NOT trigger if an Option's effect activates via [Security] or <Delay>.
-// The fireCondition is modeled as raw since no `triggerOptionHasTrait` kind exists yet.
+// The fireCondition matches the Option that drove the whenOptionUsed event.
 const compiled: CompiledCard = {
   effects: [
     {
@@ -21,7 +21,11 @@ const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "whenOptionUsed",
           fireCondition: {
-            kind: "raw",
+            kind: "triggerSubjectMatchesFilter",
+            filter: {
+              kind: ["Option"],
+              nameOrTrait: [{ tokens: ["Onmyōjutsu", "Plug-In"], match: "trait" }],
+            },
             raw: "when you use an [Onmyōjutsu] or [Plug-In] trait Option card",
           },
           actions: [

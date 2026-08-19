@@ -1008,6 +1008,7 @@ export interface Condition {
     | "digivolutionCountCompare" // compares a selected Digimon's stack size with the source/target stack
     | "triggerPlayCostAtMostStackCount" // true when the triggered card's play cost is <= a matching stack count
     | "selfDigivolutionStackHasTrait" // "while a card with [X] in its traits is in THIS Digimon's digivolution cards" (BT7-024); `filter.nameOrTrait` carries the trait token(s), matched against each stack card's trait union (Form ∪ Attribute ∪ Type)
+    | "selfDigivolutionStackMatchesFilter" // true when any card in the SOURCE stack matches the full filter (BT17-101 Tamer card)
     | "selfDigivolutionStackHasColor" // true when a SOURCE stack card has one of `filter.colors` (BT8-082)
     | "selfDigivolutionStackHasNonColor" // true when a SOURCE stack card has none of `filter.colors` (BT10-001)
     | "selfDigivolutionStackDistinctColorCount" // distinct printed colors among SOURCE stack cards matching `filter`, compared with `op`/`value`

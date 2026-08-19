@@ -35,7 +35,9 @@ export const compiled: CompiledCard = {
               amount: 5,
               raw: "reduce the play cost by 5",
               condition: {
-                kind: "raw",
+                kind: "totalDigimonCount",
+                op: "gte",
+                value: 3,
                 raw: "there are 3 or more Digimon",
               },
             },
