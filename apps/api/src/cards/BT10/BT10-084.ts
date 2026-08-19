@@ -55,11 +55,7 @@ const module: EffectModule = {
 
             // Grant Blocker to each played Digimon.
             for (const perm of played) {
-              ctx.fx.grantKeyword(
-                perm.permanentId,
-                "Blocker",
-                EffectDuration.UntilOpponentTurnEnd,
-              );
+              ctx.fx.grantKeyword(perm.permanentId, "Blocker", EffectDuration.UntilOpponentTurnEnd);
             }
           },
         }),
