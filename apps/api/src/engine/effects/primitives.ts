@@ -1336,6 +1336,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       await engine.fireSubTrigger?.("onAddDigivolutionCards", {
         subjectPermanentId: targetPermanentId,
         addedDigivolutionCardInstanceIds: placed.map((card) => card.instanceId),
+        addedDigivolutionCardsPosition: opts?.belowTop ? "bottom" : "top",
       });
     }
     return placed;

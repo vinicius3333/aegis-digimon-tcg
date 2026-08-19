@@ -235,6 +235,8 @@ export interface TriggerInfo {
   subjectPermanentIds?: string[];
   /** Card instances just added to the subject permanent's digivolution stack. */
   addedDigivolutionCardInstanceIds?: string[];
+  /** Stack position used by an effect placing cards under a Digimon. */
+  addedDigivolutionCardsPosition?: "top" | "bottom";
   /** Printed card id selected as the destination of an imminent digivolution. */
   digivolvingIntoCardId?: string;
   /** Printed level of the permanent's top card immediately before a digivolution. */

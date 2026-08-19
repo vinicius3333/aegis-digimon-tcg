@@ -47,7 +47,8 @@ const module: EffectModule = {
               matches: (subCtx) => {
                 return (
                   subCtx.source.isOnBattleArea() &&
-                  subCtx.source.isOwnersTurn()
+                  subCtx.source.isOwnersTurn() &&
+                  subCtx.trigger.addedDigivolutionCardsPosition === "bottom"
                 );
               },
               run: async (subCtx) => {
