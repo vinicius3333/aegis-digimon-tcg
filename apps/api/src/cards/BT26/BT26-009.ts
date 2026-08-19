@@ -32,6 +32,9 @@ const cardId = "BT26-009";
 function isChronomonOrShamanCard(def: CardDefinition): boolean {
   return (
     matchNameOrTrait(def, { tokens: ["Chronomon"], match: "text" }) ||
+    [def.inheritedEffectText, def.securityEffectText, def.linkEffect, def.optionEffect].some((text) =>
+      text?.toLowerCase().includes("chronomon"),
+    ) ||
     matchNameOrTrait(def, { tokens: ["Shaman"], match: "trait" })
   );
 }
