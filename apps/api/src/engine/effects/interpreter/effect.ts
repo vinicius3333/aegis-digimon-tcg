@@ -398,12 +398,16 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
     if (effect.turnCondition === "opponentsTurn" && isOwnerTurn) return;
   }
   // Fresh selection-binding store for this resolution (SelectBind -> later relativeTo refs).
-  const ctxWithSelections: EffectContext = {
-    ...(ctx.selections ? ctx : { ...ctx, selections: new Map() }),
-    // Restrictions belong to this effect resolution only.  Clone the inherited set so a
-    // nested/subsequent effect cannot accidentally retain a previous card's restriction.
-    effectRestrictions: new Set(ctx.effectRestrictions ?? []),
-  };
+  // A caller that already seeded `selections` is asking to be resolved ON ITS OWN context, because
+  // it reads back what the actions write there (GameEngine.fireBeforePayCost and its
+  // `playCostDelta`). Copying would strand every such write, so only an unseeded context is cloned.
+  const ctxWithSelections: EffectContext = ctx.selections ? ctx : { ...ctx, selections: new Map() };
+  // Restrictions belong to this effect resolution only, so the inherited set is swapped for a clone
+  // and put back afterwards: a nested or subsequent effect must not retain this card's restriction.
+  const outerRestrictions = ctxWithSelections.effectRestrictions;
+  const outerTiming = ctxWithSelections.activeTiming;
+  const outerEffectText = ctxWithSelections.activeEffectText;
+  ctxWithSelections.effectRestrictions = new Set(ctx.effectRestrictions ?? []);
   ctxWithSelections.activeTiming = effect.trigger;
   ctxWithSelections.activeEffectText = effect.isInherited
     ? ctx.source.definition.inheritedEffectText
@@ -462,6 +466,9 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
       if (abort) break;
     }
   } finally {
+    ctxWithSelections.effectRestrictions = outerRestrictions;
+    ctxWithSelections.activeTiming = outerTiming;
+    ctxWithSelections.activeEffectText = outerEffectText;
     mirrorResultBindings(ctxWithSelections, ctx);
   }
 }
