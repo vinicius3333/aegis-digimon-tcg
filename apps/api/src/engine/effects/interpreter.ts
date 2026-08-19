@@ -3014,23 +3014,26 @@ export async function payCost(
       });
       const candidates = hosts.flatMap((host) => {
         const bottomFaceDown = host.stack.find((card) => !card.faceUp);
-        return bottomFaceDown === undefined
-          ? []
-          : [{ hostId: host.permanentId, cardId: bottomFaceDown.instanceId }];
+        return bottomFaceDown === undefined ? [] : [{ hostId: host.permanentId, cardId: bottomFaceDown.instanceId }];
       });
       const count = cost.count ?? 1;
       if (candidates.length < count) return false;
       const chosen =
         candidates.length === count
           ? candidates
-          : (await ctx.ask.selectCards(ctx, {
-              candidates: candidates.map((candidate) => candidate.cardId),
-              min: count,
-              max: count,
-            })).map((cardId) => candidates.find((candidate) => candidate.cardId === cardId)!).filter(Boolean);
+          : (
+              await ctx.ask.selectCards(ctx, {
+                candidates: candidates.map((candidate) => candidate.cardId),
+                min: count,
+                max: count,
+              })
+            )
+              .map((cardId) => candidates.find((candidate) => candidate.cardId === cardId)!)
+              .filter(Boolean);
       if (chosen.length !== count) return false;
       const byHost = new Map<string, string[]>();
-      for (const candidate of chosen) byHost.set(candidate.hostId, [...(byHost.get(candidate.hostId) ?? []), candidate.cardId]);
+      for (const candidate of chosen)
+        byHost.set(candidate.hostId, [...(byHost.get(candidate.hostId) ?? []), candidate.cardId]);
       let movedCount = 0;
       for (const [hostId, cardIds] of byHost) {
         const moved = await ctx.fx.trashDigivolutionCards(hostId, cardIds, {
@@ -7201,6 +7204,21 @@ async function runSubTrigger(ctx: EffectContext, action: Extract<Action, { kind:
     (event === "onAddDigivolutionCards" || ATTACK_TRIGGER_FILTER_EVENTS.has(event))
       ? (subCtx: EffectContext): boolean => subjectMatchesFilter(subCtx, action.triggerFilter!)
       : undefined;
+  const addedDigivolutionCardGate =
+    event === "onAddDigivolutionCards" && action.addedDigivolutionCardFilter !== undefined
+      ? (subCtx: EffectContext): boolean => {
+          const subjectId = subCtx.trigger?.subjectPermanentId;
+          const ids = subCtx.trigger?.addedDigivolutionCardInstanceIds ?? [];
+          if (subjectId === undefined || ids.length === 0) return false;
+          const subject = subCtx.game.permanentById(subjectId);
+          if (subject === undefined) return false;
+          return subject.stack.some(
+            (card) =>
+              ids.includes(card.instanceId) &&
+              definitionMatches(action.addedDigivolutionCardFilter!, subCtx.game.definitionOf(card)),
+          );
+        }
+      : undefined;
   // `sourceFilter.nameMatchesInheritedHost` (CAP-G2, BT2-059 Kurisarimon): fires ONLY when the
   // played card's name matches the HOST permanent's current top-card name. "This Digimon" in an
   // inherited effect text refers to the Digimon whose digivolution stack contains this card —
@@ -7252,6 +7270,7 @@ async function runSubTrigger(ctx: EffectContext, action: Extract<Action, { kind:
     digivolutionCardDiscardedGate,
     effectSourceGate,
     triggerFilterGate,
+    addedDigivolutionCardGate,
     inheritedHostNameGate,
     deleteCauseGate,
   ].filter((g): g is (subCtx: EffectContext) => boolean => g !== undefined);

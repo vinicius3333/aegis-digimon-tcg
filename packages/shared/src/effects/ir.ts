@@ -3424,6 +3424,11 @@ export interface SubTriggerAction extends ActionBase {
   /** Filter that must match the triggering card. */
   triggerFilter?: Filter;
   /**
+   * For onAddDigivolutionCards, filter the cards that were just placed under the
+   * event subject. At least one added card must match for the watcher to fire.
+   */
+  addedDigivolutionCardFilter?: Filter;
+  /**
    * When several permanents satisfy the watcher's event simultaneously (e.g. multiple matching
    * Digimon leave at once), the controller picks ONE to drive the body (BT19-099 ＜Delay＞:
    * the chosen leaving Digimon is the cost reference for `relativeToLeavingDigimon`). The
