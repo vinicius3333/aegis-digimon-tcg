@@ -132,6 +132,28 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenBattleWon",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              op: "trashTop",
+              controller: "opponent",
+              amount: 1,
+            },
+          ],
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
   coverage: "full",
   residual: [],
