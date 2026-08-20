@@ -1635,9 +1635,20 @@ export function GameScreen({
             </span>
           </div>
           {narrowGameLayout ? (
-            <button className="game-mobile-surrender" onClick={() => room && intents.surrender(room)}>
-              {t("game.surrender")}
-            </button>
+            <>
+              {/* Touch layout: the sidebar footer is out of reach mid-match, so both match-level
+                  controls live in the header instead. */}
+              <button
+                className="game-mobile-bug"
+                onClick={() => setBugReportOpen(true)}
+                aria-label={t("bugReport.button")}
+              >
+                <Icons.Bug size={16} />
+              </button>
+              <button className="game-mobile-surrender" onClick={() => room && intents.surrender(room)}>
+                {t("game.surrender")}
+              </button>
+            </>
           ) : null}
         </header>
 
@@ -2461,26 +2472,29 @@ export function Sidebar({
         </div>
       </div>
 
-      <div
-        className="game-sidebar__footer"
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: 6,
-          padding: "12px 16px",
-          borderTop: "1px solid var(--ds-border)",
-          background: "var(--ds-surface-muted)",
-        }}
-      >
-        {/* The board fills the viewport, so the floating report button the rest of the client shows
-            would sit on top of the play area. This is its in-match home. */}
-        <Button size="sm" variant="ghost" full icon={Icons.Bug} onClick={onReportBug}>
-          {t("bugReport.button")}
-        </Button>
-        <Button size="sm" variant="ghost" full icon={Icons.LogOut} onClick={onSurrender}>
-          {t("game.surrender")}
-        </Button>
-      </div>
+      {/* Touch layout: both controls sit in the match header instead. */}
+      {narrow ? null : (
+        <div
+          className="game-sidebar__footer"
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 6,
+            padding: "12px 16px",
+            borderTop: "1px solid var(--ds-border)",
+            background: "var(--ds-surface-muted)",
+          }}
+        >
+          {/* The board fills the viewport, so the report button the rest of the client shows in the
+              top bar would sit on top of the play area. This is its in-match home. */}
+          <Button size="sm" variant="ghost" full icon={Icons.Bug} onClick={onReportBug}>
+            {t("bugReport.button")}
+          </Button>
+          <Button size="sm" variant="ghost" full icon={Icons.LogOut} onClick={onSurrender}>
+            {t("game.surrender")}
+          </Button>
+        </div>
+      )}
     </aside>
   );
 }
