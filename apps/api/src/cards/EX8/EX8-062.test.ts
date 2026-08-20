@@ -9,6 +9,6 @@ describe("EX8-062", () => {
   });
   it("has the all-turns deletion response that may play an NSo Digimon from trash", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({ kind: "SubTrigger" });
-    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({ actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true }] });
+    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({ sourceFilter: { controllerDefault: "both", excludeSelf: true }, actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true }] });
   });
 });
