@@ -40,6 +40,7 @@ export function DigimonAvatarPicker({
         <div>
           <h3 id="account-avatar-picker-title">{t("account.avatar.title")}</h3>
           <p>{t("account.avatar.copy")}</p>
+          <p className="account-avatar-picker__credit">{t("account.avatar.credit")}</p>
         </div>
         <label className="account-avatar-picker__search">
           <span>{t("account.avatar.search")}</span>
