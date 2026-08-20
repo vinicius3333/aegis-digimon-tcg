@@ -16,7 +16,8 @@ describe("BT24-098 Invasion of the Titans", () => {
       event: "whenPlayed",
       sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] },
     });
-    expect((arm?.actions?.[0] as { actions?: unknown[] }).actions?.[0]).toMatchObject({
+    const armAction = arm?.actions?.[0] as { actions?: unknown[] } | undefined;
+    expect(armAction?.actions?.[0]).toMatchObject({
       kind: "GainKeyword",
       keyword: { keyword: "Delay" },
     });
@@ -37,6 +38,26 @@ describe("BT24-098 Invasion of the Titans", () => {
         count: 1,
       },
     });
-    expect(BT24_098.effects?.some((entry) => entry.trigger === "Security")).toBe(false);
+    expect(BT24_098.effects?.find((entry) => entry.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: { op: "lte", value: 4 },
+              nameOrTrait: [{ tokens: ["Titan"], match: "trait" }],
+            },
+            count: 1,
+          },
+        },
+        { kind: "AddToHandSelf" },
+      ],
+    });
   });
 });

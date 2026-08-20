@@ -80,6 +80,30 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: { op: "lte", value: 4 },
+              nameOrTrait: [{ tokens: ["Titan"], match: "trait" }],
+            },
+            count: 1,
+          },
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
+        {
+          kind: "AddToHandSelf",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
   coverage: "full",
   residual: [],
