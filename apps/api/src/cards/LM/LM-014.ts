@@ -14,7 +14,9 @@ const compiled: CompiledCard = {
             {
               "filter": {
                 "controllerDefault": "mine",
-                "keywords": ["Draw"]
+              "nameOrTrait": [
+                { "tokens": ["Draw"], "match": "text" }
+              ]
               },
               "orFilters": [
                 {
