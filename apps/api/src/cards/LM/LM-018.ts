@@ -29,7 +29,7 @@ const compiled: CompiledCard = {
         {
           "kind": "PlayToken",
           "tokens": [
-            "Gyuukimon"
+            "Gyuukimon Token"
           ],
           "count": 1,
           "payCost": false,
