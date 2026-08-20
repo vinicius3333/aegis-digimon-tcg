@@ -157,14 +157,14 @@ export function BugReportDialog({ signedIn, onClose }: { signedIn: boolean; onCl
       )}
 
       <footer className="bug-report__actions">
-        <Button variant="ghost" onClick={onClose}>
-          {t(filed ? "common.close" : "common.cancel")}
-        </Button>
         {filed ? null : (
           <Button onClick={submit} disabled={submitting || !summary.trim() || !description.trim()}>
             {t(submitting ? "bugReport.submitting" : "bugReport.submit")}
           </Button>
         )}
+        <Button variant="ghost" onClick={onClose}>
+          {t(filed ? "common.close" : "common.cancel")}
+        </Button>
       </footer>
     </Dialog>
   );

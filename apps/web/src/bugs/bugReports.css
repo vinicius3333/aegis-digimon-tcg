@@ -170,8 +170,46 @@
   resize: vertical;
 }
 
+/* Sending leads the row, so it also leads the tab order; `row-reverse` keeps it on
+   the right, the end of the row the reader scans towards. */
 .bug-report__actions {
   display: flex;
+  flex-direction: row-reverse;
   gap: var(--ds-space-2);
-  justify-content: flex-end;
+  justify-content: flex-start;
+}
+
+@media (width < 600px) {
+  /* The dialog layer is absolutely positioned, so on a scrolled page the report was
+     anchored mid-document and cut off at both ends. On a phone it is a sheet on the
+     viewport, with the actions pinned above the fold of its own scroll. */
+  .aegis-dialog-layer:has(.bug-report) {
+    position: fixed;
+    align-items: end;
+    padding: 0;
+  }
+
+  /* `.aegis-dialog` also carries a padding and a max-height; the sheet wins by
+     naming both classes rather than by load order. */
+  .aegis-dialog.bug-report {
+    width: 100%;
+    max-height: 92dvh;
+    /* No bottom padding of its own: the pinned actions carry it, so nothing scrolls
+       into the strip below them. */
+    padding: var(--ds-space-4) var(--ds-space-4) 0;
+    border-radius: var(--ds-radius-lg) var(--ds-radius-lg) 0 0;
+  }
+
+  .bug-report__actions {
+    position: sticky;
+    bottom: 0;
+    padding: var(--ds-space-3) 0 max(var(--ds-space-3), env(safe-area-inset-bottom));
+    border-top: 1px solid var(--ds-border);
+    background: var(--ds-surface-raised);
+  }
+
+  .bug-report__actions > button {
+    flex: 1;
+    min-height: var(--ds-touch-target);
+  }
 }

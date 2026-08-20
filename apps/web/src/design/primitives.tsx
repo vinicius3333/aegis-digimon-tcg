@@ -2,6 +2,7 @@
    maintained as part of the Aegis design system. Presentational only. */
 
 import { useEffect, useId, useRef, useState, type ButtonHTMLAttributes, type CSSProperties, type InputHTMLAttributes, type KeyboardEvent, type ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { COLORS, colorKey } from "./theme";
 import { Icons, type IconComponent } from "./icons";
 import { playSound, type SoundKind } from "./sound";
@@ -204,13 +205,18 @@ export function Dialog({ children, className, labelledBy, onClose }: { children:
       first?.focus();
     }
   };
-  return (
+  const layer = (
     <div className="aegis-dialog-layer" onClick={onClose}>
       <section ref={dialogRef} className={`aegis-dialog${className ? ` ${className}` : ""}`} role="dialog" aria-modal="true" aria-labelledby={labelledBy} tabIndex={-1} onKeyDown={handleKeyDown} onClick={(event) => event.stopPropagation()}>
         {children}
       </section>
     </div>
   );
+  // The layer covers the whole stage, so it belongs to the stage. Left where it was
+  // opened, a dialog raised from a fixed bar was trapped in that bar's stacking
+  // context and painted under the bars around it.
+  const stage = typeof document === "undefined" ? null : document.getElementById("aegis-stage");
+  return stage ? createPortal(layer, stage) : layer;
 }
 
 export function ColorDot({ color, size = 12, ring }: { color: string; size?: number; ring?: boolean }) {
