@@ -15,7 +15,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - <Save> after "Then," is mandatory (not optional).
 // - DigiXros count:1 = reduce cost by 1 per placed material (ir.ts DigiXrosRequirement.count).
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",

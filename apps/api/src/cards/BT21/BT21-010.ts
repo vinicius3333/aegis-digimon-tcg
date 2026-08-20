@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // KB Q5210: the condition is "2 or fewer security cards OR 3 or more [Hero] trait Tamers
 // with different names". Encoded as orConditions on the action.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "YourTurn",

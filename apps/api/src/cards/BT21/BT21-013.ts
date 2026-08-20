@@ -8,7 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   bottom digivolution card") OR a red Tamer with inherited effects, and CanSelectSourceCard
 //   reads the hand and the trash only. With only the Tamer destination encoded, a controller
 //   with no red Tamer in play resolved the effect to nothing, with no card selection at all.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "WhenDigivolving",

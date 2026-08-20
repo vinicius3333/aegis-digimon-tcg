@@ -15,7 +15,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // NO digivolution cards to the bottom of the deck.
 //
 // DigiXros -1: ∞ Digimon cards with [Xros Heart] or [Blue Flare] trait & different card numbers.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
