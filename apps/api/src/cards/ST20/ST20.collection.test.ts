@@ -147,6 +147,15 @@ describe("ST20 collection audit proof", () => {
       { kind: "Draw", amount: 2 },
       { kind: "PlaceInBattleAreaSelf" },
     ]);
+    expect(
+      effects("ST20-14").find(
+        (effect) => effect.trigger === "Main" && effect.keywords?.some((keyword) => keyword.keyword === "Delay"),
+      )?.actions[0],
+    ).toMatchObject({ kind: "PlayWithoutCost", optional: true, from: ["hand"] });
+    expect(effects("ST20-14").find((effect) => effect.trigger === "AllTurns")?.actions[0]).toMatchObject({
+      kind: "Replacement",
+      actions: [{ kind: "GainKeyword", keyword: { keyword: "Delay" } }],
+    });
     expect(effects("ST20-14").find((effect) => effect.trigger === "Security")).toMatchObject({
       isSecurity: true,
       actions: [{ kind: "PlaceInBattleAreaSelf" }],
