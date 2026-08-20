@@ -6,92 +6,76 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Digivolve",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Undead",
-                  "CS"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Undead", "CS"],
+                match: "trait",
+              },
+            ],
           },
-          "from": [
-            "trash"
-          ],
-          "optional": true
-        }
-      ]
+          from: ["trash"],
+          payCost: true,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Undead",
-                  "Dark Animal"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Undead", "Dark Animal"],
+                match: "trait",
+              },
+            ],
           },
-          "from": [
-            "trash"
-          ],
-          "optional": true
-        }
+          from: ["trash"],
+          payCost: true,
+          optional: true,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "traits": [
-        "CS"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["CS"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT23-063", compiled);

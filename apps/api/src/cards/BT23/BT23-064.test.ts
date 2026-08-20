@@ -19,9 +19,11 @@ describe("BT23-064 Bakemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const targetId = s.perm("target").permanentId;
-    await (s.engine as unknown as {
-      fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
-    }).fireTiming(EffectTiming.OnPlay, { subjectPermanentId: s.perm("bakemon").permanentId });
+    await (
+      s.engine as unknown as {
+        fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
+      }
+    ).fireTiming(EffectTiming.OnPlay, { subjectPermanentId: s.perm("bakemon").permanentId });
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(1);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);

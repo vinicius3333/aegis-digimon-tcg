@@ -17,9 +17,11 @@ describe("BT23-063 Sangloupmon", () => {
     );
     s.state.memory = 5;
     const before = s.state.memory;
-    await (s.engine as unknown as {
-      fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
-    }).fireTiming(EffectTiming.OnUseAttack, {
+    await (
+      s.engine as unknown as {
+        fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
+      }
+    ).fireTiming(EffectTiming.OnUseAttack, {
       subjectPermanentId: s.perm("sangloupmon").permanentId,
     });
     expect(s.perm("sangloupmon").topCard?.cardId).toBe("BT23-066");
