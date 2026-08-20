@@ -94,4 +94,3 @@ Every row has the committed catalog record, a successful local KB query, a direc
 The runtime blocker is global: Vitest/typecheck cannot run because pnpm and node_modules are unavailable. Under the requested rubric, every card remains unscored; no card is marked 10/10 and no numeric score is invented. Direct-only cards additionally require compiled-IR inspection or an explicit legacy-path acceptance before a complete clause-level audit can be claimed.
 
 No source correction was made: without executable proof, changing direct-only implementations would not be evidence-backed.
-
