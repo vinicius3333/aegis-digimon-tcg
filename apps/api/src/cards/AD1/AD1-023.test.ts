@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, CardKind, CardColor, type CardDefinition, type Seat } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
@@ -153,6 +155,14 @@ function makeContext(opts: {
 }
 
 describe("AD1-023 J.P., Koji, & Koichi", () => {
+  it("plays from security without paying its cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "AD1-023", as: "securityTamer", faceUp: true }] } });
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityTamer"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("securityTamer").instanceId)).toBe(true);
+  });
+
   const module = getEffectModule("AD1-023");
 
   it("is registered", () => {
