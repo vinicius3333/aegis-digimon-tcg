@@ -4,7 +4,7 @@ import express from "express";
 import { ROOM_TYPE, ROOM_TYPE_BOT, ROOM_TYPE_PRIVATE, ROOM_TYPE_RANKED, ROOM_TYPE_TOURNAMENT } from "@aegis/shared";
 import { AegisRoom, roomRegistry, roomCodeRegistry } from "./rooms/AegisRoom.js";
 import "./cards/index.js"; // side-effect: registers every implemented card EffectModule
-import { log, logError } from "./logger.js";
+import { log, logError, flushLogs } from "./logger.js";
 import { installAccountRoutes } from "./accounts/routes.js";
 import {
   botSeatingStore,
@@ -225,16 +225,21 @@ const shutdown = (signal: string) => {
   void drainForShutdown({
     stopDeadlineWorker: () => deadlineWorker?.stop(),
     shutdownRooms: () => gameServer.gracefullyShutdown(false),
-  }).finally(() => process.exit(0));
+  })
+    .then(() => flushLogs())
+    .finally(() => process.exit(0));
 };
 process.on("SIGTERM", () => shutdown("SIGTERM"));
 process.on("SIGINT", () => shutdown("SIGINT"));
 
+// The buffered log stream is flushed before exiting: a crash line written and then dropped by
+// an immediate `process.exit` is the one line that always matters.
+const exitAfterFlush = () => void flushLogs().finally(() => process.exit(1));
 process.on("uncaughtException", (err) => {
   logError("[aegis/api] uncaught exception:", err);
-  process.exit(1);
+  exitAfterFlush();
 });
 process.on("unhandledRejection", (reason) => {
   logError("[aegis/api] unhandled rejection:", reason);
-  process.exit(1);
+  exitAfterFlush();
 });
