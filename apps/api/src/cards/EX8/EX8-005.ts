@@ -14,7 +14,15 @@ export const compiled: CompiledCard = {
           "kind": "SubTrigger",
           "event": "onDigivolutionCardDiscarded",
           "sourceFilter": {
-            "isSelfRef": true
+            "nameOrTrait": [
+              {
+                "tokens": [
+                  "Mineral",
+                  "Rock"
+                ],
+                "match": "trait"
+              }
+            ]
           },
           "actions": [
             {
