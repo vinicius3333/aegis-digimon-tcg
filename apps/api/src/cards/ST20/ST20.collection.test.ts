@@ -38,6 +38,22 @@ describe("ST20 collection audit proof", () => {
     });
   });
 
+  it("ST20-03 evaluates the three-color Adventure Tamer gate structurally", () => {
+    const cardEffects = effects("ST20-03");
+    for (const trigger of ["OnPlay", "WhenDigivolving"]) {
+      expect(cardEffects.find((effect) => effect.trigger === trigger)?.actions[0]).toMatchObject({
+        kind: "Digivolve",
+        condition: {
+          kind: "zoneColorCount",
+          cardType: "Tamer",
+          op: "gte",
+          value: 3,
+          filter: { nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }] },
+        },
+      });
+    }
+  });
+
   it.each(["ST20-04", "ST20-06", "ST20-09"])("%s keeps the Alliance watcher once-per-turn", (cardId) => {
     expect(effects(cardId).find((effect) => effect.trigger === "YourTurn")).toMatchObject({ frequency: "OncePerTurn" });
   });
