@@ -50,6 +50,7 @@ export const compiled: CompiledCard = {
                   kind: ["Digimon"],
                 },
                 count: 1,
+                sameTarget: true,
               },
               amount: 3000,
               duration: "forTheTurn",

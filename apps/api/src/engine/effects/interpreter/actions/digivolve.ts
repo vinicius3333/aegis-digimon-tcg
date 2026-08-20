@@ -216,6 +216,7 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
     const result = await ctx.fx.digivolveFromInstance(pid, chosen[0]!, {
       payCost: pays || numericPayCost !== undefined,
       costOverride,
+      useAlternateCost: action.useAlternateCost,
       ignoreRequirements,
     });
     if (result !== undefined) {
@@ -357,6 +358,7 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
       payCost: pays,
       costDelta,
       costOverride: resolvedCostOverride,
+      useAlternateCost: action.useAlternateCost,
       ignoreRequirements,
     });
     if (result !== undefined) {

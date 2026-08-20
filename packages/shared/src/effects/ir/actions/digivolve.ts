@@ -40,6 +40,8 @@ export interface DigivolveAction extends ActionBase {
    * normalizes to {@link DigivolveAction.costOverride}. New IR should use `true` + `costOverride`.
    */
   payCost: boolean | number;
+  /** Pay the matching alternate digivolution requirement instead of an ordinary EvoCost. */
+  useAlternateCost?: boolean;
   /**
    * Reduction folded INTO the digivolve verb, not a standalone cost-modifier construct.
    */
