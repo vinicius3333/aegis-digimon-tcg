@@ -12,4 +12,13 @@ describe("ST14-01 Yaamon", () => {
     await advance(s.engine).fire(EffectTiming.OnAllyAttack, s.perm("host"));
     expect(s.state.players[0]!.trash).toHaveLength(2);
   });
+
+  it("does not mill twice from the inherited once-per-turn effect", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT10-010", as: "host", under: ["ST14-01"] }], deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
+    });
+    await advance(s.engine).fire(EffectTiming.OnAllyAttack, s.perm("host"));
+    await advance(s.engine).fire(EffectTiming.OnAllyAttack, s.perm("host"));
+    expect(s.state.players[0]!.trash).toHaveLength(2);
+  });
 });
