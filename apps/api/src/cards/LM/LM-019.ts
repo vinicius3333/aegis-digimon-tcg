@@ -9,7 +9,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 const cardId = "LM-019";
 
 function hasGammamonInText(def: CardDefinition): boolean {
-  return def.nameEn.includes("Gammamon");
+  return def.effectText?.includes("Gammamon") === true || def.inheritedEffectText?.includes("Gammamon") === true;
 }
 
 const module: EffectModule = {
@@ -38,6 +38,7 @@ const module: EffectModule = {
               });
               added = chosen;
             }
+            if (added.length > 0) await ctx.fx.returnToHand(added);
             const rest = deckCards.filter((c) => !added.includes(c.instanceId));
             if (rest.length > 0) {
               await ctx.fx.returnToDeck(rest.map((c) => c.instanceId), { toTop: false });
