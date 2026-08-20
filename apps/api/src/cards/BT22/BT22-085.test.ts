@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-085.js";
 
 describe("BT22-085 Rina Shinomiya", () => {
@@ -59,5 +60,17 @@ describe("BT22-085 Rina Shinomiya", () => {
       payCost: false,
       target: { isSelf: true, count: 1 },
     });
+  });
+
+  it("applies the On Play DP bonus to Veedramon through a public play intent", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT22-085", as: "rina" }], battleArea: [{ card: "BT22-022", as: "veedramon" }] },
+    });
+    const id = s.inst("rina").instanceId;
+    const before = s.perm("veedramon").currentDP;
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: id })).toEqual({ ok: true });
+    await settle(() => s.perm("veedramon").currentDP !== before);
+    expect(s.perm("veedramon").currentDP).toBe(before + 3000);
   });
 });

@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-083.js";
 
 describe("BT22-083 Yuuko Kamishiro", () => {
@@ -29,5 +31,15 @@ describe("BT22-083 Yuuko Kamishiro", () => {
         },
       ],
     });
+  });
+
+  it("observably gains start-main memory only while an opponent Digimon exists", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT22-083", as: "yuuko" }] }, 1: { battleArea: ["BT1-009"] } });
+    const before = s.state.memory;
+    await (
+      s.engine as unknown as { fireTiming(t: EffectTiming, trigger: Record<string, never>): Promise<void> }
+    ).fireTiming(EffectTiming.OnStartMainPhase, {});
+    await settle(() => s.state.memory !== before);
+    expect(s.state.memory).toBe(before + 1);
   });
 });
