@@ -1,4 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-101.js";
 
 describe("BT22-101 Kyoko Kuremi", () => {
@@ -60,5 +63,14 @@ describe("BT22-101 Kyoko Kuremi", () => {
   it("plays itself from security without paying its cost", () => {
     const security = compiled.effects.find((entry) => entry.trigger === "Security");
     expect(security).toMatchObject({ isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] });
+  });
+
+  it("sets memory through the public start-turn timing", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT22-101", as: "kyoko" }] },
+    });
+    s.state.memory = 2;
+    await advance(s.engine).fireForInstance(EffectTiming.OnStartTurn, s.perm("kyoko").topCard!);
+    expect(s.state.memory).toBe(3);
   });
 });
