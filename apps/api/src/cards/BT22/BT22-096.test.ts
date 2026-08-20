@@ -4,8 +4,11 @@ import { compiled } from "./BT22-096.js";
 describe("BT22-096 Unique Emblem: Poseidia Lagoon", () => {
   it("requires both Aquatic and LIBERATOR traits for the Delay digivolution", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "YourTurn");
-    const digivolve = effect?.actions[1] as any;
+    const watcher = effect?.actions[0] as any;
+    const digivolve = watcher.actions[0];
 
+    expect(effect?.keywords).toEqual([{ keyword: "Delay", raw: "＜Delay＞" }]);
+    expect(watcher).toMatchObject({ kind: "SubTrigger", event: "whenSuspended" });
     expect(digivolve).toMatchObject({ kind: "Digivolve", reduceCost: 3, optional: true });
     expect(digivolve.into.and).toEqual([
       { nameOrTrait: [{ tokens: ["Aquatic"], match: "trait" }] },
