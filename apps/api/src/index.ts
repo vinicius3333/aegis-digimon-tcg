@@ -6,6 +6,7 @@ import { AegisRoom, roomRegistry, roomCodeRegistry } from "./rooms/AegisRoom.js"
 import "./cards/index.js"; // side-effect: registers every implemented card EffectModule
 import { log, logError } from "./logger.js";
 import { installAccountRoutes } from "./accounts/routes.js";
+import { GitHubIssueTracker } from "./bugs/index.js";
 import {
   botSeatingStore,
   deadlineScheduler,
@@ -42,10 +43,17 @@ app.use((req, res, next) => {
 });
 app.options("*", (_req, res) => res.sendStatus(204));
 app.use(express.json());
+// Two proxies sit in front of this container in production (the host's edge Caddy, then the web
+// container's Caddy), so the client address is the third entry from the right. Bug reports meter
+// anonymous callers by address, which is the proxy's address without this. A deployment with a
+// different number of hops sets AEGIS_TRUSTED_PROXY_HOPS; a direct one sets 0.
+app.set("trust proxy", Number(process.env.AEGIS_TRUSTED_PROXY_HOPS ?? 2));
 // The runtime singletons, not fresh instances: `TopCutProgram`'s in-process lock only serializes
 // callers that SHARE the instance, and the routes, the resolution listener and the sweep are three
 // callers of the same transition.
-installAccountRoutes(app, accountStore, participantStore, seriesStore, swissProgram, eliminationStore, botSeatingStore, topCutProgram);
+// The bug tracker is read from the environment here, at the edge, so a test can install the
+// routes with a tracker of its own — or with none at all.
+installAccountRoutes(app, accountStore, participantStore, seriesStore, swissProgram, eliminationStore, botSeatingStore, topCutProgram, undefined, GitHubIssueTracker.fromEnvironment());
 
 const configuredSlot = process.env.AEGIS_DEPLOYMENT_SLOT ?? "legacy";
 if (!["blue", "green", "legacy"].includes(configuredSlot)) {

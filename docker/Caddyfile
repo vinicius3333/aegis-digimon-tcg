@@ -29,6 +29,9 @@
 	handle /account/* {
 		reverse_proxy api:2567
 	}
+	handle /bug-reports* {
+		reverse_proxy api:2567
+	}
 	@tournament_api {
 		path /tournaments*
 		not header Accept *text/html*

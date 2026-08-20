@@ -7,6 +7,9 @@ const portraitRules = gameCss.match(
   /@media \(width < 600px\) \{(?<rules>[\s\S]*?)\n\}\n\n@media \(width < 600px\) and \(height < 650px\)/,
 )?.groups?.rules;
 
+// Where the sidebar stops being a column and becomes a strip along the bottom.
+const stripRules = gameCss.match(/@media \(width < 960px\) \{(?<rules>[\s\S]*?)\n\}\n\n@media/)?.groups?.rules;
+
 describe("mobile portrait match layout", () => {
   it("keeps the match inside the viewport and limits scrolling to cards", () => {
     expect(portraitRules).toBeDefined();
@@ -109,5 +112,13 @@ describe("match overlays opt into the mobile sheet", () => {
     const next = overlaysSource.indexOf("\nexport function ", start + 1);
     const body = overlaysSource.slice(start, next === -1 ? undefined : next);
     expect(body).toContain("game-modal__panel");
+  });
+});
+
+describe("the sidebar strip", () => {
+  it("lays the footer buttons side by side", () => {
+    // Stacked, the report and the surrender buttons are taller than the strip itself.
+    expect(stripRules).toBeDefined();
+    expect(stripRules).toMatch(/\.game-sidebar__footer \{[^}]*flex-direction:\s*row/);
   });
 });

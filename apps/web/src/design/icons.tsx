@@ -52,6 +52,7 @@ const Check = (p: IconProps) => <Svg {...p}><polyline points="20 6 9 17 4 12" />
 const CircleAlert = (p: IconProps) => <Svg {...p}><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></Svg>;
 const CircleCheck = (p: IconProps) => <Svg {...p}><circle cx="12" cy="12" r="10" /><polyline points="9 12 11 14 15 10" /></Svg>;
 const Ban = (p: IconProps) => <Svg {...p}><circle cx="12" cy="12" r="10" /><line x1="4.93" y1="4.93" x2="19.07" y2="19.07" /></Svg>;
+const Bug = (p: IconProps) => <Svg {...p}><rect width="8" height="10" x="8" y="8" rx="4" /><path d="m16 10 2-2" /><path d="m6 8 2 2" /><path d="M12 18v3" /><path d="M4 13h4" /><path d="M16 13h4" /><path d="m5 19 3-2" /><path d="m19 19-3-2" /><path d="M9 6a3 3 0 0 1 6 0" /></Svg>;
 const Info = (p: IconProps) => <Svg {...p}><circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" /></Svg>;
 const Compass = (p: IconProps) => <Svg {...p}><circle cx="12" cy="12" r="10" /><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76" /></Svg>;
 const Settings = (p: IconProps) => <Svg {...p}><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z" /></Svg>;
@@ -96,7 +97,7 @@ export const Icons = {
   LayoutDashboard, Bell, Search, Plus, Check, CircleAlert, CircleCheck, Info,
   Compass, Settings, Filter, Link2, Play, PlayCircle, Dices, Map: MapIcon,
   Sparkles, Clock, FileText, BookOpen, MoreVertical, Bot, Palette, Calendar,
-  Moon, Sun, Hexagon, Star, StarOutline, Upload, Download, Ban, Discord,
+  Moon, Sun, Hexagon, Star, StarOutline, Upload, Download, Ban, Bug, Discord,
 };
 
 export type IconComponent = (props: IconProps) => ReactNode;

@@ -24,6 +24,7 @@ import {
 } from "./identity";
 import { I18nProvider, useTranslation } from "./i18n";
 import { accountApi, type RemoteAccount } from "./account/client";
+import { BugReportButton } from "./bugs/BugReportButton";
 import { pathForRoute, routeFromPathname, type AppRoute, type TournamentRoute } from "./routes";
 
 const Onboarding = lazy(() => import("./screens/Onboarding").then((m) => ({ default: m.Onboarding })));
@@ -306,11 +307,16 @@ export function AegisClient({
               identityAvatarUrl={effectivePlayer.avatarUrl}
               startMode={startMode}
               roomCode={roomCode}
+              signedIn={!!account}
               onExit={navigateScreen}
             />
           )}
         </Suspense>
       </div>
+
+      {/* Off the game screen only: the board fills the viewport and a floating control would sit
+          on top of the play area. */}
+      {screen === "game" ? null : <BugReportButton signedIn={!!account} />}
     </Stage>
   );
 }

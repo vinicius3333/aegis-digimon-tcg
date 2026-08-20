@@ -28,6 +28,7 @@ import { Avatar, Badge, Button, Logo, type Screen } from "../design/primitives";
 import type { DigimonWorldAvatarId } from "../account/avatars";
 import { CardFull } from "../design/cards";
 import { Icons } from "../design/icons";
+import { BugReportDialog } from "../bugs/BugReportDialog";
 import type { ColorName } from "../design/theme";
 import { playSound } from "../design/sound";
 import { areActionConfirmationsEnabled } from "../design/actionConfirmation";
@@ -193,6 +194,7 @@ export function GameScreen({
   startMode = "casual",
   roomCode,
   onExit,
+  signedIn = false,
   demoConnection,
 }: {
   joinOptions: AegisJoinOptions;
@@ -202,6 +204,8 @@ export function GameScreen({
   startMode?: StartMode;
   roomCode?: string;
   onExit: (screen: Screen) => void;
+  /** Only shapes what the report dialog says about follow-up questions; reporting needs no account. */
+  signedIn?: boolean;
   demoConnection?: Pick<
     UseRoomResult,
     "room" | "status" | "state" | "events" | "decision" | "acknowledgeDecision" | "error" | "sessionId" | "roomCode"
@@ -277,6 +281,7 @@ export function GameScreen({
   } | null>(null);
   const [oppInspector, setOppInspector] = useState<{ permanentId: string; x: number; y: number } | null>(null);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [bugReportOpen, setBugReportOpen] = useState(false);
   const lastNoticeEventRef = useRef<ServerEvent | undefined>(undefined);
   const securityToastTimerRef = useRef<number | undefined>(undefined);
   const recoveryToastTimerRef = useRef<number | undefined>(undefined);
@@ -1332,6 +1337,8 @@ export function GameScreen({
 
       {historyOpen ? <MatchHistorySheet log={log} onClose={() => setHistoryOpen(false)} /> : null}
 
+      {bugReportOpen ? <BugReportDialog signedIn={signedIn} onClose={() => setBugReportOpen(false)} /> : null}
+
       {state.gameOver ? (
         <GameOverOverlay
           result={gameOverResult}
@@ -2020,6 +2027,7 @@ export function GameScreen({
         onHatchOrMove={onBreeding}
         onEndPhase={() => room && intents.endPhase(room)}
         onSurrender={() => room && intents.surrender(room)}
+        onReportBug={() => setBugReportOpen(true)}
       />
 
       {stageEl ? createPortal(overlays, stageEl) : overlays}
@@ -2282,7 +2290,8 @@ function ActionBar({
   );
 }
 
-function Sidebar({
+/** Exported for its own test; the match screen is the only place that renders it. */
+export function Sidebar({
   phase,
   turnCount,
   memory,
@@ -2295,6 +2304,7 @@ function Sidebar({
   onHatchOrMove,
   onEndPhase,
   onSurrender,
+  onReportBug,
 }: {
   phase: Phase;
   turnCount: number;
@@ -2309,6 +2319,7 @@ function Sidebar({
   onHatchOrMove: () => void;
   onEndPhase: () => void;
   onSurrender: () => void;
+  onReportBug: () => void;
 }) {
   const { t } = useTranslation();
   const canBreed = canUseBreedingAction({ phase, isMyTurn, canHatch, canMove });
@@ -2455,8 +2466,21 @@ function Sidebar({
       </div>
 
       <div
-        style={{ padding: "12px 16px", borderTop: "1px solid var(--ds-border)", background: "var(--ds-surface-muted)" }}
+        className="game-sidebar__footer"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 6,
+          padding: "12px 16px",
+          borderTop: "1px solid var(--ds-border)",
+          background: "var(--ds-surface-muted)",
+        }}
       >
+        {/* The board fills the viewport, so the floating report button the rest of the client shows
+            would sit on top of the play area. This is its in-match home. */}
+        <Button size="sm" variant="ghost" full icon={Icons.Bug} onClick={onReportBug}>
+          {t("bugReport.button")}
+        </Button>
         <Button size="sm" variant="ghost" full icon={Icons.LogOut} onClick={onSurrender}>
           {t("game.surrender")}
         </Button>
