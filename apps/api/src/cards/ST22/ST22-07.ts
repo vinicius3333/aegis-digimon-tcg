@@ -121,9 +121,13 @@ const module: EffectModule = {
                 if (selfPerm === undefined || selfPerm.isSuspended) return;
                 const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
                 if (!paid) return;
-                const optionCards = selfPerm.stack.filter((c) =>
-                  hasOnmyoOrPlugin(subCtx.game.definitionOf(c)),
-                );
+                const attackerId = subCtx.trigger?.attackerPermanentId;
+                const attacker = attackerId === undefined ? undefined : subCtx.game.permanentById(attackerId);
+                const attackerLevel = attacker?.topCard === undefined ? 0 : (subCtx.game.definitionOf(attacker.topCard).level ?? 0);
+                const optionCards = selfPerm.stack.filter((c) => {
+                  const def = subCtx.game.definitionOf(c);
+                  return hasOnmyoOrPlugin(def) && (def.playCost ?? 99) <= attackerLevel;
+                });
                 if (optionCards.length > 0) {
                   const chosen = await subCtx.ask.selectCards(subCtx, {
                     candidates: optionCards.map((c) => c.instanceId),
@@ -131,7 +135,10 @@ const module: EffectModule = {
                     max: 1,
                   });
                   if (chosen.length > 0) {
-                    await subCtx.fx.useOptionFromHand(subCtx, chosen[0]!, 0);
+                    const optionCost = subCtx.game.definitionOf(
+                      selfPerm.stack.find((card) => card.instanceId === chosen[0]!)!,
+                    ).playCost;
+                    await subCtx.fx.useOptionFromHand(subCtx, chosen[0]!, optionCost);
                   }
                 }
               },
