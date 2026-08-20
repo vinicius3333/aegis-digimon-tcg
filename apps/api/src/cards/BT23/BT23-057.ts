@@ -18,129 +18,131 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - CostModifier: retained as closest model for "add 3 to play cost maximum per other Digimon";
 //     moves BEFORE Delete so the ceiling is computed before target resolution
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [],
-          "cost": {
-            "kind": "return",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "mine",
-                "nameOrTrait": [
+          actions: [],
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": ["Huckmon", "Sistermon", "Jesmon"],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Huckmon", "Sistermon", "Jesmon"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 3
+              count: 3,
             },
-            "to": "deckTopOrBottom",
-            "raw": "by returning 3 cards with [Huckmon], [Sistermon] or [Jesmon] in their names from your trash to the top or bottom of the deck, reduce the play cost by 5"
+            to: "deckTopOrBottom",
+            raw: "by returning 3 cards with [Huckmon], [Sistermon] or [Jesmon] in their names from your trash to the top or bottom of the deck, reduce the play cost by 5",
           },
-          "mode": "reduceCost",
-          "amount": 5
-        }
-      ]
+          mode: "reduceCost",
+          amount: 5,
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlayToken",
-          "tokens": ["Hinukamuy"],
-          "count": 1,
-          "payCost": false,
-          "optional": true
+          kind: "PlayToken",
+          tokens: [
+            {
+              name: "Hinukamuy Token",
+              keywords: [{ keyword: "Alliance" }, { keyword: "Reboot" }, { keyword: "Blocker" }],
+            },
+          ],
+          count: 1,
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "CostModifier",
-          "mode": "raiseCeiling",
-          "costType": "playcost",
-          "amount": 3,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine",
-              "excludeSelf": true,
-              "kind": ["Digimon"]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              playCostLte: 6,
             },
-            "unit": "cards"
-          }
-        },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "playCostLte": 6
-            },
-            "count": 1
+            count: 1,
           },
-          "optional": false
-        }
-      ]
+          playCostCeiling: {
+            base: 6,
+            raise: 3,
+            per: 1,
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
+            },
+            unit: "cards",
+          },
+          optional: false,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayToken",
-          "tokens": ["Hinukamuy"],
-          "count": 1,
-          "payCost": false,
-          "optional": true
+          kind: "PlayToken",
+          tokens: [
+            {
+              name: "Hinukamuy Token",
+              keywords: [{ keyword: "Alliance" }, { keyword: "Reboot" }, { keyword: "Blocker" }],
+            },
+          ],
+          count: 1,
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "CostModifier",
-          "mode": "raiseCeiling",
-          "costType": "playcost",
-          "amount": 3,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "mine",
-              "excludeSelf": true,
-              "kind": ["Digimon"]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              playCostLte: 6,
             },
-            "unit": "cards"
-          }
-        },
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "playCostLte": 6
-            },
-            "count": 1
+            count: 1,
           },
-          "optional": false
-        }
-      ]
-    }
+          playCostCeiling: {
+            base: 6,
+            raise: 3,
+            per: 1,
+            filter: {
+              controller: "mine",
+              excludeSelf: true,
+              kind: ["Digimon"],
+            },
+            unit: "cards",
+          },
+          optional: false,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "traits": ["CS"],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["CS"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT23-057", compiled);
