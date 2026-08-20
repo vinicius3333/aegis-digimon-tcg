@@ -16,13 +16,11 @@ describe("BT23-094 Nanomachine Break", () => {
     }
   });
 
-  it("arms a separate Delay payload from a CS Digimon attack", () => {
+  it("activates the Delay payload in the CS Digimon attack window", () => {
     const turn = compiled.effects.find((entry) => entry.trigger === "YourTurn") as any;
     expect(turn.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenAttacking" });
-    const delay = compiled.effects.find((entry) =>
-      entry.keywords?.some((keyword) => keyword.keyword === "Delay"),
-    ) as any;
-    expect(delay.actions[1]).toMatchObject({
+    expect(turn.keywords[0].keyword).toBe("Delay");
+    expect(turn.actions[0].actions[1]).toMatchObject({
       kind: "DisableTimingEffect",
       timings: ["whenDigivolving", "whenAttacking"],
     });
