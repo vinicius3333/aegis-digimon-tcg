@@ -104,6 +104,14 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     return n <= memoryForSeat - MEMORY_MIN;
   }
   if (cost.kind === "place" && cost.target !== undefined) {
+    // Self-restack costs operate on the source permanent's own evolution stack,
+    // not on loose cards from hand. Keep this in sync with payCost's dedicated
+    // placeOwnTopAtStackBottom route below so an available cost is actually
+    // offered to the controller.
+    if (cost.raw && /bottom digivolution card/i.test(cost.raw) && /top\s+(?:stacked\s+)?card/i.test(cost.raw)) {
+      const selfPerm = ctx.source.permanent();
+      return selfPerm !== undefined && selfPerm.stack.length > 0;
+    }
     // A placement cost needs both halves to exist before an optional activation is
     // offered: enough matching loose cards in the declared source zones and a legal
     // destination host. EX3-066 otherwise asked to place a Cyborg with an empty
@@ -812,9 +820,7 @@ export async function payCost(
       });
       if (candidates.length === 0) return false;
       const selected =
-        candidates.length === 1
-          ? candidates[0]
-          : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
+        candidates.length === 1 ? candidates[0] : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
       if (selected === undefined || !ctx.fx.placeOwnTopAtStackBottom(selected)) return false;
       if (out) out.paidCount = 1;
       return true;
