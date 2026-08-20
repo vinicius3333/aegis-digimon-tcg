@@ -589,7 +589,11 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     case "ifThisEffectActed":
       // True when the prior place/trash branch actually moved >=1 card (BT16-094 "if you did
       // either"). Unset (no producing action ran) => false (conservative).
-      return ctx.lastEffectActed === true;
+      return (
+        ctx.lastEffectActed === true ||
+        (ctx.lastDeleteCount ?? 0) > 0 ||
+        (ctx.lastDeletedByThisEffectIds?.length ?? 0) > 0
+      );
     case "ifThisEffectDidNotAct":
       // Complement of ifThisEffectActed: true when the prior action moved 0 cards — "your opponent
       // may trash 1 Option card; if they do not, you gain 2 memory" (EX4-070, KB Q3514). Unset
