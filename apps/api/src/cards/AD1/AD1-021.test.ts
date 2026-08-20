@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, CardKind, CardColor, type CardDefinition, type GameState, type Seat } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
@@ -155,6 +157,14 @@ function makeContext(opts: {
 
 describe("AD1-021 Marcus Damon & Agumon", () => {
   const module = getEffectModule("AD1-021");
+
+  it("plays from security without paying its cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "AD1-021", as: "securityMarcus", faceUp: true }] } });
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityMarcus"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("securityMarcus").instanceId)).toBe(true);
+  });
 
   it("is registered", () => {
     expect(module, "AD1-021 must self-register on import").toBeDefined();

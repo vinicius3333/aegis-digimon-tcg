@@ -30,6 +30,16 @@ import { compiled } from "./AD1-010.js";
  * permanent IS deleted — the survival assertion goes RED.
  */
 describe("AD1-010 Inherited Effect <Jamming> — survives a losing Security Digimon battle from the stack", () => {
+  it("free-digivolves a chosen Digimon into Garurumon when a Greymon is played", async () => {
+    const s = setup({
+      0: { battleArea: [{ card: "AD1-010", as: "host" }], hand: [{ card: "AD1-001", as: "greymon" }, { card: "BT1-040", as: "garurumon" }] },
+    }, { autoSelectCards: true, autoAcceptOptional: true });
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greymon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT1-040");
+    expect(s.perm("host").topCard.cardId).toBe("BT1-040");
+  });
+
   it("models both play/digivolve watchers and alternate digivolution requirements", () => {
     const allTurns = compiled.effects.find((effect) => effect.trigger === "AllTurns");
     expect(allTurns?.actions).toEqual(
@@ -77,7 +87,7 @@ describe("AD1-010 Inherited Effect <Jamming> — survives a losing Security Digi
     ).toEqual({ ok: true });
 
     await settle(() => p1.security.length === 0);
-    await settle(() => false, 60); // flush the battle resolution
+    await settle(() => p0.battleArea.some((p) => p.permanentId === attacker.permanentId));
 
     expect(p0.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(true); // still alive
     expect(p0.trash.some((c) => c.instanceId === attacker.topCard?.instanceId)).toBe(false);
@@ -101,7 +111,6 @@ describe("AD1-010 Inherited Effect <Jamming> — survives a losing Security Digi
     ).toEqual({ ok: true });
 
     await settle(() => !p0.battleArea.some((p) => p.permanentId === attacker.permanentId));
-    await settle(() => false, 40);
 
     expect(p0.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(false); // deleted
     assertNoLoudGap(s);

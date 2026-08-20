@@ -36,19 +36,12 @@ const compiled: CompiledCard = {
             {
               "kind": "PlayFromZone",
               "target": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon",
-                  "Option"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "ADVENTURE"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                "filter": {
+                  "controller": "mine",
+                  "kind": ["Digimon", "Option"],
+                  "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }]
+                },
+                "count": 1
               },
               "from": [
                 "hand"
