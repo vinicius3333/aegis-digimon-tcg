@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-047.js";
+import "../index.js";
 
 describe("BT22-047 Kuwagamon", () => {
   it("suspends one opponent Digimon and conditionally restricts unsuspension", () => {
@@ -32,5 +35,53 @@ describe("BT22-047 Kuwagamon", () => {
         },
       ],
     });
+  });
+
+  it("uses Q4898's repeated level to suspend and lock an opponent through their turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-043", as: "base", under: ["BT22-043"] }],
+          hand: [{ card: "BT22-047", as: "kuwagamon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("kuwagamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
+
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
+  });
+
+  it("gains 1 memory when its surviving host deletes an opponent in battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT22-052", as: "host", under: ["BT22-047"] }] },
+      1: { battleArea: [{ card: "BT1-009", as: "defender", suspended: true }] },
+    });
+    await s.ready();
+    s.state.memory = 0;
+    const defenderId = s.perm("defender").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: defenderId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== defenderId));
+    await settle();
+
+    expect(s.state.memory).toBe(1);
   });
 });
