@@ -1,6 +1,26 @@
 # Served behind the host's dedicated edge Caddy (stagecast infra/Caddyfile.edge),
 # which owns :80/:443 and terminates TLS for aegis-digi.online. This site is
 # plain HTTP on :80 so it does not auto-HTTPS-redirect into a loop behind the edge.
+# The API upstreams, with the health checking that makes three processes an improvement in
+# availability rather than a reduction. Without it Caddy keeps routing to a stopped process and
+# returns 502 for its share of the traffic; with it a failing process is taken out of rotation
+# within a few seconds and the request is retried on a sibling.
+#
+# The per-process `/pN` routes below get none of this on purpose: a room lives on one process,
+# and there is nothing to fail over to.
+(api_upstreams) {
+	reverse_proxy api:2567 api2:2567 api3:2567 {
+		lb_policy least_conn
+		lb_retries 2
+		lb_try_duration 5s
+		health_uri /health
+		health_interval 5s
+		health_timeout 2s
+		health_status 2xx
+		fail_duration 15s
+	}
+}
+
 :80 {
 	encode gzip
 
@@ -23,32 +43,32 @@
 		header Upgrade *websocket*
 	}
 	handle @ws {
-		reverse_proxy api:2567 api2:2567 api3:2567
+		import api_upstreams
 	}
 	handle /health {
-		reverse_proxy api:2567 api2:2567 api3:2567
+		import api_upstreams
 	}
 	handle /bot/* {
-		reverse_proxy api:2567 api2:2567 api3:2567
+		import api_upstreams
 	}
 	handle /room/* {
-		reverse_proxy api:2567 api2:2567 api3:2567
+		import api_upstreams
 	}
 	handle /matchmake/* {
-		reverse_proxy api:2567 api2:2567 api3:2567
+		import api_upstreams
 	}
 	handle /auth/* {
-		reverse_proxy api:2567 api2:2567 api3:2567
+		import api_upstreams
 	}
 	handle /account/* {
-		reverse_proxy api:2567 api2:2567 api3:2567
+		import api_upstreams
 	}
 	@tournament_api {
 		path /tournaments*
 		not header Accept *text/html*
 	}
 	handle @tournament_api {
-		reverse_proxy api:2567 api2:2567 api3:2567
+		import api_upstreams
 	}
 
 	# Recovery endpoint for clients that retained HTML from an older release.

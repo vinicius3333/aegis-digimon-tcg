@@ -88,8 +88,10 @@ Two consequences follow from rooms living on one process each:
   shared presence, `/bot/join` reaches the owning process through `remoteRoomCall`, and a
   drain is published to every process of the slot.
 
-Slots keep their own key namespace, so a draining slot and the active one never see each
-other's rooms.
+Each slot runs its own Redis, which is what keeps a draining slot and the active one from
+seeing each other's rooms: Colyseus's own matchmaking keys are fixed names, so a shared Redis
+would merge the two slots' room listings. `AEGIS_REDIS_URL` therefore points at the slot's own
+instance, and the slot-scoped prefix applies only to the keys Aegis writes itself.
 
 ## Verification
 

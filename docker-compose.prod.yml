@@ -84,12 +84,18 @@ services:
       <<: *api-env
       AEGIS_PROCESS_PATH: p3
 
-  # Matchmaking state only — room listings and seat reservations, all of it rebuildable by
-  # restarting the API processes. Nothing here is worth persisting, so nothing is.
+  # Matchmaking state: room listings, seat reservations and private room codes.
+  #
+  # Appended to disk, though none of it outlives a deploy. A Redis that comes back empty while
+  # the API processes keep running leaves every match in progress invisible to matchmaking —
+  # its room code stops resolving and joinById fails — until each room happens to write again.
+  # The append log costs nothing and closes that window on a restart. It lives in the container
+  # layer with no volume on purpose: recreating this container is part of a deploy, which
+  # recreates the API processes too, and their rooms are gone at that point anyway.
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "256mb", "--maxmemory-policy", "noeviction"]
+    command: ["redis-server", "--save", "", "--appendonly", "yes", "--appendfsync", "everysec", "--maxmemory", "256mb", "--maxmemory-policy", "noeviction"]
     cpus: 0.5
     mem_limit: 384m
     healthcheck:
