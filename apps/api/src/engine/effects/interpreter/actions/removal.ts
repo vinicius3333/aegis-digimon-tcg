@@ -540,7 +540,11 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // The target is the permanent(s) just created by the prior play action in this same
       // effect resolution, not the card currently resolving the effect.
       for (const permanentId of ctx.lastPlayedPermanentIds ?? []) {
-        ctx.fx.delayedDeletePlayed?.(permanentId);
+        if (action.timing === "endOfOpponentTurn") {
+          ctx.fx.delayedDeletePlayed?.(permanentId, "endOfOpponentTurn");
+        } else {
+          ctx.fx.delayedDeletePlayed?.(permanentId);
+        }
       }
       return false;
     }

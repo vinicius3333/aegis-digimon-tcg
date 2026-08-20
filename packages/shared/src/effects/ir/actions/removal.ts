@@ -201,6 +201,7 @@ export interface DelayedDeletePlayedAction extends ActionBase {
 export interface DelayedDeleteAction extends ActionBase {
   kind: "DelayedDelete";
   target?: Target;
+  timing?: "endOfOwnerTurn" | "endOfOpponentTurn";
 }
 
 /**

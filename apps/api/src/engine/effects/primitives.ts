@@ -3359,18 +3359,27 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     continuous.addSecurityAttackInversion(permanentId, durationForTarget(permanentId, duration), continuousOpt());
   };
 
-  const delayedDeletePlayed = (playedPermanentId: string): void => {
-    // EX10-035 / P-029 "[End of Your Turn] delete this Digimon": a one-shot `endOfTurn` watcher
-    // anchored on the affected permanent, expiring at the owner's turn end. Fired with OnEndTurn while
-    // still the owner's frame; gated to the owner's turn + still-on-field.
+  const delayedDeletePlayed = (
+    playedPermanentId: string,
+    timing: "endOfOwnerTurn" | "endOfOpponentTurn" = "endOfOwnerTurn",
+  ): void => {
+    // A one-shot `endOfTurn` watcher anchored on the affected permanent. Most cards delete at
+    // their owner's turn end; BT23-048 explicitly schedules the opponent's turn end (Q5567/Q5568).
     const ownerSeat = access.permanentById(playedPermanentId)?.controllerSeat;
+    const expiresOnTurnEndOf =
+      ownerSeat === undefined ? undefined : timing === "endOfOpponentTurn" ? access.opponentOf(ownerSeat) : ownerSeat;
     subTriggers.subscribe({
       event: "endOfTurn",
       sourcePermanentId: playedPermanentId,
       once: true,
-      ...(ownerSeat !== undefined ? { expiresOnTurnEndOf: ownerSeat } : {}),
-      matches: (subCtx) => subCtx.source.isOwnersTurn() && subCtx.source.isOnBattleArea(),
-      description: "[End of Your Turn] Delete this Digimon (EX10-035 delayed-delete-played).",
+      ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
+      matches: (subCtx) =>
+        (timing === "endOfOpponentTurn" ? !subCtx.source.isOwnersTurn() : subCtx.source.isOwnersTurn()) &&
+        subCtx.source.isOnBattleArea(),
+      description:
+        timing === "endOfOpponentTurn"
+          ? "[End of Your Opponent's Turn] Delete this Digimon."
+          : "[End of Your Turn] Delete this Digimon (delayed-delete-played).",
       run: async () => {
         await deletePermanent([playedPermanentId], "byEffect");
       },
