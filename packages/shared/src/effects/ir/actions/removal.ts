@@ -26,6 +26,13 @@ export interface DeleteAction extends ActionBase {
   };
 }
 
+/** Delete one opponent Digimon for each distinct color in the source stack (EX9-074). */
+export interface DeletePerColorAction extends ActionBase {
+  kind: "DeletePerColor";
+  source: "digivolutionCards";
+  target: Target;
+}
+
 /**
  * Delete matching permanents until the remaining count equals a live resource count (BT19-094:
  * "until they have as many as the number of your security cards"). `target` is the pool to reduce.

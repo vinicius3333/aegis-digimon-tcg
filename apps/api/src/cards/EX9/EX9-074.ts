@@ -11,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // New capabilities needed (see LANE_E.md):
 //   - Delete.target.filter.colorMatchesAnyDigivolutionCard:true
 //   - DeletePerColor (per-color mandatory delete using divo card colors)
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
@@ -195,11 +195,8 @@ const compiled: CompiledCard = {
       ]
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "Delete.target.filter.colorMatchesAnyDigivolutionCard not yet executed by interpreter (see LANE_E.md)",
-    "DeletePerColor action not yet executed by interpreter (see LANE_E.md)"
-  ]
+  "coverage": "full",
+  "residual": []
 };
 
 registerIrCard("EX9-074", compiled);

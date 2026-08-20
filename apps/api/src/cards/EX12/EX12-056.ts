@@ -8,8 +8,31 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   "effects": [
     {
-      "trigger": "Static",
-      "actions": []
+      "trigger": "AllTurns",
+      "actions": [
+        {
+          "kind": "Replacement",
+          "event": "wouldLeavePlay",
+          "mode": "prevent",
+          "sourceFilter": {
+            "controller": "mine",
+            "excludeSelf": true,
+            "kind": ["Digimon"]
+          },
+          "leaveCause": "byOpponentEffect",
+          "affectsAll": true,
+          "cost": {
+            "kind": "deleteOwn",
+            "target": {
+              "filter": { "isSelfRef": true },
+              "count": 1,
+              "isSelf": true
+            },
+            "raw": "by deleting this Digimon"
+          },
+          "raw": "＜Guard＞ (When any of your other Digimon would leave the battle area by your opponent's effects, by deleting this Digimon, they don't leave.)"
+        }
+      ]
     },
     {
       "trigger": "OnPlay",
@@ -125,9 +148,7 @@ const compiled: CompiledCard = {
     }
   ],
   "coverage": "full",
-  "residual": [
-    "＜Guard＞"
-  ],
+  "residual": [],
   "digivolutionRequirement": [
     {
       "level": 4,

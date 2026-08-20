@@ -464,13 +464,14 @@
     },
     {
       "id": "ex5-dgo-2024-01-27-2-gracenovamon",
-      "revision": 1,
+      "revision": 2,
       "name": "EX5 GraceNovamon",
       "archetype": "GraceNovamon",
       "collection": "EX5",
       "formatBlock": "EX5",
       "colors": ["Red", "Blue", "White"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Ukkomon P-123 to 1, Sayo & Koh EX5-065 to 0; the freed copies reinforce A Delicate Plan BT3-097 to 4, Good Night Moon EX5-067 to 4, GraceNovamon EX5-073 to 4.",
       "tournament": {
         "name": "Ultimate Cup — Raid'n'Trade",
         "date": "2024-01-27",
@@ -498,7 +499,7 @@
         {
           "cardId": "P-123",
           "name": "Ukkomon",
-          "qty": 3,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -540,7 +541,7 @@
         {
           "cardId": "EX5-073",
           "name": "GraceNovamon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -548,12 +549,6 @@
           "name": "Omnimon",
           "qty": 1,
           "type": "Digimon"
-        },
-        {
-          "cardId": "EX5-065",
-          "name": "Sayo & Koh",
-          "qty": 4,
-          "type": "Tamer"
         },
         {
           "cardId": "EX5-064",
@@ -564,13 +559,13 @@
         {
           "cardId": "EX5-067",
           "name": "Good Night Moon",
-          "qty": 2,
+          "qty": 4,
           "type": "Option"
         },
         {
           "cardId": "BT3-097",
           "name": "A Delicate Plan",
-          "qty": 2,
+          "qty": 4,
           "type": "Option"
         }
       ],
@@ -1163,13 +1158,14 @@
     },
     {
       "id": "ex5-gracenovamon-bandai",
-      "revision": 1,
+      "revision": 2,
       "name": "EX5 GraceNovamon",
       "archetype": "GraceNovamon",
       "collection": "EX5",
       "formatBlock": "EX5",
       "colors": ["Red", "Blue"],
       "sourceType": "product_recipe",
+      "approximation": "Adapted to the current banlist: Sayo & Koh EX5-065 to 0; the freed copies reinforce GraceNovamon EX5-073 to 4 and add Blue Memory Boost! P-036 x2, the closest search option for the Lunamon line, because every other card in the recipe already sits at its copy limit.",
       "mainDeck": [
         {
           "cardId": "EX5-007",
@@ -1222,18 +1218,12 @@
         {
           "cardId": "EX5-073",
           "name": "GraceNovamon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "EX5-064",
           "name": "Koh &amp; Sayo",
-          "qty": 4,
-          "type": "Tamer"
-        },
-        {
-          "cardId": "EX5-065",
-          "name": "Sayo & Koh",
           "qty": 4,
           "type": "Tamer"
         },
@@ -1247,6 +1237,12 @@
           "cardId": "EX5-067",
           "name": "Good Night Moon",
           "qty": 4,
+          "type": "Option"
+        },
+        {
+          "cardId": "P-036",
+          "name": "Blue Memory Boost!",
+          "qty": 2,
           "type": "Option"
         }
       ],

@@ -8,7 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q3488: you can add 1 card if only 1 type is revealed.
 // KB Q3489: if both are present, you must add both (mandatory).
 // Fix: rest → deckTop (not deckBottom as the old IR had).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",

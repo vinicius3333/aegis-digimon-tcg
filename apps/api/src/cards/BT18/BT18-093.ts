@@ -34,17 +34,9 @@ const compiled: CompiledCard = {
               "filter": {
                 "zone": "hand",
                 "controller": "mine",
-                "kind": [
-                  "Option"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Ghost",
-                      "Three Musketeers"
-                    ],
-                    "match": "trait"
-                  }
+                "or": [
+                  {"kind": ["Option"]},
+                  {"nameOrTrait": [{"tokens": ["Ghost", "Three Musketeers"], "match": "trait"}]}
                 ]
               },
               "count": 1
@@ -79,3 +71,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT18-093", compiled);
+export { compiled };

@@ -73,6 +73,8 @@ export interface RevealAddAction extends ActionBase {
      * over-budget selection server-side.
      */
     costBudget?: number;
+    /** Compiler spelling of a summed printed play-cost budget. */
+    totalPlayCostBudget?: number;
     /**
      * For `to` of `"placeUnder"`/`"underTamer"`: which of the controller's permanents the card is
      * placed beneath as a bottom digivolution card. Absent means any of their Digimon, or any of

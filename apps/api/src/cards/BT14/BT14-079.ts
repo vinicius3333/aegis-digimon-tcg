@@ -2,12 +2,9 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Conditional level ceiling (Eiji Nagasumi in digivolution cards → lte 4 instead of lte 3)
-// cannot be encoded as a single PlayWithoutCost action with existing engine primitives.
-// Approximation: allow lte 4 only when Eiji is present (via condition on second action),
-// and allow lte 3 unconditionally. This gives separate actions; a true conditional-ceiling
-// filter is tracked as an engine backlog item.
-const compiled: CompiledCard = {
+// Split the play into mutually exclusive branches so Eiji Nagasumi in the
+// digivolution cards raises the level ceiling from 3 to 4.
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "WhenDigivolving",
@@ -26,7 +23,42 @@ const compiled: CompiledCard = {
           },
           "from": ["trash"],
           "payCost": false,
-          "optional": true
+          "optional": true,
+          "condition": {
+            "kind": "not",
+            "condition": {
+              "kind": "selfDigivolutionStackMatchesFilter",
+              "filter": {
+                "nameOrTrait": [
+                  { "tokens": ["Eiji Nagasumi"], "match": "name" }
+                ]
+              }
+            }
+          }
+        },
+        {
+          "kind": "PlayWithoutCost",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "levelComparison": { "op": "lte", "value": 4 },
+              "nameOrTrait": [
+                { "tokens": ["Dark Animal", "SoC"], "match": "trait" }
+              ]
+            },
+            "count": 1
+          },
+          "from": ["trash"],
+          "payCost": false,
+          "optional": true,
+          "condition": {
+            "kind": "selfDigivolutionStackMatchesFilter",
+            "filter": {
+              "nameOrTrait": [
+                { "tokens": ["Eiji Nagasumi"], "match": "name" }
+              ]
+            }
+          }
         }
       ]
     },
@@ -81,10 +113,8 @@ const compiled: CompiledCard = {
       "frequency": "OncePerTurn"
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "[When Digivolving] conditional level ceiling: if [Eiji Nagasumi] in digivolution cards, level may be up to 4 (engine gap: no conditional-ceiling filter)"
-  ]
+  "coverage": "full",
+  "residual": []
 };
 
 registerIrCard("BT14-079", compiled);

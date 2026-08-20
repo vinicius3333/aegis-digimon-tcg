@@ -4,6 +4,7 @@ import { matchingAlternateDigivolutionRequirement, matchingEvoCost } from "../..
 import type { EffectContext } from "../../EffectContext.js";
 import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
+import { scaleFactor } from "../scaling.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { candidateLooseInstances, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
@@ -82,7 +83,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
   const toDigivolve: { instanceId: string; target?: Target; payCost?: boolean }[] = [];
   const toSecurity: { instanceId: string; toTop: boolean; faceDown: boolean }[] = [];
   const toPlaceUnder: { instanceId: string; underFilter?: import("@aegis/shared").Filter }[] = [];
-  const toUnderTamer: { instanceId: string; underFilter?: import("@aegis/shared").Filter }[] = [];
+  const toUnderTamer: { instanceId: string; underFilter?: import("@aegis/shared").Filter; faceDown?: boolean }[] = [];
   if (action.trashFilter !== undefined) {
     for (const card of revealed) {
       if (definitionMatches(action.trashFilter, ctx.game.definitionOf(card))) {
@@ -139,13 +140,29 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       }
     }
   }
+  // RevealAdd candidates are loose cards rather than permanents, so the normal
+  // permanent matcher cannot resolve a dynamic play-cost ceiling. Materialize
+  // the ceiling once per effect from the live source stack before matching the
+  // revealed card definitions (EX9-053 and the later EX12 family).
+  const materializePlayCostScaling = (filter: Filter): Filter => {
+    const scaling = (filter as Filter & { playCostLteScaling?: import("@aegis/shared").Scaling }).playCostLteScaling;
+    if (scaling === undefined) return filter;
+    const cap = (filter.playCostLte ?? 0) + scaleFactor(ctx, scaling);
+    const { playCostLteScaling: _scaling, ...withoutScaling } = filter as Filter & {
+      playCostLteScaling?: import("@aegis/shared").Scaling;
+    };
+    return { ...withoutScaling, playCostLte: cap } as Filter;
+  };
+
   for (const spec of action.add) {
     if (spec.ifDigivolveDeclined === true && !digivolveDeclined) continue;
+    const primaryFilter = materializePlayCostScaling(spec.filter);
+    const alternativeFilters = (spec.orFilters ?? []).map(materializePlayCostScaling);
     const qualifies = (c: import("@aegis/shared").CardInstance) => {
       const def = ctx.game.definitionOf(c);
       // "Add 1 [X] or 1 Y card among them": a card qualifies under EITHER alternative;
       // `count` is the total across the union, so the player adds 1 from either, not one each.
-      return definitionMatches(spec.filter, def) || (spec.orFilters ?? []).some((alt) => definitionMatches(alt, def));
+      return definitionMatches(primaryFilter, def) || alternativeFilters.some((alt) => definitionMatches(alt, def));
     };
     // requiresMinRevealed: count ALL matching cards among the FULL revealed set (including already
     // taken by earlier slots) — KB Q3114 "if 2+ applicable cards are revealed" refers to the total
@@ -180,8 +197,9 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     // Budget-constrained free play: choose any subset whose SUMMED play cost <= costBudget
     // ("total play costs add up to N or less", BT11-044 / "N play cost's total worth", BT14-068).
     // The card count is bounded by the budget, not a fixed `count`; the pick is always optional.
-    if (spec.costBudget !== undefined) {
-      const budget = spec.costBudget;
+    const costBudget = spec.costBudget ?? spec.totalPlayCostBudget;
+    if (costBudget !== undefined) {
+      const budget = costBudget;
       const playCostOf = (c: import("@aegis/shared").CardInstance) => ctx.game.definitionOf(c).playCost ?? 0;
       // A card can only ever be part of a within-budget subset if it individually fits.
       const affordable = matches.filter((c) => playCostOf(c) <= budget);
@@ -262,7 +280,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       else if (disposition.to === "placeUnder")
         toPlaceUnder.push({ instanceId: c.instanceId, underFilter: disposition.underFilter });
       else if (disposition.to === "underTamer")
-        toUnderTamer.push({ instanceId: c.instanceId, underFilter: disposition.underFilter });
+        toUnderTamer.push({ instanceId: c.instanceId, underFilter: disposition.underFilter, faceDown: disposition.faceDown });
       else toHand.push(c.instanceId);
     }
   }
@@ -341,7 +359,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       const topDef = ctx.game.definitionOf(p.topCard);
       return topDef.kinds.includes("Tamer" as never);
     });
-    for (const { instanceId, underFilter } of toUnderTamer) {
+    for (const { instanceId, underFilter, faceDown } of toUnderTamer) {
       const candidates = tamerCandidates.filter(
         (p) => underFilter === undefined || permanentMatchesFilter(ctx, p, underFilter, ctx.source),
       );
@@ -358,7 +376,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         });
         if (chosen.length > 0) hostPermanentId = chosen[0]!;
       }
-      await ctx.fx.placeUnder(hostPermanentId, [instanceId]);
+      await ctx.fx.placeUnder(hostPermanentId, [instanceId], { faceUp: faceDown === true ? false : undefined });
     }
   }
   // The rest: send to deck bottom/top (trash is rarer; treated as deckBottom). A

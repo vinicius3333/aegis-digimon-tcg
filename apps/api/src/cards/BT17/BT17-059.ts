@@ -28,13 +28,8 @@ const diaboromonName = "diaboromon";
  *    tokens; cannot re-activate after this leaves play mid-process) and do not change
  *    how either clause is authored here.
  *
- * Effect 2 (the combat clause, this card's assigned mechanic) is implemented and
- * executable. Effect 1 is BLOCKED: playing [Diaboromon] Tokens requires a
- * token-spawning subsystem that does not exist yet (no token primitive in
- * engine/effects/primitives.ts, no `isToken` on `Permanent`, and the IR interpreter
- * marks `PlayToken` as a loud gap "needs the token-spawning subsystem"). It is not
- * faked here — adding the subsystem would mean new shared engine state, which is out
- * of scope for this per-card change.
+ * Both effects use executable engine seams. Effect 1 uses the token primitive
+ * and remains optional after the Doomsday Clock placement, as confirmed by Q2813.
  */
 
 const opponentAttackerIsHostile = (ctx: EffectContext): boolean => {
@@ -93,9 +88,7 @@ export const module: EffectModule = {
       ];
     }
 
-    // Effect 1 — [When Digivolving] play 2 [Diaboromon] Tokens (BLOCKED: token-spawning
-    // subsystem missing). Registered so the clause is not silently dropped; it logs the
-    // gap and spawns nothing rather than faking tokens. `optional` per Q2813.
+    // Effect 1 — [When Digivolving] play 2 [Diaboromon] Tokens. `optional` per Q2813.
     if (timing === EffectTiming.WhenDigivolving) {
       return [
         whenDigivolving({
@@ -122,10 +115,8 @@ export const module: EffectModule = {
             await ctx.fx.placeUnder(self.permanentId, chosen, { belowTop: false });
             const playTokens = await ctx.ask.optional(ctx, "Play 2 [Diaboromon] Tokens without paying their costs?");
             if (!playTokens) return;
-            // eslint-disable-next-line no-console -- loud gap until the token-spawning subsystem exists.
-            console.warn(`[${cardId}] unsupported: "play 2 [Diaboromon] Tokens" needs the token-spawning subsystem`, {
-              trigger: ctx.trigger,
-            });
+            await ctx.fx.playToken(source.ownerSeat, "Diaboromon Token", { payCost: false });
+            await ctx.fx.playToken(source.ownerSeat, "Diaboromon Token", { payCost: false });
           },
         }),
       ];

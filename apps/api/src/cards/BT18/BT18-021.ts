@@ -15,9 +15,9 @@ const compiled: CompiledCard = {
           "event": "wouldDigivolve",
           "sourceFilter": {
             "controller": "mine",
-            "kind": [
-              "Digimon",
-              "Tamer"
+            "or": [
+              {"isSelfRef": true},
+              {"kind": ["Tamer"]}
             ]
           },
           "into": {
@@ -61,3 +61,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT18-021", compiled);
+export { compiled };

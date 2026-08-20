@@ -73,6 +73,8 @@ const compiled: CompiledCard = {
                 "isSelf": true
               },
               "restriction": "beAffected",
+              "byOpponentEffectsOnly": true,
+              "fromSourceKind": ["Digimon"],
               "duration": "forTheTurn"
             },
             {
@@ -106,10 +108,8 @@ const compiled: CompiledCard = {
       ]
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "beAffected restriction covers all opponent effects; text specifies only opponent Digimon's effects (engine approximation, LANE_E.md)"
-  ]
+  "coverage": "full",
+  "residual": []
 };
 
 registerIrCard("ST18-12", compiled);

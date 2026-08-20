@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [When Digivolving]: grant <Blitz> to self only (the +4000 DP is NOT part of WhenDigivolving).
 // [All Turns]: while opponent has 1+ memory, this Digimon gets +4000 DP AND opponent can't play Digimon ≤6000 DP.
 // KB Q2379: "while your opponent has 1 or more memory" = while memory >= 1 (opponent's side = positive).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "WhenDigivolving",

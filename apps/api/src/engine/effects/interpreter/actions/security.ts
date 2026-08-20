@@ -36,8 +36,13 @@ export async function runSecurityManipulation(
   // 1 from the top of each player's security).
   if (action.bothPlayers && (action.op === "trashTop" || action.op === "trash" || action.op === "shuffle")) {
     for (const s of [mine, opp]) {
-      if (action.op === "trashTop" || action.op === "trash")
-        await ctx.fx.trashFromSecurity(s, action.amount ?? 1, { fromTop: true });
+      if (action.op === "trashTop" || action.op === "trash") {
+        const amount =
+          action.leaveCount !== undefined
+            ? Math.max(0, ctx.game.player(s).security.length - action.leaveCount)
+            : action.amount ?? 1;
+        if (amount > 0) await ctx.fx.trashFromSecurity(s, amount, { fromTop: true });
+      }
       else ctx.fx.shuffleSecurity(s);
     }
     return;

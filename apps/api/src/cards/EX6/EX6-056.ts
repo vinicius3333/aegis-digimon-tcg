@@ -6,7 +6,7 @@
 // for the same "Seven Great Demon Lords"/"Gate of Deadly Sins" mechanic (KB Q3791).
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",

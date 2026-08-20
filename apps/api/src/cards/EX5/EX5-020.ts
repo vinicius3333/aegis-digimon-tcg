@@ -9,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // target), NOT when digivolving FROM this card. Current IR only had 'wouldBePlayed'; the event
 // must also cover 'wouldBeDigivolvedInto'.
 // The condition requires BOTH: 3+ digivolution cards AND the specific trait.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",

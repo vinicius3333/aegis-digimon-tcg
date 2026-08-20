@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // RevealAdd rest is player's choice (top or bottom): deckTopOrBottom.
 // AllTurns Replacement cost must restrict to Option cards in digivolution cards.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",

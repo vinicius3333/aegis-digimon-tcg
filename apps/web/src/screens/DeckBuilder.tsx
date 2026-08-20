@@ -8,7 +8,6 @@ import { useMemo, useState, useEffect, useRef } from "react";
 import {
   bannedPairViolations,
   getCardDefinition,
-  isCardInActivePool,
   type CardDefinition,
   isBanned,
   restrictionLabel,
@@ -29,7 +28,6 @@ import {
   serializeDeckList,
   type DeckListing,
 } from "../game/decks";
-import { CardPoolNotice } from "./cardPoolNotice";
 import { DeckLevelCurve, DeckPreviewSections } from "./deckPreview";
 import { DeckListCard, deckLegality } from "./DeckListCard";
 import { useTranslation } from "../i18n";
@@ -226,7 +224,6 @@ function DeckEditor({
   const add = (cardId: string) => {
     const def = getCardDefinition(cardId);
     if (!def) return;
-    if (!isCardInActivePool(def)) return;
     if (isBanned(cardId)) return;
     const eggCard = isEggCard(def);
     const map = eggCard ? egg : main;
@@ -338,7 +335,6 @@ function DeckEditor({
         showSort
         extra={
           <>
-            <CardPoolNotice compact />
             <div
               style={{
                 padding: "12px 0",

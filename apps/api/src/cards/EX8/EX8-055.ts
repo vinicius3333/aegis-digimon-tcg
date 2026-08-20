@@ -13,7 +13,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 2 more from what remains. Together they give an effective 1-3 range with the same
 // filter/host, so "declined entirely" (0 total) is only reachable via the effect-level
 // `optional` ask, never via the per-card selection prompt.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",

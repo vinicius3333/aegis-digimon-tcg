@@ -64,6 +64,8 @@ export interface BoardPredicates {
   digivolutionCards?: "none" | "hasNone" | "hasAny";
   /** Alias for `digivolutionCards: "hasAny"` (BT17-098). */
   hasDigivolutionCards?: boolean;
+  /** Candidate color matches at least one color in the source Digimon's stack (EX9-074). */
+  colorMatchesAnyDigivolutionCard?: boolean;
   /**
    * The STACK contains a card of one of these kinds (BT17-090). Distinct from
    * `digivolutionCards:"hasAny"`, which only asks whether the stack is non-empty.

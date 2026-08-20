@@ -18,5 +18,7 @@ describe("BT17-059 Diaboromon", () => {
 
     expect(s.perm("diaboromon").stack.some((card) => card.cardId === "BT17-100")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT17-100")).toBe(false);
+    expect(s.state.players[0]!.battleArea).toHaveLength(3);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.currentDP === 3000)).toHaveLength(2);
   });
 });

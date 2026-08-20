@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "StartOfYourMainPhase",
@@ -11,7 +11,7 @@ const compiled: CompiledCard = {
           "kind": "Draw",
           "controller": "mine",
           "amount": 1,
-          "cost": {
+            "cost": {
             "kind": "place",
             "target": {
               "filter": {
@@ -93,6 +93,10 @@ const compiled: CompiledCard = {
               ],
               "raw": "1 card from under your Tamers and 1 card in your trash can also be placed for their DigiXros"
             }
+          ],
+          "additionalEffects": [
+            { "kind": "AllowDigiXrosMaterialsFromTrash" },
+            { "kind": "DigiXrosExtraMaterial" }
           ]
         }
       ]
@@ -115,10 +119,8 @@ const compiled: CompiledCard = {
       "isSecurity": true
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "1 card from under your Tamers and 1 card in your trash can also be placed for their DigiXros (DigiXrosExtraMaterial capability needed)"
-  ]
+  "coverage": "full",
+  "residual": []
 };
 
 registerIrCard("EX10-064", compiled);

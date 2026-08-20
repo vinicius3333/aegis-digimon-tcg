@@ -54,7 +54,7 @@ export interface Target {
    * Resolve to the permanent that triggered the enclosing SubTrigger (the engine's recorded
    * `subjectPermanentId`) instead of running a candidate search.
    */
-  sourceRef?: "triggerSubject" | "triggerDefender";
+  sourceRef?: "triggerSubject" | "triggerDefender" | "battleOpponent";
   /**
    * Bind the resolved permanent(s) so a later `Filter.relativeTo` or `PlaceUnder.underSelectionRef`
    * can reference them. The interpreter records the first resolved permanentId for the effect's
@@ -73,6 +73,8 @@ export interface Target {
   source?: ZoneRef | ZoneRef[];
   /** For budget-based targeting. */
   totalDpCap?: number;
+  /** Choose permanents whose printed play costs add up to at most this value. */
+  totalPlayCostBudget?: number;
   /**
    * Printed levels must sum to EXACTLY this value, or at most it when `upTo`. BT20-098's errata
    * makes "9 levels' total worth of Digimon cards" exact, not up to 9.

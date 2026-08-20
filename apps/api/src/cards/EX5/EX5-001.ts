@@ -17,7 +17,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   The action is a Digivolve reduceCost 0 (free digivolve) on self.
 // Note: sourceFilter gates on the RECEIVING permanent (onAddDigivolutionCards' subject) being
 // THIS Digimon via isSelfRef, mirroring BT20-080's established pattern for this event.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "AllTurns",

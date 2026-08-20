@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",
@@ -15,15 +15,9 @@ const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Blue"
-              ],
-              "levels": [
-                3
-              ]
+              "kind": ["Digimon"],
+              "colors": ["Blue"],
+              "levels": [3]
             },
             "count": 1
           },
@@ -59,6 +53,7 @@ const compiled: CompiledCard = {
                   "kind": [
                     "Digimon"
                   ],
+                  "isTriggerSource": true,
                   "colors": [
                     "Blue"
                   ],
@@ -69,6 +64,7 @@ const compiled: CompiledCard = {
                 },
                 "count": 1
               },
+              "from": ["hand"],
               "cost": {
                 "kind": "suspend",
                 "target": {

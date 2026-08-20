@@ -5,14 +5,13 @@
 //
 // Fixes:
 //   - Removed colors:["Blue"] from cost target filter (placed card needs no color constraint)
-//   - Return target should filter by the placed card's level (relativeTo on placed card level —
-//     capability gap: Cost.placedCardBindAs not yet supported; see LANE_H.md; encoded as raw)
+//   - the place cost stores the placed card's level for the following Return target.
 //
 // nameOrTrait with two tokens in one entry = OR (Aqua OR Sea Animal) — correct per engine.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Main",
@@ -25,7 +24,7 @@ const compiled: CompiledCard = {
               "kind": [
                 "Digimon"
               ],
-              "raw": "with the same level as the placed card"
+                "levelEq": "placedCardLevel"
             },
             "count": "all"
           },
@@ -65,7 +64,8 @@ const compiled: CompiledCard = {
             },
             "destination": "digivolutionStack",
             "position": "bottom",
-            "host": "target"
+            "host": "target",
+            "storeAs": "placedCardLevel"
           },
           "optional": true,
           "abortOnDecline": true
@@ -94,9 +94,7 @@ const compiled: CompiledCard = {
     }
   ],
   "coverage": "full",
-  "residual": [
-    "Return target level = placed card's level; Cost.placedCardBindAs capability missing (LANE_H.md)"
-  ]
+  "residual": []
 };
 
 registerIrCard("EX6-066", compiled);

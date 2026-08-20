@@ -1139,13 +1139,14 @@
     },
     {
       "id": "bt19-dgo-2025-01-04-3-purple-hybrid",
-      "revision": 1,
+      "revision": 2,
       "name": "BT19 Purple Hybrid",
       "archetype": "Purple Hybrid",
       "collection": "BT19",
       "formatBlock": "BT18-19",
       "colors": ["White", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Matt Ishida BT2-090 to 0, Jack Raid BT4-111 to 1; the freed copies reinforce Gazimon BT3-077 to 4, Nidhoggmon BT7-077 to 4, Koichi Kimura BT18-094 to 4, Argomon BT17-048 to 3.",
       "tournament": {
         "name": "Championship Finals — Bandai",
         "date": "2025-01-04",
@@ -1161,7 +1162,7 @@
         {
           "cardId": "BT3-077",
           "name": "Gazimon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1209,13 +1210,13 @@
         {
           "cardId": "BT17-048",
           "name": "Argomon",
-          "qty": 1,
+          "qty": 3,
           "type": "Digimon"
         },
         {
           "cardId": "BT7-077",
           "name": "Nidhoggmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1223,12 +1224,6 @@
           "name": "DeathXmon",
           "qty": 1,
           "type": "Digimon"
-        },
-        {
-          "cardId": "BT2-090",
-          "name": "Matt Ishida",
-          "qty": 3,
-          "type": "Tamer"
         },
         {
           "cardId": "BT7-091",
@@ -1239,7 +1234,7 @@
         {
           "cardId": "BT18-094",
           "name": "Koichi Kimura",
-          "qty": 2,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -1251,7 +1246,7 @@
         {
           "cardId": "BT4-111",
           "name": "Jack Raid",
-          "qty": 4,
+          "qty": 1,
           "type": "Option"
         },
         {

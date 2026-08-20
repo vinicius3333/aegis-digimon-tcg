@@ -45,11 +45,6 @@ export const en = {
 
   "menu.greeting": "Good to see you,",
   "menu.tagline": "The board is set. Choose your battle.",
-  "pool.title": "Card pool: through {set}.",
-  "pool.note": "We release one collection at a time, after testing every card for complete rules support.",
-  "pool.blocks": "Released blocks ({count}): {blocks}",
-  "pool.promos": "Promos ({count} cards): {ranges}",
-  "pool.locked": "Locked for now: {blocks} and everything after them.",
   "menu.quickMatch": "Quick Match",
   "menu.quickMatchDesc": "Find a live opponent",
   "menu.deckBuilder": "Deck Builder",

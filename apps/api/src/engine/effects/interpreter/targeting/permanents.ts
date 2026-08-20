@@ -235,6 +235,30 @@ export async function resolveTotalDpCapTargets(ctx: EffectContext, target: Targe
   return affectable;
 }
 
+/** Resolve an optional set of permanents whose printed play costs fit one aggregate budget. */
+export async function resolveTotalPlayCostBudgetTargets(ctx: EffectContext, target: Target): Promise<string[]> {
+  const budget = target.totalPlayCostBudget;
+  if (budget === undefined) return [];
+  const candidates = candidatePermanents(ctx, target, { includeUnaffectable: true })
+    .map((permanent) => ({
+      permanentId: permanent.permanentId,
+      cost: permanent.topCard === undefined ? undefined : (ctx.game.definitionOf(permanent.topCard).playCost ?? 0),
+    }))
+    .filter((candidate): candidate is { permanentId: string; cost: number } => candidate.cost !== undefined && candidate.cost <= budget)
+    .sort((left, right) => left.cost - right.cost || left.permanentId.localeCompare(right.permanentId));
+  const selected: string[] = [];
+  let spent = 0;
+  for (const candidate of candidates) {
+    if (spent + candidate.cost > budget) continue;
+    if (!(await ctx.ask.optional(ctx, `Return ${candidate.permanentId} (cost ${candidate.cost}, spent ${spent}/${budget})?`))) continue;
+    selected.push(candidate.permanentId);
+    spent += candidate.cost;
+  }
+  const affectable = filterAffectable(ctx, selected);
+  ctx.lastResolvedPermanentIds = affectable;
+  return affectable;
+}
+
 /**
  * Carve the survivor(s) `target.except` spares out of a `count: "all"` mass-delete
  * ("delete all of your opponent's Digimon except 1" — BT20-102, EX11-046). `selector`
@@ -312,6 +336,11 @@ export async function resolvePermanentTargets(
   if (target.sourceRef === "triggerDefender") {
     const id = ctx.trigger.defenderPermanentId ?? ctx.trigger.targetPermanentId;
     if (id) return [id];
+  }
+  if (target.sourceRef === "battleOpponent") {
+    const opponentId = ctx.trigger.battleOpponentPermanentIdByInstanceId?.[ctx.source.instanceId];
+    if (opponentId) return [opponentId];
+    return [];
   }
   // §15-15-5-3: a permanent immune to this source's effects is still a legal,
   // CHOOSABLE candidate — it simply isn't affected once selected. Gather the pool

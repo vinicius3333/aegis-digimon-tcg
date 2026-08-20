@@ -16,9 +16,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q4474: attack part is optional ("may attack").
 // KB Q4699: can process the attack part even if ADVENTURE condition isn't met.
 //
-// Residual: Return target filter uses digivolutionCardsAtMost:1 (CAP-H-02 in
-// CAPABILITIES-BACKLOG.md) which is not yet in the engine — currently the filter
-// over-matches (no stack-size constraint).
+// `digivolutionCardsAtMost:1` is enforced by the interpreter's permanent
+// filter matcher (CAP-H-02).
 const compiled: CompiledCard = {
   "effects": [
     {
@@ -205,10 +204,8 @@ const compiled: CompiledCard = {
       ]
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "Return target filter uses digivolutionCardsAtMost:1 (CAP-H-02) which is not yet in the engine — filter currently over-matches Digimon with >1 digivolution card"
-  ],
+  "coverage": "full",
+  "residual": [],
   "digivolutionRequirement": [
     {
       "level": 4,

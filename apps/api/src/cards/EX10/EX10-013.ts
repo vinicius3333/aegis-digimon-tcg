@@ -126,23 +126,9 @@ const module: EffectModule = {
       ];
     }
 
-    // [Breeding] [When Digivolving] This Digimon may move.
-    //   CardObjectController.MovePermanent(...GetBreedingAreaPermanents()[0]...) — i.e.
-    //   move THIS Digimon from the breeding area to the battle area (§4-16 Moving).
-    //
-    // BLOCKED (represented, not faked — card-module contract; mirrors EX10-055's
-    // blocked clauses). There is no effect-reachable "move from breeding to battle area"
-    // primitive: the breeding→battle move exists ONLY as the player intent
-    // `moveFromBreeding` handled by BreedingPhaseController in the GameEngine
-    // (actions/breeding.ts `applyMoveFromBreeding`), and it is NOT exposed on the
-    // `Primitives` (ctx.fx.*) surface card effects are written against (a repo-wide
-    // search finds no `move`/`moveToBattleArea` verb in EffectContext.ts /
-    // primitives.ts). Composing it from existing verbs is not possible: the breeding slot
-    // is a distinct, single-permanent zone (`PlayerState.breeding`) and the only verbs
-    // that relocate a whole permanent are returnToHand/returnToDeck/deletePermanent — none
-    // moves a permanent between zones while preserving it. Faking it (e.g. delete +
-    // re-play) would change identity, fire wrong timings, and reset the stack. Left inert
-    // until a `moveFromBreeding` effect primitive exists.
+    // [Breeding] [When Digivolving] This Digimon may move to the battle area. This is an
+    // effect-driven move, so it uses the same identity-preserving primitive as P-130/P-143;
+    // it is not the player-declared breeding-phase action.
     if (timing === EffectTiming.WhenDigivolving) {
       return [
         whenDigivolving({
@@ -156,8 +142,9 @@ const module: EffectModule = {
             const self = ctx.source.permanent();
             return self !== undefined && self.inBreeding;
           },
-          resolve: async () => {
-            // BLOCKED: needs a breeding→battle-area move primitive on ctx.fx (see header).
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self !== undefined) await ctx.fx.movePermanentZone(self.permanentId, "toBattle");
           },
         }),
       ];

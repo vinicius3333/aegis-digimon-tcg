@@ -47,7 +47,7 @@ export { UnsupportedEffectError } from "./interpreter/errors.js";
 export { grantedTokenEffectsForTiming } from "./interpreter/grantedEffects.js";
 export { definitionMatches, matchNameOrTrait } from "./interpreter/matching/definition.js";
 export { permanentMatchesFilter } from "./interpreter/matching/permanent.js";
-export { allowsDigiXrosMaterialsFromTrash, hasBlastDigivolveKeyword } from "./interpreter/registration/keywords.js";
+export { allowsDigiXrosMaterialsFromTrash, allowsExtraDigiXrosMaterials, hasBlastDigivolveKeyword } from "./interpreter/registration/keywords.js";
 export { irCardModule, registerIrCard } from "./interpreter/registration/module.js";
 export {
   applyWouldBePlayedSelfReducer,

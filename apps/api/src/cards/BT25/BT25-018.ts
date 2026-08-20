@@ -199,9 +199,7 @@ export const compiled: CompiledCard = {
     }
   ],
   "coverage": "full",
-  "residual": [
-    { "finding": "Missing [Main] for digivolve line", "verdict": "false-positive", "reason": "'[Digivolve]' in card text is a digivolution requirement cost label, not a Main activated ability; digivolutionRequirement field encodes this correctly" }
-  ],
+  "residual": [],
   "digivolutionRequirement": [
     {
       "level": 5,

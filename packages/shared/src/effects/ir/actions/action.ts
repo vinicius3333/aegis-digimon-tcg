@@ -65,6 +65,7 @@ import type {
   DeleteBudgetAction,
   DeleteByDPBudgetAction,
   DeleteLevelBudgetAction,
+  DeletePerColorAction,
   DeleteUntilCountAction,
   DeletionMaxDpModifierAction,
   ReturnAction,
@@ -126,6 +127,7 @@ export type Action =
   | SetMemoryAction
   | SetTurnEndMemoryAction
   | DeleteAction
+  | DeletePerColorAction
   | DeleteUntilCountAction
   | DeleteBudgetAction
   | RevealChooseDeleteBudgetAction

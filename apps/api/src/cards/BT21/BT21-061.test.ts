@@ -13,11 +13,12 @@ describe("BT21-061 MetalGreymon", () => {
       expect(nested.actions).toHaveLength(2);
       expect(nested.actions?.[0]).toMatchObject({
         kind: "GainKeyword",
+        target: { sourceRef: "triggerSubject" },
         keyword: { keyword: "Alliance", raw: "＜Alliance＞" },
         duration: "forTheTurn",
         condition: { kind: "triggerSubjectMatchesFilter" },
       });
-      expect(nested.actions?.[1]).toMatchObject({ kind: "Attack", optional: true, withoutSuspending: false });
+      expect(nested.actions?.[1]).toMatchObject({ kind: "Attack", optional: true, withoutSuspending: false, target: { sourceRef: "triggerSubject" } });
     }
   });
 });

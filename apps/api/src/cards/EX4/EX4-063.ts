@@ -11,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - [Your Turn] Replacement sourceFilter: errata changes name check to digivolution cards —
 //   use digivolutionStackNameOrTrait to check for Terriermon/Lopmon in digivolution cards.
 // - [Your Turn] Replacement cost: suspend THIS Tamer (isSelf:true), not the source Digimon.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "StartOfYourMainPhase",

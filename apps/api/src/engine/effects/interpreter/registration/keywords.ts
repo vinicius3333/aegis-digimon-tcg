@@ -245,10 +245,15 @@ export function registerTamerOntoFromEffects(cardId: string, effects: readonly C
  * player's trash is also a valid material source. Populated by `registerIrCard`.
  */
 const ALLOW_DIGIXROS_FROM_TRASH = new Set<string>();
+const EXTRA_DIGIXROS_MATERIALS = new Set<string>();
 
 /** True when a card's IR declares that DigiXros materials may come from the player's trash. */
 export function allowsDigiXrosMaterialsFromTrash(cardId: string): boolean {
-  return ALLOW_DIGIXROS_FROM_TRASH.has(cardId);
+  return ALLOW_DIGIXROS_FROM_TRASH.has(cardId) || EXTRA_DIGIXROS_MATERIALS.has(cardId);
+}
+
+export function allowsExtraDigiXrosMaterials(cardId: string): boolean {
+  return EXTRA_DIGIXROS_MATERIALS.has(cardId);
 }
 
 export function detectAllowDigiXrosMaterialsFromTrash(cardId: string, effects: readonly CardEffect[]): void {
@@ -256,7 +261,14 @@ export function detectAllowDigiXrosMaterialsFromTrash(cardId: string, effects: r
     for (const action of effect.actions) {
       if (action.kind !== "Replacement" || action.event !== "wouldBePlayed") continue;
       const extras = (action as { additionalEffects?: Array<{ kind: string }> }).additionalEffects;
-      if (extras?.some((e) => e.kind === "AllowDigiXrosMaterialsFromTrash")) {
+      const hasExtra = extras?.some((e) => e.kind === "DigiXrosExtraMaterial");
+      if (hasExtra) EXTRA_DIGIXROS_MATERIALS.add(cardId);
+      if (extras?.some((e) => e.kind === "AllowDigiXrosMaterialsFromTrash") || hasExtra) {
+        ALLOW_DIGIXROS_FROM_TRASH.add(cardId);
+        return;
+      }
+      if (action.actions?.some((e) => (e as { kind?: string }).kind === "DigiXrosExtraMaterial")) {
+        EXTRA_DIGIXROS_MATERIALS.add(cardId);
         ALLOW_DIGIXROS_FROM_TRASH.add(cardId);
         return;
       }

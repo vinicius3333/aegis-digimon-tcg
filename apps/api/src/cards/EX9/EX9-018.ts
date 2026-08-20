@@ -1,12 +1,11 @@
 // @ts-nocheck
 // EX9-018 MetalMamemon — hand-fixed IR.
 // KB Q4760: trash digivolution cards from exactly 1 opponent Digimon (count:1 enforces this).
-// Scaling should count THIS Digimon's face-down digivolution cards (faceDown:true in filter —
-// engine capability gap; see LANE_H.md; current engine counts all digivolution cards).
+// Scaling counts THIS Digimon's face-down digivolution cards.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
@@ -85,7 +84,7 @@ const compiled: CompiledCard = {
               ],
               "faceDown": true
             },
-            "unit": "digivolutionCards"
+            "unit": "selfFaceDownDigivolutionCards"
           }
         },
         {
@@ -149,7 +148,7 @@ const compiled: CompiledCard = {
               ],
               "faceDown": true
             },
-            "unit": "digivolutionCards"
+            "unit": "selfFaceDownDigivolutionCards"
           }
         },
         {
@@ -189,9 +188,7 @@ const compiled: CompiledCard = {
     }
   ],
   "coverage": "full",
-  "residual": [
-    "scaling counts all digivolution cards; faceDown filter in Scaling.filter not yet implemented (LANE_H.md)"
-  ],
+  "residual": [],
   "digivolutionRequirement": [
     {
       "names": [

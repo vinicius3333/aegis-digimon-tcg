@@ -17,7 +17,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // siblings using the single-Digimon shape, so the general handler is left alone — a
 // per-card override is the only way to keep this card's KB-verified reading from being
 // silently reverted by a future recompile.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "WhenDigivolving",

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT21-040.js";
 
@@ -11,6 +12,7 @@ import "./BT21-040.js";
 const SHINEGREYMON = "BT13-018";
 const OPPONENT_LV6 = "AD1-004"; // WarGreymon, level 6
 const HERO_TAMERS = ["BT21-080", "BT21-082", "BT21-083"]; // three distinct [Hero] Tamer names
+const EFFECT_KEY = `BT21-040/ir-${EffectTiming.OnDeclaration}-0`;
 
 function board(opts: { opponentLv6?: boolean; heroTamers?: number }) {
   const tamers = HERO_TAMERS.slice(0, opts.heroTamers ?? 0).map((card) => ({ card }));
@@ -31,9 +33,9 @@ function board(opts: { opponentLv6?: boolean; heroTamers?: number }) {
 async function digivolvesForFour(s: ReturnType<typeof board>): Promise<boolean> {
   const before = s.state.memory;
   const result = s.engine.applyIntent(0, {
-    type: "digivolve",
-    permanentId: s.perm("agumon").permanentId,
-    instanceId: s.inst("shine").instanceId,
+    type: "activateEffect",
+    sourceInstanceId: s.perm("agumon").topCard.instanceId,
+    effectKey: EFFECT_KEY,
   });
   if (!result.ok) return false;
   await settle(() => s.perm("agumon").topCard?.cardId === SHINEGREYMON, 2000);
@@ -56,10 +58,10 @@ describe("BT21-040 Agumon", () => {
     // Hero Tamers and no level 6 opposite — indistinguishable from the ones above.
     const s = board({ heroTamers: 2 });
     const result = s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("agumon").permanentId,
-      instanceId: s.inst("shine").instanceId,
+      type: "activateEffect",
+      sourceInstanceId: s.perm("agumon").topCard.instanceId,
+      effectKey: EFFECT_KEY,
     });
-    expect(result).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(result).toEqual({ ok: false, reason: "illegal-target" });
   });
 });

@@ -254,6 +254,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "CostModifier":
       return await runResourceAction(ctx, action, scope);
     case "Delete":
+    case "DeletePerColor":
     case "DeleteUntilCount":
     case "DeleteBudget":
     case "DeleteLevelBudget":

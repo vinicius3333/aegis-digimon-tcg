@@ -1,4 +1,4 @@
-import { bannedPairViolations, cardPoolLabel, getCardDefinition, isCardInActivePool, CardKind } from "@aegis/shared";
+import { bannedPairViolations, getCardDefinition, CardKind } from "@aegis/shared";
 import { MAIN_DECK_SIZE, MAX_EGG_DECK_SIZE } from "./testDecks.js";
 import { effectiveCopyLimit } from "./banlistRestrictions.js";
 
@@ -20,32 +20,16 @@ import { effectiveCopyLimit } from "./banlistRestrictions.js";
  */
 export type DecklistValidation = { ok: true } | { ok: false; reason: string };
 
-/** Optional validation boundary for isolated test rooms. Production uses the default pool. */
-export type CardPoolCutoffDate = NonNullable<Parameters<typeof isCardInActivePool>[1]>;
-
-export interface DeckValidationOptions {
-  cardPoolCutoffDate?: CardPoolCutoffDate;
-}
-
 interface ReadonlyDecklist {
   readonly mainDeck: readonly string[];
   readonly eggDeck: readonly string[];
 }
 
-export function validateDecklist(
-  deck: ReadonlyDecklist,
-  { cardPoolCutoffDate }: DeckValidationOptions = {},
-): DecklistValidation {
+export function validateDecklist(deck: ReadonlyDecklist): DecklistValidation {
   for (const cardId of deck.mainDeck) {
     const def = getCardDefinition(cardId);
     if (def === undefined) {
       return { ok: false, reason: `unknown card: ${cardId}` };
-    }
-    if (!isCardInActivePool(def, cardPoolCutoffDate)) {
-      return {
-        ok: false,
-        reason: `${cardId} is not active yet (card pool: through ${cardPoolLabel(cardPoolCutoffDate)})`,
-      };
     }
     if (def.kinds.includes(CardKind.DigiEgg)) {
       return { ok: false, reason: `Digi-Egg ${cardId} belongs in the egg deck, not the main deck` };
@@ -56,12 +40,6 @@ export function validateDecklist(
     const def = getCardDefinition(cardId);
     if (def === undefined) {
       return { ok: false, reason: `unknown card: ${cardId}` };
-    }
-    if (!isCardInActivePool(def, cardPoolCutoffDate)) {
-      return {
-        ok: false,
-        reason: `${cardId} is not active yet (card pool: through ${cardPoolLabel(cardPoolCutoffDate)})`,
-      };
     }
     if (!def.kinds.includes(CardKind.DigiEgg)) {
       return { ok: false, reason: `non-Digi-Egg ${cardId} cannot go in the egg deck` };

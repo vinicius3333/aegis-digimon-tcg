@@ -40,6 +40,16 @@ import type { Action, CardEffect } from "@aegis/shared";
  */
 function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
   if (effect.isSecurity) return EffectTiming.SecuritySkill;
+  // A printed [Your Turn] clause whose payload is an effect-driven digivolution is a
+  // player-declared ability, not a continuous modifier. Keep the turn ownership guard from
+  // the original trigger, but surface it in the Main-phase activation window so the player can
+  // actually declare it (BT21-040, BT21-010, and the same generated shape in later sets).
+  if (
+    effect.trigger === "YourTurn" &&
+    effect.actions.some((action) => ["Digivolve", "DnaDigivolve", "AppFuse"].includes(action.kind))
+  ) {
+    return EffectTiming.OnDeclaration;
+  }
   switch (effect.trigger) {
     case "OnPlay":
       return EffectTiming.OnPlay;

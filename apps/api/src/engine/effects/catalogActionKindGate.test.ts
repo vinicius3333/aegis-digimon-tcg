@@ -41,6 +41,7 @@ const IMPLEMENTED_ACTION_KINDS = {
   DelayedDelete: true,
   DelayedDeletePlayed: true,
   Delete: true,
+  DeletePerColor: true,
   DeleteBudget: true,
   DeleteByDPBudget: true,
   DeleteLevelBudget: true,

@@ -22,7 +22,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // (requiresDelayArmed on the PlayWithoutCost) gates on the armed grant, is optional
 // (declines without trashing per Q3675), can't fire the turn the card enters, and trashes
 // the source as the cost before running the payload.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Main",
@@ -152,7 +152,7 @@ const compiled: CompiledCard = {
       "isSecurity": true
     }
   ],
-  "coverage": "partial",
+  "coverage": "full",
   "residual": []
 };
 

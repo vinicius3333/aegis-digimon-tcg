@@ -33,7 +33,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //      runPlaceUnder relocate-permanent branch (`ctx.fx.relocatePermanent`) instead of the
 //      loose-card-only default path, which silently no-ops on a battleArea-zoned permanent
 //      target (see runPlaceUnder's own comment on the "loud gap" this flag closes).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "YourTurn",

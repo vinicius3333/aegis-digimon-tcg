@@ -374,6 +374,7 @@ function makeContext(opts: {
   opponentBattleArea?: Permanent[];
   ownBattleArea?: Permanent[];
   ownSecurity?: unknown[];
+  opponentSecurity?: unknown[];
   ownHand?: unknown[];
   opponentHand?: unknown[];
   definitionOf?: (id: string) => CardDefinition;
@@ -411,7 +412,7 @@ function makeContext(opts: {
       deck: [],
       trash: [],
     },
-    { seat: 1, battleArea: opponent, security: [], hand: opts.opponentHand ?? [], deck: [], trash: [] },
+    { seat: 1, battleArea: opponent, security: opts.opponentSecurity ?? [], hand: opts.opponentHand ?? [], deck: [], trash: [] },
   ];
 
   const game: GameAccess = {
@@ -3042,6 +3043,40 @@ describe("v3 IR actions (round-3 fixes) dispatch to real primitives", () => {
     const trashed = recorder.calls.filter((c) => c.verb === "trashFromSecurity");
     expect(trashed).toHaveLength(2); // one per player
     expect(new Set(trashed.map((c) => c.args[0]))).toEqual(new Set([0, 1]));
+  });
+
+  it("'both players' security trash honors leaveCount for each stack", async () => {
+    const source = makeSource({ cardId: "Z-BOTH-LEAVE" });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source,
+      recorder,
+      ownSecurity: Array.from({ length: 5 }, (_, index) => ({
+        instanceId: `OWN-SEC-${index}`,
+        cardId: "BT1-001",
+        ownerSeat: 0,
+        faceUp: false,
+      })),
+      opponentSecurity: Array.from({ length: 4 }, (_, index) => ({
+        instanceId: `OPP-SEC-${index}`,
+        cardId: "BT1-001",
+        ownerSeat: 1,
+        faceUp: false,
+      })),
+    });
+    const module = irCardModule("Z-BOTH-LEAVE", {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "WhenDigivolving",
+          actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "any", bothPlayers: true, leaveCount: 3 }],
+        },
+      ],
+    });
+    for (const e of module.effectsForTiming(EffectTiming.WhenDigivolving, source)) await e.resolve(ctx);
+    const trashed = recorder.calls.filter((c) => c.verb === "trashFromSecurity");
+    expect(trashed.map((c) => c.args.slice(0, 2))).toEqual([[0, 2], [1, 1]]);
   });
 
   it("placeAsSecurity from hand selects a loose card and adds it to security", async () => {

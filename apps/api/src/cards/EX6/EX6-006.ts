@@ -32,7 +32,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //      still choose the plain +3 reduction even when the +4 threshold (5+ distinct
 //      digivolution-card names) is met, so both amounts stay live choices — never automatic
 //      upgrades, never additive.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "StartOfYourMainPhase",

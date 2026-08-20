@@ -15,6 +15,7 @@ export interface Cost {
     | "unsuspend" // BT14-054
     | "return"
     | "place"
+    | "placeOwnTopAtStackBottom"
     | "deleteOwn"
     | "payMemory"
     | "flipSecurity" // flip your top face-up security card face down (BT23-043, EX11-031)

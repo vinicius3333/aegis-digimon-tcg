@@ -24,6 +24,8 @@ export function toDuration(ref: EffectDurationRef): EffectDuration {
       return EffectDuration.UntilEndAttack;
     case "untilEndOfBattle":
       return EffectDuration.UntilEndBattle;
+    case "untilOpponentNextUnsuspendPhase":
+      return EffectDuration.UntilNextUntap;
     case "permanent":
       // A genuine name/trait/color grant from a resolved effect must survive turn
       // boundaries (WR-03 / ENG-02); it is never cleared by the boundary sweep.

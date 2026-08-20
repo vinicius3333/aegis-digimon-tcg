@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { GameState, bannedPairViolations, type Seat } from "@aegis/shared";
-import { GameEngine, type GameEngineHooks, type GameEngineOptions } from "./GameEngine.js";
+import { GameEngine, type GameEngineHooks } from "./GameEngine.js";
 import { validateDecklist } from "./deckValidation.js";
 import { RED_DECK } from "./testDecks.js";
 import type { Decklist } from "./setup.js";
@@ -16,14 +16,14 @@ function clone(deck: Decklist): Decklist {
   return { mainDeck: [...deck.mainDeck], eggDeck: [...deck.eggDeck] };
 }
 
-function makeEngine(engineOptions: GameEngineOptions = {}): { engine: GameEngine; state: GameState } {
+function makeEngine(): { engine: GameEngine; state: GameState } {
   const state = new GameState();
   const hooks: GameEngineHooks = {
     seed: 1,
     emit: () => {},
     requestDecision: () => {},
   };
-  return { engine: new GameEngine(state, hooks, engineOptions), state };
+  return { engine: new GameEngine(state, hooks), state };
 }
 
 describe("validateDecklist (decklist + banlist legality)", () => {
@@ -121,52 +121,13 @@ describe("validateDecklist (decklist + banlist legality)", () => {
     expect(validateDecklist(unknown).ok).toBe(false);
   });
 
-  it("rejects a card from a release block after the active pool cutoff", () => {
-    const futureSet = clone(RED_DECK);
-    const dropIndex = futureSet.mainDeck.indexOf("BT1-090");
-    futureSet.mainDeck.splice(dropIndex, 1);
-    futureSet.mainDeck.push("BT13-007");
+  it("accepts a card from any release block", () => {
+    const modernSet = clone(RED_DECK);
+    const dropIndex = modernSet.mainDeck.indexOf("BT1-090");
+    modernSet.mainDeck.splice(dropIndex, 1);
+    modernSet.mainDeck.push("BT26-010");
 
-    expect(validateDecklist(futureSet, { cardPoolCutoffDate: "2022-10-14" })).toEqual({
-      ok: false,
-      reason: "BT13-007 is not active yet (card pool: through BT10)",
-    });
-  });
-
-  it("can validate an isolated scenario deck against an explicit later pool cutoff", () => {
-    const scenarioDeck = clone(RED_DECK);
-    const dropIndex = scenarioDeck.mainDeck.indexOf("BT1-090");
-    scenarioDeck.mainDeck.splice(dropIndex, 1);
-    scenarioDeck.mainDeck.push("BT12-038");
-
-    expect(validateDecklist(scenarioDeck, { cardPoolCutoffDate: "2022-10-14" })).toEqual({
-      ok: false,
-      reason: "BT12-038 is not active yet (card pool: through BT10)",
-    });
-    expect(validateDecklist(scenarioDeck, { cardPoolCutoffDate: "2023-04-28" })).toEqual({ ok: true });
-  });
-
-  it("does not allow a joining client to widen the production card pool", () => {
-    const scenarioDeck = clone(RED_DECK);
-    const dropIndex = scenarioDeck.mainDeck.indexOf("BT1-090");
-    scenarioDeck.mainDeck.splice(dropIndex, 1);
-    scenarioDeck.mainDeck.push("BT12-038");
-    const forgedJoinOptions = {
-      displayName: "Attacker",
-      deck: scenarioDeck,
-      cardPoolCutoffDate: "2023-04-28",
-    };
-
-    expect(() =>
-      makeEngine({ cardPoolCutoffDate: "2022-10-14" }).engine.seatPlayer(0 as Seat, "attacker", forgedJoinOptions),
-    ).toThrow("BT12-038 is not active yet (card pool: through BT10)");
-    expect(() =>
-      makeEngine({ cardPoolCutoffDate: "2023-04-28" }).engine.seatPlayer(
-        0 as Seat,
-        "scenario",
-        forgedJoinOptions,
-      ),
-    ).not.toThrow();
+    expect(validateDecklist(modernSet)).toEqual({ ok: true });
   });
 });
 
@@ -180,9 +141,7 @@ describe("seatPlayer rejects an illegal deck on join (server-authoritative)", ()
     overCopy.mainDeck.splice(dropIndex, 1);
     overCopy.mainDeck.push("BT1-009"); // 5x BT1-009
 
-    expect(() =>
-      engine.seatPlayer(illegalSeat, "attacker", { displayName: "X", deck: overCopy }),
-    ).toThrow();
+    expect(() => engine.seatPlayer(illegalSeat, "attacker", { displayName: "X", deck: overCopy })).toThrow();
     // The seat was never staged: PlayerState is not populated.
     expect(state.players[illegalSeat]).toBeUndefined();
   });
@@ -194,17 +153,13 @@ describe("seatPlayer rejects an illegal deck on join (server-authoritative)", ()
     banned.mainDeck.splice(dropIndex, 1);
     banned.mainDeck.push("BT5-109");
 
-    expect(() =>
-      engine.seatPlayer(illegalSeat, "attacker", { displayName: "X", deck: banned }),
-    ).toThrow();
+    expect(() => engine.seatPlayer(illegalSeat, "attacker", { displayName: "X", deck: banned })).toThrow();
     expect(state.players[illegalSeat]).toBeUndefined();
   });
 
   it("seats a legal deck (does not throw, populates the seat)", () => {
     const { engine, state } = makeEngine();
-    expect(() =>
-      engine.seatPlayer(illegalSeat, "honest", { displayName: "Red", deck: clone(RED_DECK) }),
-    ).not.toThrow();
+    expect(() => engine.seatPlayer(illegalSeat, "honest", { displayName: "Red", deck: clone(RED_DECK) })).not.toThrow();
     expect(state.players[illegalSeat]).toBeDefined();
   });
 });
