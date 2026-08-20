@@ -10,6 +10,10 @@ describe("ST9-03 Betamon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 1);
 
     expect(s.state.memory).toBe(0);
-    expect(s.perm("betamon")).toMatchObject({ baseDP: 4000, currentDP: 4000, topCard: { cardId: "ST9-03" } });
+    expect(s.state.players[0]!.battleArea[0]).toMatchObject({
+      baseDP: 4000,
+      currentDP: 4000,
+      topCard: { cardId: "ST9-03" },
+    });
   });
 });
