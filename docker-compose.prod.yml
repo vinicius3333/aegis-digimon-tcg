@@ -3,6 +3,12 @@
 # alias on the shared network named by AEGIS_EDGE_NETWORK, so no host ports
 # are published here.
 #
+# The API runs as three processes, not one. A Colyseus process is single-threaded, so one
+# process uses one core no matter how many the host has; the three share their matchmaking
+# state through Redis and each advertises its own public path (`/p1`, `/p2`, `/p3`) so the
+# client SDK connects straight to the process that owns its room. `docker/Caddyfile` routes
+# those paths, and every other request is load-balanced across the three.
+#
 # Every deployment-specific value comes from the environment. Required:
 # AEGIS_PUBLIC_URL, AEGIS_PUBLIC_WS_URL, AEGIS_EDGE_NETWORK, POSTGRES_PASSWORD,
 # RESEND_API_KEY, AEGIS_EMAIL_FROM, DISCORD_CLIENT_ID, DISCORD_CLIENT_SECRET.
@@ -10,43 +16,87 @@
 #
 # For local development use docker-compose.yml instead.
 
+# One definition, three processes. Only AEGIS_PROCESS_PATH differs, and it has to: two
+# processes advertising the same public address would hand clients seat reservations that
+# live on the other one.
+x-api: &api
+  build:
+    context: .
+    dockerfile: apps/api/Dockerfile
+  restart: unless-stopped
+  # Three processes on a four-core host: enough for each to saturate a core under load
+  # while leaving the host a core for Postgres, Redis and the proxy.
+  cpus: 1.25
+  mem_limit: 1500m
+  environment: &api-env
+    NODE_ENV: production
+    PORT: "2567"
+    DATABASE_URL: postgresql://${POSTGRES_USER:-aegis}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/${POSTGRES_DB:-aegis}
+    AEGIS_WEB_URL: ${AEGIS_PUBLIC_URL:?AEGIS_PUBLIC_URL must be set}
+    AEGIS_API_URL: ${AEGIS_PUBLIC_URL}
+    AEGIS_REVISION: ${AEGIS_REVISION:-production}
+    AEGIS_REDIS_URL: redis://redis:6379
+    RESEND_API_KEY: ${RESEND_API_KEY:?RESEND_API_KEY must be set}
+    AEGIS_EMAIL_FROM: ${AEGIS_EMAIL_FROM:?AEGIS_EMAIL_FROM must be set}
+    DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:?DISCORD_CLIENT_ID must be set}
+    DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:?DISCORD_CLIENT_SECRET must be set}
+    DISCORD_REDIRECT_URI: ${AEGIS_PUBLIC_URL}/auth/discord/callback
+    ADMIN_DISPLAY_NAME: ${ADMIN_DISPLAY_NAME:-}
+  depends_on:
+    postgres:
+      condition: service_healthy
+    redis:
+      condition: service_healthy
+  healthcheck:
+    test:
+      - CMD
+      - node
+      - -e
+      - fetch('http://127.0.0.1:2567/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))
+    interval: 5s
+    timeout: 3s
+    retries: 12
+    start_period: 10s
+  # Docker keeps container stdout forever by default; the app rotates its own file log and
+  # this bounds the other half.
+  logging:
+    driver: json-file
+    options:
+      max-size: 20m
+      max-file: "3"
+
 services:
   api:
-    build:
-      context: .
-      dockerfile: apps/api/Dockerfile
-    restart: unless-stopped
-    # The game loop is one Node process on one core; the ceiling exists so a runaway match
-    # cannot starve the rest of the host, and the memory headroom covers roughly a thousand
-    # concurrent rooms (measured at ~2 MB per room in a match).
-    cpus: 3
-    mem_limit: 4g
+    <<: *api
     environment:
-      NODE_ENV: production
-      PORT: "2567"
-      DATABASE_URL: postgresql://${POSTGRES_USER:-aegis}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set}@postgres:5432/${POSTGRES_DB:-aegis}
-      AEGIS_WEB_URL: ${AEGIS_PUBLIC_URL:?AEGIS_PUBLIC_URL must be set}
-      AEGIS_API_URL: ${AEGIS_PUBLIC_URL}
-      AEGIS_REVISION: ${AEGIS_REVISION:-production}
-      RESEND_API_KEY: ${RESEND_API_KEY:?RESEND_API_KEY must be set}
-      AEGIS_EMAIL_FROM: ${AEGIS_EMAIL_FROM:?AEGIS_EMAIL_FROM must be set}
-      DISCORD_CLIENT_ID: ${DISCORD_CLIENT_ID:?DISCORD_CLIENT_ID must be set}
-      DISCORD_CLIENT_SECRET: ${DISCORD_CLIENT_SECRET:?DISCORD_CLIENT_SECRET must be set}
-      DISCORD_REDIRECT_URI: ${AEGIS_PUBLIC_URL}/auth/discord/callback
-      ADMIN_DISPLAY_NAME: ${ADMIN_DISPLAY_NAME:-}
-    depends_on:
-      postgres:
-        condition: service_healthy
+      <<: *api-env
+      AEGIS_PROCESS_PATH: p1
+
+  api2:
+    <<: *api
+    environment:
+      <<: *api-env
+      AEGIS_PROCESS_PATH: p2
+
+  api3:
+    <<: *api
+    environment:
+      <<: *api-env
+      AEGIS_PROCESS_PATH: p3
+
+  # Matchmaking state only — room listings and seat reservations, all of it rebuildable by
+  # restarting the API processes. Nothing here is worth persisting, so nothing is.
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "", "--appendonly", "no", "--maxmemory", "256mb", "--maxmemory-policy", "noeviction"]
+    cpus: 0.5
+    mem_limit: 384m
     healthcheck:
-      test:
-        - CMD
-        - node
-        - -e
-        - fetch('http://127.0.0.1:2567/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))
+      test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
-      retries: 12
-      start_period: 10s
+      retries: 10
 
   postgres:
     image: postgres:16-alpine
@@ -80,6 +130,10 @@ services:
     mem_limit: 256m
     depends_on:
       api:
+        condition: service_healthy
+      api2:
+        condition: service_healthy
+      api3:
         condition: service_healthy
     healthcheck:
       test:

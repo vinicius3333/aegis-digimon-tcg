@@ -15,6 +15,7 @@ import { accountStore } from "../accounts/runtime.js";
 import type { AccountStore, DeckSnapshot } from "../accounts/AccountStore.js";
 import { seriesStore } from "../tournaments/runtime.js";
 import type { SeriesStore } from "../tournaments/series/index.js";
+import { createLocalRoomCodeDirectory, type RoomCodeDirectory } from "../cluster/roomCodes.js";
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I
 
@@ -66,8 +67,24 @@ type JoinIdentity = { account: { id: string; displayName: string } | undefined; 
  */
 export const roomRegistry = new Map<string, AegisRoom>();
 
-/** Maps private room codes to Colyseus room IDs for lookup. */
-export const roomCodeRegistry = new Map<string, string>();
+/**
+ * Where private room codes are resolved to Colyseus room ids.
+ *
+ * Injected rather than fixed, because the answer depends on the deployment: one process resolves
+ * from its own memory, while a cluster has to resolve a code claimed by a sibling. Defaults to
+ * the local directory so nothing has to configure anything to run a single process.
+ */
+let roomCodes: RoomCodeDirectory = createLocalRoomCodeDirectory();
+
+/** Point every room at a shared code directory (called once, at boot). */
+export function setRoomCodeDirectory(directory: RoomCodeDirectory): void {
+  roomCodes = directory;
+}
+
+/** The directory in force, for callers that resolve codes outside a room. */
+export function roomCodeDirectory(): RoomCodeDirectory {
+  return roomCodes;
+}
 
 /**
  * The one and only room class (REQUIRED name "AegisRoom"), registered as room
@@ -258,7 +275,7 @@ export class AegisRoom extends Room<GameState> {
       this.isPrivate = true;
       const code = generateRoomCode();
       this.state.roomCode = code;
-      roomCodeRegistry.set(code, this.roomId);
+      roomCodes.claim(code, this.roomId);
       this.autoDispose = true;
     }
     this.engine = new GameEngine(this.state, {
@@ -541,7 +558,7 @@ export class AegisRoom extends Room<GameState> {
         .catch((error) => console.error("[AegisRoom] failed to release tournament room", error));
     roomRegistry.delete(this.roomId);
     if (this.state.roomCode) {
-      roomCodeRegistry.delete(this.state.roomCode);
+      roomCodes.release(this.state.roomCode);
     }
   }
 

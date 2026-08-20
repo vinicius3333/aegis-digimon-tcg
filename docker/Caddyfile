@@ -4,37 +4,51 @@
 :80 {
 	encode gzip
 
+	# One route per API process. Colyseus hands the client the public address of the process
+	# that owns its room (`/p1`, `/p2`, `/p3`), so these paths must reach that process and no
+	# other — a seat reservation is worthless on a sibling. handle_path strips the prefix, so
+	# the process sees the URL it issued.
+	handle_path /p1/* {
+		reverse_proxy api:2567
+	}
+	handle_path /p2/* {
+		reverse_proxy api2:2567
+	}
+	handle_path /p3/* {
+		reverse_proxy api3:2567
+	}
+
 	@ws {
 		header Connection *Upgrade*
 		header Upgrade *websocket*
 	}
 	handle @ws {
-		reverse_proxy api:2567
+		reverse_proxy api:2567 api2:2567 api3:2567
 	}
 	handle /health {
-		reverse_proxy api:2567
+		reverse_proxy api:2567 api2:2567 api3:2567
 	}
 	handle /bot/* {
-		reverse_proxy api:2567
+		reverse_proxy api:2567 api2:2567 api3:2567
 	}
 	handle /room/* {
-		reverse_proxy api:2567
+		reverse_proxy api:2567 api2:2567 api3:2567
 	}
 	handle /matchmake/* {
-		reverse_proxy api:2567
+		reverse_proxy api:2567 api2:2567 api3:2567
 	}
 	handle /auth/* {
-		reverse_proxy api:2567
+		reverse_proxy api:2567 api2:2567 api3:2567
 	}
 	handle /account/* {
-		reverse_proxy api:2567
+		reverse_proxy api:2567 api2:2567 api3:2567
 	}
 	@tournament_api {
 		path /tournaments*
 		not header Accept *text/html*
 	}
 	handle @tournament_api {
-		reverse_proxy api:2567
+		reverse_proxy api:2567 api2:2567 api3:2567
 	}
 
 	# Recovery endpoint for clients that retained HTML from an older release.
