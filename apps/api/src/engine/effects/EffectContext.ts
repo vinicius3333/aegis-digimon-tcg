@@ -446,6 +446,8 @@ export interface GameAccess {
   colorRequirementWaived?(instanceId: string): boolean;
   /** Server-authoritative live keyword/mechanic lookup for the source permanent. */
   hasKeyword?(permanentId: string, keyword: string): boolean;
+  /** Whether the permanent can currently declare an ordinary (tapping) attack. */
+  canDeclareAttack?(permanent: Permanent): boolean;
   /** Whether `seat` completed a digivolution since the current turn began. */
   digivolvedThisTurn?(seat: Seat): boolean;
   /** Whether the permanent is currently prevented from activating this timing. */
