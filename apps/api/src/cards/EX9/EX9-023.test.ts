@@ -16,7 +16,7 @@ describe("EX9-023", () => {
         deck: ["EX9-022", "EX9-023", "BT1-009"],
       },
     }, { autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds });
-    preferInstanceIds.push(s.perm("host").permanentId);
+    preferInstanceIds.push(s.perm("host").topCard!.instanceId);
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
 
