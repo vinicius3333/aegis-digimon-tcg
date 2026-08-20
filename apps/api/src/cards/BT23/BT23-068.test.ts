@@ -1,7 +1,36 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT23-068.js";
 
 describe("BT23-068 GranDracmon", () => {
+  it("plays a qualifying level-4-or-lower purple Digimon from trash and rejects a higher-level card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-068", as: "grandracmon" }],
+          trash: [
+            { card: "BT23-063", as: "lowPurple" },
+            { card: "BT23-067", as: "highPurple" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const lowId = s.inst("lowPurple").instanceId;
+    const highId = s.inst("highPurple").instanceId;
+    await (
+      s.engine as unknown as {
+        fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
+      }
+    ).fireTiming(EffectTiming.WhenDigivolving, {
+      subjectPermanentId: s.perm("grandracmon").permanentId,
+    });
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === lowId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === highId)).toBe(true);
+  });
+
   it("allows a level 6 or lower Undead or Dark Animal to digivolve from trash at the start of the main phase and on deletion", () => {
     const effects = compiled.effects.filter(
       (entry) => entry.trigger === "StartOfYourMainPhase" || entry.trigger === "OnDeletion",
