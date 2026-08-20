@@ -66,7 +66,7 @@ const module: EffectModule = {
             if (self === undefined) return;
             const justimonCard = self.stack.find((c) => {
               const def = ctx.game.definitionOf(c);
-              return def.nameEn === "Justimon";
+              return def.nameEn.includes("Justimon");
             });
             if (justimonCard === undefined) return;
             if (ctx.fx.conferStackEffects) {
