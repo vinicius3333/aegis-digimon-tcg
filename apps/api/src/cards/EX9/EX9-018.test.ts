@@ -23,6 +23,8 @@ describe("EX9-018", () => {
 
     expect(s.perm("source").stack).toHaveLength(1);
     expect(s.perm("source").stack[0]!.faceUp).toBe(false);
+    expect(s.state.players[0].trash.some((card) => card.cardId === "EX9-017")).toBe(false);
+    expect(s.state.players[1].trash.some((card) => card.cardId === "BT1-001")).toBe(true);
     expect(s.state.players[1].battleArea.some((permanent) => permanent.cardId === "BT1-009")).toBe(false);
     expect(s.state.players[1].deck.at(-1)?.cardId).toBe("BT1-009");
   });
