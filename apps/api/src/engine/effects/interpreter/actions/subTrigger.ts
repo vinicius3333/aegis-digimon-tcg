@@ -40,6 +40,7 @@ export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefine
   whenOpponentMovedFromBreeding: "whenOpponentMovedFromBreeding",
   onDeletionOf: "onDeletionOf",
   whenSecurityRemoved: "whenSecurityRemoved",
+  whenSecurityBattleEnded: "whenSecurityBattleEnded",
   // Alias used by the ST15 hand-authored module; both spellings share the
   // same security-removal payload and fire sites.
   whenSecurityCardRemoved: "whenSecurityRemoved",
