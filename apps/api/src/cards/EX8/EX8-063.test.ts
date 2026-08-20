@@ -11,6 +11,7 @@ describe("EX8-063", () => {
     expect(module.effectsForTiming(EffectTiming.OnAllyAttack, source)[0]?.maxPerTurn).toBe(1);
   });
   it("registers the once-per-turn opponent-hand-trash security watcher", () => {
+    const module = getEffectModule("EX8-063")!;
     expect(module.effectsForTiming(EffectTiming.None, source)[0]?.maxPerTurn).toBe(1);
   });
 });

@@ -11,6 +11,7 @@ describe("EX8-066", () => {
     expect(module.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
   });
   it("registers the All Turns Ice-Snow play and digivolve watcher", () => {
+    const module = getEffectModule("EX8-066")!;
     expect(module.effectsForTiming(EffectTiming.None, source)).toHaveLength(1);
   });
 });
