@@ -8,6 +8,21 @@ import generatedDigivolveOverridesJson from "./generated-digivolve-overrides.jso
 /** Runtime effect records keyed by card id. Card modules remain authoritative. */
 export const compiledEffects: CompiledEffects = effectsJson as unknown as CompiledEffects;
 
+/** BT26 is hand-authored while generated effect records are absent. */
+export const ASSEMBLY_REQUIREMENT_OVERRIDES: Record<string, AssemblyRequirement[]> = {
+  "BT26-014": [{ reduceCost: 2, materials: [{ traits: ["TB"], levelMax: 4, count: 1 }] }],
+  "BT26-017": [{ reduceCost: 4, materials: [{ traits: ["Shambala"], levelMax: 5, count: 2, differentLevels: true }] }],
+  "BT26-028": [{ reduceCost: 2, materials: [{ traits: ["Life", "System", "Seven Code"], level: 3, count: 1 }] }],
+  "BT26-037": [{ reduceCost: 2, materials: [{ traits: ["Navi", "System", "Seven Code"], level: 3, count: 1 }] }],
+  "BT26-047": [{ reduceCost: 6, materials: [{ traits: ["Larva", "Insectoid", "Titan"], count: 4, differentLevels: true }] }],
+  "BT26-073": [{ reduceCost: 2, materials: [{ nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }, { tokens: ["TS"], match: "trait" }], levelMax: 4, count: 1 }] }],
+  "BT26-079": [{ reduceCost: 2, materials: [{ names: ["Plutomon"], count: 1 }] }],
+  "BT26-081": [{ reduceCost: 5, materials: [{ names: ["Minervamon"], count: 1 }] }],
+  "BT26-083": [{ reduceCost: 4, materials: [{ names: ["Junomon"], count: 1 }] }],
+  "BT26-085": [{ reduceCost: 5, materials: [{ nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }, { tokens: ["Shaman"], match: "trait" }], count: 5, differentLevels: true }] }],
+  "BT26-086": [{ reduceCost: 7, materials: [{ traits: ["Seven Code"], count: 7, differentNames: true }] }],
+};
+
 /** Look up the compiled IR record for a card id, or undefined when absent. */
 export function getCompiledCard(cardId: string): CompiledCard | undefined {
   return compiledEffects[cardId];
@@ -665,11 +680,10 @@ export function digiXrosRequirementFor(cardId: string): DigiXrosRequirement[] | 
  * The Assembly requirement(s) for a played card (§7-3): whatever the compiler emitted from the
  * card's "[Assembly -N] <materials>" header. Read by the server's Assembly play subsystem
  * (apps/api/src/engine/actions/assembly.ts) and (eventually) the client's material-highlighting
- * projection. Mirrors `digiXrosRequirementFor` but has no hand-authored override table yet — no
- * Assembly card has needed one so far.
+ * projection. Mirrors `digiXrosRequirementFor`, including hand-authored recipes for BT26.
  */
 export function assemblyRequirementFor(cardId: string): AssemblyRequirement[] | undefined {
-  return compiledEffects[cardId]?.assemblyRequirement;
+  return ASSEMBLY_REQUIREMENT_OVERRIDES[cardId] ?? compiledEffects[cardId]?.assemblyRequirement;
 }
 
 /**

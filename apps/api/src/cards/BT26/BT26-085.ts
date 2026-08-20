@@ -21,11 +21,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 // [All Turns] When this Digimon would leave the battle area, by digivolving it into
 //   [Chronomon: Destroy Mode] in the hand or trash without paying the cost, it doesn't leave.
 //
-// RESIDUAL — [Assembly -5]: the Assembly play mode (engine/actions/assembly.ts) reads its
-//   recipe from `assemblyRequirementFor`, i.e. the compiled `effects.json` record. No BT26
-//   card has an effects.json entry (the whole set is hand-written), so no BT26 Assembly
-//   requirement is enforced today — BT26-083's [Assembly -4] is left the same way. Port this
-//   once BT26 gains compiled records; a hand-written module cannot supply an Assembly recipe.
+// The [Assembly -5] recipe is supplied by the shared hand-authored
+// `ASSEMBLY_REQUIREMENT_OVERRIDES` table because BT26's effect modules are hand-written.
 //
 // Clause 1: "your opponent's effects can't reduce this Digimon's DP" is
 //   `restrict(..., "dpImmune", ..., { byOpponentEffectsOnly: true })` — the interpreter's own
