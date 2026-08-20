@@ -38,4 +38,21 @@ describe("BT1-014 Kokatorimon", () => {
     expect(s.perm("base")).toMatchObject({ baseDP: 4000, currentDP: 4000 });
     expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
   });
+
+  it("rejects digivolving from a green level 3", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-064", as: "base" }],
+        hand: [{ card: "BT1-014", as: "kokatorimon" }],
+      },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("kokatorimon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
 });
