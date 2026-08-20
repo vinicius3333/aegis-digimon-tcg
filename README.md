@@ -83,6 +83,18 @@ The client sends choices. It never sends state, and it never rules on legality.
 Dependencies point inward. Both apps depend on `@aegis/shared`; neither app
 depends on the other; game rules never cross into the client.
 
+### Running at scale
+
+A Colyseus process is single-threaded, so one process uses one CPU core however many the
+host has. In production the API runs as three processes that share their matchmaking state
+through Redis; each advertises its own public path, and the proxy sends every client to the
+process holding its room. Measured on the deployment host, that turns roughly 650
+concurrent matches into roughly 2,000.
+
+Set `AEGIS_REDIS_URL` and `AEGIS_PROCESS_PATH` to turn it on. Leave them unset and the API
+runs as a single process, which is what `pnpm dev` does.
+[Architecture](./docs/ARCHITECTURE.md#processes) has the details.
+
 ### By the numbers
 
 | | |
