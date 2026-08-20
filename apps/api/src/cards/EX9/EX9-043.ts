@@ -171,6 +171,10 @@ export const compiled: CompiledCard = {
       isAlternate: true,
       level: 4,
       names: ["Tyrannomon"],
+    },
+    {
+      cost: 3,
+      isAlternate: true,
       traits: ["DM"],
     },
   ],
