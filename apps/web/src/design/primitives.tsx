@@ -372,7 +372,7 @@ export function TopNav({ screen, onNav, player }: { screen: Screen; onNav: (s: S
         <div className="aegis-player-chip">
           <span>{player.name}</span>
           <button className="aegis-profile-avatar-button" onClick={() => navTo("settings")} aria-label={t("menu.settings")} aria-current={screen === "settings" ? "page" : undefined}>
-            <Avatar name={player.name} color={player.color} avatarId={player.avatarId} avatarUrl={player.avatarUrl} size={40} />
+            <Avatar name={player.name} color={player.color} avatarId={player.avatarId} avatarUrl={player.avatarUrl} size={56} />
           </button>
         </div>
       </div>
@@ -382,7 +382,7 @@ export function TopNav({ screen, onNav, player }: { screen: Screen; onNav: (s: S
       <div className="aegis-player-chip aegis-player-chip--mobile">
         <span>{player.name}</span>
         <button className="aegis-profile-avatar-button" onClick={() => navTo("settings")} aria-label={t("menu.settings")} aria-current={screen === "settings" ? "page" : undefined}>
-          <Avatar name={player.name} color={player.color} avatarId={player.avatarId} avatarUrl={player.avatarUrl} size={36} />
+          <Avatar name={player.name} color={player.color} avatarId={player.avatarId} avatarUrl={player.avatarUrl} size={48} />
         </button>
       </div>
     </header>
