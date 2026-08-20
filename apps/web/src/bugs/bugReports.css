@@ -2,35 +2,49 @@
    colors, spacing and radii come from the design tokens the rest of the client uses. */
 
 .bug-report-button {
-  position: fixed;
-  right: var(--ds-space-4);
-  bottom: calc(var(--ds-nav-height-narrow) + var(--ds-space-4));
-  z-index: 40;
   display: inline-flex;
+  min-height: var(--ds-touch-target);
   gap: var(--ds-space-2);
   align-items: center;
-  padding: var(--ds-space-2) var(--ds-space-4);
-  border: 1px solid var(--ds-border);
-  border-radius: 999px;
-  background: var(--ds-surface-raised);
-  color: var(--ds-fg-secondary);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  border: 1px solid var(--ds-brand-interactive-strong);
+  border-radius: var(--ds-radius-sm);
+  background: transparent;
+  color: var(--ds-brand-on-ink-muted);
   font: inherit;
-  font-size: 0.85rem;
+  font-size: var(--ds-text-sm);
   font-weight: 600;
-  box-shadow: var(--ds-shadow-lg);
   cursor: pointer;
+  transition:
+    color var(--ds-motion-fast),
+    background var(--ds-motion-fast),
+    border-color var(--ds-motion-fast);
 }
 
 .bug-report-button:hover {
-  border-color: var(--ds-border-strong);
-  color: var(--ds-fg);
+  border-color: var(--ds-brand-accent-soft);
+  background: var(--ds-brand-interactive);
+  color: var(--ds-brand-on-ink);
 }
 
-@media (min-width: 900px) {
-  .bug-report-button {
-    right: var(--ds-space-6);
-    bottom: var(--ds-space-6);
-  }
+/* The mobile bar has room for the icon only; the label would crowd out the player name. */
+.aegis-mobile-bar__actions {
+  display: flex;
+  /* Sit with the player chip on the right rather than floating mid-bar. */
+  margin-left: auto;
+  margin-right: var(--ds-space-2);
+  align-items: center;
+}
+
+.aegis-mobile-bar .bug-report-button {
+  min-width: 40px;
+  min-height: 40px;
+  justify-content: center;
+  padding: 0;
+}
+
+.aegis-mobile-bar .bug-report-button > span {
+  display: none;
 }
 
 .bug-report {

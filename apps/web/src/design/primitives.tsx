@@ -342,7 +342,7 @@ function NavItem({ item, active, onSelect, compact = false }: { item: { label: s
 }
 
 /* ---- Top nav (persistent app chrome) ---- */
-export function TopNav({ screen, onNav, player }: { screen: Screen; onNav: (s: Screen) => void; player: PlayerIdentity }) {
+export function TopNav({ screen, onNav, player, actions }: { screen: Screen; onNav: (s: Screen) => void; player: PlayerIdentity; actions?: ReactNode }) {
   const { t } = useTranslation();
   const navTo = (s: Screen) => { playSound("nav"); onNav(s); };
   const items: { key: Screen; label: string; icon: IconComponent }[] = [
@@ -365,6 +365,7 @@ export function TopNav({ screen, onNav, player }: { screen: Screen; onNav: (s: S
         </nav>
       </div>
       <div className="aegis-top-nav__account">
+        {actions}
         <button
           className="aegis-icon-button"
           onClick={() => navTo("settings")}
@@ -383,6 +384,7 @@ export function TopNav({ screen, onNav, player }: { screen: Screen; onNav: (s: S
     </header>
     <header className="aegis-mobile-bar">
       <button className="aegis-brand-button" onClick={() => navTo("home")} aria-label={t("nav.home")}><AegisMark size={30} /></button>
+      <div className="aegis-mobile-bar__actions">{actions}</div>
       <div className="aegis-player-chip aegis-player-chip--mobile">
         <span>{player.name}</span>
         <button className="aegis-profile-avatar-button" onClick={() => navTo("settings")} aria-label={t("menu.settings")} aria-current={screen === "settings" ? "page" : undefined}>

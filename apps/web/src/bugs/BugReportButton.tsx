@@ -1,4 +1,4 @@
-/* The always-available entry point to the bug-report modal. Rendered by the app shell so a player
+/* The always-available entry point to the bug-report modal. Rendered in the top bar so a player
    can report from whatever screen the bug appeared on. */
 
 import { useState } from "react";
@@ -12,7 +12,12 @@ export function BugReportButton({ signedIn }: { signedIn: boolean }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button type="button" className="bug-report-button" onClick={() => setOpen(true)}>
+      <button
+        type="button"
+        className="bug-report-button"
+        onClick={() => setOpen(true)}
+        aria-label={t("bugReport.button")}
+      >
         <Icons.Bug size={18} />
         <span>{t("bugReport.button")}</span>
       </button>

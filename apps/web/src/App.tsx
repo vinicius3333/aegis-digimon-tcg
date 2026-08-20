@@ -235,7 +235,7 @@ export function AegisClient({
 
   return (
     <Stage>
-      {showNav ? <TopNav screen={screen} onNav={navigateScreen} player={effectivePlayer} /> : null}
+      {showNav ? <TopNav screen={screen} onNav={navigateScreen} player={effectivePlayer} actions={<BugReportButton signedIn={!!account} />} /> : null}
 
       <div id="aegis-main" className={`aegis-screen-region${showNav ? " aegis-screen-region--nav" : ""}`} tabIndex={-1}>
         <Suspense fallback={<ScreenFallback />}>
@@ -326,10 +326,6 @@ export function AegisClient({
           )}
         </Suspense>
       </div>
-
-      {/* Off the game screen only: the board fills the viewport and a floating control would sit
-          on top of the play area. */}
-      {screen === "game" ? null : <BugReportButton signedIn={!!account} />}
     </Stage>
   );
 }
