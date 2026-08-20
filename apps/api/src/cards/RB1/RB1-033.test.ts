@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { Phase } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -129,5 +130,17 @@ describe("RB1-033 [All Turns] suspend self + Draw 1 when opponent's Lv.5+ Digimo
 
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(p0.hand.length).toBe(handBefore + 1);
+  });
+});
+
+describe("RB1-033 [Your Turn] unsuspend memory", () => {
+  it("gains 1 memory when this Tamer becomes unsuspended", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: RB1033, as: "tamer", suspended: true }] } });
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+
+    await advance(s.engine).verb.unsuspend([s.perm("tamer").permanentId]);
+
+    expect(s.state.memory).toBe(1);
   });
 });

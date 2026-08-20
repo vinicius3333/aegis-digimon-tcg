@@ -4,7 +4,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { whenAttacking, security } from "../../engine/effects/builders.js";
+import { turnTiming, whenAttacking, security } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**
@@ -23,15 +23,9 @@ import { registerCard } from "../../engine/effects/registry.js";
  *     && CanActivateSuspendCostEffect && hand <= 7. Both pay SuspendPermanents(this), Draw 1.
  *     (documented behavior — two rule implementation blocks)
  *   EffectTiming.OnUnTappedAnyone: when THIS Tamer is unsuspended on owner's turn,
- *     gain 1 memory. (documented behavior)
+ *     gain 1 memory.
  *   EffectTiming.SecuritySkill: play self free. (documented behavior)
  *
- * Residual:
- *   [Your Turn] When this Tamer becomes unsuspended, gain 1 memory.
- *   The engine's `unsuspendForActivePhase` does not fire the `whenUnsuspended`
- *   SubTrigger event, so this clause cannot be triggered (same limitation as the
- *   prior IR stub's SubTrigger.whenUnsuspended install). The [All Turns] and
- *   [Security] clauses are fully implemented.
  */
 const cardId = "RB1-033";
 
@@ -136,6 +130,24 @@ const module: EffectModule = {
           description: "[Security] Play this Tamer without paying its memory cost.",
           resolve: async (ctx) => {
             await ctx.fx.playInstances([source.instanceId], { payCost: false });
+          },
+        }),
+      ];
+    }
+
+    // [Your Turn] When this Tamer becomes unsuspended, gain 1 memory.
+    if (timing === EffectTiming.OnUnTappedAnyone) {
+      return [
+        turnTiming({
+          source,
+          effectKey: `${cardId}/on-unsuspend-memory`,
+          description: "[Your Turn] When this Tamer becomes unsuspended, gain 1 memory.",
+          when: (ctx) =>
+            source.isOnBattleArea() &&
+            source.isOwnersTurn() &&
+            ctx.trigger?.unsuspendedPermanentId === source.permanent()?.permanentId,
+          resolve: async (ctx) => {
+            ctx.fx.gainMemory(1);
           },
         }),
       ];
