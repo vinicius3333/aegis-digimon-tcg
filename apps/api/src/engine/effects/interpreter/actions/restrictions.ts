@@ -11,7 +11,8 @@ import type { Action } from "@aegis/shared";
 export async function runRestrictionAction(ctx: EffectContext, action: Action): Promise<boolean> {
   switch (action.kind) {
     case "Restrict": {
-      if (action.while !== undefined && !evaluateCondition(ctx, action.while)) return false;
+      const gate = action.while ?? action.condition;
+      if (gate !== undefined && !evaluateCondition(ctx, gate)) return false;
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
       const continuous = action.while !== undefined ? true : undefined;
