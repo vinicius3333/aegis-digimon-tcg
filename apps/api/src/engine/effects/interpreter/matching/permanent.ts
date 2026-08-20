@@ -6,7 +6,7 @@ import { COLOR_MAP, KIND_MAP } from "../maps.js";
 import { scaleFactor } from "../scaling.js";
 import { definitionMatches, matchNameOrTrait, textHasKeyword } from "./definition.js";
 import { CardKind } from "@aegis/shared";
-import type { Condition, Filter, Permanent, Seat } from "@aegis/shared";
+import type { CardColor, Condition, Filter, Permanent, Seat } from "@aegis/shared";
 
 /**
  * Whether a card matching the trait `filter` is in the SOURCE permanent's digivolution stack
@@ -221,8 +221,12 @@ export function permanentMatchesFilter(
   const def = ctx.game.definitionOf(permanent.topCard);
 
   if (filter.colorMatchesAnyDigivolutionCard === true) {
-    const sourceStack = source.permanent()?.stack ?? [];
-    const sourceColors = new Set(sourceStack.flatMap((card) => ctx.game.definitionOf(card).colors));
+    // Iterated rather than flatMapped: the stack is an ArraySchema, which implements the array
+    // methods it can synchronize and throws on the rest — `flatMap` is one of the rest.
+    const sourceColors = new Set<CardColor>();
+    for (const card of source.permanent()?.stack ?? []) {
+      for (const color of ctx.game.definitionOf(card).colors) sourceColors.add(color);
+    }
     if (!def.colors.some((color) => sourceColors.has(color))) return false;
     const { colorMatchesAnyDigivolutionCard: _colorMatch, ...rest } = filter;
     filter = rest;
