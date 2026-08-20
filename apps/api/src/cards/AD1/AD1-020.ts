@@ -60,10 +60,7 @@ const compiled: CompiledCard = {
           "kind": "Draw",
           "controller": "mine",
           "amount": 1,
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "this effect placed"
-          }
+          "condition": { "kind": "ifThisEffectActed", "raw": "this effect placed" }
         },
         {
           "kind": "GainMemory",
@@ -114,10 +111,7 @@ const compiled: CompiledCard = {
           "kind": "Draw",
           "controller": "mine",
           "amount": 1,
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "this effect placed"
-          }
+          "condition": { "kind": "ifThisEffectActed", "raw": "this effect placed" }
         },
         {
           "kind": "GainMemory",
