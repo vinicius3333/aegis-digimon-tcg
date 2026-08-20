@@ -272,6 +272,18 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       }
       return compareNumber(total, cond.kind === "totalDigimonGte" ? "gte" : cond.op, cond.value ?? 3);
     }
+    case "totalDigimonLevelsGte": {
+      let totalLevels = 0;
+      for (const seat of [mine, opp]) {
+        for (const permanent of ctx.game.player(seat).battleArea) {
+          if (permanent.inBreeding || permanent.topCard === undefined) continue;
+          const definition = ctx.game.definitionOf(permanent.topCard);
+          if (!(definition.kinds as string[]).includes(CardKind.Digimon)) continue;
+          totalLevels += definition.level ?? 0;
+        }
+      }
+      return totalLevels >= (cond.value ?? cond.count ?? 0);
+    }
     case "permanentCount": {
       // "If you/your opponent have N or more/fewer permanents matching [filter]" (BT21-010).
       // Counts the seat's battle-area permanents matching the filter; with `distinctNames`,
@@ -600,6 +612,12 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // gating BT25-084's "after, if played or digivolved by an effect". A manual entry and every
       // non-entry timing (e.g. When Attacking) leave it unset, so the gate fails.
       return ctx.trigger.enteredByEffect === mine;
+    case "triggerPlayedOrDigivolvedByEffect":
+      // Cross-permanent watchers receive effect-play events through `playedByEffect`,
+      // while effect-digivolve events carry `enteredByEffect` (BT25-077).
+      return ctx.trigger.playedByEffect === true || ctx.trigger.enteredByEffect !== undefined;
+    case "selfEnteredByEffect":
+      return ctx.source.permanent()?.enteredByEffect === true;
     case "triggerPlayedByEffectSource":
       return cond.sourceCardId !== undefined && ctx.trigger.playedByEffectSourceCardId === cond.sourceCardId;
     case "isDnaDigivolving":

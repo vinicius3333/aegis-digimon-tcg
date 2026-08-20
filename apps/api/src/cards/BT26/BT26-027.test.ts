@@ -1,9 +1,12 @@
 import { describe, it, expect, vi } from "vitest";
 import { CardKind, EffectDuration, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./BT26-027.js";
+import "../index.js";
 
 // BT26-027 (Petermon, BT26): "[On Play] [Start of Opponent's Main Phase] By suspending 1 of
 // your Digimon with the [Vegetation], [Fairy] or [WG] trait, give 1 of your opponent's
@@ -86,9 +89,11 @@ function makeHarness(options: {
       suspended.push(ids);
       return ids;
     }),
-    grantKeyword: vi.fn<(...args: any[]) => any>((permanentId: string, keyword: string, duration: EffectDuration, amount?: number) => {
-      grants.push({ permanentId, keyword, duration, amount });
-    }),
+    grantKeyword: vi.fn<(...args: any[]) => any>(
+      (permanentId: string, keyword: string, duration: EffectDuration, amount?: number) => {
+        grants.push({ permanentId, keyword, duration, amount });
+      },
+    ),
   } as unknown as Primitives;
 
   const asked: string[][] = [];
@@ -168,6 +173,18 @@ describe("BT26-027 [On Play] / [Start of Opponent's Main Phase]: suspend a trait
     expect(harness.grants).toEqual([]);
   });
 
+  it("grants nothing when the selected suspension cost fails", async () => {
+    const harness = makeHarness({
+      mine: [{ permanentId: "my-trait", topCard: { cardId: TRAIT_DIGIMON } }],
+      theirs: [{ permanentId: "opp-digimon", topCard: { cardId: PLAIN_DIGIMON } }],
+    });
+    harness.ctx.fx.suspend = vi.fn(async () => []);
+
+    await effectFor(EffectTiming.OnPlay, harness.source, ON_PLAY_KEY).resolve(harness.ctx);
+
+    expect(harness.grants).toEqual([]);
+  });
+
   it("still pays the cost when the opponent has no Digimon to weaken", async () => {
     const harness = makeHarness({
       mine: [{ permanentId: "my-trait", topCard: { cardId: TRAIT_DIGIMON } }],
@@ -199,5 +216,84 @@ describe("BT26-027 [On Play] / [Start of Opponent's Main Phase]: suspend a trait
     expect(
       effectFor(EffectTiming.OnStartMainPhase, onOwnTurn.source, OPPONENT_MAIN_KEY).canTrigger(onOwnTurn.ctx),
     ).toBe(false);
+  });
+});
+
+describe("BT26-027 public engine and catalog behavior", () => {
+  it("plays for 4, may suspend itself as the Fairy cost, and gives exact Security Attack -2", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: CARD_ID, as: "petermon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("petermon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack") === -2);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === CARD_ID)?.isSuspended).toBe(
+      true,
+    );
+    expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-2);
+  });
+
+  it("grants inherited Barrier only while Petermon is under another Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-009", as: "host", under: [{ card: CARD_ID, as: "inheritedPetermon" }] },
+          { card: CARD_ID, as: "topPetermon" },
+        ],
+      },
+    });
+
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("topPetermon"), "Barrier")).toBe(false);
+  });
+
+  it("uses the Lv.3 WG alternate evolution on a blue base for cost 2 and rejects a trait near-miss", async () => {
+    const valid = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-033", as: "wgBase" }],
+        hand: [{ card: CARD_ID, as: "petermon" }],
+      },
+    });
+    valid.state.memory = 2;
+    expect(
+      valid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: valid.perm("wgBase").permanentId,
+        instanceId: valid.inst("petermon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => valid.perm("wgBase").topCard.cardId === CARD_ID);
+    expect(valid.state.memory).toBe(0);
+    expect(valid.perm("wgBase").stack.map((card) => card.cardId)).toEqual(["BT21-033"]);
+
+    const invalid = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-029", as: "plainBlue" }],
+        hand: [{ card: CARD_ID, as: "petermon" }],
+      },
+    });
+    invalid.state.memory = 2;
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("plainBlue").permanentId,
+        instanceId: invalid.inst("petermon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(invalid.state.memory).toBe(2);
+    expect(invalid.state.players[0]!.hand.map((card) => card.cardId)).toContain(CARD_ID);
   });
 });

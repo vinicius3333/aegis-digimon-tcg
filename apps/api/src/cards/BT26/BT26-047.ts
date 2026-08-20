@@ -11,11 +11,9 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
 /**
  * BT26-047 — TyrantKabuterimon (BT26, Green Lv.6 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-047` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * The committed KB contains Q7040-Q7049 (2026-08-18), covering immediate effect battle,
+ * choosing effect-immune combatants, either player's Digimon as the suspend cost,
+ * simultaneous trigger ordering, and the precise semantics of effect immunity.
  *
  * Printed text:
  *   [Digivolve] Lv.5 w/[Insectoid]/[TS] trait: Cost 3
@@ -34,9 +32,10 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
  *   Suspend-cost buff: "By suspending 1 Digimon, until your opponent's turn ends, none of
  *     your suspended [Insectoid] or [Titan] trait Digimon are affected by your opponent's
  *     Option effects, and they get +3000 DP." Read literally as an instant snapshot: pay
- *     the cost (suspend 1 of your Digimon, chosen by the controller), then apply the
- *     immunity (`ctx.fx.restrict(..., "beAffected", ..., { fromSourceKind: ["Option"] })`,
- *     EX9-021 precedent) and the +3000 DP to whichever of your Digimon are ALREADY
+ *     the cost (suspend 1 Digimon controlled by either player, chosen by the effect's
+ *     controller), then apply the
+ *     immunity (`ctx.fx.restrict(..., "beAffected", ..., { fromSourceKind: ["Option"],
+ *     byOpponentEffectsOnly: true })`, EX9-021 precedent) and the +3000 DP to whichever of your Digimon are ALREADY
  *     suspended and carry the [Insectoid]/[Titan] trait at that moment (including the one
  *     just suspended as the cost) — not a continuously re-derived group grant, since the
  *     printed text reads as a one-time "get +3000 DP" rather than a persistent "while
@@ -87,20 +86,24 @@ async function resolveSuspendBuff(ctx: EffectContext, source: CardSource): Promi
   });
   if (candidates.length === 0) return;
 
-  const willPay = await ctx.ask.optional(ctx, "Suspend 1 of your Digimon for this effect?");
+  const willPay = await ctx.ask.optional(ctx, "Suspend 1 Digimon for this effect?");
   if (!willPay) return;
 
   const chosen =
     candidates.length === 1 ? candidates[0]! : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
   if (chosen === undefined) return;
-  await ctx.fx.suspend([chosen]);
+  const suspendedAsCost = await ctx.fx.suspend([chosen]);
+  if (!suspendedAsCost.includes(chosen)) return;
 
   for (const permanentId of digimonPermanentIds(ctx)) {
     const perm = ctx.game.permanentById(permanentId);
     if (perm === undefined || !perm.isSuspended || perm.topCard === undefined) continue;
     if (perm.controllerSeat !== source.ownerSeat) continue;
     if (!hasInsectoidOrTitan(ctx.game.definitionOf(perm.topCard))) continue;
-    ctx.fx.restrict(permanentId, "beAffected", EffectDuration.UntilOpponentTurnEnd, { fromSourceKind: ["Option"] });
+    ctx.fx.restrict(permanentId, "beAffected", EffectDuration.UntilOpponentTurnEnd, {
+      fromSourceKind: ["Option"],
+      byOpponentEffectsOnly: true,
+    });
     ctx.fx.modifyDP(permanentId, 3000, EffectDuration.UntilOpponentTurnEnd);
   }
 }

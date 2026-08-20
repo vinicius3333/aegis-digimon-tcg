@@ -22,7 +22,10 @@ describe("BT5-089 Izzy Izumi & Mimi Tachikawa", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT5-089", as: "tamer" }, { card: "BT5-052", as: "attacker" }],
+          battleArea: [
+            { card: "BT5-089", as: "tamer" },
+            { card: "BT5-052", as: "attacker" },
+          ],
           deck: [{ card: "BT5-055", as: "level6" }, "BT1-010", "BT1-011"],
         },
         1: { security: ["BT1-012"] },
@@ -30,12 +33,19 @@ describe("BT5-089 Izzy Izumi & Mimi Tachikawa", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("attacker").topCard.instanceId === s.inst("level6").instanceId);
 
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.perm("attacker").topCard.instanceId).toBe(s.inst("level6").instanceId);
-    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.hand).toHaveLength(1); // CR 7-1-4-1 digivolution bonus draw
   });
 
   it("reveals all three card identities while choosing the attack-time level 6", async () => {
@@ -57,11 +67,13 @@ describe("BT5-089 Izzy Izumi & Mimi Tachikawa", () => {
       { autoAcceptOptional: true, autoOrderCards: false },
     );
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
 
     const decision = s.decisions.at(-1)!.req;
@@ -72,14 +84,16 @@ describe("BT5-089 Izzy Izumi & Mimi Tachikawa", () => {
       { instanceId: s.inst("otherOne").instanceId, cardId: "BT1-010" },
       { instanceId: s.inst("otherTwo").instanceId, cardId: "BT1-011" },
     ]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: {
-        kind: "selectCards",
-        instanceIds: [s.inst("levelSix").instanceId],
-      },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: {
+          kind: "selectCards",
+          instanceIds: [s.inst("levelSix").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
 
     const ordering = s.decisions.at(-1)!.req;
@@ -88,15 +102,22 @@ describe("BT5-089 Izzy Izumi & Mimi Tachikawa", () => {
       { instanceId: s.inst("otherOne").instanceId, cardId: "BT1-010" },
       { instanceId: s.inst("otherTwo").instanceId, cardId: "BT1-011" },
     ]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: ordering.decisionId,
-      response: { kind: "orderCards", order: bottomOrder },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === undefined &&
-      s.state.players[0]!.deck.map((card) => card.instanceId).join(",") === bottomOrder.join(","));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.decisionId,
+        response: { kind: "orderCards", order: bottomOrder },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.perm("attacker").topCard.instanceId === s.inst("levelSix").instanceId &&
+        s.state.players[0]!.deck.length === 1,
+    );
 
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(bottomOrder);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(bottomOrder.slice(0, 1));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(bottomOrder[1]);
   });
 
   it("Q1363 orders the remaining cards before the level 6 When Digivolving effect", async () => {
@@ -121,28 +142,34 @@ describe("BT5-089 Izzy Izumi & Mimi Tachikawa", () => {
       { autoAcceptOptional: true, autoOrderCards: false, autoSelectCards: false },
     );
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const selection = s.state.pendingDecision!;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: selection.decisionId,
-      response: { kind: "selectCards", instanceIds: [s.inst("argomon").instanceId] },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: selection.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("argomon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
 
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
     expect(s.perm("opponentTamer").isSuspended).toBe(false);
     const ordering = s.state.pendingDecision!;
     const order = [s.inst("otherTwo").instanceId, s.inst("otherOne").instanceId];
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: ordering.decisionId,
-      response: { kind: "orderCards", order },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.decisionId,
+        response: { kind: "orderCards", order },
+      }),
+    ).toEqual({ ok: true });
 
     await settle(() => s.perm("opponentTamer").isSuspended);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(order);
@@ -154,6 +181,8 @@ describe("BT5-089 Izzy Izumi & Mimi Tachikawa", () => {
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
 
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("security").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("security").instanceId)).toBe(
+      true,
+    );
   });
 });

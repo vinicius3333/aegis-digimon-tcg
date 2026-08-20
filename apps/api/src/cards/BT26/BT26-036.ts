@@ -9,9 +9,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-036 — Lalamon (BT26, Green Lv.3 Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-036 as of this port
-// (`node tools/kb/query.mjs card BT26-036` returned no knowledge-base entries). implemented
-// from the printed card text only; the reveal/select/return-to-bottom shape mirrors the
+// The committed KB has no card-specific entries for BT26-036 as of 2026-08-20. The
+// implementation follows the printed text; the reveal/select/return-to-bottom shape mirrors the
 // reviewed BT26-018 precedent (same [When Moving]/[On Play] clause pattern).
 //
 // [Digivolve] Lv.2 w/[DATA SQUAD] trait: Cost 0 — a digivolution-cost requirement, not an
@@ -53,18 +52,28 @@ async function resolveRevealAndAddToHand(ctx: EffectContext, source: CardSource)
 
   let selected: string[] = [];
   if (candidates.length > 0) {
-    selected = await ctx.ask.selectCards(ctx, { candidates, min: 0, max: 1 });
-    if (selected.length > 0) await ctx.fx.returnToHand(selected);
+    selected = await ctx.ask.selectCards(ctx, { candidates, min: 1, max: 1 });
   }
+  const moved = selected.length > 0 ? await ctx.fx.returnToHand(selected) : [];
+  const movedIds = new Set(moved.map((card) => card.instanceId));
 
-  const rest = revealed.filter((c) => !selected.includes(c.instanceId)).map((c) => c.instanceId);
+  let rest = revealed.filter((card) => !movedIds.has(card.instanceId)).map((card) => card.instanceId);
+  if (rest.length > 1 && ctx.ask.orderCards !== undefined) {
+    rest = await ctx.ask.orderCards(ctx, {
+      candidates: rest,
+      visibleCards: revealed
+        .filter((card) => rest.includes(card.instanceId))
+        .map(({ instanceId, cardId }) => ({ instanceId, cardId })),
+      destination: "deckBottom",
+    });
+  }
   if (rest.length > 0) await ctx.fx.returnToDeck(rest, { toTop: false });
 }
 
 function opponentDigimonTargets(ctx: EffectContext, source: CardSource) {
   const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
   return Array.from(opponent.battleArea).filter(
-    (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
+    (p) => p.topCard !== undefined && !p.isSuspended && isDigimon(ctx.game.definitionOf(p.topCard)),
   );
 }
 
@@ -123,7 +132,7 @@ const module: EffectModule = {
 
             const chosen = await ctx.ask.chooseTargets(ctx, {
               candidates: targets.map((p) => p.permanentId),
-              min: 0,
+              min: 1,
               max: 1,
             });
             if (chosen.length > 0) await ctx.fx.suspend(chosen);

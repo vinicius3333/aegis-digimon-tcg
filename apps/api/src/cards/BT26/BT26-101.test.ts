@@ -9,11 +9,17 @@ describe("BT26-101 Cross Arts", () => {
         0: {
           hand: [{ card: "BT26-101", as: "option" }],
           battleArea: [
-            { card: "BT24-014", dp: 8000, as: "tsDigimon" },
+            { card: "BT24-014", dp: 3000, as: "lowTsDigimon" },
+            { card: "BT24-014", dp: 10000, as: "highTsDigimon" },
             { card: "BT26-090", as: "namedTamer" },
           ],
         },
-        1: { battleArea: [{ card: "BT24-009", dp: 7000, as: "victim" }, { card: "BT24-010", dp: 12000, as: "safe" }] },
+        1: {
+          battleArea: [
+            { card: "BT24-009", dp: 12500, as: "victim" },
+            { card: "BT24-010", dp: 13500, as: "safe" },
+          ],
+        },
       },
       { autoChooseOption: true, autoSelectCards: true },
     );
@@ -25,10 +31,12 @@ describe("BT26-101 Cross Arts", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
     await settle();
 
-    expect(s.perm("tsDigimon").currentDP).toBe(11000);
+    expect(s.perm("lowTsDigimon").currentDP).toBe(6000);
+    expect(s.perm("highTsDigimon").currentDP).toBe(13000);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("option").instanceId)).toBe(false);
     const ledger = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } }).continuous;
-    expect(ledger.hasKeyword(s.perm("tsDigimon").permanentId, "Blocker")).toBe(true);
+    expect(ledger.hasKeyword(s.perm("lowTsDigimon").permanentId, "Blocker")).toBe(true);
+    expect(ledger.hasKeyword(s.perm("highTsDigimon").permanentId, "Blocker")).toBe(true);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === victimInstanceId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT24-010")).toBe(true);
   });
@@ -54,6 +62,11 @@ describe("BT26-101 Cross Arts", () => {
     })).toEqual({ ok: true });
     await settle(() => !s.perm("tsDigimon").isSuspended);
     expect(s.perm("tsDigimon").isSuspended).toBe(false);
+    expect(s.perm("tsDigimon").currentDP).toBe(8000);
+    const ledger = (s.engine as unknown as {
+      continuous: { hasKeyword(id: string, keyword: string): boolean };
+    }).continuous;
+    expect(ledger.hasKeyword(s.perm("tsDigimon").permanentId, "Blocker")).toBe(false);
   });
 
   it("plays a low-cost TS card from trash from Security", async () => {

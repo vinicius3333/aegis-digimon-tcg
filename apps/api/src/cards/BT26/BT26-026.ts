@@ -1,10 +1,10 @@
-import { CardKind, EffectTiming } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
 import type { CardDefinition, CardInstance, Seat } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { whenAttacking } from "../../engine/effects/builders.js";
+import { staticModifier, whenAttacking } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-026 — Cougarmon (BT26, Yellow Lv.4 Digimon).
@@ -33,10 +33,7 @@ const cardId = "BT26-026";
 const GLOWING_DAWN_TRAIT = "Glowing Dawn";
 
 /** Battle-area Tamers this seat controls whose digivolution stack has >=1 face-down card. */
-function tamersWithBottomFaceDown(
-  ctx: EffectContext,
-  seat: Seat,
-): { permanentId: string; instanceId: string }[] {
+function tamersWithBottomFaceDown(ctx: EffectContext, seat: Seat): { permanentId: string; instanceId: string }[] {
   const owner = ctx.game.player(seat);
   const results: { permanentId: string; instanceId: string }[] = [];
   for (const p of owner.battleArea) {
@@ -67,6 +64,21 @@ function glowingDawnOptionHandCards(ctx: EffectContext, seat: Seat): CardInstanc
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
+    if (timing === EffectTiming.None) {
+      const grantBarrier = (isInherited: boolean): Effect =>
+        staticModifier({
+          source,
+          effectKey: `${cardId}/${isInherited ? "inherited" : "main"}-barrier`,
+          description: "＜Barrier＞",
+          isInherited,
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Barrier", EffectDuration.Permanent);
+          },
+        });
+      return [grantBarrier(false), grantBarrier(true)];
+    }
+
     if (timing !== EffectTiming.OnUseAttack) return [];
 
     return [
@@ -81,10 +93,7 @@ const module: EffectModule = {
         canActivate: (ctx) => {
           const seat = source.ownerSeat;
           if (glowingDawnOptionHandCards(ctx, seat).length === 0) return false;
-          return (
-            tamersWithBottomFaceDown(ctx, seat).length > 0 ||
-            ctx.game.player(seat).security.length > 0
-          );
+          return tamersWithBottomFaceDown(ctx, seat).length > 0 || ctx.game.player(seat).security.length > 0;
         },
         resolve: async (ctx) => {
           const seat = source.ownerSeat;
@@ -101,10 +110,16 @@ const module: EffectModule = {
             min: 0,
             max: 1,
           });
-          if (chosenOption.length === 0) return;
+          if (chosenOption.length === 0) {
+            ctx.oncePerTurnActivationDeclined = true;
+            return;
+          }
 
           const optionInstance = optionCandidates.find((c) => c.instanceId === chosenOption[0]!);
-          if (optionInstance === undefined) return;
+          if (optionInstance === undefined) {
+            ctx.oncePerTurnActivationDeclined = true;
+            return;
+          }
           const def = ctx.game.definitionOf(optionInstance);
 
           // Which cost the controller wants to pay for the reduction: a Tamer's bottom
@@ -120,7 +135,10 @@ const module: EffectModule = {
           let payTamer: boolean;
           if (payChoices.length > 1) {
             const pick = await ctx.ask.chooseOption(ctx, [...payChoices, "Don't use this effect"]);
-            if (pick < 0 || pick >= payChoices.length) return;
+            if (pick < 0 || pick >= payChoices.length) {
+              ctx.oncePerTurnActivationDeclined = true;
+              return;
+            }
             payTamer = payChoices[pick] === payChoices[0] && eligibleTamers.length > 0;
           } else {
             const wantToPay = await ctx.ask.optional(
@@ -128,7 +146,10 @@ const module: EffectModule = {
               `${payChoices[0]!} to use 1 Option card with the [Glowing Dawn] trait from ` +
                 "your hand with the cost reduced by 2?",
             );
-            if (!wantToPay) return;
+            if (!wantToPay) {
+              ctx.oncePerTurnActivationDeclined = true;
+              return;
+            }
             payTamer = eligibleTamers.length > 0;
           }
 
@@ -141,16 +162,23 @@ const module: EffectModule = {
                 max: 1,
               });
               const match = eligibleTamers.find((t) => t.permanentId === picked[0]);
-              if (match === undefined) return;
+              if (match === undefined) {
+                ctx.oncePerTurnActivationDeclined = true;
+                return;
+              }
               chosenTamer = match;
             }
-            const trashed = await ctx.fx.trashDigivolutionCards(chosenTamer.permanentId, [
-              chosenTamer.instanceId,
-            ]);
-            if (trashed.length === 0) return;
+            const trashed = await ctx.fx.trashDigivolutionCards(chosenTamer.permanentId, [chosenTamer.instanceId]);
+            if (trashed.length === 0) {
+              ctx.oncePerTurnActivationDeclined = true;
+              return;
+            }
           } else {
             const trashed = await ctx.fx.trashFromSecurity(seat, 1, { fromTop: true });
-            if (trashed.length === 0) return;
+            if (trashed.length === 0) {
+              ctx.oncePerTurnActivationDeclined = true;
+              return;
+            }
           }
 
           const reducedCost = Math.max(0, (def.playCost ?? 0) - 2);

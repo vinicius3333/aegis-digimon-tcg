@@ -1,7 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
-import { EffectTiming, type CardDefinition, type Permanent, type Seat } from "@aegis/shared";
+import {
+  digivolutionRequirementsFor,
+  EffectDuration,
+  EffectTiming,
+  getCardDefinition,
+  type CardDefinition,
+  type Permanent,
+  type Seat,
+} from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives, DecisionApi } from "../../engine/effects/EffectContext.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import "./BT25-058.js";
 
@@ -83,5 +94,319 @@ describe("BT25-058 Callismon", () => {
 
     expect(deDigivolve).toHaveBeenCalledWith("opponent", 1, { byEffectSeat: 0 });
     expect(forceBattle).toHaveBeenCalledWith("callismon", "opponent");
+  });
+
+  it("matches the complete catalog, keywords, TS evolution, and shared Once Per Turn identity", () => {
+    expect(getCardDefinition("BT25-058")).toMatchObject({
+      cardId: "BT25-058",
+      set: "BT25",
+      nameEn: "Callismon",
+      colors: ["Green", "Black"],
+      kinds: ["Digimon"],
+      level: 6,
+      playCost: 13,
+      dp: 13000,
+      evoCosts: [
+        { color: "Green", level: 5, memoryCost: 5 },
+        { color: "Black", level: 5, memoryCost: 5 },
+      ],
+      forms: ["Mega"],
+      attributes: ["Virus"],
+      types: ["Dark Animal", "Iliad", "TS"],
+      rarity: "R",
+      maxCountInDeck: 4,
+      dualEffect: "Callismon",
+    });
+    const definition = getCardDefinition("BT25-058")!;
+    expect(definition.effectText?.replace(/\u00a0/g, " ")).toContain("＜Reboot＞");
+    expect(definition.effectText?.replace(/\u00a0/g, " ")).toContain("＜Blocker＞");
+    expect(definition.effectText?.replace(/\u00a0/g, " ")).toContain("＜Fortitude＞");
+    expect(definition.effectText?.replace(/\u00a0/g, " ")).toContain("[On Play] [When Digivolving] [When Attacking]");
+    expect(definition.effectText?.replace(/\u00a0/g, " ")).toContain(
+      "[All Turns] [Once Per Turn] When effects play or digivolve any Digimon",
+    );
+    expect(digivolutionRequirementsFor("BT25-058")).toContainEqual({
+      level: 5,
+      traits: ["TS"],
+      cost: 4,
+      isAlternate: true,
+    });
+
+    const module = getEffectModule("BT25-058")!;
+    const source = {
+      cardId: "BT25-058",
+      instanceId: "callismon-instance",
+      ownerSeat: 0,
+      definition: def("BT25-058", ["Digimon"]),
+      permanent: () => permanent("callismon", 0, "BT25-058"),
+      isOnBattleArea: () => true,
+      isOwnersTurn: () => true,
+      hasColor: () => false,
+    } as CardSource;
+    const onPlay = module.effectsForTiming(EffectTiming.OnPlay, source)[0]!;
+    const whenDigivolving = module.effectsForTiming(EffectTiming.WhenDigivolving, source)[0]!;
+    const whenAttacking = module.effectsForTiming(EffectTiming.OnAllyAttack, source)[0]!;
+    expect(onPlay.effectKey).toBe(whenDigivolving.effectKey);
+    expect(whenDigivolving.effectKey).toBe(whenAttacking.effectKey);
+    expect(onPlay.maxPerTurn).toBe(1);
+    expect(whenDigivolving.maxPerTurn).toBe(1);
+    expect(whenAttacking.maxPerTurn).toBe(1);
+    expect(EffectDuration.UntilOpponentTurnEnd).toBeDefined();
+  });
+
+  it("reaches Callismon through its legal TS level-5 evolution and grants all three keywords", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT25-073", as: "tsBase" }],
+        hand: [{ card: "BT25-058", as: "callismon" }],
+      },
+    });
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tsBase").permanentId,
+        instanceId: s.inst("callismon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tsBase").topCard?.cardId === "BT25-058");
+    await s.ready();
+    expect(s.state.memory).toBe(0);
+    expect(observe(s.engine).hasKeyword(s.perm("tsBase"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("tsBase"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("tsBase"), "Fortitude")).toBe(true);
+  });
+
+  it("rejects the alternate evolution cost for a level-5 near-match without the TS trait", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-020", as: "wrongTraitBase" }],
+        hand: [{ card: "BT25-058", as: "callismon" }],
+      },
+    });
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wrongTraitBase").permanentId,
+        instanceId: s.inst("callismon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT25-058"]);
+  });
+
+  it("fires When Digivolving once and shares that Once Per Turn budget with When Attacking", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-073", as: "tsBase" }],
+          hand: [{ card: "BT25-058", as: "callismon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "suspendTarget" },
+            { card: "BT1-009", as: "restrictTarget" },
+          ],
+          security: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tsBase").permanentId,
+        instanceId: s.inst("callismon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const suspendDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: suspendDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("suspendTarget").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const restrictDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: restrictDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("restrictTarget").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasRestriction(s.perm("restrictTarget"), "unsuspend"));
+    expect(s.perm("suspendTarget").isSuspended).toBe(true);
+    expect(observe(s.engine).hasRestriction(s.perm("restrictTarget"), "unsuspend")).toBe(true);
+
+    await advance(s.engine).verb.unsuspend([s.perm("suspendTarget").permanentId]);
+    expect(s.perm("suspendTarget").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("tsBase").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 80);
+    expect(s.perm("suspendTarget").isSuspended).toBe(false);
+  });
+
+  it("On Play can suspend one opponent and restrict a different Digimon/Tamer, then declines cleanly", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT25-058", as: "callismon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "digimon" },
+            { card: "BT1-085", as: "tamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 13;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("callismon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const suspendDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: suspendDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("tamer").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const restrictDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: restrictDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("digimon").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasRestriction(s.perm("digimon").permanentId, "unsuspend"));
+
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.perm("digimon").isSuspended).toBe(false);
+    expect(observe(s.engine).hasRestriction(s.perm("digimon").permanentId, "unsuspend")).toBe(true);
+
+    const declined = setupEngine(
+      {
+        0: { hand: [{ card: "BT25-058", as: "callismon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    declined.state.memory = 13;
+    expect(
+      declined.engine.applyIntent(0, { type: "playCard", instanceId: declined.inst("callismon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => declined.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-058"));
+    expect(declined.perm("target").isSuspended).toBe(false);
+    expect(observe(declined.engine).hasRestriction(declined.perm("target").permanentId, "unsuspend")).toBe(false);
+  });
+
+  it("When Attacking includes opponent Tamers and Digimon, with the player attack as the combat boundary", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-058", as: "callismon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "target" },
+            { card: "BT1-085", as: "tamer" },
+          ],
+          security: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("callismon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasRestriction(s.perm("target").permanentId, "unsuspend"));
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("All Turns de-digivolves on effect-play, including self-play, then offers a direct battle once per turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-058", as: "callismon" }],
+          hand: [
+            { card: "BT1-009", as: "triggerOne" },
+            { card: "BT1-009", as: "triggerTwo" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT24-017", as: "opponent", under: ["BT1-020", "BT1-020"] }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.playInstances([s.inst("triggerOne").instanceId], "BT25-058");
+    await settle(() => s.perm("opponent").stack.length === 1);
+    expect(s.perm("opponent").stack).toHaveLength(1);
+    await advance(s.engine).verb.playInstances([s.inst("triggerTwo").instanceId], "BT25-058");
+    await settle(() => false, 80);
+    expect(s.perm("opponent").stack).toHaveLength(1); // shared Once Per Turn consumed by the first event
+
+    const selfPlay = setupEngine(
+      {
+        0: { hand: [{ card: "BT25-058", as: "callismon" }] },
+        1: { battleArea: [{ card: "BT24-017", as: "opponent", under: ["BT1-020"] }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await advance(selfPlay.engine).verb.playInstances([selfPlay.inst("callismon").instanceId], "BT25-058");
+    await settle(() => selfPlay.perm("opponent").stack.length === 0);
+    expect(selfPlay.perm("opponent").stack).toHaveLength(0); // Q6346: effect-playing Callismon itself triggers it
+
+    const effectDigivolve = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-058", as: "callismon" },
+            { card: "BT1-020", as: "effectBase" },
+          ],
+          hand: [{ card: "BT24-017", as: "effectEvolution" }],
+        },
+        1: { battleArea: [{ card: "BT24-017", as: "opponent", under: ["BT1-020"] }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await advance(effectDigivolve.engine).verb.digivolveFromInstance(
+      effectDigivolve.perm("effectBase").permanentId,
+      effectDigivolve.inst("effectEvolution").instanceId,
+      { payCost: false, draw: false, ignoreRequirements: true },
+    );
+    await settle(() => effectDigivolve.perm("opponent").stack.length === 0);
+    expect(effectDigivolve.perm("opponent").stack).toHaveLength(0); // effect-digivolve shares the same entry bus
+
+    const battle = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-058", as: "callismon" }], hand: [{ card: "BT1-009", as: "trigger" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 7000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await battle.ready();
+    await advance(battle.engine).verb.playInstances([battle.inst("trigger").instanceId], "BT25-058");
+    await settle(() => battle.state.players[1]!.battleArea.length === 0);
+    expect(battle.state.players[1]!.battleArea).toHaveLength(0); // Q6348 direct battle uses DP rules and deletes the loser
   });
 });

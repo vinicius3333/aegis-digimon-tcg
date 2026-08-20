@@ -9,14 +9,12 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-049 — Rosemon (BT26, Green Lv.6 Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-049 as of this port
-// (`node tools/kb/query.mjs card BT26-049` returned no knowledge-base entries — BT26
-// has no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// The committed KB has no card-specific ruling or erratum for BT26-049; behavior follows
+// every printed clause.
 //
 // Printed text:
 //   [Digivolve] [Lilamon]/Lv.5 w/[DATA SQUAD] trait: Cost 3 — a digivolution-cost
-//     requirement, not an effect clause; already carried by CardDefinition.evoCosts in
-//     cards.json, so it needs no entry here.
+//     requirement, not an effect clause; carried by generated alternate requirements.
 //   [When Digivolving] [When Attacking] [Once Per Turn] Suspend 2 of your opponent's
 //     Digimon or Tamers.
 //   [All Turns] [Once Per Turn] When any of your opponent's Digimon or Tamers suspend,
@@ -54,13 +52,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 //     — the maximum-cost count is read from the LIVE board at resolution time (mirrors
 //     BT21-079's/BT23-057's "for each of your other Digimon, add N to the maximum" idiom
 //     — a recomputed board count, not a per-event tally).
-//   `maxPerTurn: 1` on the outer staticModifier documents the printed "[Once Per Turn]"
-//     the same way EX6-059/EX7-062 do for a `None`-timing reactive install: the engine's
-//     own comment (GameEngine.recomputeContinuousEffects: "maxPerTurn is irrelevant —
-//     uncounted") means this label does not itself gate the two subscriptions' `run`
-//     bodies, so — same as those precedents — the "Once Per Turn" cap on the free
-//     play-or-use is not separately enforced by this port; this is an accepted gap
-//     shared with every existing card of this exact shape, not a new one.
+//   The persistent builder injects one instance-scoped once-per-turn key into both
+//     subscriptions, so the two trigger routes share a budget while separate Rosemon
+//     copies remain independent.
 const cardId = "BT26-049";
 const DATA_SQUAD_TRAIT = "DATA SQUAD";
 const BASE_COST_CAP = 3;
@@ -74,6 +68,10 @@ function isDigimonOrTamer(p: Permanent, ctx: EffectContext): boolean {
 /** Battle-area Digimon-or-Tamer permanents (not in breeding) controlled by `seat`. */
 function digimonOrTamerTargets(ctx: EffectContext, seat: Seat): Permanent[] {
   return Array.from(ctx.game.player(seat).battleArea).filter((p) => isDigimonOrTamer(p, ctx));
+}
+
+function unsuspendedDigimonOrTamerTargets(ctx: EffectContext, seat: Seat): Permanent[] {
+  return digimonOrTamerTargets(ctx, seat).filter((permanent) => !permanent.isSuspended);
 }
 
 /** Choose up to 2 targets from `candidates` (fewer if fewer are available). */
@@ -98,7 +96,7 @@ function hasDataSquadTrait(def: CardDefinition): boolean {
  */
 async function resolveSuspendTwoOpponentTargets(ctx: EffectContext, source: CardSource): Promise<void> {
   const opponentSeat = ctx.game.opponentOf(source.ownerSeat);
-  const toSuspend = await pickUpTo2(ctx, digimonOrTamerTargets(ctx, opponentSeat));
+  const toSuspend = await pickUpTo2(ctx, unsuspendedDigimonOrTamerTargets(ctx, opponentSeat));
   if (toSuspend.length > 0) await ctx.fx.suspend(toSuspend);
 }
 
@@ -117,6 +115,9 @@ function dataSquadFreeCandidates(ctx: EffectContext, source: CardSource, maxCost
   return Array.from(owner.hand).filter((c) => {
     const def = ctx.game.definitionOf(c);
     if (!hasDataSquadTrait(def)) return false;
+    if (!def.kinds.some((kind) => kind === CardKind.Digimon || kind === CardKind.Tamer || kind === CardKind.Option)) {
+      return false;
+    }
     return (def.playCost ?? 99) <= maxCost;
   });
 }
@@ -129,20 +130,29 @@ function dataSquadFreeCandidates(ctx: EffectContext, source: CardSource, maxCost
 async function resolveFreePlayOrUseDataSquad(ctx: EffectContext, source: CardSource): Promise<void> {
   const maxCost = currentCostCap(ctx, source);
   const candidates = dataSquadFreeCandidates(ctx, source, maxCost);
-  if (candidates.length === 0) return;
+  if (candidates.length === 0) {
+    ctx.oncePerTurnActivationDeclined = true;
+    return;
+  }
 
   const yes = await ctx.ask.optional(
     ctx,
     `Play or use 1 [DATA SQUAD] trait card with a play/use cost of ${maxCost} or less from your hand without paying the cost?`,
   );
-  if (!yes) return;
+  if (!yes) {
+    ctx.oncePerTurnActivationDeclined = true;
+    return;
+  }
 
   const chosen = await ctx.ask.selectCards(ctx, {
     candidates: candidates.map((c) => c.instanceId),
-    min: 0,
+    min: 1,
     max: 1,
   });
-  if (chosen.length === 0) return;
+  if (chosen.length === 0) {
+    ctx.oncePerTurnActivationDeclined = true;
+    return;
+  }
 
   const chosenCard = candidates.find((c) => c.instanceId === chosen[0]!);
   if (chosenCard === undefined) return;
@@ -164,11 +174,10 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/wd-wa-suspend-2`,
           description:
-            "[When Digivolving] [When Attacking] [Once Per Turn] Suspend 2 of your " +
-            "opponent's Digimon or Tamers.",
+            "[When Digivolving] [When Attacking] [Once Per Turn] Suspend 2 of your " + "opponent's Digimon or Tamers.",
           optional: false,
           maxPerTurn: 1,
-          canActivate: (ctx) => digimonOrTamerTargets(ctx, ctx.game.opponentOf(source.ownerSeat)).length > 0,
+          canActivate: (ctx) => unsuspendedDigimonOrTamerTargets(ctx, ctx.game.opponentOf(source.ownerSeat)).length > 0,
           resolve: async (ctx) => resolveSuspendTwoOpponentTargets(ctx, source),
         }),
       ];
@@ -180,11 +189,10 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/wd-wa-suspend-2`,
           description:
-            "[When Digivolving] [When Attacking] [Once Per Turn] Suspend 2 of your " +
-            "opponent's Digimon or Tamers.",
+            "[When Digivolving] [When Attacking] [Once Per Turn] Suspend 2 of your " + "opponent's Digimon or Tamers.",
           optional: false,
           maxPerTurn: 1,
-          canActivate: (ctx) => digimonOrTamerTargets(ctx, ctx.game.opponentOf(source.ownerSeat)).length > 0,
+          canActivate: (ctx) => unsuspendedDigimonOrTamerTargets(ctx, ctx.game.opponentOf(source.ownerSeat)).length > 0,
           resolve: async (ctx) => resolveSuspendTwoOpponentTargets(ctx, source),
         }),
       ];
@@ -212,7 +220,6 @@ const module: EffectModule = {
               event: "whenSuspended",
               sourcePermanentId: self.permanentId,
               once: false,
-              oncePerTurnKey: `${cardId}/all-turns-free-play-or-use`,
               description:
                 `${cardId}: opponent's Digimon or Tamer suspended -> play or use 1 ` +
                 "[DATA SQUAD] card from hand without paying the cost.",
@@ -233,7 +240,6 @@ const module: EffectModule = {
               event: "whenDigivolutionTrashed",
               sourcePermanentId: self.permanentId,
               once: false,
-              oncePerTurnKey: `${cardId}/all-turns-free-play-or-use`,
               description:
                 `${cardId}: cards trashed from under one of your Tamers -> play or use 1 ` +
                 "[DATA SQUAD] card from hand without paying the cost.",
@@ -243,6 +249,7 @@ const module: EffectModule = {
                 const host = subCtx.game.permanentById(hostId);
                 if (host === undefined) return false;
                 if (host.controllerSeat !== source.ownerSeat) return false;
+                if (subCtx.trigger?.byEffectSeat === undefined) return false;
                 if (host.topCard === undefined) return false;
                 return subCtx.game.definitionOf(host.topCard).kinds.includes(CardKind.Tamer);
               },

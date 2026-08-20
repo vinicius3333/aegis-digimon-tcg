@@ -5,6 +5,7 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { onPlay, staticModifier, whenDigivolving } from "../../engine/effects/builders.js";
+import { cardHasTrait } from "../../engine/cards/cardData.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-086 — Dantemon (BT26, White Lv.7 Digimon, Appmon).
@@ -29,10 +30,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 // The [Assembly -7] recipe is supplied by the shared hand-authored
 // `ASSEMBLY_REQUIREMENT_OVERRIDES` table because BT26's effect modules are hand-written.
 //
-// "with different names" is enforced by offering at most ONE stacked card per printed name:
-//   the printed clause caps the SELECTION, and de-duplicating the candidate list is the only
-//   mapping that cannot produce an illegal pick (`selectCards`'s `distinctCardIds` is a
-//   card-id constraint, which is not the same thing — two printings can share a name).
+// "with different names" is enforced after selection by retaining only the first selected
+// printing of each name. All printings remain selectable because same-named cards can carry
+// different inherited/link text; hiding one would incorrectly remove a meaningful choice.
 // "may attack without suspending" is `forceAttack(self, { withoutSuspending: true })`,
 //   BT12-083's mapping of the same printed phrase.
 // The `whenLinked` watcher gates on `trigger.subjectPermanentId`: the engine fires that event
@@ -46,18 +46,23 @@ const SECURITY_RETURN_LINK_COUNT = 7;
 
 const isDigimon = (def: CardDefinition): boolean => def.kinds?.includes(CardKind.Digimon) === true;
 
-/** One stacked [Appmon] card per printed name — the printed "with different names" cap. */
 function appmonStackCandidates(ctx: EffectContext, stack: readonly CardInstance[]): string[] {
+  return stack
+    .filter((card) => cardHasTrait(ctx.game.definitionOf(card), APPMON_TRAIT))
+    .map((card) => card.instanceId);
+}
+
+function distinctNamesFromSelection(ctx: EffectContext, stack: readonly CardInstance[], selected: string[]): string[] {
+  const byId = new Map(stack.map((card) => [card.instanceId, card]));
   const seenNames = new Set<string>();
-  const candidates: string[] = [];
-  for (const card of stack) {
-    const def = ctx.game.definitionOf(card);
-    if (!(def.types ?? []).includes(APPMON_TRAIT)) continue;
-    if (seenNames.has(def.nameEn)) continue;
-    seenNames.add(def.nameEn);
-    candidates.push(card.instanceId);
-  }
-  return candidates;
+  return selected.filter((instanceId) => {
+    const card = byId.get(instanceId);
+    if (card === undefined) return false;
+    const name = ctx.game.definitionOf(card).nameEn;
+    if (seenNames.has(name)) return false;
+    seenNames.add(name);
+    return true;
+  });
 }
 
 function opponentDigimon(ctx: EffectContext, ownerSeat: Seat): string[] {
@@ -86,7 +91,8 @@ async function linkAppmonStackCardsThenAttack(ctx: EffectContext): Promise<void>
   const candidates = appmonStackCandidates(ctx, self.stack);
   if (candidates.length > 0) {
     const chosen = await ctx.ask.selectCards(ctx, { candidates, min: 0, max: MAX_LINKS });
-    if (chosen.length > 0) await ctx.fx.link(self.permanentId, chosen);
+    const legalChosen = distinctNamesFromSelection(ctx, self.stack, chosen).slice(0, MAX_LINKS);
+    if (legalChosen.length > 0) await ctx.fx.link(self.permanentId, legalChosen);
   }
 
   const wantToAttack = await ctx.ask.optional(ctx, "Attack with this Digimon without suspending it?");

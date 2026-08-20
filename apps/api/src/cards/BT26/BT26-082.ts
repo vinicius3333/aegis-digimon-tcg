@@ -1,10 +1,17 @@
-import { CardKind, EffectTiming, isDigimon } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
 import type { CardInstance, Permanent, Seat } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { whenDigivolving, turnTiming, security, onDeletion } from "../../engine/effects/builders.js";
+import {
+  whenDigivolving,
+  turnTiming,
+  security,
+  securityStatic,
+  onDeletion,
+  staticModifier,
+} from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 import { requireOpponentAsk } from "../../engine/decisions/decisionApi.js";
 
@@ -13,14 +20,13 @@ import { requireOpponentAsk } from "../../engine/decisions/decisionApi.js";
  *
  * Q7117–Q7123 clarify Security timing, face-up security handling, and that the alternate
  * cost must trash the full specified number of cards. The implementation follows those
- * rulings; the engine still lacks an end-of-opponent-turn Security trigger seam.
+ * rulings. Face-up Security cards participate in the ordinary OnEndTurn collection,
+ * so the turn-based Security activation is implemented directly at that timing.
  *
  * Printed text:
  *   [Digivolve] [Crowmon]/Lv.5 w/[DATA SQUAD] trait: Cost 3 — a digivolution-cost
- *     requirement, not an effect clause; already carried by CardDefinition.evoCosts in
- *     cards.json and read directly by the engine's digivolution logic, so it needs no
- *     entry here (both the named-card and generic-DATA-SQUAD digivolution paths are
- *     handled centrally, per the card implementation notes).
+ *     requirement, not an effect clause; represented by the catalog compiler's alternate
+ *     digivolution overrides (both the named-card and generic-DATA-SQUAD paths).
  *
  *   [Security] [End of Opponent's Turn] Play this card without paying the cost.
  *   [When Digivolving] [End of Attack] By deleting this Digimon or trashing 2 bottom
@@ -29,24 +35,10 @@ import { requireOpponentAsk } from "../../engine/decisions/decisionApi.js";
  *   [On Deletion] Your opponent trashes 1 card in their hand. Then, if their hand has 7
  *     or fewer cards, you may place this card face up as the bottom security card.
  *
- * KNOWN ENGINE DIVERGENCE #1 — the [Security][End of Opponent's Turn] combo tag:
- *   Only the reveal-triggered half is implemented. `EffectTiming.SecuritySkill`
- *   effects are resolved exclusively from `GameEngine.resolveSecurityEffect`, itself
- *   only called when this card is REVEALED by a security check (GameEngine.ts ~2404-
- *   2459) — there is no code path that activates a SecuritySkill effect at any other
- *   window. The "[End of Opponent's Turn]" half of the tag — letting this card
- *   activate from the security stack even without being checked — has no engine seam:
- *   `endOfOpponentTurn`/`atEndOfOpponentTurn` exist as `SubTriggerEventName` union
- *   members (EffectContext.ts) but are never fired via `fireSubTrigger` anywhere in
- *   GameEngine.ts or TurnStateMachine.ts (confirmed by grep — zero call sites), exactly
- *   the gap BT16-074's header already documents for the same event names. So this
- *   port implements the ability as a plain [Security] "play free on reveal" effect
- *   (mirrors BT26-089's `security()` builder) and leaves the turn-based activation
- *   window as a residual gap pending that engine seam.
- *
  * Clause mapping:
- *   EffectTiming.SecuritySkill — see divergence #1 above. `ctx.fx.playFromSecurity`
- *     with `payCost: false`, exactly BT26-089's shape.
+ *   EffectTiming.SecuritySkill / EffectTiming.OnEndTurn — reveal-triggered Security
+ *     activation and the face-up-security end-of-opponent-turn activation both use
+ *     `ctx.fx.playFromSecurity(..., { payCost:false })`.
  *
  *   EffectTiming.WhenDigivolving / EffectTiming.OnEndAttack (shared body, no cap) —
  *     "By deleting this Digimon or trashing 2 bottom face-down cards from under any of
@@ -196,17 +188,46 @@ const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     // [Security] [End of Opponent's Turn] Play this card without paying the cost.
-    // See the module header (divergence #1): only the reveal-triggered half fires.
     if (timing === EffectTiming.SecuritySkill) {
       return [
         security({
           source,
           effectKey: `${cardId}/security-play-free`,
-          description:
-            "[Security] [End of Opponent's Turn] Play this card without paying the cost. " +
-            "(Only the reveal-triggered [Security] half fires — see module header.)",
+          description: "[Security] [End of Opponent's Turn] Play this card without paying the cost.",
           resolve: async (ctx) => {
             await ctx.fx.playFromSecurity(ctx.source.instanceId, { payCost: false });
+          },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.OnEndTurn) {
+      return [
+        securityStatic({
+          source,
+          effectKey: `${cardId}/face-up-security-end-opponent-turn-play-free`,
+          description: "[Security] [End of Opponent's Turn] Play this card without paying the cost.",
+          optional: false,
+          when: (ctx) => ctx.source.isInSecurity?.() === true && !ctx.source.isOwnersTurn(),
+          resolve: async (ctx) => {
+            await ctx.fx.playFromSecurity(ctx.source.instanceId, { payCost: false });
+          },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/rule-birdkin-trait`,
+          description: "[Rule] Trait: Has [Birdkin] Type.",
+          when: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self !== undefined) {
+              ctx.fx.grantNameTrait(self.permanentId, "trait", ["Birdkin"], EffectDuration.Permanent);
+            }
           },
         }),
       ];

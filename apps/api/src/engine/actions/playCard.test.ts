@@ -53,10 +53,7 @@ function makeState(handForSeat0: string[], handForSeat1: string[] = []): GameSta
   state.phase = Phase.Main;
   state.turnSeat = 0;
   state.memory = 0;
-  state.players = new ArraySchema<PlayerState>(
-    player(0, handForSeat0),
-    player(1, handForSeat1),
-  );
+  state.players = new ArraySchema<PlayerState>(player(0, handForSeat0), player(1, handForSeat1));
   return state;
 }
 
@@ -83,9 +80,7 @@ function makeDeps(overrides: Partial<PlayCardDeps> = {}): {
 }
 
 const playIntent = (instanceId: string, targetSlot?: number): PlayCardIntent =>
-  targetSlot === undefined
-    ? { type: "playCard", instanceId }
-    : { type: "playCard", instanceId, targetSlot };
+  targetSlot === undefined ? { type: "playCard", instanceId } : { type: "playCard", instanceId, targetSlot };
 
 const firstInstanceId = (state: GameState, seat: Seat): string => {
   const ci = state.players[seat]?.hand[0];
@@ -167,12 +162,7 @@ describe("validatePlayCard", () => {
       current.battleArea.push(permanent);
     }
 
-    const result = validatePlayCard(
-      state,
-      0,
-      playIntent(firstInstanceId(state, 0)),
-      defaultPlayCardDeps,
-    );
+    const result = validatePlayCard(state, 0, playIntent(firstInstanceId(state, 0)), defaultPlayCardDeps);
 
     expect(result.ok).toBe(true);
   });
@@ -402,10 +392,12 @@ describe("applyPlayCard - BeforePayCost finalizePlayCost hook (pay-time interact
     const state = makeState([DIGIMON]); // printed playCost 2
     const id = firstInstanceId(state, 0);
     let finalizeCalledWith: number | undefined;
+    let finalizedMode: string | undefined;
     const { deps } = makeDeps({
       // The pay-time hook reduces the passive cost by 2 (floored at 0) — the EX9-043/BT25-076 shape.
-      finalizePlayCost: async (_s, _seat, _instance, _def, base) => {
+      finalizePlayCost: async (_s, _seat, _instance, _def, base, mode) => {
         finalizeCalledWith = base;
+        finalizedMode = mode;
         return Math.max(0, base - 2);
       },
     });
@@ -414,8 +406,25 @@ describe("applyPlayCard - BeforePayCost finalizePlayCost hook (pay-time interact
     expect(r.ok).toBe(true);
     // The hook saw the passive cost (2) and the FINAL paid cost was floored to 0.
     expect(finalizeCalledWith).toBe(2);
+    expect(finalizedMode).toBe("permanent");
     expect(before - state.memory).toBe(0); // 2 - 2 = 0 paid
     if (r.ok) expect(r.outcome.cost).toBe(0);
+  });
+
+  it("identifies an Option declaration to the server-authoritative pay-time hook", async () => {
+    const state = makeState([OPTION_COST]);
+    state.memory = 3;
+    const id = firstInstanceId(state, 0);
+    let finalizedMode: string | undefined;
+    const { deps } = makeDeps({
+      finalizePlayCost: async (_s, _seat, _instance, _def, base, mode) => {
+        finalizedMode = mode;
+        return base;
+      },
+    });
+
+    expect((await applyPlayCard(state, 0, playIntent(id), deps)).ok).toBe(true);
+    expect(finalizedMode).toBe("option");
   });
 
   it("pays the passive cost unchanged when no finalizePlayCost dep is supplied (standalone default)", async () => {

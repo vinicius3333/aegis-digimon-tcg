@@ -40,7 +40,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 //     own hand (consistent with the printed condition being checked before the card leaves
 //     the hand).
 //
-//   EffectTiming.OnPlay / EffectTiming.WhenDigivolving / EffectTiming.OnAllyAttack (shared
+//   EffectTiming.OnPlay / EffectTiming.WhenDigivolving / EffectTiming.OnUseAttack (shared
 //     effectKey, one "Once Per Turn" budget spanning all three timings) — "You may play 1
 //     level 4 or lower [Insectoid] or [Titan] trait Digimon card from your hand without
 //     paying the cost." Modeled on BT26-042's shared-effectKey + `maxPerTurn: 1` idiom for
@@ -70,6 +70,7 @@ function insectoidOrTitanBattleTargets(ctx: EffectContext, source: CardSource): 
   const owner = ctx.game.player(source.ownerSeat);
   return Array.from(owner.battleArea).filter(
     (p) =>
+      !p.inBreeding &&
       p.topCard !== undefined &&
       isDigimon(ctx.game.definitionOf(p.topCard)) &&
       hasInsectoidOrTitanTrait(ctx.game.definitionOf(p.topCard)),
@@ -98,7 +99,7 @@ async function resolveFreePlayInsectoidOrTitan(ctx: EffectContext, source: CardS
 
   const chosen = await ctx.ask.selectCards(ctx, {
     candidates: candidates.map((c) => c.instanceId),
-    min: 0,
+    min: 1,
     max: 1,
   });
   if (chosen.length === 0) return;
@@ -172,7 +173,7 @@ const module: EffectModule = {
     }
 
     // [When Attacking] Same clause, same "Once Per Turn" budget as [On Play].
-    if (timing === EffectTiming.OnAllyAttack) {
+    if (timing === EffectTiming.OnUseAttack) {
       return [
         whenAttacking({
           source,

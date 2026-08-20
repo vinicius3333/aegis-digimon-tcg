@@ -4,7 +4,8 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { whenDigivolving, activated, staticModifier } from "../../engine/effects/builders.js";
+import { activated, colorWaiverStatic, staticModifier, whenDigivolving } from "../../engine/effects/builders.js";
+import { permanentHasTrait } from "../../engine/cards/cardData.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-057 — Bearcatmon // Penetrate Blow (BT26 Black/Red DUAL Digimon/Option).
@@ -13,7 +14,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 // suppresses triggered effects at trigger time while still allowing selection and granting.
 //
 // [Digivolve] Lv.4 w/[Glowing Dawn] trait: Cost 3 — a digivolution-cost requirement, not an
-//   effect clause; already carried by CardDefinition.evoCosts, not implemented here.
+//   effect clause. The catalog's ordinary black/red paths cost 4; the trait path is carried
+//   by generated-digivolve-overrides.json and consumed by shared evolution legality.
 // [When Digivolving] By trashing the bottom face-down card under card from under any of
 //   your Tamers, until your opponent's turn ends, their Digimon effects don't affect this
 //   Digimon, and it gets +3000 DP.
@@ -37,17 +39,15 @@ import { registerCard } from "../../engine/effects/registry.js";
 //   "Effects trash cards from under your Tamers" reuses BT26-044's `whenDigivolutionTrashed`
 //   subject-is-a-Tamer-you-control gate (confirmed live by the engine's own
 //   `subTriggerSeams.test.ts` "under-Tamer trash reaction" case). `maxPerTurn: 1` is the
-//   codebase's existing best-effort convention for a subTrigger-driven "[Once Per Turn]"
-//   reaction (BT13-008, EX7-005, BT26-044) — the current subTrigger dispatch path does not
-//   itself consult `maxPerTurn`, a pre-existing engine gap this port does not attempt to fix.
+//   enclosing staticModifier's `maxPerTurn: 1` lets builders.ts inject one stable,
+//   source-instance-scoped watcher key. Both event subscriptions omit their own key, so they
+//   share that budget within one Bearcatmon without different copies sharing a global budget.
 //
 // Option side [Penetrate Blow]:
-// ＜Use Req. ([GlowingDawn] trait)＞ — data-only: satisfied by the hand-authored
-//   `optionColorRequirements` field on the card record (["Black"] in cards.json), not an
-//   executable action (see BT26-031/BT26-050/BT26-033/BT26-056 precedent and commit
-//   1298f75fa). Note the printed requirement names a TRAIT while `optionColorRequirements`
-//   encodes a COLOR gate — pre-existing data-authoring convention for this DUAL-card field,
-//   not something this module resolves.
+// ＜Use Req. ([GlowingDawn] trait)＞ — while the controller has a [Glowing Dawn]
+//   card in the battle area, the Option side may be used without satisfying its black gate.
+//   This queries GameAccess.effectiveTraits so rules/static effects that grant the trait at
+//   runtime qualify exactly like a printed trait.
 // [Main] ＜De-Digivolve 1＞ 1 of your opponent's Digimon. Then, give 1 of your opponent's
 //   Digimon "[Start of Your Main Phase] This Digimon attacks." until their turn ends.
 //   De-Digivolve reuses `ctx.fx.deDigivolve` directly (BT26-056 precedent: `deDigivolve(id,
@@ -100,8 +100,10 @@ async function payByTrashingBottomFaceDownUnderTamer(ctx: EffectContext, ownerSe
   const bottomCard = chosenTamer.stack[0];
   if (bottomCard === undefined) return false;
 
-  await ctx.fx.trashDigivolutionCards(chosenTamer.permanentId, [bottomCard.instanceId]);
-  return true;
+  const trashed = await ctx.fx.trashDigivolutionCards(chosenTamer.permanentId, [bottomCard.instanceId], {
+    byEffectSeat: ownerSeat,
+  });
+  return trashed.some((card) => card.instanceId === bottomCard.instanceId);
 }
 
 /** Opponent's battle-area Digimon permanents (not in breeding). */
@@ -115,10 +117,16 @@ function opponentDigimonTargets(ctx: EffectContext, source: CardSource): Permane
 /** "This Digimon may unsuspend." A no-op when the host isn't currently suspended. */
 async function mayUnsuspendSelf(ctx: EffectContext, hostId: string): Promise<void> {
   const host = ctx.game.permanentById(hostId);
-  if (host === undefined || host.inBreeding || !host.isSuspended) return;
+  if (host === undefined || host.inBreeding || !host.isSuspended) {
+    ctx.oncePerTurnActivationDeclined = true;
+    return;
+  }
 
   const wantTo = await ctx.ask.optional(ctx, "Unsuspend this Digimon?");
-  if (!wantTo) return;
+  if (!wantTo) {
+    ctx.oncePerTurnActivationDeclined = true;
+    return;
+  }
 
   await ctx.fx.unsuspend([hostId]);
 }
@@ -129,6 +137,13 @@ function isControlledTamer(ctx: EffectContext, permanentId: string | undefined, 
   if (subject === undefined || subject.topCard === undefined) return false;
   if (subject.controllerSeat !== ownerSeat) return false;
   return ctx.game.definitionOf(subject.topCard).kinds.includes(CardKind.Tamer);
+}
+
+function ownerHasGlowingDawnCardInPlay(ctx: EffectContext, source: CardSource): boolean {
+  return Array.from(ctx.game.player(source.ownerSeat).battleArea).some((permanent) => {
+    if (permanent.inBreeding || permanent.topCard === undefined) return false;
+    return permanentHasTrait(ctx.game, permanent, "Glowing Dawn");
+  });
 }
 
 const module: EffectModule = {
@@ -161,6 +176,7 @@ const module: EffectModule = {
 
             ctx.fx.restrict(self.permanentId, "beAffected", EffectDuration.UntilOpponentTurnEnd, {
               fromSourceKind: ["Digimon"],
+              byOpponentEffectsOnly: true,
             });
             ctx.fx.modifyDP(self.permanentId, 3000, EffectDuration.UntilOpponentTurnEnd);
           },
@@ -187,8 +203,8 @@ const module: EffectModule = {
               event: "whenAttackTargetSwitched",
               sourcePermanentId: hostId,
               once: false,
-              oncePerTurnKey: `${cardId}/attack-switch-or-tamer-trash-may-unsuspend`,
               description: `${cardId}: attack targets change -> may unsuspend.`,
+              matches: (subCtx) => subCtx.game.permanentById(hostId)?.isSuspended === true,
               run: async (subCtx) => {
                 await mayUnsuspendSelf(subCtx, hostId);
               },
@@ -198,13 +214,23 @@ const module: EffectModule = {
               event: "whenDigivolutionTrashed",
               sourcePermanentId: hostId,
               once: false,
-              oncePerTurnKey: `${cardId}/attack-switch-or-tamer-trash-may-unsuspend`,
               description: `${cardId}: effect trashes cards under your Tamer -> may unsuspend.`,
-              matches: (subCtx) => isControlledTamer(subCtx, subCtx.trigger?.subjectPermanentId, source.ownerSeat),
+              matches: (subCtx) =>
+                subCtx.game.permanentById(hostId)?.isSuspended === true &&
+                isControlledTamer(subCtx, subCtx.trigger?.subjectPermanentId, source.ownerSeat),
               run: async (subCtx) => {
                 await mayUnsuspendSelf(subCtx, hostId);
               },
             });
+          },
+        }),
+        colorWaiverStatic({
+          source,
+          effectKey: `${cardId}/use-req-glowing-dawn`,
+          description: "＜Use Req. ([GlowingDawn] trait)＞ Ignore this card's color requirements.",
+          when: (ctx) => ownerHasGlowingDawnCardInPlay(ctx, source),
+          resolve: async (ctx) => {
+            ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.UntilEachTurnEnd);
           },
         }),
       ];
@@ -229,7 +255,7 @@ const module: EffectModule = {
                 max: 1,
               });
               if (chosen.length > 0) {
-                ctx.fx.deDigivolve(chosen[0]!, 1, { byEffectSeat: source.ownerSeat });
+                await ctx.fx.deDigivolve(chosen[0]!, 1, { byEffectSeat: source.ownerSeat });
               }
             }
 
@@ -252,7 +278,11 @@ const module: EffectModule = {
               sourcePermanentId: targetId,
               once: false,
               expiresOnTurnEndOf: target.controllerSeat,
-              matches: (subCtx) => subCtx.source.isOwnersTurn() && subCtx.source.isOnBattleArea(),
+              matches: (subCtx) =>
+                subCtx.source.isOwnersTurn() &&
+                subCtx.source.isOnBattleArea() &&
+                subCtx.fx.isUnaffectableByOpponentEffects?.(targetId) !== true &&
+                subCtx.fx.isBeAffectedBySourceKind?.(targetId, "Option") !== true,
               description:
                 `${cardId}: grants "[Start of Your Main Phase] This Digimon attacks." until ` +
                 "the opponent's turn ends.",

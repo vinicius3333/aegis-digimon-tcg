@@ -1,106 +1,95 @@
-// @ts-nocheck
-// KB Q6407: if you don't suspend this Tamer you can't process anything after "after".
-// Suspend is the cost for the whole EndOfYourTurn effect; Attack is mandatory after cost paid.
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
+import type { Permanent } from "@aegis/shared";
+import { permanentHasTrait } from "../../engine/cards/cardData.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import type { EffectContext } from "../../engine/effects/EffectContext.js";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import { security, turnTiming } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
-    {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
-        {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "memoryAtMost",
-            "value": 4
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "EndOfYourTurn",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "TS"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
+/** BT25-086 Dan Yuki — audited against Q6405-Q6408 and Q6713. */
+const cardId = "BT25-086";
+
+function tsTargets(ctx: EffectContext, source: CardSource): Permanent[] {
+  return ctx.game.player(source.ownerSeat).battleArea.filter((permanent) => {
+    if (permanent.inBreeding || permanent.topCard === undefined) return false;
+    return isDigimon(ctx.game.definitionOf(permanent.topCard)) && permanentHasTrait(ctx.game, permanent, "TS");
+  });
+}
+
+function opponentMemory(ctx: EffectContext, source: CardSource): number {
+  const ownMemory = source.ownerSeat === ctx.game.state.turnSeat ? ctx.game.state.memory : -ctx.game.state.memory;
+  return Math.max(0, -ownMemory);
+}
+
+const module: EffectModule = {
+  cardId,
+  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
+    if (timing === EffectTiming.OnStartMainPhase) {
+      return [
+        turnTiming({
+          source,
+          effectKey: `${cardId}/start-main-memory`,
+          description: "[Start of Your Main Phase] If you have 4 or less memory, gain 1 memory.",
+          when: (ctx) => {
+            if (!ctx.source.isOnBattleArea() || !ctx.source.isOwnersTurn()) return false;
+            const own = source.ownerSeat === ctx.game.state.turnSeat ? ctx.game.state.memory : -ctx.game.state.memory;
+            return own <= 4;
           },
-          "amount": 1000,
-          "duration": "forTheTurn",
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "isSelfRef": true
-              },
-              "count": 1,
-              "isSelf": true
-            },
-            "raw": "By suspending this Tamer"
-          },
-          "optional": true,
-          "abortOnDecline": true,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controller": "opponent"
-            },
-            "unit": "cards"
-          }
-        },
-        {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "withoutSuspending": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "payCost": false
-        }
-      ],
-      "isSecurity": true
+          resolve: async (ctx) => ctx.fx.gainMemory(1),
+        }),
+      ];
     }
-  ],
-  "coverage": "full",
-  "residual": []
+
+    if (timing === EffectTiming.OnEndTurn) {
+      return [
+        turnTiming({
+          source,
+          effectKey: `${cardId}/end-turn-buff-and-attack`,
+          optional: true,
+          description:
+            "[End of Your Turn] By suspending this Tamer, a TS Digimon gets +1000 DP per opponent memory, then may attack.",
+          when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn(),
+          canActivate: (ctx) => {
+            const self = ctx.source.permanent();
+            return self !== undefined && !self.isSuspended && tsTargets(ctx, source).length > 0;
+          },
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self === undefined) return;
+            const targets = tsTargets(ctx, source);
+            const chosen = await ctx.ask.chooseTargets(ctx, {
+              candidates: targets.map((target) => target.permanentId),
+              min: 1,
+              max: 1,
+            });
+            if (chosen.length !== 1) return;
+            const suspended = await ctx.fx.suspend([self.permanentId]);
+            if (!suspended.includes(self.permanentId)) return;
+            const bonus = opponentMemory(ctx, source) * 1000;
+            if (bonus > 0) ctx.fx.modifyDP(chosen[0]!, bonus, EffectDuration.UntilEachTurnEnd);
+            if (await ctx.ask.optional(ctx, "Attack with the chosen Digimon?")) {
+              await ctx.fx.forceAttack(chosen[0]!);
+            }
+          },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.SecuritySkill) {
+      return [
+        security({
+          source,
+          effectKey: `${cardId}/security-play`,
+          description: "[Security] Play this card without paying the cost.",
+          resolve: async (ctx) => ctx.fx.playFromSecurity(ctx.source.instanceId),
+        }),
+      ];
+    }
+    return [];
+  },
 };
 
-registerIrCard("BT25-086", compiled);
+registerCard(module);
+export default module;

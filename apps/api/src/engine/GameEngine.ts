@@ -28,6 +28,7 @@ import { MemoryGauge } from "./MemoryGauge.js";
 import { buildStateView, refreshStateView as refreshStateViewInto, syncPublicCounts } from "./state/visibility.js";
 import { GameStateAccess, insertCard, takeTop } from "./state/access.js";
 import { CombatController } from "./combat/controller.js";
+import { detachableLinkedCards, detachLinkedCard, detachTraitTokens } from "./effects/detach.js";
 import { canAttackerDeclare } from "./combat/legality.js";
 import { rollTurnActivity } from "./turnActivity.js";
 import { resolveKeywords } from "./combat/keywords.js";
@@ -66,7 +67,7 @@ import {
   type ActivateEffectDeps,
 } from "./actions/activateEffect.js";
 import { createPrimitives, ModifierLedger, dnaDigivolveCostFor } from "./effects/primitives.js";
-import { ContinuousEffectLedger, effectiveColors } from "./effects/continuous.js";
+import { ContinuousEffectLedger, effectiveColors, effectiveKinds, effectiveTraits } from "./effects/continuous.js";
 import { linkMax } from "./effects/mindLink.js";
 import { SubTriggerRegistry, type SubTriggerSubscription } from "./effects/subtriggers.js";
 import { consultLeavePrevention } from "./effects/leavePrevention.js";
@@ -302,6 +303,9 @@ export class GameEngine {
     contexts: Map<number, EffectContext>;
   }> = [];
   private flushingDeferredSecurityRemovalTriggers = false;
+  /** Trigger windows created inside a resolving effect and activated only after that effect ends. */
+  private readonly deferredTimingWindows: Array<{ timing: EffectTiming; trigger: TriggerInfo }> = [];
+  private flushingDeferredTimingWindows = false;
 
   /**
    * Open (or transparently join) a "resolving-effect window" identifying ONE top-level
@@ -343,6 +347,19 @@ export class GameEngine {
       }
     } finally {
       this.flushingDeferredSecurityRemovalTriggers = false;
+    }
+  }
+
+  private async flushDeferredTimingWindows(): Promise<void> {
+    if (this.flushingDeferredTimingWindows) return;
+    this.flushingDeferredTimingWindows = true;
+    try {
+      while (this.deferredTimingWindows.length > 0) {
+        const deferred = this.deferredTimingWindows.shift();
+        if (deferred !== undefined) await this.fireTiming(deferred.timing, deferred.trigger);
+      }
+    } finally {
+      this.flushingDeferredTimingWindows = false;
     }
   }
 
@@ -472,6 +489,8 @@ export class GameEngine {
           }
         }
         await this.fireTiming(timing, {
+          subjectPermanentId: trigger.subjectPermanentId,
+          suspendedPermanentId: trigger.suspendedPermanentId,
           attackerPermanentId: trigger.attackerPermanentId,
           defenderPermanentId: trigger.defenderPermanentId,
           blockerPermanentId: trigger.blockerPermanentId,
@@ -485,6 +504,7 @@ export class GameEngine {
         });
       },
       fireSubTrigger: async (event, payload) => this.fireSubTrigger(event, payload),
+      resolveDeletionReactions: async (trigger, candidates) => this.resolveDeletionReactions(trigger, candidates),
       effectiveColorsOf: (permanentId) => {
         const permanent = this.access.permanentById(permanentId);
         return permanent === undefined ? [] : this.effectiveColorsOf(permanent);
@@ -502,6 +522,10 @@ export class GameEngine {
       markBarrierFired: (key) => this.tracker.register(key, "replacement"),
       sweepEndOfAttack: () => this.sweepCombatDurations(),
       continuous: this.continuous,
+      hasKeyword: (permanentId, keyword) => {
+        const permanent = this.access.permanentById(permanentId);
+        return permanent !== undefined && resolveKeywords(permanent, this.continuous).includes(keyword);
+      },
       // Shared "pick one of these, or pass" decision channel for ＜Raid＞'s redirect choice and
       // ＜Scapegoat＞'s sacrifice choice (both battle-path consumers of combat/controller.ts) —
       // the same generic selectCards decision `ask.selectInstances` uses in primitives.ts, so no
@@ -541,6 +565,24 @@ export class GameEngine {
       trashDigivolutionCards: async (hostPermanentId, instanceIds) => {
         await this.primitives.trashDigivolutionCards(hostPermanentId, instanceIds);
       },
+      detachEligibleLinkedCards: (permanentId) => {
+        const permanent = this.access.permanentById(permanentId);
+        if (permanent?.topCard === undefined) return [];
+        const traits = detachTraitTokens(definitionOf(permanent.topCard));
+        if (traits.length === 0) return [];
+        return detachableLinkedCards(permanent, traits, (card) => definitionOf(card));
+      },
+      detachLinkedCard: async (permanentId, instanceId) => {
+        const permanent = this.access.permanentById(permanentId);
+        if (permanent?.topCard === undefined) return false;
+        const traits = detachTraitTokens(definitionOf(permanent.topCard));
+        if (traits.length === 0) return false;
+        return (
+          (await detachLinkedCard(permanent, instanceId, traits, (card) => definitionOf(card), {
+            trash: async (ids) => this.primitives.trash(ids),
+          })) !== undefined
+        );
+      },
       ascendToSecurity: async (instanceId) => {
         await this.primitives.ascendToSecurity(instanceId);
       },
@@ -569,6 +611,7 @@ export class GameEngine {
     const self = this;
     return createPrimitives({
       state: this.state,
+      baseGrantedDigivolve: (seat, base, evolving) => this.matchBaseGrantedDigivolve(seat, base, evolving),
       emit: (event) => this.hooks.emit(event),
       nextPermanentId: () => this.nextPermanentId(),
       nextInstanceId: () => this.nextInstanceId(),
@@ -581,8 +624,13 @@ export class GameEngine {
       dpDeleteBudget: this.dpDeleteBudget,
       win: this.win,
       fireTiming: (timing, trigger) => this.fireTiming(timing, trigger),
+      resolveDeletionReactions: (trigger, candidates) => this.resolveDeletionReactions(trigger, candidates),
       fireSubTrigger: (event, payload) => this.fireSubTrigger(event, payload),
       recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
+      finalizeEffectPlayCost: async (instanceId, baseCost, useAsOption) => {
+        const instance = this.findLooseInstance(instanceId);
+        return instance === undefined ? baseCost : this.fireBeforePayCost(instance, baseCost, useAsOption);
+      },
       resolveSelfWhenTrashedFromDeck: async (instanceId) => {
         const instance = this.findLooseInstance(instanceId);
         if (instance === undefined) return;
@@ -676,6 +724,9 @@ export class GameEngine {
       (permanent) => this.effectiveColorsOf(permanent),
       (instanceId) => this.continuous.hasColorWaiver(instanceId),
       (permanent) => canAttackerDeclare(this.access, permanent.controllerSeat, permanent, this.continuous) === null,
+      (permanentId, printedTraits) => effectiveTraits(this.continuous, permanentId, printedTraits),
+      (permanentId, printedKinds) => effectiveKinds(this.continuous, permanentId, printedKinds),
+      (seat, base, evolving) => this.matchBaseGrantedDigivolve(seat, base, evolving),
     );
     return this.gameAccess;
   }
@@ -1452,6 +1503,18 @@ export class GameEngine {
       }
       return names.size >= condition.count;
     }
+    const textCondition = condition as unknown as { kind: string; text?: string };
+    if (textCondition.kind === "tamerHasText" && textCondition.text !== undefined) {
+      return this.access.player(seat).battleArea.some((perm) => {
+        if (perm.topCard === undefined) return false;
+        const definition = lookupDefinition(perm.topCard.cardId);
+        return (
+          definition !== undefined &&
+          isTamer(definition) &&
+          matchNameOrTrait(definition, { tokens: [textCondition.text!], match: "text" })
+        );
+      });
+    }
     return false;
   }
 
@@ -1556,11 +1619,26 @@ export class GameEngine {
    * so every caller (turn machine, actions, security check) shares one seam.
    */
   private async fireTiming(timing: EffectTiming, trigger: TriggerInfo = {}): Promise<void> {
+    // A deletion caused during another effect only TRIGGERS [On Deletion] at that point.
+    // Activation waits until the causing effect has finished (§15-4-4). Re-collecting at
+    // flush time also enforces §15-4-4-3: if that card left trash meanwhile, its pending
+    // effect can no longer activate (BT26-016 Q6977).
+    if (
+      timing === EffectTiming.OnDestroyedAnyone &&
+      this.activeWindowToken !== undefined &&
+      !this.flushingDeferredTimingWindows
+    ) {
+      this.deferredTimingWindows.push({ timing, trigger: { ...trigger } });
+      return;
+    }
     const wasOutermostWindow = this.beginResolvingWindow();
     try {
       await this.recomputeContinuousEffects();
       await runTiming(timing, this.effectEnvironment(trigger), this.resolutionDeps());
-      if (wasOutermostWindow) await this.flushDeferredSecurityRemovalTriggers();
+      if (wasOutermostWindow) {
+        await this.flushDeferredTimingWindows();
+        await this.flushDeferredSecurityRemovalTriggers();
+      }
       // GRANTED timed triggers (System B) fired at the same physical point as the matching
       // Phase]" ability granted onto a permanent (BT23-056) fires at OnStartMainPhase; the
       // per-install `matches` gate re-checks turn-ownership so it fires only on the watched
@@ -1590,6 +1668,55 @@ export class GameEngine {
   }
 
   /**
+   * Resolve the two trigger families created by one deletion. Ascension is deliberately
+   * represented in the ordinary orderTriggers channel: if it resolves first, the card leaves
+   * trash and the subsequent On Deletion collection correctly drops that pending effect (Q7100).
+   */
+  private async resolveDeletionReactions(
+    trigger: TriggerInfo,
+    ascensionCandidates: readonly { instanceId: string; seat: Seat }[],
+  ): Promise<void> {
+    const ascend = async ({ instanceId, seat }: { instanceId: string; seat: Seat }): Promise<void> => {
+      if (this.findLooseInstance(instanceId) === undefined) return;
+      const response = await this.decisions.request({
+        seat,
+        kind: "selectCards",
+        promptText: "＜Ascension＞: place this card at the top of your security stack?",
+        options: { candidateInstanceIds: [instanceId], min: 0, max: 1 },
+      });
+      if (response.kind === "selectCards" && response.instanceIds.includes(instanceId)) {
+        await this.primitives.ascendToSecurity(instanceId);
+      }
+    };
+
+    const candidate = ascensionCandidates.find(({ instanceId }) => {
+      const card = this.findLooseInstance(instanceId);
+      return card !== undefined && definitionOf(card).effectText?.includes("[On Deletion]") === true;
+    });
+    if (candidate === undefined) {
+      await this.fireTiming(EffectTiming.OnDestroyedAnyone, trigger);
+      for (const pending of ascensionCandidates) await ascend(pending);
+      return;
+    }
+
+    const ascensionKey = `ascension/${candidate.instanceId}`;
+    const onDeletionKey = `on-deletion/${candidate.instanceId}`;
+    const response = await this.decisions.request({
+      seat: candidate.seat,
+      kind: "orderTriggers",
+      promptText: "Choose whether to activate ＜Ascension＞ or [On Deletion] first.",
+      options: { triggerKeys: [ascensionKey, onDeletionKey] },
+    });
+    const ascensionFirst = response.kind === "orderTriggers" && response.order[0] === ascensionKey;
+    if (ascensionFirst) await ascend(candidate);
+    await this.fireTiming(EffectTiming.OnDestroyedAnyone, trigger);
+    if (!ascensionFirst) await ascend(candidate);
+    for (const pending of ascensionCandidates) {
+      if (pending.instanceId !== candidate.instanceId) await ascend(pending);
+    }
+  }
+
+  /**
    * Fire the SubTrigger bus (System B) for `event`, running every armed watcher whose
    * captured `sourceFilter` matches the `payload` (delayed-and-rule-effects). Distinct
    * from `fireTiming` (System A, the EffectTiming collect-resolve framework): a watcher
@@ -1604,6 +1731,10 @@ export class GameEngine {
    * field is skipped (its subscription was already dropped on leave).
    */
   private async fireSubTrigger(event: SubTriggerEventName, payload: TriggerInfo = {}): Promise<void> {
+    if (this.ruleProcessing) {
+      this.deferredRuleSubTriggers.push({ event, payload: { ...payload } });
+      return;
+    }
     // A security card removed while another effect is resolving creates a pending trigger;
     // it does not interrupt that effect. Dynasmon BT6-044 must finish revealing its 6 cards
     // before its Recovery reaction can consume the next deck card (KB Q1430/Q1432).
@@ -1629,48 +1760,101 @@ export class GameEngine {
     const wasContinuousMode = this.continuousMode;
     this.continuousMode = false;
     try {
-      await this.subTriggers.fire(
-        event,
-        (sub) => {
-          // Anchor the watcher's context on its OWN source permanent. A watcher whose anchor
-          // has left the field (its subscription should already be dropped on leave; guard
-          // defensively) yields undefined and is skipped by the registry.
-          // Preserve the exact card that installed the watcher. This matters for inherited
-          // effects whose source card is later trashed from the host's stack: the body still
-          // means "this card", not the host's current top card.
-          if (sub.sourceInstanceId !== undefined) {
-            const loose = this.findLooseInstance(sub.sourceInstanceId);
-            if (loose === undefined) return undefined;
-            return this.buildEffectContext(this.cardSourceOf(loose), payload);
+      if (event === "whenLinked") {
+        // A link operation creates two simultaneous trigger families: effects on the
+        // recipient ("when this Digimon gets linked") and the newly linked card's own
+        // [When Linking] face. They are all subscriptions in the same event snapshot, so
+        // let each controller choose the next one exactly like a normal timing window.
+        // This ordering is observable for BT26-084/Q7128: its link face can recursively
+        // link a card before or after the host's reveal/play watcher resolves.
+        const snapshot = this.subTriggers.subscriptionsFor(event);
+        const contexts = new Map<number, EffectContext>();
+        const remaining = snapshot.filter((sub) => {
+          if (sub.oncePerTurnKey !== undefined && this.tracker.count(sub.oncePerTurnKey, "subtrigger") > 0) {
+            return false;
           }
-          if (sub.sourcePermanentId !== undefined) {
-            const srcPerm = this.access.permanentById(sub.sourcePermanentId);
-            if (srcPerm?.topCard === undefined) return undefined;
-            return this.buildEffectContext(this.cardSourceOf(srcPerm.topCard), payload);
+          const ctx = this.buildSubTriggerContext(sub, payload);
+          if (ctx === undefined || (sub.matches !== undefined && !sub.matches(ctx))) return false;
+          contexts.set(sub.id, ctx);
+          return true;
+        });
+        while (remaining.length > 0) {
+          const prioritySeat = remaining.some((sub) => contexts.get(sub.id)!.source.ownerSeat === this.state.turnSeat)
+            ? this.state.turnSeat
+            : contexts.get(remaining[0]!.id)!.source.ownerSeat;
+          const sameController = remaining.filter((sub) => contexts.get(sub.id)!.source.ownerSeat === prioritySeat);
+          let chosen = sameController[0]!;
+          if (sameController.length > 1) {
+            const collected = sameController.map((sub) => {
+              const ctx = contexts.get(sub.id)!;
+              const effect: Effect = {
+                effectKey: `subtrigger/${sub.id}/${sub.description}`,
+                description: sub.description,
+                optional: false,
+                isInherited: false,
+                isSecurity: false,
+                isLinked: false,
+                maxPerTurn: -1,
+                canTrigger: () => true,
+                canActivate: () => true,
+                resolve: sub.run,
+              };
+              return { source: ctx.source, effect };
+            });
+            const index = await this.resolverDecisions.chooseOrder(prioritySeat, collected);
+            if (index !== null) chosen = sameController[index] ?? chosen;
           }
-          if (sub.activationContext !== undefined) {
-            return { ...sub.activationContext, trigger: payload, selections: new Map() };
-          }
-          return undefined;
-        },
-        undefined,
-        // The ambient resolving-effect window (see `beginResolvingWindow`): undefined when
-        // this fire happens outside any fireTiming/fireTimingForInstance call (no dedup —
-        // fail-open, matching SubTriggerRegistry.fire's documented default), otherwise the
-        // ID of the outermost effect resolution currently in progress, so an `oncePerTiming`
-        // watcher dedupes across multiple plays/events from ONE resolving effect (KB Q2814)
-        // while still firing once per genuinely separate top-level resolution.
-        this.activeWindowToken,
-        // `oncePerTurnKey` ledger: reuses the SAME per-turn UseTracker the kernel's
-        // maxPerTurn and the leave-prevention "replacement" keys use, namespaced with
-        // "subtrigger" so the three ledgers never collide. Resets with everything else at
-        // `ownerTurnStart` (see `clearDurations`).
-        {
-          hasFired: (key) => this.tracker.count(key, "subtrigger") > 0,
-          markFired: (key) => this.tracker.register(key, "subtrigger"),
-          unmarkFired: (key) => this.tracker.unregister(key, "subtrigger"),
-        },
-      );
+          remaining.splice(remaining.indexOf(chosen), 1);
+          await this.subTriggers.fireSnapshot([chosen], (sub) => contexts.get(sub.id), this.activeWindowToken, {
+            hasFired: (key) => this.tracker.count(key, "subtrigger") > 0,
+            markFired: (key) => this.tracker.register(key, "subtrigger"),
+            unmarkFired: (key) => this.tracker.unregister(key, "subtrigger"),
+          });
+        }
+      } else {
+        await this.subTriggers.fire(
+          event,
+          (sub) => {
+            // Anchor the watcher's context on its OWN source permanent. A watcher whose anchor
+            // has left the field (its subscription should already be dropped on leave; guard
+            // defensively) yields undefined and is skipped by the registry.
+            // Preserve the exact card that installed the watcher. This matters for inherited
+            // effects whose source card is later trashed from the host's stack: the body still
+            // means "this card", not the host's current top card.
+            if (sub.sourceInstanceId !== undefined) {
+              const loose = this.findLooseInstance(sub.sourceInstanceId);
+              if (loose === undefined) return undefined;
+              return this.buildEffectContext(this.cardSourceOf(loose), payload);
+            }
+            if (sub.sourcePermanentId !== undefined) {
+              const srcPerm = this.access.permanentById(sub.sourcePermanentId);
+              if (srcPerm?.topCard === undefined) return undefined;
+              return this.buildEffectContext(this.cardSourceOf(srcPerm.topCard), payload);
+            }
+            if (sub.activationContext !== undefined) {
+              return { ...sub.activationContext, trigger: payload, selections: new Map() };
+            }
+            return undefined;
+          },
+          undefined,
+          // The ambient resolving-effect window (see `beginResolvingWindow`): undefined when
+          // this fire happens outside any fireTiming/fireTimingForInstance call (no dedup —
+          // fail-open, matching SubTriggerRegistry.fire's documented default), otherwise the
+          // ID of the outermost effect resolution currently in progress, so an `oncePerTiming`
+          // watcher dedupes across multiple plays/events from ONE resolving effect (KB Q2814)
+          // while still firing once per genuinely separate top-level resolution.
+          this.activeWindowToken,
+          // `oncePerTurnKey` ledger: reuses the SAME per-turn UseTracker the kernel's
+          // maxPerTurn and the leave-prevention "replacement" keys use, namespaced with
+          // "subtrigger" so the three ledgers never collide. Resets with everything else at
+          // `ownerTurnStart` (see `clearDurations`).
+          {
+            hasFired: (key) => this.tracker.count(key, "subtrigger") > 0,
+            markFired: (key) => this.tracker.register(key, "subtrigger"),
+            unmarkFired: (key) => this.tracker.unregister(key, "subtrigger"),
+          },
+        );
+      }
     } finally {
       this.continuousMode = wasContinuousMode;
     }
@@ -2149,7 +2333,10 @@ export class GameEngine {
         this.effectEnvironment(trigger),
         this.resolutionDeps(() => this.instancesById([sourceInstanceId])),
       );
-      if (wasOutermostWindow) await this.flushDeferredSecurityRemovalTriggers();
+      if (wasOutermostWindow) {
+        await this.flushDeferredTimingWindows();
+        await this.flushDeferredSecurityRemovalTriggers();
+      }
       await this.recomputeContinuousEffects();
     } finally {
       this.endResolvingWindow(wasOutermostWindow);
@@ -2193,7 +2380,10 @@ export class GameEngine {
           return scoped.filter((instance) => subjectInstanceIds.has(instance.instanceId));
         }),
       );
-      if (wasOutermostWindow) await this.flushDeferredSecurityRemovalTriggers();
+      if (wasOutermostWindow) {
+        await this.flushDeferredTimingWindows();
+        await this.flushDeferredSecurityRemovalTriggers();
+      }
       await this.recomputeContinuousEffects();
     } finally {
       this.endResolvingWindow(wasOutermostWindow);
@@ -2224,6 +2414,7 @@ export class GameEngine {
   ): Promise<void> {
     const attackerPermanentId = this.combat?.currentAttackerId;
     const subjectPermanent = this.findInstance(instanceId)?.permanent;
+    if (subjectPermanent !== undefined) subjectPermanent.enteredByEffect = true;
     // Effect-driven digivolutions are genuine digivolutions for "digivolved this turn"
     // conditions (BT1-007 Q871). As with the manual action seam, breeding-area evolutions
     // remain excluded unless card text explicitly references that area (Q870).
@@ -2244,9 +2435,17 @@ export class GameEngine {
     const subjectPermanentId = subjectPermanent?.permanentId;
     if (subjectPermanentId === undefined) return;
     if (timing === EffectTiming.OnPlay) {
-      await this.fireTiming(EffectTiming.OnEnterFieldAnyone, { subjectPermanentId, entryCause: "play" });
+      await this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
+        subjectPermanentId,
+        entryCause: "play",
+        enteredByEffect: ownerSeat,
+      });
     } else if (timing === EffectTiming.WhenDigivolving) {
-      await this.fireTiming(EffectTiming.OnEnterFieldAnyone, { subjectPermanentId, entryCause: "digivolve" });
+      await this.fireTiming(EffectTiming.OnEnterFieldAnyone, {
+        subjectPermanentId,
+        entryCause: "digivolve",
+        enteredByEffect: ownerSeat,
+      });
       await this.fireSubTrigger("whenOneOfYoursDigivolves", {
         subjectPermanentId,
         enteredByEffect: ownerSeat,
@@ -2336,7 +2535,7 @@ export class GameEngine {
    * the played card's own effects, so it is run directly against a focused context (mirroring the
    * `recomputeContinuousEffects` per-instance `resolve` loop), keeping the value observable.
    */
-  private async fireBeforePayCost(instance: CardInstance, baseCost: number): Promise<number> {
+  private async fireBeforePayCost(instance: CardInstance, baseCost: number, useAsOption = false): Promise<number> {
     const source = this.cardSourceOf(instance);
     if (this.continuous.blocksCostReduction(source.ownerSeat, "play")) return baseCost;
     const effects = effectsOf(EffectTiming.BeforePayCost, source).filter((effect) => effect.costWindow !== "digivolve");
@@ -2350,6 +2549,7 @@ export class GameEngine {
     // that reduces the cost of a matching played card. Scanned so the early-return below does not
     // skip the pay-time window when only such a reducer applies.
     const crossWatchers = this.crossPermanentPlayReducerWatchers(instance, source.ownerSeat);
+    const residentEffects = this.residentPlayCostEffects(source.ownerSeat);
     const breeding = this.state.players[source.ownerSeat]?.breeding;
     const breedingResidentEffects = Array.from(breeding?.stack ?? []).flatMap((card) => {
       const residentSource = this.cardSourceOf(card);
@@ -2361,6 +2561,7 @@ export class GameEngine {
       effects.length === 0 &&
       selfReducers.length === 0 &&
       crossWatchers.length === 0 &&
+      residentEffects.length === 0 &&
       breedingResidentEffects.length === 0
     )
       return baseCost;
@@ -2373,6 +2574,29 @@ export class GameEngine {
       if (!canActivate(effect, ctx, this.tracker)) continue;
       await effect.resolve(ctx);
     }
+    // Generic battle-area pay-time watchers. Unlike the card being played, their
+    // EffectContext source is the physical resident carrying the effect; the imminent
+    // card identity is carried in TriggerInfo. This lets independent copies resolve and
+    // account OPT separately while accumulating their reductions in the shared cost window.
+    for (const { effect, source: residentSource } of residentEffects) {
+      const residentCtx: EffectContext = {
+        ...this.buildEffectContext(residentSource, {
+          wouldBePlayedInstanceId: instance.instanceId,
+          wouldBePlayedCardId: instance.cardId,
+          wouldBePlayedAsOption: useAsOption,
+        }),
+        selections: new Map(),
+        playCostDelta: ctx.playCostDelta,
+      };
+      if (!canTrigger(effect, residentCtx, this.tracker)) continue;
+      if (!canActivate(effect, residentCtx, this.tracker)) continue;
+      const beforeDelta = residentCtx.playCostDelta ?? 0;
+      await effect.resolve(residentCtx);
+      ctx.playCostDelta = residentCtx.playCostDelta;
+      if ((residentCtx.playCostDelta ?? 0) > beforeDelta && effect.maxPerTurn > 0) {
+        this.tracker.register(residentSource.instanceId, effect.effectKey);
+      }
+    }
     // [Breeding] inherited pay-time effects are supplied by cards in the owner's
     // breeding-area stack (the card being played is still in hand, so its own
     // module cannot host the watcher). Resolve these against the same shared
@@ -2382,6 +2606,7 @@ export class GameEngine {
         ...this.buildEffectContext(residentSource, {
           wouldBePlayedInstanceId: instance.instanceId,
           wouldBePlayedCardId: instance.cardId,
+          wouldBePlayedAsOption: useAsOption,
         }),
         selections: new Map(),
         playCostDelta: ctx.playCostDelta,
@@ -2430,6 +2655,22 @@ export class GameEngine {
     }
   }
 
+  /** Battle-area effects that react while their controller would play/use another card. */
+  private residentPlayCostEffects(seat: Seat): Array<{ effect: Effect; source: CardSource }> {
+    const player = this.state.players[seat];
+    if (player === undefined) return [];
+    return Array.from(player.battleArea).flatMap((permanent) => {
+      if (permanent.inBreeding || permanent.topCard === undefined) return [];
+      return [permanent.topCard, ...permanent.stack].flatMap((card, index) => {
+        const residentSource = this.cardSourceOf(card);
+        return effectsOf(EffectTiming.BeforePayCost, residentSource)
+          .filter((effect) => effect.costWindow !== "digivolve")
+          .filter((effect) => index === 0 || effect.isInherited)
+          .map((effect) => ({ effect, source: residentSource }));
+      });
+    });
+  }
+
   /**
    * Battle-area permanents the playing seat controls that carry a VERIFIED cross-permanent play-cost
    * reducer matching the card being played. BT10-093 handles Lv.4+ [Bagra Army] Digimon; EX3-040
@@ -2449,9 +2690,19 @@ export class GameEngine {
     const player = this.state.players[seat];
     if (player === undefined) return [];
     const isGreenDigimon = def.kinds.includes(CardKind.Digimon) && def.colors.includes("Green" as CardColor);
+    const isBossOrTsDigimon =
+      def.kinds.includes(CardKind.Digimon) && (cardHasTrait(def, "Boss") || cardHasTrait(def, "TS"));
     return player.battleArea.filter((perm) => {
       if (perm.inBreeding) return false;
       if (perm.topCard?.cardId === "BT10-093") return isLv4PlusBagraArmy;
+      if (perm.topCard?.cardId === "BT26-088") {
+        return (
+          isBossOrTsDigimon &&
+          !perm.isSuspended &&
+          !this.continuous.hasRestriction(perm.permanentId, "beSuspended") &&
+          !this.continuous.hasRestriction(perm.permanentId, "beAffected")
+        );
+      }
       return (
         perm.topCard?.cardId === "EX3-040" &&
         isGreenDigimon &&
@@ -2476,6 +2727,27 @@ export class GameEngine {
     const player = this.state.players[seat];
     if (player === undefined) return;
     for (const watcher of watchers) {
+      if (watcher.topCard?.cardId === "BT26-088") {
+        const watcherSource = this.cardSourceOf(watcher.topCard);
+        const watcherCtx: EffectContext = {
+          ...this.buildEffectContext(watcherSource, {}),
+          selections: new Map(),
+          activeTiming: "YourTurn",
+          activeEffectText:
+            "[Your Turn] When a [Boss] or [TS] Digimon would be played, by suspending this Tamer, reduce the cost.",
+        };
+        if (!(await watcherCtx.ask.optional(watcherCtx, "Suspend Hiroko Sagisaka to reduce this play cost?"))) {
+          continue;
+        }
+        const paid = watcherCtx.fx.payActivationCost?.(watcher.permanentId, "suspend") ?? false;
+        if (!paid) continue;
+        const hasDigimon = player.battleArea.some((permanent) => {
+          if (permanent.inBreeding || permanent.topCard === undefined) return false;
+          return lookupDefinition(permanent.topCard.cardId)?.kinds.includes(CardKind.Digimon) === true;
+        });
+        ctx.playCostDelta = (ctx.playCostDelta ?? 0) + (hasDigimon ? 1 : 2);
+        continue;
+      }
       if (watcher.topCard?.cardId === "EX3-040") {
         const watcherSource = this.cardSourceOf(watcher.topCard);
         const watcherCtx: EffectContext = {
@@ -2591,6 +2863,15 @@ export class GameEngine {
   private ruleProcessing = false;
 
   /**
+   * Triggered watcher events produced while a rule check is still reaching its fixpoint.
+   * They become pending only after every immediately applicable rule process has finished.
+   * This is observable for BT25-084/Q6399: paying its leave-prevention cost trashes the
+   * controller's hand, but the resulting watcher cannot activate before the repeated
+   * 0-DP rule check deletes Titamon.
+   */
+  private readonly deferredRuleSubTriggers: { event: SubTriggerEventName; payload: TriggerInfo }[] = [];
+
+  /**
    * Defensive pass cap for the rule fixpoint, mirroring the resolver's
    * `MAX_RESOLUTION_PASSES`. Each pass strictly removes at least one permanent (a deleted
    * card cannot re-enter the same condition), so termination is structural; the cap only
@@ -2643,12 +2924,17 @@ export class GameEngine {
    * timing window starts and after each single triggered effect FULLY resolves — never
    * between two instructions inside one effect's own body, matching the rule's own worked
    * example (a "-3000 DP and <Security A. -1>" effect is checked only after BOTH clauses
-   * apply). A nested timing window opened mid-effect (e.g. an [On Deletion] fired by a
-   * primitive the outer effect calls) does run its own leading sweep before the outer effect
-   * resumes; this mirrors the fixpoint's own per-window bracketing and was not treated as a
-   * violation of the rule's stated example.
+   * apply). A timing window opened by a rule-produced movement cannot start a second sweep:
+   * the active outer fixpoint owns the rule work and the pending triggers until it converges.
    */
   private async ruleProcess(): Promise<void> {
+    // A timing window opened by a rule-produced deletion can re-enter this method while
+    // the outer state-based-action sweep is still active. The outer invocation owns both
+    // the fixpoint and its deferred SubTrigger queue. A nested invocation must return
+    // immediately: attempting to flush that queue here would dequeue each item, call
+    // fireSubTrigger while `ruleProcessing` is still true, and enqueue the same item again
+    // forever (BT25-084 / Q6399).
+    if (this.ruleProcessing) return;
     let passes = 0;
     while (this.doRuleProcess()) {
       if (++passes > GameEngine.MAX_RULE_PROCESS_PASSES) {
@@ -2688,6 +2974,13 @@ export class GameEngine {
       } finally {
         this.ruleProcessing = false;
       }
+    }
+    // Rule-produced triggers are pending until the complete state-based-action fixpoint
+    // finishes. Resolve them only now, when their sources and activation conditions can be
+    // revalidated against the post-rule board.
+    while (this.deferredRuleSubTriggers.length > 0) {
+      const pending = this.deferredRuleSubTriggers.shift()!;
+      await this.fireSubTrigger(pending.event, pending.payload);
     }
   }
 
@@ -3062,6 +3355,7 @@ export class GameEngine {
           attackerPermanentId: info.attackerPermanentId,
           securityInstanceId: info.securityInstanceId,
           removedFromSecuritySeat: info.removedFromSecuritySeat,
+          subjectPermanentId: info.subjectPermanentId,
         }),
       fireFaceUpSecurityAdded: async (info) =>
         this.fireSubTrigger("whenFaceUpCardsAddedToOpponentSecurity", {
@@ -3071,7 +3365,10 @@ export class GameEngine {
       resolveSecurityEffect: async (card, attackerPermanentId, wasFaceUp) =>
         this.resolveSecurityEffect(card, attackerPermanentId, wasFaceUp),
       dpOf: (permanentId) => this.access.permanentById(permanentId)?.currentDP ?? 0,
-      hasKeyword: (permanentId, keyword) => this.continuous.hasKeyword(permanentId, keyword),
+      hasKeyword: (permanentId, keyword) => {
+        const permanent = this.access.permanentById(permanentId);
+        return permanent !== undefined && resolveKeywords(permanent, this.continuous).includes(keyword);
+      },
       securityCardDp: (card) => {
         const owner = card.ownerSeat;
         return (lookupDefinition(card.cardId)?.dp ?? 0) + this.securityDp.deltaFor(owner);
@@ -3194,8 +3491,8 @@ export class GameEngine {
       // Pay-time interactive cost reduction (BeforePayCost): fire the played card's BeforePayCost
       // window (where a ReducePlayCost action runs its optional server-side payment) and return the
       // finalized cost. Runs in the async apply path BEFORE memory is paid (EX9-043 / BT25-076).
-      finalizePlayCost: async (_state, _seat, instance, _definition, baseCost) =>
-        this.fireBeforePayCost(instance, baseCost),
+      finalizePlayCost: async (_state, _seat, instance, _definition, baseCost, mode) =>
+        this.fireBeforePayCost(instance, baseCost, mode === "option"),
       // Synchronous fast-path gate: only cards with a BeforePayCost effect take the async
       // finalization path. Every other card keeps same-microtask placement (no timing change).
       hasBeforePayCost: (instance) =>
@@ -3208,7 +3505,8 @@ export class GameEngine {
             (effect) => effect.isInherited && effect.costWindow === "play",
           ),
         ) ||
-        this.crossPermanentPlayReducerWatchers(instance, this.cardSourceOf(instance).ownerSeat).length > 0,
+        this.crossPermanentPlayReducerWatchers(instance, this.cardSourceOf(instance).ownerSeat).length > 0 ||
+        this.residentPlayCostEffects(this.cardSourceOf(instance).ownerSeat).length > 0,
       // After the played permanent is created (before On Play), place any cards a cross-permanent
       // reducer (BT10-093) committed under it, and relocate any whole permanent a SELF reducer's cost
       // body (BT12-112) selected to become one of its digivolution cards. No-op when nothing was

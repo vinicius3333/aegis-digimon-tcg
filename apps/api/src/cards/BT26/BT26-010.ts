@@ -1,9 +1,9 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectDuration, EffectTiming } from "@aegis/shared";
 import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
-import { whenAttacking } from "../../engine/effects/builders.js";
+import { staticModifier, whenAttacking } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 import { cardHasTrait } from "../../engine/cards/cardData.js";
 
@@ -30,12 +30,9 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
  *     holding no payable card, resolves to nothing). Modeled on EX12-059's
  *     "By placing ... cards from your hand" cost shape.
  *
- * RESIDUAL — link face: this card also carries a printed `linkEffect`:
- *     ＜Progress＞ ＜Piercing＞
- *   No BT26 card in this set ports its `linkEffect` (BT26-028 / BT26-037 leave theirs
- *   unported too) and the clause-coverage gate does not read that field, so it is left
- *   unimplemented here for consistency rather than half-modeled. Track it with the
- *   set-wide link-face gap.
+ *   EffectTiming.None (isLinked) — the linked host gains ＜Progress＞ and ＜Piercing＞.
+ *     Continuous recomputation removes both immediately when this link card leaves,
+ *     which is the exact Q6964 boundary.
  */
 const cardId = "BT26-010";
 
@@ -48,6 +45,31 @@ function isPayableCostCard(def: CardDefinition): boolean {
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/linked-progress`,
+          description: "＜Progress＞ (linked effect)",
+          isLinked: true,
+          resolve: async (ctx) => {
+            const host = ctx.source.permanent();
+            if (host !== undefined) ctx.fx.grantKeyword(host.permanentId, "Progress", EffectDuration.Permanent);
+          },
+        }),
+        staticModifier({
+          source,
+          effectKey: `${cardId}/linked-piercing`,
+          description: "＜Piercing＞ (linked effect)",
+          isLinked: true,
+          resolve: async (ctx) => {
+            const host = ctx.source.permanent();
+            if (host !== undefined) ctx.fx.grantKeyword(host.permanentId, "Piercing", EffectDuration.Permanent);
+          },
+        }),
+      ];
+    }
+
     if (timing === EffectTiming.OnUseAttack) {
       return [
         whenAttacking({
@@ -67,7 +89,8 @@ const module: EffectModule = {
             const paid = await ctx.ask.selectCards(ctx, { candidates, min: 0, max: 1 });
             if (paid.length === 0) return;
 
-            await ctx.fx.trash(paid);
+            const trashed = await ctx.fx.trash(paid);
+            if (trashed.length !== 1) return;
             await ctx.fx.draw(source.ownerSeat, 2);
           },
         }),

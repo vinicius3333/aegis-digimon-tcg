@@ -1,10 +1,8 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
+// BT25-063 Commandramon. The controller chooses both the top/bottom destination and
+// the order of the unselected revealed cards.
 export const compiled: CompiledCard = {
   effects: [
     {

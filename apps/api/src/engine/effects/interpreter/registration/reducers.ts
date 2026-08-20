@@ -75,6 +75,10 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT10-098", // condition: opponent has 2+ Digimon -> Option use cost -2
   "BT10-103", // condition: you have 2+ suspended green Digimon -> Option use cost -2
   "BT8-097", // scaling: Option use cost -1 per opposing Digimon (floor applied by play path)
+  "BT25-044", // 6 or fewer total security cards -> -5 (Q7004 effect-driven stacking)
+  "BT25-059", // 2+ suspended Digimon -> -5 (Q6306/Q6350)
+  "BT25-075", // fewer Digimon than your opponent -> -5 (Q6370-Q6372)
+  "BT25-077", // condition: 12+ total Digimon levels -> -5 (Q7002 effect-driven stacking)
 ]);
 
 /**

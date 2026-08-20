@@ -61,8 +61,8 @@ function hasDataSquadTrait(def: CardDefinition): boolean {
 async function suspendSelf(ctx: EffectContext): Promise<boolean> {
   const self = ctx.source.permanent();
   if (self === undefined || self.isSuspended) return false;
-  await ctx.fx.suspend([self.permanentId]);
-  return true;
+  const suspended = await ctx.fx.suspend([self.permanentId]);
+  return suspended.includes(self.permanentId);
 }
 
 /** Benefit: 1 of the owner's [DATA SQUAD] trait Digimon gains <Execute> for the turn. */
@@ -71,6 +71,7 @@ async function grantExecuteToDataSquadDigimon(ctx: EffectContext, source: CardSo
   const candidates = owner.battleArea
     .filter(
       (p) =>
+        !p.inBreeding &&
         p.topCard !== undefined &&
         isDigimon(ctx.game.definitionOf(p.topCard)) &&
         hasDataSquadTrait(ctx.game.definitionOf(p.topCard)),
@@ -121,7 +122,7 @@ const module: EffectModule = {
             });
             if (chosen.length === 0) return;
 
-            await ctx.fx.placeUnder(selfPerm.permanentId, chosen);
+            await ctx.fx.placeUnder(selfPerm.permanentId, chosen, { faceUp: false });
             await ctx.fx.draw(source.ownerSeat, 1);
             ctx.fx.gainMemory(1);
           },

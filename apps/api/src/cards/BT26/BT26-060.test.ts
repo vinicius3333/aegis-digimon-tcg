@@ -3,7 +3,10 @@ import { CardKind, EffectTiming, type CardDefinition, type Seat } from "@aegis/s
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives, SubTriggerInstall } from "../../engine/effects/EffectContext.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./BT26-060.js";
+import "../index.js";
 
 // BT26-060 (Chronomon: Destroy Mode, BT26):
 //   "[On Play] [When Digivolving] Return the top 5 stacked cards of 3 of your opponent's
@@ -118,7 +121,9 @@ function makeHarness(options: {
     ...(options.order === undefined
       ? {}
       : {
-          orderCards: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => options.order!(opts.candidates)),
+          orderCards: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) =>
+            options.order!(opts.candidates),
+          ),
         }),
   } as unknown as EffectContext["ask"];
 
@@ -137,6 +142,73 @@ function effectFor(timing: EffectTiming, source: CardSource, key: string) {
 
 const RETURN_KEY = "return-opponent-stacked-cards";
 const DELETE_KEY = "delete-on-effect-adds-to-deck";
+
+describe("BT26-060 evolution and printed keywords", () => {
+  it("digivolves from an off-color level 6 card with [Chronomon] in its text for cost 5", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-078", as: "base" }],
+          hand: [{ card: CARD_ID, as: "destroy-mode" }],
+          deck: ["BT5-022"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("destroy-mode").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("destroy-mode").instanceId);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("exposes Security Attack +1, Reboot, and Blocker through the continuous ledger", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "chronomon" }] } });
+    await s.ready();
+
+    expect(observe(s.engine).keywordAmount(s.perm("chronomon"), "SecurityAttack")).toBe(1);
+    expect(observe(s.engine).hasKeyword(s.perm("chronomon"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("chronomon"), "Blocker")).toBe(true);
+  });
+
+  it("Succession confers only the topmost face-up level 6 card with Chronomon in its name", async () => {
+    const source = makeSource();
+    const stack = [
+      { instanceId: "lower", cardId: "CHRONOMON", faceUp: true },
+      { instanceId: "wrong-level", cardId: "WRONG_LEVEL", faceUp: true },
+      { instanceId: "upper", cardId: "CHRONOMON", faceUp: true },
+      { instanceId: "hidden", cardId: "CHRONOMON", faceUp: false },
+    ];
+    const conferStackEffects = vi.fn();
+    const ctx = {
+      source,
+      conferredToPermanentId: undefined,
+      game: {
+        definitionOf: (card: { cardId: string }) =>
+          fakeDef({
+            cardId: card.cardId,
+            nameEn: card.cardId === "CHRONOMON" ? "Chronomon: Holy Mode" : "Other",
+            level: card.cardId === "WRONG_LEVEL" ? 5 : 6,
+          }),
+      },
+      fx: { conferStackEffects },
+    } as unknown as EffectContext;
+    source.permanent = () => ({ permanentId: SELF_PERMANENT, stack }) as never;
+    const effect = getEffectModule(CARD_ID)!
+      .effectsForTiming(EffectTiming.None, source)
+      .find(({ effectKey }) => effectKey.endsWith("succession-chronomon"))!;
+
+    await effect.resolve(ctx);
+    expect(conferStackEffects).toHaveBeenCalledWith(SELF_PERMANENT, "upper", expect.anything());
+  });
+});
 
 describe("BT26-060 [On Play] / [When Digivolving]: return opponent stacked cards to the deck top", () => {
   it("returns the top five stacked cards, top first", async () => {
@@ -226,14 +298,21 @@ describe("BT26-060 [All Turns] [Once Per Turn]: delete on your own deck adds", (
 
     expect(sub.event).toBe("whenEffectAddsToDeck");
     expect(sub.sourcePermanentId).toBe(SELF_PERMANENT);
-    expect(sub.oncePerTurnKey).toBe(`${CARD_ID}/${DELETE_KEY}`);
+    expect(sub.oncePerTurnKey).toBe(`chronomon-top/${CARD_ID}/${DELETE_KEY}`);
   });
 
   it("matches a deck add on either side (KB Q7086) but not an unrelated firing", async () => {
     const sub = await install(makeHarness({}));
 
-    expect(sub.matches!(makeHarness({ trigger: { effectAddedToDeckSeat: 0 } }).ctx)).toBe(true);
-    expect(sub.matches!(makeHarness({ trigger: { effectAddedToDeckSeat: 1 } }).ctx)).toBe(true);
+    expect(sub.matches!(makeHarness({ trigger: { effectAddedToDeckSeat: 0, effectAddedToDeckBySeat: 0 } }).ctx)).toBe(
+      true,
+    );
+    expect(sub.matches!(makeHarness({ trigger: { effectAddedToDeckSeat: 1, effectAddedToDeckBySeat: 0 } }).ctx)).toBe(
+      true,
+    );
+    expect(sub.matches!(makeHarness({ trigger: { effectAddedToDeckSeat: 0, effectAddedToDeckBySeat: 1 } }).ctx)).toBe(
+      false,
+    );
     expect(sub.matches!(makeHarness({}).ctx)).toBe(false);
   });
 

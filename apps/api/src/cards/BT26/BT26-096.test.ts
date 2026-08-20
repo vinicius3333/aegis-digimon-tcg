@@ -3,6 +3,7 @@ import { CardKind, EffectTiming, type CardDefinition, type Seat } from "@aegis/s
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT26-096.js";
 
 // BT26-096 (Kosuke Misono, BT26 Tamer):
@@ -13,7 +14,7 @@ import "./BT26-096.js";
 //
 // FAILS-WHEN-REVERTED: setting memory when it is already above 2 overwrites a healthy memory
 // total; playing before the Tamer is returned skips the printed cost; offering a [TS] Digimon
-// or a non-[TS] Tamer widens the candidate list; dropping costDelta -2 charges full price.
+// or a non-[TS] Tamer widens the candidate list; dropping costDelta 2 charges full price.
 
 const CARD_ID = "BT26-096";
 const SELF_TOP = "kosuke-top";
@@ -161,7 +162,7 @@ describe("BT26-096 [Main]: return this Tamer to play a discounted card", () => {
 
     await effectFor(EffectTiming.OnDeclaration, harness.source, MAIN_KEY).resolve(harness.ctx);
 
-    expect(harness.calls).toEqual([`returnToDeck:${SELF_TOP}:false`, "playInstances:hand-chronomon:true:-2"]);
+    expect(harness.calls).toEqual([`returnToDeck:${SELF_TOP}:false`, "playInstances:hand-chronomon:true:2"]);
   });
 
   it("offers [Chronomon]-text Digimon and [TS] Tamers from hand and trash only", async () => {
@@ -192,5 +193,57 @@ describe("BT26-096 [Main]: return this Tamer to play a discounted card", () => {
     await effectFor(EffectTiming.OnDeclaration, empty.source, MAIN_KEY).resolve(empty.ctx);
     expect(empty.calls).toEqual([`returnToDeck:${SELF_TOP}:false`]);
     expect(empty.offered).toEqual([]);
+  });
+
+  it("returns itself to the real deck bottom and pays the correctly reduced cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          deck: ["AD1-001"],
+          trash: [{ card: "BT26-090", as: "tsTamer" }],
+          battleArea: [{ card: "BT26-096", as: "kosuke" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 1;
+    const kosukeCardId = s.perm("kosuke").topCard!.instanceId;
+    const kosukePermanentId = s.perm("kosuke").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: kosukeCardId,
+        effectKey: `${CARD_ID}/${MAIN_KEY}`,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT26-090"));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(kosukeCardId);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === kosukePermanentId)).toBe(false);
+  });
+
+  it("plays itself from Security without paying its cost", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT26-096", as: "kosukeSecurity" }] },
+      1: { battleArea: [{ card: "AD1-003", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    const kosukeId = s.inst("kosukeSecurity").instanceId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === kosukeId),
+    );
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === kosukeId)).toBe(true);
   });
 });

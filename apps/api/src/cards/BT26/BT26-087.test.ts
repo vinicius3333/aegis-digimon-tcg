@@ -3,6 +3,9 @@ import { CardKind, EffectTiming, type CardDefinition, type Seat } from "@aegis/s
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import "./BT26-087.js";
 
 // BT26-087 (Toya Kuga, BT26 Tamer):
@@ -70,6 +73,7 @@ function makeHarness(options: {
   trash?: { instanceId: string; cardId: string }[];
   pick?: (candidates: string[], round: number) => string[];
   source?: CardSource;
+  movementFails?: boolean;
 }) {
   const players = [
     { seat: 0 as Seat, hand: options.hand ?? [], trash: options.trash ?? [], battleArea: [] },
@@ -86,7 +90,7 @@ function makeHarness(options: {
   const fx = {
     returnToDeck: vi.fn<(...args: any[]) => any>(async (ids: string[], opts?: { toTop?: boolean }) => {
       calls.push(`returnToDeck:${ids.join(",")}:${opts?.toTop === true}`);
-      return [];
+      return options.movementFails ? [] : ids.map((instanceId) => ({ instanceId }));
     }),
     returnToHand: vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
       calls.push(`returnToHand:${ids.join(",")}`);
@@ -94,7 +98,7 @@ function makeHarness(options: {
     }),
     trash: vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
       calls.push(`trash:${ids.join(",")}`);
-      return [];
+      return options.movementFails ? [] : ids.map((instanceId) => ({ instanceId }));
     }),
     draw: vi.fn<(...args: any[]) => any>(async (seat: Seat, n: number) => {
       calls.push(`draw:${seat}:${n}`);
@@ -103,6 +107,9 @@ function makeHarness(options: {
     gainMemory: vi.fn<(...args: any[]) => any>((n: number) => {
       calls.push(`gainMemory:${n}`);
     }),
+    playFromSecurity: vi.fn(async (id: string, opts: { payCost: boolean }) =>
+      calls.push(`security:${id}:${opts.payCost}`),
+    ),
   } as unknown as Primitives;
 
   const offered: string[][] = [];
@@ -191,6 +198,18 @@ describe("BT26-087 [Start of Your Main Phase]: recycle a [TS] Digimon for memory
     expect(effectFor(EffectTiming.OnStartMainPhase, offTurn.source, MAIN_KEY).canTrigger(offTurn.ctx)).toBe(false);
     expect(effectFor(EffectTiming.OnStartMainPhase, empty.source, MAIN_KEY).canActivate(empty.ctx)).toBe(false);
   });
+
+  it("does not gain memory or recover Giant Slayer when returning the cost fails", async () => {
+    const harness = makeHarness({
+      trash: [
+        { instanceId: "trash-ts", cardId: TS_DIGIMON },
+        { instanceId: "trash-gs", cardId: GIANT_SLAYER },
+      ],
+      movementFails: true,
+    });
+    await effectFor(EffectTiming.OnStartMainPhase, harness.source, MAIN_KEY).resolve(harness.ctx);
+    expect(harness.calls).toEqual(["returnToDeck:trash-ts:false"]);
+  });
 });
 
 describe("BT26-087 [On Play]: trash a [TS] card to draw 2", () => {
@@ -228,5 +247,78 @@ describe("BT26-087 [On Play]: trash a [TS] card to draw 2", () => {
 
     const empty = makeHarness({ hand: [{ instanceId: "hand-plain", cardId: PLAIN }] });
     expect(effectFor(EffectTiming.OnPlay, empty.source, ON_PLAY_KEY).canActivate(empty.ctx)).toBe(false);
+  });
+
+  it("draws nothing when trashing the selected cost fails", async () => {
+    const harness = makeHarness({
+      hand: [{ instanceId: "hand-ts", cardId: TS_DIGIMON }],
+      movementFails: true,
+    });
+    await effectFor(EffectTiming.OnPlay, harness.source, ON_PLAY_KEY).resolve(harness.ctx);
+    expect(harness.calls).toEqual(["trash:hand-ts"]);
+  });
+});
+
+describe("BT26-087 engine behavior", () => {
+  it("returns the TS Digimon to the deck bottom, gains memory, then recovers Giant Slayer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          deck: [{ card: "AD1-001", as: "existingTop" }],
+          trash: [
+            { card: "P-194", as: "tsCost" },
+            { card: "BT26-085", as: "giantSlayer" },
+          ],
+          battleArea: [{ card: CARD_ID, as: "toya" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const costId = s.inst("tsCost").instanceId;
+    const giantSlayerId = s.inst("giantSlayer").instanceId;
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("toya"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === giantSlayerId));
+
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("existingTop").instanceId,
+      costId,
+    ]);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === giantSlayerId)).toBe(true);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("pays the On Play hand cost and draws 2 actual cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "toyaHand" },
+            { card: "P-194", as: "tsCost" },
+          ],
+          deck: [
+            { card: "AD1-001", as: "drawOne" },
+            { card: "AD1-002", as: "drawTwo" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("toyaHand").instanceId });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawTwo").instanceId));
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("tsCost").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      s.inst("drawOne").instanceId,
+      s.inst("drawTwo").instanceId,
+    ]);
+  });
+
+  it("plays itself from Security without paying the cost", async () => {
+    const harness = makeHarness({});
+    await effectFor(EffectTiming.SecuritySkill, harness.source, "security-play-free").resolve(harness.ctx);
+    expect(harness.calls).toEqual(["security:toya-top:false"]);
   });
 });

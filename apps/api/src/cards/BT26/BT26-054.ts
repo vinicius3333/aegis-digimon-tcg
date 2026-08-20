@@ -4,17 +4,16 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, staticModifier, whenDigivolving } from "../../engine/effects/builders.js";
+import { onPlay, staticModifier, whenAttacking, whenDigivolving } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-054 — Andromon (BT26, Black/Yellow Lv.5 Digimon, Cyborg/CS).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-054 as of this port
-// (`node tools/kb/query.mjs card BT26-054` returned no knowledge-base entries). Implemented
-// from the printed card text only.
+// The committed KB has no card-specific ruling or erratum for BT26-054; behavior follows
+// every printed clause.
 //
 // [Digivolve] Lv.4 w/[CS] trait: Cost 3 — a digivolution-cost requirement, not an effect
-//   clause; carried by CardDefinition.evoCosts in cards.json.
+//   clause; carried by the generated alternate digivolution requirements.
 // [On Play] [When Digivolving] You may play 1 [CS] trait Tamer card from your hand without
 //   paying the cost. This effect can't play cards with the same name as any of your Tamers.
 // [All Turns] [Once Per Turn] When effects place [CS] trait Digimon cards in this Digimon's
@@ -68,7 +67,7 @@ async function playCsTamerFromHand(ctx: EffectContext, source: CardSource): Prom
   const candidates = playableCsTamers(ctx, source.ownerSeat);
   if (candidates.length === 0) return;
 
-  const chosen = await ctx.ask.selectCards(ctx, { candidates, min: 0, max: 1 });
+  const chosen = await ctx.ask.selectCards(ctx, { candidates, min: 1, max: 1 });
   if (chosen.length === 0) return;
 
   await ctx.fx.playFromHand(chosen, { payCost: false });
@@ -96,16 +95,25 @@ async function resolveMayDigivolveIntoCsDigimon(
   if (self === undefined || self.inBreeding) return;
 
   const candidates = csDigimonHandCandidates(ctx, ownerSeat);
-  if (candidates.length === 0) return;
+  if (candidates.length === 0) {
+    ctx.oncePerTurnActivationDeclined = true;
+    return;
+  }
 
   const wantToActivate = await ctx.ask.optional(
     ctx,
     "Digivolve this Digimon into a [CS] trait Digimon card in the hand without paying the cost?",
   );
-  if (!wantToActivate) return;
+  if (!wantToActivate) {
+    ctx.oncePerTurnActivationDeclined = true;
+    return;
+  }
 
   const chosen = await ctx.ask.selectCards(ctx, { candidates, min: 1, max: 1 });
-  if (chosen.length === 0) return;
+  if (chosen.length === 0) {
+    ctx.oncePerTurnActivationDeclined = true;
+    return;
+  }
 
   await ctx.fx.digivolveFromInstance(selfPermanentId, chosen[0]!, { ignoreRequirements: true });
 }
@@ -169,7 +177,6 @@ const module: EffectModule = {
               sourcePermanentId: selfPermanentId,
               once: false,
               oncePerTiming: true,
-              oncePerTurnKey: `${cardId}/reactive-alt-digivolve-on-cs-stack-add`,
               description: `${cardId}: [CS] Digimon cards placed in this Digimon's stack -> may alt-digivolve.`,
               matches: (subCtx) => {
                 if (!subCtx.source.isOnBattleArea()) return false;
@@ -188,6 +195,32 @@ const module: EffectModule = {
                 await resolveMayDigivolveIntoCsDigimon(subCtx, selfPermanentId, ownerSeat);
               },
             });
+          },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.OnAllyAttack) {
+      return [
+        whenAttacking({
+          source,
+          effectKey: `${cardId}/inherited-opponent-attack-redirect-self`,
+          description:
+            "[Opponent's Turn] [Once Per Turn] When one of your opponent's Digimon " +
+            "attacks, you may change the attack target to this Digimon.",
+          isInherited: true,
+          attackScope: "opponent",
+          optional: true,
+          maxPerTurn: 1,
+          when: (ctx) => {
+            if (!ctx.source.isOnBattleArea() || ctx.source.isOwnersTurn()) return false;
+            const attackerId = ctx.trigger.attackerPermanentId;
+            const attacker = attackerId === undefined ? undefined : ctx.game.permanentById(attackerId);
+            return attacker !== undefined && attacker.controllerSeat !== source.ownerSeat;
+          },
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self !== undefined) await ctx.fx.redirectAttack([self.permanentId], { optional: true });
           },
         }),
       ];

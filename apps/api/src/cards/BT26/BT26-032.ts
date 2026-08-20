@@ -3,18 +3,17 @@ import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
-import { whenDigivolving, activated, staticModifier } from "../../engine/effects/builders.js";
+import type { EffectContext } from "../../engine/effects/EffectContext.js";
+import { activated, colorWaiverStatic, staticModifier, whenDigivolving } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 import { cardHasTrait } from "../../engine/cards/cardData.js";
 
 /**
  * BT26-032 — Ceresmon (BT26, Yellow/Green Lv.6 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-032` returns no errata/Q&A hits), so this port is
- * provisional: it follows the printed text directly and mirrors the closest existing
- * hand-written cards for each clause shape. Re-check against the KB once BT26 rulings
- * are scraped.
+ * The committed KB contains Q7000-Q7003 (2026-08-18), covering deferred DP-zero rule
+ * checks, either player's Digimon paying the suspend cost, cumulative play-cost
+ * reductions, and independently choosing the Option face's unsuspend-lock targets.
  *
  * Printed text:
  *   [Digivolve] Play cost 12 [Ceresmon]: Cost 2
@@ -34,8 +33,8 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
  *   [Digivolve] — a digivolution-cost requirement, not an effect clause.
  *   ＜Alliance＞ — printed keyword on this card's own text, resolved by the engine's
  *     printed-keyword reader (engine/combat/keywords.ts).
- *   ＜Succession＞ — KNOWN GAP: the engine has no ＜Succession＞ mechanic (no matcher, no
- *     primitive), so it is not modeled here.
+ *   ＜Succession ([Ceresmon])＞ — confer all non-Succession effects of the topmost
+ *     face-up [Ceresmon] digivolution card via `conferStackEffects`, matching BT26-103.
  *   EffectTiming.WhenDigivolving — the DP penalty on ALL opponent suspended Digimon,
  *     then the optional suspend-cost half. "by suspending 1 Digimon" is a COST, so the
  *     play/use only happens when the controller actually suspends one; "if it's your
@@ -48,10 +47,8 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
  *     convention used by BT26-033). Both halves are optional-in-effect: "you may suspend
  *     2" is a choice, and the unsuspend lock lands on up to 3 of the opponent's Digimon
  *     or Tamers via the engine's `unsuspend` restriction.
- *   ＜Use Req. ([TS] trait)＞ on the Option face — printed keyword, resolved by the
- *     engine's printed-keyword reader.
- *
- * RESIDUAL: none for the link face — this card carries no `linkEffect`.
+ *   ＜Use Req. ([TS] trait)＞ on the Option face — an in-hand color waiver while the
+ *     controller has a [TS] card in the battle area.
  */
 const cardId = "BT26-032";
 
@@ -61,6 +58,17 @@ const PLAYABLE_TRAITS = ["Vegetation", "TS"] as const;
 
 function hasPlayableTrait(def: CardDefinition): boolean {
   return PLAYABLE_TRAITS.some((trait) => cardHasTrait(def, trait));
+}
+
+function ownerHasTsCardInPlay(ctx: EffectContext, source: CardSource): boolean {
+  return Array.from(ctx.game.player(source.ownerSeat).battleArea).some((permanent) => {
+    if (permanent.inBreeding || permanent.topCard === undefined) return false;
+    const effectiveTraits = ctx.game.effectiveTraits?.(permanent.permanentId);
+    if (effectiveTraits !== undefined) {
+      return effectiveTraits.some((trait) => trait.toLowerCase() === "ts");
+    }
+    return cardHasTrait(ctx.game.definitionOf(permanent.topCard), "TS");
+  });
 }
 
 const module: EffectModule = {
@@ -114,7 +122,8 @@ const module: EffectModule = {
               max: 1,
             });
             if (toSuspend.length === 0) return;
-            await ctx.fx.suspend([toSuspend[0]!]);
+            const paid = await ctx.fx.suspend([toSuspend[0]!]);
+            if (!paid.includes(toSuspend[0]!)) return;
 
             const chosen = await ctx.ask.selectCards(ctx, {
               candidates: playable.map((c) => c.instanceId),
@@ -127,11 +136,12 @@ const module: EffectModule = {
             const picked = playable.find((c) => c.instanceId === pickedId)!;
             const def = ctx.game.definitionOf(picked);
             if (isOption(def)) {
-              const reducedCost = Math.max(0, (def.playCost ?? 0) - COST_REDUCTION);
-              if (reducedCost > 0) ctx.fx.gainMemory(-reducedCost);
-              await ctx.fx.useOptionFromHand(ctx, pickedId, def.playCost);
+              await ctx.fx.useOptionFromHand(ctx, pickedId, def.playCost, {
+                payCost: true,
+                costDelta: COST_REDUCTION,
+              });
             } else {
-              await ctx.fx.playFromHand([pickedId], { costDelta: -COST_REDUCTION });
+              await ctx.fx.playFromHand([pickedId], { payCost: true, costDelta: COST_REDUCTION });
             }
           },
         }),
@@ -159,11 +169,14 @@ const module: EffectModule = {
             const suspendable = opponentPermanents.filter((p) => !p.isSuspended).map((p) => p.permanentId);
             if (suspendable.length > 0) {
               const take = Math.min(2, suspendable.length);
-              const chosen =
-                suspendable.length <= take
-                  ? suspendable
-                  : await ctx.ask.chooseTargets(ctx, { candidates: suspendable, min: 0, max: take });
-              if (chosen.length > 0) await ctx.fx.suspend(chosen);
+              const willSuspend = await ctx.ask.optional(ctx, "Suspend 2 of your opponent's Digimon or Tamers?");
+              if (willSuspend) {
+                const chosen =
+                  suspendable.length <= take
+                    ? suspendable
+                    : await ctx.ask.chooseTargets(ctx, { candidates: suspendable, min: take, max: take });
+                if (chosen.length > 0) await ctx.fx.suspend(chosen);
+              }
             }
 
             const lockable = opponentPermanents.map((p) => p.permanentId);
@@ -184,6 +197,25 @@ const module: EffectModule = {
       return [
         staticModifier({
           source,
+          effectKey: `${cardId}/succession-ceresmon`,
+          description:
+            "＜Succession ([Ceresmon])＞ This Digimon gains all effects other than " +
+            "＜Succession＞ on its topmost [Ceresmon] digivolution card.",
+          optional: false,
+          when: (ctx) => ctx.source.isOnBattleArea() && ctx.conferredToPermanentId === undefined,
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self === undefined) return;
+            for (let index = self.stack.length - 1; index >= 0; index -= 1) {
+              const stackCard = self.stack[index]!;
+              if (!stackCard.faceUp || ctx.game.definitionOf(stackCard).nameEn !== "Ceresmon") continue;
+              ctx.fx.conferStackEffects(self.permanentId, stackCard.instanceId, EffectDuration.Permanent);
+              break;
+            }
+          },
+        }),
+        staticModifier({
+          source,
           effectKey: `${cardId}/rule-vegetation-trait`,
           description: "[Rule] Trait: Has [Vegetation] Type.",
           optional: false,
@@ -192,6 +224,15 @@ const module: EffectModule = {
             const me = ctx.source.permanent();
             if (me === undefined) return;
             ctx.fx.grantNameTrait(me.permanentId, "trait", ["Vegetation"], EffectDuration.Permanent);
+          },
+        }),
+        colorWaiverStatic({
+          source,
+          effectKey: `${cardId}/use-req-ts`,
+          description: "＜Use Req. ([TS] trait)＞ Ignore this card's color requirements.",
+          when: (ctx) => ownerHasTsCardInPlay(ctx, source),
+          resolve: async (ctx) => {
+            ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.UntilEachTurnEnd);
           },
         }),
       ];

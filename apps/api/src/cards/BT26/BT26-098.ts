@@ -1,10 +1,10 @@
-import { CardKind, EffectTiming, isDigimon } from "@aegis/shared";
-import type { Permanent } from "@aegis/shared";
+import { CardKind, EffectTiming, effectiveStaticNames, isDigimon } from "@aegis/shared";
+import type { CardInstance, Permanent } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { activated, security, staticModifier } from "../../engine/effects/builders.js";
+import { activated, beforePayCost, security } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-098 — Green Option (BT26, Queen of Thorns).
@@ -22,42 +22,68 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "BT26-098";
 
+function hasName(ctx: EffectContext, card: CardInstance, token: string): boolean {
+  return effectiveStaticNames(ctx.game.definitionOf(card)).some((name) => name.includes(token));
+}
+
 function lalamonTargets(ctx: EffectContext, source: CardSource): Permanent[] {
   const owner = ctx.game.player(source.ownerSeat);
   return Array.from(owner.battleArea).filter((p) => {
-    if (p.topCard == null || !isDigimon(ctx.game.definitionOf(p.topCard))) return false;
-    return ctx.game.definitionOf(p.topCard).nameEn === "Lalamon";
+    if (p.inBreeding || p.topCard == null || !isDigimon(ctx.game.definitionOf(p.topCard))) return false;
+    return hasName(ctx, p.topCard, "Lalamon");
+  });
+}
+
+function tamersWithFaceDownBottom(ctx: EffectContext, source: CardSource): Permanent[] {
+  return Array.from(ctx.game.player(source.ownerSeat).battleArea).filter((permanent) => {
+    if (permanent.inBreeding || permanent.topCard === undefined) return false;
+    if (!ctx.game.definitionOf(permanent.topCard).kinds.includes(CardKind.Tamer)) return false;
+    const bottom = permanent.stack[0];
+    return bottom !== undefined && !bottom.faceUp;
   });
 }
 
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.None) {
+    if (timing === EffectTiming.BeforePayCost) {
       return [
-        staticModifier({
+        beforePayCost({
           source,
-          effectKey: `${cardId}/play-cost-reduction`,
+          effectKey: `${cardId}/before-pay-cost-reduction`,
           description:
             "When this card would be used, by trashing the bottom face-down card from under " +
             "any of your Tamers, reduce the use cost by 2.",
-          when: (ctx) => {
-            const owner = ctx.game.player(ctx.source.ownerSeat);
-            for (const p of owner.battleArea) {
-              if (p.topCard == null) continue;
-              const def = ctx.game.definitionOf(p.topCard);
-              if (!def.kinds?.includes(CardKind.Tamer)) continue;
-              const bottomCard = p.stack[0];
-              if (bottomCard != null && !bottomCard.faceUp) return true;
-            }
-            return false;
-          },
+          optional: true,
+          when: (ctx) => ctx.source.cardId === cardId && ctx.source.permanent() === undefined,
+          canActivate: (ctx) => tamersWithFaceDownBottom(ctx, source).length > 0,
           resolve: async (ctx) => {
-            ctx.fx.changePlayCost(
-              (facts) =>
-                facts.def.nameEn === ctx.source.definition.nameEn && facts.controllerSeat === ctx.source.ownerSeat,
-              -2,
+            const candidates = tamersWithFaceDownBottom(ctx, source);
+            if (candidates.length === 0) return;
+            const accept = await ctx.ask.optional(
+              ctx,
+              "Trash the bottom face-down card from under 1 of your Tamers to reduce this use cost by 2?",
             );
+            if (!accept) return;
+
+            const chosenId =
+              candidates.length === 1
+                ? candidates[0]!.permanentId
+                : (
+                    await ctx.ask.chooseTargets(ctx, {
+                      candidates: candidates.map((permanent) => permanent.permanentId),
+                      min: 1,
+                      max: 1,
+                    })
+                  )[0];
+            if (chosenId === undefined) return;
+            const chosen = ctx.game.permanentById(chosenId);
+            const bottom = chosen?.stack[0];
+            if (bottom === undefined || bottom.faceUp) return;
+
+            const trashed = await ctx.fx.trashDigivolutionCards(chosenId, [bottom.instanceId]);
+            if (trashed.length !== 1) return;
+            ctx.playCostDelta = (ctx.playCostDelta ?? 0) + 2;
           },
         }),
       ];
@@ -75,8 +101,8 @@ const module: EffectModule = {
             "paying the cost.",
           canActivate: (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
-            const hasSunflowmon = Array.from(owner.trash).some((c) => ctx.game.definitionOf(c).nameEn === "Sunflowmon");
-            const hasLilamon = Array.from(owner.trash).some((c) => ctx.game.definitionOf(c).nameEn === "Lilamon");
+            const hasSunflowmon = Array.from(owner.trash).some((c) => hasName(ctx, c, "Sunflowmon"));
+            const hasLilamon = Array.from(owner.trash).some((c) => hasName(ctx, c, "Lilamon"));
             if (!hasSunflowmon || !hasLilamon) return false;
             return lalamonTargets(ctx, source).length > 0;
           },
@@ -100,9 +126,9 @@ const module: EffectModule = {
             }
 
             const sunflowmonCards = Array.from(owner.trash).filter(
-              (c) => ctx.game.definitionOf(c).nameEn === "Sunflowmon",
+              (c) => hasName(ctx, c, "Sunflowmon"),
             );
-            const lilamonCards = Array.from(owner.trash).filter((c) => ctx.game.definitionOf(c).nameEn === "Lilamon");
+            const lilamonCards = Array.from(owner.trash).filter((c) => hasName(ctx, c, "Lilamon"));
 
             if (sunflowmonCards.length === 0 || lilamonCards.length === 0) return;
 
@@ -120,27 +146,28 @@ const module: EffectModule = {
             });
             if (lilamonChosen.length === 0) return;
 
-            await ctx.fx.placeUnder(chosenLalamon.permanentId, [...sunflowmonChosen, ...lilamonChosen], {
-              faceUp: false,
-            });
+            const materials = [...sunflowmonChosen, ...lilamonChosen];
+            const orderedBottomToTop = ctx.ask.orderCards
+              ? await ctx.ask.orderCards(ctx, {
+                  candidates: materials,
+                  destination: "stackBottom",
+                })
+              : materials;
+            const placed = await ctx.fx.placeUnder(chosenLalamon.permanentId, [...orderedBottomToTop].reverse());
+            if (placed.length !== 2) return;
 
             const rosemonCards = Array.from(owner.hand).filter(
-              (c) => ctx.game.definitionOf(c).nameEn === "Rosemon" && isDigimon(ctx.game.definitionOf(c)),
+              (c) => hasName(ctx, c, "Rosemon") && isDigimon(ctx.game.definitionOf(c)),
             );
 
             if (rosemonCards.length > 0) {
-              let rosemonId: string;
-              if (rosemonCards.length === 1) {
-                rosemonId = rosemonCards[0]!.instanceId;
-              } else {
-                const chosen = await ctx.ask.selectCards(ctx, {
-                  candidates: rosemonCards.map((c) => c.instanceId),
-                  min: 1,
-                  max: 1,
-                });
-                if (chosen.length === 0) return;
-                rosemonId = chosen[0]!;
-              }
+              const chosen = await ctx.ask.selectCards(ctx, {
+                candidates: rosemonCards.map((c) => c.instanceId),
+                min: 0,
+                max: 1,
+              });
+              if (chosen.length === 0) return;
+              const rosemonId = chosen[0]!;
 
               await ctx.fx.digivolveFromInstance(chosenLalamon.permanentId, rosemonId, {
                 payCost: false,
@@ -164,8 +191,9 @@ const module: EffectModule = {
             const owner = ctx.game.player(source.ownerSeat);
 
             const candidates = [...Array.from(owner.hand), ...Array.from(owner.trash)].filter((card) => {
-              const name = ctx.game.definitionOf(card).nameEn;
-              return name === "Lalamon" || name === "Yoshino Fujieda";
+              return effectiveStaticNames(ctx.game.definitionOf(card)).some(
+                (effectiveName) => effectiveName.includes("Lalamon") || effectiveName.includes("Yoshino Fujieda"),
+              );
             });
 
             if (candidates.length > 0) {

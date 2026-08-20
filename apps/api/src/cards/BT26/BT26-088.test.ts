@@ -3,14 +3,12 @@ import { CardKind, EffectTiming, type CardDefinition, type Seat } from "@aegis/s
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import "./BT26-088.js";
 
 // BT26-088 (Hiroko Sagisaka, BT26 Tamer):
 //   "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory."
-//
-// The [Your Turn] play-cost reduction is an engine-blocked residual (see the module header):
-// nothing consults the `wouldBePlayed` replacement event at play-cost time. This suite pins
-// that the module exposes NO effect for it, so the omission stays deliberate and visible.
 //
 // FAILS-WHEN-REVERTED: dropping the opponent-Digimon condition gains memory on an empty board;
 // dropping the own-turn gate fires on the opponent's main phase; counting a breeding-area
@@ -129,11 +127,75 @@ describe("BT26-088 [Start of Your Main Phase]: gain 1 memory while the opponent 
     expect(memoryEffect(offField.source).canTrigger(offField.ctx)).toBe(false);
   });
 
-  it("exposes no effect for the engine-blocked play-cost reduction", () => {
-    const module = getEffectModule(CARD_ID)!;
-    const source = makeSource();
+  it("reduces a TS Digimon's play cost by 2 when its controller has no Digimon", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "P-194", as: "tsDigimon" }], battleArea: [{ card: CARD_ID, as: "hiroko" }] } },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 4;
 
-    expect(module.effectsForTiming(EffectTiming.None, source)).toEqual([]);
-    expect(module.effectsForTiming(EffectTiming.BeforePayCost, source)).toEqual([]);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tsDigimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "P-194"));
+
+    expect(s.perm("hiroko").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("reduces by only 1 when its controller already has a Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-194", as: "tsDigimon" }],
+          battleArea: [{ card: CARD_ID, as: "hiroko" }, { card: "AD1-001", as: "existing" }],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 4;
+
+    s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tsDigimon").instanceId });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "P-194"));
+
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("does not reduce a non-Boss/non-TS Digimon or when the player declines", async () => {
+    const ineligible = setupEngine(
+      { 0: { hand: [{ card: "AD1-001", as: "plain" }], battleArea: [{ card: CARD_ID, as: "hiroko" }] } },
+      { autoAcceptOptional: true },
+    );
+    ineligible.state.memory = 5;
+    ineligible.engine.applyIntent(0, { type: "playCard", instanceId: ineligible.inst("plain").instanceId });
+    await settle(() => ineligible.state.players[0]!.battleArea.length === 2);
+    expect(ineligible.state.memory).toBe(0);
+    expect(ineligible.perm("hiroko").isSuspended).toBe(false);
+
+    const declined = setupEngine(
+      { 0: { hand: [{ card: "P-194", as: "tsDigimon" }], battleArea: [{ card: CARD_ID, as: "hiroko" }] } },
+      { autoDeclineOptional: true },
+    );
+    declined.state.memory = 4;
+    declined.engine.applyIntent(0, { type: "playCard", instanceId: declined.inst("tsDigimon").instanceId });
+    await settle(() => declined.state.players[0]!.battleArea.length === 2);
+    expect(declined.state.memory).toBe(0);
+    expect(declined.perm("hiroko").isSuspended).toBe(false);
+  });
+
+  it("plays itself from Security without paying the cost", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: CARD_ID, as: "hirokoSecurity" }] },
+      1: { battleArea: [{ card: "AD1-004", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    const hirokoId = s.inst("hirokoSecurity").instanceId;
+    s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === hirokoId));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === hirokoId)).toBe(true);
   });
 });

@@ -11,7 +11,7 @@ import {
   type DecisionResponse,
 } from "@aegis/shared";
 import { GameEngine, type GameEngineHooks } from "./GameEngine.js";
-import type { Primitives } from "./effects/EffectContext.js";
+import type { EffectContext, Primitives } from "./effects/EffectContext.js";
 // Self-register every compiled-IR card module (so real definitions resolve in the deck).
 import "../cards/index.js";
 import { advance } from "./testkit/advance.js";
@@ -169,7 +169,7 @@ describe("whenLinkTrashed SubTrigger event — a genuine link-card trash fires i
       event: "whenLinkTrashed",
       sourcePermanentId: host.permanentId,
       once: false,
-      run: async () => {
+      run: async (ctx) => {
         fireCount += 1;
       },
       description: "test: whenLinkTrashed non-fire control",
@@ -189,7 +189,7 @@ describe("whenDigivolutionTrashed SubTrigger event — a genuine effect-trash fi
 
     // An opponent's (seat 1) Digimon with one digivolution-stack card.
     const oppPerm = permanentOf("BT1-009", 1, 3000);
-    const stackCard = instance("BT1-009", 1, true);
+    const stackCard = instance("BT1-009", 1, false);
     oppPerm.stack.push(stackCard);
     p1.battleArea.push(oppPerm);
 
@@ -199,6 +199,7 @@ describe("whenDigivolutionTrashed SubTrigger event — a genuine effect-trash fi
 
     let fireCount = 0;
     let observedSubject: string | undefined;
+    let faceDownBatch: string[] | undefined;
     advance(s.engine).ledgers.subTriggers.subscribe({
       event: "whenDigivolutionTrashed",
       sourcePermanentId: watcherPerm.permanentId,
@@ -209,6 +210,15 @@ describe("whenDigivolutionTrashed SubTrigger event — a genuine effect-trash fi
       },
       description: "test: count whenDigivolutionTrashed fires",
     });
+    advance(s.engine).ledgers.subTriggers.subscribe({
+      event: "onDigivolutionCardsDiscardedBatch",
+      sourcePermanentId: watcherPerm.permanentId,
+      once: false,
+      run: async (ctx) => {
+        faceDownBatch = ctx.trigger.trashedFaceDownDigivolutionInstanceIds;
+      },
+      description: "test: preserve pre-trash face-down state in the batch payload",
+    });
 
     const moved = await primitivesOf(s).trashDigivolutionCards(oppPerm.permanentId, [stackCard.instanceId]);
 
@@ -218,6 +228,7 @@ describe("whenDigivolutionTrashed SubTrigger event — a genuine effect-trash fi
     // trashDigivolutionCards => fireCount stays 0 => RED.
     expect(fireCount).toBe(1);
     expect(observedSubject).toBe(oppPerm.permanentId);
+    expect(faceDownBatch).toEqual([stackCard.instanceId]);
   });
 
   it("a return-to-hand bounce that clears digivolution cards does NOT fire whenDigivolutionTrashed (Q4113)", async () => {
@@ -446,12 +457,14 @@ describe("whenEffectAddsToDeck — the whenEffectAddsToHand sibling for deck-bou
     p0.battleArea.push(watcherPerm);
 
     let fireCount = 0;
+    let payload: EffectContext["trigger"] | undefined;
     advance(s.engine).ledgers.subTriggers.subscribe({
       event: "whenEffectAddsToDeck",
       sourcePermanentId: watcherPerm.permanentId,
       once: false,
-      run: async () => {
+      run: async (ctx) => {
         fireCount += 1;
+        payload = ctx.trigger;
       },
       description: "test: count whenEffectAddsToDeck fires",
     });
@@ -462,6 +475,7 @@ describe("whenEffectAddsToDeck — the whenEffectAddsToHand sibling for deck-bou
     // FAILS-WHEN-REVERTED: drop the fireSubTrigger("whenEffectAddsToDeck", …) in returnToDeck
     // => fireCount stays 0 => RED.
     expect(fireCount).toBe(1);
+    expect(payload).toMatchObject({ effectAddedToDeckSeat: 0, effectAddedToDeckBySeat: 0 });
   });
 });
 

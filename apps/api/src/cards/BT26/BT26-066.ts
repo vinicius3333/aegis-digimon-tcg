@@ -14,8 +14,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 // that already occurred.
 //
 // Printed text:
-//   [Digivolve] Lv.2 w/[TS] trait: Cost 0 — a digivolution-cost requirement, not an
-//     effect clause; already carried by CardDefinition.evoCosts, not implemented here.
+//   [Digivolve] Lv.2 w/[TS] trait: Cost 0 — a generated alternate digivolution
+//     requirement, not an effect clause.
 //   [Start of Your Main Phase] If your hand has 5 or fewer cards, 1 of your Digimon with
 //     the [Titan] trait may digivolve into a Digimon card with the [Titan] trait in the
 //     trash with the cost reduced by 2.
@@ -174,7 +174,7 @@ const module: EffectModule = {
               event: "whenHandTrashed",
               sourcePermanentId: hostId,
               once: false,
-              oncePerTurnKey: `${cardId}/inherited-hand-trashed-alt-digivolve`,
+              oncePerTurnKey: `${source.instanceId}/${cardId}/inherited-hand-trashed-alt-digivolve`,
               description: `${cardId}: your hand is trashed from -> this [Titan] Digimon may alt-digivolve.`,
               matches: (subCtx) => subCtx.trigger?.handTrashedSeat === ownerSeat,
               run: async (subCtx) => {

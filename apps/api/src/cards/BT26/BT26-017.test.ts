@@ -1,83 +1,228 @@
-import { describe, it, expect, vi } from "vitest";
-import { EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
+import {
+  EffectDuration,
+  EffectTiming,
+  assemblyRequirementFor,
+  digivolutionRequirementsFor,
+  type CardDefinition,
+  type CardInstance,
+  type Seat,
+} from "@aegis/shared";
+import { describe, expect, it, vi } from "vitest";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
-import "./BT26-017.js";
-
-// A3 for BT26-017 (Zanbamon, BT26): "[On Play] [When Digivolving] 1 of your Digimon
-// with the [Shambala] trait gains <Security A. +1> and <Progress> for the turn."
-//
-// FAILS-WHEN-REVERTED: dropping the `hasShambalaTrait` filter (or either grantKeyword
-// call) either grants to a non-Shambala Digimon or omits one of the two keywords; this
-// test asserts both grants land on exactly the Shambala permanent.
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import module from "./BT26-017.js";
+import "../index.js";
 
 const CARD_ID = "BT26-017";
 
 function fakeDef(over: Partial<CardDefinition> = {}): CardDefinition {
   return {
-    cardId: over.cardId ?? "AD1-001",
+    cardId: over.cardId ?? "TEST",
     set: "BT26",
-    nameEn: over.nameEn ?? "Test",
-    kinds: (over.kinds as never) ?? (["Digimon"] as never),
-    colors: (over.colors as never) ?? ([] as never),
-    playCost: over.playCost ?? 0,
-    dp: over.dp ?? 0,
-    types: over.types ?? [],
+    nameEn: "Test",
+    kinds: ["Digimon"] as never,
+    colors: [] as never,
+    playCost: 0,
+    dp: 0,
+    types: [],
     evoCosts: [],
     maxCountInDeck: 4,
     ...over,
   };
 }
 
-function makeSource(): CardSource {
+function source(): CardSource {
   return {
-    instanceId: "zanbamon-top",
+    instanceId: "zanbamon",
     cardId: CARD_ID,
     ownerSeat: 0 as Seat,
-    definition: fakeDef({ cardId: CARD_ID }),
+    definition: fakeDef({ cardId: CARD_ID, types: ["Shambala", "TS"] }),
     permanent: () => undefined,
     isOnBattleArea: () => true,
     isOwnersTurn: () => true,
-    hasColor: () => false,
+    hasColor: () => true,
   };
 }
 
-describe("BT26-017 [On Play]/[When Digivolving]: grant Security A. +1 and Progress to a Shambala Digimon", () => {
-  it("only the Shambala-trait Digimon is a legal target, and it gets both keywords", async () => {
-    const shambala = { permanentId: "own-shambala", topCard: { cardId: "SHAM-001" }, inBreeding: false };
-    const nonShambala = { permanentId: "own-other", topCard: { cardId: "OTHER-001" }, inBreeding: false };
+describe("BT26-017 Zanbamon", () => {
+  it("exposes the exact alternate evolution and Assembly -4 recipe", () => {
+    expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({
+      level: 5,
+      traits: ["Shambala", "TS"],
+      cost: 3,
+      isAlternate: true,
+    });
+    expect(assemblyRequirementFor(CARD_ID)).toEqual([
+      { reduceCost: 4, materials: [{ traits: ["Shambala"], levelMax: 5, count: 2, differentLevels: true }] },
+    ]);
+  });
 
-    const players = [{ seat: 0 as Seat, battleArea: [shambala, nonShambala] }];
-
-    const game: GameAccess = {
-      player: () => players[0] as never,
-      opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
-      definitionOf: (card: { cardId: string }) =>
-        fakeDef({ cardId: card.cardId, types: card.cardId === "SHAM-001" ? ["Shambala"] : [] }),
-    } as unknown as GameAccess;
-
-    const grants: Array<[string, string, number | undefined]> = [];
-    const fx = {
-      grantKeyword: vi.fn<(...args: any[]) => any>((permanentId: string, keyword: string, _d: unknown, amount?: number) => {
-        grants.push([permanentId, keyword, amount]);
+  it("digivolves for 3 on an off-color Lv.5 Shambala and rejects an off-color non-trait Lv.5", async () => {
+    const legal = setupEngine({
+      0: {
+        battleArea: [{ card: "EX12-029", as: "base" }],
+        hand: [{ card: CARD_ID, as: "zanbamon" }],
+        deck: ["BT1-009"],
+      },
+    });
+    legal.state.memory = 3;
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("base").permanentId,
+        instanceId: legal.inst("zanbamon").instanceId,
+        useAlternateCost: true,
       }),
-    } as unknown as Primitives;
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("base").topCard.cardId === CARD_ID);
+    expect(legal.state.memory).toBe(0);
 
-    const source = makeSource();
-    const ctx = { source, trigger: {}, game, fx, ask: {} } as unknown as EffectContext;
+    const illegal = setupEngine({
+      0: { battleArea: [{ card: "AD1-015", as: "plain" }], hand: [{ card: CARD_ID, as: "zanbamon" }] },
+    });
+    illegal.state.memory = 3;
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: illegal.perm("plain").permanentId,
+        instanceId: illegal.inst("zanbamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+    expect(illegal.state.memory).toBe(3);
+  });
 
-    const module = getEffectModule(CARD_ID);
-    expect(module).toBeDefined();
-    const effects = module!.effectsForTiming(EffectTiming.OnPlay, source);
-    const grantEffect = effects.find((e) => e.effectKey === `${CARD_ID}/on-play-grant-shambala`);
-    expect(grantEffect).toBeDefined();
+  it("assembles different-level Shambala cards, pays 8, preserves order, and resolves every keyword", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "zanbamon" }],
+          trash: [
+            { card: "BT26-008", as: "level3" },
+            { card: "BT26-012", as: "level4" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    const materials = [s.inst("level3").instanceId, s.inst("level4").instanceId];
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("zanbamon").instanceId,
+        assembly: { materialInstanceIds: materials },
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === CARD_ID));
+    const zanbamon = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === CARD_ID)!;
+    await settle(() => observe(s.engine).hasKeyword(zanbamon, "Progress"));
+    expect(s.state.memory).toBe(0);
+    expect(zanbamon.stack.map((card) => card.instanceId)).toEqual([...materials].reverse());
+    expect(observe(s.engine).hasKeyword(zanbamon, "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(zanbamon, "Retaliation")).toBe(true);
+    expect(observe(s.engine).keywordAmount(zanbamon, "SecurityAttack")).toBe(1);
+  });
 
-    await grantEffect!.resolve(ctx);
+  it("rejects Assembly with repeated levels without moving cards or paying memory", () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: CARD_ID, as: "zanbamon" }],
+        trash: [
+          { card: "BT26-012", as: "a" },
+          { card: "BT26-013", as: "b" },
+        ],
+      },
+    });
+    s.state.memory = 8;
+    const materials = [s.inst("a").instanceId, s.inst("b").instanceId];
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("zanbamon").instanceId,
+        assembly: { materialInstanceIds: materials },
+      } as never),
+    ).toEqual(expect.objectContaining({ ok: false }));
+    expect(s.state.memory).toBe(8);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(materials);
+  });
 
+  it("on deletion plays an eligible Shambala card from trash for free", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: CARD_ID, as: "zanbamon" }], trash: [{ card: "BT26-012", as: "candidate" }] } },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const candidate = s.inst("candidate").instanceId;
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("zanbamon").permanentId])).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === candidate));
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("allows either trait and any card kind at cost 5, permits declining, and excludes near misses", async () => {
+    const trash = [
+      { instanceId: "shambala", cardId: "SHAMBALA" },
+      { instanceId: "tamer", cardId: "TAMER" },
+      { instanceId: "six", cardId: "SIX" },
+      { instanceId: "near", cardId: "NEAR" },
+    ] as CardInstance[];
+    const defs: Record<string, CardDefinition> = {
+      SHAMBALA: fakeDef({ cardId: "SHAMBALA", playCost: 5, types: ["Shambala"] }),
+      TAMER: fakeDef({ cardId: "TAMER", kinds: ["Tamer"] as never, playCost: 3, types: ["TS"] }),
+      SIX: fakeDef({ cardId: "SIX", playCost: 6, types: ["Shambala"] }),
+      NEAR: fakeDef({ cardId: "NEAR", playCost: 5, types: ["TSystem"] }),
+    };
+    const selectCards = vi.fn(async (_ctx, options: { candidates: string[]; min: number; max: number }) => {
+      expect(options).toEqual({ candidates: ["shambala", "tamer"], min: 0, max: 1 });
+      return [];
+    });
+    const playInstances = vi.fn();
+    const cardSource = source();
+    await module
+      .effectsForTiming(EffectTiming.OnDestroyedAnyone, cardSource)[0]!
+      .resolve({
+        source: cardSource,
+        trigger: {},
+        game: {
+          player: () => ({ trash }),
+          definitionOf: (card: CardInstance) => defs[card.cardId]!,
+        } as unknown as GameAccess,
+        ask: { selectCards },
+        fx: { playInstances } as unknown as Primitives,
+      } as unknown as EffectContext);
+    expect(selectCards).toHaveBeenCalledOnce();
+    expect(playInstances).not.toHaveBeenCalled();
+  });
+
+  it("keeps innate keywords permanent while evolution grants last only for the turn", async () => {
+    const grants: Array<[string, string, EffectDuration, number | undefined]> = [];
+    const self = { permanentId: "self", topCard: { cardId: CARD_ID }, inBreeding: false };
+    const cardSource = { ...source(), permanent: () => self } as CardSource;
+    const ctx = {
+      source: cardSource,
+      trigger: {},
+      game: {
+        player: () => ({ battleArea: [self] }),
+        definitionOf: () => fakeDef({ cardId: CARD_ID, types: ["Shambala"] }),
+      } as unknown as GameAccess,
+      fx: {
+        grantKeyword: vi.fn((id: string, keyword: string, duration: EffectDuration, amount?: number) =>
+          grants.push([id, keyword, duration, amount]),
+        ),
+      } as unknown as Primitives,
+      ask: {},
+    } as unknown as EffectContext;
+    for (const effect of module.effectsForTiming(EffectTiming.None, cardSource)) await effect.resolve(ctx);
+    await module.effectsForTiming(EffectTiming.WhenDigivolving, cardSource)[0]!.resolve(ctx);
     expect(grants).toEqual([
-      ["own-shambala", "SecurityAttack", 1],
-      ["own-shambala", "Progress", undefined],
+      ["self", "Blocker", EffectDuration.Permanent, undefined],
+      ["self", "Retaliation", EffectDuration.Permanent, undefined],
+      ["self", "SecurityAttack", EffectDuration.UntilEachTurnEnd, 1],
+      ["self", "Progress", EffectDuration.UntilEachTurnEnd, undefined],
     ]);
   });
 });

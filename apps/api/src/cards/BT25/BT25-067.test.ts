@@ -1,10 +1,48 @@
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT25_067 } from "./BT25-067.js";
 import "../index.js";
 
-describe("BT25-067 Commandramon", () => {
-  it("reacts to your D-Brigade or ACCEL play with a reduced hand digivolution", () => {
+const CARD_ID = "BT25-067";
+
+describe("BT25-067 Sealsdramon", () => {
+  it("matches the complete catalog, alternate evolution, and inherited-effect contract", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      cardId: CARD_ID,
+      set: "BT25",
+      nameEn: "Sealsdramon",
+      colors: ["Black", "Purple"],
+      kinds: ["Digimon"],
+      level: 4,
+      playCost: 4,
+      dp: 5000,
+      evoCosts: [
+        { color: "Black", level: 3, memoryCost: 3 },
+        { color: "Purple", level: 3, memoryCost: 3 },
+      ],
+      forms: ["Champion"],
+      attributes: ["Virus"],
+      types: ["Cyborg", "D-Brigade", "ACCEL"],
+      rarity: "C",
+      maxCountInDeck: 4,
+      dualEffect: "Sealsdramon",
+    });
+    const card = getCardDefinition(CARD_ID)!;
+    expect(card.effectText?.replace(/\u00a0/g, " ")).toContain(
+      "[Your Turn] When any of your [D-Brigade] or [ACCEL] trait Digimon are played",
+    );
+    expect(card.inheritedEffectText).toBe("[All Turns] This Digimon gets +1000 DP.");
+    expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({
+      level: 3,
+      traits: ["D-Brigade", "ACCEL"],
+      cost: 2,
+      isAlternate: true,
+    });
+
     const effect = BT25_067.effects?.find((entry) => entry.trigger === "YourTurn");
+    expect(effect).toMatchObject({ trigger: "YourTurn" });
     expect(effect?.actions?.[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenPlayed",
@@ -16,7 +54,9 @@ describe("BT25-067 Commandramon", () => {
     });
     expect((effect?.actions?.[0] as { actions?: unknown[] }).actions?.[0]).toMatchObject({
       kind: "Digivolve",
+      target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
       from: ["hand"],
+      payCost: true,
       reduceCost: 2,
       optional: true,
       into: {
@@ -25,10 +65,116 @@ describe("BT25-067 Commandramon", () => {
         nameOrTrait: [{ tokens: ["D-Brigade", "ACCEL"], match: "trait" }],
       },
     });
-    expect(BT25_067.effects?.find((entry) => entry.isInherited)?.actions?.[0]).toMatchObject({
-      kind: "ModifyDP",
-      amount: 1000,
-      duration: "permanent",
+    expect(BT25_067.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "AllTurns",
+      actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent" }],
     });
+  });
+
+  it("Q6365: its own play triggers immediately, pays the reduced evolution cost, and carries inherited DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "seals" },
+            { card: "BT25-074", as: "tank" },
+          ],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("seals").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-074"));
+    const evolved = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT25-074")!;
+
+    expect(evolved.topCard?.cardId).toBe("BT25-074");
+    expect(evolved.stack.map((card) => card.cardId)).toContain(CARD_ID);
+    expect(s.state.memory).toBe(0); // play 4, then Tankdramon's 4-cost evolution reduced by 2
+    await advance(s.engine).recompute();
+    expect(evolved.currentDP).toBe(8000); // Tankdramon 7000 + Sealsdramon inherited +1000
+  });
+
+  it("accepts an ACCEL-only play as the OR trigger, but never a trait near-match", async () => {
+    const valid = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "seals" }],
+          hand: [
+            { card: "BT20-031", as: "accelTrigger" }, // ACCEL, but not D-Brigade
+            { card: "BT25-074", as: "tank" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await valid.ready();
+    await advance(valid.engine).verb.playInstances([valid.inst("accelTrigger").instanceId], CARD_ID);
+    await settle(() => valid.perm("seals").topCard?.cardId === "BT25-074");
+    expect(valid.perm("seals").topCard?.cardId).toBe("BT25-074");
+
+    const nearMatch = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "seals" }],
+          hand: [
+            { card: "BT25-072", as: "nearMatch" }, // Tool/Appmon, no D-Brigade or ACCEL trait
+            { card: "BT25-074", as: "tank" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await nearMatch.ready();
+    await advance(nearMatch.engine).verb.playInstances([nearMatch.inst("nearMatch").instanceId], CARD_ID);
+    await settle(() => nearMatch.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-072"));
+    expect(nearMatch.perm("seals").topCard?.cardId).toBe(CARD_ID);
+    expect(nearMatch.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      nearMatch.inst("tank").instanceId,
+    );
+  });
+
+  it("does not trigger during the opponent's turn, and declining leaves the optional evolution untouched", async () => {
+    const opponentTurn = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "seals" }],
+          hand: [
+            { card: "BT20-031", as: "accelTrigger" },
+            { card: "BT25-074", as: "tank" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    opponentTurn.state.turnSeat = 1;
+    await opponentTurn.ready();
+    await advance(opponentTurn.engine).verb.playInstances([opponentTurn.inst("accelTrigger").instanceId], CARD_ID);
+    expect(opponentTurn.perm("seals").topCard?.cardId).toBe(CARD_ID);
+    expect(opponentTurn.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      opponentTurn.inst("tank").instanceId,
+    );
+
+    const declined = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "seals" },
+            { card: "BT25-074", as: "tank" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    declined.state.memory = 4;
+    expect(declined.engine.applyIntent(0, { type: "playCard", instanceId: declined.inst("seals").instanceId })).toEqual(
+      { ok: true },
+    );
+    await settle(() => declined.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === CARD_ID));
+    expect(declined.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === CARD_ID)?.topCard?.cardId).toBe(
+      CARD_ID,
+    );
+    expect(declined.state.players[0]!.hand.map((card) => card.instanceId)).toContain(declined.inst("tank").instanceId);
   });
 });

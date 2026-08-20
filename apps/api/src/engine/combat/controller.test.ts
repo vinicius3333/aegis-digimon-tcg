@@ -64,23 +64,31 @@ interface Harness {
   firedTimings: EffectTiming[];
   securityCalls: { defenderSeat: Seat; attackerPermanentId: string }[];
   firedSubTriggers: { event: string; payload: TriggerInfo }[];
+  timeline: string[];
 }
 
-function harness(): Harness {
+function harness(opts?: { preventBattleDeletion?: boolean }): Harness {
   const state = makeState();
   const access = new GameStateAccess(state);
   const events: ServerEvent[] = [];
   const firedTimings: EffectTiming[] = [];
   const securityCalls: Harness["securityCalls"] = [];
   const firedSubTriggers: Harness["firedSubTriggers"] = [];
+  const timeline: string[] = [];
 
   const hooks: CombatHooks = {
     emit: (e) => events.push(e),
     fireTiming: async (timing) => {
       firedTimings.push(timing);
+      timeline.push(`timing:${timing}`);
     },
     fireSubTrigger: async (event, payload) => {
       firedSubTriggers.push({ event, payload });
+      timeline.push(`sub:${event}`);
+    },
+    consultLeavePrevention: async (permanentIds) => {
+      timeline.push("replacement:consultLeavePrevention");
+      return opts?.preventBattleDeletion === true ? new Set(permanentIds) : new Set<string>();
     },
     checkSecurity: async (defenderSeat, attackerPermanentId) => {
       securityCalls.push({ defenderSeat, attackerPermanentId });
@@ -95,6 +103,7 @@ function harness(): Harness {
     firedTimings,
     securityCalls,
     firedSubTriggers,
+    timeline,
   };
 }
 
@@ -107,7 +116,7 @@ const ids = (events: ServerEvent[], kind: ServerEvent["kind"]): ServerEvent[] =>
  * the controller reach runBlockWindow before the test inspects / resolves it.
  */
 async function flush(): Promise<void> {
-  for (let i = 0; i < 5; i++) {
+  for (let i = 0; i < 12; i++) {
     await Promise.resolve();
   }
 }
@@ -177,6 +186,12 @@ describe("CombatController.resolveAttack — Digimon vs Digimon", () => {
     const won = h.firedSubTriggers.filter((f) => f.event === "whenBattleWon");
     expect(won).toHaveLength(1);
     expect(won[0]?.payload.subjectPermanentId).toBe(attacker.permanentId);
+    expect(h.timeline.indexOf("replacement:consultLeavePrevention")).toBeLessThan(
+      h.timeline.indexOf("sub:whenBattleWon"),
+    );
+    expect(h.timeline.indexOf("sub:whenBattleWon")).toBeLessThan(
+      h.timeline.indexOf(`timing:${EffectTiming.OnDestroyedAnyone}`),
+    );
   });
 
   it("fires whenBattleWon for the winning DEFENDER when the attacker loses", async () => {
@@ -191,6 +206,28 @@ describe("CombatController.resolveAttack — Digimon vs Digimon", () => {
     const won = h.firedSubTriggers.filter((f) => f.event === "whenBattleWon");
     expect(won).toHaveLength(1);
     expect(won[0]?.payload.subjectPermanentId).toBe(defender.permanentId);
+    expect(h.timeline.indexOf("replacement:consultLeavePrevention")).toBeLessThan(
+      h.timeline.indexOf(`timing:${EffectTiming.OnDestroyedAnyone}`),
+    );
+    expect(h.timeline.indexOf(`timing:${EffectTiming.OnDestroyedAnyone}`)).toBeLessThan(
+      h.timeline.indexOf("sub:whenBattleWon"),
+    );
+  });
+
+  it("still fires whenBattleWon after the losing Digimon prevents deletion (Q7022/Q7023)", async () => {
+    const h = harness({ preventBattleDeletion: true });
+    const attacker = digimon(0, 9000);
+    const defender = digimon(1, 4000, { suspended: true, cardId: DIGIMON_B });
+    h.state.players[0]?.battleArea.push(attacker);
+    h.state.players[1]?.battleArea.push(defender);
+
+    await h.combat.resolveAttack(0, attacker, { kind: "permanent", permanentId: defender.permanentId });
+
+    expect(h.access.permanentById(defender.permanentId)).toBeDefined();
+    expect(h.firedSubTriggers.filter((f) => f.event === "whenBattleWon")).toHaveLength(1);
+    expect(h.timeline.indexOf("replacement:consultLeavePrevention")).toBeLessThan(
+      h.timeline.indexOf("sub:whenBattleWon"),
+    );
   });
 
   it("does NOT fire whenBattleWon on a tie (no winner)", async () => {
@@ -495,6 +532,10 @@ describe("combat suspension fires the whenSuspended bus", () => {
     await h.combat.resolveAttack(0, attacker, { kind: "permanent", permanentId: defender.permanentId });
 
     expect(suspensionsFired(h)).toContain(attacker.permanentId);
+    expect(h.firedTimings).toContain(EffectTiming.OnTappedAnyone);
+    expect(h.timeline.indexOf(`timing:${EffectTiming.OnTappedAnyone}`)).toBeLessThan(
+      h.timeline.indexOf(`timing:${EffectTiming.OnUseAttack}`),
+    );
   });
 
   it("fires for the blocker, whose suspension is also a rules suspension", async () => {

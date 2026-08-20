@@ -4,7 +4,9 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, whenDigivolving, whenAttacking, onDeletion } from "../../engine/effects/builders.js";
+import { onPlay, whenDigivolving, whenAttacking, onDeletion, turnTiming } from "../../engine/effects/builders.js";
+import { runEffect } from "../../engine/effects/interpreter/dispatch.js";
+import { executeActivatedEffect } from "../../engine/effects/interpreter/registration/keywords.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-077 — Reapermon (BT26, Purple/Black Mega Digimon).
@@ -15,13 +17,11 @@ import { registerCard } from "../../engine/effects/registry.js";
 //
 // Printed text:
 //   [Digivolve] Lv.5 w/[DM] trait: Cost 3 — a digivolution-cost requirement, not an
-//     effect clause; already carried by CardDefinition.evoCosts in cards.json, so it
-//     needs no entry here.
-//   ＜Security A. +1＞ / ＜Execute＞ / ＜Fragment (2)＞ — printed keywords, parsed
-//     automatically from effectText by the engine's combat/keywords.ts
-//     (PRINTED_MATCHERS: "Security A." matches the `Attack|A\.` alternation,
-//     "Execute" and "Fragment" have their own matchers) — same treatment as
-//     BT26-043's ＜Blocker＞; need no explicit grant here.
+//     effect clause. The catalog only carries the ordinary Purple/Black Lv.5 cost-4
+//     rows, so this requires an ALTERNATE_DIGIVOLUTION_OVERRIDES entry in shared data.
+//   ＜Security A. +1＞ / ＜Fragment (2)＞ — intrinsic keyword readers parse these from
+//     effectText. ＜Execute＞ additionally synthesizes its optional end-of-your-turn attack
+//     and pending end-of-attack deletion below, reusing the interpreter's canonical body.
 //   [On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may play 1 play
 //     cost of 6 or lower [Ver.3] trait Digimon card from your trash without paying the
 //     cost. For each of this Digimon's face-down digivolution cards, add 1 to the play
@@ -49,6 +49,7 @@ const cardId = "BT26-077";
 
 const SHARED_EFFECT_KEY = `${cardId}/play-ver3-from-trash`;
 const BASE_PLAY_COST_CEILING = 6;
+const EXECUTE_EFFECT = executeActivatedEffect();
 
 function hasVer3Trait(def: CardDefinition): boolean {
   return (def.types as string[] | undefined)?.includes("Ver.3") ?? false;
@@ -71,12 +72,6 @@ async function resolveSharedEffect(ctx: EffectContext, source: CardSource): Prom
   });
   if (candidates.length === 0) return;
 
-  const wantsToPlay = await ctx.ask.optional(
-    ctx,
-    `Play 1 [Ver.3] trait Digimon with play cost ≤${ceiling} from your trash without paying the cost?`,
-  );
-  if (!wantsToPlay) return;
-
   const chosen = await ctx.ask.selectCards(ctx, {
     candidates: candidates.map((c) => c.instanceId),
     min: 1,
@@ -85,6 +80,16 @@ async function resolveSharedEffect(ctx: EffectContext, source: CardSource): Prom
   if (chosen.length > 0) {
     await ctx.fx.playInstances(chosen, { payCost: false });
   }
+}
+
+function canResolveSharedEffect(ctx: EffectContext, source: CardSource): boolean {
+  const self = source.permanent();
+  if (self === undefined) return false;
+  const ceiling = BASE_PLAY_COST_CEILING + faceDownDigivolutionCount(ctx, self.permanentId);
+  return Array.from(ctx.game.player(source.ownerSeat).trash).some((card) => {
+    const definition = ctx.game.definitionOf(card);
+    return isDigimon(definition) && hasVer3Trait(definition) && (definition.playCost ?? Infinity) <= ceiling;
+  });
 }
 
 function isDigimonOrTamer(p: Permanent, ctx: EffectContext): boolean {
@@ -108,6 +113,20 @@ function opponentHighestPlayCostDigimonOrTamer(ctx: EffectContext, source: CardS
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
+    if (timing === EffectTiming.OnEndTurn) {
+      return [
+        turnTiming({
+          source,
+          effectKey: `${cardId}/execute`,
+          description:
+            "＜Execute＞ [End of Your Turn] This Digimon may attack. At the end of the attack, delete this Digimon.",
+          optional: false,
+          when: () => source.isOwnersTurn(),
+          resolve: (ctx) => runEffect(ctx, EXECUTE_EFFECT),
+        }),
+      ];
+    }
+
     if (timing === EffectTiming.OnPlay) {
       return [
         onPlay({
@@ -118,8 +137,9 @@ const module: EffectModule = {
             "play 1 play cost of 6 or lower [Ver.3] trait Digimon card from your trash " +
             "without paying the cost. For each of this Digimon's face-down digivolution " +
             "cards, add 1 to the play cost maximum.",
-          optional: false,
+          optional: true,
           maxPerTurn: 1,
+          canActivate: (ctx) => canResolveSharedEffect(ctx, source),
           resolve: (ctx) => resolveSharedEffect(ctx, source),
         }),
       ];
@@ -135,8 +155,9 @@ const module: EffectModule = {
             "play 1 play cost of 6 or lower [Ver.3] trait Digimon card from your trash " +
             "without paying the cost. For each of this Digimon's face-down digivolution " +
             "cards, add 1 to the play cost maximum.",
-          optional: false,
+          optional: true,
           maxPerTurn: 1,
+          canActivate: (ctx) => canResolveSharedEffect(ctx, source),
           resolve: (ctx) => resolveSharedEffect(ctx, source),
         }),
       ];
@@ -152,8 +173,9 @@ const module: EffectModule = {
             "play 1 play cost of 6 or lower [Ver.3] trait Digimon card from your trash " +
             "without paying the cost. For each of this Digimon's face-down digivolution " +
             "cards, add 1 to the play cost maximum.",
-          optional: false,
+          optional: true,
           maxPerTurn: 1,
+          canActivate: (ctx) => canResolveSharedEffect(ctx, source),
           resolve: (ctx) => resolveSharedEffect(ctx, source),
         }),
       ];

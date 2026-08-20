@@ -10,11 +10,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 /**
  * BT26-095 — Makoto Kuonji (BT26, Purple Tamer).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-095` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * Q7160-Q7164 confirm bottom placement under Tamers, fixed face-down ordering and
+ * visibility, face-up trash destination, and that failing to suspend this Tamer prevents
+ * all processing after "After".
  *
  * Printed text:
  *   [Start of Your Main Phase] By placing 1 [BEATBREAK] trait card from your hand face
@@ -71,8 +69,8 @@ function isBeatbreakNonDigiEgg(def: CardDefinition): boolean {
 async function suspendSelf(ctx: EffectContext): Promise<boolean> {
   const self = ctx.source.permanent();
   if (self === undefined || self.isSuspended) return false;
-  await ctx.fx.suspend([self.permanentId]);
-  return true;
+  const suspended = await ctx.fx.suspend([self.permanentId]);
+  return suspended.includes(self.permanentId);
 }
 
 /** "<Draw 1> and trash 1 card in your hand." */

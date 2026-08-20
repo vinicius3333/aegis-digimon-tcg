@@ -193,6 +193,9 @@ export async function runSubTrigger(
     event === "whenEffectRemovesFromSecurity" ||
     event === "whenSecurityRemoved" ||
     event === "onDiscardLibrary" ||
+    // whenSuspended carries suspendedPermanentId (and, for simultaneous suspension,
+    // subjectPermanentIds). Its dedicated gate below handles the physical host identity.
+    event === "whenSuspended" ||
     event === "onDigivolutionCardReturnToDeckBottom" ||
     event === "whenHandTrashed" ||
     event === "whenOpponentDraws" ||
@@ -266,6 +269,18 @@ export async function runSubTrigger(
   const effectSuspendsSelfGate =
     event === "whenEffectSuspends" && sourceFilter === undefined && anchorPermanentId !== undefined
       ? (subCtx: EffectContext): boolean => subCtx.trigger.suspendedPermanentId === anchorPermanentId
+      : undefined;
+  // `whenSuspended` is a board-wide bus. The single-card payload historically carries only
+  // `suspendedPermanentId`, while a simultaneous suspension additionally carries
+  // `subjectPermanentIds`; bind an isSelfRef watcher to its physical host across both shapes.
+  const whenSuspendedSelfGate =
+    event === "whenSuspended" && sourceFilter?.isSelfRef === true && anchorPermanentId !== undefined
+      ? (subCtx: EffectContext): boolean => {
+          const suspendedIds =
+            subCtx.trigger.subjectPermanentIds ??
+            (subCtx.trigger.suspendedPermanentId !== undefined ? [subCtx.trigger.suspendedPermanentId] : []);
+          return suspendedIds.includes(anchorPermanentId);
+        }
       : undefined;
   // `whenOpponentDraws` carries no subject permanent — its payload names the seat that just drew.
   // The watcher reacts only when the DRAWING seat is the watcher controller's OPPONENT ("when YOUR
@@ -567,6 +582,7 @@ export async function runSubTrigger(
     handTrashedGate,
     attackTargetSwitchedGate,
     effectSuspendsSelfGate,
+    whenSuspendedSelfGate,
     whenOpponentDrawsGate,
     endOfOpponentTurnGate,
     effectAddsToOpponentHandGate,
@@ -690,6 +706,13 @@ export async function runSubTrigger(
       }
       for (const a of action.actions) {
         const abort = await runAction(subCtx, a);
+        // An optional head action may decline while a mandatory conditional tail still
+        // resolves (BT25-077: optional suspend, then mandatory deletion when the event
+        // entered by effect). In that case the once-per-turn activation was consumed;
+        // preserve the decline only when the tail's condition also fails.
+        if (subCtx.oncePerTurnActivationDeclined && !a.optional && subCtx.lastActionConditionMatched) {
+          subCtx.oncePerTurnActivationDeclined = false;
+        }
         if (abort) break;
       }
     },
@@ -725,7 +748,9 @@ export async function runGainTriggeredEffect(
     );
     return;
   }
-  const targetIds = await resolvePermanentTargets(ctx, action.target);
+  const targetIds = await resolvePermanentTargets(ctx, action.target, { preserveUnaffectableSelection: true });
+  const grantingSeat = ctx.source.ownerSeat;
+  const grantingKinds = ctx.source.definition.kinds.filter((kind) => kind === "Digimon" || kind === "Option");
   for (const targetPermanentId of targetIds) {
     const grantedPerm = ctx.game.permanentById(targetPermanentId);
     if (grantedPerm === undefined) continue;
@@ -755,9 +780,18 @@ export async function runGainTriggeredEffect(
       event === "whenDeletesInBattle"
         ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === targetPermanentId
         : undefined;
-    const gates = [ownerMainPhaseGate, grantedPermanentDeletionGate, grantedPermanentBattleDeleteGate].filter(
-      (g): g is (subCtx: EffectContext) => boolean => g !== undefined,
-    );
+    const immunityAtTriggerGate = (subCtx: EffectContext): boolean => {
+      const current = subCtx.game.permanentById(targetPermanentId);
+      if (current === undefined || current.controllerSeat === grantingSeat) return true;
+      if (subCtx.fx.isUnaffectableByOpponentEffects?.(targetPermanentId) === true) return false;
+      return !grantingKinds.some((kind) => subCtx.fx.isBeAffectedBySourceKind?.(targetPermanentId, kind) === true);
+    };
+    const gates = [
+      ownerMainPhaseGate,
+      grantedPermanentDeletionGate,
+      grantedPermanentBattleDeleteGate,
+      immunityAtTriggerGate,
+    ].filter((g): g is (subCtx: EffectContext) => boolean => g !== undefined);
     const matches = gates.length === 0 ? undefined : (subCtx: EffectContext): boolean => gates.every((g) => g(subCtx));
     const gainedActions = action.gainedActions;
     ctx.fx.subscribeSubTrigger({

@@ -8,9 +8,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-025 — Liollmon (BT26, Yellow Lv.3 Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-025 as of this port
-// (`node tools/kb/query.mjs card BT26-025` returned no knowledge-base entries). implemented
-// from the printed card text only.
+// The committed KB contains Q6986 (2026-08-18), confirming that the inherited effect
+// can activate with 0 security and still perform ＜Recovery +1＞.
 //
 // [Digivolve] Lv.2 w/[Glowing Dawn] trait: Cost 0 — a digivolution-cost requirement,
 //   not an effect clause; already carried by CardDefinition.evoCosts in cards.json and
@@ -78,7 +77,11 @@ async function placeSecurityUnderGlowingDawnTamerAndRecover(ctx: EffectContext, 
     targetPermanentId = chosen[0]!;
   }
 
-  await ctx.fx.placeUnder(targetPermanentId, [topSecurity.instanceId]);
+  const placed = await ctx.fx.placeUnder(targetPermanentId, [topSecurity.instanceId], {
+    belowTop: false,
+    faceUp: false,
+  });
+  if (!placed.some((card) => card.instanceId === topSecurity.instanceId)) return;
   await ctx.fx.recoverToSecurity(source.ownerSeat, 1);
 }
 

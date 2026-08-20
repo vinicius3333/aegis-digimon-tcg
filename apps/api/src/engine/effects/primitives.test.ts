@@ -374,6 +374,21 @@ describe("primitives: playFromHand / playFromSecurity (BT7-089 style)", () => {
     expect(h.state.memory).toBe(5); // 10 - 5
   });
 
+  it("stacks an effect-provided reduction with active play-cost modifiers", async () => {
+    const h = harness({ turnSeat: 0, memory: 10, board: { 0: { hand: [{ card: DIGIMON, as: "c" }] } } });
+    h.ledger.addPlayCostAdjustment(
+      ({ def, controllerSeat }) => def.cardId === DIGIMON && controllerSeat === 0,
+      -2,
+      false,
+    );
+
+    await h.fx.playFromHand([h.s.inst("c").instanceId], { payCost: true, costDelta: 1 });
+
+    // Printed 5 - active 2 - the resolving effect's 1 = 2.
+    expect(h.state.memory).toBe(8);
+    expect(h.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
   it("skips an unaffordable payCost play (no partial pay, card stays in hand)", async () => {
     // cannot afford anything
     const h = harness({ turnSeat: 0, memory: -10, board: { 0: { hand: [{ card: DIGIMON, as: "c" }] } } });
@@ -444,11 +459,7 @@ describe("primitives: playToken (PlayToken IR kind)", () => {
     const h = harness();
     const permanent = await h.fx.playToken(0, "AthoRenePor Token", {
       payCost: false,
-      keywords: [
-        { keyword: "Reboot" },
-        { keyword: "Blocker" },
-        { keyword: "Decoy", specifiers: ["Red", "Black"] },
-      ],
+      keywords: [{ keyword: "Reboot" }, { keyword: "Blocker" }, { keyword: "Decoy", specifiers: ["Red", "Black"] }],
     });
     expect(permanent).toBeDefined();
     expect(h.continuous.grantedKeywords(permanent!.permanentId)).toEqual([
@@ -641,6 +652,36 @@ describe("primitives: trash / delete / suspend", () => {
       [permanent.topCard.instanceId, evoId].sort(),
     );
     expect(h.ledger.dpDeltaOf(permanent.permanentId)).toBe(0);
+  });
+
+  it("applies source-kind-qualified beAffected restrictions to hand-written mutations", async () => {
+    const digimonSource = harness({
+      board: { 0: { battleArea: [battleDigimon("target", 5000)] } },
+    });
+    const digimonTargetId = digimonSource.s.perm("target").permanentId;
+    digimonSource.continuous.addRestriction(digimonTargetId, "beAffected", EffectDuration.UntilOpponentTurnEnd, {
+      fromSourceKind: ["Digimon"],
+      byOpponentEffectsOnly: true,
+    });
+
+    digimonSource.fx.enterEffectResolution?.(1, ["Digimon"]);
+    expect(await digimonSource.fx.deletePermanent([digimonTargetId], "byEffect")).toBe(0);
+    digimonSource.fx.leaveEffectResolution?.();
+    expect(digimonSource.state.players[0]!.battleArea).toHaveLength(1);
+
+    const optionSource = harness({
+      board: { 0: { battleArea: [battleDigimon("target", 5000)] } },
+    });
+    const optionTargetId = optionSource.s.perm("target").permanentId;
+    optionSource.continuous.addRestriction(optionTargetId, "beAffected", EffectDuration.UntilOpponentTurnEnd, {
+      fromSourceKind: ["Digimon"],
+      byOpponentEffectsOnly: true,
+    });
+
+    optionSource.fx.enterEffectResolution?.(1, ["Option"]);
+    expect(await optionSource.fx.deletePermanent([optionTargetId], "byEffect")).toBe(1);
+    optionSource.fx.leaveEffectResolution?.();
+    expect(optionSource.state.players[0]!.battleArea).toHaveLength(0);
   });
 
   it("suspend / unsuspend flips the permanent flag", () => {
@@ -1133,6 +1174,88 @@ describe("primitives: placeUnder / link", () => {
     expect(h.state.players[0]!.hand).toHaveLength(0);
   });
 
+  it("trashDigivolutionCards reveals a face-down stacked card in trash (BT26-094 Q7159)", async () => {
+    const h = harness({
+      board: {
+        0: {
+          battleArea: [
+            {
+              card: TAMER,
+              as: "tamer",
+              under: [{ card: DIGIMON, faceUp: false, as: "hidden" }],
+            },
+          ],
+        },
+      },
+    });
+    const hiddenId = h.s.inst("hidden").instanceId;
+
+    const moved = await h.fx.trashDigivolutionCards(h.s.perm("tamer").permanentId, [hiddenId]);
+
+    expect(moved).toHaveLength(1);
+    expect(h.state.players[0]!.trash.find((card) => card.instanceId === hiddenId)).toMatchObject({ faceUp: true });
+  });
+
+  it("atomically trashes an exact cross-host digivolution-card cost before publishing watchers", async () => {
+    const h = harness({
+      board: {
+        0: {
+          battleArea: [
+            { card: DIGIMON, as: "a", under: [{ card: TAMER, as: "costA" }] },
+            { card: DIGIMON, as: "b", under: [{ card: OPTION, as: "costB" }] },
+          ],
+        },
+      },
+    });
+    const selections = [
+      { hostPermanentId: h.s.perm("a").permanentId, instanceId: h.s.inst("costA").instanceId },
+      { hostPermanentId: h.s.perm("b").permanentId, instanceId: h.s.inst("costB").instanceId },
+    ];
+
+    const moved = await h.fx.trashDigivolutionCardsAtomic(selections, 2, { byEffectSeat: 0 });
+
+    expect(moved.map(({ instanceId }) => instanceId)).toEqual(selections.map(({ instanceId }) => instanceId));
+    expect(h.s.perm("a").stack).toHaveLength(0);
+    expect(h.s.perm("b").stack).toHaveLength(0);
+    expect(h.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining(selections.map(({ instanceId }) => instanceId)),
+    );
+    expect(h.events.filter(({ kind }) => kind === "cardsMoved")).toHaveLength(1);
+    expect(h.subTriggerFires[0]?.event).toBe("onDigivolutionCardsDiscardedBatch");
+  });
+
+  it("moves nothing and publishes nothing when one member of an exact atomic cost is protected", async () => {
+    const h = harness({
+      board: {
+        0: {
+          battleArea: [
+            { card: DIGIMON, as: "a", under: [{ card: TAMER, as: "protected" }] },
+            { card: DIGIMON, as: "b", under: [{ card: OPTION, as: "other" }] },
+          ],
+        },
+      },
+    });
+    const protectedId = h.s.inst("protected").instanceId;
+    const otherId = h.s.inst("other").instanceId;
+    h.continuous.addStackCardTrashLock(protectedId, 0, EffectDuration.Permanent);
+
+    const moved = await h.fx.trashDigivolutionCardsAtomic(
+      [
+        { hostPermanentId: h.s.perm("a").permanentId, instanceId: protectedId },
+        { hostPermanentId: h.s.perm("b").permanentId, instanceId: otherId },
+      ],
+      2,
+      { byEffectSeat: 0 },
+    );
+
+    expect(moved).toEqual([]);
+    expect(h.s.perm("a").stack.map(({ instanceId }) => instanceId)).toEqual([protectedId]);
+    expect(h.s.perm("b").stack.map(({ instanceId }) => instanceId)).toEqual([otherId]);
+    expect(h.state.players[0]!.trash).toHaveLength(0);
+    expect(h.events).toHaveLength(0);
+    expect(h.subTriggerFires).toHaveLength(0);
+  });
+
   it("link moves loose cards into a permanent's linked list", async () => {
     const h = harness({
       board: { 0: { battleArea: [battleDigimon("p1", 5000)], hand: [{ card: DIGIMON, as: "c" }] } },
@@ -1396,6 +1519,28 @@ describe("primitives: effect-driven digivolve cost honors the continuous evo-cos
     expect(before - h.state.memory).toBe(REDUCED_COST);
   });
 
+  it("pays the printed cost when effect-driven digivolution reductions are blocked", async () => {
+    const h = harness({
+      turnSeat: 0,
+      memory: 5,
+      board: { 0: { battleArea: [battleDigimon("p1", 4000)], hand: [{ card: INTO, as: "evolving" }] } },
+    });
+    const base = h.s.perm("p1");
+    h.continuous.addCostReductionBlock(0, "digivolve", EffectDuration.Permanent);
+    h.ledger.addEvoCostAdjustment((m) => m.target.permanentId === base.permanentId, -REDUCTION, false, {
+      continuous: true,
+    });
+
+    const before = h.state.memory;
+    const result = await h.fx.digivolveFromInstance(base.permanentId, h.s.inst("evolving").instanceId, {
+      payCost: true,
+      costDelta: -1,
+    });
+
+    expect(result).toBeDefined();
+    expect(before - h.state.memory).toBe(PRINTED_COST);
+  });
+
   it("DNA dnaDigivolveInto pays the REDUCED cost off the memory gauge", async () => {
     const h = harness({
       turnSeat: 0,
@@ -1561,7 +1706,9 @@ describe("primitives: redirectAttack (chooser / optional)", () => {
       state,
       fx: createPrimitives(engine),
       redirects,
-      get redirectedToPlayer() { return redirectedToPlayer; },
+      get redirectedToPlayer() {
+        return redirectedToPlayer;
+      },
       resolvedAttacks,
       prompts,
       fires,
@@ -1823,6 +1970,24 @@ describe("grantKind + effectiveKinds + payActivationCost (HARD-05)", () => {
 describe("primitives: digivolveFromInstance costOverride + ignoreRequirements", () => {
   const LV6 = "BT17-017"; // AncientGreymon, Lv.6, EvoCost Red/Purple Lv.5 — a Lv.4 base cannot meet it
   const LV5 = "AD1-002"; // Red Lv.5, EvoCost Red Lv.4 — a Lv.4 base CAN meet it (printed cost 3)
+
+  it("keeps the destination's printed cost when requirements are ignored, then applies costDelta", async () => {
+    const h = harness({
+      turnSeat: 0,
+      memory: 5,
+      board: { 0: { battleArea: [battleDigimon("p1", 4000)], hand: [{ card: LV5, as: "evolving" }] } },
+    });
+    const base = h.s.perm("p1");
+
+    const result = await h.fx.digivolveFromInstance(base.permanentId, h.s.inst("evolving").instanceId, {
+      payCost: true,
+      costDelta: -1,
+      ignoreRequirements: true,
+    });
+
+    expect(result).toBeDefined();
+    expect(h.state.memory).toBe(3); // printed cost 3, reduced by 1
+  });
 
   it("ignoreRequirements lets an off-level base digivolve, paying exactly the costOverride", async () => {
     const h = harness({
@@ -2193,6 +2358,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     fireSuspensionTriggers: true,
     trash: true,
     trashDigivolutionCards: true,
+    trashDigivolutionCardsAtomic: true,
     trashFromSecurity: true,
     trashTopSecurityOfPlayerWithMostSecurity: true,
     unsuspend: true,
@@ -2350,6 +2516,26 @@ describe("primitives: resolveCardEffect / useOptionFromHand (BT26 gap fix)", () 
       expect(h.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === instanceId)).toBe(true);
     } finally {
       unregisterCard(OPTION);
+    }
+  });
+
+  it("uses and trashes the exact Option linked to a breeding-area Digimon", async () => {
+    const h = harness({ board: { 0: { breeding: battleDigimon("egg-host", 3000) } } });
+    const ran = { value: false };
+    registerCard(fakeUsableModule(ran));
+    try {
+      const used = makeInstance(FAKE_CARD_ID, 0, true);
+      h.state.players[0]!.breeding!.linked.push(used);
+      const ctx = { source: { ownerSeat: 0 }, fx: h.fx } as unknown as EffectContext;
+
+      const moved = await h.fx.useOptionFromHand(ctx, used.instanceId, 3);
+
+      expect(ran.value).toBe(true);
+      expect(moved.map((card) => card.instanceId)).toEqual([used.instanceId]);
+      expect(h.state.players[0]!.breeding!.linked).toHaveLength(0);
+      expect(h.state.players[0]!.trash.some((card) => card.instanceId === used.instanceId)).toBe(true);
+    } finally {
+      unregisterCard(FAKE_CARD_ID);
     }
   });
 });

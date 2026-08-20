@@ -1,4 +1,4 @@
-import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
 import type { CardDefinition, CardInstance, Permanent } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -54,6 +54,7 @@ function iliadTargets(ctx: EffectContext, source: CardSource): Permanent[] {
   const owner = ctx.game.player(source.ownerSeat);
   return Array.from(owner.battleArea).filter(
     (p) =>
+      !p.inBreeding &&
       p.topCard !== undefined &&
       isDigimon(ctx.game.definitionOf(p.topCard)) &&
       hasIliadTrait(ctx.game.definitionOf(p.topCard)),
@@ -64,14 +65,11 @@ function iliadTargets(ctx: EffectContext, source: CardSource): Permanent[] {
 async function resolveTrashToGrantKeywords(ctx: EffectContext, source: CardSource): Promise<void> {
   const owner = ctx.game.player(source.ownerSeat);
   const handIds = Array.from(owner.hand).map((c) => c.instanceId);
-  if (handIds.length === 0) return;
+  const targets = iliadTargets(ctx, source);
+  if (handIds.length === 0 || targets.length === 0) return;
 
   const toTrash = await ctx.ask.selectCards(ctx, { candidates: handIds, min: 0, max: 1 });
   if (toTrash.length === 0) return;
-  await ctx.fx.trash(toTrash);
-
-  const targets = iliadTargets(ctx, source);
-  if (targets.length === 0) return;
 
   let chosenId: string;
   if (targets.length === 1) {
@@ -86,6 +84,9 @@ async function resolveTrashToGrantKeywords(ctx: EffectContext, source: CardSourc
     chosenId = chosen[0]!;
   }
 
+  const trashed = await ctx.fx.trash(toTrash, { byEffectSeat: source.ownerSeat });
+  if (trashed.length !== 1) return;
+
   ctx.fx.grantKeyword(chosenId, "Execute", EffectDuration.UntilEachTurnEnd);
   ctx.fx.grantKeyword(chosenId, "Ascension", EffectDuration.UntilEachTurnEnd);
 }
@@ -98,7 +99,8 @@ function securityPlayCandidates(ctx: EffectContext, source: CardSource): CardIns
   const owner = ctx.game.player(source.ownerSeat);
   return [...Array.from(owner.hand), ...Array.from(owner.trash)].filter((card) => {
     const def = ctx.game.definitionOf(card);
-    return hasAngelOrTsTrait(def) && def.playCost >= 0 && def.playCost <= 4;
+    const playableKind = def.kinds.includes(CardKind.Digimon) || def.kinds.includes(CardKind.Tamer);
+    return playableKind && hasAngelOrTsTrait(def) && def.playCost >= 0 && def.playCost <= 4;
   });
 }
 
@@ -121,7 +123,7 @@ const module: EffectModule = {
 
             const chosen = await ctx.ask.selectCards(ctx, {
               candidates: candidates.map((c) => c.instanceId),
-              min: 0,
+              min: 1,
               max: 1,
             });
             if (chosen.length === 0) return;

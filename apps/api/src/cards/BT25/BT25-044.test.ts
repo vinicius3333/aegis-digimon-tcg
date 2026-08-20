@@ -1,8 +1,18 @@
 import { describe, expect, it } from "vitest";
 import { compiled as BT25_044 } from "./BT25-044.js";
+import { wouldBePlayedSelfReducersFor } from "../../engine/effects/interpreter/registration/reducers.js";
 import "../index.js";
 
 describe("BT25-044 Junomon", () => {
+  it("registers its Q7004 conditional self play-cost reducer for effect-driven paid plays", () => {
+    expect(wouldBePlayedSelfReducersFor("BT25-044")).toContainEqual(
+      expect.objectContaining({
+        amount: 5,
+        condition: expect.objectContaining({ kind: "totalSecurityCount", op: "lte", value: 6 }),
+      }),
+    );
+  });
+
   it("places another Digimon on top of security, then trashes both players' top security cards", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       const effect = BT25_044.effects?.find((entry) => entry.trigger === trigger);

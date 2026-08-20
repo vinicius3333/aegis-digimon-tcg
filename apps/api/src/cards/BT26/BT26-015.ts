@@ -10,9 +10,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-015 — Butenmon (BT26, Red/Yellow Lv.5 Digimon, Shaman/Iliad/TS).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-015 as of this port
-// (`node tools/kb/query.mjs card BT26-015` returned no knowledge-base entries — BT26 has
-// no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// Audited against the six committed BT26-015 rulings (Q6970-Q6975). In particular,
+// "your effects add to decks" keys off the effect's controller, not the owner of the
+// destination deck (Q6975), and a reveal-and-return is not a deck-add event (Q6973).
 //
 // Printed text:
 //   [Digivolve] Lv.4 w/[TS] trait: Cost 3 — handled centrally by
@@ -208,7 +208,7 @@ const module: EffectModule = {
               description: `${cardId}: an effect of yours adds cards to a deck -> may +3000 DP and attack.`,
               matches: (subCtx) => {
                 if (!subCtx.source.isOnBattleArea() || !subCtx.source.isOwnersTurn()) return false;
-                return subCtx.trigger?.effectAddedToDeckSeat === ownerSeat;
+                return subCtx.trigger?.effectAddedToDeckBySeat === ownerSeat;
               },
               run: async (subCtx) => resolveMayBuffAndAttack(subCtx, ownerSeat),
             });
@@ -239,15 +239,12 @@ const module: EffectModule = {
               matches: (subCtx) => {
                 const host = subCtx.game.permanentById(hostId);
                 if (host === undefined || !hostHasChronomonText(subCtx, host)) return false;
-                return subCtx.trigger?.effectAddedToDeckSeat === ownerSeat;
+                return subCtx.trigger?.effectAddedToDeckBySeat === ownerSeat;
               },
               run: async (subCtx) => {
                 const host = subCtx.game.permanentById(hostId);
                 if (host === undefined || !host.isSuspended) return;
-                const wantToActivate = await subCtx.ask.optional(
-                  subCtx,
-                  "Unsuspend this Digimon?",
-                );
+                const wantToActivate = await subCtx.ask.optional(subCtx, "Unsuspend this Digimon?");
                 if (!wantToActivate) return;
                 await subCtx.fx.unsuspend([hostId]);
               },

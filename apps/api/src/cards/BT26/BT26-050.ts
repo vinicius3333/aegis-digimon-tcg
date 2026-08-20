@@ -4,13 +4,14 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { whenDigivolving, whenAttacking, activated } from "../../engine/effects/builders.js";
+import { activated, colorWaiverStatic, whenAttacking, whenDigivolving } from "../../engine/effects/builders.js";
+import { cardHasTrait, permanentHasTrait } from "../../engine/cards/cardData.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-050 — Rosemon: Burst Mode // Aguichant Lèvres (BT26 Green/Red DUAL Digimon/Option).
-// No errata or Q&A on file for this card (tools/kb/query.mjs card BT26-050 returns no KB
-// entries — BT26 has no Q&A yet), so this port is provisional against the printed text
-// alone and should be revisited once rulings land.
+// Verified against Q7052-Q7055: either player's cards may be suspended; the two cards locked
+// need not be the cards suspended; Burst Digivolve retains its end-of-turn trash processing;
+// and the controller chooses the order of the simultaneous [When Digivolving] effects.
 //
 // [Digivolve] Lv.6 w/[DATA SQUAD] trait: Cost 5 [Burst Digivolve] [Rosemon]: Cost 0 by
 //   returning 1 [Yoshino Fujieda] to the hand.
@@ -21,20 +22,19 @@ import { registerCard } from "../../engine/effects/registry.js";
 // [When Digivolving] [When Attacking] By returning 1 other suspended Digimon to the bottom
 //   of the deck, trash your opponent's top security card.
 //
-// Provisional reading of the first clause: "You may suspend 2 Digimon or Tamers" and "2 of
+// Q7052/Q7053 confirm the first clause's "You may suspend 2 Digimon or Tamers" and "2 of
 // your opponent's Digimon or Tamers can't unsuspend" are printed as two separate target
 // counts (the first is unqualified by controller; only the second says "of your
 // opponent's"), so this port treats them as two independent 2-target selections gated by a
-// single up-front optional ask, rather than assuming they must be the same two permanents.
+// single up-front optional ask; the two selections need not contain the same permanents.
 // The suspend-cost target pool for the second clause ("1 other suspended Digimon") is left
 // unqualified by controller (either side), mirroring this codebase's own compiler default
 // for an unqualified targeted-cost Digimon reference (see EX8-074's "by suspending 2
 // Digimon" -> controllerDefault: "any").
 //
 // Option side [Aguichant Lèvres]:
-// ＜Use Req. ([DATA SQUAD] trait)＞ — data-only: satisfied by the hand-authored
-// `optionColorRequirements` field on the card record (["Green"] in cards.json), not an
-// executable action.
+// ＜Use Req. ([DATA SQUAD] trait)＞ — executable color-requirement waiver while such a card is
+// in the controller's battle area.
 // [Main] Suspend 2 of your opponent's Digimon or Tamers. Then, until their turn ends, none
 //   of their suspended Digimon or Tamers can digivolve or unsuspend.
 
@@ -72,10 +72,14 @@ function otherSuspendedDigimonTargets(ctx: EffectContext, source: CardSource): P
   return all;
 }
 
-async function pickUpTo2(
-  ctx: EffectContext,
-  candidates: Permanent[],
-): Promise<string[]> {
+function ownerHasDataSquadCardInPlay(ctx: EffectContext, source: CardSource): boolean {
+  return Array.from(ctx.game.player(source.ownerSeat).battleArea).some((permanent) => {
+    if (permanent.inBreeding || permanent.topCard === undefined) return false;
+    return permanentHasTrait(ctx.game, permanent, "DATA SQUAD");
+  });
+}
+
+async function pickUpTo2(ctx: EffectContext, candidates: Permanent[]): Promise<string[]> {
   if (candidates.length === 0) return [];
   const want = Math.min(2, candidates.length);
   if (candidates.length <= want) return candidates.map((p) => p.permanentId);
@@ -89,6 +93,20 @@ async function pickUpTo2(
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
+    if (timing === EffectTiming.None) {
+      return [
+        colorWaiverStatic({
+          source,
+          effectKey: `${cardId}/use-req-data-squad`,
+          description: "＜Use Req. ([DATA SQUAD] trait)＞ Ignore this card's color requirements.",
+          when: (ctx) => ownerHasDataSquadCardInPlay(ctx, source),
+          resolve: async (ctx) => {
+            ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.UntilEachTurnEnd);
+          },
+        }),
+      ];
+    }
+
     if (timing === EffectTiming.WhenDigivolving) {
       return [
         whenDigivolving({
@@ -100,8 +118,9 @@ const module: EffectModule = {
           optional: true,
           canActivate: (ctx) => {
             const opp = ctx.game.opponentOf(source.ownerSeat);
-            return digimonOrTamerTargets(ctx, source.ownerSeat).length > 0
-              || digimonOrTamerTargets(ctx, opp).length > 0;
+            return (
+              digimonOrTamerTargets(ctx, source.ownerSeat).length > 0 || digimonOrTamerTargets(ctx, opp).length > 0
+            );
           },
           resolve: async (ctx) => {
             const opp = ctx.game.opponentOf(source.ownerSeat);
@@ -134,7 +153,7 @@ const module: EffectModule = {
       ];
     }
 
-    if (timing === EffectTiming.OnAllyAttack) {
+    if (timing === EffectTiming.OnUseAttack) {
       return [
         whenAttacking({
           source,
@@ -158,8 +177,7 @@ const module: EffectModule = {
           description:
             "[Main] Suspend 2 of your opponent's Digimon or Tamers. Then, until their turn " +
             "ends, none of their suspended Digimon or Tamers can digivolve or unsuspend.",
-          canActivate: (ctx) =>
-            digimonOrTamerTargets(ctx, ctx.game.opponentOf(source.ownerSeat)).length > 0,
+          canActivate: (ctx) => digimonOrTamerTargets(ctx, ctx.game.opponentOf(source.ownerSeat)).length > 0,
           resolve: async (ctx) => {
             const opp = ctx.game.opponentOf(source.ownerSeat);
             const toSuspend = await pickUpTo2(ctx, digimonOrTamerTargets(ctx, opp));

@@ -1,11 +1,12 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
+import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
 import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { activated, security, staticModifier } from "../../engine/effects/builders.js";
+import { activated, colorWaiverStatic, security, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
+import { permanentHasTrait } from "../../engine/cards/cardData.js";
 
 // BT26-099 — Training Manual (BT26, Green Option).
 //
@@ -26,11 +27,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 //     in the hand without paying the cost.
 // [Security] Activate this card's [Main] effects.
 //
-// ＜Use Req.＞ is NOT wired in the engine yet (documented gap; see BT25-098's identical
-// note) — there is no primitive that expresses "waive color requirements ONLY while a
-// [DM] trait card is on the field" (`ctx.fx.waiveColorRequirement` waives unconditionally,
-// which would be a behavioral bug here, not a faithful port). Left undeclared; flag if the
-// engine gains conditional Use Req. support.
+// ＜Use Req.＞ uses the conditional color-waiver seam shared with BT26-101/BT26-102. The
+// waiver is active only while the controller has a battle-area [DM] trait card in play.
 //
 // The [All Turns]/＜Delay＞ shape here matches the same family as BT19-099/BT20-100
 // (compiled IR: AllTurns+Delay routes to a continuous EffectTiming.None SubTrigger, not
@@ -54,6 +52,13 @@ function hasDMTrait(def: CardDefinition): boolean {
 /** Level 6 or lower [DM] trait Digimon card (the ＜Delay＞ bullet's digivolve target). */
 function isFreeDigivolveTarget(def: CardDefinition): boolean {
   return isDigimon(def) && def.level !== undefined && def.level <= 6 && hasDMTrait(def);
+}
+
+function hasDMInPlay(ctx: EffectContext, source: CardSource): boolean {
+  return ctx.game.player(source.ownerSeat).battleArea.some((permanent) => {
+    if (permanent.inBreeding || permanent.topCard === undefined) return false;
+    return permanentHasTrait(ctx.game, permanent, "DM");
+  });
 }
 
 /**
@@ -105,7 +110,6 @@ const module: EffectModule = {
             "the hand. Return the rest to the bottom of the deck. Then, place this card " +
             "in the battle area.",
           optional: false,
-          canActivate: (ctx) => ctx.game.player(source.ownerSeat).deck.length >= 1,
           resolve: async (ctx) => {
             await resolveMain(ctx, source);
           },
@@ -119,6 +123,15 @@ const module: EffectModule = {
     // level 6 or lower [DM] trait Digimon card in the hand without paying the cost.
     if (timing === EffectTiming.None) {
       return [
+        colorWaiverStatic({
+          source,
+          effectKey: `${cardId}/use-req-dm`,
+          description: "＜Use Req. ([DM] trait)＞ Ignore this card's color requirements.",
+          when: (ctx) => hasDMInPlay(ctx, source),
+          resolve: async (ctx) => {
+            ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.UntilEachTurnEnd);
+          },
+        }),
         staticModifier({
           source,
           effectKey: `${cardId}/all-turns-delay`,
@@ -177,8 +190,12 @@ const module: EffectModule = {
                 if (!activate) return;
 
                 // "By trashing that card, the effect ... will activate" (§16-17-1).
-                const deletedCount = await subCtx.fx.deletePermanent([selfPerm.permanentId]);
-                if (deletedCount === 0) return;
+                await subCtx.fx.deletePermanent([selfPerm.permanentId]);
+                // `deletePermanent`'s numeric result counts deleted Digimon; a Delay Option
+                // is a non-Digimon permanent and can therefore move to trash while that
+                // counter remains 0. The cost is paid exactly when this Option permanent no
+                // longer exists in the battle area.
+                if (subCtx.game.permanentById(selfPerm.permanentId) !== undefined) return;
 
                 let chosen: string;
                 if (candidates.length === 1) {

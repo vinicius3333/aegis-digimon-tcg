@@ -9,26 +9,26 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-006 — Monimon (BT26, Purple In-Training Digi-Egg).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-006 as of this port
-// (`node tools/kb/query.mjs card BT26-006` returned no knowledge-base entries). implemented
-// from the printed card text only.
+// Audited against committed rulings Q6959-Q6961, including the exact-two-card cost,
+// removal of a DigiXros-material attacker, and pending-effect source-zone invalidation.
 //
 // Inherited: [When Attacking] [Once Per Turn] By trashing any 2 digivolution cards from
 //   your [Bagra Army] trait Digimon, you may play or use 1 [Bagra Army] trait card from
 //   your hand with the cost reduced by 2.
 //
 // Modeled after BT26-012's "[Main] [Once Per Turn] play or use 1 <trait> card from your
-// hand with the cost reduced by 2" play-or-use branch (Option -> ctx.fx.useOptionFromHand
-// with the reduced cost paid via gainMemory; non-Option -> ctx.fx.playInstances with
-// costDelta), and after BT26-031's "By trashing <cost>, <effect>" gating shape (an
+// hand with the cost reduced by 2" play-or-use branch (Option -> the paid
+// ctx.fx.useOptionFromHand seam; non-Option -> ctx.fx.playInstances with costDelta), and
+// after BT26-031's "By trashing <cost>, <effect>" gating shape (an
 // activated builder with `optional: true` asking up front, then paying the cost with
 // ctx.fx.trashDigivolutionCards before running the effect). "Any 2 digivolution cards
 // from your [Bagra Army] trait Digimon" spans every such Digimon you control (not just
 // one), so the pool of trashable cards is gathered across all of them and the 2 chosen
-// cards are grouped back by host before each host's trashDigivolutionCards call — this
-// is composed entirely from the existing per-host trashDigivolutionCards primitive, no
-// new primitive needed. The effect itself is always isInherited: true since this card's
-// only effect is the ability it grants as digivolution material.
+// cards are mapped back to their hosts and paid through the exact-count atomic multi-host
+// trash primitive. It validates the whole cost before any movement or trash watcher, which
+// is required by Q6959: one protected/stale card can't leave the other half partially paid.
+// The effect itself is always isInherited: true since this card's only effect is the ability
+// it grants as digivolution material.
 
 const cardId = "BT26-006";
 const BAGRA_ARMY_TRAIT = "Bagra Army";
@@ -89,21 +89,17 @@ export const module: EffectModule = {
           });
           if (chosenIds.length < 2) return;
 
-          const idsByHost = new Map<string, string[]>();
+          const selections: { hostPermanentId: string; instanceId: string }[] = [];
           for (const id of chosenIds) {
             const entry = pool.find((p) => p.instanceId === id);
             if (entry === undefined) continue;
-            const hostIds = idsByHost.get(entry.hostPermanentId) ?? [];
-            hostIds.push(id);
-            idsByHost.set(entry.hostPermanentId, hostIds);
+            selections.push(entry);
           }
-
-          let trashedCount = 0;
-          for (const [hostId, ids] of idsByHost) {
-            const trashed = await ctx.fx.trashDigivolutionCards(hostId, ids);
-            trashedCount += trashed.length;
-          }
-          if (trashedCount < 2) return;
+          const trashed = await ctx.fx.trashDigivolutionCardsAtomic(selections, 2, {
+            byEffectSeat: source.ownerSeat,
+            byEffectCardId: cardId,
+          });
+          if (trashed.length !== 2) return;
 
           const candidates = bagraArmyTraitHandCards(ctx, source);
           if (candidates.length === 0) return;
@@ -120,11 +116,12 @@ export const module: EffectModule = {
           const def = ctx.game.definitionOf(chosenCard);
 
           if (def.kinds.includes(CardKind.Option)) {
-            const reducedCost = Math.max(0, (def.playCost ?? 0) - 2);
-            if (reducedCost > 0) ctx.fx.gainMemory(-reducedCost);
-            await ctx.fx.useOptionFromHand(ctx, chosenCard.instanceId, def.playCost);
+            await ctx.fx.useOptionFromHand(ctx, chosenCard.instanceId, def.playCost, {
+              payCost: true,
+              costDelta: 2,
+            });
           } else {
-            await ctx.fx.playInstances([chosenCard.instanceId], { payCost: true, costDelta: -2 });
+            await ctx.fx.playInstances([chosenCard.instanceId], { payCost: true, costDelta: 2 });
           }
         },
       }),

@@ -42,8 +42,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/on-play-draw-and-restrict`,
           description:
-            "[On Play] ＜Draw 1＞ Then, 1 of your opponent's Digimon can't attack or block " +
-            "until their turn ends.",
+            "[On Play] ＜Draw 1＞ Then, 1 of your opponent's Digimon can't attack or block " + "until their turn ends.",
           optional: false,
           resolve: async (ctx) => {
             await ctx.fx.draw(source.ownerSeat, 1);

@@ -4,14 +4,13 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { turnTiming } from "../../engine/effects/builders.js";
+import { security, turnTiming } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-088 — Hiroko Sagisaka (BT26, Red Tamer, TS).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-088 as of this port
-// (`node tools/kb/query.mjs card BT26-088` against the refreshed knowledge base returned no
-// entries). Implemented from the printed card text only.
+// The committed KB has no card-specific ruling for BT26-088. The implementation follows
+// the catalog text and the engine's verified cross-permanent play-cost reducer seam.
 //
 // [Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.
 // [Your Turn] When any [Boss] or [TS] trait Digimon cards would be played, by suspending this
@@ -22,16 +21,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 // an activation condition, so it gates both `when` and the resolve body (the board can change
 // between the two). The clause states no cost, so it is mandatory.
 //
-// RESIDUAL — the [Your Turn] play-cost reduction: this needs the `wouldBePlayed` replacement
-//   event to be consulted at play-cost time, and NOTHING consults it. `costReductionFor` is
-//   only ever called with `"wouldDigivolve"` (primitives.ts's digivolve cost step and
-//   GameEngine's), so a `subscribeReplacement({ event: "wouldBePlayed", mode: "reduceCost" })`
-//   install would be a dead letter — the same engine gap BT22-080 documents for its own ESS
-//   reduction. The passive `changePlayCost` ledger is NOT a substitute: this reduction has a
-//   printed cost ("by suspending this Tamer") and a live condition ("if you have no Digimon,
-//   instead ... by 2"), so it must be a per-play decision, not an always-on modifier. Omitted
-//   rather than half-modeled (BT26-038's convention for an engine-blocked clause). Port once
-//   play-cost calculation consults `wouldBePlayed`.
+// The [Your Turn] replacement is collected by GameEngine's cross-permanent pay-time seam,
+// where the optional suspension is paid before the final play cost is charged.
 
 const cardId = "BT26-088";
 
@@ -59,6 +50,19 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             if (!opponentHasDigimon(ctx, source.ownerSeat)) return;
             ctx.fx.gainMemory(1);
+          },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.SecuritySkill) {
+      return [
+        security({
+          source,
+          effectKey: `${cardId}/security-play-free`,
+          description: "[Security] Play this card without paying the cost.",
+          resolve: async (ctx) => {
+            await ctx.fx.playFromSecurity(ctx.source.instanceId, { payCost: false });
           },
         }),
       ];

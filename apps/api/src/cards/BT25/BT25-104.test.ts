@@ -1,10 +1,55 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT25-104 ShineGreymon: Burst Mode", () => {
+  it("exposes both the DATA SQUAD and Marcus-return Burst Digivolve routes", async () => {
+    expect(digivolutionRequirementsFor("BT25-104")).toEqual([
+      { cost: 5, isAlternate: true, level: 6, traits: ["DATA SQUAD"] },
+      {
+        cost: 0,
+        isAlternate: true,
+        names: ["ShineGreymon"],
+        burstDigivolve: { returnTamerNamesExact: ["Marcus Damon"] },
+      },
+    ]);
+
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-016", as: "base" },
+            { card: "BT13-095", as: "marcus" },
+          ],
+          hand: [{ card: "BT25-104", as: "burst" }],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-013", dp: 20000, as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const priorTop = s.perm("base").topCard.instanceId;
+    const marcusId = s.perm("marcus").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("burst").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT25-104");
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === marcusId)).toBe(true);
+    expect(s.perm("base").burstDigivolvePendingTrash).toBe(true);
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("base"));
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === priorTop)).toBe(true);
+  });
+
   it("uses its DATA SQUAD Use Requirement and resolves the Option side Main effect", async () => {
     const s = setupEngine(
       {
@@ -20,11 +65,13 @@ describe("BT25-104 ShineGreymon: Burst Mode", () => {
     s.state.memory = 6;
 
     type PlayCardIntentWithUseAs = Parameters<typeof s.engine.applyIntent>[1] & { useAs?: "digimon" | "option" };
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("option").instanceId,
-      useAs: "option",
-    } as PlayCardIntentWithUseAs)).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+        useAs: "option",
+      } as PlayCardIntentWithUseAs),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.some((p) => p.currentDP === 5000));
 
     expect(s.state.players[1]!.battleArea.some((p) => p.currentDP === 5000)).toBe(true);
@@ -42,5 +89,73 @@ describe("BT25-104 ShineGreymon: Burst Mode", () => {
     await settle(() => s.state.players[1]!.battleArea.some((p) => p.currentDP === 5000));
 
     expect(s.state.players[1]!.battleArea.some((p) => p.currentDP === 5000)).toBe(true);
+  });
+
+  it("treats the directly activated Main as an Option effect and may free-play a Tamer (Q6496-Q6498)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-104", as: "shine" }],
+          hand: [{ card: "BT12-092", as: "tamer" }],
+        },
+        1: { battleArea: [{ card: "BT1-013", dp: 20000, as: "immune" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    advance(s.engine).ledgers.continuous.addRestriction(
+      s.perm("immune").permanentId,
+      "beAffected",
+      EffectDuration.Permanent,
+      { fromSourceKind: [CardKind.Digimon], byOpponentEffectsOnly: true },
+    );
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("shine"));
+    await settle(() => s.perm("immune").currentDP === 5000);
+    expect(s.perm("immune").currentDP).toBe(5000);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT12-092")).toBe(true);
+  });
+
+  it("shares one Once Per Turn activation across When Digivolving and When Attacking", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-104", as: "shine" }] },
+        1: { battleArea: [{ card: "BT1-013", dp: 40000, as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("shine"));
+    expect(s.perm("target").currentDP).toBe(25000);
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("shine"));
+    expect(s.perm("target").currentDP).toBe(25000);
+  });
+
+  it("treats every Marcus Damon as a 12000 DP Digimon with Rush and exposes all printed keywords", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT25-104", as: "shine" },
+          { card: "BT13-095", as: "marcus" },
+        ],
+      },
+      1: { security: [{ card: "BT1-009", as: "security" }] },
+    });
+    await s.ready();
+
+    expect(s.perm("marcus").currentDP).toBe(12000);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("shine"), "Raid")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("shine"))).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("shine"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("shine"), "Barrier")).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("shine"), "SecurityAttack")).toBe(1);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("marcus").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
   });
 });

@@ -11,11 +11,9 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
 /**
  * BT26-014 — Darumamon (BT26, Red/Yellow Lv.5 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-014` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * Catalog source: `packages/shared/src/cards/data/cards.json`.
+ * Rules source: `data/kb/qa.json`, Q6969. In particular, returning this card from
+ * the trash during its own [On Deletion] does not stop the following "Then" clause.
  *
  * Printed text:
  *   [Digivolve] Lv.4 w/[Shambala] trait: Cost 3
@@ -38,10 +36,10 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
  *     the "play 1 [TB] card" half (no return-from-trash step), granted to whatever Digimon
  *     carries this card as a digivolution material when THAT Digimon is deleted.
  *
- * [Assembly -2] is structural play-legality data (assemblyRequirement), not an
- * EffectModule clause; per this port's constraints, effects.json is not touched for
- * BT26 cards, so the Assembly requirement is not structurally enforced for this card yet
- * (same gap as every other hand-implemented BT26 card in this set).
+ * [Assembly -2] is structural play-legality data, exposed by
+ * `assemblyRequirementFor` and enforced by the shared play-card path. Likewise, the
+ * alternate Lv.4 [Shambala] evolution is catalog/generated requirement data rather
+ * than an EffectModule clause.
  */
 const cardId = "BT26-014";
 

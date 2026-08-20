@@ -3,7 +3,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, turnTiming } from "../../engine/effects/builders.js";
+import { onPlay, staticModifier, turnTiming } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-040 — Drimogemon (BT26, Green Lv.4 Digimon).
@@ -15,11 +15,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 // [Digivolve] Lv.3 w/[DM] trait: Cost 2 — a digivolution-cost requirement, not an
 //   effect clause; already carried by CardDefinition.evoCosts in cards.json, so it
 //   needs no entry here.
-// <Training> <Piercing> — <Piercing> is inherited (inheritedEffectText); the printed
-//   keyword text is picked up automatically by the engine's printed-keyword parse, so
-//   it needs no hand-written entry here. <Training> has no engine-consumer keyword of
-//   that exact name found in this port and is likewise left to the printed-keyword
-//   parse rather than hand-coded.
+// <Training> <Piercing> — both top-level keywords are consumed by the combat keyword
+//   parser. Inherited <Piercing> is granted explicitly because that parser reads the
+//   current top card, not inheritedEffectText from the stack.
 // [When Moving] [On Play] Suspend 1 of your opponent's Digimon. Then, by placing 1
 //   card in your hand face down as this Digimon's bottom digivolution card, this
 //   Digimon gets +1000 DP until your opponent's turn ends for each of its face-down
@@ -59,7 +57,7 @@ function isSelfMove(ctx: EffectContext, source: CardSource): boolean {
 async function resolveSuspendThenPlaceForDP(ctx: EffectContext, source: CardSource): Promise<void> {
   const opponentSeat = ctx.game.opponentOf(source.ownerSeat);
   const opponentDigimon = Array.from(ctx.game.player(opponentSeat).battleArea).filter(
-    (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
+    (p) => p.topCard !== undefined && !p.isSuspended && isDigimon(ctx.game.definitionOf(p.topCard)),
   );
   if (opponentDigimon.length > 0) {
     let targetId: string;
@@ -85,7 +83,8 @@ async function resolveSuspendThenPlaceForDP(ctx: EffectContext, source: CardSour
   const toPlace = await ctx.ask.selectCards(ctx, { candidates: handIds, min: 0, max: 1 });
   if (toPlace.length === 0) return;
 
-  await ctx.fx.placeUnder(self.permanentId, toPlace);
+  const placed = await ctx.fx.placeUnder(self.permanentId, toPlace, { faceUp: false });
+  if (placed.length !== 1) return;
 
   const updated = ctx.game.permanentById(self.permanentId);
   if (updated === undefined) return;
@@ -136,6 +135,24 @@ const module: EffectModule = {
           when: (ctx) => isSelfMove(ctx, source),
           resolve: async (ctx) => {
             await resolveSuspendThenPlaceForDP(ctx, source);
+          },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/inherited-piercing`,
+          description: "＜Piercing＞ (inherited)",
+          isInherited: true,
+          when: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const host = ctx.source.permanent();
+            if (host !== undefined) {
+              ctx.fx.grantKeyword(host.permanentId, "Piercing", EffectDuration.Permanent);
+            }
           },
         }),
       ];

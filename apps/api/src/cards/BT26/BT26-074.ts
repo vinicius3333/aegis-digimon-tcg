@@ -15,8 +15,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 //
 // Printed text:
 //   [Digivolve] Lv.4 w/[TS] trait: Cost 3 — a digivolution-cost requirement, not an
-//     effect clause; already carried by CardDefinition.evoCosts in cards.json, so it
-//     needs no entry here.
+//     effect clause. The catalog only carries this card's ordinary purple/black Lv.4
+//     cost-4 paths; the alternate trait path must be supplied by the shared
+//     ALTERNATE_DIGIVOLUTION_OVERRIDES table.
 //   [On Play] [When Digivolving] [When Attacking] [Once Per Turn] If it's your turn, by
 //     trashing 1 card in your hand, you may use 1 Option card with the [Titan] trait
 //     from your trash with the cost reduced by 2.
@@ -33,16 +34,10 @@ import { registerCard } from "../../engine/effects/registry.js";
 //     BT26-026's `ctx.fx.gainMemory(-reducedCost)` + `ctx.fx.useOptionFromHand` pair —
 //     the established hand-written idiom for "use an Option with a reduced cost" (per
 //     BT26-006/012/026/033/049/053/090). `useOptionFromHand` is named for its usual
-//     hand-sourced call site, but its mechanics (pay cost, move the card to trash, fire
-//     whenOptionUsed) are source-agnostic: its internal `trash([id])` is a documented
-//     no-op for a card already sitting in trash (primitives.ts's `trash` skips ids
-//     already resolved via `removeLooseInstance(..., includeTrash=false)`), so calling
-//     it on a trash-resident Option correctly leaves the card in trash while still
-//     paying the cost and firing the watcher event. As with BT26-012/026, only the
-//     mechanical half of using the Option is performed here — re-deriving the
-//     interpreter's own compiled-effect dispatch to run the used Option's printed
-//     effect body from within this card's module would be exactly what
-//     card-module contract forbids.
+//     hand-sourced call site, but its lookup and lifecycle are zone-agnostic: it resolves
+//     the selected Option's registered [Main] effect, leaves a trash-resident Option in
+//     trash unless that effect relocates it, and fires `whenOptionUsed` with the printed
+//     use cost. The memory delta here is therefore only the reduced payable cost.
 //
 //   EffectTiming.OnDestroyedAnyone (onDeletion, isInherited: true) — "[On Deletion]
 //     Delete 1 of your opponent's Digimon with the lowest level." Modeled on
@@ -104,7 +99,8 @@ async function resolveTrashHandToUseTitanOptionFromTrash(
   });
   if (chosenCost.length === 0) return;
 
-  await ctx.fx.trash(chosenCost);
+  const paid = await ctx.fx.trash(chosenCost, { byEffectSeat: source.ownerSeat });
+  if (!paid.some((card) => card.instanceId === chosenCost[0])) return;
 
   const def = ctx.game.definitionOf(chosenOption);
   const reducedCost = Math.max(0, (def.playCost ?? 0) - 2);
@@ -115,9 +111,11 @@ async function resolveTrashHandToUseTitanOptionFromTrash(
 /** Opponent's battle-area Digimon at the lowest printed level among them. */
 function opponentLowestLevelDigimon(ctx: EffectContext, source: CardSource): Permanent[] {
   const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
-  const digimon = Array.from(opponent.battleArea).filter(
-    (p) => !p.inBreeding && p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
-  );
+  const digimon = Array.from(opponent.battleArea).filter((p) => {
+    if (p.inBreeding || p.topCard === undefined) return false;
+    const definition = ctx.game.definitionOf(p.topCard);
+    return isDigimon(definition) && definition.level !== undefined;
+  });
   if (digimon.length === 0) return [];
   const minLevel = Math.min(...digimon.map((p) => ctx.game.definitionOf(p.topCard!).level ?? Infinity));
   return digimon.filter((p) => (ctx.game.definitionOf(p.topCard!).level ?? Infinity) === minLevel);

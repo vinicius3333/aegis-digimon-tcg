@@ -1,0 +1,98 @@
+import { getCardDefinition } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
+import { compiled } from "./BT25-075.js";
+
+const CARD_ID = "BT25-075";
+
+describe("BT25-075 Vulcanusmon", () => {
+  it("keeps the printed alternate evolution, strict play reduction, link gate, and linked-card scaling", () => {
+    expect(getCardDefinition(CARD_ID)).toMatchObject({
+      level: 6,
+      playCost: 12,
+      evoCosts: [
+        { color: "Black", level: 5, memoryCost: 4 },
+        { color: "Red", level: 5, memoryCost: 4 },
+      ],
+      effectText: expect.stringContaining("if you have fewer Digimon than your opponent"),
+    });
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 5, traits: ["TS"], cost: 3, isAlternate: true }]);
+
+    const playReduction = compiled.effects?.find((effect) => effect.trigger === "Static")?.actions[0];
+    expect(playReduction).toMatchObject({
+      kind: "Replacement",
+      event: "wouldBePlayed",
+      condition: {
+        kind: "boardCountCompare",
+        left: "mine",
+        right: "opponent",
+        op: "lt",
+        filter: { kind: ["Digimon"] },
+      },
+    });
+    for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+      const actions = compiled.effects?.find((effect) => effect.trigger === trigger)?.actions ?? [];
+      expect(actions[0]).toMatchObject({
+        kind: "Link",
+        target: { count: 2, upTo: true, filter: { hasLinkRequirement: true } },
+        from: ["hand", "trash"],
+        payCost: false,
+      });
+      expect(actions[1]).toMatchObject({
+        kind: "DeDigivolve",
+        target: { count: "all", filter: { controller: "opponent", kind: ["Digimon"] } },
+        amount: 1,
+        scaling: { per: 1, unit: "linkCards", filter: { controller: "mine", kind: ["Digimon"] } },
+      });
+    }
+  });
+
+  it("reduces play cost only when your Digimon count is strictly lower", async () => {
+    const reduced = setupEngine(
+      {
+        0: { hand: [{ card: CARD_ID, as: "vulcanusmon" }] },
+        1: { battleArea: [{ card: "BT25-081", as: "opponent" }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    reduced.state.memory = 7;
+    expect(
+      reduced.engine.applyIntent(0, { type: "playCard", instanceId: reduced.inst("vulcanusmon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => reduced.state.players[0]!.battleArea.some((p) => p.topCard.cardId === CARD_ID));
+    expect(reduced.state.memory).toBe(0);
+
+    const tied = setupEngine(
+      {
+        0: { hand: [{ card: CARD_ID, as: "vulcanusmon" }], battleArea: [{ card: "BT25-081", as: "own" }] },
+        1: { battleArea: [{ card: "BT25-081", as: "opponent" }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    tied.state.memory = 7;
+    expect(tied.engine.applyIntent(0, { type: "playCard", instanceId: tied.inst("vulcanusmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => tied.state.players[0]!.battleArea.some((p) => p.topCard.cardId === CARD_ID));
+    expect(tied.state.memory).toBe(-5); // full printed play cost 12, no strict-fewer reduction
+  });
+
+  it("grants Rush and Link +1 only to own TS Digimon, including the source itself", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: CARD_ID, as: "vulcanusmon" },
+          { card: "BT25-071", as: "ts" },
+          { card: "BT25-081", as: "nearMatch" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT25-081", as: "opponent" }] },
+    });
+    await s.ready();
+    expect(Array.from(s.perm("vulcanusmon").keywords)).toEqual(expect.arrayContaining(["Rush", "Link"]));
+    expect(Array.from(s.perm("ts").keywords)).toEqual(expect.arrayContaining(["Rush", "Link"]));
+    expect(s.perm("nearMatch").keywords).not.toContain("Rush");
+    expect(s.perm("nearMatch").keywords).not.toContain("Link");
+  });
+});

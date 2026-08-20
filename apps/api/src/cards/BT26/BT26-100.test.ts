@@ -46,6 +46,43 @@ describe("BT26-100 Dark Field", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "AD1-002")).toBe(true);
   });
 
+  it("can resolve Main at zero security and becomes the face-up bottom card, per Q7175", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT26-100", as: "darkField" }],
+        security: [],
+      },
+    });
+    await s.ready();
+    s.state.memory = 3;
+    const darkFieldId = s.inst("darkField").instanceId;
+
+    expect(continuous(s).hasColorWaiver(darkFieldId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: darkFieldId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === darkFieldId));
+
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security[0]).toMatchObject({ instanceId: darkFieldId, faceUp: true });
+  });
+
+  it("uses a non-Titan Titamon for the condition but grants effects only to Titan Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        security: [{ card: "BT26-100", faceUp: true }],
+        battleArea: [
+          { card: "BT24-009", dp: 1000, as: "titan" },
+          { card: "BT1-080", dp: 12000, as: "nonTitanTitamon" },
+        ],
+      },
+    });
+    await s.ready();
+
+    expect(continuous(s).hasKeyword(s.perm("titan").permanentId, "Blocker")).toBe(true);
+    expect(s.perm("titan").currentDP).toBe(4000);
+    expect(continuous(s).hasKeyword(s.perm("nonTitanTitamon").permanentId, "Blocker")).toBe(false);
+    expect(s.perm("nonTitanTitamon").currentDP).toBe(12000);
+  });
+
   it("plays a level-4-or-lower Titan Digimon from trash from Security", async () => {
     const s = setupEngine({
       0: {

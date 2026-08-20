@@ -1,4 +1,4 @@
-import { CardKind, EffectTiming } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
 import type { CardDefinition, Seat } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -18,8 +18,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 //   base whose text contains "Chronomon", or a base named [Giant Slayer] (BT26-085, which
 //   prints no level at all and so cannot be folded into the level-gated entry).
 // ＜Security A. +1＞ ＜Reboot＞ ＜Blocker＞ ＜Succession (Lv.6 w/[Chronomon] in name)＞ —
-//   printed keywords, parsed from effectText by the engine; no module clause (BT26-013's
-//   convention).
+//   explicit continuous grants plus a topmost matching stack-card confer.
 // [On Play] [When Digivolving] Return the top 5 stacked cards of 3 of your opponent's Digimon
 //   to the top of the deck.
 // [All Turns] [Once Per Turn] When your effects add to decks, you may delete 1 of your
@@ -41,14 +40,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 //   `[All Turns]` means no `isOwnersTurn` gate. Q7084/Q7085 confirm the event's breadth (any
 //   area other than the deck, top or bottom, even when the same effect also removed cards).
 //
-//   RESIDUAL — "YOUR effects": Q7086 is explicit that this triggers when one of your effects
-//   adds cards to your OPPONENT's deck, which is exactly what clause 1 above does. The engine
-//   fires `whenEffectAddsToDeck` with only `effectAddedToDeckSeat`, the RECIPIENT deck's owner
-//   (primitives.ts's `returnToDeck`) — the resolving effect's controller is tracked internally
-//   (`effectSeatStack`) but is not exposed on the event or to card modules. So this watcher
-//   cannot enforce "your effects" and instead accepts a deck-add on EITHER side. That is a
-//   deliberate over-trigger: BT26-001's own-seat gate would silently break this card's printed
-//   combo, which Q7086 says must work. Narrow it once the event carries the effect controller.
+//   Q7086 is scoped by `effectAddedToDeckBySeat`: either recipient deck qualifies, but the
+//   resolving effect must belong to this card's controller.
 
 const cardId = "BT26-060";
 
@@ -142,6 +135,38 @@ const module: EffectModule = {
       return [
         staticModifier({
           source,
+          effectKey: `${cardId}/printed-keywords`,
+          description: "＜Security A. +1＞ ＜Reboot＞ ＜Blocker＞",
+          when: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self === undefined) return;
+            ctx.fx.grantKeyword(self.permanentId, "SecurityAttack", EffectDuration.Permanent, 1);
+            ctx.fx.grantKeyword(self.permanentId, "Reboot", EffectDuration.Permanent);
+            ctx.fx.grantKeyword(self.permanentId, "Blocker", EffectDuration.Permanent);
+          },
+        }),
+        staticModifier({
+          source,
+          effectKey: `${cardId}/succession-chronomon`,
+          description:
+            "＜Succession (Lv.6 w/[Chronomon] in name)＞ Gain all non-Succession effects " +
+            "of the topmost matching digivolution card.",
+          when: (ctx) => ctx.source.isOnBattleArea() && ctx.conferredToPermanentId === undefined,
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self === undefined) return;
+            for (let index = self.stack.length - 1; index >= 0; index -= 1) {
+              const stackCard = self.stack[index]!;
+              const definition = ctx.game.definitionOf(stackCard);
+              if (!stackCard.faceUp || definition.level !== 6 || !definition.nameEn.includes("Chronomon")) continue;
+              ctx.fx.conferStackEffects(self.permanentId, stackCard.instanceId, EffectDuration.Permanent);
+              break;
+            }
+          },
+        }),
+        staticModifier({
+          source,
           effectKey: `${cardId}/delete-on-effect-adds-to-deck`,
           description:
             "[All Turns] [Once Per Turn] When your effects add to decks, you may delete 1 of " +
@@ -157,21 +182,25 @@ const module: EffectModule = {
               event: "whenEffectAddsToDeck",
               sourcePermanentId: self.permanentId,
               once: false,
-              oncePerTurnKey: `${cardId}/delete-on-effect-adds-to-deck`,
               description: `${cardId}: an effect of yours adds cards to a deck -> may delete 1 opponent Digimon.`,
               matches: (subCtx) => {
                 if (!subCtx.source.isOnBattleArea()) return false;
-                // Either deck qualifies — see the "YOUR effects" residual above (KB Q7086).
-                return subCtx.trigger?.effectAddedToDeckSeat !== undefined;
+                return (
+                  subCtx.trigger?.effectAddedToDeckSeat !== undefined &&
+                  subCtx.trigger.effectAddedToDeckBySeat === ownerSeat
+                );
               },
               run: async (subCtx) => {
                 const targets = opponentDigimon(subCtx, ownerSeat);
                 if (targets.length === 0) return;
 
                 const chosen = await subCtx.ask.chooseTargets(subCtx, { candidates: targets, min: 0, max: 1 });
-                if (chosen.length === 0) return;
+                if (chosen.length === 0) {
+                  subCtx.oncePerTurnActivationDeclined = true;
+                  return;
+                }
 
-                await subCtx.fx.deletePermanent(chosen);
+                await subCtx.fx.deletePermanent(chosen, "byEffect");
               },
             });
           },

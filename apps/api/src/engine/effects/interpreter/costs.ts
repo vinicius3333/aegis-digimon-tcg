@@ -326,8 +326,10 @@ export async function payCost(
         if (n <= 0 || candidates.length < n) return false;
         const chosen = await pickLoose(ctx, { ...linkTarget, count: n }, candidates);
         if (chosen.length < n) return false;
-        await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
-        if (out) out.paidCount = chosen.length;
+        const moved = await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
+        const movedIds = new Set(moved.map((card) => card.instanceId));
+        if (moved.length !== n || chosen.some((instanceId) => !movedIds.has(instanceId))) return false;
+        if (out) out.paidCount = moved.length;
         return true;
       }
       // "By trashing N of this Digimon's digivolution cards" (BT17-057, EX10-055) — an
@@ -812,9 +814,7 @@ export async function payCost(
       });
       if (candidates.length === 0) return false;
       const selected =
-        candidates.length === 1
-          ? candidates[0]
-          : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
+        candidates.length === 1 ? candidates[0] : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
       if (selected === undefined || !ctx.fx.placeOwnTopAtStackBottom(selected)) return false;
       if (out) out.paidCount = 1;
       return true;

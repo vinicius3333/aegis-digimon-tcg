@@ -1,20 +1,17 @@
-import { CardKind, EffectTiming } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
 import type { CardDefinition, CardInstance, Seat } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, whenDigivolving, activated } from "../../engine/effects/builders.js";
+import { activated, onPlay, staticModifier, whenDigivolving } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**
  * BT26-070 — NightChiropmon (BT26, Purple Lv.4 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-070` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * Q7092 requires the full 2-card cost; Q7093 prevents combining two copies' cost
+ * reductions for one Option use. Each permanent therefore owns an independent OPT.
  *
  * Printed text:
  *   [Digivolve] Lv.3 w/[Glowing Dawn] trait: Cost 2
@@ -58,9 +55,8 @@ import { registerCard } from "../../engine/effects/registry.js";
  *     body from within this card's module would be exactly what card-module contract
  *     forbids.
  *
- *   Inherited ＜Retaliation＞ — printed keyword, parsed automatically from
- *     inheritedEffectText by the engine's combat/keywords.ts (PRINTED_MATCHERS); needs
- *     no explicit grant (same treatment as BT26-067's ＜Retaliation＞).
+ *   Inherited ＜Retaliation＞ — explicitly granted from stack position because combat
+ *     legality reads the continuous keyword ledger.
  */
 const cardId = "BT26-070";
 const GLOWING_DAWN_TRAIT = "Glowing Dawn";
@@ -82,20 +78,20 @@ async function drawAndTrashFromHand(ctx: EffectContext, source: CardSource): Pro
     max: 1,
   });
   if (chosen.length > 0) {
-    await ctx.fx.trash(chosen);
+    await ctx.fx.trash(chosen, { byEffectSeat: source.ownerSeat });
   }
 }
 
 /** The bottom-most face-down card under each of `seat`'s Tamers (may span multiple Tamers). */
-function faceDownUnderTamersPool(ctx: EffectContext, seat: Seat): { hostPermanentId: string; instanceId: string }[] {
+function faceDownUnderTamersPool(ctx: EffectContext, seat: Seat): { hostPermanentId: string; card: CardInstance }[] {
   const owner = ctx.game.player(seat);
-  const pool: { hostPermanentId: string; instanceId: string }[] = [];
+  const pool: { hostPermanentId: string; card: CardInstance }[] = [];
   for (const p of owner.battleArea) {
     if (p.inBreeding || p.topCard === undefined) continue;
     if (!ctx.game.definitionOf(p.topCard).kinds.includes(CardKind.Tamer)) continue;
     const bottomFaceDown = p.stack.find((card) => !card.faceUp);
     if (bottomFaceDown !== undefined) {
-      pool.push({ hostPermanentId: p.permanentId, instanceId: bottomFaceDown.instanceId });
+      pool.push({ hostPermanentId: p.permanentId, card: bottomFaceDown });
     }
   }
   return pool;
@@ -113,6 +109,22 @@ function glowingDawnOptionTrashCards(ctx: EffectContext, seat: Seat): CardInstan
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/inherited-retaliation`,
+          description: "Inherited: ＜Retaliation＞",
+          isInherited: true,
+          when: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const host = source.permanent();
+            if (host !== undefined) ctx.fx.grantKeyword(host.permanentId, "Retaliation", EffectDuration.Permanent);
+          },
+        }),
+      ];
+    }
+
     // [On Play] <Draw 1> and trash 1 card in your hand.
     if (timing === EffectTiming.OnPlay) {
       return [
@@ -160,19 +172,24 @@ const module: EffectModule = {
           when: (ctx) => ctx.source.isOnBattleArea(),
           canActivate: (ctx) => {
             const seat = source.ownerSeat;
-            return faceDownUnderTamersPool(ctx, seat).length >= 2 && glowingDawnOptionTrashCards(ctx, seat).length > 0;
+            const pool = faceDownUnderTamersPool(ctx, seat);
+            return (
+              pool.length >= 2 &&
+              (glowingDawnOptionTrashCards(ctx, seat).length > 0 ||
+                pool.some(({ card }) => {
+                  const def = ctx.game.definitionOf(card);
+                  return def.kinds.includes(CardKind.Option) && hasGlowingDawnTrait(def);
+                }))
+            );
           },
           resolve: async (ctx) => {
             const seat = source.ownerSeat;
-
-            const optionCandidates = glowingDawnOptionTrashCards(ctx, seat);
-            if (optionCandidates.length === 0) return;
 
             const pool = faceDownUnderTamersPool(ctx, seat);
             if (pool.length < 2) return;
 
             const chosenIds = await ctx.ask.selectCards(ctx, {
-              candidates: pool.map((p) => p.instanceId),
+              candidates: pool.map(({ card }) => card.instanceId),
               min: 2,
               max: 2,
             });
@@ -180,7 +197,7 @@ const module: EffectModule = {
 
             const idsByHost = new Map<string, string[]>();
             for (const id of chosenIds) {
-              const entry = pool.find((p) => p.instanceId === id);
+              const entry = pool.find(({ card }) => card.instanceId === id);
               if (entry === undefined) continue;
               const hostIds = idsByHost.get(entry.hostPermanentId) ?? [];
               hostIds.push(id);
@@ -189,10 +206,16 @@ const module: EffectModule = {
 
             let trashedCount = 0;
             for (const [hostId, ids] of idsByHost) {
-              const trashed = await ctx.fx.trashDigivolutionCards(hostId, ids);
+              const trashed = await ctx.fx.trashDigivolutionCards(hostId, ids, {
+                byEffectSeat: seat,
+                byEffectCardId: cardId,
+              });
               trashedCount += trashed.length;
             }
             if (trashedCount < 2) return;
+
+            const optionCandidates = glowingDawnOptionTrashCards(ctx, seat);
+            if (optionCandidates.length === 0) return;
 
             const chosenOption = await ctx.ask.selectCards(ctx, {
               candidates: optionCandidates.map((c) => c.instanceId),

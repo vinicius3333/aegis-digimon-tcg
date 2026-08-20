@@ -4,7 +4,14 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { whenDigivolving, staticModifier, activated } from "../../engine/effects/builders.js";
+import { cardHasTrait, permanentHasTrait } from "../../engine/cards/cardData.js";
+import {
+  activated,
+  colorWaiverStatic,
+  handResidentStatic,
+  staticModifier,
+  whenDigivolving,
+} from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-033 — Jupitermon // Wide Plasment (BT26 Yellow/Red DUAL Digimon/Option).
@@ -30,10 +37,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 //   surcharge (mirrors BT25-096's own live-state use-cost modifier), keyed to this exact
 //   card (by cardId) rather than by name, since a use-cost surcharge tied to "this card"
 //   should not spill onto other printings of the same card sharing a name.
-// ＜Use Req. ([TS] trait)＞ — data-only: the color-gate waiver for a DUAL card's Option
-//   side is the hand-authored `optionColorRequirements` field on the card record
-//   (["Yellow","Red"] in cards.json), not an executable action (see BT26-031/BT26-050
-//   precedent and commit 1298f75fa).
+// ＜Use Req. ([TS] trait)＞ — while the controller has a [TS] card in the battle area,
+//   the Option side may be used without satisfying its printed yellow/red color gate.
 // [Main] Delete all of your opponent's Digimon with the lowest DP. Then, ＜Recovery +1＞.
 //   No "if you did" ties the two together, so ＜Recovery +1＞ is attempted regardless of
 //   whether any Digimon was deleted (mirrors BT26-016's identically unconditional
@@ -64,12 +69,19 @@ const TS_TRAIT = "TS";
 const ILIAD_TRAIT = "Iliad";
 
 function hasTrait(def: CardDefinition, trait: string): boolean {
-  return (def.types ?? []).includes(trait);
+  return cardHasTrait(def, trait);
 }
 
 function iliadHandCards(ctx: EffectContext, source: CardSource): CardInstance[] {
   const owner = ctx.game.player(source.ownerSeat);
   return Array.from(owner.hand).filter((c) => hasTrait(ctx.game.definitionOf(c), ILIAD_TRAIT));
+}
+
+function ownerHasTsCardInPlay(ctx: EffectContext, source: CardSource): boolean {
+  return Array.from(ctx.game.player(source.ownerSeat).battleArea).some((permanent) => {
+    if (permanent.inBreeding || permanent.topCard === undefined) return false;
+    return permanentHasTrait(ctx.game, permanent, TS_TRAIT);
+  });
 }
 
 /** Opponent battle-area Digimon permanents (not in breeding), for the [Main] delete clause. */
@@ -113,9 +125,10 @@ const module: EffectModule = {
             const def = ctx.game.definitionOf(chosenCard);
 
             if (def.kinds.includes(CardKind.Option)) {
-              const reducedCost = Math.max(0, (def.playCost ?? 0) - 5);
-              if (reducedCost > 0) ctx.fx.gainMemory(-reducedCost);
-              await ctx.fx.useOptionFromHand(ctx, chosenCard.instanceId, def.playCost);
+              await ctx.fx.useOptionFromHand(ctx, chosenCard.instanceId, def.playCost, {
+                payCost: true,
+                costDelta: 5,
+              });
             } else {
               await ctx.fx.playInstances([chosenCard.instanceId], { payCost: true, costDelta: 5 });
             }
@@ -184,13 +197,29 @@ const module: EffectModule = {
 
                 const topStacked = host.stack[host.stack.length - 1]!;
                 await subCtx.fx.addSecurity(source.ownerSeat, [topStacked.instanceId], { toTop: false });
-                return true;
+                const refreshedHost = subCtx.game.permanentById(selfId);
+                const paid = refreshedHost?.stack.every((card) => card.instanceId !== topStacked.instanceId) ?? false;
+                return (
+                  paid &&
+                  subCtx.game
+                    .player(source.ownerSeat)
+                    .security.some((card) => card.instanceId === topStacked.instanceId)
+                );
               },
             });
           },
         }),
+        colorWaiverStatic({
+          source,
+          effectKey: `${cardId}/use-req-ts`,
+          description: "＜Use Req. ([TS] trait)＞ Ignore this card's color requirements.",
+          when: (ctx) => ownerHasTsCardInPlay(ctx, source),
+          resolve: async (ctx) => {
+            ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.UntilEachTurnEnd);
+          },
+        }),
         // Use-cost surcharge for the Option side: +1 per security card the controller has.
-        staticModifier({
+        handResidentStatic({
           source,
           effectKey: `${cardId}/use-cost-plus-security-count`,
           description: "For each of your security cards, add 1 to this card's use cost.",

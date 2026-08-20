@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, isDigimon } from "@aegis/shared";
 import type { CardDefinition, Seat } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -11,11 +11,9 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
 /**
  * BT26-063 — Tellermon (BT26, Purple Lv.3 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-063` returns no errata/Q&A hits), so this port is
- * provisional: it follows the printed text directly and mirrors the closest existing
- * hand-written cards for each clause shape. Re-check against the KB once BT26 rulings
- * are scraped.
+ * The committed knowledge base has no BT26-063 Q&A or errata entries. The printed catalog
+ * text is therefore the card-specific authority. The shared Detach mechanic implements
+ * the Q6964-established pre-battle-deletion prevention window.
  *
  * Printed text:
  *   [Digivolve] Lv.2 w/[Appmon] trait: Cost 0
@@ -26,8 +24,8 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
  *
  * Clause mapping:
  *   [Digivolve] — a digivolution-cost requirement, not an effect clause.
- *   ＜Detach＞ — printed keyword on this card's own text, resolved by the engine's
- *     printed-keyword reader; no module clause.
+ *   ＜Detach＞ — the shared combat path offers an eligible linked [Seven Code] card
+ *     immediately before battle deletion and trashes it to prevent that Digimon's deletion.
  *   EffectTiming.None — a persistent [Your Turn] watcher installing a `whenLinked`
  *     sub-trigger anchored to this permanent and budgeted by `oncePerTurnKey` for the
  *     printed [Once Per Turn]; see BT26-051 for the shared shape. The reveal / add /
@@ -35,12 +33,11 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
  *     (interpreter.ts `runRevealAdd`): reveal, take the picks to hand, then let the
  *     controller send the remainder to the top or the bottom as one group.
  *
- * RESIDUAL — link face: this card also carries a printed `linkEffect`:
- *     [When Linking] Delete 1 of your opponent's Digimon with the lowest level.
- *   No BT26 card in this set ports its `linkEffect` (BT26-028 / BT26-037 leave theirs
- *   unported too) and the clause-coverage gate does not read that field, so it is left
- *   unimplemented here for consistency rather than half-modeled. Track it with the
- *   set-wide link-face gap.
+ *   Link face — an `isLinked` static installs a `whenLinked` watcher. The shared link
+ *     operation recomputes newly attached faces before publishing the simultaneous event,
+ *     whose `linkedCardInstanceIds` binds this effect to this physical Tellermon only.
+ *     Resolution calculates the global lowest level among opposing battle-area Digimon,
+ *     offers every tied minimum, and deletes exactly 1.
  */
 const cardId = "BT26-063";
 
@@ -101,7 +98,7 @@ const module: EffectModule = {
               event: "whenLinked",
               sourcePermanentId: hostId,
               once: false,
-              oncePerTurnKey: `${cardId}/when-linked-reveal-add`,
+              oncePerTurnKey: `${hostId}/${cardId}/when-linked-reveal-add`,
               description: `${cardId}: this Digimon gets linked -> reveal 3 and add 1.`,
               matches: (subCtx) => {
                 if (!subCtx.source.isOnBattleArea() || !subCtx.source.isOwnersTurn()) return false;
@@ -109,6 +106,43 @@ const module: EffectModule = {
               },
               run: async (subCtx) => {
                 await revealAddAndReturn(subCtx, ownerSeat);
+              },
+            });
+          },
+        }),
+        staticModifier({
+          source,
+          effectKey: `${cardId}/link-face-delete-lowest-level`,
+          description: "[When Linking] Delete 1 of your opponent's Digimon with the lowest level.",
+          isLinked: true,
+          resolve: async (ctx) => {
+            const host = ctx.source.permanent();
+            if (host === undefined) return;
+            ctx.fx.subscribeSubTrigger({
+              event: "whenLinked",
+              sourcePermanentId: host.permanentId,
+              once: false,
+              description: `${cardId}: linked face [When Linking] delete a lowest-level Digimon.`,
+              matches: (subCtx) => subCtx.trigger?.linkedCardInstanceIds?.includes(source.instanceId) === true,
+              run: async (subCtx) => {
+                const opponent = subCtx.game.opponentOf(source.ownerSeat);
+                const eligible = Array.from(subCtx.game.player(opponent).battleArea).filter((permanent) => {
+                  if (permanent.inBreeding || permanent.topCard === undefined) return false;
+                  const definition = subCtx.game.definitionOf(permanent.topCard);
+                  return isDigimon(definition) && definition.level !== undefined;
+                });
+                if (eligible.length === 0) return;
+                const lowestLevel = Math.min(
+                  ...eligible.map((permanent) => subCtx.game.definitionOf(permanent.topCard!).level!),
+                );
+                const candidates = eligible
+                  .filter((permanent) => subCtx.game.definitionOf(permanent.topCard!).level === lowestLevel)
+                  .map((permanent) => permanent.permanentId);
+                const chosen =
+                  candidates.length === 1
+                    ? candidates
+                    : await subCtx.ask.chooseTargets(subCtx, { candidates, min: 1, max: 1 });
+                if (chosen[0] !== undefined) await subCtx.fx.deletePermanent([chosen[0]]);
               },
             });
           },

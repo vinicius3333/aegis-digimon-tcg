@@ -41,7 +41,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/start-of-turn-set-memory-3`,
           description: "[Start of Your Turn] Set your memory to 3.",
-          when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn(),
+          when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn() && ctx.game.state.memory <= 2,
           resolve: async (ctx) => {
             ctx.fx.setMemory(3);
           },
@@ -80,7 +80,12 @@ const module: EffectModule = {
             const owner = ctx.game.player(ctx.source.ownerSeat);
             if (owner.deck.length >= 1) {
               const topIds = owner.deck.slice(0, Math.min(2, owner.deck.length)).map((c) => c.instanceId);
-              ctx.fx.placeUnder(selfPerm.permanentId, topIds, { belowTop: false });
+              for (const instanceId of topIds) {
+                await ctx.fx.placeUnder(selfPerm.permanentId, [instanceId], {
+                  belowTop: false,
+                  faceUp: false,
+                });
+              }
             }
           },
         }),
@@ -99,13 +104,15 @@ const module: EffectModule = {
           maxPerTurn: 1,
           when: (ctx) => {
             if (!ctx.source.isOnBattleArea() || !ctx.source.isOwnersTurn()) return false;
-            const def = ctx.source.definition;
+            if (ctx.trigger.wouldBePlayedAsOption === true) return false;
+            const playedCardId = ctx.trigger.wouldBePlayedCardId;
+            const def =
+              playedCardId === undefined ? undefined : ctx.game.definitionOf({ cardId: playedCardId } as never);
             if (def === undefined) return false;
             // The card being played must have [Glowing Dawn] trait and a play cost
             const traits = def.types ?? [];
             const hasGlowingDawn = traits.includes("Glowing Dawn") || traits.includes("GlowingDawn");
-            const inHand = ctx.source.permanent() === undefined;
-            return hasGlowingDawn && inHand && def.playCost >= 0;
+            return hasGlowingDawn && def.playCost >= 0;
           },
           canActivate: (ctx) => {
             return tamerWithFaceDownUnder(ctx.game, ctx.source.ownerSeat).length > 0;
@@ -136,7 +143,8 @@ const module: EffectModule = {
             const bottomCard = tamerPerm.stack.find((card) => card.faceUp !== true);
             if (bottomCard === undefined) return;
 
-            await ctx.fx.trashDigivolutionCards(chosenTamer[0]!, [bottomCard.instanceId]);
+            const trashed = await ctx.fx.trashDigivolutionCards(chosenTamer[0]!, [bottomCard.instanceId]);
+            if (!trashed.some((card) => card.instanceId === bottomCard.instanceId)) return;
 
             // Reduce play cost by 1
             ctx.playCostDelta = (ctx.playCostDelta ?? 0) + 1;

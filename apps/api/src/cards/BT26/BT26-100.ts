@@ -31,10 +31,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 //
 //   - "While you have no face-up security cards, you can ignore this card's color
 //     requirements." -> EffectTiming.None, `staticModifier` with a `when` gate on the
-//     condition (mirrors BT9-109's `<Use Req.>`-shaped inline waiver — this is prose
-//     text, not a `<Use Req.>` bracket header, so it is executable via
-//     `ctx.fx.waiveColorRequirement`, unlike the bracket-header `<Use Req.>` gap
-//     documented on BT26-101/BT26-033).
+//     condition (mirrors BT9-109's `<Use Req.>`-shaped inline waiver). Both prose and
+//     bracket-header Use Requirements route through the shared color-waiver ledger.
 //
 //   - "[Security] [All Turns] ..." -> EffectTiming.None, `securityStatic` gated on
 //     this card being face-up in Security, so the grant remains live between checks.
@@ -145,9 +143,8 @@ const module: EffectModule = {
 
         // [Security] [All Turns] All of your [Titan] trait Digimon gain <Blocker>.
         // While you have a Digimon with [Plutomon] or [Titamon] in its name, they also
-        // get +3000 DP. See the header note: gated on battle-area residency (the
-        // EX12-072 convention), not on security-stack residency — the engine has no
-        // gate for the latter.
+        // get +3000 DP. `securityStatic` and the explicit guard both require this
+        // specific card to remain face-up in the security stack.
         securityStatic({
           source,
           effectKey: `${cardId}/security-all-turns-titan-blocker-dp`,

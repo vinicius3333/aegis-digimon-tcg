@@ -43,6 +43,7 @@ const PRINTED_MATCHERS: ReadonlyArray<readonly [Keyword, RegExp]> = [
   ["Overclock", /[<＜]\s*Overclock/i],
   ["UseReq", /[<＜]\s*Use\s+Req\./i],
   ["Engage", /[<＜]\s*Engage/i],
+  ["Detach", /[<＜]\s*Detach/i],
 ];
 
 /**

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { CardInstance, Permanent, type CardDefinition } from "@aegis/shared";
-import { detachableLinkedCards, detachLinkedCard, type DetachDeps } from "./detach.js";
+import { detachableLinkedCards, detachLinkedCard, detachTraitTokens, type DetachDeps } from "./detach.js";
 
 /**
  * Unit coverage for the PROVISIONAL ＜Detach (trait)＞ capability (see detach.ts's module doc
@@ -46,6 +46,16 @@ function makePermanentWithLinked(cardIds: string[]): { permanent: Permanent; car
 }
 
 describe("detachableLinkedCards — trait-restricted selection among a permanent's own linked cards", () => {
+  it("parses the exact trait note from a printed Detach keyword", () => {
+    expect(
+      detachTraitTokens({
+        ...def("DETACH", []),
+        effectText: "＜Detach ([Seven Code] trait)＞\n[When Attacking] Draw 1.",
+      }),
+    ).toEqual(["Seven Code"]);
+    expect(detachTraitTokens({ ...def("PLAIN", []), effectText: "＜Blocker＞" })).toEqual([]);
+  });
+
   it("returns only linked cards carrying one of the given trait tokens", () => {
     const { permanent, cards } = makePermanentWithLinked(["SEVEN-CODE-A", "OTHER-B"]);
     const definitions = new Map<string, CardDefinition>([

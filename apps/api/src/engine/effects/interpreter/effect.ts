@@ -210,8 +210,8 @@ function isColorWaiverStatic(effect: CardEffect): boolean {
 
 /**
  * A Static/Rule/YourTurn/AllTurns/OpponentsTurn effect whose actions are ALL a SubTrigger
- * install for a HAND-anchor-less event ("when this card is trashed from the hand", "when
- * your hand is trashed" — BT24-013/-026/-045) must not carry `staticModifier`'s on-field
+ * install for the hand-resident event "when this card is trashed from the hand"
+ * (BT24-013/-026/-045) must not carry `staticModifier`'s on-field
  * base guard: the watching card is resident in HAND when these events are relevant, never
  * on the battle area (the same shape `isColorWaiverStatic`/`isHandResidentDigivolveCostStatic`
  * handle one gate over). Without this, `canTrigger` fails before the effect ever reaches
@@ -219,7 +219,10 @@ function isColorWaiverStatic(effect: CardEffect): boolean {
  * to install the watcher at all — proven empirically (BT24-013 registered in hand, trashed,
  * no draw fired) even after the anchor fix alone.
  */
-const HAND_TRASH_ANCHOR_LESS_EVENTS = new Set(["whenTrashedFromHand", "whenHandTrashed"]);
+// `whenHandTrashed` is different: it watches an action affecting the controller's hand
+// while the source Digimon/Tamer remains in play (BT25-084). Treating that event as
+// hand-resident leaves a phantom watcher alive after its permanent is deleted.
+const HAND_TRASH_ANCHOR_LESS_EVENTS = new Set(["whenTrashedFromHand"]);
 
 function isHandTrashWatcherHost(effect: CardEffect): boolean {
   // Inherited reactions only exist while their card is in a Digimon's stack. Routing them
@@ -314,7 +317,9 @@ export function withIntrinsicDelayGate(effect: CardEffect): CardEffect {
 export function withSubTriggerFrequency(effect: CardEffect, effectKey: string): CardEffect {
   if (effect.frequency !== "OncePerTurn") return effect;
   const actions = (effect.actions ?? []).map((action): typeof action =>
-    action.kind === "SubTrigger" ? ({ ...action, oncePerTurnKey: effectKey } as typeof action) : action,
+    action.kind === "SubTrigger"
+      ? ({ ...action, oncePerTurnKey: action.oncePerTurnKey ?? effectKey } as typeof action)
+      : action,
   );
   return { ...effect, actions };
 }

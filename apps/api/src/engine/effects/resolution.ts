@@ -2,6 +2,7 @@ import { EffectTiming, type CardInstance, type Seat } from "@aegis/shared";
 import { createEffectContext, createGameAccess, gatherTriggeredEffects, type EffectEnvironment } from "./context.js";
 import type { CollectedEffect } from "./collect.js";
 import type { EffectContext } from "./EffectContext.js";
+import { effectiveKinds, effectiveTraits } from "./continuous.js";
 import { resolveTiming, type ResolutionEnv } from "./stack.js";
 
 /**
@@ -99,6 +100,9 @@ export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps)
           undefined,
           env.effectiveColors,
           env.colorRequirementWaived,
+          undefined,
+          (permanentId, printedTraits) => effectiveTraits(env.continuous, permanentId, printedTraits),
+          (permanentId, printedKinds) => effectiveKinds(env.continuous, permanentId, printedKinds),
         ),
         fx: env.fx,
         ask: env.ask,

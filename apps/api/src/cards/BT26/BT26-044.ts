@@ -9,9 +9,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-044 — Lilamon (BT26, Green Lv.5 Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-044 as of this port
-// (`node tools/kb/query.mjs card BT26-044` returned no knowledge-base entries — BT26 has
-// no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// The committed KB contains Q7035 (2026-08-18): the unsuspend restriction may be
+// applied to a different opposing card, including one this effect did not suspend.
 //
 // Printed text:
 //   [Digivolve] Lv.4 w/[DATA SQUAD] trait: Cost 3 — a digivolution-cost requirement, not
@@ -50,10 +49,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 //     EX12-066/067/068's `digivolveFromInstance(..., { payCost: true, costDelta: -1,
 //     ignoreRequirements: true })` — a trait-based alternate digivolve target, not the
 //     printed evo chain, so digivolution requirements are waived exactly as those
-//     precedents do. `maxPerTurn: 1` is set on the installing effect per the codebase's
-//     existing (best-effort) convention for a subTrigger-driven "[Once Per Turn]" reaction
-//     (BT13-008, EX7-005) — the current subTrigger dispatch path does not itself consult
-//     `maxPerTurn`, a pre-existing engine gap this port does not attempt to fix.
+//     precedents do. Both event subscriptions share one physical-source-scoped
+//     `oncePerTurnKey`, so either trigger route consumes the same budget while declines or
+//     failed digivolutions release it through `oncePerTurnActivationDeclined`.
 //
 //   EffectTiming.None, isInherited: true — "[All Turns] [Once Per Turn] When this Digimon
 //     with [Rosemon] in its name or the [DATA SQUAD] trait would leave the battle area, by
@@ -103,11 +101,15 @@ async function chooseOne(ctx: EffectContext, candidates: Permanent[]): Promise<s
  */
 async function resolveMaySuspendAndLock(ctx: EffectContext, source: CardSource): Promise<void> {
   const opponentSeat = ctx.game.opponentOf(source.ownerSeat);
-  if (digimonOrTamerTargets(ctx, opponentSeat).length === 0) return;
+  const allTargets = digimonOrTamerTargets(ctx, opponentSeat);
+  if (allTargets.length === 0) return;
 
   const wantToSuspend = await ctx.ask.optional(ctx, "Suspend 1 of your opponent's Digimon or Tamers?");
   if (wantToSuspend) {
-    const suspendTargetId = await chooseOne(ctx, digimonOrTamerTargets(ctx, opponentSeat));
+    const suspendTargetId = await chooseOne(
+      ctx,
+      digimonOrTamerTargets(ctx, opponentSeat).filter((permanent) => !permanent.isSuspended),
+    );
     if (suspendTargetId !== undefined) {
       await ctx.fx.suspend([suspendTargetId]);
     }
@@ -143,20 +145,27 @@ async function resolveMayAltDigivolve(ctx: EffectContext, hostId: string, ownerS
     "Digivolve this Digimon into a [Vegetation], [Fairy] or [DATA SQUAD] trait Digimon " +
       "card in the hand, with the cost reduced by 1?",
   );
-  if (!wantToActivate) return;
+  if (!wantToActivate) {
+    ctx.oncePerTurnActivationDeclined = true;
+    return;
+  }
 
   const chosen = await ctx.ask.selectCards(ctx, {
     candidates: candidates.map((c) => c.instanceId),
     min: 1,
     max: 1,
   });
-  if (chosen.length === 0) return;
+  if (chosen.length === 0) {
+    ctx.oncePerTurnActivationDeclined = true;
+    return;
+  }
 
-  await ctx.fx.digivolveFromInstance(hostId, chosen[0]!, {
+  const evolved = await ctx.fx.digivolveFromInstance(hostId, chosen[0]!, {
     payCost: true,
     costDelta: -1,
     ignoreRequirements: true,
   });
+  if (!evolved) ctx.oncePerTurnActivationDeclined = true;
 }
 
 /** Any of `ownerSeat`'s Tamer permanents with a face-down card at the bottom of its stack. */
@@ -194,8 +203,10 @@ async function payByTrashingBottomFaceDownUnderTamer(ctx: EffectContext, ownerSe
   const bottomCard = chosenTamer.stack[0];
   if (bottomCard === undefined) return false;
 
-  await ctx.fx.trashDigivolutionCards(chosenTamer.permanentId, [bottomCard.instanceId]);
-  return true;
+  const trashed = await ctx.fx.trashDigivolutionCards(chosenTamer.permanentId, [bottomCard.instanceId], {
+    byEffectSeat: ownerSeat,
+  });
+  return trashed.length === 1;
 }
 
 function nameOrTraitQualifies(def: CardDefinition): boolean {
@@ -214,8 +225,7 @@ const module: EffectModule = {
             "[On Play] [When Digivolving] You may suspend 1 of your opponent's Digimon or " +
             "Tamers. Then, 1 of their Digimon or Tamers can't unsuspend until their turn ends.",
           optional: false,
-          canActivate: (ctx) =>
-            digimonOrTamerTargets(ctx, ctx.game.opponentOf(source.ownerSeat)).length > 0,
+          canActivate: (ctx) => digimonOrTamerTargets(ctx, ctx.game.opponentOf(source.ownerSeat)).length > 0,
           resolve: async (ctx) => {
             await resolveMaySuspendAndLock(ctx, source);
           },
@@ -232,8 +242,7 @@ const module: EffectModule = {
             "[On Play] [When Digivolving] You may suspend 1 of your opponent's Digimon or " +
             "Tamers. Then, 1 of their Digimon or Tamers can't unsuspend until their turn ends.",
           optional: false,
-          canActivate: (ctx) =>
-            digimonOrTamerTargets(ctx, ctx.game.opponentOf(source.ownerSeat)).length > 0,
+          canActivate: (ctx) => digimonOrTamerTargets(ctx, ctx.game.opponentOf(source.ownerSeat)).length > 0,
           resolve: async (ctx) => {
             await resolveMaySuspendAndLock(ctx, source);
           },
@@ -262,12 +271,13 @@ const module: EffectModule = {
             if (self === undefined) return;
             const hostId = self.permanentId;
             const ownerSeat = source.ownerSeat;
+            const oncePerTurnKey = `${source.instanceId}/${cardId}/reactive-alt-digivolve`;
 
             ctx.fx.subscribeSubTrigger({
               event: "whenSuspended",
               sourcePermanentId: hostId,
               once: false,
-              oncePerTurnKey: `${cardId}/reactive-alt-digivolve`,
+              oncePerTurnKey,
               description: `${cardId}: opponent Digimon/Tamer suspends -> may alt-digivolve.`,
               matches: (subCtx) => {
                 if (!subCtx.source.isOnBattleArea() || !subCtx.source.isOwnersTurn()) return false;
@@ -277,7 +287,10 @@ const module: EffectModule = {
                 if (suspPerm === undefined || suspPerm.inBreeding || suspPerm.topCard === undefined) return false;
                 if (suspPerm.controllerSeat !== subCtx.game.opponentOf(ownerSeat)) return false;
                 const def = subCtx.game.definitionOf(suspPerm.topCard);
-                return isDigimon(def) || def.kinds.includes(CardKind.Tamer);
+                return (
+                  (isDigimon(def) || def.kinds.includes(CardKind.Tamer)) &&
+                  altDigivolveHandCandidates(subCtx, ownerSeat).length > 0
+                );
               },
               run: async (subCtx) => {
                 await resolveMayAltDigivolve(subCtx, hostId, ownerSeat);
@@ -288,7 +301,7 @@ const module: EffectModule = {
               event: "whenDigivolutionTrashed",
               sourcePermanentId: hostId,
               once: false,
-              oncePerTurnKey: `${cardId}/reactive-alt-digivolve`,
+              oncePerTurnKey,
               description: `${cardId}: effect trashes cards under your Tamer -> may alt-digivolve.`,
               matches: (subCtx) => {
                 if (!subCtx.source.isOnBattleArea() || !subCtx.source.isOwnersTurn()) return false;
@@ -297,7 +310,11 @@ const module: EffectModule = {
                 const subject = subCtx.game.permanentById(subjectId);
                 if (subject === undefined || subject.topCard === undefined) return false;
                 if (subject.controllerSeat !== ownerSeat) return false;
-                return subCtx.game.definitionOf(subject.topCard).kinds.includes(CardKind.Tamer);
+                if (subCtx.trigger?.byEffectSeat === undefined) return false;
+                return (
+                  subCtx.game.definitionOf(subject.topCard).kinds.includes(CardKind.Tamer) &&
+                  altDigivolveHandCandidates(subCtx, ownerSeat).length > 0
+                );
               },
               run: async (subCtx) => {
                 await resolveMayAltDigivolve(subCtx, hostId, ownerSeat);

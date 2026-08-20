@@ -238,6 +238,12 @@ export function matchNameOrTrait(
     forms?: string[];
     attributes?: string[];
     effectText?: string;
+    inheritedEffectText?: string;
+    securityEffectText?: string;
+    linkEffect?: string;
+    linkRequirement?: string;
+    dualEffect?: string;
+    optionEffect?: string;
   },
   ref: {
     tokens: string[];
@@ -259,7 +265,18 @@ export function matchNameOrTrait(
     : [normalizeName(def.nameEn ?? "")];
   const normalizeTrait = (value: string) => value.toLowerCase().replace(/[\s-]+/g, "");
   const traits = [...(def.types ?? []), ...(def.forms ?? []), ...(def.attributes ?? [])].map(normalizeTrait);
-  const text = (def.effectText ?? "").toLowerCase();
+  const text = [
+    def.effectText,
+    def.inheritedEffectText,
+    def.securityEffectText,
+    def.linkEffect,
+    def.linkRequirement,
+    def.dualEffect,
+    def.optionEffect,
+  ]
+    .filter((value): value is string => value !== undefined)
+    .join(" ")
+    .toLowerCase();
   const matches = (ref.tokens ?? []).some((token) => {
     const rawToken = token.toLowerCase();
     const nameToken = normalizeName(token);

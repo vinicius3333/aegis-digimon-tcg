@@ -9,14 +9,12 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-061 — Chiropmon (BT26, Purple Lv.3 Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-061 as of this port
-// (`node tools/kb/query.mjs card BT26-061` returned no knowledge-base entries — BT26
-// has no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// The committed KB has no card-specific ruling or erratum for BT26-061; behavior follows
+// the complete printed text.
 //
 // Printed text:
 //   [Digivolve] Lv.2 w/[Glowing Dawn] trait: Cost 0 — a digivolution-cost requirement, not
-//     an effect clause; already carried by CardDefinition.evoCosts in cards.json and read
-//     directly by the engine's digivolution logic, so it needs no entry here.
+//     an effect clause; carried by the generated alternate digivolution requirements.
 //   [On Play] Reveal the top 3 cards of your deck. Add 1 [Glowing Dawn] trait card and 1
 //     purple [BEATBREAK] trait card among them to the hand. Return the rest to the bottom
 //     of the deck.
@@ -119,17 +117,17 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
 
-            if (owner.deckCount > 0) {
+            if (owner.deck.length > 0) {
               await ctx.fx.draw(source.ownerSeat, 1);
             }
 
-            if (owner.handCount > 0) {
+            if (owner.hand.length > 0) {
               const chosen = await ctx.ask.selectCards(ctx, {
                 candidates: Array.from(owner.hand).map((c) => c.instanceId),
                 min: 1,
                 max: 1,
               });
-              if (chosen.length > 0) await ctx.fx.trash(chosen);
+              if (chosen.length > 0) await ctx.fx.trash(chosen, { byEffectSeat: source.ownerSeat });
             }
           },
         }),

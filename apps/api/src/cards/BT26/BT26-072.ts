@@ -22,8 +22,7 @@ import { requireOpponentAsk } from "../../engine/decisions/decisionApi.js";
 // EffectSourceCard.Owner-scoped prompt pattern applied to the actual deciding player.
 //
 // [Digivolve] Lv.3 w/[DATA SQUAD] trait: Cost 2 — a digivolution-cost requirement, not
-//   an effect clause; already carried by CardDefinition.evoCosts in cards.json and read
-//   directly by the engine's digivolution logic, so it needs no entry here.
+//   an effect clause; supplied by the committed generated digivolution requirements.
 // ＜Blocker＞ — printed keyword, parsed automatically from effectText by the engine's
 //   combat/keywords.ts (PRINTED_MATCHERS); needs no explicit grant (same as BT26-013).
 // [On Play] [When Digivolving] By trashing 1 card in your hand or placing it face down
@@ -40,7 +39,7 @@ function opponentLevel4OrLowerDigimonIds(ctx: EffectContext, source: CardSource)
     .filter((p) => {
       if (p.topCard === undefined) return false;
       const def = ctx.game.definitionOf(p.topCard);
-      return isDigimon(def) && (def.level ?? 0) <= 4;
+      return isDigimon(def) && def.level !== undefined && def.level <= 4;
     })
     .map((p) => p.permanentId);
 }
@@ -67,7 +66,7 @@ async function resolveAltCostToDelete(ctx: EffectContext, source: CardSource): P
   const handIds = Array.from(owner.hand).map((c) => c.instanceId);
   if (handIds.length === 0) return;
 
-  const toUse = await ctx.ask.selectCards(ctx, { candidates: handIds, min: 0, max: 1 });
+  const toUse = await ctx.ask.selectCards(ctx, { candidates: handIds, min: 1, max: 1 });
   if (toUse.length === 0) return;
 
   const keenanCriers = keenanCrierPermanentIds(ctx, source);
@@ -82,12 +81,15 @@ async function resolveAltCostToDelete(ctx: EffectContext, source: CardSource): P
         if (picked.length === 0) return;
         chosenTamer = picked[0]!;
       }
-      await ctx.fx.placeUnder(chosenTamer, toUse, { faceUp: false });
+      const placed = await ctx.fx.placeUnder(chosenTamer, toUse, { faceUp: false });
+      if (placed.length !== 1) return;
     } else {
-      await ctx.fx.trash(toUse);
+      const trashed = await ctx.fx.trash(toUse, { byEffectSeat: source.ownerSeat });
+      if (!trashed.some((card) => card.instanceId === toUse[0])) return;
     }
   } else {
-    await ctx.fx.trash(toUse);
+    const trashed = await ctx.fx.trash(toUse, { byEffectSeat: source.ownerSeat });
+    if (!trashed.some((card) => card.instanceId === toUse[0])) return;
   }
 
   const targets = opponentLevel4OrLowerDigimonIds(ctx, source);
@@ -118,8 +120,10 @@ const module: EffectModule = {
             "[On Play] By trashing 1 card in your hand or placing it face down under " +
             "any of your [Keenan Crier]s, delete 1 of your opponent's level 4 or lower " +
             "Digimon.",
-          optional: false,
-          canActivate: (ctx) => opponentLevel4OrLowerDigimonIds(ctx, source).length > 0,
+          optional: true,
+          canActivate: (ctx) =>
+            ctx.game.player(source.ownerSeat).hand.length > 0 &&
+            opponentLevel4OrLowerDigimonIds(ctx, source).length > 0,
           resolve: async (ctx) => resolveAltCostToDelete(ctx, source),
         }),
       ];
@@ -135,8 +139,10 @@ const module: EffectModule = {
             "[When Digivolving] By trashing 1 card in your hand or placing it face down " +
             "under any of your [Keenan Crier]s, delete 1 of your opponent's level 4 or " +
             "lower Digimon.",
-          optional: false,
-          canActivate: (ctx) => opponentLevel4OrLowerDigimonIds(ctx, source).length > 0,
+          optional: true,
+          canActivate: (ctx) =>
+            ctx.game.player(source.ownerSeat).hand.length > 0 &&
+            opponentLevel4OrLowerDigimonIds(ctx, source).length > 0,
           resolve: async (ctx) => resolveAltCostToDelete(ctx, source),
         }),
       ];

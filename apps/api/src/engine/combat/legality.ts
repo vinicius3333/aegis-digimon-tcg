@@ -126,7 +126,7 @@ export function hasCollision(attacker: Permanent, reader: ContinuousLegalityRead
  * CanAttack and CanAttackTargetDigimon (documented behavior 2214):
  *   - has a top card and is a Digimon in a battle area,
  *   - controlled by the active player,
- *   - not already suspended.
+ *   - not already suspended, unless the effect declares the attack without suspending.
  *   - (summoning sickness) a Digimon that entered the field this turn may only
  *     attack if it has ＜Rush＞ (Comprehensive Rules §16-1).
  *
@@ -150,7 +150,10 @@ export function canAttackerDeclare(
   if (!access.isBattleAreaDigimon(attacker, reader)) {
     return "illegal-target";
   }
-  if (attacker.isSuspended) {
+  // An ordinary attack requires an unsuspended Digimon because declaration suspends it.
+  // An effect that explicitly attacks "without suspending" does not have that prerequisite;
+  // BT26-080 Q7113 can suspend Bacchusmon itself as the cost and then make this attack.
+  if (attacker.isSuspended && !withoutSuspending) {
     return "illegal-target";
   }
   // A ＜Vortex＞-mode attack declaration is legal only from a Digimon that actually has the

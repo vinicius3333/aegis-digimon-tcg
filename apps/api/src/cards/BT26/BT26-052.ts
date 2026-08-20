@@ -1,28 +1,28 @@
-import { CardColor, EffectTiming } from "@aegis/shared";
+import { CardColor, EffectDuration, EffectTiming } from "@aegis/shared";
 import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay } from "../../engine/effects/builders.js";
+import { onPlay, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-052 — Pristimon (BT26, Black Lv.3 Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-052 as of this port
-// (`node tools/kb/query.mjs card BT26-052` returned no knowledge-base entries). implemented
-// from the printed card text only; the reveal/select/return-to-bottom shape mirrors the
+// The committed KB has no Pristimon-specific Q&A or errata. The reveal/select/return-to-bottom shape mirrors the
 // reviewed BT26-018/BT26-036 precedent, adapted for two independent trait filters joined
 // by "and" (Pristimon's text is an AND of two adds, not an OR of one).
 //
 // [Digivolve] Lv.2 w/[Glowing Dawn] trait: Cost 0 — a digivolution-cost requirement, not
-//   an effect clause; already carried by CardDefinition.evoCosts in cards.json and read
-//   directly by the engine's digivolution logic, so it needs no entry here.
+//   an effect clause. The ordinary black Lv.2 row lives in cards.json; the independent
+//   trait path lives in generated-digivolve-overrides.json and is read by the shared
+//   digivolution validator.
 // [On Play] Reveal the top 3 cards of your deck. Add 1 card with the [Glowing Dawn] trait
 //   and 1 black card with the [BEATBREAK] trait among them to the hand. Return the rest
 //   to the bottom of the deck.
-// ＜Reboot＞ (inherited, printed) — parsed automatically from inheritedEffectText by the
-//   engine's combat/keywords.ts (PRINTED_MATCHERS); needs no explicit grant.
+// ＜Reboot＞ (inherited, printed) — combat/keywords reads printed keywords only from the
+//   permanent's TOP card, so an explicit inherited continuous grant is required while
+//   Pristimon sits in the digivolution stack.
 
 const cardId = "BT26-052";
 
@@ -82,8 +82,8 @@ async function resolveRevealAndAddToHand(ctx: EffectContext, source: CardSource)
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    // [On Play] Reveal top 3, add up to 1 Glowing Dawn card and up to 1 black BEATBREAK
-    // card to hand, rest to bottom.
+    // [On Play] Reveal top 3, mandatorily add 1 Glowing Dawn card and 1 black BEATBREAK
+    // card when those candidates exist, then return the rest to the bottom.
     if (timing === EffectTiming.OnPlay) {
       return [
         onPlay({
@@ -95,6 +95,23 @@ const module: EffectModule = {
             "them to the hand. Return the rest to the bottom of the deck.",
           optional: false,
           resolve: async (ctx) => resolveRevealAndAddToHand(ctx, source),
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/inherited-reboot`,
+          description: "＜Reboot＞ (inherited)",
+          isInherited: true,
+          resolve: async (ctx) => {
+            const host = ctx.source.permanent();
+            if (host !== undefined) {
+              ctx.fx.grantKeyword(host.permanentId, "Reboot", EffectDuration.UntilEachTurnEnd);
+            }
+          },
         }),
       ];
     }

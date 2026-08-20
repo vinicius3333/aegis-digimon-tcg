@@ -293,5 +293,16 @@ export async function runActivateMain(ctx: EffectContext): Promise<void> {
     unsupported(ctx, { kind: "ActivateMain" }, `ActivateMain found no [Main] effect on ${ctx.source.cardId}`);
     return;
   }
-  for (const effect of mains) await runEffect(ctx, effect);
+  // A DUAL Digimon directly activating its Option-side [Main] produces an Option effect,
+  // not a Digimon effect (BT25-104 Q6496-Q6498). Narrow the physical dual definition only
+  // for this borrowed Main body so source-kind-qualified immunity sees the correct face.
+  const sourceKinds = ctx.source.definition.kinds;
+  const activatesDualOptionFace = sourceKinds.includes(CardKind.Digimon) && sourceKinds.includes(CardKind.Option);
+  const mainCtx = activatesDualOptionFace ? { ...ctx, effectSourceKinds: [CardKind.Option] } : ctx;
+  if (activatesDualOptionFace) ctx.fx.enterEffectResolution?.(ctx.source.ownerSeat, [CardKind.Option]);
+  try {
+    for (const effect of mains) await runEffect(mainCtx, effect);
+  } finally {
+    if (activatesDualOptionFace) ctx.fx.leaveEffectResolution?.();
+  }
 }

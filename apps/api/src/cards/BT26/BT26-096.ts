@@ -4,7 +4,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { activated, turnTiming } from "../../engine/effects/builders.js";
+import { activated, security, turnTiming } from "../../engine/effects/builders.js";
 import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
@@ -26,7 +26,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 //   BT26-001/BT26-065 already use for this exact phrase, matching the reading in the official
 //   Q&A (BT26-060's Q7087: name, traits, effects, inherited effects, requirements, ...).
 //   "from your hand or trash" is `playInstances`, which locates a loose instance in either zone
-//   (`playFromHand` cannot reach the trash), with `payCost: true` + `costDelta: -2` for
+//   (`playFromHand` cannot reach the trash), with `payCost: true` + `costDelta: 2` for
 //   "with the cost reduced by 2". The Tamer is returned FIRST, as printed — the play resolves
 //   afterwards even though this Tamer has already left the battle area.
 //   The window is `EffectTiming.OnDeclaration`, the `activateEffect` verb's timing for a
@@ -37,7 +37,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 const cardId = "BT26-096";
 const CHRONOMON_TOKEN = "Chronomon";
 const TS_TRAIT = "TS";
-const COST_REDUCTION = -2;
+const COST_REDUCTION = 2;
 const LOW_MEMORY_THRESHOLD = 2;
 const RESET_MEMORY_TO = 3;
 
@@ -104,6 +104,20 @@ const module: EffectModule = {
               costDelta: COST_REDUCTION,
               effectSourceCardId: cardId,
             });
+          },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.SecuritySkill) {
+      return [
+        security({
+          source,
+          effectKey: `${cardId}/security-play-free`,
+          description: "[Security] Play this card without paying the cost.",
+          optional: false,
+          resolve: async (ctx) => {
+            await ctx.fx.playFromSecurity(source.instanceId, { payCost: false });
           },
         }),
       ];

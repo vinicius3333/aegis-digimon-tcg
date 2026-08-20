@@ -1,206 +1,99 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming, isTamer, type CardDefinition, type CompiledCard } from "@aegis/shared";
+import { cardHasTrait } from "../../engine/cards/cardData.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import type { EffectContext } from "../../engine/effects/EffectContext.js";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import { onPlay, whenAttacking, whenDigivolving } from "../../engine/effects/builders.js";
+import { irCardModule, matchNameOrTrait } from "../../engine/effects/interpreter.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
-// Behavior is executed by the shared interpreter; this file only carries the IR and
-// registers it. To override with a hand-written module, delete the AUTO-GENERATED
-// header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
-  "effects": [
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Three Musketeers"
-                  ],
-                  "match": "text"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ]
-            },
-            "raw": "you have 1 or fewer Tamers"
-          },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Three Musketeers"
-                  ],
-                  "match": "text"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ]
-            },
-            "raw": "you have 1 or fewer Tamers"
-          },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "into": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Three Musketeers"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "payCost": true,
-          "costOverride": 4,
-          "optional": true,
-          "ignoreRequirements": true,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Three Musketeers"
-                  ],
-                  "match": "text"
-                }
-              ]
-            },
-            "raw": "you have a Tamer with [Three Musketeers] in its text"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Three Musketeers"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "count": 1,
-              "from": [
-                "hand",
-                "trash"
-              ]
-            },
-            "raw": "By placing 1 [Three Musketeers] trait card from your hand or trash as this Digimon's bottom digivolution card",
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "self"
-          },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+const cardId = "BT25-082";
+const requirements: CompiledCard = {
+  effects: [],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    { level: 3, texts: ["Three Musketeers"], cost: 2, isAlternate: true },
+    { level: 3, traits: ["TS"], cost: 2, isAlternate: true },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 3,
-      "texts": [
-        "Three Musketeers"
-      ],
-      "cost": 2,
-      "isAlternate": true
+};
+const baseModule = irCardModule(cardId, requirements);
+
+function hasMusketeersText(definition: CardDefinition): boolean {
+  return matchNameOrTrait(definition, { tokens: ["Three Musketeers"], match: "text" });
+}
+
+function tamerCount(ctx: EffectContext): number {
+  return ctx.game
+    .player(ctx.source.ownerSeat)
+    .battleArea.filter(
+      (permanent) => permanent.topCard !== undefined && isTamer(ctx.game.definitionOf(permanent.topCard)),
+    ).length;
+}
+
+function tamerCandidates(ctx: EffectContext): string[] {
+  return ctx.game
+    .player(ctx.source.ownerSeat)
+    .hand.filter((card) => {
+      const definition = ctx.game.definitionOf(card);
+      return isTamer(definition) && hasMusketeersText(definition);
+    })
+    .map((card) => card.instanceId);
+}
+
+function freeTamerEffect(source: CardSource, timing: EffectTiming): Effect {
+  const make = timing === EffectTiming.OnPlay ? onPlay : whenDigivolving;
+  return make({
+    source,
+    effectKey: `${cardId}/${timing === EffectTiming.OnPlay ? "on-play" : "when-digivolving"}-play-tamer`,
+    description: "If you have 1 or fewer Tamers, play a Tamer with [Three Musketeers] in its text free.",
+    optional: true,
+    canActivate: (ctx) => tamerCount(ctx) <= 1 && tamerCandidates(ctx).length > 0,
+    resolve: async (ctx) => {
+      const chosen = await ctx.ask.selectCards(ctx, { candidates: tamerCandidates(ctx), min: 1, max: 1 });
+      if (chosen.length === 1) await ctx.fx.playInstances(chosen, { payCost: false });
     },
-    {
-      "traits": [
-        "TS"
-      ],
-      "cost": 2,
-      "isAlternate": true,
-      "level": 3
-    }
-  ]
+  });
+}
+
+function placementCandidates(ctx: EffectContext): string[] {
+  const player = ctx.game.player(ctx.source.ownerSeat);
+  return [...player.hand, ...player.trash]
+    .filter((card) => cardHasTrait(ctx.game.definitionOf(card), "Three Musketeers"))
+    .map((card) => card.instanceId);
+}
+
+function inheritedPlacement(source: CardSource): Effect {
+  return whenAttacking({
+    source,
+    effectKey: `${cardId}/inherited-place-draw`,
+    description: "[Once Per Turn] Place a [Three Musketeers] card as the bottom source to Draw 1.",
+    optional: true,
+    isInherited: true,
+    maxPerTurn: 1,
+    canActivate: (ctx) => source.permanent() !== undefined && placementCandidates(ctx).length > 0,
+    resolve: async (ctx) => {
+      const host = source.permanent();
+      if (host === undefined) return;
+      const chosen = await ctx.ask.selectCards(ctx, { candidates: placementCandidates(ctx), min: 1, max: 1 });
+      if (chosen.length !== 1) return;
+      const placed = await ctx.fx.placeUnder(host.permanentId, chosen, { belowTop: false, faceUp: true });
+      if (placed.length === 1) await ctx.fx.draw(source.ownerSeat, 1);
+    },
+  });
+}
+
+const module: EffectModule = {
+  cardId,
+  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
+    const effects = [...baseModule.effectsForTiming(timing, source)];
+    if (timing === EffectTiming.OnPlay || timing === EffectTiming.WhenDigivolving)
+      effects.push(freeTamerEffect(source, timing));
+    if (timing === EffectTiming.OnAllyAttack) effects.push(inheritedPlacement(source));
+    return effects;
+  },
 };
 
-registerIrCard("BT25-082", compiled);
+registerCard(module);
+export default module;

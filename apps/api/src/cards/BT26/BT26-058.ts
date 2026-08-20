@@ -28,13 +28,17 @@ import { registerCard } from "../../engine/effects/registry.js";
 //   `fromSourceKind: ["Digimon"]`, BT26-057's mapping for "their Digimon effects don't affect
 //   this Digimon", plus `byOpponentEffectsOnly` because this card names the opponent
 //   explicitly ("Your opponent's Digimon effects") while BT26-057's clause is self-targeted.
-// Clause 2: BT26-033's leave-prevention idiom, one line different — the payment places the
-//   top stacked card as this Digimon's own BOTTOM digivolution card instead of as a security
-//   card. `placeUnder(selfId, [topStackedInstanceId])` is exactly that move: it splices the
-//   instance out of the host's own stack (`removeLooseInstance` reaches a permanent's stack)
-//   and unshifts it at index 0, the bottom of a bottom-to-top ordered stack. No
-//   "[Once Per Turn]" is printed on this clause, so it stays unbounded — it is gated only by
-//   this Digimon having a stacked card left to pay with.
+//   The shared resolution stack propagates the physical source card kinds into every mutation
+//   primitive, so hand-written Digimon effects and interpreter actions honor this qualifier
+//   identically while Option/Tamer effects remain allowed.
+// Clause 2: BT26-033's leave-prevention idiom, one destination different — the payment
+//   places this Digimon's TOP CARD as its own BOTTOM digivolution card. Comprehensive-rules
+//   terminology and the matching BT22/BT23 rulings make "top stacked card" the current top
+//   Digimon card, not the highest card already in its digivolution cards. The dedicated
+//   `placeOwnTopAtStackBottom` primitive performs that rotation atomically: the highest
+//   digivolution card becomes the new top and HiAndromon moves to stack index 0. No
+//   "[Once Per Turn]" is printed; after payment HiAndromon is no longer the top Digimon, so
+//   its non-inherited replacement naturally ceases to apply.
 
 const cardId = "BT26-058";
 const CS_TRAIT = "CS";
@@ -147,9 +151,7 @@ const module: EffectModule = {
                 );
                 if (!wantToPay) return false;
 
-                const topStacked = host.stack[host.stack.length - 1]!;
-                const placed = await subCtx.fx.placeUnder(selfId, [topStacked.instanceId]);
-                return placed.length > 0;
+                return subCtx.fx.placeOwnTopAtStackBottom(selfId);
               },
             });
           },

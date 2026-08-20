@@ -9,13 +9,11 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-008 — Kotemon (BT26, Red Lv.3 Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-008 as of this port
-// (`node tools/kb/query.mjs card BT26-008` returned no knowledge-base entries). implemented
-// from the printed card text only.
+// Catalog source: `packages/shared/src/cards/data/cards.json`. The local KB has no
+// BT26-008 errata or Q&A, so each clause follows the committed printed text directly.
 //
-// [Digivolve] Lv.2 w/[Shambala]/[TS] trait: Cost 0 — a digivolution-cost requirement,
-//   not an effect clause; already carried by CardDefinition.evoCosts in cards.json and
-//   read directly by the engine's digivolution logic, so it needs no entry here.
+// [Digivolve] Lv.2 w/[Shambala]/[TS] trait: Cost 0 — structural generated alternate
+//   evolution data, exposed by `digivolutionRequirementsFor`, not an effect clause.
 // [When Moving] [On Play] 1 of your [Shambala] or [TS] trait Digimon gains
 //   <Piercing> and +3000 DP for the turn.
 // Inherited: [Your Turn] This Digimon gets +2000 DP.
@@ -29,7 +27,10 @@ function hasShambalaOrTS(def: CardDefinition): boolean {
 function shambalaOrTsTargets(ctx: EffectContext, source: CardSource): Permanent[] {
   const owner = ctx.game.player(source.ownerSeat);
   return Array.from(owner.battleArea).filter(
-    (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && hasShambalaOrTS(ctx.game.definitionOf(p.topCard)),
+    (p) =>
+      p.topCard !== undefined &&
+      isDigimon(ctx.game.definitionOf(p.topCard)) &&
+      hasShambalaOrTS(ctx.game.definitionOf(p.topCard)),
   );
 }
 
@@ -73,8 +74,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/on-play-pierce-dp`,
           description:
-            "[On Play] 1 of your [Shambala] or [TS] trait Digimon gains <Piercing> and " +
-            "+3000 DP for the turn.",
+            "[On Play] 1 of your [Shambala] or [TS] trait Digimon gains <Piercing> and " + "+3000 DP for the turn.",
           optional: false,
           resolve: async (ctx) => {
             await grantPierceAndDpForTheTurn(ctx, source);
@@ -91,8 +91,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/when-moving-pierce-dp`,
           description:
-            "[When Moving] 1 of your [Shambala] or [TS] trait Digimon gains <Piercing> and " +
-            "+3000 DP for the turn.",
+            "[When Moving] 1 of your [Shambala] or [TS] trait Digimon gains <Piercing> and " + "+3000 DP for the turn.",
           optional: false,
           when: (ctx) => isSelfMove(ctx, source),
           resolve: async (ctx) => {

@@ -37,7 +37,10 @@ import type { Action, Cost, ZoneRef } from "@aegis/shared";
 export async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
   // Per-action gate.
   if (action.kind !== "RawUnparsed" && action.kind !== "ConditionalBranch" && action.condition) {
-    if (!evaluateCondition(ctx, action.condition)) return false;
+    ctx.lastActionConditionMatched = evaluateCondition(ctx, action.condition);
+    if (!ctx.lastActionConditionMatched) return false;
+  } else {
+    ctx.lastActionConditionMatched = true;
   }
   // "You may" — ask the controller. Skip the prompt when the action carries a cost that is
   // provably unpayable (e.g. a "by trashing your security" cost with an empty security stack):

@@ -312,7 +312,7 @@ export const staticModifier = (opts: BuilderOptions): Effect => {
       subscribeReplacement: (replacement: Parameters<EffectContext["fx"]["subscribeReplacement"]>[0]) =>
         ctx.fx.subscribeReplacement({
           ...replacement,
-          ...(replacement.mode === "reduceCost" && opts.maxPerTurn !== undefined && opts.maxPerTurn >= 1
+          ...(opts.maxPerTurn !== undefined && opts.maxPerTurn >= 1
             ? { oncePerTurnKey: replacement.oncePerTurnKey ?? autoKey }
             : {}),
         }),

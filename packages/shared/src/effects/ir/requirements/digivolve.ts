@@ -33,6 +33,8 @@ export interface DigivolutionRequirement {
   baseIsTamer?: boolean;
   /** At least one listed color must appear in the base's colors ("onto one of your black Tamers"). */
   baseColors?: ("Red" | "Blue" | "Yellow" | "Green" | "White" | "Black" | "Purple")[];
+  /** Maximum number of printed colors on the base (BT25-084: "[Titamon] w/o 3 colors"). */
+  baseColorCountMax?: number;
   /**
    * Required printed play cost of the base, to separate same-name reprints (three "Ceresmon"
    * cards share a name; only the play-cost-12 prints qualify — BT26-032). Paired with
@@ -140,4 +142,6 @@ export type BaseGrantedDigivolveCondition =
   | { kind: "opponentHasDigimonLevelAtLeast"; level: number }
   /** "you have N or more [trait] Tamers with different names" */
   | { kind: "distinctNamedTamersWithTrait"; trait: string; count: number }
+  /** "you have a Tamer with [X] in its text" (full printed-text union). */
+  | { kind: "tamerHasText"; text: string }
   | { kind: "anyOf"; conditions: BaseGrantedDigivolveCondition[] };

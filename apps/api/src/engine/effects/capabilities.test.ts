@@ -8,7 +8,13 @@ import {
   type Permanent,
   type Seat,
 } from "@aegis/shared";
-import { irCardModule, definitionMatches, allowsDigiXrosMaterialsFromTrash, registerIrCard, permanentMatchesFilter } from "./interpreter.js";
+import {
+  irCardModule,
+  definitionMatches,
+  allowsDigiXrosMaterialsFromTrash,
+  registerIrCard,
+  permanentMatchesFilter,
+} from "./interpreter.js";
 import { materialsSatisfyRecipe, validateDigiXros } from "../actions/digiXros.js";
 import type { DigiXrosIntent } from "../actions/digiXros.js";
 import {
@@ -338,13 +344,15 @@ describe("source-local scaling without a filter", () => {
 
     await runMain(
       "BT9-082",
-      [{
-        kind: "ModifyDP",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        amount: 1000,
-        duration: "forTheTurn",
-        scaling: { per: 1, unit: "digivolutionCards" },
-      }],
+      [
+        {
+          kind: "ModifyDP",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          amount: 1000,
+          duration: "forTheTurn",
+          scaling: { per: 1, unit: "digivolutionCards" },
+        },
+      ],
       ctx,
       src,
     );
@@ -354,19 +362,23 @@ describe("source-local scaling without a filter", () => {
 });
 
 describe("SecurityManipulation.lookAndMayAddToHand (BT9-034)", () => {
-  const lookAndRecover = [{
-    kind: "SecurityManipulation",
-    op: "lookAndMayAddToHand",
-    controller: "mine",
-    source: "securityTop",
-    ifAddedToHand: [{
+  const lookAndRecover = [
+    {
       kind: "SecurityManipulation",
-      op: "addTop",
+      op: "lookAndMayAddToHand",
       controller: "mine",
-      source: "deck",
-      amount: 1,
-    }],
-  }];
+      source: "securityTop",
+      ifAddedToHand: [
+        {
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          source: "deck",
+          amount: 1,
+        },
+      ],
+    },
+  ];
 
   it("adds the looked-at card to hand and recovers only when accepted", async () => {
     const src = source("BT9-034", perm("SRC", 0 as Seat, "SRC"));
@@ -461,7 +473,10 @@ describe("filter.isSameName (BT2-053)", () => {
       [
         {
           kind: "ModifyDP",
-          target: { filter: { controller: "mine", kind: ["Digimon"], isSameName: true, excludeSelf: true }, count: "all" },
+          target: {
+            filter: { controller: "mine", kind: ["Digimon"], isSameName: true, excludeSelf: true },
+            count: "all",
+          },
           amount: 1000,
           duration: "forTheTurn",
         },
@@ -725,13 +740,16 @@ describe("TrashDigivolution scope:acrossDigimon (EX12-035)", () => {
       state: { memory: 0, players, turnSeat: 0 } as never,
       player: (seat: Seat) => players[seat] as never,
       opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
-      permanentById: (id: string) => [...players[0]!.battleArea, ...players[1]!.battleArea].find(p => p.permanentId === id),
+      permanentById: (id: string) =>
+        [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
       definitionOf: (card: { cardId: string }) => def(card.cardId),
       linkMax: () => 1,
     } as never;
 
     const fx = {
-      trashDigivolutionCards: async (pid: string, ids: string[]) => { trashed.push({ pid, ids }); },
+      trashDigivolutionCards: async (pid: string, ids: string[]) => {
+        trashed.push({ pid, ids });
+      },
     } as unknown as Primitives;
 
     // Selector: always picks the first `max` candidates (deterministic)
@@ -759,18 +777,22 @@ describe("TrashDigivolution scope:acrossDigimon (EX12-035)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "TrashDigivolution",
-          target: {
-            filter: { controller: "opponent", kind: ["Digimon"] },
-            count: "all",
-          },
-          amount: 4,
-          scope: "acrossDigimon",
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "TrashDigivolution",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"] },
+                count: "all",
+              },
+              amount: 4,
+              scope: "acrossDigimon",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("EX-ACROSS", ir).effectsForTiming(EffectTiming.OnUseOption, src);
@@ -780,7 +802,7 @@ describe("TrashDigivolution scope:acrossDigimon (EX12-035)", () => {
     const totalTrashed = trashed.reduce((n, t) => n + t.ids.length, 0);
     expect(totalTrashed).toBe(4);
     // Cards come from at least 1 opponent Digimon (and potentially both)
-    expect(trashed.every(t => t.pid === "OPP1" || t.pid === "OPP2")).toBe(true);
+    expect(trashed.every((t) => t.pid === "OPP1" || t.pid === "OPP2")).toBe(true);
   });
 
   it("trashes all cards when pool size is less than or equal to amount", async () => {
@@ -804,13 +826,16 @@ describe("TrashDigivolution scope:acrossDigimon (EX12-035)", () => {
       state: { memory: 0, players, turnSeat: 0 } as never,
       player: (seat: Seat) => players[seat] as never,
       opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
-      permanentById: (id: string) => [...players[0]!.battleArea, ...players[1]!.battleArea].find(p => p.permanentId === id),
+      permanentById: (id: string) =>
+        [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
       definitionOf: (card: { cardId: string }) => def(card.cardId),
       linkMax: () => 1,
     } as never;
 
     const fx = {
-      trashDigivolutionCards: async (pid: string, ids: string[]) => { trashed.push({ pid, ids }); },
+      trashDigivolutionCards: async (pid: string, ids: string[]) => {
+        trashed.push({ pid, ids });
+      },
     } as unknown as Primitives;
 
     const ask: DecisionApi = {
@@ -837,18 +862,22 @@ describe("TrashDigivolution scope:acrossDigimon (EX12-035)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "TrashDigivolution",
-          target: {
-            filter: { controller: "opponent", kind: ["Digimon"] },
-            count: "all",
-          },
-          amount: 4, // pool has only 2 — all 2 are auto-trashed
-          scope: "acrossDigimon",
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "TrashDigivolution",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"] },
+                count: "all",
+              },
+              amount: 4, // pool has only 2 — all 2 are auto-trashed
+              scope: "acrossDigimon",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("EX-ACROSS2", ir).effectsForTiming(EffectTiming.OnUseOption, src);
@@ -909,22 +938,24 @@ describe("Modal.chooseScaling (EX12-037)", () => {
     return { ctx, chosen };
   }
 
-  const modalIr = (chooseScalingPer: number): CompiledCard => ({
-    coverage: "full",
-    residual: [],
-    effects: [{
-      trigger: "Main",
-      actions: [{
-        kind: "Modal",
-        choose: 0,
-        chooseScaling: { per: chooseScalingPer, filter: {}, unit: "digivolutionCards" },
-        options: [
-          [{ kind: "GainMemory", amount: 0 }],
-          [{ kind: "GainMemory", amount: 0 }],
-        ],
-      }],
-    }],
-  } as unknown as CompiledCard);
+  const modalIr = (chooseScalingPer: number): CompiledCard =>
+    ({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "Modal",
+              choose: 0,
+              chooseScaling: { per: chooseScalingPer, filter: {}, unit: "digivolutionCards" },
+              options: [[{ kind: "GainMemory", amount: 0 }], [{ kind: "GainMemory", amount: 0 }]],
+            },
+          ],
+        },
+      ],
+    }) as unknown as CompiledCard;
 
   it("activates 0 options when digivolution-card count is below the per threshold", async () => {
     const { ctx, chosen } = makeModalCtx(4); // 4 cards, per:5 → floor(4/5)=0
@@ -1007,13 +1038,17 @@ describe("filter.sameLevelAsAttacker (EX12-069)", () => {
     } as never;
 
     const fx = {
-      playInstances: async (ids: string[]) => { playedIds.push(...ids); return []; },
+      playInstances: async (ids: string[]) => {
+        playedIds.push(...ids);
+        return [];
+      },
       gainMemory: () => {},
     } as unknown as Primitives;
 
     const ask: DecisionApi = {
       optional: async () => true,
-      selectPermanents: async () => [], chooseTargets: async (_c: never, o: { candidates: string[]; max: number }) => {
+      selectPermanents: async () => [],
+      chooseTargets: async (_c: never, o: { candidates: string[]; max: number }) => {
         offeredCandidates.push(...o.candidates);
         return o.candidates.slice(0, 1);
       },
@@ -1047,19 +1082,23 @@ describe("filter.sameLevelAsAttacker (EX12-069)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "PlayWithoutCost",
-          target: {
-            filter: { controller: "mine", kind: ["Digimon"], sameLevelAsAttacker: true },
-            count: 1,
-          },
-          from: ["hand"],
-          payCost: false,
-          optional: true,
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: { controller: "mine", kind: ["Digimon"], sameLevelAsAttacker: true },
+                count: 1,
+              },
+              from: ["hand"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("EX-SAMELEVTEST", ir).effectsForTiming(EffectTiming.OnUseOption, src);
@@ -1071,9 +1110,7 @@ describe("filter.sameLevelAsAttacker (EX12-069)", () => {
   });
 
   it("returns no candidates when no attack is open (trigger has no attacker id)", async () => {
-    const hand = [
-      { instanceId: "h-any", cardId: LV5, ownerSeat: 0 as Seat, faceUp: true },
-    ];
+    const hand = [{ instanceId: "h-any", cardId: LV5, ownerSeat: 0 as Seat, faceUp: true }];
     const players = [
       { seat: 0, battleArea: [], security: [], hand, deck: [], trash: [] },
       { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] },
@@ -1097,7 +1134,8 @@ describe("filter.sameLevelAsAttacker (EX12-069)", () => {
 
     const ask: DecisionApi = {
       optional: async () => true,
-      selectPermanents: async () => [], chooseTargets: async (_c: never, o: { candidates: string[]; max: number }) => {
+      selectPermanents: async () => [],
+      chooseTargets: async (_c: never, o: { candidates: string[]; max: number }) => {
         offeredCandidates.push(...o.candidates);
         return [];
       },
@@ -1131,19 +1169,23 @@ describe("filter.sameLevelAsAttacker (EX12-069)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "PlayWithoutCost",
-          target: {
-            filter: { controller: "mine", kind: ["Digimon"], sameLevelAsAttacker: true },
-            count: 1,
-          },
-          from: ["hand"],
-          payCost: false,
-          optional: true,
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: { controller: "mine", kind: ["Digimon"], sameLevelAsAttacker: true },
+                count: 1,
+              },
+              from: ["hand"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("EX-NOATK", ir).effectsForTiming(EffectTiming.OnUseOption, src);
@@ -1207,7 +1249,9 @@ describe("condition.selfHasTrait (EX12-004)", () => {
       linkMax: () => 1,
     } as never;
     const fx = {
-      modifyDP: (id: string, amount: number) => { sink.dp.push({ id, amount }); },
+      modifyDP: (id: string, amount: number) => {
+        sink.dp.push({ id, amount });
+      },
     } as unknown as Primitives;
     const ask: DecisionApi = {
       optional: async () => true,
@@ -1259,7 +1303,9 @@ describe("condition.selfHasTrait (EX12-004)", () => {
       linkMax: () => 1,
     } as never;
     const fx = {
-      modifyDP: (id: string, amount: number) => { sink.dp.push({ id, amount }); },
+      modifyDP: (id: string, amount: number) => {
+        sink.dp.push({ id, amount });
+      },
     } as unknown as Primitives;
     const ask: DecisionApi = {
       optional: async () => true,
@@ -1299,7 +1345,9 @@ describe("condition.selfHasTrait (EX12-004)", () => {
       linkMax: () => 1,
     } as never;
     const fx = {
-      modifyDP: (id: string, amount: number) => { sink.dp.push({ id, amount }); },
+      modifyDP: (id: string, amount: number) => {
+        sink.dp.push({ id, amount });
+      },
     } as unknown as Primitives;
     const ask: DecisionApi = {
       optional: async () => true,
@@ -1387,25 +1435,29 @@ describe("place-as-cost position:choice (EX12-077)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "Delete",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-          cost: {
-            kind: "place",
-            target: {
-              filter: { controller: "mine", kind: ["Digimon"] },
-              count: 1,
-              from: ["hand"],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "Delete",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+              cost: {
+                kind: "place",
+                target: {
+                  filter: { controller: "mine", kind: ["Digimon"] },
+                  count: 1,
+                  from: ["hand"],
+                },
+                destination: "digivolutionStack",
+                position: "choice",
+                host: "target",
+                underFilter: { controller: "mine", kind: ["Digimon"] },
+              },
             },
-            destination: "digivolutionStack",
-            position: "choice",
-            host: "target",
-            underFilter: { controller: "mine", kind: ["Digimon"] },
-          },
-        }],
-      }],
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("EX-CHOICE-TEST", ir).effectsForTiming(EffectTiming.OnUseOption, src);
@@ -1513,10 +1565,17 @@ describe("DnaDigivolve materials.includeRef (EX12-003)", () => {
   function makeDnaCtx(own: Permanent[], subjectPermanentId: string | undefined) {
     const leaver = own.find((p) => p.permanentId === subjectPermanentId);
     const players = [
-      { seat: 0, battleArea: own, security: [], hand: [
-        // A loose "into" candidate in hand
-        { instanceId: "HAND#0", cardId: "SRC", ownerSeat: 0 as Seat, faceUp: true },
-      ], deck: [], trash: [] },
+      {
+        seat: 0,
+        battleArea: own,
+        security: [],
+        hand: [
+          // A loose "into" candidate in hand
+          { instanceId: "HAND#0", cardId: "SRC", ownerSeat: 0 as Seat, faceUp: true },
+        ],
+        deck: [],
+        trash: [],
+      },
       { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] },
     ];
     const dnaCalls: { materialIds: string[]; resultId: string }[] = [];
@@ -1538,7 +1597,8 @@ describe("DnaDigivolve materials.includeRef (EX12-003)", () => {
     const ask: DecisionApi = {
       optional: async () => true,
       // Auto-select up to max from candidates (mirrors makeCtx default)
-      selectPermanents: async () => [], chooseTargets: async (_c: EffectContext, o: { candidates: string[]; min: number; max: number }) =>
+      selectPermanents: async () => [],
+      chooseTargets: async (_c: EffectContext, o: { candidates: string[]; min: number; max: number }) =>
         o.candidates.slice(0, o.max),
       selectCards: async (_c: EffectContext, o: { candidates: string[]; min: number; max: number }) =>
         o.candidates.slice(0, o.max),
@@ -1838,7 +1898,10 @@ describe("DnaDigivolve materials as an array (W7-E-2, EX6-072 mixed-zone materia
   it("resolves one material from the field and one from hand, consuming both", async () => {
     const { ctx, dnaCalls } = makeMixedZoneCtx();
 
-    const effects = irCardModule("MIXED-ZONE-MATERIALS-TEST", mixedZoneIr).effectsForTiming(EffectTiming.OnUseOption, ctx.source);
+    const effects = irCardModule("MIXED-ZONE-MATERIALS-TEST", mixedZoneIr).effectsForTiming(
+      EffectTiming.OnUseOption,
+      ctx.source,
+    );
     await effects[0]!.resolve(ctx);
 
     expect(dnaCalls).toHaveLength(1);
@@ -1934,7 +1997,10 @@ describe("DnaDigivolve materials as a single Target (backwards compatibility, AD
       ],
     } as never as CompiledCard;
 
-    const effects = irCardModule("SINGLE-TARGET-MATERIALS-TEST", singleTargetIr).effectsForTiming(EffectTiming.OnUseOption, ctx.source);
+    const effects = irCardModule("SINGLE-TARGET-MATERIALS-TEST", singleTargetIr).effectsForTiming(
+      EffectTiming.OnUseOption,
+      ctx.source,
+    );
     await effects[0]!.resolve(ctx);
 
     expect(dnaCalls).toHaveLength(1);
@@ -1966,17 +2032,20 @@ function makeDeleteByDPCtx(opts: {
     inBreeding: false,
   } as unknown as Permanent;
 
-  const oppBattleArea = opts.oppPerms.map((o) => ({
-    permanentId: o.id,
-    controllerSeat: 1 as Seat,
-    topCard: { instanceId: `${o.id}#t`, cardId: "RED", ownerSeat: 1 as Seat, faceUp: true } as never,
-    stack: [] as never[],
-    linked: [] as never[],
-    baseDP: o.dp,
-    currentDP: o.dp,
-    isSuspended: false,
-    inBreeding: false,
-  } as unknown as Permanent));
+  const oppBattleArea = opts.oppPerms.map(
+    (o) =>
+      ({
+        permanentId: o.id,
+        controllerSeat: 1 as Seat,
+        topCard: { instanceId: `${o.id}#t`, cardId: "RED", ownerSeat: 1 as Seat, faceUp: true } as never,
+        stack: [] as never[],
+        linked: [] as never[],
+        baseDP: o.dp,
+        currentDP: o.dp,
+        isSuspended: false,
+        inBreeding: false,
+      }) as unknown as Permanent,
+  );
 
   const players = [
     { seat: 0, battleArea: [srcPerm], security: [], hand: [], deck: [], trash: [] },
@@ -2063,14 +2132,18 @@ describe("CAP-A1: DeleteByDPBudget (BT19-011)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "DeleteByDPBudget",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
-          baseBudget: 3000,
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "DeleteByDPBudget",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
+              baseBudget: 3000,
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("BT19-011-A1a", ir).effectsForTiming(EffectTiming.OnUseOption, src);
@@ -2093,14 +2166,18 @@ describe("CAP-A1: DeleteByDPBudget (BT19-011)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "DeleteByDPBudget",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
-          baseBudget: 3000,
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "DeleteByDPBudget",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
+              baseBudget: 3000,
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("BT19-011-A1b", ir).effectsForTiming(EffectTiming.OnUseOption, src);
@@ -2119,14 +2196,18 @@ describe("CAP-A1: DeleteByDPBudget (BT19-011)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "DeleteByDPBudget",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
-          baseBudget: 3000,
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "DeleteByDPBudget",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
+              baseBudget: 3000,
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("BT19-011-A1c", ir).effectsForTiming(EffectTiming.OnUseOption, src);
@@ -2150,15 +2231,19 @@ describe("CAP-A1: DeleteByDPBudget (BT19-011)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "DeleteByDPBudget",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
-          baseBudget: 3000,
-          budgetBonus: { per: 2000, filter: { controller: "opponent", kind: ["Digimon"] }, unit: "cards" },
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "DeleteByDPBudget",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
+              baseBudget: 3000,
+              budgetBonus: { per: 2000, filter: { controller: "opponent", kind: ["Digimon"] }, unit: "cards" },
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("BT19-011-A1d", ir).effectsForTiming(EffectTiming.OnUseOption, src);
@@ -2183,14 +2268,18 @@ describe("CAP-A2: AddToDPDeleteBudget (BT19-011 inherited)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "DeleteByDPBudget",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
-          baseBudget: 3000,
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "DeleteByDPBudget",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
+              baseBudget: 3000,
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("BT19-011-A2", ir).effectsForTiming(EffectTiming.OnUseOption, src);
@@ -2211,14 +2300,18 @@ describe("CAP-A2: AddToDPDeleteBudget (BT19-011 inherited)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "DeleteByDPBudget",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
-          baseBudget: 6000,
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "DeleteByDPBudget",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
+              baseBudget: 6000,
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("BT9-BUDGET-BONUS", ir).effectsForTiming(EffectTiming.OnUseOption, src);
@@ -2270,10 +2363,12 @@ describe("CAP-A2: AddToDPDeleteBudget (BT19-011 inherited)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{ kind: "AddToDPDeleteBudget", amount: 3000 }],
-      }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [{ kind: "AddToDPDeleteBudget", amount: 3000 }],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("BT19-011-A2-bonus", ir).effectsForTiming(EffectTiming.OnUseOption, src);
@@ -2305,17 +2400,20 @@ describe("CAP-A3: deletedByThisEffect scaling filter (BT19-011)", () => {
     const oppPerms2 = [
       { id: "DP_D1", dp: 1000 },
       { id: "DP_D2", dp: 2000 },
-    ].map((o) => ({
-      permanentId: o.id,
-      controllerSeat: 1 as Seat,
-      topCard: { instanceId: `${o.id}#t`, cardId: "RED", ownerSeat: 1 as Seat, faceUp: true } as never,
-      stack: [] as never[],
-      linked: [] as never[],
-      baseDP: o.dp,
-      currentDP: o.dp,
-      isSuspended: false,
-      inBreeding: false,
-    } as unknown as Permanent));
+    ].map(
+      (o) =>
+        ({
+          permanentId: o.id,
+          controllerSeat: 1 as Seat,
+          topCard: { instanceId: `${o.id}#t`, cardId: "RED", ownerSeat: 1 as Seat, faceUp: true } as never,
+          stack: [] as never[],
+          linked: [] as never[],
+          baseDP: o.dp,
+          currentDP: o.dp,
+          isSuspended: false,
+          inBreeding: false,
+        }) as unknown as Permanent,
+    );
 
     const players2 = [
       { seat: 0, battleArea: [srcPerm2], security: [], hand: [], deck: [], trash: [] },
@@ -2338,8 +2436,12 @@ describe("CAP-A3: deletedByThisEffect scaling filter (BT19-011)", () => {
         players2[1]!.battleArea = players2[1]!.battleArea.filter((p) => !ids.includes(p.permanentId));
         return ids.length;
       },
-      gainMemory: (amount: number) => { capturedMemory += amount; },
-      gainMemoryForSeat: (_seat: Seat, amount: number) => { capturedMemory += amount; },
+      gainMemory: (amount: number) => {
+        capturedMemory += amount;
+      },
+      gainMemoryForSeat: (_seat: Seat, amount: number) => {
+        capturedMemory += amount;
+      },
       dpDeleteBudgetBonus: () => 0,
     } as unknown as Primitives;
 
@@ -2367,25 +2469,27 @@ describe("CAP-A3: deletedByThisEffect scaling filter (BT19-011)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [
-          {
-            kind: "DeleteByDPBudget",
-            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
-            baseBudget: 6000, // both fit (1000+2000=3000 <= 6000)
-          },
-          {
-            kind: "GainMemory",
-            amount: 1,
-            scaling: {
-              per: 1,
-              filter: { deletedByThisEffect: true, kind: ["Digimon"] },
-              unit: "cards",
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "DeleteByDPBudget",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
+              baseBudget: 6000, // both fit (1000+2000=3000 <= 6000)
             },
-          },
-        ],
-      }],
+            {
+              kind: "GainMemory",
+              amount: 1,
+              scaling: {
+                per: 1,
+                filter: { deletedByThisEffect: true, kind: ["Digimon"] },
+                unit: "cards",
+              },
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("BT19-011-A3b", ir).effectsForTiming(EffectTiming.OnUseOption, src2);
@@ -2443,8 +2547,12 @@ describe("CAP-A3: deletedByThisEffect scaling filter (BT19-011)", () => {
         players3[1]!.battleArea = players3[1]!.battleArea.filter((p) => !ids.includes(p.permanentId));
         return ids.length;
       },
-      gainMemory: (amount: number) => { capturedMemory += amount; },
-      gainMemoryForSeat: (_seat: Seat, amount: number) => { capturedMemory += amount; },
+      gainMemory: (amount: number) => {
+        capturedMemory += amount;
+      },
+      gainMemoryForSeat: (_seat: Seat, amount: number) => {
+        capturedMemory += amount;
+      },
       dpDeleteBudgetBonus: () => 0,
     } as unknown as Primitives;
 
@@ -2472,25 +2580,27 @@ describe("CAP-A3: deletedByThisEffect scaling filter (BT19-011)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [
-          {
-            kind: "DeleteByDPBudget",
-            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
-            baseBudget: 3000, // OPP_OVER has 5000 DP — does not fit
-          },
-          {
-            kind: "GainMemory",
-            amount: 1,
-            scaling: {
-              per: 1,
-              filter: { deletedByThisEffect: true, kind: ["Digimon"] },
-              unit: "cards",
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "DeleteByDPBudget",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
+              baseBudget: 3000, // OPP_OVER has 5000 DP — does not fit
             },
-          },
-        ],
-      }],
+            {
+              kind: "GainMemory",
+              amount: 1,
+              scaling: {
+                per: 1,
+                filter: { deletedByThisEffect: true, kind: ["Digimon"] },
+                unit: "cards",
+              },
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("BT19-011-A3c", ir).effectsForTiming(EffectTiming.OnUseOption, src3);
@@ -2571,8 +2681,12 @@ describe("CAP-A3: deletedByThisEffect scaling filter (BT19-011)", () => {
         players4[1]!.battleArea = players4[1]!.battleArea.filter((p) => !actuallyRemoved.includes(p.permanentId));
         return actuallyRemoved.length;
       },
-      gainMemory: (amount: number) => { capturedMemory += amount; },
-      gainMemoryForSeat: (_seat: Seat, amount: number) => { capturedMemory += amount; },
+      gainMemory: (amount: number) => {
+        capturedMemory += amount;
+      },
+      gainMemoryForSeat: (_seat: Seat, amount: number) => {
+        capturedMemory += amount;
+      },
       dpDeleteBudgetBonus: () => 0,
     } as unknown as Primitives;
 
@@ -2600,25 +2714,27 @@ describe("CAP-A3: deletedByThisEffect scaling filter (BT19-011)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [
-          {
-            kind: "DeleteByDPBudget",
-            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
-            baseBudget: 6000, // both attempted (1000+2000=3000 <= 6000); only DP_GONE really dies
-          },
-          {
-            kind: "GainMemory",
-            amount: 1,
-            scaling: {
-              per: 1,
-              filter: { deletedByThisEffect: true, kind: ["Digimon"] },
-              unit: "cards",
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "DeleteByDPBudget",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
+              baseBudget: 6000, // both attempted (1000+2000=3000 <= 6000); only DP_GONE really dies
             },
-          },
-        ],
-      }],
+            {
+              kind: "GainMemory",
+              amount: 1,
+              scaling: {
+                per: 1,
+                filter: { deletedByThisEffect: true, kind: ["Digimon"] },
+                unit: "cards",
+              },
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("BT19-011-A3d", ir).effectsForTiming(EffectTiming.OnUseOption, src4);
@@ -2640,10 +2756,10 @@ describe("CAP-A4: cannotActivateWhenDigivolving restriction (BT19-038)", () => {
   // so gatherTriggeredEffects can find its module without needing cards.json for a fake ID.
   const CARD_WITH_WD = "BT19-038";
 
-  function makeCapA4Env(opts: {
-    permanentId: string;
-    restricted: boolean;
-  }): { env: EffectEnvironment; candidateInstance: { instanceId: string; cardId: string; ownerSeat: Seat } } {
+  function makeCapA4Env(opts: { permanentId: string; restricted: boolean }): {
+    env: EffectEnvironment;
+    candidateInstance: { instanceId: string; cardId: string; ownerSeat: Seat };
+  } {
     const srcPerm: Permanent = {
       permanentId: opts.permanentId,
       controllerSeat: 0 as Seat,
@@ -2676,11 +2792,7 @@ describe("CAP-A4: cannotActivateWhenDigivolving restriction (BT19-038)", () => {
     };
     const continuous = new ContinuousEffectLedger();
     if (opts.restricted) {
-      continuous.addRestriction(
-        opts.permanentId,
-        "cannotActivateWhenDigivolving",
-        EffectDuration.UntilOpponentTurnEnd,
-      );
+      continuous.addRestriction(opts.permanentId, "cannotActivateWhenDigivolving", EffectDuration.UntilOpponentTurnEnd);
     }
     const tracker = new UseTracker();
     const env: EffectEnvironment = { state, fx, ask, tracker, continuous };
@@ -2778,22 +2890,26 @@ describe("CAP-A5: PlaceUnder with explicit destination selector (BT19-038)", () 
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "PlaceUnder",
-          target: {
-            filter: { controller: "mine", kind: ["Digimon"] },
-            count: 1,
-          },
-          destination: {
-            filter: { controller: "mine", kind: ["Tamer"] },
-            count: 1,
-          },
-          from: ["hand", "trash"],
-          optional: true,
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "PlaceUnder",
+              target: {
+                filter: { controller: "mine", kind: ["Digimon"] },
+                count: 1,
+              },
+              destination: {
+                filter: { controller: "mine", kind: ["Tamer"] },
+                count: 1,
+              },
+              from: ["hand", "trash"],
+              optional: true,
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("BT19-038-CAP-A5", ir).effectsForTiming(EffectTiming.OnUseOption, src);
@@ -2864,22 +2980,26 @@ describe("CAP-A5: PlaceUnder with explicit destination selector (BT19-038)", () 
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "PlaceUnder",
-          target: {
-            filter: { controller: "mine", kind: ["Digimon"] },
-            count: 1,
-          },
-          destination: {
-            filter: { controller: "mine", kind: ["Tamer"] },
-            count: 1,
-          },
-          from: ["hand", "trash"],
-          optional: true,
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "PlaceUnder",
+              target: {
+                filter: { controller: "mine", kind: ["Digimon"] },
+                count: 1,
+              },
+              destination: {
+                filter: { controller: "mine", kind: ["Tamer"] },
+                count: 1,
+              },
+              from: ["hand", "trash"],
+              optional: true,
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("BT19-038-CAP-A5-noop", ir).effectsForTiming(EffectTiming.OnUseOption, src);
@@ -2914,7 +3034,10 @@ describe("CAP-A6: digiXrosCount condition (BT19-063)", () => {
       definitionOf: (card: { cardId: string }) => def(card.cardId),
     } as never;
     const fx = {
-      deletePermanent: async (ids: string[]) => { deleted.push(...ids); return ids.length; },
+      deletePermanent: async (ids: string[]) => {
+        deleted.push(...ids);
+        return ids.length;
+      },
     } as unknown as Primitives;
     const ask: DecisionApi = {
       optional: async () => true,
@@ -2941,22 +3064,26 @@ describe("CAP-A6: digiXrosCount condition (BT19-063)", () => {
   const deleteIr: CompiledCard = {
     coverage: "full",
     residual: [],
-    effects: [{
-      trigger: "OnPlay",
-      actions: [{
-        kind: "Delete",
-        target: {
-          filter: { controller: "opponent", kind: ["Digimon"] },
-          count: 1,
-        },
-        condition: {
-          kind: "digiXrosCount",
-          minimum: 2,
-          raw: "DigiXrosing with 2 cards",
-        },
-        optional: true,
-      }],
-    }],
+    effects: [
+      {
+        trigger: "OnPlay",
+        actions: [
+          {
+            kind: "Delete",
+            target: {
+              filter: { controller: "opponent", kind: ["Digimon"] },
+              count: 1,
+            },
+            condition: {
+              kind: "digiXrosCount",
+              minimum: 2,
+              raw: "DigiXrosing with 2 cards",
+            },
+            optional: true,
+          },
+        ],
+      },
+    ],
   } as unknown as CompiledCard;
 
   it("allows the Delete when DigiXros used >= minimum materials", async () => {
@@ -2968,14 +3095,20 @@ describe("CAP-A6: digiXrosCount condition (BT19-063)", () => {
 
   it("blocks the Delete when DigiXros used fewer than minimum materials", async () => {
     const { ctx, deleted } = makeDeleteCtx(1);
-    const effects = irCardModule("BT19-063-CAP-A6-fail-count", deleteIr).effectsForTiming(EffectTiming.OnPlay, ctx.source);
+    const effects = irCardModule("BT19-063-CAP-A6-fail-count", deleteIr).effectsForTiming(
+      EffectTiming.OnPlay,
+      ctx.source,
+    );
     await effects[0]!.resolve(ctx);
     expect(deleted).toHaveLength(0);
   });
 
   it("blocks the Delete when trigger is not a DigiXros", async () => {
     const { ctx, deleted } = makeDeleteCtx(undefined);
-    const effects = irCardModule("BT19-063-CAP-A6-fail-no-xros", deleteIr).effectsForTiming(EffectTiming.OnPlay, ctx.source);
+    const effects = irCardModule("BT19-063-CAP-A6-fail-no-xros", deleteIr).effectsForTiming(
+      EffectTiming.OnPlay,
+      ctx.source,
+    );
     await effects[0]!.resolve(ctx);
     expect(deleted).toHaveLength(0);
   });
@@ -3030,19 +3163,23 @@ describe("CAP-A7: underMyTamers source zone (BT19-063)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "OnDeletion",
-        actions: [{
-          kind: "PlayWithoutCost",
-          target: {
-            filter: { controller: "mine", kind: ["Digimon"] },
-            count: 1,
-          },
-          from: ["underMyTamers"],
-          payCost: false,
-          optional: true,
-        }],
-      }],
+      effects: [
+        {
+          trigger: "OnDeletion",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: { controller: "mine", kind: ["Digimon"] },
+                count: 1,
+              },
+              from: ["underMyTamers"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     // OnDeletion IR trigger is bucketed under OnDestroyedAnyone in the interpreter.
@@ -3099,22 +3236,29 @@ describe("CAP-A7: underMyTamers source zone (BT19-063)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "OnDeletion",
-        actions: [{
-          kind: "PlayWithoutCost",
-          target: {
-            filter: { controller: "mine", kind: ["Digimon"] },
-            count: 1,
-          },
-          from: ["underMyTamers"],
-          payCost: false,
-          optional: true,
-        }],
-      }],
+      effects: [
+        {
+          trigger: "OnDeletion",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: { controller: "mine", kind: ["Digimon"] },
+                count: 1,
+              },
+              from: ["underMyTamers"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
-    const effects = irCardModule("BT19-063-CAP-A7-no-digi-stacks", ir).effectsForTiming(EffectTiming.OnDestroyedAnyone, src);
+    const effects = irCardModule("BT19-063-CAP-A7-no-digi-stacks", ir).effectsForTiming(
+      EffectTiming.OnDestroyedAnyone,
+      src,
+    );
     await effects[0]!.resolve(ctx);
 
     // Cards under Digimon should be excluded — nothing played.
@@ -3175,15 +3319,19 @@ describe("immuneToOpponentOptionEffects (CAP-A8, BT19-089)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "GrantStatic",
-          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
-          grant: "immuneToOpponentOptionEffects",
-          duration: "untilOpponentTurnEnd",
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "GrantStatic",
+              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              grant: "immuneToOpponentOptionEffects",
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
     const effects = irCardModule("BT19-089-A8-produce", ir).effectsForTiming(EffectTiming.OnUseOption, src);
     await effects[0]!.resolve(ctx);
@@ -3221,7 +3369,10 @@ describe("immuneToOpponentOptionEffects (CAP-A8, BT19-089)", () => {
       definitionOf: (card: { cardId: string }) => def(card.cardId),
       linkMax: () => 1,
     } as never;
-    const fx: Partial<Primitives> & { isBeAffectedBySourceKind: NonNullable<Primitives["isBeAffectedBySourceKind"]>; modifyDP: Primitives["modifyDP"] } = {
+    const fx: Partial<Primitives> & {
+      isBeAffectedBySourceKind: NonNullable<Primitives["isBeAffectedBySourceKind"]>;
+      modifyDP: Primitives["modifyDP"];
+    } = {
       isBeAffectedBySourceKind: (permanentId, sourceKind) =>
         ledger.hasRestriction(permanentId, "beAffected", sourceKind),
       modifyDP: (id: string, amount: number) => {
@@ -3260,15 +3411,19 @@ describe("immuneToOpponentOptionEffects (CAP-A8, BT19-089)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "ModifyDP",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
-          amount: -2000,
-          duration: "forTheTurn",
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "ModifyDP",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
+              amount: -2000,
+              duration: "forTheTurn",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
     const effects = irCardModule("OPT-A8-consume", ir).effectsForTiming(EffectTiming.OnUseOption, optSrc);
     await effects[0]!.resolve(ctx);
@@ -3309,15 +3464,16 @@ describe("sameTarget linkage (CAP-A9, BT19-089)", () => {
       definitionOf: (card: { cardId: string }) => def(card.cardId),
       linkMax: () => 1,
     } as never;
-    const fx: Partial<Primitives> & { restrict: Primitives["restrict"]; grantNameTrait: Primitives["grantNameTrait"] } = {
-      // Use grantNameTrait as a stand-in for the GrantStatic action's effect on the target.
-      grantNameTrait: (permanentId) => {
-        grantedTo.push(permanentId);
-      },
-      restrict: (permanentId) => {
-        restrictedTo.push(permanentId);
-      },
-    };
+    const fx: Partial<Primitives> & { restrict: Primitives["restrict"]; grantNameTrait: Primitives["grantNameTrait"] } =
+      {
+        // Use grantNameTrait as a stand-in for the GrantStatic action's effect on the target.
+        grantNameTrait: (permanentId) => {
+          grantedTo.push(permanentId);
+        },
+        restrict: (permanentId) => {
+          restrictedTo.push(permanentId);
+        },
+      };
     const ask: DecisionApi = {
       optional: async () => true,
       // Always picks the FIRST candidate — so digiA is selected by action 1.
@@ -3341,28 +3497,30 @@ describe("sameTarget linkage (CAP-A9, BT19-089)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [
-          {
-            kind: "GrantStatic",
-            target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
-            grant: "name",
-            tokens: ["TestName"],
-            duration: "untilOpponentTurnEnd",
-          },
-          {
-            kind: "Restrict",
-            target: {
-              filter: { controller: "mine", kind: ["Digimon"] },
-              count: 1,
-              sameTarget: true,
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "GrantStatic",
+              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              grant: "name",
+              tokens: ["TestName"],
+              duration: "untilOpponentTurnEnd",
             },
-            restriction: "dpImmune",
-            duration: "untilOpponentTurnEnd",
-          },
-        ],
-      }],
+            {
+              kind: "Restrict",
+              target: {
+                filter: { controller: "mine", kind: ["Digimon"] },
+                count: 1,
+                sameTarget: true,
+              },
+              restriction: "dpImmune",
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
     const effects = irCardModule("BT19-089-A9-same", ir).effectsForTiming(EffectTiming.OnUseOption, src);
     await effects[0]!.resolve(ctx);
@@ -3404,7 +3562,9 @@ describe("sameTarget linkage (CAP-A9, BT19-089)", () => {
         if (ids.includes("OPPONENT_TARGET")) ctx.lastResolvedPermanentIds = ["NESTED_TARGET"];
         return [...ids];
       },
-      restrict: (permanentId) => { restrictedTo.push(permanentId); },
+      restrict: (permanentId) => {
+        restrictedTo.push(permanentId);
+      },
     };
     const ask: DecisionApi = {
       optional: async () => true,
@@ -3424,25 +3584,27 @@ describe("sameTarget linkage (CAP-A9, BT19-089)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [
-          {
-            kind: "Suspend",
-            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-            cost: {
-              kind: "suspend",
-              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "Suspend",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+              cost: {
+                kind: "suspend",
+                target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              },
             },
-          },
-          {
-            kind: "Restrict",
-            target: { sameTarget: true, filter: { controller: "opponent" }, count: 1 },
-            restriction: "unsuspend",
-            duration: "untilOpponentTurnEnd",
-          },
-        ],
-      }],
+            {
+              kind: "Restrict",
+              target: { sameTarget: true, filter: { controller: "opponent" }, count: 1 },
+              restriction: "unsuspend",
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("BT8-102-A9-receipt", ir).effectsForTiming(EffectTiming.OnUseOption, src);
@@ -3469,7 +3631,9 @@ describe("sameTarget linkage (CAP-A9, BT19-089)", () => {
       linkMax: () => 1,
     } as never;
     const fx: Partial<Primitives> & { restrict: Primitives["restrict"] } = {
-      restrict: (permanentId) => { restrictedTo.push(permanentId); },
+      restrict: (permanentId) => {
+        restrictedTo.push(permanentId);
+      },
     };
     const ask: DecisionApi = {
       optional: async () => true,
@@ -3491,19 +3655,23 @@ describe("sameTarget linkage (CAP-A9, BT19-089)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "Restrict",
-          target: {
-            filter: { controller: "mine", kind: ["Digimon"] },
-            count: 1,
-            sameTarget: true,
-          },
-          restriction: "dpImmune",
-          duration: "untilOpponentTurnEnd",
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "Restrict",
+              target: {
+                filter: { controller: "mine", kind: ["Digimon"] },
+                count: 1,
+                sameTarget: true,
+              },
+              restriction: "dpImmune",
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
     const effects = irCardModule("BT19-089-A9-empty", ir).effectsForTiming(EffectTiming.OnUseOption, src);
     await effects[0]!.resolve(ctx);
@@ -3568,7 +3736,10 @@ describe("CAP-A10: PlayFromZone with costReduction (BT19-099)", () => {
 
   // DEFS has a "Digimon" with nameOrTrait containing "Composite" trait — not a real one,
   // so we add a synthetic definition for the test.
-  const COMPOSITE_DEF: Record<string, { level?: number; kinds: string[]; nameEn: string; playCost: number; types?: string[] }> = {
+  const COMPOSITE_DEF: Record<
+    string,
+    { level?: number; kinds: string[]; nameEn: string; playCost: number; types?: string[] }
+  > = {
     COMPOSITE: { level: 6, kinds: ["Digimon"], nameEn: "Composite Digi", playCost: 12, types: ["Composite"] },
     NON_COMPOSITE: { level: 6, kinds: ["Digimon"], nameEn: "OtherDigi", playCost: 8, types: [] },
   };
@@ -3597,29 +3768,34 @@ describe("CAP-A10: PlayFromZone with costReduction (BT19-099)", () => {
     ];
     const { ctx, played, src } = makePlayCtx(trashCards);
     // Override definitionOf to return composite-aware definitions
-    (ctx.game as never as { definitionOf: (c: { cardId: string }) => CardDefinition }).definitionOf =
-      (card: { cardId: string }) => defWithComposite(card.cardId);
+    (ctx.game as never as { definitionOf: (c: { cardId: string }) => CardDefinition }).definitionOf = (card: {
+      cardId: string;
+    }) => defWithComposite(card.cardId);
 
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "PlayFromZone",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Composite"], match: "trait" }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "PlayFromZone",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Composite"], match: "trait" }],
+                },
+                count: 1,
+              },
+              from: ["trash"],
+              costReduction: 4,
+              optional: true,
             },
-            count: 1,
-          },
-          from: ["trash"],
-          costReduction: 4,
-          optional: true,
-        }],
-      }],
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("BT19-099-CAP-A10", ir).effectsForTiming(EffectTiming.OnUseOption, src);
@@ -3635,29 +3811,34 @@ describe("CAP-A10: PlayFromZone with costReduction (BT19-099)", () => {
 
   it("does not play when no candidates match the filter", async () => {
     const { ctx, played, src } = makePlayCtx([{ instanceId: "trash-noncomp#i", cardId: "NON_COMPOSITE" }]);
-    (ctx.game as never as { definitionOf: (c: { cardId: string }) => CardDefinition }).definitionOf =
-      (card: { cardId: string }) => defWithComposite(card.cardId);
+    (ctx.game as never as { definitionOf: (c: { cardId: string }) => CardDefinition }).definitionOf = (card: {
+      cardId: string;
+    }) => defWithComposite(card.cardId);
 
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "PlayFromZone",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Composite"], match: "trait" }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "PlayFromZone",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Composite"], match: "trait" }],
+                },
+                count: 1,
+              },
+              from: ["trash"],
+              costReduction: 4,
+              optional: true,
             },
-            count: 1,
-          },
-          from: ["trash"],
-          costReduction: 4,
-          optional: true,
-        }],
-      }],
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("BT19-099-CAP-A10-miss", ir).effectsForTiming(EffectTiming.OnUseOption, src);
@@ -3707,9 +3888,8 @@ describe("CAP-A11: relativeToLeavingDigimon playCost filter (BT19-099 Delay body
   ) {
     const srcPerm = perm("A11_SRC", 0 as Seat, "SRC");
     // The leaving Millenniummon permanent (may be off-field already, but still findable)
-    const millenniummonPerm = leavingPermanentId !== undefined
-      ? perm(leavingPermanentId, 0 as Seat, "MILLENNIUMMON")
-      : undefined;
+    const millenniummonPerm =
+      leavingPermanentId !== undefined ? perm(leavingPermanentId, 0 as Seat, "MILLENNIUMMON") : undefined;
     const battleArea = [srcPerm, ...(millenniummonPerm ? [millenniummonPerm] : [])];
     const players = [
       {
@@ -3771,30 +3951,34 @@ describe("CAP-A11: relativeToLeavingDigimon playCost filter (BT19-099 Delay body
     return {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "PlayFromZone",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Wicked God"], match: "trait" }],
-              playCost: { op: "eq", relativeToLeavingDigimon: 1 },
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "PlayFromZone",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Wicked God"], match: "trait" }],
+                  playCost: { op: "eq", relativeToLeavingDigimon: 1 },
+                },
+                count: 1,
+              },
+              from: ["hand", "trash"],
+              payCost: false,
+              optional: true,
             },
-            count: 1,
-          },
-          from: ["hand", "trash"],
-          payCost: false,
-          optional: true,
-        }],
-      }],
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
   }
 
   it("plays the Wicked God Digimon whose playCost equals leavingCost + 1", async () => {
     const hand = [
-      { instanceId: "h-match#i", cardId: "WICKED_MATCH" },   // playCost 16 == 15 + 1 ✓
+      { instanceId: "h-match#i", cardId: "WICKED_MATCH" }, // playCost 16 == 15 + 1 ✓
       { instanceId: "h-nomatch#i", cardId: "WICKED_NOMATCH" }, // playCost 14 ✗
     ];
     const { ctx, played, src } = makeA11Ctx(hand, [], "MILL_PERM");
@@ -3888,18 +4072,25 @@ describe("CAP-A12: RestrictPlay byEffectOnly (BT20-020)", () => {
     } as never;
     const restrictCalls: unknown[][] = [];
     const fx = {
-      restrictPlay: (...args: unknown[]) => { restrictCalls.push([...args]); },
+      restrictPlay: (...args: unknown[]) => {
+        restrictCalls.push([...args]);
+      },
     } as unknown as Primitives;
     const game: GameAccess = {
-      state: { memory: 0, players: [
-        { seat: 0, battleArea: [srcPerm], security: [], hand: [], deck: [], trash: [] },
-        { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] },
-      ], turnSeat: 0 } as never,
-      player: (seat: Seat) => (seat === 0
-        ? { seat: 0, battleArea: [srcPerm], security: [], hand: [], deck: [], trash: [] }
-        : { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] }) as never,
+      state: {
+        memory: 0,
+        players: [
+          { seat: 0, battleArea: [srcPerm], security: [], hand: [], deck: [], trash: [] },
+          { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] },
+        ],
+        turnSeat: 0,
+      } as never,
+      player: (seat: Seat) =>
+        (seat === 0
+          ? { seat: 0, battleArea: [srcPerm], security: [], hand: [], deck: [], trash: [] }
+          : { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] }) as never,
       opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
-      permanentById: (id: string) => id === "A12_SRC" ? srcPerm : undefined,
+      permanentById: (id: string) => (id === "A12_SRC" ? srcPerm : undefined),
       definitionOf: (_c: { cardId: string }) => def("SRC"),
     } as never;
     const ask: DecisionApi = {
@@ -3918,28 +4109,32 @@ describe("CAP-A12: RestrictPlay byEffectOnly (BT20-020)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "WhenDigivolving",
-        actions: [{
-          kind: "RestrictPlay",
-          seat: "opponent",
-          filter: { kind: ["Digimon", "Tamer"] },
-          mode: "play",
-          byEffectOnly: true,
-          duration: "untilOpponentTurnEnd",
-        }],
-      }],
+      effects: [
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            {
+              kind: "RestrictPlay",
+              seat: "opponent",
+              filter: { kind: ["Digimon", "Tamer"] },
+              mode: "play",
+              byEffectOnly: true,
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
     const effects = irCardModule("BT20-020-CAP-A12-fwd", ir).effectsForTiming(EffectTiming.WhenDigivolving, src);
     await effects[0]!.resolve(ctx);
 
     expect(restrictCalls).toHaveLength(1);
     const args = restrictCalls[0]!;
-    expect(args[0]).toBe(1);      // restricted seat = opponent (seat 1)
-    expect(args[1]).toBe(0);      // source seat
+    expect(args[0]).toBe(1); // restricted seat = opponent (seat 1)
+    expect(args[1]).toBe(0); // source seat
     expect(args[2]).toEqual({ kinds: ["Digimon", "Tamer"] }); // match
     expect(args[3]).toBe("play"); // mode
-    expect(args[5]).toBe(true);   // byEffectOnly forwarded
+    expect(args[5]).toBe(true); // byEffectOnly forwarded
   });
 
   it("byEffectOnly prohibition blocks effect play but not normal hand play on the ledger", () => {
@@ -3991,7 +4186,10 @@ describe("CAP-A13: underThisTamer source zone (BT20-092)", () => {
    * Tamer executing this effect, NOT all Tamers.
    */
 
-  function makeA13Ctx(stackCardIds: string[], otherTamerStackCardIds: string[]): {
+  function makeA13Ctx(
+    stackCardIds: string[],
+    otherTamerStackCardIds: string[],
+  ): {
     ctx: EffectContext;
     src: CardSource;
     played: { instanceIds: string[] }[];
@@ -4044,19 +4242,23 @@ describe("CAP-A13: underThisTamer source zone (BT20-092)", () => {
     return {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "StartOfYourMainPhase",
-        actions: [{
-          kind: "PlayWithoutCost",
-          target: {
-            filter: { controller: "mine", kind: ["Digimon"] },
-            count: 1,
-          },
-          from: ["underThisTamer"],
-          payCost: false,
-          optional: true,
-        }],
-      }],
+      effects: [
+        {
+          trigger: "StartOfYourMainPhase",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: { controller: "mine", kind: ["Digimon"] },
+                count: 1,
+              },
+              from: ["underThisTamer"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
   }
 
@@ -4076,7 +4278,10 @@ describe("CAP-A13: underThisTamer source zone (BT20-092)", () => {
     // Source Tamer has an empty stack; only the other Tamer has a Digimon stacked.
     const { ctx, src, played } = makeA13Ctx([], ["XROS_DIGI"]);
     const ir = underThisTamerIr();
-    const effects = irCardModule("BT20-092-CAP-A13-other-only", ir).effectsForTiming(EffectTiming.OnStartMainPhase, src);
+    const effects = irCardModule("BT20-092-CAP-A13-other-only", ir).effectsForTiming(
+      EffectTiming.OnStartMainPhase,
+      src,
+    );
     await effects[0]!.resolve(ctx);
 
     // underThisTamer is specific to the source Tamer; the other Tamer's stack is not included.
@@ -4128,9 +4333,7 @@ describe("DigiXros-only scoped name grant (CAP-A14b / CAP-B-001 / CAP-G4)", () =
     expect(materialsSatisfyRecipe([nonMatchMaterial], [slot])).toBe(false);
 
     // With the alias supplied via digiXrosNamesAt the recipe passes.
-    expect(
-      materialsSatisfyRecipe([nonMatchMaterial], [slot], (_i) => ["Dorulumon"]),
-    ).toBe(true);
+    expect(materialsSatisfyRecipe([nonMatchMaterial], [slot], (_i) => ["Dorulumon"])).toBe(true);
   });
 
   // (b) The granted name does NOT leak into ordinary name-based definitionMatches.
@@ -4190,17 +4393,24 @@ describe("DigiXros-only scoped name grant (CAP-A14b / CAP-B-001 / CAP-G4)", () =
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Static",
-        actions: [{
-          kind: "GrantStatic",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          grant: "nameForDigiXros",
-          tokens: ["Dorulumon"],
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Static",
+          actions: [
+            {
+              kind: "GrantStatic",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              grant: "nameForDigiXros",
+              tokens: ["Dorulumon"],
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
-    const effects = irCardModule("BT19-038-nameForDigiXros-test", ir).effectsForTiming(EffectTiming.None, source("SRC", srcPerm));
+    const effects = irCardModule("BT19-038-nameForDigiXros-test", ir).effectsForTiming(
+      EffectTiming.None,
+      source("SRC", srcPerm),
+    );
     await effects[0]!.resolve(ctxWithFx);
 
     // The interpreter must have routed through the DigiXros-only branch.
@@ -4232,18 +4442,25 @@ describe("DigiXros-only scoped name grant (CAP-A14b / CAP-B-001 / CAP-G4)", () =
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Static",
-        actions: [{
-          kind: "GrantStatic",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          grant: "name",
-          tokens: ["Shoutmon"],
-          digiXrosOnly: true,
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Static",
+          actions: [
+            {
+              kind: "GrantStatic",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              grant: "name",
+              tokens: ["Shoutmon"],
+              digiXrosOnly: true,
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
-    const effects = irCardModule("BT19-012-digiXrosOnly-test", ir).effectsForTiming(EffectTiming.None, source("SRC", srcPerm));
+    const effects = irCardModule("BT19-012-digiXrosOnly-test", ir).effectsForTiming(
+      EffectTiming.None,
+      source("SRC", srcPerm),
+    );
     await effects[0]!.resolve(ctxWithFx);
 
     expect(grantedDigiXrosIds.length).toBeGreaterThan(0);
@@ -4292,12 +4509,15 @@ describe("CAP-A14: selfTopHasText condition (BT20-059)", () => {
     } as never;
 
     const fx = {
-      grantKeyword: (id: string, kw: string) => { granted.push({ id, kw }); },
+      grantKeyword: (id: string, kw: string) => {
+        granted.push({ id, kw });
+      },
     } as unknown as Primitives;
 
     const ask: DecisionApi = {
       optional: async () => true,
-      selectPermanents: async () => [], chooseTargets: async (_c: unknown, o: { candidates: string[]; min: number; max: number }) =>
+      selectPermanents: async () => [],
+      chooseTargets: async (_c: unknown, o: { candidates: string[]; min: number; max: number }) =>
         o.candidates.slice(0, o.max),
       selectCards: async (_c: unknown, o: { candidates: string[]; min: number; max: number }) =>
         o.candidates.slice(0, o.max),
@@ -4331,26 +4551,30 @@ describe("CAP-A14: selfTopHasText condition (BT20-059)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "OpponentsTurn",
-        isInherited: true,
-        actions: [{
-          kind: "GainKeyword",
-          target: {
-            filter: { controller: "mine", kind: ["Digimon"] },
-            count: "all",
-          },
-          keyword: { keyword: "Reboot", raw: "＜Reboot＞" },
-          duration: "untilOpponentTurnEnd",
-          condition: {
-            kind: "selfTopHasText",
-            filter: {
-              nameOrTrait: [{ tokens: ["Jesmon GX"], match: "name" }],
+      effects: [
+        {
+          trigger: "OpponentsTurn",
+          isInherited: true,
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: { controller: "mine", kind: ["Digimon"] },
+                count: "all",
+              },
+              keyword: { keyword: "Reboot", raw: "＜Reboot＞" },
+              duration: "untilOpponentTurnEnd",
+              condition: {
+                kind: "selfTopHasText",
+                filter: {
+                  nameOrTrait: [{ tokens: ["Jesmon GX"], match: "name" }],
+                },
+                raw: "while this Digimon is [Jesmon GX]",
+              },
             },
-            raw: "while this Digimon is [Jesmon GX]",
-          },
-        }],
-      }],
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     return { ir, ctx, src, granted };
@@ -4442,7 +4666,8 @@ describe("CAP-A15: place-cost with object host selector (BT21-071)", () => {
 
     const ask: DecisionApi = {
       optional: async () => true,
-      selectPermanents: async () => [], chooseTargets: async (_c: unknown, o: { candidates: string[]; min: number; max: number }) =>
+      selectPermanents: async () => [],
+      chooseTargets: async (_c: unknown, o: { candidates: string[]; min: number; max: number }) =>
         o.candidates.slice(0, o.max),
       selectCards: async (_c: unknown, o: { candidates: string[]; min: number; max: number }) =>
         o.candidates.slice(0, o.max),
@@ -4466,33 +4691,37 @@ describe("CAP-A15: place-cost with object host selector (BT21-071)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "OnPlay",
-        actions: [{
-          kind: "GainMemory",
-          amount: 1,
-          cost: {
-            kind: "place",
-            target: {
-              filter: {
-                controller: "mine",
-                nameOrTrait: [{ tokens: ["Appmon", "Three Musketeers"], match: "trait" }],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 1,
+              cost: {
+                kind: "place",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    nameOrTrait: [{ tokens: ["Appmon", "Three Musketeers"], match: "trait" }],
+                  },
+                  count: 1,
+                  from: ["hand", "trash"],
+                },
+                destination: "digivolutionStack",
+                position: "bottom",
+                host: {
+                  filter: { controller: "mine", kind: ["Digimon"] },
+                  count: 1,
+                },
+                raw: "By placing 1 card with the [Appmon]/[Three Musketeers] trait from your hand or trash as 1 of your Digimon's bottom digivolution card",
               },
-              count: 1,
-              from: ["hand", "trash"],
+              optional: true,
+              abortOnDecline: true,
             },
-            destination: "digivolutionStack",
-            position: "bottom",
-            host: {
-              filter: { controller: "mine", kind: ["Digimon"] },
-              count: 1,
-            },
-            raw: "By placing 1 card with the [Appmon]/[Three Musketeers] trait from your hand or trash as 1 of your Digimon's bottom digivolution card",
-          },
-          optional: true,
-          abortOnDecline: true,
-        }],
-      }],
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("BT21-071-CAP-A15", ir).effectsForTiming(EffectTiming.OnPlay, src);
@@ -4536,7 +4765,8 @@ describe("CAP-A15: place-cost with object host selector (BT21-071)", () => {
 
     const ask: DecisionApi = {
       optional: async () => true,
-      selectPermanents: async () => [], chooseTargets: async (_c: unknown, o: { candidates: string[]; min: number; max: number }) =>
+      selectPermanents: async () => [],
+      chooseTargets: async (_c: unknown, o: { candidates: string[]; min: number; max: number }) =>
         o.candidates.slice(0, o.max),
       selectCards: async (_c: unknown, o: { candidates: string[]; min: number; max: number }) =>
         o.candidates.slice(0, o.max),
@@ -4559,33 +4789,37 @@ describe("CAP-A15: place-cost with object host selector (BT21-071)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "OnPlay",
-        actions: [{
-          kind: "GainMemory",
-          amount: 1,
-          cost: {
-            kind: "place",
-            target: {
-              filter: {
-                controller: "mine",
-                nameOrTrait: [{ tokens: ["Appmon", "Three Musketeers"], match: "trait" }],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 1,
+              cost: {
+                kind: "place",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    nameOrTrait: [{ tokens: ["Appmon", "Three Musketeers"], match: "trait" }],
+                  },
+                  count: 1,
+                  from: ["hand", "trash"],
+                },
+                destination: "digivolutionStack",
+                position: "bottom",
+                host: {
+                  filter: { controller: "mine", kind: ["Digimon"] },
+                  count: 1,
+                },
+                raw: "By placing 1 card with the [Appmon]/[Three Musketeers] trait from your hand or trash as 1 of your Digimon's bottom digivolution card",
               },
-              count: 1,
-              from: ["hand", "trash"],
+              optional: true,
+              abortOnDecline: true,
             },
-            destination: "digivolutionStack",
-            position: "bottom",
-            host: {
-              filter: { controller: "mine", kind: ["Digimon"] },
-              count: 1,
-            },
-            raw: "By placing 1 card with the [Appmon]/[Three Musketeers] trait from your hand or trash as 1 of your Digimon's bottom digivolution card",
-          },
-          optional: true,
-          abortOnDecline: true,
-        }],
-      }],
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("BT21-071-CAP-A15-noop", ir).effectsForTiming(EffectTiming.OnPlay, src);
@@ -4608,12 +4842,14 @@ describe("CAP-A16: WhenBattleDeleteOpponent trigger (BT18-090)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "WhenBattleDeleteOpponent" as never,
-        isInherited: true,
-        frequency: "OncePerTurn",
-        actions: [{ kind: "GainMemory", amount: 1 }],
-      }],
+      effects: [
+        {
+          trigger: "WhenBattleDeleteOpponent" as never,
+          isInherited: true,
+          frequency: "OncePerTurn",
+          actions: [{ kind: "GainMemory", amount: 1 }],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const mod = irCardModule("BT18-090-A16-T", ir);
@@ -4636,13 +4872,17 @@ describe("CAP-A16: WhenBattleDeleteOpponent trigger (BT18-090)", () => {
       player: (seat: Seat) => players[seat] as never,
       opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
       permanentById: (id: string) =>
-        [...players[0]!.battleArea, ...players[1]!.battleArea].find(p => p.permanentId === id),
+        [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
       definitionOf: (card: { cardId: string }) => def(card.cardId),
       linkMax: () => 1,
     } as never;
     const fx = {
-      gainMemory: (_amount: number) => { gained.push(_amount); },
-      gainMemoryForSeat: (_seat: Seat, _amount: number) => { gained.push(_amount); },
+      gainMemory: (_amount: number) => {
+        gained.push(_amount);
+      },
+      gainMemoryForSeat: (_seat: Seat, _amount: number) => {
+        gained.push(_amount);
+      },
     } as unknown as Primitives;
     const ask: DecisionApi = {
       optional: async () => true,
@@ -4665,12 +4905,14 @@ describe("CAP-A16: WhenBattleDeleteOpponent trigger (BT18-090)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "WhenBattleDeleteOpponent" as never,
-        isInherited: true,
-        frequency: "OncePerTurn",
-        actions: [{ kind: "GainMemory", amount: 2 }],
-      }],
+      effects: [
+        {
+          trigger: "WhenBattleDeleteOpponent" as never,
+          isInherited: true,
+          frequency: "OncePerTurn",
+          actions: [{ kind: "GainMemory", amount: 2 }],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("BT18-090-A16-R", ir).effectsForTiming(EffectTiming.OnBattleDeleteOpponent, src);
@@ -4703,7 +4945,9 @@ describe("CAP-A17: hasInheritedEffects filter predicate (BT18-090)", () => {
 
   it("accepts a Tamer with non-empty inheritedEffectText", () => {
     const filter = { kind: ["Tamer"], hasInheritedEffects: true } as never;
-    expect(definitionMatches(filter, tamerDef("WITH_IH", { inheritedEffectText: "[Your Turn] +1000 DP." }) as never)).toBe(true);
+    expect(
+      definitionMatches(filter, tamerDef("WITH_IH", { inheritedEffectText: "[Your Turn] +1000 DP." }) as never),
+    ).toBe(true);
   });
 
   it("rejects a Tamer with no inheritedEffectText", () => {
@@ -4731,7 +4975,7 @@ describe("CAP-A17: hasInheritedEffects filter predicate (BT18-090)", () => {
       player: (seat: Seat) => players[seat] as never,
       opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
       permanentById: (id: string) =>
-        [...players[0]!.battleArea, ...players[1]!.battleArea].find(p => p.permanentId === id),
+        [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
       definitionOf: (card: { cardId: string }) => {
         if (card.cardId === "WITH_IH") return tamerDef("WITH_IH", { inheritedEffectText: "[Your Turn] +1000 DP." });
         if (card.cardId === "NO_IH") return tamerDef("NO_IH");
@@ -4740,7 +4984,9 @@ describe("CAP-A17: hasInheritedEffects filter predicate (BT18-090)", () => {
       linkMax: () => 1,
     } as never;
     const fx = {
-      modifyDP: (id: string, amount: number) => { sink.dp.push({ id, amount }); },
+      modifyDP: (id: string, amount: number) => {
+        sink.dp.push({ id, amount });
+      },
     } as unknown as Primitives;
     const ask: DecisionApi = {
       optional: async () => true,
@@ -4754,20 +5000,22 @@ describe("CAP-A17: hasInheritedEffects filter predicate (BT18-090)", () => {
 
     await runMain(
       "BT18-090-A17",
-      [{
-        kind: "ModifyDP",
-        target: {
-          filter: { controller: "mine", kind: ["Tamer"], hasInheritedEffects: true },
-          count: "all",
+      [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: { controller: "mine", kind: ["Tamer"], hasInheritedEffects: true },
+            count: "all",
+          },
+          amount: 1000,
+          duration: "forTheTurn",
         },
-        amount: 1000,
-        duration: "forTheTurn",
-      }],
+      ],
       ctx,
       src,
     );
 
-    const touched = sink.dp.map(d => d.id);
+    const touched = sink.dp.map((d) => d.id);
     expect(touched).toContain("WITH_IH_P");
     expect(touched).not.toContain("NO_IH_P");
   });
@@ -4833,20 +5081,26 @@ describe("CAP-B-002: fromDigivolution sourceFilter gate (BT20-028)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "AllTurns",
-        actions: [{
-          kind: "SubTrigger",
-          event: "whenPlayed",
-          sourceFilter: { controller: "mine", kind: ["Digimon"], fromDigivolution: true },
-          actions: [{
-            kind: "ModifyDP",
-            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-            amount: -2000,
-            duration: "forTheTurn",
-          }],
-        }],
-      }],
+      effects: [
+        {
+          trigger: "AllTurns",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenPlayed",
+              sourceFilter: { controller: "mine", kind: ["Digimon"], fromDigivolution: true },
+              actions: [
+                {
+                  kind: "ModifyDP",
+                  target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+                  amount: -2000,
+                  duration: "forTheTurn",
+                },
+              ],
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const installCtx: EffectContext = { source: src, trigger: {}, game, fx, ask, selections: new Map() };
@@ -4878,7 +5132,11 @@ describe("CAP-B-002: fromDigivolution sourceFilter gate (BT20-028)", () => {
     const subCtx: EffectContext = {
       source: src,
       trigger: { subjectPermanentId: "B002_DIGI", playedFromZone: "digivolutionCards" },
-      game: { ...game, state: { memory: 0, players, turnSeat: 0 } as never, player: (s: Seat) => players[s] as never } as never,
+      game: {
+        ...game,
+        state: { memory: 0, players, turnSeat: 0 } as never,
+        player: (s: Seat) => players[s] as never,
+      } as never,
       fx: {} as never,
       ask: {} as never,
       selections: new Map(),
@@ -4900,7 +5158,11 @@ describe("CAP-B-002: fromDigivolution sourceFilter gate (BT20-028)", () => {
     const subCtx: EffectContext = {
       source: src,
       trigger: { subjectPermanentId: "B002_DIGI" }, // no playedFromZone = hand/effect play from elsewhere
-      game: { ...game, state: { memory: 0, players, turnSeat: 0 } as never, player: (s: Seat) => players[s] as never } as never,
+      game: {
+        ...game,
+        state: { memory: 0, players, turnSeat: 0 } as never,
+        player: (s: Seat) => players[s] as never,
+      } as never,
       fx: {} as never,
       ask: {} as never,
       selections: new Map(),
@@ -4922,7 +5184,11 @@ describe("CAP-B-002: fromDigivolution sourceFilter gate (BT20-028)", () => {
     const subCtx: EffectContext = {
       source: src,
       trigger: { subjectPermanentId: "B002_DIGI", playedFromZone: "trash" },
-      game: { ...game, state: { memory: 0, players, turnSeat: 0 } as never, player: (s: Seat) => players[s] as never } as never,
+      game: {
+        ...game,
+        state: { memory: 0, players, turnSeat: 0 } as never,
+        player: (s: Seat) => players[s] as never,
+      } as never,
       fx: {} as never,
       ask: {} as never,
       selections: new Map(),
@@ -5008,7 +5274,9 @@ describe("CAP-B-003: scaling.unit digivolutionCardsOfFiltered (BT19-100)", () =>
       },
     } as never;
     const fx = {
-      modifyDP: (id: string, amount: number) => { sink.dp.push({ id, amount }); },
+      modifyDP: (id: string, amount: number) => {
+        sink.dp.push({ id, amount });
+      },
     } as unknown as Primitives;
     const ask: DecisionApi = {
       optional: async () => true,
@@ -5039,45 +5307,53 @@ describe("CAP-B-003: scaling.unit digivolutionCardsOfFiltered (BT19-100)", () =>
     });
     await runMain(
       "BT19-100-B003-filtered",
-      [{
-        kind: "ModifyDP",
-        target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
-        amount: -1000,
-        duration: "forTheTurn",
-        scaling: {
-          per: 1,
-          filter: {
-            controller: "mine",
-            nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "name" }],
+      [
+        {
+          kind: "ModifyDP",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
+          amount: -1000,
+          duration: "forTheTurn",
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
+              nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "name" }],
+            },
+            unit: "digivolutionCardsOfFiltered",
           },
-          unit: "digivolutionCardsOfFiltered",
         },
-      }],
+      ],
       ctx,
       src,
     );
     // No opponent Digimon in context → nothing to modify, but scaleFactor resolves to 3.
     // Verify via a self-target instead:
-    const { ctx: ctx2, sink: sink2, src: src2 } = makeFilteredScalingCtx({
+    const {
+      ctx: ctx2,
+      sink: sink2,
+      src: src2,
+    } = makeFilteredScalingCtx({
       sourcePerm: { id: "B003_SRC2", stackSize: 5 },
       filteredPerms: [{ id: "MOTHER2", stackSize: 3 }],
     });
     await runMain(
       "BT19-100-B003-self-target",
-      [{
-        kind: "ModifyDP",
-        target: { isSelf: true },
-        amount: -1000,
-        duration: "forTheTurn",
-        scaling: {
-          per: 1,
-          filter: {
-            controller: "mine",
-            nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "name" }],
+      [
+        {
+          kind: "ModifyDP",
+          target: { isSelf: true },
+          amount: -1000,
+          duration: "forTheTurn",
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
+              nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "name" }],
+            },
+            unit: "digivolutionCardsOfFiltered",
           },
-          unit: "digivolutionCardsOfFiltered",
         },
-      }],
+      ],
       ctx2,
       src2,
     );
@@ -5094,20 +5370,22 @@ describe("CAP-B-003: scaling.unit digivolutionCardsOfFiltered (BT19-100)", () =>
     });
     await runMain(
       "BT19-100-B003-no-match",
-      [{
-        kind: "ModifyDP",
-        target: { isSelf: true },
-        amount: -1000,
-        duration: "forTheTurn",
-        scaling: {
-          per: 1,
-          filter: {
-            controller: "mine",
-            nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "name" }],
+      [
+        {
+          kind: "ModifyDP",
+          target: { isSelf: true },
+          amount: -1000,
+          duration: "forTheTurn",
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
+              nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "name" }],
+            },
+            unit: "digivolutionCardsOfFiltered",
           },
-          unit: "digivolutionCardsOfFiltered",
         },
-      }],
+      ],
       ctx,
       src,
     );
@@ -5127,20 +5405,22 @@ describe("CAP-B-003: scaling.unit digivolutionCardsOfFiltered (BT19-100)", () =>
     });
     await runMain(
       "BT19-100-B003-max-stack",
-      [{
-        kind: "ModifyDP",
-        target: { isSelf: true },
-        amount: -1000,
-        duration: "forTheTurn",
-        scaling: {
-          per: 1,
-          filter: {
-            controller: "mine",
-            nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "name" }],
+      [
+        {
+          kind: "ModifyDP",
+          target: { isSelf: true },
+          amount: -1000,
+          duration: "forTheTurn",
+          scaling: {
+            per: 1,
+            filter: {
+              controller: "mine",
+              nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "name" }],
+            },
+            unit: "digivolutionCardsOfFiltered",
           },
-          unit: "digivolutionCardsOfFiltered",
         },
-      }],
+      ],
       ctx,
       src,
     );
@@ -5209,7 +5489,8 @@ describe("CAP-C-01: Replacement mode prevent + sourceFilter.leaveReason:effect (
       state: { memory: 0, players, turnSeat: 0 } as never,
       player: (seat: Seat) => players[seat] as never,
       opponentOf: (s: Seat) => (s === 0 ? 1 : 0),
-      permanentById: (id: string) => [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
+      permanentById: (id: string) =>
+        [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
       definitionOf: (card: { cardId: string }) => def(card.cardId),
       linkMax: () => 1,
     } as never;
@@ -5317,7 +5598,8 @@ describe("CAP-C-02: cost.kind placeAsSecurity + position faceUpBottom (BT19-048)
       state: { memory: 0, players, turnSeat: 0 } as never,
       player: (seat: Seat) => players[seat] as never,
       opponentOf: (s: Seat) => (s === 0 ? 1 : 0),
-      permanentById: (id: string) => [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
+      permanentById: (id: string) =>
+        [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
       definitionOf: (card: { cardId: string }) => def(card.cardId),
       linkMax: () => 1,
     } as never;
@@ -5370,10 +5652,7 @@ describe("GainKeyword.count > 1 (BT19-091, CAP-C-04)", () => {
     const src = source("BT19-091-cap-c04", target);
     const grantCalls: { id: string; kw: string }[] = [];
     const { ctx } = makeCtx({ source: src, own: [target] });
-    (ctx.fx as unknown as Record<string, unknown>)["grantKeyword"] = (
-      id: string,
-      kw: string,
-    ) => {
+    (ctx.fx as unknown as Record<string, unknown>)["grantKeyword"] = (id: string, kw: string) => {
       grantCalls.push({ id, kw });
     };
 
@@ -5401,10 +5680,7 @@ describe("GainKeyword.count > 1 (BT19-091, CAP-C-04)", () => {
     const src = source("BT19-091-cap-c04-default", target);
     const grantCalls: { id: string; kw: string }[] = [];
     const { ctx } = makeCtx({ source: src, own: [target] });
-    (ctx.fx as unknown as Record<string, unknown>)["grantKeyword"] = (
-      id: string,
-      kw: string,
-    ) => {
+    (ctx.fx as unknown as Record<string, unknown>)["grantKeyword"] = (id: string, kw: string) => {
       grantCalls.push({ id, kw });
     };
 
@@ -5518,12 +5794,14 @@ describe("GrantImmunity action (CAP-C-06, BT19-101)", () => {
 
     await runMain(
       "BT19-101-cap-c06",
-      [{
-        kind: "GrantImmunity",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        immuneFrom: "opponentEffects",
-        duration: "permanent",
-      }],
+      [
+        {
+          kind: "GrantImmunity",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          immuneFrom: "opponentEffects",
+          duration: "permanent",
+        },
+      ],
       ctx,
       src,
     );
@@ -5551,7 +5829,9 @@ describe("GrantImmunity action (CAP-C-06, BT19-101)", () => {
       linkMax: () => 1,
     } as never;
     const fx = {
-      restrict: (id: string) => { restrictCalls.push(id); },
+      restrict: (id: string) => {
+        restrictCalls.push(id);
+      },
     } as unknown as Primitives;
     const ask: DecisionApi = {
       optional: async () => true,
@@ -5564,13 +5844,15 @@ describe("GrantImmunity action (CAP-C-06, BT19-101)", () => {
 
     await runMain(
       "BT19-101-cap-c06b",
-      [{
-        kind: "GrantImmunity",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        immuneFrom: "opponentEffects",
-        duration: "permanent",
-        condition: { kind: "selfHasNoDigivolutionCards" },
-      }],
+      [
+        {
+          kind: "GrantImmunity",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          immuneFrom: "opponentEffects",
+          duration: "permanent",
+          condition: { kind: "selfHasNoDigivolutionCards" },
+        },
+      ],
       ctx,
       stackedSrc,
     );
@@ -5601,7 +5883,9 @@ describe("GrantImmunity action (CAP-C-06, BT19-101)", () => {
     } as never;
     const fx = {
       isUnaffectableByOpponentEffects: (id: string) => id === "IMMUNE_TGT",
-      modifyDP: (id: string) => { touched.push(id); },
+      modifyDP: (id: string) => {
+        touched.push(id);
+      },
     } as unknown as Primitives;
     const ask: DecisionApi = {
       optional: async () => true,
@@ -5624,15 +5908,19 @@ describe("GrantImmunity action (CAP-C-06, BT19-101)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "ModifyDP",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
-          amount: -1000,
-          duration: "forTheTurn",
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "ModifyDP",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
+              amount: -1000,
+              duration: "forTheTurn",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
     const effects = irCardModule("BT19-101-cap-c06c", ir).effectsForTiming(EffectTiming.OnUseOption, oppSrc);
     await effects[0]!.resolve(ctx);
@@ -5681,14 +5969,16 @@ describe("zone:battleArea filter on Return target (CAP-C-08, BT19-101)", () => {
 
     await runMain(
       "BT19-101-cap-c08",
-      [{
-        kind: "Return",
-        target: {
-          filter: { controller: "opponent", kind: ["Digimon"], zone: "battleArea" },
-          count: 1,
+      [
+        {
+          kind: "Return",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], zone: "battleArea" },
+            count: 1,
+          },
+          to: "deckBottom",
         },
-        to: "deckBottom",
-      }],
+      ],
       ctx,
       src,
     );
@@ -5799,27 +6089,31 @@ describe("CAP-C-10: CostModifier.into destination filter (BT2-088)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "YourTurn",
-        actions: [{
-          kind: "CostModifier",
-          mode: "reduce",
-          costType: "digivolve",
-          amount: 1,
-          target: {
-            filter: { zone: "battleArea", controller: "mine", kind: ["Digimon"] },
-          },
-          into: {
-            zone: "hand",
-            controller: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Tyrannomon"], match: "name" }],
-          },
-          restriction: "suspendThisTamer",
-          optional: true,
-          duration: "permanent",
-        }],
-      }],
+      effects: [
+        {
+          trigger: "YourTurn",
+          actions: [
+            {
+              kind: "CostModifier",
+              mode: "reduce",
+              costType: "digivolve",
+              amount: 1,
+              target: {
+                filter: { zone: "battleArea", controller: "mine", kind: ["Digimon"] },
+              },
+              into: {
+                zone: "hand",
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Tyrannomon"], match: "name" }],
+              },
+              restriction: "suspendThisTamer",
+              optional: true,
+              duration: "permanent",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const installCtx: EffectContext = { source: src, trigger: {}, game, fx, ask, selections: new Map() };
@@ -5985,30 +6279,41 @@ describe("CAP-C-11: wouldBeReturned SubTrigger + returnDestination filter (BT20-
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "AllTurns",
-        actions: [{
-          kind: "SubTrigger",
-          event: "wouldBeReturned",
-          sourceFilter: {
-            controller: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Dinobeemon", "Paildramon"], match: "name" }],
-            returnDestination: ["hand", "deck"],
-          },
-          actions: [{
-            kind: "ModifyDP",
-            target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
-            amount: 1000,
-            duration: "forTheTurn",
-          }],
-          raw: "When any of your Dinobeemon/Paildramon would be returned",
-        }],
-      }],
+      effects: [
+        {
+          trigger: "AllTurns",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "wouldBeReturned",
+              sourceFilter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Dinobeemon", "Paildramon"], match: "name" }],
+                returnDestination: ["hand", "deck"],
+              },
+              actions: [
+                {
+                  kind: "ModifyDP",
+                  target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+                  amount: 1000,
+                  duration: "forTheTurn",
+                },
+              ],
+              raw: "When any of your Dinobeemon/Paildramon would be returned",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const installCtx: EffectContext = {
-      source: src, trigger: {}, game, fx, ask, selections: new Map(),
+      source: src,
+      trigger: {},
+      game,
+      fx,
+      ask,
+      selections: new Map(),
     };
     return { installCtx, src, dinobeemonPerm, game, players, ir, getCapturedMatches: () => capturedMatches, localDef };
   }
@@ -6023,7 +6328,8 @@ describe("CAP-C-11: wouldBeReturned SubTrigger + returnDestination filter (BT20-
   });
 
   it("matches when returnDestination is 'hand' and subject is Dinobeemon", async () => {
-    const { installCtx, src, dinobeemonPerm, game, players, ir, getCapturedMatches, localDef } = makeWouldBeReturnedCtx();
+    const { installCtx, src, dinobeemonPerm, game, players, ir, getCapturedMatches, localDef } =
+      makeWouldBeReturnedCtx();
     const effects = irCardModule("BT20-074-cap-c11-pos-hand", ir).effectsForTiming(EffectTiming.None, src);
     await effects[0]!.resolve(installCtx);
     const matchesFn = getCapturedMatches();
@@ -6037,7 +6343,12 @@ describe("CAP-C-11: wouldBeReturned SubTrigger + returnDestination filter (BT20-
         definition: localDef("DINOBEEMON"),
       } as never,
       trigger: { subjectPermanentId: "DINOBEEMON", returnDestination: "hand" },
-      game: { ...game, state: { memory: 0, players, turnSeat: 0 } as never, player: (s: Seat) => players[s] as never, definitionOf: (c: { cardId: string }) => localDef(c.cardId) } as never,
+      game: {
+        ...game,
+        state: { memory: 0, players, turnSeat: 0 } as never,
+        player: (s: Seat) => players[s] as never,
+        definitionOf: (c: { cardId: string }) => localDef(c.cardId),
+      } as never,
       fx: {} as never,
       ask: {} as never,
       selections: new Map(),
@@ -6046,7 +6357,8 @@ describe("CAP-C-11: wouldBeReturned SubTrigger + returnDestination filter (BT20-
   });
 
   it("matches when returnDestination is 'deck'", async () => {
-    const { installCtx, src, dinobeemonPerm, game, players, ir, getCapturedMatches, localDef } = makeWouldBeReturnedCtx();
+    const { installCtx, src, dinobeemonPerm, game, players, ir, getCapturedMatches, localDef } =
+      makeWouldBeReturnedCtx();
     const effects = irCardModule("BT20-074-cap-c11-pos-deck", ir).effectsForTiming(EffectTiming.None, src);
     await effects[0]!.resolve(installCtx);
     const matchesFn = getCapturedMatches();
@@ -6060,7 +6372,12 @@ describe("CAP-C-11: wouldBeReturned SubTrigger + returnDestination filter (BT20-
         definition: localDef("DINOBEEMON"),
       } as never,
       trigger: { subjectPermanentId: "DINOBEEMON", returnDestination: "deck" },
-      game: { ...game, state: { memory: 0, players, turnSeat: 0 } as never, player: (s: Seat) => players[s] as never, definitionOf: (c: { cardId: string }) => localDef(c.cardId) } as never,
+      game: {
+        ...game,
+        state: { memory: 0, players, turnSeat: 0 } as never,
+        player: (s: Seat) => players[s] as never,
+        definitionOf: (c: { cardId: string }) => localDef(c.cardId),
+      } as never,
       fx: {} as never,
       ask: {} as never,
       selections: new Map(),
@@ -6069,7 +6386,8 @@ describe("CAP-C-11: wouldBeReturned SubTrigger + returnDestination filter (BT20-
   });
 
   it("does NOT match when returnDestination is 'trash' (not in allowlist)", async () => {
-    const { installCtx, src, dinobeemonPerm, game, players, ir, getCapturedMatches, localDef } = makeWouldBeReturnedCtx();
+    const { installCtx, src, dinobeemonPerm, game, players, ir, getCapturedMatches, localDef } =
+      makeWouldBeReturnedCtx();
     const effects = irCardModule("BT20-074-cap-c11-neg-trash", ir).effectsForTiming(EffectTiming.None, src);
     await effects[0]!.resolve(installCtx);
     const matchesFn = getCapturedMatches();
@@ -6083,7 +6401,12 @@ describe("CAP-C-11: wouldBeReturned SubTrigger + returnDestination filter (BT20-
         definition: localDef("DINOBEEMON"),
       } as never,
       trigger: { subjectPermanentId: "DINOBEEMON", returnDestination: "trash" },
-      game: { ...game, state: { memory: 0, players, turnSeat: 0 } as never, player: (s: Seat) => players[s] as never, definitionOf: (c: { cardId: string }) => localDef(c.cardId) } as never,
+      game: {
+        ...game,
+        state: { memory: 0, players, turnSeat: 0 } as never,
+        player: (s: Seat) => players[s] as never,
+        definitionOf: (c: { cardId: string }) => localDef(c.cardId),
+      } as never,
       fx: {} as never,
       ask: {} as never,
       selections: new Map(),
@@ -6107,7 +6430,12 @@ describe("CAP-C-11: wouldBeReturned SubTrigger + returnDestination filter (BT20-
     const subCtx: EffectContext = {
       source: src,
       trigger: { subjectPermanentId: "AGUMON", returnDestination: "hand" },
-      game: { ...game, state: { memory: 0, players: playersWithAgumon, turnSeat: 0 } as never, player: (s: Seat) => playersWithAgumon[s] as never, definitionOf: (c: { cardId: string }) => localDef(c.cardId) } as never,
+      game: {
+        ...game,
+        state: { memory: 0, players: playersWithAgumon, turnSeat: 0 } as never,
+        player: (s: Seat) => playersWithAgumon[s] as never,
+        definitionOf: (c: { cardId: string }) => localDef(c.cardId),
+      } as never,
       fx: {} as never,
       ask: {} as never,
       selections: new Map(),
@@ -6152,8 +6480,7 @@ describe("CAP-C-12: DnaDigivolve.into.zone source zone (BT20-074)", () => {
       opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
       permanentById: (id: string) =>
         [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
-      definitionOf: (card: { cardId: string }) =>
-        card.cardId === "IMPERIAL" ? imperialDef : def(card.cardId),
+      definitionOf: (card: { cardId: string }) => (card.cardId === "IMPERIAL" ? imperialDef : def(card.cardId)),
       linkMax: () => 1,
     } as never;
 
@@ -6174,21 +6501,23 @@ describe("CAP-C-12: DnaDigivolve.into.zone source zone (BT20-074)", () => {
 
     await runMain(
       "BT20-074-cap-c12",
-      [{
-        kind: "DnaDigivolve",
-        materials: {
-          filter: { controller: "mine", kind: ["Digimon"] },
-          count: 2,
+      [
+        {
+          kind: "DnaDigivolve",
+          materials: {
+            filter: { controller: "mine", kind: ["Digimon"] },
+            count: 2,
+          },
+          into: {
+            controller: "mine",
+            kind: ["Digimon"],
+            zone: "hand",
+            nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "name" }],
+          },
+          payCost: false,
+          optional: true,
         },
-        into: {
-          controller: "mine",
-          kind: ["Digimon"],
-          zone: "hand",
-          nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "name" }],
-        },
-        payCost: false,
-        optional: true,
-      }],
+      ],
       ctx,
       src,
     );
@@ -6203,7 +6532,12 @@ describe("CAP-C-12: DnaDigivolve.into.zone source zone (BT20-074)", () => {
     const src = source("BT20-074-cap-c12b", mat1);
 
     // The card is in TRASH, not in hand — zone:hand must NOT find it.
-    const imperialTrash = { instanceId: "IMPERIAL_T#i", cardId: "IMPERIAL_T", ownerSeat: 0 as Seat, faceUp: true } as never;
+    const imperialTrash = {
+      instanceId: "IMPERIAL_T#i",
+      cardId: "IMPERIAL_T",
+      ownerSeat: 0 as Seat,
+      faceUp: true,
+    } as never;
     const players = [
       { seat: 0, battleArea: [mat1, mat2], security: [], hand: [], deck: [], trash: [imperialTrash] },
       { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] },
@@ -6225,8 +6559,7 @@ describe("CAP-C-12: DnaDigivolve.into.zone source zone (BT20-074)", () => {
       opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
       permanentById: (id: string) =>
         [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
-      definitionOf: (card: { cardId: string }) =>
-        card.cardId === "IMPERIAL_T" ? imperialDef : def(card.cardId),
+      definitionOf: (card: { cardId: string }) => (card.cardId === "IMPERIAL_T" ? imperialDef : def(card.cardId)),
       linkMax: () => 1,
     } as never;
 
@@ -6247,21 +6580,23 @@ describe("CAP-C-12: DnaDigivolve.into.zone source zone (BT20-074)", () => {
 
     await runMain(
       "BT20-074-cap-c12b",
-      [{
-        kind: "DnaDigivolve",
-        materials: {
-          filter: { controller: "mine", kind: ["Digimon"] },
-          count: 2,
+      [
+        {
+          kind: "DnaDigivolve",
+          materials: {
+            filter: { controller: "mine", kind: ["Digimon"] },
+            count: 2,
+          },
+          into: {
+            controller: "mine",
+            kind: ["Digimon"],
+            zone: "hand",
+            nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "name" }],
+          },
+          payCost: false,
+          optional: true,
         },
-        into: {
-          controller: "mine",
-          kind: ["Digimon"],
-          zone: "hand",
-          nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "name" }],
-        },
-        payCost: false,
-        optional: true,
-      }],
+      ],
       ctx,
       src,
     );
@@ -6369,9 +6704,7 @@ describe("CAP-C-14: AllowDigiXrosMaterialsFromTrash", () => {
               event: "wouldBePlayed",
               mode: "reduceCost",
               amount: 1,
-              additionalEffects: [
-                { kind: "AllowDigiXrosMaterialsFromTrash" } as never,
-              ],
+              additionalEffects: [{ kind: "AllowDigiXrosMaterialsFromTrash" } as never],
               raw: "reduce cost, allow trash",
             } as never,
           ],
@@ -6425,9 +6758,7 @@ describe("CAP-C-14: AllowDigiXrosMaterialsFromTrash", () => {
               event: "wouldBePlayed",
               mode: "reduceCost",
               amount: 1,
-              additionalEffects: [
-                { kind: "AllowDigiXrosMaterialsFromTrash" } as never,
-              ],
+              additionalEffects: [{ kind: "AllowDigiXrosMaterialsFromTrash" } as never],
               raw: "allow trash",
             } as never,
           ],
@@ -6435,9 +6766,7 @@ describe("CAP-C-14: AllowDigiXrosMaterialsFromTrash", () => {
       ],
       digiXrosRequirement: [
         {
-          materials: [
-            { nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }] } as never,
-          ],
+          materials: [{ nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }] } as never],
           count: 1 as never,
         },
       ],
@@ -6570,9 +6899,7 @@ describe("CAP-C-15: digiXrosRequirement[].count = '∞'", () => {
 
   // A single material slot matching [Xros Heart] OR [Blue Flare] trait, differentCardNumbers.
   const xrosSlot = {
-    nameOrTrait: [
-      { tokens: ["Xros Heart", "Blue Flare"], match: "trait" as const },
-    ],
+    nameOrTrait: [{ tokens: ["Xros Heart", "Blue Flare"], match: "trait" as const }],
     differentCardNumbers: true,
   };
 
@@ -6625,14 +6952,11 @@ describe("CAP-C-15: digiXrosRequirement[].count = '∞'", () => {
 
   it("per-material cost reduction uses costReduction field when count='∞'", () => {
     // Verify the cost formula: 5 materials × costReduction(1) = 5 discount off base cost 10.
-    const materials = [
-      xrosDef("XH-001"),
-      xrosDef("XH-002"),
-      xrosDef("XH-003"),
-      xrosDef("XH-004"),
-      xrosDef("XH-005"),
-    ];
-    const slot = { nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" as const }], differentCardNumbers: true } as never;
+    const materials = [xrosDef("XH-001"), xrosDef("XH-002"), xrosDef("XH-003"), xrosDef("XH-004"), xrosDef("XH-005")];
+    const slot = {
+      nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" as const }],
+      differentCardNumbers: true,
+    } as never;
     expect(materialsSatisfyRecipe(materials, [slot as never])).toBe(true);
     // 5 materials × 1 costReduction = 5. Base cost 10 → final cost 5.
     // The arithmetic: perMaterialReduction = costReduction ?? 1 = 1, cost = max(0, 10 - 5*1) = 5.
@@ -6733,9 +7057,7 @@ describe("CAP-C-16: GainTriggeredEffect (BT21-077)", () => {
       count: 1,
     },
     gainedTrigger: "StartOfYourMainPhase",
-    gainedActions: [
-      { kind: "Attack", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
-    ],
+    gainedActions: [{ kind: "Attack", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } }],
     duration: "untilOpponentTurnEnd",
   } as never;
 
@@ -6759,7 +7081,9 @@ describe("CAP-C-16: GainTriggeredEffect (BT21-077)", () => {
         effects: [{ trigger: "OnPlay", actions: [gainTriggeredAction] }],
       } as unknown as CompiledCard;
       const effects2 = irCardModule("C16-install-anchor-b", ir2).effectsForTiming(EffectTiming.OnPlay, src2);
-      void effects2[0]!.resolve(ctx2).then(() => { last = getCaptured(); });
+      void effects2[0]!.resolve(ctx2).then(() => {
+        last = getCaptured();
+      });
       return () => last;
     })();
     // Re-run to capture via our own context (the first run wrote to the ctx mock's fx).
@@ -6838,18 +7162,64 @@ describe("CAP-C-16: GainTriggeredEffect (BT21-077)", () => {
       isOwnersTurn: () => true,
       hasColor: () => false,
     } as never;
-    const subCtxPass: EffectContext = { source: subSrc, trigger: {}, game: ctx.game, fx: ctx.fx, ask: ctx.ask, selections: new Map() };
+    const subCtxPass: EffectContext = {
+      source: subSrc,
+      trigger: {},
+      game: ctx.game,
+      fx: ctx.fx,
+      ask: ctx.ask,
+      selections: new Map(),
+    };
     expect(installed!.matches!(subCtxPass)).toBe(true);
 
     // Off-turn (not the granted permanent's owner's turn) → should NOT match.
     const subSrcOffTurn: CardSource = { ...subSrc, isOwnersTurn: () => false } as never;
-    const subCtxFail: EffectContext = { source: subSrcOffTurn, trigger: {}, game: ctx.game, fx: ctx.fx, ask: ctx.ask, selections: new Map() };
+    const subCtxFail: EffectContext = {
+      source: subSrcOffTurn,
+      trigger: {},
+      game: ctx.game,
+      fx: ctx.fx,
+      ask: ctx.ask,
+      selections: new Map(),
+    };
     expect(installed!.matches!(subCtxFail)).toBe(false);
 
     // Not on battle area → should NOT match.
     const subSrcOffField: CardSource = { ...subSrc, isOwnersTurn: () => true, isOnBattleArea: () => false } as never;
-    const subCtxOffField: EffectContext = { source: subSrcOffField, trigger: {}, game: ctx.game, fx: ctx.fx, ask: ctx.ask, selections: new Map() };
+    const subCtxOffField: EffectContext = {
+      source: subSrcOffField,
+      trigger: {},
+      game: ctx.game,
+      fx: ctx.fx,
+      ask: ctx.ask,
+      selections: new Map(),
+    };
     expect(installed!.matches!(subCtxOffField)).toBe(false);
+  });
+
+  it("keeps an immune target selectable for the grant but suppresses the gained trigger while immunity applies", async () => {
+    const { ctx, src, targetPerm, getCaptured } = makeGainTriggeredCtx();
+    ctx.fx.isBeAffectedBySourceKind = (_id, kind) => kind === "Digimon";
+    const ir: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [{ trigger: "OnPlay", actions: [gainTriggeredAction] }],
+    } as unknown as CompiledCard;
+    await irCardModule("C16-immunity-at-trigger", ir).effectsForTiming(EffectTiming.OnPlay, src)[0]!.resolve(ctx);
+    const installed = getCaptured();
+    expect(installed, "the immune permanent remains a legal grant target").toBeDefined();
+
+    const subSource: CardSource = {
+      ...src,
+      ownerSeat: 1 as Seat,
+      permanent: () => targetPerm,
+      isOnBattleArea: () => true,
+      isOwnersTurn: () => true,
+    };
+    const subCtx = { ...ctx, source: subSource };
+    expect(installed!.matches!(subCtx)).toBe(false);
+    subCtx.fx.isBeAffectedBySourceKind = () => false;
+    expect(installed!.matches!(subCtx)).toBe(true);
   });
 
   it("runs the gainedActions (Attack isSelf) when the watcher fires", async () => {
@@ -6867,7 +7237,9 @@ describe("CAP-C-16: GainTriggeredEffect (BT21-077)", () => {
     // Build a sub-context for the watcher body (anchored on the TARGET permanent).
     let attackCalledFor: string | undefined;
     const subFx = {
-      forceAttack: async (id: string) => { attackCalledFor = id; },
+      forceAttack: async (id: string) => {
+        attackCalledFor = id;
+      },
     } as unknown as Primitives;
     const subSrc: CardSource = {
       instanceId: targetPerm.topCard.instanceId,
@@ -6879,7 +7251,14 @@ describe("CAP-C-16: GainTriggeredEffect (BT21-077)", () => {
       isOwnersTurn: () => true,
       hasColor: () => false,
     } as never;
-    const subCtx: EffectContext = { source: subSrc, trigger: {}, game: ctx.game, fx: subFx, ask: ctx.ask, selections: new Map() };
+    const subCtx: EffectContext = {
+      source: subSrc,
+      trigger: {},
+      game: ctx.game,
+      fx: subFx,
+      ask: ctx.ask,
+      selections: new Map(),
+    };
     await installed!.run(subCtx);
     // The Attack action with isSelf=true forces an attack on the granted permanent itself.
     expect(attackCalledFor).toBe(targetPerm.permanentId);
@@ -6896,7 +7275,7 @@ describe("action.PlayPerLevel (BT20-098)", () => {
   function makePlayPerLevelCtx(opts: {
     ownTrashCardIds: string[]; // cards in our trash for the play side
     oppTrashCardIds: string[]; // cards in opponent's trash for the cost side (each gets a level)
-    oppTrashLevels: number[];  // level[i] for oppTrashCardIds[i]
+    oppTrashLevels: number[]; // level[i] for oppTrashCardIds[i]
   }) {
     const played: string[] = [];
     const returned: string[] = [];
@@ -6934,8 +7313,12 @@ describe("action.PlayPerLevel (BT20-098)", () => {
     } as never;
 
     const fx = {
-      returnToDeck: async (_ids: string[], _opts: unknown) => { returned.push(..._ids); },
-      playInstances: async (_ids: string[], _opts: unknown) => { played.push(..._ids); },
+      returnToDeck: async (_ids: string[], _opts: unknown) => {
+        returned.push(..._ids);
+      },
+      playInstances: async (_ids: string[], _opts: unknown) => {
+        played.push(..._ids);
+      },
     } as unknown as Primitives;
 
     const ask: DecisionApi = {
@@ -7199,7 +7582,8 @@ describe("filter.includesSelf on DnaDigivolve materials (BT21-046)", () => {
       state: { memory: 0, players, turnSeat: 0 } as never,
       player: (seat: Seat) => players[seat] as never,
       opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
-      permanentById: (id: string) => [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
+      permanentById: (id: string) =>
+        [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
       definitionOf: (card: { cardId: string }) => def(card.cardId),
       linkMax: () => 1,
     } as never;
@@ -7266,10 +7650,7 @@ describe("filter.includesSelf on DnaDigivolve materials (BT21-046)", () => {
 // ---------------------------------------------------------------------------
 
 describe("SecurityManipulation.bindResultAs + condition.bindingEmpty (BT18-101)", () => {
-  function makeSecurityCtx(opts: {
-    opponentSecurity: { instanceId: string; cardId: string }[];
-    deleted?: string[];
-  }) {
+  function makeSecurityCtx(opts: { opponentSecurity: { instanceId: string; cardId: string }[]; deleted?: string[] }) {
     const trashed: string[] = [];
     const deleted: string[] = [];
 
@@ -7380,7 +7761,14 @@ describe("SecurityManipulation.bindResultAs + condition.bindingEmpty (BT18-101)"
     (ctx.game as { player: typeof ctx.game.player }).player = (seat: Seat) => {
       const base = [
         { seat: 0, battleArea: [], security: [], hand: [], deck: [], trash: [] },
-        { seat: 1, battleArea: [oppPerm], security: [{ instanceId: "SEC#0", cardId: "RED", ownerSeat: 1 as Seat, faceUp: false }], hand: [], deck: [], trash: [] },
+        {
+          seat: 1,
+          battleArea: [oppPerm],
+          security: [{ instanceId: "SEC#0", cardId: "RED", ownerSeat: 1 as Seat, faceUp: false }],
+          hand: [],
+          deck: [],
+          trash: [],
+        },
       ][seat] as never;
       return base;
     };
@@ -7830,8 +8218,16 @@ describe("CAP-E2: RepeatPerCount action (BT2-041)", () => {
       isSuspended: false,
       inBreeding: false,
     } as unknown as Permanent;
-    const tamer2 = { ...tamer1, permanentId: "T2", topCard: { instanceId: "T2#i", cardId: "YEL_TAMER", ownerSeat: 0 as Seat, faceUp: true } } as unknown as Permanent;
-    const tamer3 = { ...tamer1, permanentId: "T3", topCard: { instanceId: "T3#i", cardId: "YEL_TAMER", ownerSeat: 0 as Seat, faceUp: true } } as unknown as Permanent;
+    const tamer2 = {
+      ...tamer1,
+      permanentId: "T2",
+      topCard: { instanceId: "T2#i", cardId: "YEL_TAMER", ownerSeat: 0 as Seat, faceUp: true },
+    } as unknown as Permanent;
+    const tamer3 = {
+      ...tamer1,
+      permanentId: "T3",
+      topCard: { instanceId: "T3#i", cardId: "YEL_TAMER", ownerSeat: 0 as Seat, faceUp: true },
+    } as unknown as Permanent;
 
     const oppDigi1 = {
       permanentId: "OPP1",
@@ -7844,8 +8240,16 @@ describe("CAP-E2: RepeatPerCount action (BT2-041)", () => {
       isSuspended: false,
       inBreeding: false,
     } as unknown as Permanent;
-    const oppDigi2 = { ...oppDigi1, permanentId: "OPP2", topCard: { instanceId: "OPP2#i", cardId: "RED", ownerSeat: 1 as Seat, faceUp: true } } as unknown as Permanent;
-    const oppDigi3 = { ...oppDigi1, permanentId: "OPP3", topCard: { instanceId: "OPP3#i", cardId: "RED", ownerSeat: 1 as Seat, faceUp: true } } as unknown as Permanent;
+    const oppDigi2 = {
+      ...oppDigi1,
+      permanentId: "OPP2",
+      topCard: { instanceId: "OPP2#i", cardId: "RED", ownerSeat: 1 as Seat, faceUp: true },
+    } as unknown as Permanent;
+    const oppDigi3 = {
+      ...oppDigi1,
+      permanentId: "OPP3",
+      topCard: { instanceId: "OPP3#i", cardId: "RED", ownerSeat: 1 as Seat, faceUp: true },
+    } as unknown as Permanent;
 
     const dpCalls: { id: string; amount: number }[] = [];
     const suspended: string[] = [];
@@ -7859,10 +8263,21 @@ describe("CAP-E2: RepeatPerCount action (BT2-041)", () => {
       state: { memory: 0, players, turnSeat: 0 } as never,
       player: (seat: Seat) => players[seat] as never,
       opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
-      permanentById: (id: string) => [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
+      permanentById: (id: string) =>
+        [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
       definitionOf: (card: { cardId: string }) => {
         if (card.cardId === "YEL_TAMER") {
-          return { cardId: "YEL_TAMER", set: "T", nameEn: "YellowTamer", kinds: ["Tamer"] as never, colors: ["Yellow"] as never, playCost: 0, dp: 0, evoCosts: [], maxCountInDeck: 4 } as unknown as CardDefinition;
+          return {
+            cardId: "YEL_TAMER",
+            set: "T",
+            nameEn: "YellowTamer",
+            kinds: ["Tamer"] as never,
+            colors: ["Yellow"] as never,
+            playCost: 0,
+            dp: 0,
+            evoCosts: [],
+            maxCountInDeck: 4,
+          } as unknown as CardDefinition;
         }
         return def(card.cardId);
       },
@@ -7874,7 +8289,9 @@ describe("CAP-E2: RepeatPerCount action (BT2-041)", () => {
         for (const id of ids) suspended.push(id);
         return ids;
       },
-      modifyDP: (id: string, amount: number) => { dpCalls.push({ id, amount }); },
+      modifyDP: (id: string, amount: number) => {
+        dpCalls.push({ id, amount });
+      },
     } as unknown as Primitives;
 
     const ask: DecisionApi = {
@@ -7971,7 +8388,9 @@ describe("CAP-E2: RepeatPerCount action (BT2-041)", () => {
         for (const id of ids) suspended.push(id);
         return ids;
       },
-      modifyDP: (id: string, amount: number) => { dpCalls.push({ id, amount }); },
+      modifyDP: (id: string, amount: number) => {
+        dpCalls.push({ id, amount });
+      },
     } as unknown as Primitives;
 
     const src: CardSource = {
@@ -7985,7 +8404,20 @@ describe("CAP-E2: RepeatPerCount action (BT2-041)", () => {
       hasColor: () => false,
     } as never;
 
-    const ctx: EffectContext = { source: src, trigger: {}, game, fx, ask: { optional: async () => true, selectPermanents: async () => [], chooseTargets: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max), selectCards: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max), chooseOption: async () => 0 } as DecisionApi, selections: new Map() };
+    const ctx: EffectContext = {
+      source: src,
+      trigger: {},
+      game,
+      fx,
+      ask: {
+        optional: async () => true,
+        selectPermanents: async () => [],
+        chooseTargets: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
+        selectCards: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
+        chooseOption: async () => 0,
+      } as DecisionApi,
+      selections: new Map(),
+    };
 
     const actions = [
       {
@@ -8005,7 +8437,11 @@ describe("CAP-E2: RepeatPerCount action (BT2-041)", () => {
       },
     ];
 
-    const ir = { coverage: "full", residual: [], effects: [{ trigger: "WhenDigivolving", actions }] } as unknown as CompiledCard;
+    const ir = {
+      coverage: "full",
+      residual: [],
+      effects: [{ trigger: "WhenDigivolving", actions }],
+    } as unknown as CompiledCard;
     const effects = irCardModule("BT2-041-test-b", ir).effectsForTiming(EffectTiming.WhenDigivolving, src);
     await effects[0]!.resolve(ctx);
 
@@ -8046,16 +8482,32 @@ describe("CAP-E3: opponentHas countMin (BT19-026)", () => {
       state: { memory: 0, players, turnSeat: 0 } as never,
       player: (seat: Seat) => players[seat] as never,
       opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
-      permanentById: (id: string) => [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
+      permanentById: (id: string) =>
+        [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
       definitionOf: (card: { cardId: string }) => def(card.cardId),
       linkMax: () => 1,
     } as never;
-    const fx = { returnToHand: async (ids: string[]) => { for (const id of ids) returned.push(id); } } as unknown as Primitives;
-    const ask: DecisionApi = { optional: async () => true, selectPermanents: async () => [], chooseTargets: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max), selectCards: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max), chooseOption: async () => 0 };
+    const fx = {
+      returnToHand: async (ids: string[]) => {
+        for (const id of ids) returned.push(id);
+      },
+    } as unknown as Primitives;
+    const ask: DecisionApi = {
+      optional: async () => true,
+      selectPermanents: async () => [],
+      chooseTargets: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
+      selectCards: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
+      chooseOption: async () => 0,
+    };
 
     const ctx: EffectContext = { source: src, trigger: {}, game, fx, ask, selections: new Map() };
 
-    await runMain("BT19-026", gatedReturn({ kind: "opponentHas", countMin: 2, filter: { controllerDefault: "opponent", kind: ["Digimon"] } }), ctx, src);
+    await runMain(
+      "BT19-026",
+      gatedReturn({ kind: "opponentHas", countMin: 2, filter: { controllerDefault: "opponent", kind: ["Digimon"] } }),
+      ctx,
+      src,
+    );
     expect(returned).toHaveLength(1);
   });
 
@@ -8072,16 +8524,32 @@ describe("CAP-E3: opponentHas countMin (BT19-026)", () => {
       state: { memory: 0, players, turnSeat: 0 } as never,
       player: (seat: Seat) => players[seat] as never,
       opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
-      permanentById: (id: string) => [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
+      permanentById: (id: string) =>
+        [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
       definitionOf: (card: { cardId: string }) => def(card.cardId),
       linkMax: () => 1,
     } as never;
-    const fx = { returnToHand: async (ids: string[]) => { for (const id of ids) returned.push(id); } } as unknown as Primitives;
-    const ask: DecisionApi = { optional: async () => true, selectPermanents: async () => [], chooseTargets: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max), selectCards: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max), chooseOption: async () => 0 };
+    const fx = {
+      returnToHand: async (ids: string[]) => {
+        for (const id of ids) returned.push(id);
+      },
+    } as unknown as Primitives;
+    const ask: DecisionApi = {
+      optional: async () => true,
+      selectPermanents: async () => [],
+      chooseTargets: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
+      selectCards: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
+      chooseOption: async () => 0,
+    };
 
     const ctx: EffectContext = { source: src, trigger: {}, game, fx, ask, selections: new Map() };
 
-    await runMain("BT19-026b", gatedReturn({ kind: "opponentHas", countMin: 2, filter: { controllerDefault: "opponent", kind: ["Digimon"] } }), ctx, src);
+    await runMain(
+      "BT19-026b",
+      gatedReturn({ kind: "opponentHas", countMin: 2, filter: { controllerDefault: "opponent", kind: ["Digimon"] } }),
+      ctx,
+      src,
+    );
     expect(returned).toHaveLength(0);
   });
 
@@ -8098,17 +8566,33 @@ describe("CAP-E3: opponentHas countMin (BT19-026)", () => {
       state: { memory: 0, players, turnSeat: 0 } as never,
       player: (seat: Seat) => players[seat] as never,
       opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
-      permanentById: (id: string) => [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
+      permanentById: (id: string) =>
+        [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
       definitionOf: (card: { cardId: string }) => def(card.cardId),
       linkMax: () => 1,
     } as never;
-    const fx = { returnToHand: async (ids: string[]) => { for (const id of ids) returned.push(id); } } as unknown as Primitives;
-    const ask: DecisionApi = { optional: async () => true, selectPermanents: async () => [], chooseTargets: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max), selectCards: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max), chooseOption: async () => 0 };
+    const fx = {
+      returnToHand: async (ids: string[]) => {
+        for (const id of ids) returned.push(id);
+      },
+    } as unknown as Primitives;
+    const ask: DecisionApi = {
+      optional: async () => true,
+      selectPermanents: async () => [],
+      chooseTargets: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
+      selectCards: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
+      chooseOption: async () => 0,
+    };
 
     const ctx: EffectContext = { source: src, trigger: {}, game, fx, ask, selections: new Map() };
 
     // No countMin — defaults to 1, so 1 opponent Digimon satisfies it.
-    await runMain("BT19-026c", gatedReturn({ kind: "opponentHas", filter: { controllerDefault: "opponent", kind: ["Digimon"] } }), ctx, src);
+    await runMain(
+      "BT19-026c",
+      gatedReturn({ kind: "opponentHas", filter: { controllerDefault: "opponent", kind: ["Digimon"] } }),
+      ctx,
+      src,
+    );
     expect(returned).toHaveLength(1);
   });
 });
@@ -8167,7 +8651,9 @@ describe("CAP-E4: zone underTamers for PlayWithoutCost (BT19-026)", () => {
     } as never;
 
     const fx = {
-      playInstances: async (ids: string[]) => { for (const id of ids) played.push(id); },
+      playInstances: async (ids: string[]) => {
+        for (const id of ids) played.push(id);
+      },
     } as unknown as Primitives;
 
     const ask: DecisionApi = {
@@ -8243,7 +8729,9 @@ describe("CAP-E4: zone underTamers for PlayWithoutCost (BT19-026)", () => {
     } as never;
 
     const fx = {
-      playInstances: async (ids: string[]) => { for (const id of ids) played.push(id); },
+      playInstances: async (ids: string[]) => {
+        for (const id of ids) played.push(id);
+      },
     } as unknown as Primitives;
 
     const src: CardSource = {
@@ -8258,8 +8746,17 @@ describe("CAP-E4: zone underTamers for PlayWithoutCost (BT19-026)", () => {
     } as never;
 
     const ctx: EffectContext = {
-      source: src, trigger: {}, game, fx,
-      ask: { optional: async () => true, selectPermanents: async () => [], chooseTargets: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max), selectCards: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max), chooseOption: async () => 0 } as DecisionApi,
+      source: src,
+      trigger: {},
+      game,
+      fx,
+      ask: {
+        optional: async () => true,
+        selectPermanents: async () => [],
+        chooseTargets: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
+        selectCards: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
+        chooseOption: async () => 0,
+      } as DecisionApi,
       selections: new Map(),
     };
 
@@ -8271,7 +8768,11 @@ describe("CAP-E4: zone underTamers for PlayWithoutCost (BT19-026)", () => {
       optional: true,
     };
 
-    const ir = { coverage: "full", residual: [], effects: [{ trigger: "OnDeletion", actions: [action] }] } as unknown as CompiledCard;
+    const ir = {
+      coverage: "full",
+      residual: [],
+      effects: [{ trigger: "OnDeletion", actions: [action] }],
+    } as unknown as CompiledCard;
     const effects = irCardModule("BT19-026-e4-b", ir).effectsForTiming(EffectTiming.OnDestroyedAnyone, src);
     await effects[0]!.resolve(ctx);
 
@@ -8328,13 +8829,26 @@ describe("CAP-E5: reduceCostBy on PlayWithoutCost (BT19-053)", () => {
 
     const action = {
       kind: "PlayWithoutCost",
-      target: { filter: { controller: "mine", kind: ["Digimon"], zone: "security", faceUp: true, nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }] }, count: 1 },
+      target: {
+        filter: {
+          controller: "mine",
+          kind: ["Digimon"],
+          zone: "security",
+          faceUp: true,
+          nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }],
+        },
+        count: 1,
+      },
       from: ["security"],
       payCost: true,
       reduceCostBy: 8,
       optional: true,
     };
-    const ir = { coverage: "full", residual: [], effects: [{ trigger: "Main", actions: [action] }] } as unknown as CompiledCard;
+    const ir = {
+      coverage: "full",
+      residual: [],
+      effects: [{ trigger: "Main", actions: [action] }],
+    } as unknown as CompiledCard;
     const effects = irCardModule("BT19-053-cap-e5", ir).effectsForTiming(EffectTiming.OnUseOption, src);
     await effects[0]!.resolve(ctx);
 
@@ -8351,7 +8865,11 @@ describe("CAP-E5: reduceCostBy on PlayWithoutCost (BT19-053)", () => {
       reduceCostBy: 8,
       optional: true,
     };
-    const ir2 = { coverage: "full", residual: [], effects: [{ trigger: "Main", actions: [actionOpen] }] } as unknown as CompiledCard;
+    const ir2 = {
+      coverage: "full",
+      residual: [],
+      effects: [{ trigger: "Main", actions: [actionOpen] }],
+    } as unknown as CompiledCard;
     const effects2 = irCardModule("BT19-053-cap-e5-b", ir2).effectsForTiming(EffectTiming.OnUseOption, src);
     await effects2[0]!.resolve(ctx);
 
@@ -8414,7 +8932,11 @@ describe("CAP-E6: faceUp on SecurityManipulation placeAsSecurity (BT19-053)", ()
       toTop: false,
       faceUp: true,
     };
-    const ir = { coverage: "full", residual: [], effects: [{ trigger: "Main", actions: [action] }] } as unknown as CompiledCard;
+    const ir = {
+      coverage: "full",
+      residual: [],
+      effects: [{ trigger: "Main", actions: [action] }],
+    } as unknown as CompiledCard;
     const effects = irCardModule("BT19-053-cap-e6", ir).effectsForTiming(EffectTiming.OnUseOption, src);
     await effects[0]!.resolve(ctx);
 
@@ -8486,7 +9008,11 @@ describe("CAP-E7: useTriggerSource in SecurityManipulation source (BT19-053)", (
       toTop: false,
       faceUp: true,
     };
-    const ir = { coverage: "full", residual: [], effects: [{ trigger: "Main", actions: [action] }] } as unknown as CompiledCard;
+    const ir = {
+      coverage: "full",
+      residual: [],
+      effects: [{ trigger: "Main", actions: [action] }],
+    } as unknown as CompiledCard;
     const effects = irCardModule("BT19-053-cap-e7", ir).effectsForTiming(EffectTiming.OnUseOption, src);
     await effects[0]!.resolve(ctx);
 
@@ -8517,10 +9043,12 @@ describe("CAP-E8: whenTrashedByEffect SubTrigger (BT19-093)", () => {
       definitionOf: (card: { cardId: string }) => def(card.cardId),
     } as never;
 
-    let capturedInstall: {
-      matches?: (subCtx: EffectContext) => boolean;
-      run: (subCtx: EffectContext) => Promise<void>;
-    } | undefined;
+    let capturedInstall:
+      | {
+          matches?: (subCtx: EffectContext) => boolean;
+          run: (subCtx: EffectContext) => Promise<void>;
+        }
+      | undefined;
     const fx = {
       subscribeSubTrigger: (install: typeof capturedInstall) => {
         capturedInstall = install;
@@ -8548,15 +9076,26 @@ describe("CAP-E8: whenTrashedByEffect SubTrigger (BT19-093)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "AllTurns",
-        actions: [{
-          kind: "SubTrigger",
-          event: "whenTrashedByEffect",
-          sourceFilter: { isSelfRef: true, zone: "battleArea" },
-          actions: [{ kind: "ModifyDP", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, amount: -3000, duration: "untilOpponentTurnEnd" }],
-        }],
-      }],
+      effects: [
+        {
+          trigger: "AllTurns",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenTrashedByEffect",
+              sourceFilter: { isSelfRef: true, zone: "battleArea" },
+              actions: [
+                {
+                  kind: "ModifyDP",
+                  target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+                  amount: -3000,
+                  duration: "untilOpponentTurnEnd",
+                },
+              ],
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const installCtx: EffectContext = { source: src, trigger: {}, game, fx, ask, selections: new Map() };
@@ -8649,10 +9188,12 @@ describe("whenTrashedByEffect non-self filter gate (P-203-style: any matching Op
       definitionOf: (card: { cardId: string }) => def(card.cardId),
     } as never;
 
-    let capturedInstall: {
-      matches?: (subCtx: EffectContext) => boolean;
-      run: (subCtx: EffectContext) => Promise<void>;
-    } | undefined;
+    let capturedInstall:
+      | {
+          matches?: (subCtx: EffectContext) => boolean;
+          run: (subCtx: EffectContext) => Promise<void>;
+        }
+      | undefined;
     const fx = {
       subscribeSubTrigger: (install: typeof capturedInstall) => {
         capturedInstall = install;
@@ -8680,15 +9221,19 @@ describe("whenTrashedByEffect non-self filter gate (P-203-style: any matching Op
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "AllTurns",
-        actions: [{
-          kind: "SubTrigger",
-          event: "whenTrashedByEffect",
-          sourceFilter: { zone: "battleArea", kind: ["Option"] },
-          actions: [],
-        }],
-      }],
+      effects: [
+        {
+          trigger: "AllTurns",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenTrashedByEffect",
+              sourceFilter: { zone: "battleArea", kind: ["Option"] },
+              actions: [],
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const installCtx: EffectContext = { source: src, trigger: {}, game, fx, ask, selections: new Map() };
@@ -8753,10 +9298,12 @@ describe("whenEffectAddsToDeck gate", () => {
       definitionOf: (card: { cardId: string }) => def(card.cardId),
     } as never;
 
-    let capturedInstall: {
-      matches?: (subCtx: EffectContext) => boolean;
-      run: (subCtx: EffectContext) => Promise<void>;
-    } | undefined;
+    let capturedInstall:
+      | {
+          matches?: (subCtx: EffectContext) => boolean;
+          run: (subCtx: EffectContext) => Promise<void>;
+        }
+      | undefined;
     const fx = {
       subscribeSubTrigger: (install: typeof capturedInstall) => {
         capturedInstall = install;
@@ -8784,14 +9331,18 @@ describe("whenEffectAddsToDeck gate", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "AllTurns",
-        actions: [{
-          kind: "SubTrigger",
-          event: "whenEffectAddsToDeck",
-          actions: [],
-        }],
-      }],
+      effects: [
+        {
+          trigger: "AllTurns",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenEffectAddsToDeck",
+              actions: [],
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const installCtx: EffectContext = { source: src, trigger: {}, game, fx, ask, selections: new Map() };
@@ -8858,10 +9409,12 @@ describe("endOfOpponentTurn gate (ambient state.turnSeat read, no trigger payloa
       definitionOf: (card: { cardId: string }) => def(card.cardId),
     } as never;
 
-    let capturedInstall: {
-      matches?: (subCtx: EffectContext) => boolean;
-      run: (subCtx: EffectContext) => Promise<void>;
-    } | undefined;
+    let capturedInstall:
+      | {
+          matches?: (subCtx: EffectContext) => boolean;
+          run: (subCtx: EffectContext) => Promise<void>;
+        }
+      | undefined;
     const fx = {
       subscribeSubTrigger: (install: typeof capturedInstall) => {
         capturedInstall = install;
@@ -8889,14 +9442,18 @@ describe("endOfOpponentTurn gate (ambient state.turnSeat read, no trigger payloa
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "AllTurns",
-        actions: [{
-          kind: "SubTrigger",
-          event: "endOfOpponentTurn",
-          actions: [],
-        }],
-      }],
+      effects: [
+        {
+          trigger: "AllTurns",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "endOfOpponentTurn",
+              actions: [],
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const installCtx: EffectContext = { source: src, trigger: {}, game, fx, ask, selections: new Map() };
@@ -8910,7 +9467,14 @@ describe("endOfOpponentTurn gate (ambient state.turnSeat read, no trigger payloa
     const install = getInstall();
     expect(install?.matches).toBeDefined();
 
-    const subCtx: EffectContext = { source: src, trigger: {}, game, fx: {} as never, ask: {} as never, selections: new Map() };
+    const subCtx: EffectContext = {
+      source: src,
+      trigger: {},
+      game,
+      fx: {} as never,
+      ask: {} as never,
+      selections: new Map(),
+    };
     // FAILS-WHEN-REVERTED: delete endOfOpponentTurnGate (and its filterMatch carve-out entry,
     // and the fireSubTrigger("endOfOpponentTurn") call in GameEngine.ts) => the generic
     // subjectMatchesFilter default takes over, finds no subjectPermanentId (there is no
@@ -8925,7 +9489,14 @@ describe("endOfOpponentTurn gate (ambient state.turnSeat read, no trigger payloa
     const install = getInstall();
     expect(install?.matches).toBeDefined();
 
-    const subCtx: EffectContext = { source: src, trigger: {}, game, fx: {} as never, ask: {} as never, selections: new Map() };
+    const subCtx: EffectContext = {
+      source: src,
+      trigger: {},
+      game,
+      fx: {} as never,
+      ask: {} as never,
+      selections: new Map(),
+    };
     expect(install!.matches!(subCtx)).toBe(false);
   });
 });
@@ -8937,12 +9508,7 @@ describe("endOfOpponentTurn gate (ambient state.turnSeat read, no trigger payloa
 // KB Q4363/Q4366 confirm OR logic and "in its text" spans all text fields.
 // ---------------------------------------------------------------------------
 describe("CAP-E10: textContains array OR match on Filter (BT20-044)", () => {
-  function makeTextDef(opts: {
-    nameEn: string;
-    types?: string[];
-    effectText?: string;
-    inheritedEffectText?: string;
-  }) {
+  function makeTextDef(opts: { nameEn: string; types?: string[]; effectText?: string; inheritedEffectText?: string }) {
     return {
       cardId: opts.nameEn,
       set: "T",
@@ -9040,7 +9606,10 @@ describe("CAP-E11: triggerSourceNotDeletedAtSameTiming condition (BT20-044)", ()
     } as never;
     let capturedInstall: { matches?: (subCtx: EffectContext) => boolean } | undefined;
     const fx = {
-      subscribeSubTrigger: (install: typeof capturedInstall) => { capturedInstall = install; return 0; },
+      subscribeSubTrigger: (install: typeof capturedInstall) => {
+        capturedInstall = install;
+        return 0;
+      },
     } as unknown as Primitives;
     const ask: DecisionApi = {
       optional: async () => true,
@@ -9052,17 +9621,23 @@ describe("CAP-E11: triggerSourceNotDeletedAtSameTiming condition (BT20-044)", ()
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "AllTurns",
-        actions: [{
-          kind: "SubTrigger",
-          event: "whenDeletesInBattle",
-          sourceFilter: { controller: "mine", kind: ["Digimon"] },
-          fireCondition: { kind: "triggerSourceNotDeletedAtSameTiming" },
-          actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } }],
-          raw: "test",
-        }],
-      }],
+      effects: [
+        {
+          trigger: "AllTurns",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenDeletesInBattle",
+              sourceFilter: { controller: "mine", kind: ["Digimon"] },
+              fireCondition: { kind: "triggerSourceNotDeletedAtSameTiming" },
+              actions: [
+                { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
+              ],
+              raw: "test",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
     const installCtx: EffectContext = { source: src, trigger: {}, game, fx, ask: ask as never, selections: new Map() };
     return { installCtx, src, getInstall: () => capturedInstall, ir };
@@ -9159,7 +9734,9 @@ describe("CAP-E12: Trash untilHandSize + trackCount (BT20-077)", () => {
     } as never;
     const trashed: string[] = [];
     const fx = {
-      trash: async (ids: string[]) => { trashed.push(...ids); },
+      trash: async (ids: string[]) => {
+        trashed.push(...ids);
+      },
     } as unknown as Primitives;
     const ask: DecisionApi = {
       optional: async () => true,
@@ -9256,8 +9833,28 @@ describe("CAP-E13: dpCeilingModifier on PlayWithoutCost (BT20-077)", () => {
     ];
     // Use custom definitions that include a `dp` value so the dp filter can resolve.
     const customDefs: Record<string, object> = {
-      LOW_DP: { cardId: "LOW_DP", set: "T", nameEn: "LowDP", kinds: ["Digimon"] as never, colors: [] as never, playCost: 0, dp: 4000, evoCosts: [], maxCountInDeck: 4 },
-      HIGH_DP: { cardId: "HIGH_DP", set: "T", nameEn: "HighDP", kinds: ["Digimon"] as never, colors: [] as never, playCost: 0, dp: 8000, evoCosts: [], maxCountInDeck: 4 },
+      LOW_DP: {
+        cardId: "LOW_DP",
+        set: "T",
+        nameEn: "LowDP",
+        kinds: ["Digimon"] as never,
+        colors: [] as never,
+        playCost: 0,
+        dp: 4000,
+        evoCosts: [],
+        maxCountInDeck: 4,
+      },
+      HIGH_DP: {
+        cardId: "HIGH_DP",
+        set: "T",
+        nameEn: "HighDP",
+        kinds: ["Digimon"] as never,
+        colors: [] as never,
+        playCost: 0,
+        dp: 8000,
+        evoCosts: [],
+        maxCountInDeck: 4,
+      },
     };
     const game: GameAccess = {
       state: { memory: 0, players, turnSeat: 0 } as never,
@@ -9268,7 +9865,9 @@ describe("CAP-E13: dpCeilingModifier on PlayWithoutCost (BT20-077)", () => {
     } as never;
     const played: string[] = [];
     const fx = {
-      playInstances: async (ids: string[]) => { played.push(...ids); },
+      playInstances: async (ids: string[]) => {
+        played.push(...ids);
+      },
       isPlayProhibited: () => false,
     } as unknown as Primitives;
     const ask: DecisionApi = {
@@ -9521,10 +10120,7 @@ describe("CAP-E14: Delay keyword on AllTurns applies the same trash-cost + turn-
       chooseOption: async () => 0,
     };
     const ctx: EffectContext = { source: src, trigger: {}, game, fx, ask, selections: new Map() } as never;
-    const effects = irCardModule("BT20-100-cap-e14c", makeAllTurnsDelayCard()).effectsForTiming(
-      EffectTiming.None,
-      src,
-    );
+    const effects = irCardModule("BT20-100-cap-e14c", makeAllTurnsDelayCard()).effectsForTiming(EffectTiming.None, src);
     void effects[0]!.resolve(ctx);
     return { ctx, preventCheck: (installed as ReplacementInstallPrevent).preventCheck!, deleteCalls };
   }
@@ -9543,78 +10139,81 @@ describe("CAP-E14: Delay keyword on AllTurns applies the same trash-cost + turn-
     expect(deleteCalls).toHaveLength(0);
   });
 
-  it("a SubTrigger-shaped AllTurns+Delay effect (BT19-099/BT23-093 family) applies the SAME " +
-    "trash-cost + turn-guard as the Replacement-shaped family (BT20-100)", async () => {
-    const selfPerm = perm("SRC", 0 as Seat, "SRC");
-    (selfPerm as unknown as { enterFieldTurnCount: number }).enterFieldTurnCount = 1;
-    const src: CardSource = {
-      instanceId: "SRC#i",
-      cardId: "SUBTRIGGER-cap-e14",
-      ownerSeat: 0 as Seat,
-      definition: def("SRC"),
-      permanent: () => selfPerm,
-      isOnBattleArea: () => true,
-      isOwnersTurn: () => true,
-      hasColor: () => false,
-    } as never;
-    const players = [
-      { seat: 0, battleArea: [selfPerm], security: [], hand: [], deck: [], trash: [] },
-      { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] },
-    ];
-    const game: GameAccess = {
-      // Not the turn the card entered play — Delay is activatable.
-      state: { memory: 0, players, turnSeat: 0, turnCount: 2 } as never,
-      player: (seat: Seat) => players[seat] as never,
-      opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
-      permanentById: (id: string) =>
-        [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
-      definitionOf: (card: { cardId: string }) => def(card.cardId) as never,
-    } as never;
-    let installedRun: ((subCtx: EffectContext) => Promise<void>) | undefined;
-    const deleteCalls: string[][] = [];
-    const fx = {
-      subscribeSubTrigger: (sub: { run: (subCtx: EffectContext) => Promise<void> }) => {
-        installedRun = sub.run;
-        return 0;
-      },
-      deletePermanent: async (ids: string[]) => {
-        deleteCalls.push(ids);
-        return ids.length;
-      },
-    } as unknown as Primitives;
-    const ask: DecisionApi = {
-      optional: async () => true,
-      chooseTargets: async (_c, o) => o.candidates.slice(0, o.max),
-      selectPermanents: async (_c, o) => o.candidates.slice(0, o.max),
-      selectCards: async (_c, o) => o.candidates.slice(0, o.max),
-      chooseOption: async () => 0,
-    };
-    const ctx: EffectContext = { source: src, trigger: {}, game, fx, ask, selections: new Map() } as never;
-    const card: CompiledCard = {
-      coverage: "full",
-      residual: [],
-      effects: [
-        {
-          trigger: "AllTurns",
-          keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
-          actions: [
-            {
-              kind: "SubTrigger",
-              event: "whenSuspended",
-              sourceFilter: { controller: "mine", kind: ["Digimon"] },
-              actions: [],
-            },
-          ],
+  it(
+    "a SubTrigger-shaped AllTurns+Delay effect (BT19-099/BT23-093 family) applies the SAME " +
+      "trash-cost + turn-guard as the Replacement-shaped family (BT20-100)",
+    async () => {
+      const selfPerm = perm("SRC", 0 as Seat, "SRC");
+      (selfPerm as unknown as { enterFieldTurnCount: number }).enterFieldTurnCount = 1;
+      const src: CardSource = {
+        instanceId: "SRC#i",
+        cardId: "SUBTRIGGER-cap-e14",
+        ownerSeat: 0 as Seat,
+        definition: def("SRC"),
+        permanent: () => selfPerm,
+        isOnBattleArea: () => true,
+        isOwnersTurn: () => true,
+        hasColor: () => false,
+      } as never;
+      const players = [
+        { seat: 0, battleArea: [selfPerm], security: [], hand: [], deck: [], trash: [] },
+        { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] },
+      ];
+      const game: GameAccess = {
+        // Not the turn the card entered play — Delay is activatable.
+        state: { memory: 0, players, turnSeat: 0, turnCount: 2 } as never,
+        player: (seat: Seat) => players[seat] as never,
+        opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
+        permanentById: (id: string) =>
+          [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
+        definitionOf: (card: { cardId: string }) => def(card.cardId) as never,
+      } as never;
+      let installedRun: ((subCtx: EffectContext) => Promise<void>) | undefined;
+      const deleteCalls: string[][] = [];
+      const fx = {
+        subscribeSubTrigger: (sub: { run: (subCtx: EffectContext) => Promise<void> }) => {
+          installedRun = sub.run;
+          return 0;
         },
-      ],
-    } as unknown as CompiledCard;
-    const effects = irCardModule("SUBTRIGGER-cap-e14", card).effectsForTiming(EffectTiming.None, src);
-    void effects[0]!.resolve(ctx);
-    expect(installedRun).toBeDefined();
-    await installedRun!(ctx);
-    // The SAME §16-17-1 trash cost fires for the SubTrigger IR shape as for Replacement.
-    expect(deleteCalls).toEqual([["SRC"]]);
-  });
+        deletePermanent: async (ids: string[]) => {
+          deleteCalls.push(ids);
+          return ids.length;
+        },
+      } as unknown as Primitives;
+      const ask: DecisionApi = {
+        optional: async () => true,
+        chooseTargets: async (_c, o) => o.candidates.slice(0, o.max),
+        selectPermanents: async (_c, o) => o.candidates.slice(0, o.max),
+        selectCards: async (_c, o) => o.candidates.slice(0, o.max),
+        chooseOption: async () => 0,
+      };
+      const ctx: EffectContext = { source: src, trigger: {}, game, fx, ask, selections: new Map() } as never;
+      const card: CompiledCard = {
+        coverage: "full",
+        residual: [],
+        effects: [
+          {
+            trigger: "AllTurns",
+            keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
+            actions: [
+              {
+                kind: "SubTrigger",
+                event: "whenSuspended",
+                sourceFilter: { controller: "mine", kind: ["Digimon"] },
+                actions: [],
+              },
+            ],
+          },
+        ],
+      } as unknown as CompiledCard;
+      const effects = irCardModule("SUBTRIGGER-cap-e14", card).effectsForTiming(EffectTiming.None, src);
+      void effects[0]!.resolve(ctx);
+      expect(installedRun).toBeDefined();
+      await installedRun!(ctx);
+      // The SAME §16-17-1 trash cost fires for the SubTrigger IR shape as for Replacement.
+      expect(deleteCalls).toEqual([["SRC"]]);
+    },
+  );
 });
 
 // ---------------------------------------------------------------------------
@@ -9815,8 +10414,7 @@ describe("CAP-E14 regression: no compiled card carries a bare self-GainKeyword(D
       if (!fs.existsSync(filePath)) return false;
       const lines = fs.readFileSync(filePath, "utf8").split("\n");
       const isGenerated =
-        lines[0]?.trim() === "// @ts-nocheck" &&
-        lines[1]?.trim()?.startsWith("// AUTO-GENERATED FROM IR") === true;
+        lines[0]?.trim() === "// @ts-nocheck" && lines[1]?.trim()?.startsWith("// AUTO-GENERATED FROM IR") === true;
       return !isGenerated;
     };
 
@@ -9891,7 +10489,14 @@ describe("CAP-E14 regression: no compiled card carries a bare self-GainKeyword(D
       permanentById: () => selfPerm,
       definitionOf: (card: { cardId: string }) => def(card.cardId) as never,
     } as never;
-    const ctx: EffectContext = { source: src, trigger: {}, game, fx: {} as never, ask: {} as never, selections: new Map() } as never;
+    const ctx: EffectContext = {
+      source: src,
+      trigger: {},
+      game,
+      fx: {} as never,
+      ask: {} as never,
+      selections: new Map(),
+    } as never;
     // enterFieldTurnCount === turnCount: can't activate the entry turn.
     expect(effects[0]!.canActivate!(ctx)).toBe(false);
   });
@@ -9985,7 +10590,9 @@ describe("CAP-E15: trashSecurityTop as standalone action in SubTrigger.actions (
     // Simulate the SubTrigger inner dispatch: runAction is called for each action in the body.
     // We call runMain with a SubTrigger action whose subscribeSubTrigger mock immediately fires.
     const subscribedRun: Array<(subCtx: EffectContext) => Promise<void>> = [];
-    (ctx.fx as unknown as { subscribeSubTrigger: (s: { run: (c: EffectContext) => Promise<void> }) => void }).subscribeSubTrigger = (sub) => {
+    (
+      ctx.fx as unknown as { subscribeSubTrigger: (s: { run: (c: EffectContext) => Promise<void> }) => void }
+    ).subscribeSubTrigger = (sub) => {
       subscribedRun.push(sub.run);
     };
     const subTriggerAction = {
@@ -10037,8 +10644,28 @@ describe("CAP-E16: playCostCeiling on PlayWithoutCost (BT21-079)", () => {
     ];
     // Custom def: cost-3 Guilmon and cost-6 (beyond base ceiling).
     const customDefs: Record<string, object> = {
-      COST3: { cardId: "COST3", set: "T", nameEn: "Guilmon", kinds: ["Digimon"] as never, colors: [] as never, playCost: 3, dp: 0, evoCosts: [], maxCountInDeck: 4 },
-      COST6: { cardId: "COST6", set: "T", nameEn: "Growlmon", kinds: ["Digimon"] as never, colors: [] as never, playCost: 6, dp: 0, evoCosts: [], maxCountInDeck: 4 },
+      COST3: {
+        cardId: "COST3",
+        set: "T",
+        nameEn: "Guilmon",
+        kinds: ["Digimon"] as never,
+        colors: [] as never,
+        playCost: 3,
+        dp: 0,
+        evoCosts: [],
+        maxCountInDeck: 4,
+      },
+      COST6: {
+        cardId: "COST6",
+        set: "T",
+        nameEn: "Growlmon",
+        kinds: ["Digimon"] as never,
+        colors: [] as never,
+        playCost: 6,
+        dp: 0,
+        evoCosts: [],
+        maxCountInDeck: 4,
+      },
     };
     const game: GameAccess = {
       state: { memory: 0, players, turnSeat: 0 } as never,
@@ -10049,7 +10676,9 @@ describe("CAP-E16: playCostCeiling on PlayWithoutCost (BT21-079)", () => {
     } as never;
     const played: string[] = [];
     const fx = {
-      playInstances: async (ids: string[]) => { played.push(...ids); },
+      playInstances: async (ids: string[]) => {
+        played.push(...ids);
+      },
       isPlayProhibited: () => false,
     } as unknown as Primitives;
     const ask: DecisionApi = {
@@ -10288,7 +10917,9 @@ describe("LANE-F-14: condition.selfHasNameContaining (BT20-080)", () => {
       definitionOf: (card: { cardId: string }) => def(card.cardId) as never,
     } as never;
     const fx = {
-      modifyDP: (id: string, amount: number) => { sink.dp.push({ id, amount }); },
+      modifyDP: (id: string, amount: number) => {
+        sink.dp.push({ id, amount });
+      },
     } as unknown as Primitives;
     const ask: DecisionApi = {
       optional: async () => true,
@@ -10451,7 +11082,14 @@ describe("LANE-F-15: triggerFilter on onAddDigivolutionCards SubTrigger (BT20-08
   function makeSubCtx(
     game: GameAccess,
     src: CardSource,
-    players: Array<{ seat: Seat; battleArea: Permanent[]; security: never[]; hand: never[]; deck: never[]; trash: never[] }>,
+    players: Array<{
+      seat: Seat;
+      battleArea: Permanent[];
+      security: never[];
+      hand: never[];
+      deck: never[];
+      trash: never[];
+    }>,
     subjectPermanentId: string,
   ): EffectContext {
     return {
@@ -10473,16 +11111,20 @@ describe("LANE-F-15: triggerFilter on onAddDigivolutionCards SubTrigger (BT20-08
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "AllTurns",
-        actions: [{
-          kind: "SubTrigger",
-          event: "onAddDigivolutionCards",
-          triggerFilter: { isSelfRef: true },
-          actions: [],
-          raw: "When cards are placed in this Digimon's digivolution cards",
-        }],
-      }],
+      effects: [
+        {
+          trigger: "AllTurns",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "onAddDigivolutionCards",
+              triggerFilter: { isSelfRef: true },
+              actions: [],
+              raw: "When cards are placed in this Digimon's digivolution cards",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
     const effects = irCardModule("F15-self-ref-pos", ir).effectsForTiming(EffectTiming.None, src);
     await effects[0]!.resolve(installCtx);
@@ -10499,16 +11141,20 @@ describe("LANE-F-15: triggerFilter on onAddDigivolutionCards SubTrigger (BT20-08
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "AllTurns",
-        actions: [{
-          kind: "SubTrigger",
-          event: "onAddDigivolutionCards",
-          triggerFilter: { isSelfRef: true },
-          actions: [],
-          raw: "When cards are placed in this Digimon's digivolution cards",
-        }],
-      }],
+      effects: [
+        {
+          trigger: "AllTurns",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "onAddDigivolutionCards",
+              triggerFilter: { isSelfRef: true },
+              actions: [],
+              raw: "When cards are placed in this Digimon's digivolution cards",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
     const effects = irCardModule("F15-self-ref-neg", ir).effectsForTiming(EffectTiming.None, src);
     await effects[0]!.resolve(installCtx);
@@ -10528,26 +11174,44 @@ describe("LANE-F-15: triggerFilter on onAddDigivolutionCards SubTrigger (BT20-08
 
     const gammamonPerm = perm("F15_GAMMAMON", 0 as Seat, GAMMAMON_CARD) as unknown as Permanent;
     const playersWithGammamon = [
-      { seat: 0, battleArea: [gammamonPerm], security: [] as never[], hand: [] as never[], deck: [] as never[], trash: [] as never[] },
-      { seat: 1, battleArea: [] as Permanent[], security: [] as never[], hand: [] as never[], deck: [] as never[], trash: [] as never[] },
+      {
+        seat: 0,
+        battleArea: [gammamonPerm],
+        security: [] as never[],
+        hand: [] as never[],
+        deck: [] as never[],
+        trash: [] as never[],
+      },
+      {
+        seat: 1,
+        battleArea: [] as Permanent[],
+        security: [] as never[],
+        hand: [] as never[],
+        deck: [] as never[],
+        trash: [] as never[],
+      },
     ];
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "YourTurn",
-        actions: [{
-          kind: "SubTrigger",
-          event: "onAddDigivolutionCards",
-          triggerFilter: {
-            controllerDefault: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Gammamon"], match: "name" }],
-          },
-          actions: [],
-          raw: "When cards are placed in a [Gammamon] Digimon's digivolution cards",
-        }],
-      }],
+      effects: [
+        {
+          trigger: "YourTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "onAddDigivolutionCards",
+              triggerFilter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Gammamon"], match: "name" }],
+              },
+              actions: [],
+              raw: "When cards are placed in a [Gammamon] Digimon's digivolution cards",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
     const effects = irCardModule("F15-trait-filter", ir).effectsForTiming(EffectTiming.None, src);
     await effects[0]!.resolve(installCtx);
@@ -10588,8 +11252,22 @@ describe("CAP-F2: return cost to deckBottom + storeAs (BT19-002)", () => {
     const returnedPerm = perm("F2_SELF", 0 as Seat, "SRC");
     // SRC has level 6 by default (see DEFS)
     const players = [
-      { seat: 0, battleArea: [returnedPerm], security: [] as never[], hand: [] as never[], deck: [] as never[], trash: [] as never[] },
-      { seat: 1, battleArea: [] as Permanent[], security: [] as never[], hand: [] as never[], deck: [] as never[], trash: [] as never[] },
+      {
+        seat: 0,
+        battleArea: [returnedPerm],
+        security: [] as never[],
+        hand: [] as never[],
+        deck: [] as never[],
+        trash: [] as never[],
+      },
+      {
+        seat: 1,
+        battleArea: [] as Permanent[],
+        security: [] as never[],
+        hand: [] as never[],
+        deck: [] as never[],
+        trash: [] as never[],
+      },
     ];
     const game: GameAccess = {
       state: { memory: 0, players, turnSeat: 0 } as never,
@@ -10606,7 +11284,10 @@ describe("CAP-F2: return cost to deckBottom + storeAs (BT19-002)", () => {
         if (!opts?.toTop) returnedToBottomIds.push(...ids);
         return [];
       },
-      returnToHand: async (ids: string[]) => { returnedToHandIds.push(...ids); return []; },
+      returnToHand: async (ids: string[]) => {
+        returnedToHandIds.push(...ids);
+        return [];
+      },
     } as unknown as Primitives;
     const ask: DecisionApi = {
       optional: async () => true,
@@ -10634,24 +11315,28 @@ describe("CAP-F2: return cost to deckBottom + storeAs (BT19-002)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "OpponentsTurn",
-        actions: [{
-          kind: "SubTrigger",
-          event: "whenOpponentAttacks",
-          actions: [],
-          cost: {
-            kind: "return",
-            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-            to: "deckBottom",
-            storeAs: "returnedDigimonLevel",
-          },
-          optional: true,
-          abortOnDecline: true,
-          raw: "by returning this Digimon to the bottom of the deck",
-        }],
-        isInherited: true,
-      }],
+      effects: [
+        {
+          trigger: "OpponentsTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenOpponentAttacks",
+              actions: [],
+              cost: {
+                kind: "return",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                to: "deckBottom",
+                storeAs: "returnedDigimonLevel",
+              },
+              optional: true,
+              abortOnDecline: true,
+              raw: "by returning this Digimon to the bottom of the deck",
+            },
+          ],
+          isInherited: true,
+        },
+      ],
     } as unknown as CompiledCard;
 
     // Invoke the cost path directly via a synthetic Main effect that pays the SubTrigger cost
@@ -10672,7 +11357,10 @@ describe("CAP-F2: return cost to deckBottom + storeAs (BT19-002)", () => {
     const subscribed: unknown[] = [];
     const fxWithSubscribe = {
       ...fx,
-      subscribeSubTrigger: (s: unknown) => { subscribed.push(s); return 0; },
+      subscribeSubTrigger: (s: unknown) => {
+        subscribed.push(s);
+        return 0;
+      },
     } as unknown as Primitives;
     const ctx: EffectContext = {
       source: src,
@@ -10711,23 +11399,27 @@ describe("CAP-F2: return cost to deckBottom + storeAs (BT19-002)", () => {
     const costIr: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "SubTrigger",
-          event: "whenOpponentAttacks",
-          actions: [],
-          cost: {
-            kind: "return",
-            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-            to: "deckBottom",
-            storeAs: "returnedDigimonLevel",
-          },
-          optional: false,
-          abortOnDecline: false,
-          raw: "F2 store test",
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenOpponentAttacks",
+              actions: [],
+              cost: {
+                kind: "return",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                to: "deckBottom",
+                storeAs: "returnedDigimonLevel",
+              },
+              optional: false,
+              abortOnDecline: false,
+              raw: "F2 store test",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
     // A SubTrigger's activation cost is paid when the watcher FIRES, not when it installs, so
     // the install is captured here and run to reach the cost.
@@ -10760,8 +11452,22 @@ describe("CAP-F2: return cost to deckBottom + storeAs (BT19-002)", () => {
     // Verify permanentMatchesFilter with levelLte:"returnedDigimonLevel" reads the bound.
     const candidatePerm = perm("OPP_D", 1 as Seat, "SRC");
     const players = [
-      { seat: 0, battleArea: [] as Permanent[], security: [] as never[], hand: [] as never[], deck: [] as never[], trash: [] as never[] },
-      { seat: 1, battleArea: [candidatePerm], security: [] as never[], hand: [] as never[], deck: [] as never[], trash: [] as never[] },
+      {
+        seat: 0,
+        battleArea: [] as Permanent[],
+        security: [] as never[],
+        hand: [] as never[],
+        deck: [] as never[],
+        trash: [] as never[],
+      },
+      {
+        seat: 1,
+        battleArea: [candidatePerm],
+        security: [] as never[],
+        hand: [] as never[],
+        deck: [] as never[],
+        trash: [] as never[],
+      },
     ];
     const game: GameAccess = {
       state: { memory: 0, players, turnSeat: 0 } as never,
@@ -10794,17 +11500,32 @@ describe("CAP-F2: return cost to deckBottom + storeAs (BT19-002)", () => {
     };
     // level 6 <= bound 6 → match
     expect(
-      permanentMatchesFilter(ctx, candidatePerm as unknown as Permanent, { levelLte: "returnedDigimonLevel" } as never, src)
+      permanentMatchesFilter(
+        ctx,
+        candidatePerm as unknown as Permanent,
+        { levelLte: "returnedDigimonLevel" } as never,
+        src,
+      ),
     ).toBe(true);
     // Reduce bound to 5 → level 6 fails
     namedCounts.set("returnedDigimonLevel", 5);
     expect(
-      permanentMatchesFilter(ctx, candidatePerm as unknown as Permanent, { levelLte: "returnedDigimonLevel" } as never, src)
+      permanentMatchesFilter(
+        ctx,
+        candidatePerm as unknown as Permanent,
+        { levelLte: "returnedDigimonLevel" } as never,
+        src,
+      ),
     ).toBe(false);
     // Missing key → fails (no bound = no match)
     const ctxNoKey: EffectContext = { ...ctx, namedCounts: new Map() };
     expect(
-      permanentMatchesFilter(ctxNoKey, candidatePerm as unknown as Permanent, { levelLte: "returnedDigimonLevel" } as never, src)
+      permanentMatchesFilter(
+        ctxNoKey,
+        candidatePerm as unknown as Permanent,
+        { levelLte: "returnedDigimonLevel" } as never,
+        src,
+      ),
     ).toBe(false);
   });
 });
@@ -10819,8 +11540,22 @@ describe("CAP-F4: oncePerTiming SubTrigger guard (BT2-053)", () => {
   function makeF4Ctx() {
     const anchorPerm = perm("F4_SRC", 0 as Seat, "SRC");
     const players = [
-      { seat: 0, battleArea: [anchorPerm], security: [] as never[], hand: [] as never[], deck: [] as never[], trash: [] as never[] },
-      { seat: 1, battleArea: [] as Permanent[], security: [] as never[], hand: [] as never[], deck: [] as never[], trash: [] as never[] },
+      {
+        seat: 0,
+        battleArea: [anchorPerm],
+        security: [] as never[],
+        hand: [] as never[],
+        deck: [] as never[],
+        trash: [] as never[],
+      },
+      {
+        seat: 1,
+        battleArea: [] as Permanent[],
+        security: [] as never[],
+        hand: [] as never[],
+        deck: [] as never[],
+        trash: [] as never[],
+      },
     ];
     const game: GameAccess = {
       state: { memory: 0, players, turnSeat: 0 } as never,
@@ -10830,11 +11565,13 @@ describe("CAP-F4: oncePerTiming SubTrigger guard (BT2-053)", () => {
       definitionOf: (card: { cardId: string }) => def(card.cardId) as never,
     } as never;
 
-    let capturedInstall: {
-      oncePerTiming?: boolean;
-      matches?: (subCtx: EffectContext) => boolean;
-      run: (subCtx: EffectContext) => Promise<void>;
-    } | undefined;
+    let capturedInstall:
+      | {
+          oncePerTiming?: boolean;
+          matches?: (subCtx: EffectContext) => boolean;
+          run: (subCtx: EffectContext) => Promise<void>;
+        }
+      | undefined;
     const fx = {
       subscribeSubTrigger: (install: typeof capturedInstall) => {
         capturedInstall = install;
@@ -10862,18 +11599,22 @@ describe("CAP-F4: oncePerTiming SubTrigger guard (BT2-053)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "YourTurn",
-        actions: [{
-          kind: "SubTrigger",
-          event: "whenPlayed",
-          sourceFilter: { controllerDefault: "mine", excludeSelf: true, kind: ["Digimon"], isSameName: true },
-          oncePerTiming: true,
-          raw: "when you play another Digimon with the same name as this Digimon",
-          actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
-        }],
-        isInherited: true,
-      }],
+      effects: [
+        {
+          trigger: "YourTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenPlayed",
+              sourceFilter: { controllerDefault: "mine", excludeSelf: true, kind: ["Digimon"], isSameName: true },
+              oncePerTiming: true,
+              raw: "when you play another Digimon with the same name as this Digimon",
+              actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
+            },
+          ],
+          isInherited: true,
+        },
+      ],
     } as unknown as CompiledCard;
 
     const installCtx: EffectContext = { source: src, trigger: {}, game, fx, ask, selections: new Map() };
@@ -10902,7 +11643,9 @@ describe("CAP-F4: oncePerTiming SubTrigger guard (BT2-053)", () => {
     let runCount = 0;
     const fakeInstall = {
       ...install,
-      run: async () => { runCount++; },
+      run: async () => {
+        runCount++;
+      },
     };
     // Simulate two fire() calls for the same sub: if oncePerTiming, only fires once per fire() call.
     // (The registry gate is in SubTriggerRegistry.fire — validated here via the property being set.)
@@ -10914,21 +11657,28 @@ describe("CAP-F4: oncePerTiming SubTrigger guard (BT2-053)", () => {
     const irWithout: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "YourTurn",
-        actions: [{
-          kind: "SubTrigger",
-          event: "whenPlayed",
-          sourceFilter: { controllerDefault: "mine", kind: ["Digimon"] },
-          // no oncePerTiming
-          raw: "when you play a Digimon",
-          actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
-        }],
-      }],
+      effects: [
+        {
+          trigger: "YourTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenPlayed",
+              sourceFilter: { controllerDefault: "mine", kind: ["Digimon"] },
+              // no oncePerTiming
+              raw: "when you play a Digimon",
+              actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
     let capturedInstall: { oncePerTiming?: boolean } | undefined;
     const fxCapture = {
-      subscribeSubTrigger: (s: typeof capturedInstall) => { capturedInstall = s; return 0; },
+      subscribeSubTrigger: (s: typeof capturedInstall) => {
+        capturedInstall = s;
+        return 0;
+      },
     } as unknown as Primitives;
     const src2: CardSource = {
       instanceId: "F4_SRC2#i",
@@ -10940,7 +11690,20 @@ describe("CAP-F4: oncePerTiming SubTrigger guard (BT2-053)", () => {
       isOwnersTurn: () => true,
       hasColor: () => false,
     } as never;
-    const ctx2: EffectContext = { source: src2, trigger: {}, game, fx: fxCapture, ask: { optional: async () => true, selectPermanents: async () => [], chooseTargets: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max), selectCards: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max), chooseOption: async () => 0 }, selections: new Map() };
+    const ctx2: EffectContext = {
+      source: src2,
+      trigger: {},
+      game,
+      fx: fxCapture,
+      ask: {
+        optional: async () => true,
+        selectPermanents: async () => [],
+        chooseTargets: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
+        selectCards: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
+        chooseOption: async () => 0,
+      },
+      selections: new Map(),
+    };
     const effects = irCardModule("F4-absent", irWithout).effectsForTiming(EffectTiming.None, src2);
     await effects[0]!.resolve(ctx2);
     expect(capturedInstall?.oncePerTiming).toBeUndefined();
@@ -10959,8 +11722,22 @@ describe("CAP-F5: whenTrashedFromBattleArea top-level trigger (BT19-095)", () =>
   function makeF5Ctx(turnSeat: 0 | 1 = 0) {
     const srcPerm = perm("F5_SRC", 0 as Seat, "SRC");
     const players = [
-      { seat: 0, battleArea: [srcPerm], security: [] as never[], hand: [] as never[], deck: [] as never[], trash: [] as never[] },
-      { seat: 1, battleArea: [] as Permanent[], security: [] as never[], hand: [] as never[], deck: [] as never[], trash: [] as never[] },
+      {
+        seat: 0,
+        battleArea: [srcPerm],
+        security: [] as never[],
+        hand: [] as never[],
+        deck: [] as never[],
+        trash: [] as never[],
+      },
+      {
+        seat: 1,
+        battleArea: [] as Permanent[],
+        security: [] as never[],
+        hand: [] as never[],
+        deck: [] as never[],
+        trash: [] as never[],
+      },
     ];
     const game: GameAccess = {
       state: { memory: 0, players, turnSeat } as never,
@@ -10972,7 +11749,9 @@ describe("CAP-F5: whenTrashedFromBattleArea top-level trigger (BT19-095)", () =>
     } as never;
     const dpModified: { id: string; amount: number }[] = [];
     const fx: Primitives = {
-      modifyDP: (id: string, amount: number) => { dpModified.push({ id, amount }); },
+      modifyDP: (id: string, amount: number) => {
+        dpModified.push({ id, amount });
+      },
     } as unknown as Primitives;
     const ask: DecisionApi = {
       optional: async () => true,
@@ -10999,11 +11778,20 @@ describe("CAP-F5: whenTrashedFromBattleArea top-level trigger (BT19-095)", () =>
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "whenTrashedFromBattleArea",
-        turnCondition: "yourTurn",
-        actions: [{ kind: "ModifyDP", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 }, amount: 4000, duration: "forTheTurn" }],
-      }],
+      effects: [
+        {
+          trigger: "whenTrashedFromBattleArea",
+          turnCondition: "yourTurn",
+          actions: [
+            {
+              kind: "ModifyDP",
+              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              amount: 4000,
+              duration: "forTheTurn",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
     const mod = irCardModule("F5-timing-map", ir);
     const effects = mod.effectsForTiming(EffectTiming.WhenTrashedFromBattleArea, src);
@@ -11015,11 +11803,13 @@ describe("CAP-F5: whenTrashedFromBattleArea top-level trigger (BT19-095)", () =>
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "whenTrashedFromBattleArea",
-        turnCondition: "yourTurn",
-        actions: [],
-      }],
+      effects: [
+        {
+          trigger: "whenTrashedFromBattleArea",
+          turnCondition: "yourTurn",
+          actions: [],
+        },
+      ],
     } as unknown as CompiledCard;
     const mod = irCardModule("F5-not-deletion", ir);
     const effects = mod.effectsForTiming(EffectTiming.OnDestroyedAnyone, src);
@@ -11031,20 +11821,38 @@ describe("CAP-F5: whenTrashedFromBattleArea top-level trigger (BT19-095)", () =>
     const { game, fx, ask, src, srcPerm } = makeF5Ctx(1);
     const dpMods: { id: string; amount: number }[] = [];
     const fxWithDp: Primitives = {
-      modifyDP: (id: string, amount: number) => { dpMods.push({ id, amount }); },
+      modifyDP: (id: string, amount: number) => {
+        dpMods.push({ id, amount });
+      },
     } as unknown as Primitives;
 
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "whenTrashedFromBattleArea",
-        turnCondition: "yourTurn",
-        actions: [{ kind: "ModifyDP", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 }, amount: 4000, duration: "forTheTurn" }],
-      }],
+      effects: [
+        {
+          trigger: "whenTrashedFromBattleArea",
+          turnCondition: "yourTurn",
+          actions: [
+            {
+              kind: "ModifyDP",
+              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              amount: 4000,
+              duration: "forTheTurn",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
-    const ctx: EffectContext = { source: src, trigger: { deletedInstanceIds: ["F5_SRC#i"] }, game, fx: fxWithDp, ask, selections: new Map() };
+    const ctx: EffectContext = {
+      source: src,
+      trigger: { deletedInstanceIds: ["F5_SRC#i"] },
+      game,
+      fx: fxWithDp,
+      ask,
+      selections: new Map(),
+    };
     const effects = irCardModule("F5-your-turn-gate", ir).effectsForTiming(EffectTiming.WhenTrashedFromBattleArea, src);
     expect(effects.length).toBeGreaterThan(0);
     await effects[0]!.resolve(ctx);
@@ -11058,8 +11866,22 @@ describe("CAP-F5: whenTrashedFromBattleArea top-level trigger (BT19-095)", () =>
     const dpMods: { id: string; amount: number }[] = [];
     const ownPerm = perm("OWN_D", 0 as Seat, "RED");
     const playersOwn = [
-      { seat: 0, battleArea: [ownPerm], security: [] as never[], hand: [] as never[], deck: [] as never[], trash: [] as never[] },
-      { seat: 1, battleArea: [] as Permanent[], security: [] as never[], hand: [] as never[], deck: [] as never[], trash: [] as never[] },
+      {
+        seat: 0,
+        battleArea: [ownPerm],
+        security: [] as never[],
+        hand: [] as never[],
+        deck: [] as never[],
+        trash: [] as never[],
+      },
+      {
+        seat: 1,
+        battleArea: [] as Permanent[],
+        security: [] as never[],
+        hand: [] as never[],
+        deck: [] as never[],
+        trash: [] as never[],
+      },
     ];
     const gameOwn: GameAccess = {
       state: { memory: 0, players: playersOwn, turnSeat: 0 } as never,
@@ -11070,21 +11892,42 @@ describe("CAP-F5: whenTrashedFromBattleArea top-level trigger (BT19-095)", () =>
       definitionOf: (card: { cardId: string }) => def(card.cardId) as never,
     } as never;
     const fxWithDp: Primitives = {
-      modifyDP: (id: string, amount: number) => { dpMods.push({ id, amount }); },
+      modifyDP: (id: string, amount: number) => {
+        dpMods.push({ id, amount });
+      },
     } as unknown as Primitives;
 
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "whenTrashedFromBattleArea",
-        turnCondition: "yourTurn",
-        actions: [{ kind: "ModifyDP", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 }, amount: 4000, duration: "forTheTurn" }],
-      }],
+      effects: [
+        {
+          trigger: "whenTrashedFromBattleArea",
+          turnCondition: "yourTurn",
+          actions: [
+            {
+              kind: "ModifyDP",
+              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              amount: 4000,
+              duration: "forTheTurn",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
-    const ctx: EffectContext = { source: src, trigger: { deletedInstanceIds: ["F5_SRC#i"] }, game: gameOwn, fx: fxWithDp, ask, selections: new Map() };
-    const effects = irCardModule("F5-your-turn-fires", ir).effectsForTiming(EffectTiming.WhenTrashedFromBattleArea, src);
+    const ctx: EffectContext = {
+      source: src,
+      trigger: { deletedInstanceIds: ["F5_SRC#i"] },
+      game: gameOwn,
+      fx: fxWithDp,
+      ask,
+      selections: new Map(),
+    };
+    const effects = irCardModule("F5-your-turn-fires", ir).effectsForTiming(
+      EffectTiming.WhenTrashedFromBattleArea,
+      src,
+    );
     expect(effects.length).toBeGreaterThan(0);
     await effects[0]!.resolve(ctx);
     expect(dpMods.length).toBeGreaterThan(0);
@@ -11134,17 +11977,13 @@ describe("CAP-H-05: hasDigiXrosRequirement (singular) filter predicate (BT19-087
   it("both spellings behave identically for a card WITH requirements", () => {
     const singular = { hasDigiXrosRequirement: true } as never;
     const plural = { hasDigiXrosRequirements: true } as never;
-    expect(definitionMatches(singular, xrosDef(XROS_CARD))).toBe(
-      definitionMatches(plural, xrosDef(XROS_CARD)),
-    );
+    expect(definitionMatches(singular, xrosDef(XROS_CARD))).toBe(definitionMatches(plural, xrosDef(XROS_CARD)));
   });
 
   it("both spellings behave identically for a card WITHOUT requirements", () => {
     const singular = { hasDigiXrosRequirement: true } as never;
     const plural = { hasDigiXrosRequirements: true } as never;
-    expect(definitionMatches(singular, xrosDef(PLAIN_CARD))).toBe(
-      definitionMatches(plural, xrosDef(PLAIN_CARD)),
-    );
+    expect(definitionMatches(singular, xrosDef(PLAIN_CARD))).toBe(definitionMatches(plural, xrosDef(PLAIN_CARD)));
   });
 });
 
@@ -11250,10 +12089,12 @@ describe("LANE-F-7: zone 'underTamer' (singular) selects cards under Tamer perma
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "StartOfYourMainPhase",
-        actions: [action],
-      }],
+      effects: [
+        {
+          trigger: "StartOfYourMainPhase",
+          actions: [action],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("F7-zone-test", ir).effectsForTiming(EffectTiming.OnStartMainPhase, src);
@@ -11291,22 +12132,31 @@ describe("LANE-F-8: asDigiXrosMaterial + underFilter.isTriggerSource (BT19-081)"
       const ir: CompiledCard = {
         coverage: "full",
         residual: [],
-        effects: [{
-          trigger: "AllTurns",
-          actions: [{
-            kind: "Replacement",
-            event: "wouldBePlayed",
-            sourceFilter: { controller: "mine", kind: ["Digimon"], hasDigiXrosRequirements: true },
-            actions: [{
-              kind: "PlaceUnder",
-              target: { filter: { controller: "mine", zone: "underTamer" }, count: "any" },
-              underFilter: { isTriggerSource: true },
-              asDigiXrosMaterial: true,
-            }],
-          }],
-        }],
+        effects: [
+          {
+            trigger: "AllTurns",
+            actions: [
+              {
+                kind: "Replacement",
+                event: "wouldBePlayed",
+                sourceFilter: { controller: "mine", kind: ["Digimon"], hasDigiXrosRequirements: true },
+                actions: [
+                  {
+                    kind: "PlaceUnder",
+                    target: { filter: { controller: "mine", zone: "underTamer" }, count: "any" },
+                    underFilter: { isTriggerSource: true },
+                    asDigiXrosMaterial: true,
+                  },
+                ],
+              },
+            ],
+          },
+        ],
       } as unknown as CompiledCard;
-      return ir.effects[0]!.actions[0] as { kind: string; actions?: { kind: string; underFilter?: { isTriggerSource?: boolean }; asDigiXrosMaterial?: boolean }[] };
+      return ir.effects[0]!.actions[0] as {
+        kind: string;
+        actions?: { kind: string; underFilter?: { isTriggerSource?: boolean }; asDigiXrosMaterial?: boolean }[];
+      };
     })();
     const inner = allTurnsEffect.actions?.[0];
     expect(inner?.asDigiXrosMaterial).toBe(true);
@@ -11402,15 +12252,19 @@ describe("LANE-F-8: asDigiXrosMaterial + underFilter.isTriggerSource (BT19-081)"
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "StartOfYourMainPhase",
-        actions: [{
-          kind: "PlaceUnder",
-          target: { filter: { controller: "mine", zone: "underTamer" }, count: "all" },
-          underFilter: { isTriggerSource: true },
-          asDigiXrosMaterial: true,
-        }],
-      }],
+      effects: [
+        {
+          trigger: "StartOfYourMainPhase",
+          actions: [
+            {
+              kind: "PlaceUnder",
+              target: { filter: { controller: "mine", zone: "underTamer" }, count: "all" },
+              underFilter: { isTriggerSource: true },
+              asDigiXrosMaterial: true,
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("F8-trigger-source", ir).effectsForTiming(EffectTiming.OnStartMainPhase, src);
@@ -11492,7 +12346,9 @@ describe("LANE-F-10: orConditions compound condition (BT21-010)", () => {
           { instanceId: "s4", cardId: "JUNK", ownerSeat: 0 },
           { instanceId: "s5", cardId: "JUNK", ownerSeat: 0 },
         ],
-        hand: [], deck: [], trash: [],
+        hand: [],
+        deck: [],
+        trash: [],
       },
       { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] },
     ];
@@ -11506,7 +12362,11 @@ describe("LANE-F-10: orConditions compound condition (BT21-010)", () => {
       linkMax: () => 1,
     } as never;
     const sinkF10b: Sink = { dp: [] };
-    const fxF10b = { modifyDP: (id: string, amount: number) => { sinkF10b.dp.push({ id, amount }); } } as unknown as Primitives;
+    const fxF10b = {
+      modifyDP: (id: string, amount: number) => {
+        sinkF10b.dp.push({ id, amount });
+      },
+    } as unknown as Primitives;
     const askF10b: DecisionApi = {
       optional: async () => true,
       chooseTargets: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
@@ -11514,7 +12374,14 @@ describe("LANE-F-10: orConditions compound condition (BT21-010)", () => {
       selectCards: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
       chooseOption: async () => 0,
     };
-    const ctxF10b: EffectContext = { source: src, trigger: {}, game: gameF10b, fx: fxF10b, ask: askF10b, selections: new Map() } as never;
+    const ctxF10b: EffectContext = {
+      source: src,
+      trigger: {},
+      game: gameF10b,
+      fx: fxF10b,
+      ask: askF10b,
+      selections: new Map(),
+    } as never;
     await runMain("BT21-010-b", gatedDP(orCond), ctxF10b, src);
     expect(sinkF10b.dp.map((d) => d.id)).toContain("SRC10b");
   });
@@ -11535,7 +12402,9 @@ describe("LANE-F-10: orConditions compound condition (BT21-010)", () => {
           { instanceId: "s4", cardId: "JUNK", ownerSeat: 0 },
           { instanceId: "s5", cardId: "JUNK", ownerSeat: 0 },
         ],
-        hand: [], deck: [], trash: [],
+        hand: [],
+        deck: [],
+        trash: [],
       },
       { seat: 1, battleArea: [], security: [], hand: [], deck: [], trash: [] },
     ];
@@ -11549,7 +12418,11 @@ describe("LANE-F-10: orConditions compound condition (BT21-010)", () => {
       linkMax: () => 1,
     } as never;
     const sinkF10c: Sink = { dp: [] };
-    const fxF10c = { modifyDP: (id: string, amount: number) => { sinkF10c.dp.push({ id, amount }); } } as unknown as Primitives;
+    const fxF10c = {
+      modifyDP: (id: string, amount: number) => {
+        sinkF10c.dp.push({ id, amount });
+      },
+    } as unknown as Primitives;
     const askF10c: DecisionApi = {
       optional: async () => true,
       chooseTargets: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
@@ -11557,7 +12430,14 @@ describe("LANE-F-10: orConditions compound condition (BT21-010)", () => {
       selectCards: async (_c: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
       chooseOption: async () => 0,
     };
-    const ctxF10c: EffectContext = { source: src, trigger: {}, game: gameF10c, fx: fxF10c, ask: askF10c, selections: new Map() } as never;
+    const ctxF10c: EffectContext = {
+      source: src,
+      trigger: {},
+      game: gameF10c,
+      fx: fxF10c,
+      ask: askF10c,
+      selections: new Map(),
+    } as never;
     await runMain("BT21-010-c", gatedDP(orCond), ctxF10c, src);
     expect(sinkF10c.dp).toEqual([]);
   });
@@ -11608,10 +12488,18 @@ describe("LANE-F-12: zone:'digivolutionCards' cost from any Digimon stack (BT21-
       definitionOf: (card: { cardId: string }) => {
         if (card.cardId === "APPMON_CARD") {
           return {
-            cardId: "APPMON_CARD", set: "T", nameEn: "AppmonCard",
-            kinds: ["Digimon"] as never, colors: [] as never,
-            types: ["Appmon"], forms: [], attributes: [],
-            playCost: 0, dp: 0, evoCosts: [], maxCountInDeck: 4,
+            cardId: "APPMON_CARD",
+            set: "T",
+            nameEn: "AppmonCard",
+            kinds: ["Digimon"] as never,
+            colors: [] as never,
+            types: ["Appmon"],
+            forms: [],
+            attributes: [],
+            playCost: 0,
+            dp: 0,
+            evoCosts: [],
+            maxCountInDeck: 4,
           };
         }
         return def(card.cardId);
@@ -11619,8 +12507,13 @@ describe("LANE-F-12: zone:'digivolutionCards' cost from any Digimon stack (BT21-
       linkMax: () => 1,
     } as never;
     const fxF12 = {
-      trash: async (ids: string[]) => { trashed.push(...ids); },
-      trashDigivolutionCards: async (_hostId: string, ids: string[]) => { trashed.push(...ids); return ids; },
+      trash: async (ids: string[]) => {
+        trashed.push(...ids);
+      },
+      trashDigivolutionCards: async (_hostId: string, ids: string[]) => {
+        trashed.push(...ids);
+        return ids;
+      },
     } as unknown as Primitives;
     const askF12: DecisionApi = {
       optional: async () => true,
@@ -11639,33 +12532,44 @@ describe("LANE-F-12: zone:'digivolutionCards' cost from any Digimon stack (BT21-
       isOwnersTurn: () => true,
       hasColor: () => false,
     } as never;
-    const ctxF12: EffectContext = { source: srcF12, trigger: {}, game: gameF12, fx: fxF12, ask: askF12, selections: new Map() } as never;
+    const ctxF12: EffectContext = {
+      source: srcF12,
+      trigger: {},
+      game: gameF12,
+      fx: fxF12,
+      ask: askF12,
+      selections: new Map(),
+    } as never;
 
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "OnPlay",
-        actions: [{
-          kind: "DeDigivolve",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-          amount: 1,
-          cost: {
-            kind: "trash",
-            target: {
-              filter: {
-                controller: "mine",
-                zone: "digivolutionCards",
-                nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "DeDigivolve",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+              amount: 1,
+              cost: {
+                kind: "trash",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    zone: "digivolutionCards",
+                    nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+                  },
+                  count: 1,
+                },
+                raw: "By trashing 1 [Appmon] card from any of your Digimon's digivolution cards",
               },
-              count: 1,
+              optional: true,
+              abortOnDecline: true,
             },
-            raw: "By trashing 1 [Appmon] card from any of your Digimon's digivolution cards",
-          },
-          optional: true,
-          abortOnDecline: true,
-        }],
-      }],
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("F12-test", ir).effectsForTiming(EffectTiming.OnPlay, srcF12);
@@ -11698,7 +12602,9 @@ describe("LANE-F-12: zone:'digivolutionCards' cost from any Digimon stack (BT21-
       linkMax: () => 1,
     } as never;
     const fxF12b = {
-      trash: async (ids: string[]) => { trashed.push(...ids); },
+      trash: async (ids: string[]) => {
+        trashed.push(...ids);
+      },
     } as unknown as Primitives;
     const askF12b: DecisionApi = {
       optional: async () => false, // player declines optional
@@ -11717,33 +12623,44 @@ describe("LANE-F-12: zone:'digivolutionCards' cost from any Digimon stack (BT21-
       isOwnersTurn: () => true,
       hasColor: () => false,
     } as never;
-    const ctxF12b: EffectContext = { source: srcF12b, trigger: {}, game: gameF12b, fx: fxF12b, ask: askF12b, selections: new Map() } as never;
+    const ctxF12b: EffectContext = {
+      source: srcF12b,
+      trigger: {},
+      game: gameF12b,
+      fx: fxF12b,
+      ask: askF12b,
+      selections: new Map(),
+    } as never;
 
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "OnPlay",
-        actions: [{
-          kind: "DeDigivolve",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
-          amount: 1,
-          cost: {
-            kind: "trash",
-            target: {
-              filter: {
-                controller: "mine",
-                zone: "digivolutionCards",
-                nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            {
+              kind: "DeDigivolve",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+              amount: 1,
+              cost: {
+                kind: "trash",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    zone: "digivolutionCards",
+                    nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+                  },
+                  count: 1,
+                },
+                raw: "By trashing 1 [Appmon] card from any of your Digimon's digivolution cards",
               },
-              count: 1,
+              optional: true,
+              abortOnDecline: true,
             },
-            raw: "By trashing 1 [Appmon] card from any of your Digimon's digivolution cards",
-          },
-          optional: true,
-          abortOnDecline: true,
-        }],
-      }],
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("F12b-test", ir).effectsForTiming(EffectTiming.OnPlay, srcF12b);
@@ -11774,18 +12691,22 @@ describe("LANE-F-16/F-17: requiresMinRevealed + to:'underTamer' in RevealAdd (BT
     return {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "OnDeletion",
-        actions: [{
-          kind: "RevealAdd",
-          revealCount: 3,
-          add: [
-            { filter: matchFilter, count: 1, to: "hand" },
-            { filter: matchFilter, count: 1, to: "underTamer", requiresMinRevealed: 2 },
+      effects: [
+        {
+          trigger: "OnDeletion",
+          actions: [
+            {
+              kind: "RevealAdd",
+              revealCount: 3,
+              add: [
+                { filter: matchFilter, count: 1, to: "hand" },
+                { filter: matchFilter, count: 1, to: "underTamer", requiresMinRevealed: 2 },
+              ],
+              rest: "deckBottom",
+            },
           ],
-          rest: "deckBottom",
-        }],
-      }],
+        },
+      ],
     } as unknown as CompiledCard;
   }
 
@@ -11824,11 +12745,20 @@ describe("LANE-F-16/F-17: requiresMinRevealed + to:'underTamer' in RevealAdd (BT
       definitionOf: (card: { cardId: string }) => {
         if (card.cardId === "KNIGHT") {
           return {
-            cardId: "KNIGHT", set: "T", nameEn: "Knightmon",
-            kinds: ["Digimon"] as never, colors: [] as never,
-            effectText: "Knightmon", inheritedEffectText: "",
-            types: [], forms: [], attributes: [],
-            playCost: 0, dp: 0, evoCosts: [], maxCountInDeck: 4,
+            cardId: "KNIGHT",
+            set: "T",
+            nameEn: "Knightmon",
+            kinds: ["Digimon"] as never,
+            colors: [] as never,
+            effectText: "Knightmon",
+            inheritedEffectText: "",
+            types: [],
+            forms: [],
+            attributes: [],
+            playCost: 0,
+            dp: 0,
+            evoCosts: [],
+            maxCountInDeck: 4,
           };
         }
         return def(card.cardId);
@@ -11837,9 +12767,17 @@ describe("LANE-F-16/F-17: requiresMinRevealed + to:'underTamer' in RevealAdd (BT
     } as never;
     const fxF17a = {
       reveal: async (_seat: Seat, _n: number) => revealedCards,
-      returnToHand: async (ids: string[]) => { returnedToHand.push(...ids); return []; },
-      returnToDeck: async (ids: string[]) => { returnedToDeck.push(...ids); return []; },
-      placeUnder: async (hostId: string, ids: string[]) => { placed.push({ hostId, instanceIds: [...ids] }); },
+      returnToHand: async (ids: string[]) => {
+        returnedToHand.push(...ids);
+        return [];
+      },
+      returnToDeck: async (ids: string[]) => {
+        returnedToDeck.push(...ids);
+        return [];
+      },
+      placeUnder: async (hostId: string, ids: string[]) => {
+        placed.push({ hostId, instanceIds: [...ids] });
+      },
     } as unknown as Primitives;
     const askF17a: DecisionApi = {
       optional: async () => true,
@@ -11858,7 +12796,14 @@ describe("LANE-F-16/F-17: requiresMinRevealed + to:'underTamer' in RevealAdd (BT
       isOwnersTurn: () => true,
       hasColor: () => false,
     } as never;
-    const ctxF17a: EffectContext = { source: srcF17a, trigger: {}, game: gameF17a, fx: fxF17a, ask: askF17a, selections: new Map() } as never;
+    const ctxF17a: EffectContext = {
+      source: srcF17a,
+      trigger: {},
+      game: gameF17a,
+      fx: fxF17a,
+      ask: askF17a,
+      selections: new Map(),
+    } as never;
 
     const ir = btRevealAdd();
     const effects = irCardModule("F17a-test", ir).effectsForTiming(EffectTiming.OnDestroyedAnyone, srcF17a);
@@ -11908,11 +12853,20 @@ describe("LANE-F-16/F-17: requiresMinRevealed + to:'underTamer' in RevealAdd (BT
       definitionOf: (card: { cardId: string }) => {
         if (card.cardId === "KNIGHT") {
           return {
-            cardId: "KNIGHT", set: "T", nameEn: "Knightmon",
-            kinds: ["Digimon"] as never, colors: [] as never,
-            effectText: "Knightmon", inheritedEffectText: "",
-            types: [], forms: [], attributes: [],
-            playCost: 0, dp: 0, evoCosts: [], maxCountInDeck: 4,
+            cardId: "KNIGHT",
+            set: "T",
+            nameEn: "Knightmon",
+            kinds: ["Digimon"] as never,
+            colors: [] as never,
+            effectText: "Knightmon",
+            inheritedEffectText: "",
+            types: [],
+            forms: [],
+            attributes: [],
+            playCost: 0,
+            dp: 0,
+            evoCosts: [],
+            maxCountInDeck: 4,
           };
         }
         return def(card.cardId);
@@ -11921,9 +12875,17 @@ describe("LANE-F-16/F-17: requiresMinRevealed + to:'underTamer' in RevealAdd (BT
     } as never;
     const fxF17b = {
       reveal: async (_seat: Seat, _n: number) => revealedCards,
-      returnToHand: async (ids: string[]) => { returnedToHand.push(...ids); return []; },
-      returnToDeck: async (ids: string[]) => { returnedToDeck.push(...ids); return []; },
-      placeUnder: async (hostId: string, ids: string[]) => { placed.push({ hostId, instanceIds: [...ids] }); },
+      returnToHand: async (ids: string[]) => {
+        returnedToHand.push(...ids);
+        return [];
+      },
+      returnToDeck: async (ids: string[]) => {
+        returnedToDeck.push(...ids);
+        return [];
+      },
+      placeUnder: async (hostId: string, ids: string[]) => {
+        placed.push({ hostId, instanceIds: [...ids] });
+      },
     } as unknown as Primitives;
     const askF17b: DecisionApi = {
       optional: async () => true,
@@ -11942,7 +12904,14 @@ describe("LANE-F-16/F-17: requiresMinRevealed + to:'underTamer' in RevealAdd (BT
       isOwnersTurn: () => true,
       hasColor: () => false,
     } as never;
-    const ctxF17b: EffectContext = { source: srcF17b, trigger: {}, game: gameF17b, fx: fxF17b, ask: askF17b, selections: new Map() } as never;
+    const ctxF17b: EffectContext = {
+      source: srcF17b,
+      trigger: {},
+      game: gameF17b,
+      fx: fxF17b,
+      ask: askF17b,
+      selections: new Map(),
+    } as never;
 
     const ir = btRevealAdd();
     const effects = irCardModule("F17b-test", ir).effectsForTiming(EffectTiming.OnDestroyedAnyone, srcF17b);
@@ -11966,10 +12935,7 @@ describe("LANE-F-16/F-17: requiresMinRevealed + to:'underTamer' in RevealAdd (BT
 // where unit:"security" with filter.faceUp:true counts only face-up security cards.
 // ---------------------------------------------------------------------------
 describe("CAP-G1: DeleteBudget scaling.budgetAdd (BT19-096)", () => {
-  function makeG1Ctx(opts: {
-    faceUpSecurityCount: number;
-    oppPerms: Array<{ id: string; playCost: number }>;
-  }) {
+  function makeG1Ctx(opts: { faceUpSecurityCount: number; oppPerms: Array<{ id: string; playCost: number }> }) {
     const deleted: string[] = [];
     const securityCards = Array.from({ length: opts.faceUpSecurityCount }, (_, i) => ({
       instanceId: `SEC${i}`,
@@ -12039,7 +13005,11 @@ describe("CAP-G1: DeleteBudget scaling.budgetAdd (BT19-096)", () => {
       isOwnersTurn: () => true,
       hasColor: () => false,
     } as never;
-    return { ctx: { source: src, trigger: {}, game, fx, ask, selections: new Map() } as unknown as EffectContext, src, deleted };
+    return {
+      ctx: { source: src, trigger: {}, game, fx, ask, selections: new Map() } as unknown as EffectContext,
+      src,
+      deleted,
+    };
   }
 
   const deleteBudgetAction = {
@@ -12159,7 +13129,10 @@ describe("CAP-G2: sourceFilter.nameMatchesInheritedHost (BT2-059)", () => {
       linkMax: () => 1,
     } as never;
     const fx = {
-      subscribeSubTrigger: (install: { matches?: (subCtx: EffectContext) => boolean; run: (subCtx: EffectContext) => Promise<void> }) => {
+      subscribeSubTrigger: (install: {
+        matches?: (subCtx: EffectContext) => boolean;
+        run: (subCtx: EffectContext) => Promise<void>;
+      }) => {
         capturedMatches = install.matches;
         return 0;
       },
@@ -12189,22 +13162,26 @@ describe("CAP-G2: sourceFilter.nameMatchesInheritedHost (BT2-059)", () => {
   const subTriggerIr: CompiledCard = {
     coverage: "full",
     residual: [],
-    effects: [{
-      trigger: "YourTurn",
-      actions: [{
-        kind: "SubTrigger",
-        event: "whenPlayed",
-        sourceFilter: {
-          controllerDefault: "mine",
-          kind: ["Digimon"],
-          excludeSelf: true,
-          nameMatchesInheritedHost: true,
-        },
-        actions: [{ kind: "GainMemory", amount: 1 }],
-        raw: "When you play another Digimon with the same name as this Digimon, gain 1 memory.",
-      }],
-      isInherited: true,
-    }],
+    effects: [
+      {
+        trigger: "YourTurn",
+        actions: [
+          {
+            kind: "SubTrigger",
+            event: "whenPlayed",
+            sourceFilter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              excludeSelf: true,
+              nameMatchesInheritedHost: true,
+            },
+            actions: [{ kind: "GainMemory", amount: 1 }],
+            raw: "When you play another Digimon with the same name as this Digimon, gain 1 memory.",
+          },
+        ],
+        isInherited: true,
+      },
+    ],
   } as unknown as CompiledCard;
 
   it("installs a SubTrigger watcher with a matches gate", async () => {
@@ -12230,7 +13207,11 @@ describe("CAP-G2: sourceFilter.nameMatchesInheritedHost (BT2-059)", () => {
     const subCtx: EffectContext = {
       source: src,
       trigger: { subjectPermanentId: "G2_PLAYED_SAME" },
-      game: { ...game, state: { memory: 0, players, turnSeat: 0 } as never, player: (s: Seat) => players[s] as never } as never,
+      game: {
+        ...game,
+        state: { memory: 0, players, turnSeat: 0 } as never,
+        player: (s: Seat) => players[s] as never,
+      } as never,
       fx: {} as never,
       ask: {} as never,
       selections: new Map(),
@@ -12253,7 +13234,11 @@ describe("CAP-G2: sourceFilter.nameMatchesInheritedHost (BT2-059)", () => {
     const subCtx: EffectContext = {
       source: src,
       trigger: { subjectPermanentId: "G2_PLAYED_OTHER" },
-      game: { ...game, state: { memory: 0, players, turnSeat: 0 } as never, player: (s: Seat) => players[s] as never } as never,
+      game: {
+        ...game,
+        state: { memory: 0, players, turnSeat: 0 } as never,
+        player: (s: Seat) => players[s] as never,
+      } as never,
       fx: {} as never,
       ask: {} as never,
       selections: new Map(),
@@ -12278,10 +13263,7 @@ describe("CAP-G2: sourceFilter.nameMatchesInheritedHost (BT2-059)", () => {
 // stacks the chosen card onto it. Does NOT fire [When Digivolving] effects (KB Q4300).
 // ---------------------------------------------------------------------------
 describe("CAP-G3: Digivolve target.targetBreeding (BT20-018)", () => {
-  function makeG3Ctx(opts: {
-    hasBredPerm: boolean;
-    handCardId?: string;
-  }) {
+  function makeG3Ctx(opts: { hasBredPerm: boolean; handCardId?: string }) {
     const moves: Array<{ permanentId: string; direction: string }> = [];
     const digivolveCalls: Array<{ pid: string; instanceId: string }> = [];
     const breedingCardId = "RED"; // Lv.3 Red Digimon in breeding
@@ -12451,10 +13433,12 @@ describe("CAP-H-01: whenTrashedFromDeck SubTrigger (BT19-097)", () => {
       definitionOf: (card: { cardId: string }) => def(card.cardId),
     } as never;
 
-    let capturedInstall: {
-      matches?: (subCtx: EffectContext) => boolean;
-      run: (subCtx: EffectContext) => Promise<void>;
-    } | undefined;
+    let capturedInstall:
+      | {
+          matches?: (subCtx: EffectContext) => boolean;
+          run: (subCtx: EffectContext) => Promise<void>;
+        }
+      | undefined;
     const fx = {
       subscribeSubTrigger: (install: typeof capturedInstall) => {
         capturedInstall = install;
@@ -12482,17 +13466,21 @@ describe("CAP-H-01: whenTrashedFromDeck SubTrigger (BT19-097)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "AllTurns",
-        actions: [{
-          kind: "SubTrigger",
-          event: "whenTrashedFromDeck",
-          sourceFilter: { isSelfRef: true },
-          actions: [{ kind: "PlaceInBattleAreaSelf" }],
-          optional: true,
-          raw: "when this card is trashed from the deck, you may place this card in the battle area",
-        }],
-      }],
+      effects: [
+        {
+          trigger: "AllTurns",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenTrashedFromDeck",
+              sourceFilter: { isSelfRef: true },
+              actions: [{ kind: "PlaceInBattleAreaSelf" }],
+              optional: true,
+              raw: "when this card is trashed from the deck, you may place this card in the battle area",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const installCtx: EffectContext = { source: src, trigger: {}, game, fx, ask, selections: new Map() };
@@ -12566,7 +13554,39 @@ describe("CAP-H-01: whenTrashedFromDeck SubTrigger (BT19-097)", () => {
     // meaning Digimon with > N digivolution cards would incorrectly pass.
     const noStackPerm = perm("NOSTACK", 1 as Seat, "RED");
     const filter = { kind: ["Digimon"], digivolutionCardsAtMost: 1 } as never;
-    const ctxH1 = { game: { state: { memory: 0, players: [{ seat: 0, battleArea: [], security: [], hand: [], deck: [], trash: [] }, { seat: 1, battleArea: [noStackPerm], security: [], hand: [], deck: [], trash: [] }], turnSeat: 0 }, player: (s: Seat) => (s === 0 ? { seat: 0, battleArea: [], security: [], hand: [], deck: [], trash: [] } : { seat: 1, battleArea: [noStackPerm], security: [], hand: [], deck: [], trash: [] }), opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat, permanentById: () => noStackPerm, definitionOf: (card: { cardId: string }) => def(card.cardId) } as never, source: { permanent: () => undefined, ownerSeat: 0 as Seat, instanceId: "X#i", cardId: "SRC", definition: def("SRC"), isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => false } as never, trigger: {}, fx: {} as never, ask: {} as never, selections: new Map() };
+    const ctxH1 = {
+      game: {
+        state: {
+          memory: 0,
+          players: [
+            { seat: 0, battleArea: [], security: [], hand: [], deck: [], trash: [] },
+            { seat: 1, battleArea: [noStackPerm], security: [], hand: [], deck: [], trash: [] },
+          ],
+          turnSeat: 0,
+        },
+        player: (s: Seat) =>
+          s === 0
+            ? { seat: 0, battleArea: [], security: [], hand: [], deck: [], trash: [] }
+            : { seat: 1, battleArea: [noStackPerm], security: [], hand: [], deck: [], trash: [] },
+        opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
+        permanentById: () => noStackPerm,
+        definitionOf: (card: { cardId: string }) => def(card.cardId),
+      } as never,
+      source: {
+        permanent: () => undefined,
+        ownerSeat: 0 as Seat,
+        instanceId: "X#i",
+        cardId: "SRC",
+        definition: def("SRC"),
+        isOnBattleArea: () => true,
+        isOwnersTurn: () => true,
+        hasColor: () => false,
+      } as never,
+      trigger: {},
+      fx: {} as never,
+      ask: {} as never,
+      selections: new Map(),
+    };
     expect(permanentMatchesFilter(ctxH1, noStackPerm, filter as never, ctxH1.source as never)).toBe(true);
   });
 });
@@ -12606,7 +13626,8 @@ describe("CAP-H-02: filter.digivolutionCardsAtMost (BT20-055)", () => {
       state: { memory: 0, players, turnSeat: 0 } as never,
       player: (s: Seat) => players[s] as never,
       opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
-      permanentById: (id: string) => [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
+      permanentById: (id: string) =>
+        [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
       definitionOf: (card: { cardId: string }) => def(card.cardId),
       linkMax: () => 1,
     } as never;
@@ -12622,7 +13643,10 @@ describe("CAP-H-02: filter.digivolutionCardsAtMost (BT20-055)", () => {
     } as never;
     const deleted: string[] = [];
     const fx = {
-      deletePermanent: async (ids: string[]) => { deleted.push(...ids); return ids.length; },
+      deletePermanent: async (ids: string[]) => {
+        deleted.push(...ids);
+        return ids.length;
+      },
     } as unknown as Primitives;
     const ask: DecisionApi = {
       optional: async () => true,
@@ -12667,16 +13691,20 @@ describe("CAP-H-02: filter.digivolutionCardsAtMost (BT20-055)", () => {
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "Delete",
-          target: {
-            filter: { controller: "opponent", kind: ["Digimon"], digivolutionCardsAtMost: 1 },
-            count: "all",
-          },
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "Delete",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], digivolutionCardsAtMost: 1 },
+                count: "all",
+              },
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
     const effects = irCardModule("BT20-055-h02", ir).effectsForTiming(EffectTiming.OnUseOption, src);
     await effects[0]!.resolve(ctx);
@@ -12738,12 +13766,11 @@ describe("CAP-H-02b: filter.playCostLteSourceDigivolutionCards (BT7-065)", () =>
       state: { memory: 0, players, turnSeat: 0 } as never,
       player: (s: Seat) => players[s] as never,
       opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
-      permanentById: (id: string) => [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
+      permanentById: (id: string) =>
+        [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
       definitionOf: (card: { cardId: string }) => {
         const d = costDefs[card.cardId];
-        return d !== undefined
-          ? ({ ...def(card.cardId), playCost: d.playCost } as CardDefinition)
-          : def(card.cardId);
+        return d !== undefined ? ({ ...def(card.cardId), playCost: d.playCost } as CardDefinition) : def(card.cardId);
       },
       linkMax: () => 1,
     } as never;
@@ -12759,7 +13786,10 @@ describe("CAP-H-02b: filter.playCostLteSourceDigivolutionCards (BT7-065)", () =>
     } as never;
     const deleted: string[] = [];
     const fx = {
-      deletePermanent: async (ids: string[]) => { deleted.push(...ids); return ids.length; },
+      deletePermanent: async (ids: string[]) => {
+        deleted.push(...ids);
+        return ids.length;
+      },
     } as unknown as Primitives;
     const ask: DecisionApi = {
       optional: async () => true,
@@ -12793,16 +13823,20 @@ describe("CAP-H-02b: filter.playCostLteSourceDigivolutionCards (BT7-065)", () =>
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "Main",
-        actions: [{
-          kind: "Delete",
-          target: {
-            filter: { controller: "opponent", kind: ["Digimon"], playCostLteSourceDigivolutionCards: true },
-            count: "all",
-          },
-        }],
-      }],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "Delete",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], playCostLteSourceDigivolutionCards: true },
+                count: "all",
+              },
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const effects = irCardModule("BT7-065-h02b", ir).effectsForTiming(EffectTiming.OnUseOption, src);
@@ -12848,15 +13882,18 @@ describe("CAP-H-03: whenCheckedFaceUpSecurity SubTrigger + fromDigivolutionTop (
       state: { memory: 0, players, turnSeat: 0 } as never,
       player: (s: Seat) => players[s] as never,
       opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
-      permanentById: (id: string) => [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
+      permanentById: (id: string) =>
+        [...players[0]!.battleArea, ...players[1]!.battleArea].find((p) => p.permanentId === id),
       definitionOf: (card: { cardId: string }) => def(card.cardId),
       linkMax: () => 1,
     } as never;
 
-    let capturedInstall: {
-      matches?: (subCtx: EffectContext) => boolean;
-      run: (subCtx: EffectContext) => Promise<void>;
-    } | undefined;
+    let capturedInstall:
+      | {
+          matches?: (subCtx: EffectContext) => boolean;
+          run: (subCtx: EffectContext) => Promise<void>;
+        }
+      | undefined;
     const addSecCalls: Array<{ instanceIds: string[]; opts: { toTop?: boolean; faceUp?: boolean } }> = [];
     const fx = {
       subscribeSubTrigger: (install: typeof capturedInstall) => {
@@ -12888,23 +13925,29 @@ describe("CAP-H-03: whenCheckedFaceUpSecurity SubTrigger + fromDigivolutionTop (
     const ir: CompiledCard = {
       coverage: "full",
       residual: [],
-      effects: [{
-        trigger: "YourTurn",
-        actions: [{
-          kind: "SubTrigger",
-          event: "whenCheckedFaceUpSecurity",
-          actions: [{
-            kind: "SecurityManipulation",
-            op: "addBottom",
-            controller: "mine",
-            source: { filter: { isSelfRef: true } },
-            faceUp: true,
-            fromDigivolutionTop: true,
-          }],
-          optional: true,
-          raw: "when your Digimon checks a face-up security card, you may place the top card of this Digimon face-up at the bottom of your security stack",
-        }],
-      }],
+      effects: [
+        {
+          trigger: "YourTurn",
+          actions: [
+            {
+              kind: "SubTrigger",
+              event: "whenCheckedFaceUpSecurity",
+              actions: [
+                {
+                  kind: "SecurityManipulation",
+                  op: "addBottom",
+                  controller: "mine",
+                  source: { filter: { isSelfRef: true } },
+                  faceUp: true,
+                  fromDigivolutionTop: true,
+                },
+              ],
+              optional: true,
+              raw: "when your Digimon checks a face-up security card, you may place the top card of this Digimon face-up at the bottom of your security stack",
+            },
+          ],
+        },
+      ],
     } as unknown as CompiledCard;
 
     const installCtx: EffectContext = { source: src, trigger: {}, game, fx, ask, selections: new Map() };

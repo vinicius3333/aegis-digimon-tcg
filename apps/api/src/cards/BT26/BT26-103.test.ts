@@ -31,6 +31,22 @@ describe("BT26-103 Jupitermon: Wrath Mode", () => {
     expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 
+  it("still recovers 2 with no security card to trash, as confirmed by Q7188", async () => {
+    const s = setupEngine({
+      0: {
+        deck: ["AD1-001", "AD1-002"],
+        security: [],
+        battleArea: [{ card: "BT26-103", as: "wrath" }],
+      },
+    });
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("wrath"));
+
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
+
   it("offers the same trash-and-recover effect in the defending Counter window", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-009", dp: 3000, as: "attacker" }] },
@@ -109,5 +125,26 @@ describe("BT26-103 Jupitermon: Wrath Mode", () => {
 
     await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
     expect([s.perm("first").currentDP, s.perm("second").currentDP].sort((a, b) => a - b)).toEqual([5000, 20000]);
+  });
+
+  it("triggers when the opponent's security stack is removed from", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-103", as: "wrath" }],
+        },
+        1: {
+          security: ["AD1-001"],
+          battleArea: [{ card: "AD1-003", dp: 20000, as: "target" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.trashFromSecurity(1, 1, { fromTop: true });
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.perm("target").currentDP).toBe(5000);
   });
 });

@@ -63,9 +63,13 @@ function legalIntoCandidates(
     const intoDef = ctx.game.definitionOf({ cardId: c.cardId } as never);
     const ordinary = matchingEvoCost(intoDef, baseDef);
     const alternate = matchingAlternateDigivolutionRequirement(intoDef, baseDef);
-    if (enforceRequirements && ordinary === undefined && alternate === undefined) return false;
+    const baseGranted = base ? ctx.game.baseGrantedDigivolve?.(base.controllerSeat, base, intoDef) : undefined;
+    if (enforceRequirements && ordinary === undefined && alternate === undefined && baseGranted === undefined)
+      return false;
     if (digivolutionCostMax === undefined) return true;
-    return [ordinary?.memoryCost, alternate?.cost].some((cost) => cost !== undefined && cost <= digivolutionCostMax);
+    return [ordinary?.memoryCost, alternate?.cost, baseGranted?.cost].some(
+      (cost) => cost !== undefined && cost <= digivolutionCostMax,
+    );
   });
 }
 

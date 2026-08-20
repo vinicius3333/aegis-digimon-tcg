@@ -1,59 +1,55 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
+import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
 import type { CardDefinition, CardInstance } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onDeletion, activated } from "../../engine/effects/builders.js";
+import { activated, colorWaiverStatic, onDeletion, staticModifier } from "../../engine/effects/builders.js";
+import { cardHasTrait, permanentHasTrait } from "../../engine/cards/cardData.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-056 — Cerberusmon: Werewolf Mode // Inferno Divide (BT26 Black/Purple DUAL
 // Digimon/Option).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-056 as of this port
-// (`node tools/kb/query.mjs card BT26-056` returned no knowledge-base entries — BT26 has
-// no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// Verified against the committed catalog and Q7059: Inferno Divide can still de-digivolve
+// when its controller has no hand card to trash.
 //
 // [Digivolve] [Cerberusmon]: Cost 1
 // [Digivolve] Lv.4 w/[TS] trait: Cost 3
 //   Both digivolve headers are digivolution-cost requirements, not effect clauses, and are
 //   already carried centrally by CardDefinition.evoCosts / ALTERNATE_DIGIVOLUTION_OVERRIDES
 //   per the card implementation notes — not implemented here.
-// ＜Jamming＞ ＜Reboot＞ ＜Blocker＞ — printed keywords, parsed automatically from
-//   effectText by the engine's combat/keywords.ts (PRINTED_MATCHERS), same as BT26-013's
-//   ＜Blocker＞; no explicit grant needed.
+// ＜Jamming＞ ＜Reboot＞ ＜Blocker＞ — explicitly granted to the continuous keyword ledger;
+//   direct modules replace the compiled static entries that would otherwise carry them.
 // [On Deletion] You may play 1 level 4 or lower Digimon card with the [Titan] trait from
 //   your trash without paying the cost.
-// [Rule] Trait: Has [Dark Animal] Type. — a rules-text trait annotation, not an effect;
-//   already carried by CardDefinition.types (["Wizard","Titan","TS"] plus the rule-granted
-//   [Dark Animal] type is a data fact, not something this module resolves).
+// [Rule] Trait: Has [Dark Animal] Type. — granted continuously because the catalog's printed
+//   `types` array contains Wizard/Titan/TS but not this rules-text type.
 //
 // Option side [Inferno Divide]:
-// ＜Use Req. ([TS] trait)＞ — data-only: the color-gate waiver for a DUAL card's Option
-//   side is the hand-authored `optionColorRequirements` field on the card record
-//   (["Black"] in cards.json), not an executable action (see BT26-031/BT26-050/BT26-033
-//   precedent and commit 1298f75fa).
+// ＜Use Req. ([TS] trait)＞ — a hand-resident color-requirement waiver. The printed Black
+//   Option requirement remains authoritative unless the controller has a [TS] card in play.
 // [Main] Trash 1 card in your hand. Then, ＜De-Digivolve 3＞ 1 of your opponent's Digimon.
-//   "Trash 1 card in your hand" is printed as a mandatory cost (no "may"), so it is paid
-//   unconditionally before the de-digivolve; if the controller has no hand card the cost
-//   cannot be paid and the effect does not resolve. De-Digivolve 3 uses the engine's
-//   `ctx.fx.deDigivolve` primitive directly (card-module contract: reuse the primitive,
-//   don't reimplement the digivolution-stack walk in the card file).
+//   "Trash 1 card in your hand" is mandatory when a hand card exists, but it is not a
+//   `By` cost. Q7059 confirms an empty hand skips that instruction and still resolves the
+//   following De-Digivolve 3 through the shared primitive.
 
 const cardId = "BT26-056";
 const TITAN_TRAIT = "Titan";
-
-function hasTrait(def: CardDefinition, trait: string): boolean {
-  return (def.types ?? []).includes(trait);
-}
 
 /** Trash cards eligible for the [On Deletion] free-play clause: Digimon, level <= 4, [Titan] trait. */
 function trashTitanCandidates(ctx: EffectContext, source: CardSource): CardInstance[] {
   const owner = ctx.game.player(source.ownerSeat);
   return Array.from(owner.trash).filter((c) => {
     const def = ctx.game.definitionOf(c);
-    return isDigimon(def) && (def.level ?? 99) <= 4 && hasTrait(def, TITAN_TRAIT);
+    return isDigimon(def) && (def.level ?? 99) <= 4 && cardHasTrait(def, TITAN_TRAIT);
   });
+}
+
+function ownerHasTsCardInPlay(ctx: EffectContext, source: CardSource): boolean {
+  return Array.from(ctx.game.player(source.ownerSeat).battleArea).some(
+    (permanent) => !permanent.inBreeding && permanentHasTrait(ctx.game, permanent, "TS"),
+  );
 }
 
 /** Opponent's battle-area Digimon permanents (not in breeding), for the Option's de-digivolve target. */
@@ -67,6 +63,34 @@ function opponentDigimonTargets(ctx: EffectContext, source: CardSource): string[
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
+    if (timing === EffectTiming.None) {
+      return [
+        colorWaiverStatic({
+          source,
+          effectKey: `${cardId}/use-req-ts`,
+          description: "＜Use Req. ([TS] trait)＞ Ignore this card's color requirements.",
+          when: (ctx) => ownerHasTsCardInPlay(ctx, source),
+          resolve: async (ctx) => {
+            ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.UntilEachTurnEnd);
+          },
+        }),
+        staticModifier({
+          source,
+          effectKey: `${cardId}/keywords-and-rule-trait`,
+          description: "＜Jamming＞ ＜Reboot＞ ＜Blocker＞ [Rule] Trait: Has [Dark Animal] Type.",
+          when: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const self = source.permanent();
+            if (self === undefined) return;
+            ctx.fx.grantKeyword(self.permanentId, "Jamming", EffectDuration.Permanent);
+            ctx.fx.grantKeyword(self.permanentId, "Reboot", EffectDuration.Permanent);
+            ctx.fx.grantKeyword(self.permanentId, "Blocker", EffectDuration.Permanent);
+            ctx.fx.grantNameTrait(self.permanentId, "trait", ["Dark Animal"], EffectDuration.Permanent);
+          },
+        }),
+      ];
+    }
+
     if (timing === EffectTiming.OnDestroyedAnyone) {
       return [
         onDeletion({
@@ -83,7 +107,7 @@ const module: EffectModule = {
 
             const chosen = await ctx.ask.selectCards(ctx, {
               candidates: candidates.map((c) => c.instanceId),
-              min: 0,
+              min: 1,
               max: 1,
             });
             if (chosen.length === 0) return;
@@ -107,7 +131,7 @@ const module: EffectModule = {
             if (handIds.length > 0) {
               const toTrash = await ctx.ask.selectCards(ctx, { candidates: handIds, min: 1, max: 1 });
               if (toTrash.length === 0) return;
-              await ctx.fx.trash(toTrash);
+              await ctx.fx.trash(toTrash, { byEffectSeat: source.ownerSeat });
             }
 
             const targets = opponentDigimonTargets(ctx, source);

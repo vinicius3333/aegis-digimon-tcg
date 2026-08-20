@@ -9,9 +9,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-012 — Manekimon (BT26, Red/Yellow Lv.4 Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-012 as of this port
-// (`node tools/kb/query.mjs card BT26-012` returned no knowledge-base entries). implemented
-// from the printed card text only; the [Main] clause mirrors the analogous EX12-013/
+// Audited against the three committed rulings Q6966-Q6968. The [Main] clause mirrors
+// the analogous EX12-013/
 // EX12-027 "[Main] [Once Per Turn] play or use 1 <trait> card from your hand with the
 // cost reduced by 2" shape (EX12-013/027 are themselves hand-written), timed the same
 // way as EX5-062's on-field "[Main] [Once Per Turn]" activated ability
@@ -25,15 +24,10 @@ import { registerCard } from "../../engine/effects/registry.js";
 // Inherited: [When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP
 //   for the turn.
 //
-// The "use" branch below only performs the mechanical half of using an Option
-// (pay the reduced cost, trash it, fire whenOptionUsed) via `ctx.fx.useOptionFromHand`;
-// it does not itself resolve the used Option's own printed effect. Actually running an
-// arbitrary card's own effect body from within another card's module would mean
-// re-deriving the engine's compiled-effect dispatch (interpreter.ts's
-// `runUseOptionWithoutCost`, which is not exposed as a `ctx.fx.*` primitive) inside this
-// file — exactly what card-module contract forbids. This mirrors the same, already
-// reviewed simplification used by EX4-030, BT10-041 and ST22-07 for structurally
-// identical "use an Option from hand" clauses.
+// `ctx.fx.useOptionFromHand` resolves the chosen Option's registered OnUseOption body before
+// its normal post-resolution move. Paid Option use and paid Digimon play both route through
+// the central cost/restriction seams, so cost-reduction locks suppress the -2 (Q6967) and
+// effect-play prohibitions stop the play before moving the selected card (Q6968).
 
 const cardId = "BT26-012";
 const TB_TRAIT = "TB";
@@ -87,9 +81,10 @@ const module: EffectModule = {
             const def = ctx.game.definitionOf(chosenCard);
 
             if (def.kinds.includes(CardKind.Option)) {
-              const reducedCost = Math.max(0, (def.playCost ?? 0) - 2);
-              if (reducedCost > 0) ctx.fx.gainMemory(-reducedCost);
-              await ctx.fx.useOptionFromHand(ctx, chosenCard.instanceId, def.playCost);
+              await ctx.fx.useOptionFromHand(ctx, chosenCard.instanceId, def.playCost, {
+                payCost: true,
+                costDelta: 2,
+              });
             } else {
               await ctx.fx.playInstances([chosenCard.instanceId], { payCost: true, costDelta: 2 });
             }
@@ -105,9 +100,7 @@ const module: EffectModule = {
         whenAttacking({
           source,
           effectKey: `${cardId}/when-attacking-dp-minus-2000`,
-          description:
-            "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP " +
-            "for the turn.",
+          description: "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon gets -2000 DP " + "for the turn.",
           isInherited: true,
           optional: false,
           maxPerTurn: 1,

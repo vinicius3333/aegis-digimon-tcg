@@ -1,4 +1,4 @@
-import { EffectTiming, isOption } from "@aegis/shared";
+import { CardColor, EffectTiming, isDigimon, isOption } from "@aegis/shared";
 import type { CardDefinition, Seat } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -7,6 +7,7 @@ import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 import { cardHasTrait } from "../../engine/cards/cardData.js";
+import { linkEligible } from "../../engine/effects/mindLink.js";
 
 /**
  * BT26-084 — Copipemon (BT26, White Lv.3 Digimon).
@@ -33,13 +34,12 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
  *     hand silently and then played/used from there, which is also what keeps the cost
  *     reduction on the normal play path.
  *
- * RESIDUAL — link face: this card also carries a printed `linkEffect`:
+ * Link face:
  *     [When Linking] You may link 1 non-white level 4 or lower [System] or [Seven Code] trait
  *     card from your trash to this Digimon without paying the cost.
- *   No BT26 card in this set ports its `linkEffect` (BT26-028 / BT26-037 leave theirs
- *   unported too) and the clause-coverage gate does not read that field, so it is left
- *   unimplemented here for consistency rather than half-modeled. Track it with the
- *   set-wide link-face gap.
+ *   The link primitive recomputes after mutation and publishes the linked instance IDs in
+ *   the same `whenLinked` dispatch as the host's watcher. This linked-only subscription can
+ *   therefore join the controller's simultaneous trigger-order choice required by Q7128.
  */
 const cardId = "BT26-084";
 
@@ -73,11 +73,12 @@ async function revealPlayAndReturn(ctx: EffectContext, ownerSeat: Seat): Promise
       await ctx.fx.returnToHand([pickedId], { silent: true });
       if (isOption(ctx.game.definitionOf(picked))) {
         const originalCost = ctx.game.definitionOf(picked).playCost ?? 0;
-        const reducedCost = Math.max(0, originalCost - COST_REDUCTION);
-        if (reducedCost > 0) ctx.fx.gainMemory(-reducedCost);
-        await ctx.fx.useOptionFromHand(ctx, pickedId, originalCost);
+        await ctx.fx.useOptionFromHand(ctx, pickedId, originalCost, {
+          payCost: true,
+          costDelta: COST_REDUCTION,
+        });
       } else {
-        await ctx.fx.playFromHand([pickedId], { costDelta: -COST_REDUCTION });
+        await ctx.fx.playFromHand([pickedId], { payCost: true, costDelta: COST_REDUCTION });
       }
     }
   }
@@ -86,6 +87,20 @@ async function revealPlayAndReturn(ctx: EffectContext, ownerSeat: Seat): Promise
   if (rest.length === 0) return;
   const choice = await ctx.ask.chooseOption(ctx, ["Top of deck", "Bottom of deck"]);
   await ctx.fx.returnToDeck(rest, { toTop: choice === 0 });
+}
+
+function linkFaceCandidates(ctx: EffectContext, ownerSeat: Seat) {
+  return Array.from(ctx.game.player(ownerSeat).trash).filter((card) => {
+    const def = ctx.game.definitionOf(card);
+    return (
+      isDigimon(def) &&
+      def.level !== undefined &&
+      def.level <= 4 &&
+      !def.colors.includes(CardColor.White) &&
+      (cardHasTrait(def, "System") || cardHasTrait(def, "Seven Code")) &&
+      linkEligible(def)
+    );
+  });
 }
 
 const module: EffectModule = {
@@ -112,7 +127,7 @@ const module: EffectModule = {
               event: "whenLinked",
               sourcePermanentId: hostId,
               once: false,
-              oncePerTurnKey: `${cardId}/when-linked-reveal-play`,
+              oncePerTurnKey: `${source.instanceId}/${cardId}/when-linked-reveal-play`,
               description: `${cardId}: this Digimon gets linked -> reveal 3 and may play 1.`,
               matches: (subCtx) => {
                 if (!subCtx.source.isOnBattleArea() || !subCtx.source.isOwnersTurn()) return false;
@@ -120,6 +135,36 @@ const module: EffectModule = {
               },
               run: async (subCtx) => {
                 await revealPlayAndReturn(subCtx, ownerSeat);
+              },
+            });
+          },
+        }),
+        staticModifier({
+          source,
+          effectKey: `${cardId}/link-face-link-from-trash`,
+          description:
+            "[When Linking] You may link 1 non-white Lv.4 or lower [System] or [Seven Code] " +
+            "trait card from your trash to this Digimon without paying the cost.",
+          isLinked: true,
+          resolve: async (ctx) => {
+            const host = ctx.source.permanent();
+            if (host === undefined) return;
+            const hostId = host.permanentId;
+            ctx.fx.subscribeSubTrigger({
+              event: "whenLinked",
+              sourcePermanentId: hostId,
+              once: false,
+              description: `${cardId}: linked face [When Linking] link from trash.`,
+              matches: (subCtx) => subCtx.trigger?.linkedCardInstanceIds?.includes(source.instanceId) === true,
+              run: async (subCtx) => {
+                const candidates = linkFaceCandidates(subCtx, source.ownerSeat);
+                if (candidates.length === 0) return;
+                const chosen = await subCtx.ask.selectCards(subCtx, {
+                  candidates: candidates.map((card) => card.instanceId),
+                  min: 0,
+                  max: 1,
+                });
+                if (chosen[0] !== undefined) await subCtx.fx.link(hostId, [chosen[0]]);
               },
             });
           },

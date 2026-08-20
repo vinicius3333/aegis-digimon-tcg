@@ -10,11 +10,8 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
 /**
  * BT26-028 — Medicmon (BT26, Yellow Lv.4 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-028` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * The committed KB contains Q6987-Q6993, covering Link-requirement legality, the exact
+ * When Digivolving suppression boundary, OPT non-consumption, and all six App Fusion pairs.
  *
  * Printed text:
  *   [App Fusion] [Aidmon] & [Supplemon] & [Spamon]: Cost 0
@@ -24,6 +21,8 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
  *   [On Play] [When Digivolving] You may link 1 level 3 Digimon card with the [Life],
  *     [System] or [Seven Code] trait from this Digimon's digivolution cards to this
  *     Digimon without paying the cost.
+ *   (link face) [When Linking] Until your opponent's turn ends, 1 of their Digimon
+ *     can't activate [When Digivolving] effects and gets -3000 DP.
  *
  * Clause mapping:
  *   EffectTiming.None — ＜Barrier＞ static grant (`hasKeyword` on the continuous ledger
@@ -33,20 +32,16 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
  *     card with the [Life], [System] or [Seven Code] trait from this Digimon's
  *     digivolution cards to this Digimon without paying the cost." Modeled on EX11-073's
  *     `self.stack.filter(...)` + `ctx.fx.link(self.permanentId, chosen)` shape.
+ *   EffectTiming.None (`isLinked: true`) — installs a `whenLinked` watcher on the host.
+ *     `linkedCardInstanceIds` restricts it to the operation that linked this Medicmon,
+ *     so it participates in that same immediate window but not later unrelated links.
  *
- * RESIDUAL — ＜Detach ([Seven Code] trait)＞: per `engine/effects/detach.ts`'s module
- * header, the KB has ZERO occurrences of "Detach" (`node tools/kb/query.mjs rules
- * "Detach"` returns no hit) and the source documented behavior reference predates BT26, so what the
- * keyword actually DOES, WHEN it can be used, and WHERE the detached card goes are all
- * unpublished. Per AGENTS.md and the card-module contract, inventing behavior from printed text alone is
- * exactly what implementation must not do, so this keyword is intentionally NOT implemented on
- * this card. Every other printed clause is implemented above. Re-check the moment
- * `node tools/kb/query.mjs rules "Detach"` returns a hit or an official ruling surfaces.
+ * ＜Detach ([Seven Code] trait)＞ is resolved centrally immediately before battle deletion:
+ * the controller may trash an eligible linked [Seven Code] card to prevent this Digimon's
+ * battle deletion. The shared combat path preserves the linked-trash events and Q6964 ordering.
  *
- * [App Fusion] and [Assembly -2] are structural play-legality data (appFusionRequirement /
- * assemblyRequirement), not EffectModule clauses; per this port's constraints,
- * effects.json is not touched for BT26 cards, so neither requirement is structurally
- * enforced for this card yet (same gap as every other hand-implemented BT26 card in this set).
+ * [App Fusion] and [Assembly -2] are structural play-legality data. Their BT26 overrides
+ * live in shared effects/data.ts and are enforced by appFuseInto / the Assembly play action.
  */
 const cardId = "BT26-028";
 
@@ -71,6 +66,43 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
             if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Barrier", EffectDuration.UntilEachTurnEnd);
+          },
+        }),
+        staticModifier({
+          source,
+          effectKey: `${cardId}/link-face-when-linking-lock-dp`,
+          description:
+            "[When Linking] Until your opponent's turn ends, 1 of their Digimon can't " +
+            "activate [When Digivolving] effects and gets -3000 DP.",
+          isLinked: true,
+          resolve: async (ctx) => {
+            const host = ctx.source.permanent();
+            if (host === undefined) return;
+            const hostId = host.permanentId;
+            ctx.fx.subscribeSubTrigger({
+              event: "whenLinked",
+              sourcePermanentId: hostId,
+              once: false,
+              description: `${cardId}: linked face [When Linking] lock evolution effects and -3000 DP.`,
+              matches: (subCtx) => subCtx.trigger?.linkedCardInstanceIds?.includes(source.instanceId) === true,
+              run: async (subCtx) => {
+                const opponent = subCtx.game.player(subCtx.game.opponentOf(source.ownerSeat));
+                const candidates = opponent.battleArea
+                  .filter((permanent) => {
+                    if (permanent.inBreeding || permanent.topCard === undefined) return false;
+                    return isDigimon(subCtx.game.definitionOf(permanent.topCard));
+                  })
+                  .map((permanent) => permanent.permanentId);
+                if (candidates.length === 0) return;
+                const chosen =
+                  candidates.length === 1
+                    ? candidates[0]!
+                    : (await subCtx.ask.chooseTargets(subCtx, { candidates, min: 1, max: 1 }))[0];
+                if (chosen === undefined) return;
+                subCtx.fx.restrict(chosen, "cannotActivateWhenDigivolving", EffectDuration.UntilOpponentTurnEnd);
+                subCtx.fx.modifyDP(chosen, -3000, EffectDuration.UntilOpponentTurnEnd);
+              },
+            });
           },
         }),
       ];

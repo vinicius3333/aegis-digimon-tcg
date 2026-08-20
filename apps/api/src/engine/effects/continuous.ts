@@ -1463,3 +1463,17 @@ export function effectiveKinds(
   for (const k of ledger.grantedKinds(permanentId)) seen.add(k);
   return [...seen];
 }
+
+/** A permanent's printed traits unioned with active runtime trait grants. */
+export function effectiveTraits(
+  ledger: ContinuousEffectLedger,
+  permanentId: string,
+  printedTraits: readonly string[],
+): string[] {
+  const byLowercase = new Map<string, string>();
+  for (const trait of printedTraits) byLowercase.set(trait.toLowerCase(), trait);
+  for (const trait of ledger.grantedTraits(permanentId)) {
+    if (!byLowercase.has(trait.toLowerCase())) byLowercase.set(trait.toLowerCase(), trait);
+  }
+  return [...byLowercase.values()];
+}

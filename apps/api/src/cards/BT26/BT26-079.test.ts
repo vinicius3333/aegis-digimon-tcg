@@ -2,7 +2,13 @@ import { describe, it, expect, vi } from "vitest";
 import { EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import type {
+  EffectContext,
+  GameAccess,
+  Primitives,
+  ReplacementInstallInstead,
+  SubTriggerInstall,
+} from "../../engine/effects/EffectContext.js";
 import "./BT26-079.js";
 
 // A3 for BT26-079 (ZombiePlutomon, BT26):
@@ -36,13 +42,13 @@ function fakeDef(over: Partial<CardDefinition> = {}): CardDefinition {
   };
 }
 
-function makeSource(opts?: { isInTrash?: boolean }): CardSource {
+function makeSource(opts?: { isInTrash?: boolean; permanent?: unknown }): CardSource {
   return {
     instanceId: "zombieplutomon-top",
     cardId: CARD_ID,
     ownerSeat: 0 as Seat,
     definition: fakeDef({ cardId: CARD_ID }),
-    permanent: () => ({ permanentId: "self-perm" }) as never,
+    permanent: () => (opts?.permanent ?? { permanentId: "self-perm" }) as never,
     isOnBattleArea: () => true,
     isOwnersTurn: () => true,
     hasColor: () => false,
@@ -210,5 +216,181 @@ describe("BT26-079 [All Turns] once-per-turn hand trash trigger", () => {
     expect(new Set(subscriptions.map((subscription) => subscription.oncePerTurnKey))).toEqual(
       new Set([`${CARD_ID}/all-turns-opponent-play-or-digivolve-trash-down`]),
     );
+  });
+
+  it("matches only opposing Digimon, never own Digimon or opposing Tamers", async () => {
+    const source = makeSource();
+    const subscriptions: Array<{
+      event: string;
+      matches?: (ctx: EffectContext) => boolean;
+    }> = [];
+    const permanents = {
+      "opp-digimon": { permanentId: "opp-digimon", controllerSeat: 1, topCard: { cardId: "DIGI" } },
+      "own-digimon": { permanentId: "own-digimon", controllerSeat: 0, topCard: { cardId: "DIGI" } },
+      "opp-tamer": { permanentId: "opp-tamer", controllerSeat: 1, topCard: { cardId: "TAMER" } },
+    } as const;
+    const game = {
+      permanentById: (id: keyof typeof permanents) => permanents[id],
+      definitionOf: (card: { cardId: string }) =>
+        fakeDef({ kinds: (card.cardId === "TAMER" ? ["Tamer"] : ["Digimon"]) as never }),
+    } as unknown as GameAccess;
+    const effect = getEffectModule(CARD_ID)!
+      .effectsForTiming(EffectTiming.None, source)
+      .find((candidate) => candidate.effectKey === `${CARD_ID}/all-turns-opponent-play-or-digivolve-trash-down`)!;
+    await effect.resolve({
+      source,
+      game,
+      fx: { subscribeSubTrigger: (sub: (typeof subscriptions)[number]) => subscriptions.push(sub) },
+    } as unknown as EffectContext);
+
+    const playWatcher = subscriptions.find(({ event }) => event === "whenPlayed")!;
+    const subCtx = (subjectPermanentId: string) =>
+      ({ trigger: { subjectPermanentId }, game } as unknown as EffectContext);
+    expect(playWatcher.matches!(subCtx("opp-digimon"))).toBe(true);
+    expect(playWatcher.matches!(subCtx("own-digimon"))).toBe(false);
+    expect(playWatcher.matches!(subCtx("opp-tamer"))).toBe(false);
+  });
+
+  it("has each player choose the exact overflow from their own hand down to 4", async () => {
+    const source = makeSource();
+    let watcher: SubTriggerInstall | undefined;
+    const ownHand = Array.from({ length: 6 }, (_, index) => ({ instanceId: `own-${index}`, cardId: "H" }));
+    const opponentHand = Array.from({ length: 7 }, (_, index) => ({ instanceId: `opp-${index}`, cardId: "H" }));
+    const players = [{ hand: ownHand }, { hand: opponentHand }];
+    const game = {
+      player: (seat: Seat) => players[seat],
+      opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
+    } as unknown as GameAccess;
+    const effect = getEffectModule(CARD_ID)!
+      .effectsForTiming(EffectTiming.None, source)
+      .find((candidate) => candidate.effectKey === `${CARD_ID}/all-turns-opponent-play-or-digivolve-trash-down`)!;
+    await effect.resolve({
+      source,
+      game,
+      fx: {
+        subscribeSubTrigger: (sub: SubTriggerInstall) => {
+          if (sub.event === "whenPlayed") watcher = sub;
+        },
+      },
+    } as unknown as EffectContext);
+
+    const controllerSelections: Array<{ candidates: string[]; min: number; max: number }> = [];
+    const opponentSelections: Array<{ candidates: string[]; min: number; max: number }> = [];
+    const trashed: string[][] = [];
+    await watcher!.run({
+      source,
+      game,
+      ask: {
+        selectCards: async (_ctx: unknown, options: { candidates: string[]; min: number; max: number }) => {
+          controllerSelections.push(options);
+          return options.candidates.slice(0, options.max);
+        },
+        opponent: {
+          selectCards: async (_ctx: unknown, options: { candidates: string[]; min: number; max: number }) => {
+            opponentSelections.push(options);
+            return options.candidates.slice(0, options.max);
+          },
+        },
+      },
+      fx: { trash: async (ids: string[]) => void trashed.push(ids) },
+    } as unknown as EffectContext);
+
+    expect(controllerSelections).toEqual([
+      expect.objectContaining({ candidates: ownHand.map(({ instanceId }) => instanceId), min: 2, max: 2 }),
+    ]);
+    expect(opponentSelections).toEqual([
+      expect.objectContaining({ candidates: opponentHand.map(({ instanceId }) => instanceId), min: 3, max: 3 }),
+    ]);
+    expect(trashed).toEqual([
+      ["own-0", "own-1"],
+      ["opp-0", "opp-1", "opp-2"],
+    ]);
+  });
+});
+
+describe("BT26-079 ＜Decode ([Plutomon])＞", () => {
+  it("installs a self-only, non-battle replacement and plays exactly one matching stack card for free", async () => {
+    const stack = [
+      { instanceId: "plutomon", cardId: "PLUTO" },
+      { instanceId: "near-match", cardId: "NEAR" },
+    ];
+    const permanent = { permanentId: "self-perm", stack };
+    const source = makeSource({ permanent });
+    let replacement: ReplacementInstallInstead | undefined;
+    const game = {
+      definitionOf: (card: { cardId: string }) =>
+        fakeDef({
+          cardId: card.cardId,
+          nameEn: card.cardId === "PLUTO" ? "Plutomon" : "Pluto",
+          kinds: ["Digimon"] as never,
+        }),
+    } as unknown as GameAccess;
+    const decode = getEffectModule(CARD_ID)!
+      .effectsForTiming(EffectTiming.None, source)
+      .find((effect) => effect.effectKey === `${CARD_ID}/decode-plutomon`)!;
+    await decode.resolve({
+      source,
+      game,
+      fx: { subscribeReplacement: (value: ReplacementInstallInstead) => (replacement = value) },
+    } as unknown as EffectContext);
+
+    expect(replacement).toMatchObject({
+      event: "wouldLeavePlay",
+      sourcePermanentId: "self-perm",
+      mode: "instead",
+    });
+    expect(replacement!.causeAllows!("byEffect", 0 as Seat, false)).toBe(true);
+    expect(replacement!.causeAllows!("byRule", 0 as Seat, false)).toBe(true);
+    expect(replacement!.causeAllows!("byBattle", 0 as Seat, false)).toBe(false);
+    expect(replacement!.appliesTo!({} as EffectContext, "self-perm")).toBe(true);
+    expect(replacement!.appliesTo!({} as EffectContext, "other-perm")).toBe(false);
+
+    const selected: string[][] = [];
+    const played: Array<[string[], unknown]> = [];
+    await replacement!.apply({
+      source,
+      game,
+      ask: {
+        selectCards: async (_ctx: unknown, opts: { candidates: string[] }) => {
+          selected.push(opts.candidates);
+          return [opts.candidates[0]!];
+        },
+      },
+      fx: {
+        playInstances: async (ids: string[], opts: unknown) => {
+          played.push([ids, opts]);
+          return [];
+        },
+      },
+    } as unknown as EffectContext);
+
+    expect(selected).toEqual([["plutomon"]]);
+    expect(played).toEqual([[["plutomon"], { payCost: false }]]);
+  });
+
+  it("allows Decode to be declined without playing a stack card", async () => {
+    const permanent = { permanentId: "self-perm", stack: [{ instanceId: "plutomon", cardId: "PLUTO" }] };
+    const source = makeSource({ permanent });
+    let replacement: ReplacementInstallInstead | undefined;
+    const game = {
+      definitionOf: () => fakeDef({ nameEn: "Plutomon", kinds: ["Digimon"] as never }),
+    } as unknown as GameAccess;
+    const decode = getEffectModule(CARD_ID)!
+      .effectsForTiming(EffectTiming.None, source)
+      .find((effect) => effect.effectKey === `${CARD_ID}/decode-plutomon`)!;
+    await decode.resolve({
+      source,
+      game,
+      fx: { subscribeReplacement: (value: ReplacementInstallInstead) => (replacement = value) },
+    } as unknown as EffectContext);
+    const playInstances = vi.fn();
+    await replacement!.apply({
+      source,
+      game,
+      ask: { selectCards: async () => [] },
+      fx: { playInstances },
+    } as unknown as EffectContext);
+
+    expect(playInstances).not.toHaveBeenCalled();
   });
 });

@@ -36,7 +36,7 @@ import { registerCard } from "../../engine/effects/registry.js";
  *     `ctx.fx.playFromHand` — the "play 1 [X] from your hand without paying the cost"
  *     primitive also used by BT22-080.
  *
- *   EffectTiming.OnAllyAttack (inherited, once per turn) — "[When Attacking] [Once Per
+ *   EffectTiming.OnUseAttack (inherited, once per turn) — "[When Attacking] [Once Per
  *     Turn] 1 of your opponent's Digimon can't unsuspend until their turn ends",
  *     modeled on BT26-050's identical "can't unsuspend until their turn ends" clause
  *     shape: `ctx.fx.restrict(permanentId, "unsuspend", EffectDuration.UntilOpponentTurnEnd)`
@@ -104,8 +104,7 @@ const module: EffectModule = {
             "[On Play] If you have 1 or fewer Tamers, you may play 1 [Yoshino Fujieda] " +
             "from your hand without paying the cost.",
           optional: true,
-          canActivate: (ctx) =>
-            ownerTamerCount(ctx, source) <= 1 && yoshinoFujiedaInHand(ctx, source).length > 0,
+          canActivate: (ctx) => ownerTamerCount(ctx, source) <= 1 && yoshinoFujiedaInHand(ctx, source).length > 0,
           resolve: async (ctx) => {
             await playYoshinoFujiedaFromHand(ctx, source);
           },
@@ -123,8 +122,7 @@ const module: EffectModule = {
             "[When Digivolving] If you have 1 or fewer Tamers, you may play 1 " +
             "[Yoshino Fujieda] from your hand without paying the cost.",
           optional: true,
-          canActivate: (ctx) =>
-            ownerTamerCount(ctx, source) <= 1 && yoshinoFujiedaInHand(ctx, source).length > 0,
+          canActivate: (ctx) => ownerTamerCount(ctx, source) <= 1 && yoshinoFujiedaInHand(ctx, source).length > 0,
           resolve: async (ctx) => {
             await playYoshinoFujiedaFromHand(ctx, source);
           },
@@ -134,14 +132,13 @@ const module: EffectModule = {
 
     // Inherited: [When Attacking] [Once Per Turn] 1 of your opponent's Digimon can't
     // unsuspend until their turn ends.
-    if (timing === EffectTiming.OnAllyAttack) {
+    if (timing === EffectTiming.OnUseAttack) {
       return [
         whenAttacking({
           source,
           effectKey: `${cardId}/when-attacking-unsuspend-lock`,
           description:
-            "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon can't " +
-            "unsuspend until their turn ends.",
+            "[When Attacking] [Once Per Turn] 1 of your opponent's Digimon can't " + "unsuspend until their turn ends.",
           isInherited: true,
           optional: false,
           maxPerTurn: 1,

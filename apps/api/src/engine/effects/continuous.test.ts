@@ -1,7 +1,13 @@
 import { describe, it, expect } from "vitest";
 import { CardKind, EffectDuration, type CardDefinition, type Permanent, type Seat } from "@aegis/shared";
 import { setupEngine } from "../testkit/harness.js";
-import { ContinuousEffectLedger, effectiveColors, effectiveKinds, effectiveNames } from "./continuous.js";
+import {
+  ContinuousEffectLedger,
+  effectiveColors,
+  effectiveKinds,
+  effectiveNames,
+  effectiveTraits,
+} from "./continuous.js";
 
 /** Minimal CardDefinition for the play-prohibition matcher (only kinds/dp/isToken read). */
 function def(opts: { kinds: CardKind[]; dp?: number; isToken?: boolean }): CardDefinition {
@@ -61,6 +67,13 @@ describe("ContinuousEffectLedger", () => {
 
     expect(effectiveNames(ledger, permanent, "MetalGreymon")).toEqual(["sukamon", "extra name"]);
     expect(effectiveColors(ledger, "P1", ["Black"])).toEqual(["White", "Green"]);
+  });
+
+  it("unions printed and runtime-granted traits case-insensitively", () => {
+    const ledger = new ContinuousEffectLedger();
+    ledger.addNameTraitGrant("P1", "trait", ["Glowing Dawn", "TS"], EffectDuration.UntilEachTurnEnd);
+
+    expect(effectiveTraits(ledger, "P1", ["Beastkin", "glowing dawn"])).toEqual(["Beastkin", "glowing dawn", "ts"]);
   });
   it("records and reports restrictions", () => {
     const ledger = new ContinuousEffectLedger();

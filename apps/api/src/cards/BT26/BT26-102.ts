@@ -6,7 +6,7 @@ import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { activated, colorWaiverStatic, security } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
-import { cardHasTrait } from "../../engine/cards/cardData.js";
+import { cardHasTrait, permanentHasTrait } from "../../engine/cards/cardData.js";
 
 /**
  * BT26-102 — Seven Code PAD (BT26, White Option).
@@ -65,7 +65,7 @@ function isDantemon(def: CardDefinition): boolean {
 function hasSevenCodeInPlay(ctx: EffectContext, source: CardSource): boolean {
   return ctx.game.player(source.ownerSeat).battleArea.some((permanent) => {
     if (permanent.inBreeding || permanent.topCard === undefined) return false;
-    return cardHasTrait(ctx.game.definitionOf(permanent.topCard), "Seven Code");
+    return permanentHasTrait(ctx.game, permanent, "Seven Code");
   });
 }
 
@@ -143,19 +143,37 @@ const module: EffectModule = {
               .filter((candidate): candidate is PlacementCandidate => candidate !== undefined);
             if (selected.length !== PLACEMENT_COST) return;
 
-            const looseIds = selected
-              .filter((candidate) => candidate.kind === "loose")
-              .map((candidate) => candidate.instanceId);
-            const placedLoose = await ctx.fx.placeUnder(recipient, looseIds);
-            if (placedLoose.length !== looseIds.length) return;
+            // Q7185: when several cards are placed by this effect, their controller chooses
+            // their order. `orderCards` returns bottom-to-top order for `stackBottom`; each
+            // primitive prepends at stack index 0, so resolution consumes that order in
+            // reverse below. Asking separately from the six-card selection also makes the
+            // ordering choice explicit to UI clients instead of depending on click order.
+            const selectedIds = selected.map((candidate) => candidate.instanceId);
+            const orderedIds = ctx.ask.orderCards
+              ? await ctx.ask.orderCards(ctx, {
+                  candidates: selectedIds,
+                  destination: "stackBottom",
+                })
+              : selectedIds;
+            const ordered = orderedIds
+              .map((instanceId) => placementByInstance.get(instanceId))
+              .filter((candidate): candidate is PlacementCandidate => candidate !== undefined);
+            if (ordered.length !== PLACEMENT_COST) return;
 
-            for (const candidate of selected) {
-              if (candidate.kind !== "permanent") continue;
-              const moved = await ctx.fx.relocatePermanentByEffect?.(recipient, candidate.permanentId, {
-                belowTop: false,
-                faceUp: true,
-              });
-              if (moved !== true) return;
+            // Both placement primitives prepend at index 0. Apply the chosen cards from
+            // top to bottom so the final stack reads in the requested bottom-to-top order,
+            // including an interleaving of loose cards and battle-area Digimon.
+            for (const candidate of [...ordered].reverse()) {
+              if (candidate.kind === "loose") {
+                const placed = await ctx.fx.placeUnder(recipient, [candidate.instanceId]);
+                if (placed.length !== 1) return;
+              } else {
+                const moved = await ctx.fx.relocatePermanentByEffect?.(recipient, candidate.permanentId, {
+                  belowTop: false,
+                  faceUp: true,
+                });
+                if (moved !== true) return;
+              }
             }
 
             // "that Digimon MAY digivolve into [Dantemon] in the hand".

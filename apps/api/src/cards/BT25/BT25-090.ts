@@ -1,4 +1,4 @@
-import { CardKind, EffectTiming, type Seat } from "@aegis/shared";
+import { CardKind, EffectTiming, isDigimon, type Seat } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -41,7 +41,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/start-of-turn-set-memory-3`,
           description: "[Start of Your Turn] Set your memory to 3.",
-          when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn(),
+          when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn() && ctx.game.state.memory <= 2,
           resolve: async (ctx) => {
             ctx.fx.setMemory(3);
           },
@@ -59,7 +59,13 @@ const module: EffectModule = {
             "[All Turns] When any Digimon suspends, by suspending this Tamer, " +
             "you may place the top 2 cards of your deck face down under this Tamer.",
           optional: true,
-          when: (ctx) => ctx.source.isOnBattleArea(),
+          when: (ctx) => {
+            if (!ctx.source.isOnBattleArea()) return false;
+            const suspendedId = ctx.trigger.suspendedPermanentId;
+            if (suspendedId === undefined) return false;
+            const suspended = ctx.game.permanentById(suspendedId);
+            return suspended?.topCard !== undefined && isDigimon(ctx.game.definitionOf(suspended.topCard));
+          },
           canActivate: (ctx) => {
             const perm = ctx.source.permanent();
             return perm !== undefined && !perm.isSuspended && !perm.inBreeding;
@@ -74,7 +80,14 @@ const module: EffectModule = {
             const owner = ctx.game.player(ctx.source.ownerSeat);
             if (owner.deck.length >= 1) {
               const topIds = owner.deck.slice(0, Math.min(2, owner.deck.length)).map((c) => c.instanceId);
-              ctx.fx.placeUnder(selfPerm.permanentId, topIds, { belowTop: false });
+              // Q6424/Q6428: process deck top first, one card at a time, each at the
+              // true bottom. The second card therefore finishes below the first.
+              for (const instanceId of topIds) {
+                await ctx.fx.placeUnder(selfPerm.permanentId, [instanceId], {
+                  belowTop: false,
+                  faceUp: false,
+                });
+              }
             }
           },
         }),
@@ -93,14 +106,16 @@ const module: EffectModule = {
           maxPerTurn: 1,
           when: (ctx) => {
             if (!ctx.source.isOnBattleArea() || !ctx.source.isOwnersTurn()) return false;
-            const def = ctx.source.definition;
+            if (ctx.trigger.wouldBePlayedAsOption !== true) return false;
+            const playedCardId = ctx.trigger.wouldBePlayedCardId;
+            const def =
+              playedCardId === undefined ? undefined : ctx.game.definitionOf({ cardId: playedCardId } as never);
             if (def === undefined) return false;
             const traits = def.types ?? [];
             const hasGlowingDawn = traits.includes("Glowing Dawn") || traits.includes("GlowingDawn");
             // Options only
             const isOption = def.kinds.includes(CardKind.Option);
-            const inHand = ctx.source.permanent() === undefined;
-            return hasGlowingDawn && isOption && inHand && def.playCost >= 0;
+            return hasGlowingDawn && isOption && def.playCost >= 0;
           },
           canActivate: (ctx) => {
             return tamerWithFaceDownUnder(ctx.game, ctx.source.ownerSeat).length > 0;
@@ -128,7 +143,8 @@ const module: EffectModule = {
             const bottomCard = tamerPerm.stack.find((card) => card.faceUp !== true);
             if (bottomCard === undefined) return;
 
-            await ctx.fx.trashDigivolutionCards(chosenTamer[0]!, [bottomCard.instanceId]);
+            const trashed = await ctx.fx.trashDigivolutionCards(chosenTamer[0]!, [bottomCard.instanceId]);
+            if (!trashed.some((card) => card.instanceId === bottomCard.instanceId)) return;
 
             // Reduce play cost by 1 (use-cost reduction for Options also goes through memory)
             ctx.playCostDelta = (ctx.playCostDelta ?? 0) + 1;

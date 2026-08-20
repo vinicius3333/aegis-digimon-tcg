@@ -1,4 +1,4 @@
-import { CardKind,  EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
 import type { Permanent } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -18,11 +18,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 //   1 of your opponent's Digimon. Then, this Digimon may battle 1 of your opponent's Digimon.
 
 const cardId = "BT25-058";
+const suspendRestrictEffectKey = `${cardId}/suspend-and-restrict`;
 
-function oppDigimonOrTamer(
-  ctx: EffectContext,
-  source: CardSource,
-): Permanent[] {
+function oppDigimonOrTamer(ctx: EffectContext, source: CardSource): Permanent[] {
   const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
   return Array.from(opponent.battleArea).filter((p) => {
     if (p.topCard == null) return false;
@@ -87,7 +85,7 @@ const module: EffectModule = {
       return [
         onPlay({
           source,
-          effectKey: `${cardId}/on-play`,
+          effectKey: suspendRestrictEffectKey,
           description:
             "[On Play] [Once Per Turn] You may suspend 1 of your opponent's Digimon or Tamers. " +
             "Then, 1 of their Digimon or Tamers can't unsuspend until their turn ends.",
@@ -124,7 +122,7 @@ const module: EffectModule = {
       return [
         whenDigivolving({
           source,
-          effectKey: `${cardId}/when-digivolving`,
+          effectKey: suspendRestrictEffectKey,
           description:
             "[When Digivolving] [Once Per Turn] You may suspend 1 of your opponent's Digimon " +
             "or Tamers. Then, 1 of their Digimon or Tamers can't unsuspend until their turn ends.",
@@ -161,7 +159,7 @@ const module: EffectModule = {
       return [
         whenAttacking({
           source,
-          effectKey: `${cardId}/when-attacking`,
+          effectKey: suspendRestrictEffectKey,
           description:
             "[When Attacking] [Once Per Turn] You may suspend 1 of your opponent's Digimon " +
             "or Tamers. Then, 1 of their Digimon or Tamers can't unsuspend until their turn ends.",
@@ -210,11 +208,13 @@ const module: EffectModule = {
               const chosen =
                 deDigivolveTargets.length === 1
                   ? deDigivolveTargets[0]!.permanentId
-                  : (await ctx.ask.chooseTargets(ctx, {
-                      candidates: deDigivolveTargets.map((p) => p.permanentId),
-                      min: 1,
-                      max: 1,
-                    }))[0];
+                  : (
+                      await ctx.ask.chooseTargets(ctx, {
+                        candidates: deDigivolveTargets.map((p) => p.permanentId),
+                        min: 1,
+                        max: 1,
+                      })
+                    )[0];
               if (chosen !== undefined) ctx.fx.deDigivolve(chosen, 1, { byEffectSeat: ownerSeat });
             }
 
@@ -225,11 +225,13 @@ const module: EffectModule = {
             const chosen =
               battleTargets.length === 1
                 ? battleTargets[0]!.permanentId
-                : (await ctx.ask.chooseTargets(ctx, {
-                    candidates: battleTargets.map((p) => p.permanentId),
-                    min: 1,
-                    max: 1,
-                  }))[0];
+                : (
+                    await ctx.ask.chooseTargets(ctx, {
+                      candidates: battleTargets.map((p) => p.permanentId),
+                      min: 1,
+                      max: 1,
+                    })
+                  )[0];
             if (chosen !== undefined) await ctx.fx.forceBattle?.(self.permanentId, chosen);
           },
         }),

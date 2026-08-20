@@ -61,7 +61,7 @@ export function candidatePermanents(
   // affected by the effects of your opponent's Digimon"). Both are stored identically on the
   // continuous ledger and consulted the same way — qualify by whichever kind(s) the source card
   // actually declares.
-  const sourceKinds = source.definition.kinds as readonly string[];
+  const sourceKinds = ctx.effectSourceKinds ?? (source.definition.kinds as readonly string[]);
   const relevantSourceKinds =
     ctx.fx.isBeAffectedBySourceKind !== undefined ? sourceKinds.filter((k) => k === "Option" || k === "Digimon") : [];
   const result: Permanent[] = [];
@@ -244,13 +244,22 @@ export async function resolveTotalPlayCostBudgetTargets(ctx: EffectContext, targ
       permanentId: permanent.permanentId,
       cost: permanent.topCard === undefined ? undefined : (ctx.game.definitionOf(permanent.topCard).playCost ?? 0),
     }))
-    .filter((candidate): candidate is { permanentId: string; cost: number } => candidate.cost !== undefined && candidate.cost <= budget)
+    .filter(
+      (candidate): candidate is { permanentId: string; cost: number } =>
+        candidate.cost !== undefined && candidate.cost <= budget,
+    )
     .sort((left, right) => left.cost - right.cost || left.permanentId.localeCompare(right.permanentId));
   const selected: string[] = [];
   let spent = 0;
   for (const candidate of candidates) {
     if (spent + candidate.cost > budget) continue;
-    if (!(await ctx.ask.optional(ctx, `Return ${candidate.permanentId} (cost ${candidate.cost}, spent ${spent}/${budget})?`))) continue;
+    if (
+      !(await ctx.ask.optional(
+        ctx,
+        `Return ${candidate.permanentId} (cost ${candidate.cost}, spent ${spent}/${budget})?`,
+      ))
+    )
+      continue;
     selected.push(candidate.permanentId);
     spent += candidate.cost;
   }
@@ -297,6 +306,9 @@ export async function resolvePermanentTargets(
      * server-side (e.g. a digivolve base with no legal card to digivolve into).
      */
     eligible?: (permanentId: string) => boolean;
+    /** Keep an immune chosen permanent in the result when the action grants an effect that
+     * is checked only when its later trigger activates (Q7060-Q7066). */
+    preserveUnaffectableSelection?: boolean;
   },
 ): Promise<string[]> {
   // SourceRef: resolve to the permanent that triggered this SubTrigger event.
@@ -347,6 +359,8 @@ export async function resolvePermanentTargets(
   // inclusively so it can be offered/counted, then strip immune ids from whatever this
   // function actually returns (every branch below), so the effect never acts on one.
   const eligible = opts?.eligible;
+  const finalize = (ids: readonly string[]): string[] =>
+    opts?.preserveUnaffectableSelection === true ? [...ids] : filterAffectable(ctx, ids);
   const visibleCandidates = candidatePermanents(ctx, target, { includeUnaffectable: true });
   const candidates =
     eligible === undefined ? visibleCandidates : visibleCandidates.filter((p) => eligible(p.permanentId));
@@ -355,28 +369,19 @@ export async function resolvePermanentTargets(
     return [];
   }
   if (target.count === "all") {
-    const all = filterAffectable(
-      ctx,
-      candidates.map((p) => p.permanentId),
-    );
+    const all = finalize(candidates.map((p) => p.permanentId));
     ctx.lastResolvedPermanentIds = all;
     return all;
   }
   if (target.isSelf || target.filter?.isSelfRef || target.fromSelectionRef !== undefined) {
-    const result = filterAffectable(
-      ctx,
-      candidates.map((p) => p.permanentId),
-    );
+    const result = finalize(candidates.map((p) => p.permanentId));
     ctx.lastResolvedPermanentIds = result;
     return result;
   }
 
   const want = effectiveTargetCount(ctx, target);
   if (candidates.length <= want && !target.upTo) {
-    const result = filterAffectable(
-      ctx,
-      candidates.map((p) => p.permanentId),
-    );
+    const result = finalize(candidates.map((p) => p.permanentId));
     ctx.lastResolvedPermanentIds = result;
     return result;
   }
@@ -395,7 +400,7 @@ export async function resolvePermanentTargets(
   const max = Math.min(want, candidates.length);
   const asker = target.chooser === "opponent" ? requireOpponentAsk(ctx) : ctx.ask;
   const chosen = await asker.chooseTargets(ctx, { candidates: ids, visible: visibleIds, min, max });
-  const affectableChosen = filterAffectable(ctx, chosen);
+  const affectableChosen = finalize(chosen);
   ctx.lastResolvedPermanentIds = affectableChosen;
   return affectableChosen;
 }
@@ -407,7 +412,7 @@ export async function resolvePermanentTargets(
  */
 function filterAffectable(ctx: EffectContext, permanentIds: readonly string[]): string[] {
   const source = ctx.source;
-  const sourceKinds = source.definition.kinds as readonly string[];
+  const sourceKinds = ctx.effectSourceKinds ?? (source.definition.kinds as readonly string[]);
   const relevantSourceKinds =
     ctx.fx.isBeAffectedBySourceKind !== undefined ? sourceKinds.filter((k) => k === "Option" || k === "Digimon") : [];
   return permanentIds.filter((id) => {

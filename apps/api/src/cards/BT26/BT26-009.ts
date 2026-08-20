@@ -9,9 +9,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-009 — Hyokomon (BT26, Red Lv.3 Digimon, Bird/Iliad/TS).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-009 as of this port
-// (`node tools/kb/query.mjs card BT26-009` returned no knowledge-base entries). implemented
-// from the printed card text only. The [Start of Your Main Phase] "by trashing ... from
+// Audited against committed ruling Q6963, whose complete-text definition includes names,
+// traits, effect boxes and mechanic requirements. The [Start of Your Main Phase] "by trashing ... from
 // your hand, ＜Draw 1＞ and gain 1 memory" clause mirrors the identical shape found on
 // BT25-091's optional-cost-then-effect pattern and BT25-101's "trash from hand as a cost"
 // selectCards(min:0, max:1) idiom, wired through the turnTiming/OnStartMainPhase builder
@@ -56,9 +55,7 @@ const module: EffectModule = {
           when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
-            const candidates = Array.from(owner.hand).filter((c) =>
-              isChronomonOrShamanCard(ctx.game.definitionOf(c)),
-            );
+            const candidates = Array.from(owner.hand).filter((c) => isChronomonOrShamanCard(ctx.game.definitionOf(c)));
             if (candidates.length === 0) return;
 
             // "By trashing" is the cost: declining (selecting 0) pays no cost and grants
@@ -70,7 +67,8 @@ const module: EffectModule = {
             });
             if (chosen.length === 0) return;
 
-            await ctx.fx.trash(chosen);
+            const paid = await ctx.fx.trash(chosen);
+            if (!paid.some((card) => card.instanceId === chosen[0])) return;
             await ctx.fx.draw(source.ownerSeat, 1);
             ctx.fx.gainMemory(1);
           },

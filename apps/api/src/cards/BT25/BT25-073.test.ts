@@ -1,8 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type PlayerState } from "@aegis/shared";
+import { EffectTiming, digivolutionRequirementsFor, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
-// Self-register every card module so the engine drives the REGISTERED BT25-073 override.
-import "../index.js";
+import { observe } from "../../engine/testkit/observe.js";
+// Register only the audited module; importing the whole set masks card-local regressions and
+// materially increases the focused gate's memory footprint.
+import "./BT25-073.js";
 
 /**
  * A3 — BT25-073 (Dragomon). Engine capability: pay a cost by trashing a card from a
@@ -40,6 +42,52 @@ function inArea(p: PlayerState, cardId: string): boolean {
 }
 
 describe("A3 BT25-073 — pay by trashing a link card, then free-play a [TS] cost<=5 card", () => {
+  it("alternate-digivolves from an off-color level 4 TS card for exactly 3 and grants Jamming", async () => {
+    expect(digivolutionRequirementsFor(DRAGOMON)).toContainEqual({
+      level: 4,
+      traits: ["TS"],
+      cost: 3,
+      isAlternate: true,
+    });
+
+    const legal = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-011", as: "offColorTs" }],
+          hand: [{ card: DRAGOMON, as: "dragomonCard" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    legal.state.memory = 3;
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("offColorTs").permanentId,
+        instanceId: legal.inst("dragomonCard").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("offColorTs").topCard.cardId === DRAGOMON);
+    expect(legal.state.memory).toBe(0);
+    expect(observe(legal.engine).hasKeyword(legal.perm("offColorTs"), "Jamming")).toBe(true);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT1-037", as: "plainLv4" }], hand: [{ card: DRAGOMON, as: "card" }] },
+    });
+    invalid.state.memory = 3;
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("plainLv4").permanentId,
+        instanceId: invalid.inst("card").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(invalid.state.memory).toBe(3);
+  });
+
   it("On Play: trashing a friendly Digimon's link card plays a [TS] cost<=5 card free from hand", async () => {
     const s = setupEngine(
       {
@@ -100,6 +148,67 @@ describe("A3 BT25-073 — pay by trashing a link card, then free-play a [TS] cos
     expect(inArea(p0, TS_CARD)).toBe(true);
   });
 
+  it("uses a cost-5 TS Option for free after paying the link cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: DRAGOMON, as: "dragomon" },
+            { card: LINK_CARD, as: "host", linked: [{ card: LINK_CARD, as: "linkCost" }] },
+          ],
+          hand: [{ card: "BT25-093", as: "option" }],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferOptionIndex: 1,
+      },
+    );
+    const optionId = s.inst("option").instanceId;
+    const linkCostId = s.inst("linkCost").instanceId;
+    const memoryBefore = s.state.memory;
+
+    await s.ready();
+    await fireTiming(s, EffectTiming.OnPlay, {});
+    await settle(() => !s.state.players[0]!.hand.some((card) => card.instanceId === optionId));
+
+    expect(s.state.memory).toBe(memoryBefore);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === linkCostId)).toBe(true);
+    expect(
+      s.state.players[0]!.trash.some((card) => card.instanceId === optionId) ||
+        s.state.players[0]!.battleArea.some((permanent) =>
+          permanent.linked.some((card) => card.instanceId === optionId),
+        ),
+    ).toBe(true);
+  });
+
+  it("does not grant the free play when the selected link-card cost fails to move", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: DRAGOMON, as: "dragomon" },
+            { card: LINK_CARD, as: "host", linked: [{ card: LINK_CARD, as: "linkCard" }] },
+          ],
+          hand: [TS_CARD],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 0 },
+    );
+    const primitives = (s.engine as unknown as { primitives: { trash: (...args: unknown[]) => Promise<never[]> } })
+      .primitives;
+    primitives.trash = async () => [];
+
+    await s.ready();
+    await fireTiming(s, EffectTiming.OnPlay, {});
+
+    expect(s.perm("host").linked).toHaveLength(1);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === TS_CARD)).toBe(true);
+    expect(inArea(s.state.players[0]!, TS_CARD)).toBe(false);
+  });
+
   it("On Play declined (abortOnDecline): plays nothing and trashes no link card", async () => {
     // No autoAcceptOptional — respond to the "by trashing..." prompt manually, declining it, since
     // the harness's opts only express auto-accept, not auto-decline. fireTiming's own promise awaits
@@ -152,7 +261,7 @@ describe("A3 BT25-073 — pay by trashing a link card, then free-play a [TS] cos
               card: LINK_CARD,
               dp: 4000,
               as: "host",
-              under: [{ card: DRAGOMON, faceUp: false }], // the inherited source card
+              under: [{ card: DRAGOMON }], // the inherited source card
               linked: [{ card: LINK_CARD, as: "linkCard" }],
             },
           ],
@@ -166,13 +275,35 @@ describe("A3 BT25-073 — pay by trashing a link card, then free-play a [TS] cos
 
     await s.engine.recomputeContinuousEffects(); // installs the inherited wouldLeavePlay prevention
 
-    const fx = (s.engine as unknown as { primitives: { deletePermanent(ids: string[]): Promise<number> } })
-      .primitives;
+    const fx = (s.engine as unknown as { primitives: { deletePermanent(ids: string[]): Promise<number> } }).primitives;
     await fx.deletePermanent([hostId]);
     await settle(() => s.perm("host").linked.length === 0);
 
     expect(p0.battleArea.some((perm) => perm.permanentId === hostId)).toBe(true); // survived
     expect(s.perm("host").linked.length).toBe(0); // the host's own link card paid the cost
     expect(p0.trash.some((c) => c.instanceId === linkCardId)).toBe(true); // -> owner trash
+  });
+
+  it("the inherited replacement cannot pay with another Digimon's link card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: LINK_CARD, as: "host", under: [DRAGOMON] },
+            { card: LINK_CARD, as: "other", linked: [{ card: LINK_CARD, as: "otherLink" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    await s.ready();
+    const deleted = await (
+      s.engine as unknown as { primitives: { deletePermanent(ids: string[]): Promise<number> } }
+    ).primitives.deletePermanent([hostId]);
+
+    expect(deleted).toBe(1);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+    expect(s.perm("other").linked).toHaveLength(1);
   });
 });

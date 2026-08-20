@@ -1,86 +1,220 @@
-import { describe, it, expect, vi } from "vitest";
-import { EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { assemblyRequirementFor, digivolutionRequirementsFor } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT26-014.js";
-
-// A3 for BT26-014 (Darumamon, BT26): "[On Play] [When Digivolving] Delete 1 of your
-// opponent's Digimon with 7000 DP or less."
-//
-// FAILS-WHEN-REVERTED: dropping the `p.currentDP <= 7000` filter (or the delete call
-// itself) leaves `deletePermanent` uncalled or called against an over-threshold target;
-// this test asserts the exact deleted permanent id.
+import "../index.js";
 
 const CARD_ID = "BT26-014";
 
-function fakeDef(over: Partial<CardDefinition> = {}): CardDefinition {
-  return {
-    cardId: over.cardId ?? "AD1-001",
-    set: "BT26",
-    nameEn: over.nameEn ?? "Test",
-    kinds: (over.kinds as never) ?? (["Digimon"] as never),
-    colors: (over.colors as never) ?? ([] as never),
-    playCost: over.playCost ?? 0,
-    dp: over.dp ?? 0,
-    evoCosts: [],
-    maxCountInDeck: 4,
-    ...over,
-  };
-}
+describe("BT26-014 Darumamon", () => {
+  it("exposes the exact alternate evolution and Assembly recipe", () => {
+    expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({
+      level: 4,
+      traits: ["Shambala"],
+      cost: 3,
+      isAlternate: true,
+    });
+    expect(assemblyRequirementFor(CARD_ID)).toEqual([
+      { reduceCost: 2, materials: [{ traits: ["TB"], levelMax: 4, count: 1 }] },
+    ]);
+  });
 
-function makeSource(): CardSource {
-  return {
-    instanceId: "darumamon-top",
-    cardId: CARD_ID,
-    ownerSeat: 0 as Seat,
-    definition: fakeDef({ cardId: CARD_ID }),
-    permanent: () => undefined,
-    isOnBattleArea: () => true,
-    isOwnersTurn: () => true,
-    hasColor: () => false,
-  };
-}
+  it("assembles with one Lv.4-or-lower TB from trash, pays 5, and keeps it under Darumamon", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: CARD_ID, as: "darumamon" }],
+        trash: [{ card: "BT26-012", as: "material" }],
+      },
+    });
+    s.state.memory = 5;
+    const material = s.inst("material").instanceId;
 
-describe("BT26-014 [On Play]/[When Digivolving]: delete 1 opponent Digimon with 7000 DP or less", () => {
-  it("deletes only the low-DP opponent target, not the high-DP one", async () => {
-    const oppLow = { permanentId: "opp-low", currentDP: 7000, topCard: { cardId: "AD1-001" } };
-    const oppHigh = { permanentId: "opp-high", currentDP: 8000, topCard: { cardId: "AD1-001" } };
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("darumamon").instanceId,
+        assembly: { materialInstanceIds: [material] },
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === CARD_ID));
 
-    const players = [
-      { seat: 0 as Seat, battleArea: [] },
-      { seat: 1 as Seat, battleArea: [oppLow, oppHigh] },
-    ];
+    const darumamon = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === CARD_ID)!;
+    expect(s.state.memory).toBe(0);
+    expect(darumamon.stack.map((card) => card.instanceId)).toEqual([material]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
 
-    const deleted: string[][] = [];
-    const game: GameAccess = {
-      player: (seat: Seat) => players[seat] as never,
-      opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
-      definitionOf: () => fakeDef({ kinds: ["Digimon"] as never }),
-    } as unknown as GameAccess;
+  it.each([
+    ["a Lv.5 TB", "EX12-031"],
+    ["a Lv.4 non-TB", "BT1-009"],
+  ])("rejects Assembly with %s atomically", (_label, invalidCard) => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: CARD_ID, as: "darumamon" }],
+        trash: [{ card: invalidCard, as: "invalid" }],
+      },
+    });
+    s.state.memory = 7;
 
-    const fx = {
-      deletePermanent: vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
-        deleted.push(ids);
-        return ids.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("darumamon").instanceId,
+        assembly: { materialInstanceIds: [s.inst("invalid").instanceId] },
+      } as never),
+    ).toEqual(expect.objectContaining({ ok: false }));
+    expect(s.state.memory).toBe(7);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual([CARD_ID]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual([invalidCard]);
+  });
+
+  it("digivolves for 3 on an off-color Lv.4 Shambala and deletes exactly a 7000 DP opponent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-062", as: "purpleShambala" }],
+          hand: [{ card: CARD_ID, as: "darumamon" }],
+          deck: ["BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT26-014", as: "exactly7000" },
+            { card: "BT1-083", as: "overThreshold", dp: 8000 },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    const exactTarget = s.perm("exactly7000").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("purpleShambala").permanentId,
+        instanceId: s.inst("darumamon").instanceId,
+        useAlternateCost: true,
       }),
-    } as unknown as Primitives;
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    const ask = {
-      chooseTargets: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!]),
-    } as unknown as EffectContext["ask"];
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("purpleShambala").topCard.cardId).toBe(CARD_ID);
+    expect(s.state.players[1]!.battleArea[0]!.permanentId).toBe(s.perm("overThreshold").permanentId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(exactTarget);
+  });
 
-    const source = makeSource();
-    const ctx = { source, trigger: {}, game, fx, ask } as unknown as EffectContext;
+  it("on play deletes a lone eligible opponent and leaves an over-threshold Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: CARD_ID, as: "darumamon" }] },
+        1: {
+          battleArea: [
+            { card: "BT26-013", as: "eligible" },
+            { card: "BT1-083", as: "tooLarge", dp: 8000 },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 7;
 
-    const module = getEffectModule(CARD_ID);
-    expect(module).toBeDefined();
-    const effects = module!.effectsForTiming(EffectTiming.OnPlay, source);
-    const deleteEffect = effects.find((e) => e.effectKey === `${CARD_ID}/on-play-delete-low-dp`);
-    expect(deleteEffect).toBeDefined();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("darumamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    await deleteEffect!.resolve(ctx);
+    expect(s.state.players[1]!.battleArea[0]!.permanentId).toBe(s.perm("tooLarge").permanentId);
+  });
 
-    expect(deleted).toEqual([["opp-low"]]);
+  it("Q6969: returns itself on deletion, then still plays an eligible TB from hand for free", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "darumamon" }],
+          hand: [{ card: "BT26-012", as: "playCandidate" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const deleted = s.perm("darumamon").topCard.instanceId;
+    const candidate = s.inst("playCandidate").instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("darumamon").permanentId])).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === candidate));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(deleted);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("lets its controller independently decline both On Deletion choices", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "darumamon" }],
+          hand: [{ card: "BT26-012", as: "handCandidate" }],
+          trash: [{ card: "BT26-008", as: "trashCandidate" }],
+        },
+      },
+      { autoSelectCards: false },
+    );
+    await s.ready();
+    const resolving = advance(s.engine).verb.deletePermanent([s.perm("darumamon").permanentId]);
+
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    let pending = s.state.pendingDecision!;
+    expect(pending.seat).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    pending = s.state.pendingDecision!;
+    expect(pending.seat).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    expect(await resolving).toBe(1);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT26-012"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT26-008", CARD_ID]));
+  });
+
+  it("its inherited On Deletion plays only an eligible <=6000 DP TB, without returning trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host", under: [{ card: CARD_ID, as: "source" }] }],
+          hand: [
+            { card: "BT26-008", as: "eligible" },
+            { card: "EX12-031", as: "tooLarge" },
+          ],
+          trash: [{ card: "BT26-008", as: "mustStayInTrash" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const eligible = s.inst("eligible").instanceId;
+    const trashCard = s.inst("mustStayInTrash").instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId])).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === eligible));
+
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX12-031"]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(trashCard);
+    expect(s.state.memory).toBe(0);
   });
 });
