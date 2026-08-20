@@ -8,7 +8,7 @@ describe("ST12-02 Candlemon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("candlemon").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     expect(s.state.memory).toBe(0);
-    expect(s.perm("candlemon")).toMatchObject({ baseDP: 3000, currentDP: 3000 });
+    expect(s.state.players[0]!.battleArea[0]).toMatchObject({ baseDP: 3000, currentDP: 3000 });
   });
 
   it("digivolves from a red level 2 for 0 memory", async () => {

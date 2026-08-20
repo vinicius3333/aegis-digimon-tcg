@@ -8,7 +8,7 @@ describe("ST12-07 SkullMeramon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("skullmeramon").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     expect(s.state.memory).toBe(0);
-    expect(s.perm("skullmeramon")).toMatchObject({ baseDP: 9000, currentDP: 9000 });
+    expect(s.state.players[0]!.battleArea[0]).toMatchObject({ baseDP: 9000, currentDP: 9000 });
   });
 
   it("digivolves from a red level 4 for 3 memory", async () => {

@@ -8,7 +8,7 @@ describe("ST12-05 Meramon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("meramon").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     expect(s.state.memory).toBe(0);
-    expect(s.perm("meramon")).toMatchObject({ baseDP: 4000, currentDP: 4000 });
+    expect(s.state.players[0]!.battleArea[0]).toMatchObject({ baseDP: 4000, currentDP: 4000 });
   });
 
   it("digivolves from a red level 3 for 1 memory", async () => {
