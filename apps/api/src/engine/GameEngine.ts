@@ -1740,7 +1740,18 @@ export class GameEngine {
    */
   private async fireSubTrigger(event: SubTriggerEventName, payload: TriggerInfo = {}): Promise<void> {
     if (this.ruleProcessing) {
-      this.deferredRuleSubTriggers.push({ event, payload: { ...payload } });
+      const deletedControllerSeat =
+        payload.deletedPermanentId === undefined
+          ? undefined
+          : this.access.permanentById(payload.deletedPermanentId)?.controllerSeat;
+      this.deferredRuleSubTriggers.push({
+        event,
+        payload: {
+          turnSeat: this.state.turnSeat,
+          ...(deletedControllerSeat === undefined ? {} : { deletedControllerSeat }),
+          ...payload,
+        },
+      });
       return;
     }
     // A security card removed while another effect is resolving creates a pending trigger;

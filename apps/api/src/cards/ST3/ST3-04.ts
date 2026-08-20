@@ -24,10 +24,12 @@ const module: EffectModule = {
             oncePerTurnKey: `${source.instanceId}/ST3-04`,
             description: "ST3-04 inherited",
             matches: (subCtx) =>
-              source.isOwnersTurn() &&
+              (subCtx.trigger.turnSeat === source.ownerSeat ||
+                (subCtx.trigger.turnSeat === undefined && source.isOwnersTurn())) &&
               subCtx.trigger.deletedByDpZero === true &&
               subCtx.trigger.deletedPermanentId !== undefined &&
-              ctx.game.permanentById(subCtx.trigger.deletedPermanentId)?.controllerSeat ===
+              (subCtx.trigger.deletedControllerSeat ??
+                ctx.game.permanentById(subCtx.trigger.deletedPermanentId)?.controllerSeat) ===
                 ctx.game.opponentOf(source.ownerSeat),
             run: async (subCtx) => {
               subCtx.fx.gainMemory(1);
