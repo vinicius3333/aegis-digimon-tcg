@@ -696,6 +696,7 @@ export function getDigivolveCostOptions(
   const intrinsicReduction = intrinsicDigivolutionCostReductionFor(
     handCardId,
     base.stack.map((card) => card.cardId),
+    base.topCard?.cardId,
   );
 
   // Normal printed EvoCosts

@@ -461,6 +461,13 @@ describe("BT10-086 intrinsic digivolution cost reduction", () => {
   });
 });
 
+describe("BT22-076 intrinsic Ver.1 digivolution cost reduction", () => {
+  it("shows the reduced cost 3 for a legal yellow level-5 Ver.1 base", () => {
+    const options = getDigivolveCostOptions("BT22-076", permOf("BT22-038"));
+    expect(options).toContainEqual(expect.objectContaining({ type: "normal", cost: 3 }));
+  });
+});
+
 describe("Tamer-onto digivolution cost paths (BT17-012 family)", () => {
   // Bug: BT17-012 prints SPECIFIC named requirements ([Takuya Kanbara]: Cost 2,
   // [Agunimon]: Cost 1) alongside a generic "onto any red Tamer as level 3" effect.
