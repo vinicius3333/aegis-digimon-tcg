@@ -37,4 +37,28 @@ describe("BT1-064 Goblimon", () => {
     expect(s.perm("base")).toMatchObject({ baseDP: 3000, currentDP: 3000 });
     expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
   });
+
+  it("rejects play when memory is below the cost floor", () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT1-064", as: "goblimon" }] } });
+    s.state.memory = -10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("goblimon").instanceId })).toEqual({
+      ok: false,
+      reason: "insufficient-memory",
+    });
+  });
+
+  it("rejects evolution from a red level 2", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-001", as: "base" }], hand: [{ card: "BT1-064", as: "goblimon" }] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("goblimon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
 });
