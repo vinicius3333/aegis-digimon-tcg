@@ -785,21 +785,32 @@ const HAND_TILT_BLEED = 20;
 
 const handMinOverlap = (cardWidth: number) => Math.round(cardWidth * 0.26);
 /**
- * How far a card may be buried before the fan stops tightening: the sliver left
- * over still shows the cost and level corner. A hand big enough to need more than
- * this overflows, which only phone widths reach — there the row scrolls instead.
+ * The sliver a buried card keeps: enough to read its cost and level corner with a
+ * mouse, and a whole 44px touch target where the pointer is a finger.
  */
-const handMaxOverlap = (cardWidth: number) => cardWidth - 30;
+const HAND_MIN_EXPOSURE = 30;
+export const HAND_MIN_EXPOSURE_TOUCH = 44;
+/**
+ * How far a card may be buried before the fan stops tightening. A hand big enough
+ * to need more than this overflows, which only phone widths reach — there the row
+ * scrolls instead.
+ */
+const handMaxOverlap = (cardWidth: number, minExposure: number) => cardWidth - minExposure;
 const handRowHeight = (cardWidth: number) => Math.round(cardWidth * 1.4) + HAND_FAN_ROOM + 1;
 
-export function handOverlap(cardCount: number, rowWidth: number, cardWidth = HAND_CARD_WIDTH): number {
+export function handOverlap(
+  cardCount: number,
+  rowWidth: number,
+  cardWidth = HAND_CARD_WIDTH,
+  minExposure = HAND_MIN_EXPOSURE,
+): number {
   const min = handMinOverlap(cardWidth);
   if (cardCount < 2 || rowWidth <= 0) return min;
   const available = rowWidth - HAND_TILT_BLEED * 2;
   const needed = cardWidth * cardCount - min * (cardCount - 1);
   if (needed <= available) return min;
   const fitting = (cardWidth * cardCount - available) / (cardCount - 1);
-  return Math.max(min, Math.min(handMaxOverlap(cardWidth), Math.ceil(fitting)));
+  return Math.max(min, Math.min(handMaxOverlap(cardWidth, minExposure), Math.ceil(fitting)));
 }
 
 function useElementWidth(element: HTMLElement | null): number {
@@ -824,6 +835,7 @@ export function Hand({
   selectCard,
   draggingInstanceId,
   cardWidth = HAND_CARD_WIDTH,
+  minExposure = HAND_MIN_EXPOSURE,
 }: {
   cards: HandEntry[];
   selectedInstanceId?: string;
@@ -831,6 +843,8 @@ export function Hand({
   selectCard?: (index: number) => void;
   draggingInstanceId?: string;
   cardWidth?: number;
+  /** How much of a buried card stays tappable. */
+  minExposure?: number;
 }) {
   const { t } = useTranslation();
   const n = cards.length;
@@ -839,7 +853,7 @@ export function Hand({
   const rowWidth = useElementWidth(rowEl);
   // The hand tightens its own fan until it fits the dock. Without this a big hand
   // simply grew past the board and painted over the sidebar.
-  const overlap = handOverlap(n, rowWidth, cardWidth);
+  const overlap = handOverlap(n, rowWidth, cardWidth, minExposure);
   return (
     <div
       ref={setRowEl}

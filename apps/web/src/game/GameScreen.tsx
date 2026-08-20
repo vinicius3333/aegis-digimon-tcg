@@ -40,6 +40,7 @@ import {
   Hand,
   HAND_CARD_WIDTH,
   HAND_CARD_WIDTH_COMPACT,
+  HAND_MIN_EXPOSURE_TOUCH,
   MemoryGauge,
   PermanentView,
   Pile,
@@ -111,6 +112,7 @@ import {
 import { MatchHistorySheet, OpponentActionFeed } from "./OpponentActionFeedView";
 import { hasOpenCombatPrompt } from "./opponentActionFeed";
 import { ownPermanentTapDestination } from "./ownPermanentStack";
+import { pressGesture } from "./pressGesture";
 import { useOpponentActionFeed } from "./useOpponentActionFeed";
 
 const PHASES: Phase[] = [Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main, Phase.End];
@@ -152,9 +154,6 @@ const SHORT_BOARD_QUERY = "(height < 820px)";
 const NARROW_RAIL_QUERY = "(width < 1240px)";
 /** Slot width whose 1.16× permanent exactly fits the 104px rail's 84px content box. */
 const NARROW_RAIL_SLOT_WIDTH = 72;
-
-/** Pointer travel, in px, that separates a tap from a drag. */
-const DRAG_THRESHOLD = 6;
 
 /**
  * `deferred` marks a touch gesture whose direction is not yet known: the pointer is
@@ -451,18 +450,14 @@ export function GameScreen({
     const move = (e: PointerEvent) => {
       const d = dragRef.current;
       if (!d) return;
-      const dx = e.clientX - d.ox;
-      const dy = e.clientY - d.oy;
-      if (!d.started && Math.hypot(dx, dy) <= DRAG_THRESHOLD) {
+      // `deferred` is set for every non-mouse pointer, so it also says which slop applies.
+      const gesture = pressGesture({ dx: e.clientX - d.ox, dy: e.clientY - d.oy, touch: d.deferred === true });
+      if (!d.started && gesture === "press") {
         setDrag({ ...d, x: e.clientX, y: e.clientY });
         return;
       }
       if (!d.started) {
-        // First movement past the threshold decides what the gesture is. A mostly
-        // horizontal swipe belongs to the scroller the card sits in (the hand and
-        // the battle rows pan sideways on touch), so we bow out and let the browser
-        // take it; anything steeper is a drag to play or attack.
-        if (d.deferred && Math.abs(dx) > Math.abs(dy)) {
+        if (gesture === "scroll") {
           setDrag(null);
           return;
         }
@@ -863,12 +858,21 @@ export function GameScreen({
   };
 
   const selectHandCard = (entry: HandEntry) => {
+    // A tap on a touch layout does one thing: open the card's sheet. Toggling the
+    // selection off meant tapping a card could leave nothing on screen, which read
+    // as a card that had simply ignored the tap.
+    if (narrowGameLayout) {
+      playSound("select");
+      setHandSel(entry.instanceId);
+      setHandPreview(entry.instanceId);
+      setSelPerm(null);
+      return;
+    }
     setHandSel((selected) => {
       const next = selected === entry.instanceId ? null : entry.instanceId;
       if (next) playSound("select");
       return next;
     });
-    if (narrowGameLayout) setHandPreview(entry.instanceId);
     setSelPerm(null);
   };
 
@@ -2006,6 +2010,7 @@ export function GameScreen({
             />
             <Hand
               cardWidth={compactPiles ? HAND_CARD_WIDTH_COMPACT : HAND_CARD_WIDTH}
+              minExposure={compactPiles ? HAND_MIN_EXPOSURE_TOUCH : undefined}
               cards={handEntries}
               selectedInstanceId={handSel ?? undefined}
               startDrag={startHandDrag}

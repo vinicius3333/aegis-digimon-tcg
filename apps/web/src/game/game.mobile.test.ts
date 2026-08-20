@@ -62,6 +62,13 @@ describe("mobile portrait match layout", () => {
     expect(portraitRules).toMatch(/\.game-battle-zones > div:last-child > div \{[^}]*touch-action:\s*pan-x/);
   });
 
+  it("lays the hand out as whole cards a finger can hit", () => {
+    // The row scrolls, so burying a card under its neighbour bought no room and
+    // left the overlapped edge selecting the wrong card.
+    expect(portraitRules).not.toMatch(/\[data-testid="hand"\] > div \{[^}]*margin-left:\s*-/);
+    expect(portraitRules).toMatch(/\[data-testid="hand"\] > div \{[^}]*margin-left:\s*var\(--ds-space-1\)/);
+  });
+
   it("gives field cards and hand cards a touch sheet", () => {
     // Hand cards and field cards share one sheet, so a tapped card reads the same
     // wherever it lives. Nothing may resurrect the old centred preview.

@@ -30,6 +30,12 @@ describe("hand fan overlap", () => {
     expect(fannedWidth(8, overlap, 104)).toBeLessThanOrEqual(520);
   });
 
+  it("keeps a whole touch target visible when the pointer is a finger", () => {
+    const TOUCH_EXPOSURE = 44;
+    const overlap = handOverlap(20, 200, 104, TOUCH_EXPOSURE);
+    expect(overlap).toBeLessThanOrEqual(104 - TOUCH_EXPOSURE);
+  });
+
   it("falls back to the printed spacing before the dock is measured", () => {
     expect(handOverlap(8, 0)).toBe(MIN_OVERLAP);
   });

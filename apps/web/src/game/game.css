@@ -699,7 +699,9 @@ button.opponent-action-feed__current:focus-visible { outline: 2px solid var(--ds
      !important to beat the inline fan-room padding — the desktop arc it reserves
      is disabled here, and it pushed the card tops past the clipped row. */
   .game-player-dock [data-testid="hand"] { --hand-card-width: clamp(4.75rem, 21vw, 5.75rem); height: calc(var(--hand-card-width) * 1.4 + var(--ds-space-2)) !important; padding: 0 var(--ds-space-2) var(--ds-space-2) !important; justify-content: flex-start !important; overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain; scroll-snap-type: x proximity; scrollbar-width: thin; scrollbar-color: var(--ds-accent) var(--ds-surface-muted); }
-  .game-player-dock [data-testid="hand"] > div { flex: 0 0 auto; margin-left: -18px !important; transform: none !important; scroll-snap-align: center; touch-action: pan-x !important; }
+  /* Whole cards, side by side: the row scrolls, so burying a card under its
+     neighbour bought no room and left the overlapped edge tapping the wrong card. */
+  .game-player-dock [data-testid="hand"] > div { flex: 0 0 auto; margin-left: var(--ds-space-1) !important; transform: none !important; scroll-snap-align: center; touch-action: pan-x !important; }
   .game-player-dock [data-testid="hand"] > div:first-child { margin-left: 0 !important; }
   .game-player-dock [data-testid="hand"] > div > div { width: var(--hand-card-width) !important; height: auto !important; aspect-ratio: 5 / 7; }
 
