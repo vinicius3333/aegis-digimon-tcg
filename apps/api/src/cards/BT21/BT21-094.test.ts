@@ -65,6 +65,7 @@ describe("BT21-094 Delay watcher", () => {
       kind: "SubTrigger",
       event: "whenDigivolutionTrashed",
       sourceFilter: { nameOrTrait: [{ tokens: ["Armor Form"], match: "trait" }] },
+      requireTrashedDigivolutionCardWasTop: true,
     });
     expect(allTurns[1]?.keywords).toEqual([{ keyword: "Delay", raw: "＜Delay＞" }]);
     expect(allTurns[1]?.actions[0]).toMatchObject({

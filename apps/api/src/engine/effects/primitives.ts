@@ -1814,6 +1814,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // BT9-109 X Antibody protects only its own instance, from every effect (including its
     // controller's). Keep other requested cards eligible so "trash the bottom 2" can trash the
     // unprotected one (KB Q1922). Rule-driven identity cleanup uses other seams and is unaffected.
+    const hostBeforeTrash = access.permanentById(hostPermanentId);
+    const topStackCardInstanceId = hostBeforeTrash?.stack.at(-1)?.instanceId;
     const trashableInstanceIds = instanceIds.filter((instanceId) => !continuous.stackCardTrashLocked(instanceId));
     const moved = await trash(trashableInstanceIds);
     ledger.dropSourceInstances(
@@ -1844,6 +1846,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         ...(opts?.isDigiBurst === true ? { isDigiBurstTrash: true } : {}),
       });
       for (let i = 0; i < moved.length; i++) {
+        const trashedCard = moved[i]!;
+        const wasTop = topStackCardInstanceId === trashedCard.instanceId;
         // onDigivolutionCardDiscarded ("when THIS digivolution card is trashed") FIRST: its
         // watcher is a CONTINUOUS install whose source IS the just-trashed card (isSelfRef,
         // BT10-006). fireSubTrigger runs a trailing recomputeContinuousEffects, which drops
@@ -1860,6 +1864,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         });
         await engine.fireSubTrigger("whenDigivolutionTrashed", {
           subjectPermanentId: hostPermanentId,
+          trashedDigivolutionCardWasTop: wasTop,
           ...(opts?.byEffectSeat !== undefined ? { byEffectSeat: opts.byEffectSeat } : {}),
         });
       }

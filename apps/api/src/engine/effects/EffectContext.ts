@@ -276,6 +276,8 @@ export interface TriggerInfo {
   byEffectSeat?: Seat;
   /** Printed card ID of the effect that produced the event, when known. */
   byEffectCardId?: string;
+  /** Whether the trashed digivolution card was the top card of its stack. */
+  trashedDigivolutionCardWasTop?: boolean;
   /** True only when a digivolution card was trashed to pay a ＜Digi-Burst＞ cost. */
   isDigiBurstTrash?: boolean;
   /**
