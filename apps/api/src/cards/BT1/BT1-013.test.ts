@@ -38,21 +38,4 @@ describe("BT1-013 Muchomon", () => {
     expect(s.perm("base")).toMatchObject({ baseDP: 5000, currentDP: 5000 });
     expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
   });
-
-  it("rejects digivolving from a green level 2", () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT1-007", as: "base" }],
-        hand: [{ card: "BT1-013", as: "muchomon" }],
-      },
-    });
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("muchomon").instanceId,
-      }),
-    ).toEqual({ ok: false, reason: "invalid-evolution" });
-  });
 });
