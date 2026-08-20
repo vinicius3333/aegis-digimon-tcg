@@ -1,7 +1,29 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT23-072.js";
 
 describe("BT23-072 King Drasil_7D6", () => {
+  it("suspends itself when an own CS Digimon is played and anchors all grants to that subject", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-072", as: "drasil" },
+            { card: "BT23-073", as: "played" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fireSubTrigger("whenPlayed", {
+      subjectPermanentId: s.perm("played").permanentId,
+    });
+    expect(s.perm("drasil").isSuspended).toBe(true);
+    expect(s.perm("played").permanentId).toBeDefined();
+  });
+
   it("pays 3 and places this hand card under King Drasil or Mother Eater in breeding before drawing", () => {
     const action = (compiled.effects.find((entry) => entry.trigger === "Main") as any).actions[0];
     expect(action).toMatchObject({

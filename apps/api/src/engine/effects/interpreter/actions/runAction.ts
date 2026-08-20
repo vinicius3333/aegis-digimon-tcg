@@ -37,7 +37,10 @@ import type { Action, Cost, ZoneRef } from "@aegis/shared";
 export async function runAction(ctx: EffectContext, action: Action): Promise<boolean> {
   // Per-action gate.
   if (action.kind !== "RawUnparsed" && action.kind !== "ConditionalBranch" && action.condition) {
-    if (!evaluateCondition(ctx, action.condition)) return false;
+    ctx.lastActionConditionMatched = evaluateCondition(ctx, action.condition);
+    if (!ctx.lastActionConditionMatched) return false;
+  } else {
+    ctx.lastActionConditionMatched = true;
   }
   // "You may" — ask the controller. Skip the prompt when the action carries a cost that is
   // provably unpayable (e.g. a "by trashing your security" cost with an empty security stack):
@@ -55,10 +58,6 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     action.kind !== "WaiveColorRequirement" &&
     action.optional
   ) {
-    // A Link clause is activated by a field permanent. When an Option's Main
-    // effect is resolving from hand there is no recipient source permanent;
-    // optional Link text is therefore unavailable, not an engine gap.
-    if (action.kind === "Link" && ctx.source.permanent() === undefined) return false;
     // An optional hatch is meaningful only when it can move the top Digi-Egg into
     // an empty breeding slot. Do this before opening the confirmation so the UI
     // never offers an action that the Hatch primitive would immediately no-op.

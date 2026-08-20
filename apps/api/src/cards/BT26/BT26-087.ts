@@ -4,7 +4,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, turnTiming } from "../../engine/effects/builders.js";
+import { onPlay, security, turnTiming } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-087 — Toya Kuga (BT26, Red Tamer, TS).
@@ -78,7 +78,8 @@ const module: EffectModule = {
             const toReturn = await ctx.ask.selectCards(ctx, { candidates: costCandidates, min: 0, max: 1 });
             if (toReturn.length === 0) return;
 
-            await ctx.fx.returnToDeck(toReturn, { toTop: false });
+            const returned = await ctx.fx.returnToDeck(toReturn, { toTop: false });
+            if (returned.length === 0) return;
             ctx.fx.gainMemory(1);
 
             const giantSlayers = giantSlayersInTrash(ctx, source.ownerSeat);
@@ -108,8 +109,22 @@ const module: EffectModule = {
             const toTrash = await ctx.ask.selectCards(ctx, { candidates, min: 0, max: 1 });
             if (toTrash.length === 0) return;
 
-            await ctx.fx.trash(toTrash, { byEffectSeat: source.ownerSeat });
+            const trashed = await ctx.fx.trash(toTrash, { byEffectSeat: source.ownerSeat });
+            if (trashed.length === 0) return;
             await ctx.fx.draw(source.ownerSeat, 2);
+          },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.SecuritySkill) {
+      return [
+        security({
+          source,
+          effectKey: `${cardId}/security-play-free`,
+          description: "[Security] Play this card without paying the cost.",
+          resolve: async (ctx) => {
+            await ctx.fx.playFromSecurity(ctx.source.instanceId, { payCost: false });
           },
         }),
       ];

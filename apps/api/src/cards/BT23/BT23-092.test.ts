@@ -13,13 +13,11 @@ describe("BT23-092 Ice Archery", () => {
     expect(main.actions[1].target.filter.kind).toEqual(["Tamer"]);
   });
 
-  it("arms Delay on a CS attack and keeps the Security sequence", () => {
+  it("activates Delay on a CS attack and keeps the Security sequence", () => {
     const turn = compiled.effects.find((effect) => effect.trigger === "YourTurn") as any;
     expect(turn.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenAttacking" });
-    const delay = compiled.effects.find((effect) =>
-      effect.keywords?.some((keyword) => keyword.keyword === "Delay"),
-    ) as any;
-    expect(delay.actions).toHaveLength(2);
+    expect(turn.keywords[0].keyword).toBe("Delay");
+    expect(turn.actions[0].actions).toHaveLength(2);
     const security = compiled.effects.find((effect) => effect.trigger === "Security") as any;
     expect(security.actions[2]).toMatchObject({ kind: "PlaceInBattleAreaSelf" });
   });

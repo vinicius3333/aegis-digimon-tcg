@@ -28,16 +28,9 @@ import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 //     here.
 //
 //   [Trash] [Your Turn] "When ... are played ... by returning this card to the bottom
-//     of the deck, 1 of them gains <Rush> and <Execute>" — now implemented. Previously
-//     RESIDUAL: `[Trash]` timings dispatch to EffectTiming.None (interpreter.ts
-//     builderForTrigger's `case "Trash"`), but a trash-resident card had no permanentId
-//     to anchor a `whenPlayed` SubTrigger watcher to — `subscribeSubTrigger` required a
-//     live battle-area Permanent. The engine now supports an anchor-less
-//     `sourceInstanceId` fallback (the corresponding regression coverage,
-//     eighth gap): a watcher installed by a loose CardInstance binds `ctx.source` from
-//     that instance wherever it currently sits (hand/trash), so this card's own
-//     `Static`-equivalent `inTrash` builder (base guard: `ctx.source.isInTrash()`) can
-//     install the watcher explicitly with `sourceInstanceId: ctx.source.instanceId`.
+//     of the deck, 1 of them gains <Rush> and <Execute>" — implemented with an `inTrash`
+//     continuous watcher anchored by the loose source instance. The source-instance anchor
+//     keeps the watcher live only while this exact card remains in the trash.
 //
 //   EffectTiming.OnPlay / EffectTiming.WhenDigivolving (shared, mandatory) — "By
 //     deleting this Digimon, you may play 1 play cost 12 or lower [Chronomon] text or
@@ -45,11 +38,9 @@ import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 //     "by deleting this Digimon, you may play ... without paying the cost" shape: one
 //     all-or-nothing optional prompt gates the whole clause (delete-then-play), since
 //     paying the self-delete cost for no payoff is never desirable and the printed "may"
-//     reads naturally as "you may activate this at all". The [Chronomon] text / [Titan]
-//     trait filter mirrors BT26-011's `effectText.includes("Chronomon")` /
-//     `types.includes(...)` idiom (BT26-011 has the identical "[Chronomon] in its text or
-//     the [X] trait" phrasing), and the trash-play-without-cost primitive mirrors
-//     BT26-098's security clause (`ctx.fx.playInstances(chosen, { payCost: false })`).
+//     reads naturally as "you may activate this at all". Q7105 requires the [Chronomon]
+//     text filter to inspect all printed text fields (including inherited text), while the
+//     trash-play-without-cost primitive mirrors BT26-098's Security clause.
 
 const cardId = "BT26-078";
 
@@ -59,7 +50,12 @@ function memoryFor(ctx: EffectContext, seat: Seat): number {
   return seat === ctx.game.state.turnSeat ? m : -m;
 }
 
-/** "[Chronomon] text or [Titan] trait" (BT26-011's identical phrase/idiom). */
+/**
+ * "[Chronomon] in its text or [Titan] trait". Q7105 makes "text" a union of every
+ * printed field, not only the main effect box; in particular, BT26-015 qualifies because
+ * its inherited effect contains [Chronomon]. The advanced requirement fields currently
+ * exposed by CardDefinition are included as well.
+ */
 function hasChronomonTextOrTitanTrait(def: CardDefinition): boolean {
   return matchNameOrTrait(def, { tokens: ["Chronomon"], match: "text" }) || (def.types ?? []).includes("Titan");
 }
@@ -72,13 +68,6 @@ async function resolveDeleteToPlayFromTrash(ctx: EffectContext, source: CardSour
   const self = source.permanent();
   if (self === undefined) return;
 
-  const owner = ctx.game.player(source.ownerSeat);
-  const candidates = Array.from(owner.trash).filter((card) => {
-    const def = ctx.game.definitionOf(card);
-    return def.playCost <= 12 && hasChronomonTextOrTitanTrait(def);
-  });
-  if (candidates.length === 0) return;
-
   const willActivate = await ctx.ask.optional(
     ctx,
     "Delete this Digimon to play 1 play cost 12 or lower [Chronomon] text or [Titan] " +
@@ -86,7 +75,18 @@ async function resolveDeleteToPlayFromTrash(ctx: EffectContext, source: CardSour
   );
   if (!willActivate) return;
 
-  await ctx.fx.deletePermanent([self.permanentId]);
+  const deleted = await ctx.fx.deletePermanent([self.permanentId]);
+  if (deleted === 0) return;
+
+  // Determine the play candidates only after paying the cost. Deleting this Digimon moves
+  // its whole stack to the trash, and an eligible card from that just-deleted stack is a
+  // legal target for the following "from your trash" effect.
+  const owner = ctx.game.player(source.ownerSeat);
+  const candidates = Array.from(owner.trash).filter((card) => {
+    const def = ctx.game.definitionOf(card);
+    return def.playCost <= 12 && hasChronomonTextOrTitanTrait(def);
+  });
+  if (candidates.length === 0) return;
 
   const chosen = await ctx.ask.selectCards(ctx, {
     candidates: candidates.map((c) => c.instanceId),
@@ -134,7 +134,7 @@ function installTrashResidentWatcher(ctx: EffectContext, source: CardSource): vo
         "By returning this card to the bottom of the deck, 1 of them gains ＜Rush＞ and " + "＜Execute＞ for the turn?",
       );
       if (!willActivate) return;
-      await subCtx.fx.returnToDeck([subCtx.source.instanceId]);
+      await subCtx.fx.returnToDeck([subCtx.source.instanceId], { toTop: false });
       subCtx.fx.grantKeyword(subjectId, "Rush", EffectDuration.UntilEachTurnEnd);
       subCtx.fx.grantKeyword(subjectId, "Execute", EffectDuration.UntilEachTurnEnd);
     },

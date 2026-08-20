@@ -1,21 +1,113 @@
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { compiled as BT25_064 } from "./BT25-064.js";
-import "../index.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "./BT25-064.js";
 
-describe("BT25-064 Sunarizamon", () => {
-  it("reveals three for an Option and a TS card", () => {
-    const onPlay = BT25_064.effects?.find((entry) => entry.trigger === "OnPlay");
-    expect(onPlay?.actions?.[0]).toMatchObject({ kind: "RevealAdd", revealCount: 3, rest: "deckBottom" });
-    expect((onPlay?.actions?.[0] as { add?: unknown }).add).toEqual([
-      expect.objectContaining({ count: 1, to: "hand", filter: { controllerDefault: "mine", kind: ["Option"] } }),
-      expect.objectContaining({
-        count: 1,
-        to: "hand",
-        filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] },
+const CARD_ID = "BT25-064";
+
+describe("BT25-064 ToyAgumon", () => {
+  it("alternate-digivolves from an off-color level 2 TS Digi-Egg for 0", async () => {
+    expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({
+      level: 2,
+      traits: ["TS"],
+      cost: 0,
+      isAlternate: true,
+    });
+    const legal = setupEngine({
+      0: {
+        breeding: { card: "BT26-001", as: "tsEgg" },
+        hand: [{ card: CARD_ID, as: "toy" }],
+        deck: ["BT1-009"],
+      },
+    });
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("tsEgg").permanentId,
+        instanceId: legal.inst("toy").instanceId,
+        useAlternateCost: true,
       }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("tsEgg").topCard.cardId === CARD_ID);
+    expect(legal.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: { breeding: { card: "BT1-001", as: "plainEgg" }, hand: [{ card: CARD_ID, as: "toy" }] },
+    });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("plainEgg").permanentId,
+        instanceId: invalid.inst("toy").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
+  it("reveals exactly 3, mandatorily adds one Option and one distinct TS card, and bottoms the rest", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "toy" }],
+          deck: [
+            { card: "BT1-090", as: "option" },
+            { card: "BT24-011", as: "ts" },
+            { card: "BT1-009", as: "rest" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("toy").instanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId) &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ts").instanceId),
+    );
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("rest").instanceId]);
+    const selections = s.decisions.filter((decision) => decision.req.kind === "selectCards");
+    expect(selections).toHaveLength(2);
+    expect(selections.every((decision) => decision.req.options?.min === 1)).toBe(true);
+  });
+
+  it("does not use one dual-matching TS Option for both add slots", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "toy" }],
+          deck: [
+            { card: "BT25-093", as: "overlap" },
+            { card: "BT1-009", as: "plain1" },
+            { card: "BT1-013", as: "plain2" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("toy").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("overlap").instanceId));
+    expect(s.state.players[0]!.hand.filter((card) => card.instanceId === s.inst("overlap").instanceId)).toHaveLength(1);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("plain1").instanceId,
+      s.inst("plain2").instanceId,
     ]);
-    expect(BT25_064.effects?.find((entry) => entry.isInherited)?.keywords).toEqual([
-      { keyword: "Reboot", raw: "＜Reboot＞" },
-    ]);
+  });
+
+  it("grants inherited Reboot only while ToyAgumon is under a host", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-013", as: "host", under: [CARD_ID] },
+          { card: CARD_ID, as: "standalone" },
+        ],
+      },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("standalone"), "Reboot")).toBe(false);
   });
 });

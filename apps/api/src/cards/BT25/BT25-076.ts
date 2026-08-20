@@ -47,6 +47,9 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    // Keep the three printed keywords in one Static effect so the continuous pass applies the
+    // complete keyword bundle atomically. Reboot's canonical marker also installs its
+    // opponent-unsuspend behavior in the shared seam.
     {
       trigger: "Static",
       actions: [
@@ -54,34 +57,11 @@ export const compiled: CompiledCard = {
           kind: "GainKeyword",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           keyword: { keyword: "Rush" },
+          keywords: [{ keyword: "Reboot" }, { keyword: "Blocker" }],
           duration: "permanent",
         },
       ],
-      keywords: [],
-    },
-    {
-      trigger: "Static",
-      actions: [
-        {
-          kind: "GainKeyword",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          keyword: { keyword: "Reboot" },
-          duration: "permanent",
-        },
-      ],
-      keywords: [],
-    },
-    {
-      trigger: "Static",
-      actions: [
-        {
-          kind: "GainKeyword",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          keyword: { keyword: "Blocker" },
-          duration: "permanent",
-        },
-      ],
-      keywords: [],
+      keywords: [{ keyword: "Reboot" }],
     },
     {
       trigger: "OnPlay",

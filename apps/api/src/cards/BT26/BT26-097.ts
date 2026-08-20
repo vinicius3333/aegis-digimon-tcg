@@ -4,7 +4,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { activated, staticModifier } from "../../engine/effects/builders.js";
+import { activated, security, staticModifier } from "../../engine/effects/builders.js";
 import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
@@ -72,7 +72,10 @@ const jupitermonDigimon = (ctx: EffectContext, seat: Seat): string[] =>
 function jupitermonCards(ctx: EffectContext, seat: Seat): string[] {
   const owner = ctx.game.player(seat);
   return [...owner.hand, ...owner.trash]
-    .filter((card) => hasName(ctx.game.definitionOf(card), [JUPITERMON_NAME]))
+    .filter((card) => {
+      const def = ctx.game.definitionOf(card);
+      return isDigimon(def) && hasName(def, [JUPITERMON_NAME]);
+    })
     .map((card) => card.instanceId);
 }
 
@@ -153,6 +156,35 @@ const module: EffectModule = {
             if (toPlace.length === 0) return;
 
             await ctx.fx.placeUnder(hostId, toPlace, { belowTop: true });
+          },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.SecuritySkill) {
+      return [
+        security({
+          source,
+          effectKey: `${cardId}/security-play-ts-and-return-self`,
+          description:
+            "[Security] You may play 1 play cost 5 or lower [TS] trait card from your hand " +
+            "without paying the cost. Then, add this card to the hand.",
+          optional: false,
+          resolve: async (ctx) => {
+            const candidates = Array.from(ctx.game.player(source.ownerSeat).hand)
+              .filter((card) => {
+                const def = ctx.game.definitionOf(card);
+                const playable = def.kinds.includes(CardKind.Digimon) || def.kinds.includes(CardKind.Tamer);
+                return playable && (def.types ?? []).includes("TS") && def.playCost !== undefined && def.playCost <= 5;
+              })
+              .map((card) => card.instanceId);
+
+            if (candidates.length > 0) {
+              const chosen = await ctx.ask.selectCards(ctx, { candidates, min: 0, max: 1 });
+              if (chosen.length > 0) await ctx.fx.playInstances(chosen, { payCost: false });
+            }
+
+            await ctx.fx.returnToHand([source.instanceId]);
           },
         }),
       ];

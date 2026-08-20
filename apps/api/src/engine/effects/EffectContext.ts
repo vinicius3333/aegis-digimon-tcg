@@ -149,6 +149,8 @@ export type RemovalCause = "byEffect" | "byBattle" | "byRule";
 export interface TriggerInfo {
   /** Card id being played during the pay-time cost window. */
   wouldBePlayedCardId?: string;
+  /** Whether the pay-time declaration is using the card as an Option rather than playing a permanent. */
+  wouldBePlayedAsOption?: boolean;
   attackerPermanentId?: string;
   /** Named attack procedure that caused the current attack watcher, when applicable. */
   attackMechanic?: string;
@@ -162,6 +164,8 @@ export interface TriggerInfo {
   deletedPermanentId?: string;
   /** Every permanent in the same simultaneous deletion action, captured before movement. */
   deletedPermanentIds?: string[];
+  /** Physical cards that became link cards in the current linking operation. */
+  linkedInstanceIds?: string[];
   deletedInstanceIds?: string[];
   /** Printed card id of the deleted permanent's top card, captured before it leaves play. */
   deletedTopCardId?: string;
@@ -243,6 +247,9 @@ export interface TriggerInfo {
    * "1 of those Digimon" use this collection to offer the complete event-bound choice.
    */
   subjectPermanentIds?: string[];
+  /** Card instances linked by the current operation (whenLinked). This lets a newly linked
+   * card's own [When Linking] watcher join the recipient's simultaneous trigger window. */
+  linkedCardInstanceIds?: string[];
   /** Card instances just added to the subject permanent's digivolution stack. */
   addedDigivolutionCardInstanceIds?: string[];
   /** Stack position used by an effect placing cards under a Digimon. */
@@ -332,6 +339,8 @@ export interface TriggerInfo {
   trashedDigivolutionInstanceId?: string;
   /** All sources trashed simultaneously by one Digi-Burst cost payment. */
   trashedDigivolutionInstanceIds?: string[];
+  /** Subset that was face down immediately before the stack-to-trash move. */
+  trashedFaceDownDigivolutionInstanceIds?: string[];
   /**
    * The seat that just drew one or more cards (whenOpponentDraws). A watcher
    * ("[Your Turn] / [All Turns] when your opponent draws a card") gates on this
@@ -398,6 +407,8 @@ export interface TriggerInfo {
    * `effectAddedToHandSeat`.
    */
   effectAddedToDeckSeat?: Seat;
+  /** Controller of the resolving effect that added cards to a deck, when known. */
+  effectAddedToDeckBySeat?: Seat;
   /**
    * The seat whose trash cards were just returned FROM, to hand (whenCardReturnsFromTrashToHand).
    * A watcher ("[All Turns] when a card returns from your trash to your hand", BT15-082) gates
@@ -442,6 +453,10 @@ export interface GameAccess {
    * kinds; the live engine always provides it via createGameAccess.
    */
   effectiveKinds?(permanentId: string): import("@aegis/shared").CardKind[];
+  /** A permanent's printed traits plus active runtime trait grants. */
+  effectiveTraits?(permanentId: string): string[];
+  /** A permanent's printed kinds plus active runtime kind grants. */
+  effectiveKinds?(permanentId: string): import("@aegis/shared").CardKind[];
   /** Effective printed-plus-granted colors used by Option color requirements. */
   effectiveColors?(permanent: Permanent): import("@aegis/shared").CardColor[];
   /** Whether a loose card currently ignores its printed color requirement. */
@@ -452,6 +467,8 @@ export interface GameAccess {
   canDeclareAttack?(permanent: Permanent): boolean;
   /** Whether `seat` completed a digivolution since the current turn began. */
   digivolvedThisTurn?(seat: Seat): boolean;
+  /** A live battle-area base-granted evolution path, usable by effect-driven digivolution. */
+  baseGrantedDigivolve?(seat: Seat, base: Permanent, evolving: CardDefinition): { cost: number } | undefined;
   /** Whether the permanent is currently prevented from activating this timing. */
   isTimingEffectDisabled?(permanentId: string, timing: "whenDigivolving" | "whenAttacking" | "onPlay"): boolean;
 }
@@ -634,7 +651,7 @@ export interface Primitives {
    * digivolution card to the new top. Returns false when there is no digivolution card to
    * promote (the cost is then unpayable).
    */
-  placeOwnTopAtStackBottom(permanentId: string): boolean;
+  placeOwnTopAtStackBottom(permanentId: string): Promise<boolean>;
   /**
    * Relocate a battle-area permanent (top + stack + linked) under another permanent
    * as digivolution cards. The source permanent ceases to exist. `shedOwnCards` is the
@@ -719,6 +736,16 @@ export interface Primitives {
     instanceIds: string[],
     opts?: { byEffectSeat?: Seat; byEffectCardId?: string; isDigiBurst?: boolean },
   ): Promise<CardInstance[]>;
+  /**
+   * Atomically trash exactly `exactCount` selected digivolution cards across one or more hosts.
+   * Every host/card/restriction is validated before any card moves or watcher fires; if any
+   * selection is stale, duplicated, missing, or protected, nothing moves and `[]` is returned.
+   */
+  trashDigivolutionCardsAtomic(
+    selections: { hostPermanentId: string; instanceId: string }[],
+    exactCount: number,
+    opts?: { byEffectSeat?: Seat; byEffectCardId?: string; isDigiBurst?: boolean },
+  ): Promise<CardInstance[]>;
   /** Whether this exact stacked card can currently be trashed by an effect. */
   canTrashDigivolutionCard?(instanceId: string): boolean;
   /**
@@ -782,7 +809,12 @@ export interface Primitives {
    * the trashed instances. `usedOptionCost` (the Option's ORIGINAL use cost) is carried into
    * the fire payload.
    */
-  useOptionFromHand(ctx: EffectContext, usedInstanceId: string, usedOptionCost?: number): Promise<CardInstance[]>;
+  useOptionFromHand(
+    ctx: EffectContext,
+    usedInstanceId: string,
+    usedOptionCost?: number,
+    opts?: { payCost?: boolean; costDelta?: number },
+  ): Promise<CardInstance[]>;
   /**
    * Run `cardId`'s registered EffectModule effect(s) for `timing`, under `ctx.source`'s control
    * (the effect resolves as if the CALLER were doing it — KB precedent: BT19-040 "use 1 Option
@@ -823,8 +855,8 @@ export interface Primitives {
    * leave-the-battle-area PREVENT reactions first (a "would leave" reaction voids hand
    * bounce too, not just deletion); a prevented permanent is left in play.
    */
-  returnToHand(instanceIds: string[], opts?: { silent?: boolean }): Promise<CardInstance[]>;
-  returnToDeck(instanceIds: string[], opts?: { toTop?: boolean }): Promise<CardInstance[]>;
+  returnToHand(instanceIds: string[], opts?: { silent?: boolean; byEffectSeat?: Seat }): Promise<CardInstance[]>;
+  returnToDeck(instanceIds: string[], opts?: { toTop?: boolean; byEffectSeat?: Seat }): Promise<CardInstance[]>;
   /** Return loose cards to the bottom of their owners' Digi-Egg decks, face-down. */
   returnToEggDeck?(instanceIds: string[]): Promise<CardInstance[]>;
   reveal(seat: Seat, n: number): Promise<CardInstance[]>;
@@ -838,8 +870,8 @@ export interface Primitives {
     instanceIds: string[],
     opts?: { toTop?: boolean; faceUp?: boolean; detachPermanentTop?: boolean },
   ): Promise<void>;
-  /** Resolution-owner stack used by cross-card global restrictions. */
-  enterEffectResolution?(seat: Seat): void;
+  /** Resolution-source stack used by opponent-scoped and source-kind-qualified restrictions. */
+  enterEffectResolution?(seat: Seat, sourceKinds?: string[]): void;
   leaveEffectResolution?(): void;
   restrictSecurityAddsFromEffect?(blockedEffectSeat: Seat, granterSeat: Seat, duration: EffectDuration): void;
   grantPierce(permanentId: string, duration: EffectDuration, opts?: { continuous?: boolean }): void;
@@ -953,8 +985,8 @@ export interface Primitives {
    */
   stackCardTrashLock?(instanceId: string, ownerSeat: Seat, duration: EffectDuration): void;
   securityAttackInvert?(permanentId: string, duration: EffectDuration): void;
-  /** Install a turn-end delete on one permanent (EX10-035 played target; P-029 evolved self). */
-  delayedDeletePlayed?(playedPermanentId: string): void;
+  /** Install an owner- or opponent-turn-end delete on one played permanent. */
+  delayedDeletePlayed?(playedPermanentId: string, timing?: "endOfOwnerTurn" | "endOfOpponentTurn"): void;
   /**
    * Install a one-shot end-of-turn memory change for `seat` ("Gain 3 memory. At the end of
    * your turn, lose 3 memory" — BT1-021). Anchor-less: the delayed change fires at the
@@ -1520,6 +1552,12 @@ export interface SeatScopedDecisionApi {
  */
 export interface EffectContext {
   source: CardSource;
+  /**
+   * Rules identity of the effect currently resolving when it differs from the physical
+   * card's combined kinds. For example, a DUAL Digimon directly activating its Option-side
+   * [Main] produces an Option effect (BT25-104 Q6496-Q6498).
+   */
+  effectSourceKinds?: readonly string[];
   trigger: TriggerInfo;
   /**
    * Printed timing of the effect currently resolving (the IR `CardEffect.trigger`, e.g. "OnPlay").
@@ -1587,6 +1625,8 @@ export interface EffectContext {
   lastOpponentDeclined?: boolean;
   /** A printed optional activation was declined, so its provisional OPT mark must be restored. */
   oncePerTurnActivationDeclined?: boolean;
+  /** Whether the most recently dispatched action's condition matched. */
+  lastActionConditionMatched?: boolean;
   lastPlayedPermanentIds?: string[];
   /**
    * Permanents suspended by the most recent suspend cost/action in this effect resolution.

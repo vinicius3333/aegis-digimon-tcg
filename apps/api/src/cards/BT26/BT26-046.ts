@@ -9,9 +9,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-046 — Gryphonmon (BT26, Green/Blue Lv.6 Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-046 as of this port
-// (`node tools/kb/query.mjs card BT26-046` returned no knowledge-base entries — BT26
-// has no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// KB ruling Q7039 confirms that the Digimon/Tamer chosen for the unsuspend restriction
+// does not need to be the permanent suspended by the preceding sentence and may already
+// be unsuspended.
 //
 // Printed text:
 //   [Digivolve] Lv.5 w/[TS] trait: Cost 3 — a digivolution-cost requirement, not an
@@ -26,7 +26,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 //   [On Play] [When Digivolving] Suspend 1 of your opponent's Digimon or Tamers. 1 of
 //     their Digimon or Tamers can't unsuspend until their turn ends. Then, 1 of your
 //     Digimon can't be deleted in battle until their turn ends.
-//   [Rule] Trait: Has [Avian] Type — a data-layer trait annotation, not a runtime effect.
+//   [Rule] Trait: Has [Avian] Type — a rules-layer trait annotation. The generic card
+//     definition currently exposes only printed `types`; consumers that need Rule-added
+//     traits require the shared Rule-trait seam rather than a card-local mutation here.
 //
 // Clause mapping:
 //   EffectTiming.BeforePayCost — "When this card would be played, if there are 2 or
@@ -137,8 +139,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/before-pay-cost-suspended-count`,
           description:
-            "When this card would be played, if there are 2 or more suspended Digimon, " +
-            "reduce the cost by 4.",
+            "When this card would be played, if there are 2 or more suspended Digimon, " + "reduce the cost by 4.",
           resolve: async (ctx) => {
             if (suspendedDigimonCount(ctx.game) >= 2) {
               ctx.playCostDelta = (ctx.playCostDelta ?? 0) + 4;

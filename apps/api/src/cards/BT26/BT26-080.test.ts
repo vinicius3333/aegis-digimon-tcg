@@ -1,8 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
-import { CardKind, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import "./BT26-080.js";
 
 // BT26-080 (Bacchusmon, BT26 dual Digimon/Option):
@@ -90,6 +92,9 @@ function makeHarness(options: {
     }),
     unsuspend: vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
       calls.push(`unsuspend:${ids.join(",")}`);
+      for (const permanent of [...players[0]!.battleArea, ...players[1]!.battleArea] as Perm[]) {
+        if (ids.includes(permanent.permanentId)) permanent.isSuspended = false;
+      }
     }),
     forceAttack: vi.fn<(...args: any[]) => any>(async (id: string, opts?: { withoutSuspending?: boolean }) => {
       calls.push(`forceAttack:${id}:${opts?.withoutSuspending === true}`);
@@ -125,6 +130,43 @@ function effectFor(timing: EffectTiming, source: CardSource, key: string) {
 const DIGIVOLVE_KEY = "when-digivolving-attack-without-suspending";
 const ATTACK_KEY = "when-attacking-delete-same-orientation";
 const MAIN_KEY = "main-unsuspend-then-delete-lowest-dp";
+const USE_REQ_KEY = "use-req-ts";
+
+describe("BT26-080 card data and use requirement", () => {
+  it("waives the Purple Option requirement while its controller has a [TS] card in play", async () => {
+    const source = makeSource();
+    const harness = makeHarness({ source });
+    harness.ctx.game.player(source.ownerSeat).battleArea.push({
+      permanentId: "ts-card",
+      topCard: { cardId: "ts" },
+    } as never);
+    harness.ctx.game.definitionOf = (card: { cardId: string }) =>
+      fakeDef({ cardId: card.cardId, types: card.cardId === "ts" ? ["TS"] : [] });
+    const waived: Array<[string, EffectDuration]> = [];
+    harness.ctx.fx.waiveColorRequirement = (instanceId: string, duration: EffectDuration) => {
+      waived.push([instanceId, duration]);
+    };
+
+    const effect = effectFor(EffectTiming.None, source, USE_REQ_KEY);
+    expect(effect.canTrigger(harness.ctx)).toBe(true);
+    await effect.resolve(harness.ctx);
+
+    expect(waived).toEqual([[source.instanceId, EffectDuration.UntilEachTurnEnd]]);
+  });
+
+  it("does not waive the Option requirement for a near-matching non-TS trait", () => {
+    const source = makeSource();
+    const harness = makeHarness({ source });
+    harness.ctx.game.player(source.ownerSeat).battleArea.push({
+      permanentId: "near-match",
+      topCard: { cardId: "near-match" },
+    } as never);
+    harness.ctx.game.definitionOf = (card: { cardId: string }) =>
+      fakeDef({ cardId: card.cardId, types: ["TSP"] });
+
+    expect(effectFor(EffectTiming.None, source, USE_REQ_KEY).canTrigger(harness.ctx)).toBe(false);
+  });
+});
 
 describe("BT26-080 [When Digivolving]: suspend a Digimon to attack without suspending", () => {
   it("pays the cost first, then declares the attack without suspending", async () => {
@@ -138,7 +180,7 @@ describe("BT26-080 [When Digivolving]: suspend a Digimon to attack without suspe
   });
 
   // KB Q7113: the cost may suspend either player's Digimon.
-  it("offers only unsuspended Digimon and never attacks when the cost is declined", async () => {
+  it("offers only unsuspended Digimon from either player as the mandatory accepted cost", async () => {
     const harness = makeHarness({
       mine: [
         { permanentId: "my-digimon", topCard: { cardId: DIGIMON } },
@@ -146,13 +188,15 @@ describe("BT26-080 [When Digivolving]: suspend a Digimon to attack without suspe
         { permanentId: "my-tamer", topCard: { cardId: TAMER } },
       ],
       theirs: [{ permanentId: "opp-digimon", topCard: { cardId: DIGIMON } }],
-      pick: () => [],
+      pick: (candidates) => [candidates.at(-1)!],
     });
 
-    await effectFor(EffectTiming.WhenDigivolving, harness.source, DIGIVOLVE_KEY).resolve(harness.ctx);
+    const effect = effectFor(EffectTiming.WhenDigivolving, harness.source, DIGIVOLVE_KEY);
+    await effect.resolve(harness.ctx);
 
     expect(harness.offered).toEqual([["my-digimon", "opp-digimon"]]);
-    expect(harness.calls).toEqual([]);
+    expect(harness.calls).toEqual(["suspend:opp-digimon", `forceAttack:${SELF_PERMANENT}:true`]);
+    expect(effect.optional).toBe(true);
   });
 
   it("cannot activate with no unsuspended Digimon to suspend", () => {
@@ -239,14 +283,89 @@ describe("BT26-080 [Main]: unsuspend 1 Digimon, then delete the lowest-DP unsusp
   });
 
   // KB Q7114: the unsuspend may target either player's Digimon.
-  it("deletes nothing when every opponent Digimon is suspended", async () => {
+  it("may unsuspend an opponent Digimon and then deletes it as the now-lowest unsuspended Digimon", async () => {
     const harness = makeHarness({
       theirs: [{ permanentId: "opp-a", topCard: { cardId: DIGIMON }, currentDP: 4000, isSuspended: true }],
     });
 
     await effectFor(EffectTiming.OnUseOption, harness.source, MAIN_KEY).resolve(harness.ctx);
 
-    expect(harness.calls).toEqual(["unsuspend:opp-a"]);
-    expect(harness.deleted).toEqual([]);
+    expect(harness.calls).toEqual(["unsuspend:opp-a", "delete:opp-a"]);
+    expect(harness.deleted).toEqual([["opp-a"]]);
+  });
+});
+
+describe("BT26-080 engine behavior", () => {
+  it("uses its Option side through the [TS] use requirement with no Purple source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "bacchusmon" }],
+          battleArea: [{ card: "BT24-019", as: "blueTs" }],
+        },
+        1: { battleArea: [{ card: "AD1-001", as: "lowest", dp: 3000, suspended: true }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("bacchusmon").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("bacchusmon").instanceId) &&
+        s.state.players[1]!.battleArea.length === 0,
+      2000,
+    );
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("rejects the Option side without Purple or a [TS] card", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: CARD_ID, as: "bacchusmon" }] } });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("bacchusmon").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: false, reason: "color-requirement-unmet" });
+  });
+
+  it("digivolves from the play-cost-12 Bacchusmon for the alternate cost 2", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-077", as: "base" }],
+          hand: [{ card: CARD_ID, as: "bacchusmon" }],
+          deck: ["BT5-022"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("bacchusmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("bacchusmon").instanceId, 2000);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.at(-1)?.cardId).toBe("BT25-077");
   });
 });

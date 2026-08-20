@@ -39,6 +39,9 @@ export class Permanent extends Schema {
   // as an implicit marker: it records WHEN a permanent entered, not WHY, and is legitimately
   // 0 for a permanent placed on turn 0 by either route, so it cannot carry this distinction.
   @type("boolean") placedByEffect = false;
+  // True while the current top card entered this permanent by an effect. Used by cards whose
+  // later effects condition on having been played/digivolved by an effect (BT25-080).
+  @type("boolean") enteredByEffect = false;
   // JSON array of {instanceId,effectKey,description} — populated server-side for the
   // turn player's battle-area permanents during Main phase; empty string otherwise.
   @type("string") activatableEffectsJson = "";

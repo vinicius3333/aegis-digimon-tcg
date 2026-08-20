@@ -19,6 +19,7 @@ describe("BT23-102 Mastemon", () => {
       kind: "SecurityManipulation",
       op: "addBottom",
       controller: "any",
+      source: { filter: { isDigimon: true, controller: "any" } },
     });
   });
 });

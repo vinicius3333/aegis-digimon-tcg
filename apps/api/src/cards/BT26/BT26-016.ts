@@ -88,7 +88,8 @@ async function resolveDeleteThenRecovery(ctx: EffectContext, source: CardSource)
   const toReturn = await ctx.ask.selectCards(ctx, { candidates: trashCandidates, min: 3, max: 3 });
   if (toReturn.length !== 3) return;
 
-  await ctx.fx.returnToDeck(toReturn, { toTop: false });
+  const returned = await ctx.fx.returnToDeck(toReturn, { toTop: false });
+  if (returned.length !== 3) return;
   await ctx.fx.recoverToSecurity(source.ownerSeat, 1);
 }
 
@@ -131,7 +132,7 @@ const module: EffectModule = {
       ];
     }
 
-    if (timing === EffectTiming.OnAllyAttack) {
+    if (timing === EffectTiming.OnUseAttack) {
       return [
         whenAttacking({
           source,
@@ -169,7 +170,7 @@ const module: EffectModule = {
               event: "wouldLeavePlay",
               sourcePermanentId: selfId,
               mode: "prevent",
-              oncePerTurnKey: `${cardId}/prevent-leave-return-security`,
+              oncePerTurnKey: `${source.instanceId}/${cardId}/prevent-leave-return-security`,
               description:
                 "[All Turns] [Once Per Turn] By returning your top security card to the " +
                 "bottom of the deck, this Digimon doesn't leave the battle area.",
@@ -185,8 +186,8 @@ const module: EffectModule = {
                 );
                 if (!wantToPay) return false;
 
-                await subCtx.fx.returnToDeck([topSecurity.instanceId], { toTop: false });
-                return true;
+                const returned = await subCtx.fx.returnToDeck([topSecurity.instanceId], { toTop: false });
+                return returned.some((card) => card.instanceId === topSecurity.instanceId);
               },
             });
           },

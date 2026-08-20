@@ -8,6 +8,16 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "WhenLinking",
+      isLinked: true,
+      actions: [
+        {
+          kind: "Suspend",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+        },
+      ],
+    },
+    {
       trigger: "Security",
       timing: "endOfBattle",
       actions: [

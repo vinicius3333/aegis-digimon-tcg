@@ -4,7 +4,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { turnTiming, whenAttacking } from "../../engine/effects/builders.js";
+import { security, turnTiming, whenAttacking } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-092 — Shota Kuroi (BT26, Black Tamer, TS).
@@ -117,6 +117,20 @@ const module: EffectModule = {
             if (targets.length === 0) return;
 
             await ctx.fx.redirectAttack(targets, { optional: true });
+          },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.SecuritySkill) {
+      return [
+        security({
+          source,
+          effectKey: `${cardId}/security-play-free`,
+          description: "[Security] Play this card without paying the cost.",
+          optional: false,
+          resolve: async (ctx) => {
+            await ctx.fx.playFromSecurity(source.instanceId, { payCost: false });
           },
         }),
       ];

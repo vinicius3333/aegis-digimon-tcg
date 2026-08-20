@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-086.js";
 
 describe("BT22-086 Yao Qinglan", () => {
@@ -45,5 +46,14 @@ describe("BT22-086 Yao Qinglan", () => {
       payCost: false,
       target: { filter: { isSelfRef: true }, isSelf: true },
     });
+  });
+
+  it("moves the physical Tamer from hand to battle through the public intent", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT22-086", as: "yao" }] } });
+    const id = s.inst("yao").instanceId;
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: id })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === id));
+    expect(s.state.memory).toBe(2);
   });
 });

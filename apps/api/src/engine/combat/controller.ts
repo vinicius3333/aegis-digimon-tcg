@@ -1,6 +1,7 @@
 import {
   EffectTiming,
   type Permanent,
+  type CardInstance,
   type Seat,
   type AttackTarget,
   type ServerEvent,
@@ -82,6 +83,8 @@ interface OpenCounterWindow {
 
 /** Minimal trigger payload passed to the effect-stack seam for combat timings. */
 export interface CombatTrigger {
+  subjectPermanentId?: string;
+  suspendedPermanentId?: string;
   attackerPermanentId?: string;
   defenderPermanentId?: string;
   blockerPermanentId?: string;
@@ -112,6 +115,11 @@ export interface CombatHooks {
    * way (subsystems: effect-framework, effect-stack-resolution).
    */
   fireTiming: (timing: EffectTiming, trigger: CombatTrigger) => Promise<void>;
+  /** Resolve simultaneous [On Deletion]/<Ascension> reactions in controller-chosen order. */
+  resolveDeletionReactions?: (
+    trigger: CombatTrigger,
+    ascensionCandidates: readonly { instanceId: string; seat: Seat }[],
+  ) => Promise<void>;
   /** Effective colors captured immediately before a battle deletion. */
   effectiveColorsOf?: (permanentId: string) => CardColor[];
   /**
@@ -166,6 +174,8 @@ export interface CombatHooks {
    * "any unsuspended Digimon may block" behavior.
    */
   continuous?: ContinuousLegalityReader;
+  /** Resolve a keyword from printed top-card text plus live continuous grants. */
+  hasKeyword?: (permanentId: string, keyword: string) => boolean;
   /**
    * Add a battle-scoped DP modifier (UntilEndBattle). Used by ＜Alliance＞ (§16-24) to
    * boost the attacking Digimon's DP for the current battle. The modifier is cleaned
@@ -224,6 +234,10 @@ export interface CombatHooks {
    * cost. Backs ＜Fragment＞'s cost payment (§16-37). Optional, mirrors `armorPurge`.
    */
   trashDigivolutionCards?: (hostPermanentId: string, instanceIds: string[]) => Promise<void>;
+  /** Eligible linked cards for a battle-only ＜Detach (trait)＞ prevention. */
+  detachEligibleLinkedCards?: (permanentId: string) => CardInstance[];
+  /** Trash the accepted eligible link through the ordinary trash/event/Overflow seam. */
+  detachLinkedCard?: (permanentId: string, instanceId: string) => Promise<boolean>;
   /**
    * Place a card instance already loose in trash at the top of its owner's security stack, on
    * an already-accepted decision. Backs ＜Ascension＞'s reaction (§16-43). Optional, mirrors
@@ -289,6 +303,12 @@ export class CombatController {
     private readonly hooks: CombatHooks,
   ) {}
 
+  private hasKeyword(permanentId: string, keyword: string): boolean {
+    return (
+      this.hooks.hasKeyword?.(permanentId, keyword) ?? this.hooks.continuous?.hasKeyword(permanentId, keyword) ?? false
+    );
+  }
+
   /** True while an attack is mid-resolution (source AttackProcess.IsAttacking). */
   get isAttacking(): boolean {
     return this.resolving;
@@ -311,7 +331,7 @@ export class CombatController {
       if (perm.isSuspended) continue;
       if (!this.access.isBattleAreaDigimon(perm)) continue;
       if (this.attackedThisTurn.has(perm.permanentId)) continue;
-      if (this.hooks.continuous?.hasKeyword(perm.permanentId, "Blitz") === true) {
+      if (this.hasKeyword(perm.permanentId, "Blitz")) {
         eligible.push(perm.permanentId);
       }
     }
@@ -530,7 +550,7 @@ export class CombatController {
 
       // ＜Alliance＞ (§16-24): when this Digimon attacks, you may suspend another
       // Digimon you control to add its DP to this Digimon for the battle.
-      if (this.hooks.continuous?.hasKeyword(attacker.permanentId, "Alliance")) {
+      if (this.hasKeyword(attacker.permanentId, "Alliance")) {
         const allyIds = this.access
           .battleAreaPermanents(attackerSeat)
           .filter((p) => p.permanentId !== attacker.permanentId && !p.isSuspended && this.access.isBattleAreaDigimon(p))
@@ -552,7 +572,7 @@ export class CombatController {
       // ＜Raid＞ (§16-23): when this Digimon attacks, you may switch the attack target onto
       // the opponent's UNSUSPENDED Digimon with the highest DP (§16-23-4: the attacker's
       // controller picks among any tied for highest).
-      if (this.hooks.continuous?.hasKeyword(attacker.permanentId, "Raid")) {
+      if (this.hasKeyword(attacker.permanentId, "Raid")) {
         const defendingSeat = this.access.opponentOf(attackerSeat);
         const unsuspended = this.access
           .battleAreaPermanents(defendingSeat)
@@ -938,6 +958,10 @@ export class CombatController {
    */
   private async fireSuspended(permanent: Permanent, didSuspend: boolean): Promise<void> {
     if (!didSuspend) return;
+    await this.hooks.fireTiming(EffectTiming.OnTappedAnyone, {
+      subjectPermanentId: permanent.permanentId,
+      suspendedPermanentId: permanent.permanentId,
+    });
     await this.hooks.fireSubTrigger?.("whenSuspended", {
       suspendedPermanentId: permanent.permanentId,
     });
@@ -982,6 +1006,10 @@ export class CombatController {
    * deletes the loser; an equal-DP tie deletes both. The pure decision lives in
    * resolve.ts; here we apply it to authoritative state and narrate.
    */
+  async resolveBattle(attacker: Permanent, defender: Permanent): Promise<void> {
+    await this.resolveDigimonBattle(attacker, defender);
+  }
+
   private async resolveDigimonBattle(attacker: Permanent, defender: Permanent): Promise<void> {
     const continuous = this.hooks.continuous;
     const outcome = resolvePermanentBattle({
@@ -990,8 +1018,8 @@ export class CombatController {
       defenderPermanentId: defender.permanentId,
       defenderDP: defender.currentDP,
       // ＜Iceclad＞ (§16-35): compare digivolution-card counts instead of DP.
-      attackerHasIceclad: continuous?.hasKeyword(attacker.permanentId, "IceClad") ?? false,
-      defenderHasIceclad: continuous?.hasKeyword(defender.permanentId, "IceClad") ?? false,
+      attackerHasIceclad: this.hasKeyword(attacker.permanentId, "IceClad"),
+      defenderHasIceclad: this.hasKeyword(defender.permanentId, "IceClad"),
       attackerDigivolutionCount: attacker.stack.length,
       defenderDigivolutionCount: defender.stack.length,
       // A "can't be deleted in battle" grant (BT16-018/BT19-023/BT3-099-style
@@ -1000,23 +1028,28 @@ export class CombatController {
       defenderSparedFromDeletion: continuous?.hasRestriction(defender.permanentId, "beDeletedInBattle") ?? false,
     });
 
-    // "when this Digimon wins a battle" (whenBattleWon, CR §14-2-1: the higher-DP side wins
-    // regardless of whether the loser is actually deleted — a spared loser via
-    // beDeletedInBattle still counts as a loss for this purpose). Symmetric: either the
-    // attacker or the blocking defender can be the winner, never both (a tie has no winner).
-    if (outcome.comparison === "attackerWins") {
+    // Capture the winner now, but publish only after every "would be deleted/leave" replacement
+    // has resolved (Q7022). The win is based on the comparison, not successful deletion (Q7023).
+    const winningPermanentId =
+      outcome.comparison === "attackerWins"
+        ? attacker.permanentId
+        : outcome.comparison === "defenderWins"
+          ? defender.permanentId
+          : undefined;
+    const winningSeat =
+      outcome.comparison === "attackerWins"
+        ? attacker.controllerSeat
+        : outcome.comparison === "defenderWins"
+          ? defender.controllerSeat
+          : undefined;
+    const fireBattleWon = async (): Promise<void> => {
+      if (winningPermanentId === undefined) return;
       await this.hooks.fireSubTrigger?.("whenBattleWon", {
         attackerPermanentId: attacker.permanentId,
         defenderPermanentId: defender.permanentId,
-        subjectPermanentId: attacker.permanentId,
+        subjectPermanentId: winningPermanentId,
       });
-    } else if (outcome.comparison === "defenderWins") {
-      await this.hooks.fireSubTrigger?.("whenBattleWon", {
-        attackerPermanentId: attacker.permanentId,
-        defenderPermanentId: defender.permanentId,
-        subjectPermanentId: defender.permanentId,
-      });
-    }
+    };
 
     const c = continuous;
     const finalDeletedIds = [...outcome.deletedPermanentIds];
@@ -1027,7 +1060,7 @@ export class CombatController {
     const evadedIds = new Set<string>();
     const evadeSuspended: Permanent[] = [];
     for (const permanentId of finalDeletedIds) {
-      if (!c?.hasKeyword(permanentId, "Evade")) continue;
+      if (!this.hasKeyword(permanentId, "Evade")) continue;
       const perm = this.access.permanentById(permanentId);
       if (perm === undefined || perm.isSuspended) continue;
       const accepted = await this.runEvadeDecision(perm.controllerSeat, permanentId);
@@ -1047,7 +1080,7 @@ export class CombatController {
     // system).
     const barrieredIds = new Set<string>();
     for (const permanentId of resolvedDeletedIds) {
-      if (!c?.hasKeyword(permanentId, "Barrier")) continue;
+      if (!this.hasKeyword(permanentId, "Barrier")) continue;
       const perm = this.access.permanentById(permanentId);
       if (perm === undefined) continue;
       if (this.access.securityCount(perm.controllerSeat) === 0) continue;
@@ -1061,6 +1094,28 @@ export class CombatController {
       }
     }
     const postBarrierDeletedIds = resolvedDeletedIds.filter((id) => !barrieredIds.has(id));
+
+    // ＜Detach (trait)＞ (Q6964): immediately before this Digimon is deleted IN BATTLE,
+    // its controller may trash 1 eligible link card to prevent only this deletion. The
+    // link leaves now — before the opponent is deleted and before Piercing is read — so
+    // linked effects from that card are no longer active when battle deletion settles.
+    const detachedIds = new Set<string>();
+    for (const permanentId of postBarrierDeletedIds) {
+      const perm = this.access.permanentById(permanentId);
+      if (perm === undefined) continue;
+      const eligible = this.hooks.detachEligibleLinkedCards?.(permanentId) ?? [];
+      if (eligible.length === 0) continue;
+      const chosenInstanceId = await this.hooks.selectOptionalInstance?.(
+        perm.controllerSeat,
+        eligible.map((card) => card.instanceId),
+        "＜Detach＞: trash 1 eligible link card to prevent this Digimon's battle deletion?",
+      );
+      if (chosenInstanceId === undefined) continue;
+      if ((await this.hooks.detachLinkedCard?.(permanentId, chosenInstanceId)) === true) {
+        detachedIds.add(permanentId);
+      }
+    }
+    const postDetachDeletedIds = postBarrierDeletedIds.filter((id) => !detachedIds.has(id));
 
     // ＜Retaliation＞ (§16-13): when a Digimon WITH THIS EFFECT is deleted in battle, the battled
     // opponent's Digimon is also deleted. The keyword belongs to the DYING side — it is the
@@ -1081,14 +1136,14 @@ export class CombatController {
     // deleted" preventions below (＜Armor Purge＞ §16-19-1, ＜Fragment＞ §16-37-1, ＜Scapegoat＞
     // §16-32-1). For the same reason a Retaliation kill does not chain: the newly added id is
     // never re-examined, so a victim that also carries Retaliation does not re-trigger.
-    const battleDeletedIds = new Set(postBarrierDeletedIds);
+    const battleDeletedIds = new Set(postDetachDeletedIds);
     const withRetaliation = new Set(battleDeletedIds);
     const attackerDiedAlone = battleDeletedIds.has(attacker.permanentId) && !battleDeletedIds.has(defender.permanentId);
     const defenderDiedAlone = battleDeletedIds.has(defender.permanentId) && !battleDeletedIds.has(attacker.permanentId);
-    if (attackerDiedAlone && c?.hasKeyword(attacker.permanentId, "Retaliation")) {
+    if (attackerDiedAlone && this.hasKeyword(attacker.permanentId, "Retaliation")) {
       withRetaliation.add(defender.permanentId);
     }
-    if (defenderDiedAlone && c?.hasKeyword(defender.permanentId, "Retaliation")) {
+    if (defenderDiedAlone && this.hasKeyword(defender.permanentId, "Retaliation")) {
       withRetaliation.add(attacker.permanentId);
     }
     const postRetaliationDeletedIds = [...withRetaliation];
@@ -1098,7 +1153,7 @@ export class CombatController {
     // >= 1 digivolution card to promote.
     const armorPurgedIds = new Set<string>();
     for (const permanentId of postRetaliationDeletedIds) {
-      if (!c?.hasKeyword(permanentId, "Armor Purge")) continue;
+      if (!this.hasKeyword(permanentId, "Armor Purge")) continue;
       const perm = this.access.permanentById(permanentId);
       if (perm === undefined || perm.topCard === undefined || perm.stack.length === 0) continue;
       const chosenInstanceId = await this.hooks.selectOptionalInstance?.(
@@ -1116,7 +1171,7 @@ export class CombatController {
     // prevent this Digimon's deletion. All-or-nothing: fewer than N chosen is a decline.
     const fragmentSavedIds = new Set<string>();
     for (const permanentId of postArmorPurgeDeletedIds) {
-      if (!c?.hasKeyword(permanentId, "Fragment")) continue;
+      if (!this.hasKeyword(permanentId, "Fragment")) continue;
       const perm = this.access.permanentById(permanentId);
       if (perm === undefined || perm.topCard === undefined) continue;
       const n = fragmentCountOf(perm.topCard.cardId);
@@ -1138,7 +1193,7 @@ export class CombatController {
     // so — unlike the effect-deletion path in primitives.ts — no cause check is needed here.
     const scapegoatSavedIds = new Set<string>();
     for (const permanentId of postFragmentDeletedIds) {
-      if (!c?.hasKeyword(permanentId, "Scapegoat")) continue;
+      if (!this.hasKeyword(permanentId, "Scapegoat")) continue;
       const perm = this.access.permanentById(permanentId);
       if (perm === undefined) continue;
       const candidates = this.access
@@ -1170,12 +1225,17 @@ export class CombatController {
     const cardPreventedIds = (await this.hooks.consultLeavePrevention?.(postScapegoatDeletedIds)) ?? new Set<string>();
     const postCardPreventionDeletedIds = postScapegoatDeletedIds.filter((id) => !cardPreventedIds.has(id));
 
+    // The win and successful-deletion effects trigger simultaneously (Q7021). Resolve the turn
+    // player's win before the deletion window; a non-turn-player winner waits until that window
+    // has resolved, preserving turn-player priority across the two trigger families.
+    if (winningSeat === attacker.controllerSeat) await fireBattleWon();
+
     // ＜Fortitude＞ (§16-27): a Digimon with digivolution cards AND this effect, when deleted,
     // is replayed for free (mandatory — no decision). Captured pre-deletion so "had
     // digivolution cards" reads the live stack.
     const fortitudeReplayInstanceIds = new Map<string, string>();
     for (const permanentId of postCardPreventionDeletedIds) {
-      if (!c?.hasKeyword(permanentId, "Fortitude")) continue;
+      if (!this.hasKeyword(permanentId, "Fortitude")) continue;
       const perm = this.access.permanentById(permanentId);
       if (perm === undefined || perm.topCard === undefined || perm.stack.length === 0) continue;
       fortitudeReplayInstanceIds.set(permanentId, perm.topCard.instanceId);
@@ -1186,7 +1246,7 @@ export class CombatController {
     // captured pre-deletion for the same reason as Fortitude).
     const ascensionCandidates = new Map<string, Seat>();
     for (const permanentId of postCardPreventionDeletedIds) {
-      if (!c?.hasKeyword(permanentId, "Ascension")) continue;
+      if (!this.hasKeyword(permanentId, "Ascension")) continue;
       const perm = this.access.permanentById(permanentId);
       if (perm === undefined || perm.topCard === undefined) continue;
       ascensionCandidates.set(perm.topCard.instanceId, perm.controllerSeat);
@@ -1199,7 +1259,10 @@ export class CombatController {
     // whenDeletesInBattle (the WINNER's reaction, fired below).
     for (const permanentId of postCardPreventionDeletedIds) {
       if (this.access.permanentById(permanentId)?.topCard === undefined) continue;
-      await this.hooks.fireSubTrigger?.("onDeletionOf", { deletedPermanentId: permanentId });
+      await this.hooks.fireSubTrigger?.("onDeletionOf", {
+        deletedPermanentId: permanentId,
+        deletedPermanentIds: postCardPreventionDeletedIds,
+      });
       // whenLeavesPlay is the delete∪bounce superset; fire it here too so a watcher reacts to
       // a battle deletion, matching the effect-path primitive (otherwise a card works when
       // deleted by an effect but silently not when deleted in combat).
@@ -1231,7 +1294,7 @@ export class CombatController {
       // the keyword HERE (a cheap synchronous check) rather than inside the hook so a battle
       // death with no Material Save holder — the overwhelming majority — never pays for the
       // extra microtask hop of an awaited hook call it doesn't need.
-      if (c?.hasKeyword(permanentId, "MaterialSave")) {
+      if (this.hasKeyword(permanentId, "MaterialSave")) {
         await this.hooks.materialSave?.(permanentId);
       }
       const stackIds = this.access.permanentById(permanentId)?.stack.map((c) => c.instanceId) ?? [];
@@ -1256,7 +1319,7 @@ export class CombatController {
     }
 
     // ＜Ascension＞ reaction: only for cards that actually left the field (in deletedInstanceIds).
-    for (const [instanceId, seat] of ascensionCandidates) {
+    for (const [instanceId, seat] of this.hooks.resolveDeletionReactions ? [] : ascensionCandidates) {
       if (!deletedInstanceIds.includes(instanceId)) continue;
       const chosenInstanceId = await this.hooks.selectOptionalInstance?.(
         seat,
@@ -1279,15 +1342,26 @@ export class CombatController {
     // battle outcome is fixed. A single fire lets resolveTiming batch a both-combatants tie and
     // order the triggers turn-player-first; the trashed cards become [On Deletion] candidates.
     if (deleted.length > 0) {
-      await this.hooks.fireTiming(EffectTiming.OnDestroyedAnyone, {
+      const deletionTrigger = {
         deletedPermanentId: deleted[0],
         deletedInstanceIds,
         deletedWasStackInstanceIds,
         deletedEffectiveColorsByInstanceId,
         battleOpponentPermanentIdByInstanceId,
-        removalCause: "byBattle",
-      });
+        removalCause: "byBattle" as const,
+      };
+      if (this.hooks.resolveDeletionReactions) {
+        await this.hooks.resolveDeletionReactions(
+          deletionTrigger,
+          [...ascensionCandidates].flatMap(([instanceId, seat]) =>
+            deletedInstanceIds.includes(instanceId) ? [{ instanceId, seat }] : [],
+          ),
+        );
+      } else {
+        await this.hooks.fireTiming(EffectTiming.OnDestroyedAnyone, deletionTrigger);
+      }
     }
+    if (winningSeat !== undefined && winningSeat !== attacker.controllerSeat) await fireBattleWon();
 
     // SubTrigger bus (System B): "when this Digimon deletes [an opponent's Digimon] in
     // battle" watchers — DISTINCT from `onDeletionOf` (which fires for the DELETED card via

@@ -64,6 +64,8 @@ export interface DigivolveIntent {
    * match, use the alternate requirement's cost instead of the printed one. When only
    * one path matches, that path is always used regardless of this flag. */
   useAlternateCost?: boolean;
+  /** Explicit server-validated alternate path. Indexes `digivolutionRequirementsFor(cardId)`. */
+  alternateRequirementIndex?: number;
 }
 
 /** Stable rejection reasons (subset of the API-CONTRACT intent-validation vocabulary). */
@@ -395,11 +397,20 @@ export function validateDigivolve(
   const evoCost = deps.colorWaived?.(state, found.instance)
     ? matchingEvoCostIgnoringColor(definition, baseDef)
     : matchingEvoCost(definition, baseDef, derivedBaseColors);
-  const matchedAlternateRequirement = matchingAlternateDigivolutionRequirement(definition, baseDef);
+  const matchedAlternateRequirement = matchingAlternateDigivolutionRequirement(
+    definition,
+    baseDef,
+    intent.alternateRequirementIndex === undefined ? undefined : { requirementIndex: intent.alternateRequirementIndex },
+  );
   const altRequirement =
     matchedAlternateRequirement !== undefined && alternateRequirementAvailable(state, seat, matchedAlternateRequirement)
       ? matchedAlternateRequirement
       : undefined;
+  // An explicit path is a declaration, not a preference. Never silently fall back to a
+  // printed/other alternate route when the requested index is absent or fails its live gates.
+  if (intent.alternateRequirementIndex !== undefined && altRequirement === undefined) {
+    return { ok: false, reason: "invalid-evolution" };
+  }
   // Base-GRANTED path (ST7-03/BT6-060): a static on the BASE permanent lets this specific card
   // digivolve onto it for a fixed cost, ignoring the printed color/level requirement. An
   // independent third path — legal even when neither the EvoCost nor an alternate requirement match.
@@ -419,7 +430,9 @@ export function validateDigivolve(
   // 5. Affordability: pick the cost path. When both match, `useAlternateCost` selects the
   //    alternate requirement; otherwise the printed EvoCost is used. When only one path
   //    matches, that path is always used regardless of the flag.
-  const useAlt = intent.useAlternateCost === true && altRequirement !== undefined;
+  const useAlt =
+    (intent.useAlternateCost === true || intent.alternateRequirementIndex !== undefined) &&
+    altRequirement !== undefined;
   // The path actually used is the alternate requirement when it is the only match, or when
   // both match and the intent selected it.
   const usedAlternate = altRequirement !== undefined && (evoCost === undefined || useAlt);
@@ -657,6 +670,9 @@ export async function applyDigivolve(
     return { ok: false, reason: "card-not-in-zone" };
   }
   const priorTop = pushDigivolution(permanent, evolving);
+  // A manually declared digivolution replaces the current top's entry provenance; an
+  // effect-driven digivolution uses the separate primitive seam and marks it afterward.
+  permanent.enteredByEffect = false;
   deps.emit?.({
     kind: "cardsMoved",
     instanceIds: [evolving.instanceId],

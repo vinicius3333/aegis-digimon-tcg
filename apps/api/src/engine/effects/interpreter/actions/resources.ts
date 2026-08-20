@@ -31,7 +31,17 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
         ctx.fx.delayedGainMemory?.(seat, amount);
         return false;
       }
-      ctx.fx.gainMemoryForSeat(seat, amount, { isTamerEffect: isTamer(ctx.source.definition) });
+      // A Tamer temporarily treated as a Digimon remains a Tamer for this exception
+      // (KB Q6381 / BT25-079). Read effective kinds from the live permanent when the
+      // source is on the field; loose/security sources fall back to printed kinds.
+      const sourcePermanent = ctx.source.permanent();
+      const effectiveSourceKinds =
+        sourcePermanent === undefined
+          ? ctx.source.definition.kinds
+          : (ctx.game.effectiveKinds?.(sourcePermanent.permanentId) ?? ctx.source.definition.kinds);
+      ctx.fx.gainMemoryForSeat(seat, amount, {
+        isTamerEffect: effectiveSourceKinds.includes(CardKind.Tamer),
+      });
       return false;
     }
     case "SetMemory":

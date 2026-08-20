@@ -22,12 +22,7 @@ import { MemoryGauge } from "../MemoryGauge.js";
 import { applyOverflow } from "../state/access.js";
 import { validateDecklist } from "../deckValidation.js";
 import { RED_DECK } from "../testDecks.js";
-import {
-  setupEngine as setup,
-  makeInstance as instance,
-  makeDigimon as digimon,
-  settle,
-} from "../testkit/harness.js";
+import { setupEngine as setup, makeInstance as instance, makeDigimon as digimon, settle } from "../testkit/harness.js";
 import "../../cards/index.js";
 import { advance } from "../testkit/advance.js";
 
@@ -261,29 +256,26 @@ describe("§2-3-8 Burst Digivolve (comprehensive-0040)", () => {
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT13-020")).toBe(true);
   });
 
-  it(
-    "NOW MET: the returned [Marcus Damon] alternate cost should leave the battle area and land in hand",
-    async () => {
-      const { s, p0, base, marcus, burstCard } = layBurstScenario();
+  it("NOW MET: the returned [Marcus Damon] alternate cost should leave the battle area and land in hand", async () => {
+    const { s, p0, base, marcus, burstCard } = layBurstScenario();
 
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: base.permanentId,
-        instanceId: burstCard.instanceId,
-        useAlternateCost: true,
-      });
-      await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT13-020"), 200);
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: base.permanentId,
+      instanceId: burstCard.instanceId,
+      useAlternateCost: true,
+    });
+    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === "BT13-020"), 200);
 
-      // DIVERGENCE: the compiled card's own "Return 1 [Marcus Damon] to hand" action (same
-      // compiled card, under a "Static" trigger alongside the Digivolve/TrashDigivolution/
-      // GainKeyword actions) never runs when driven through the real digivolve intent — the
-      // engine grants the free (Cost 0) digivolve WITHOUT enforcing the cost that pays for it.
-      // Today: marcus is still on the battle area and hand is empty. Expected per the rule:
-      // marcus should be gone from the battle area and present in hand.
-      expect(p0.battleArea.some((p) => p.permanentId === marcus.permanentId)).toBe(false);
-      expect(p0.hand.some((c) => c.cardId === "BT12-092")).toBe(true);
-    },
-  );
+    // DIVERGENCE: the compiled card's own "Return 1 [Marcus Damon] to hand" action (same
+    // compiled card, under a "Static" trigger alongside the Digivolve/TrashDigivolution/
+    // GainKeyword actions) never runs when driven through the real digivolve intent — the
+    // engine grants the free (Cost 0) digivolve WITHOUT enforcing the cost that pays for it.
+    // Today: marcus is still on the battle area and hand is empty. Expected per the rule:
+    // marcus should be gone from the battle area and present in hand.
+    expect(p0.battleArea.some((p) => p.permanentId === marcus.permanentId)).toBe(false);
+    expect(p0.hand.some((c) => c.cardId === "BT12-092")).toBe(true);
+  });
 });
 
 describe("§2-3-9 App Fusion (comprehensive-0041)", () => {
@@ -292,6 +284,17 @@ describe("§2-3-9 App Fusion (comprehensive-0041)", () => {
     // AD1-005 prints "[App Fusion] [Globemon] & [Charismon]: Cost 0".
     const cost = appFusionCostFor("AD1-005", { topName: "Globemon", linkedNames: ["Charismon"] });
     expect(cost).toBe(0);
+  });
+
+  it("exposes BT26 three-name App Fusion recipes and accepts every distinct ordered pair", () => {
+    const names = ["Weathermon", "Rocketmon", "Newsmon"];
+    for (const topName of names) {
+      for (const linkedName of names.filter((name) => name !== topName)) {
+        expect(appFusionCostFor("BT26-037", { topName, linkedNames: [linkedName] })).toBe(0);
+      }
+    }
+    expect(appFusionCostFor("BT26-037", { topName: "Weathermon", linkedNames: ["Weathermon"] })).toBeUndefined();
+    expect(appFusionCostFor("BT26-037", { topName: "Unrelated", linkedNames: ["Rocketmon"] })).toBeUndefined();
   });
 });
 
@@ -438,7 +441,7 @@ describe("§2-10 Overflow (comprehensive-0049)", () => {
 });
 
 describe("§2-11 Arts Digivolve (comprehensive-0050)", () => {
-  it("a DUAL card is playable as its Option side (an explicit useAs: \"option\"), applying its printed Option effect", async () => {
+  it('a DUAL card is playable as its Option side (an explicit useAs: "option"), applying its printed Option effect', async () => {
     cite(
       "comprehensive-0050",
       "Arts Digivolve (§4-19-1) is a rule on DUAL cards — 'instead of the trashing from the " +

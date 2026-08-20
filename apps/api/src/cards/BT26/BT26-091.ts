@@ -32,16 +32,9 @@ import { registerCard } from "../../engine/effects/registry.js";
  *   EffectTiming.None — [Your Turn] static: installs TWO SubTrigger watchers anchored to
  *     this Tamer, mirroring BT26-089's/BT13-008's dual-watcher shape:
  *       - `whenSuspended` for "any of your opponent's Digimon or Tamers suspend"
- *         (matches BT13-008's own-Tamer-suspend watcher, gated on the opponent seat
- *         instead of the owner's). KNOWN ENGINE GAP (shared with BT13-008, already
- *         shipped): `whenSuspended` only fires from the effect-driven `fx.suspend`
- *         primitive (primitives.ts) — combat self-suspend to attack and block-suspend
- *         both call `access.suspend` directly (combat/controller.ts resolveAttack /
- *         the block-declare path) and NEVER route through `fx.suspend`, so this watcher
- *         does NOT fire when an opponent's Digimon suspends to attack or block. It fires
- *         only for effect-driven suspensions of the opponent's permanents. This is the
- *         most rules-plausible mapping available today; documented rather than worked
- *         around per the implementation conventions.
+ *         (matches BT13-008's own-Tamer-suspend watcher, gated on the opponent seat).
+ *         Both effect suspension and combat's rules suspension publish this generic
+ *         event; combat intentionally does not publish the effect-only sibling.
  *       - `whenEffectRemovesFromSecurity`'s sibling for the digivolution-stack side,
  *         `whenDigivolutionTrashed` (primitives.ts `trashDigivolutionCards` — the same
  *         event EX1-020/ST24-14 watch), for "effects trash cards from under this Tamer":
@@ -82,8 +75,8 @@ function isEligibleDigivolveTarget(def: CardDefinition): boolean {
 async function suspendSelf(ctx: EffectContext): Promise<boolean> {
   const self = ctx.source.permanent();
   if (self === undefined || self.isSuspended) return false;
-  await ctx.fx.suspend([self.permanentId]);
-  return true;
+  const suspended = await ctx.fx.suspend([self.permanentId]);
+  return suspended.includes(self.permanentId);
 }
 
 /**
@@ -156,7 +149,7 @@ const module: EffectModule = {
             });
             if (chosen.length === 0) return;
 
-            await ctx.fx.placeUnder(selfPerm.permanentId, chosen);
+            await ctx.fx.placeUnder(selfPerm.permanentId, chosen, { faceUp: false });
             await ctx.fx.draw(source.ownerSeat, 1);
             ctx.fx.gainMemory(1);
           },
@@ -168,7 +161,7 @@ const module: EffectModule = {
     // cards from under this Tamer, by suspending this Tamer, 1 of your Digimon may
     // digivolve into a [Vegetation], [Fairy] or [DATA SQUAD] trait Digimon card in the
     // hand with the cost reduced by 1. See the module header for the two watchers and the
-    // whenSuspended engine gap.
+    // combat/effect `whenSuspended` event sources.
     if (timing === EffectTiming.None) {
       return [
         staticModifier({

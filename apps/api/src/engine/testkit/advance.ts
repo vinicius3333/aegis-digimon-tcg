@@ -157,9 +157,13 @@ export function advance(engine: GameEngine) {
         await internals.recomputeContinuousEffects();
       },
       /** Effect-driven digivolution through the production primitive. */
-      async digivolveFromInstance(permanentId: string, instanceId: string): Promise<void> {
+      async digivolveFromInstance(
+        permanentId: string,
+        instanceId: string,
+        opts?: Parameters<typeof internals.primitives.digivolveFromInstance>[2],
+      ): Promise<void> {
         await internals.recomputeContinuousEffects();
-        await internals.primitives.digivolveFromInstance(permanentId, instanceId);
+        await internals.primitives.digivolveFromInstance(permanentId, instanceId, opts);
         await internals.recomputeContinuousEffects();
       },
       /** Place an Option as a battle-area permanent without using its [Main] effect. */

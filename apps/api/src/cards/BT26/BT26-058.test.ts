@@ -1,6 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import { CardKind, EffectDuration, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type {
   EffectContext,
@@ -10,6 +12,7 @@ import type {
   ReplacementInstallPrevent,
 } from "../../engine/effects/EffectContext.js";
 import "./BT26-058.js";
+import "../index.js";
 
 // BT26-058 (HiAndromon, BT26):
 //   "[When Digivolving] [When Attacking] [Once Per Turn] Your opponent's Digimon effects don't
@@ -105,15 +108,17 @@ function makeHarness(options: {
   } as unknown as GameAccess;
 
   const restricts: unknown[] = [];
-  const placements: { target: string; ids: string[] }[] = [];
+  const rotations: string[] = [];
   const replacements: ReplacementInstall[] = [];
   const fx = {
-    restrict: vi.fn<(...args: any[]) => any>((permanentId: string, restriction: string, duration: EffectDuration, opts?: unknown) => {
-      restricts.push({ permanentId, restriction, duration, opts });
-    }),
-    placeUnder: vi.fn<(...args: any[]) => any>(async (target: string, ids: string[]) => {
-      placements.push({ target, ids });
-      return ids.map((instanceId) => ({ instanceId }));
+    restrict: vi.fn<(...args: any[]) => any>(
+      (permanentId: string, restriction: string, duration: EffectDuration, opts?: unknown) => {
+        restricts.push({ permanentId, restriction, duration, opts });
+      },
+    ),
+    placeOwnTopAtStackBottom: vi.fn<(...args: any[]) => any>((target: string) => {
+      rotations.push(target);
+      return selfPermanent.stack!.length > 0;
     }),
     subscribeReplacement: vi.fn<(...args: any[]) => any>((sub: ReplacementInstall) => {
       replacements.push(sub);
@@ -132,7 +137,7 @@ function makeHarness(options: {
 
   const source = makeSource();
   const ctx = { source, trigger: {}, game, fx, ask } as unknown as EffectContext;
-  return { ctx, restricts, placements, replacements, offered, source };
+  return { ctx, restricts, rotations, replacements, offered, source };
 }
 
 function effectFor(timing: EffectTiming, source: CardSource, key: string) {
@@ -237,7 +242,7 @@ describe("BT26-058 [All Turns]: keep a [CS] Digimon on the field by rotating a s
     expect(protects!(harness.ctx, "missing")).toBe(false);
   });
 
-  it("pays with the TOP stacked card, placing it back as the bottom digivolution card", async () => {
+  it("pays by rotating HiAndromon's current top card to the bottom of its own stack", async () => {
     const harness = makeHarness({
       selfStack: [
         { instanceId: "stack-bottom", cardId: PLAIN_DIGIMON },
@@ -248,18 +253,202 @@ describe("BT26-058 [All Turns]: keep a [CS] Digimon on the field by rotating a s
     const { preventCheck } = sub as ReplacementInstallPrevent;
 
     await expect(preventCheck(harness.ctx, "my-cs")).resolves.toBe(true);
-    expect(harness.placements).toEqual([{ target: SELF_PERMANENT, ids: ["stack-top"] }]);
+    expect(harness.rotations).toEqual([SELF_PERMANENT]);
   });
 
   it("declines when the stack is empty or the controller refuses to pay", async () => {
     const empty = makeHarness({ selfStack: [] });
     const emptyCheck = (await install(empty)) as ReplacementInstallPrevent;
     await expect(emptyCheck.preventCheck(empty.ctx, "my-cs")).resolves.toBe(false);
-    expect(empty.placements).toEqual([]);
+    expect(empty.rotations).toEqual([]);
 
     const refused = makeHarness({ selfStack: [{ instanceId: "stack-top", cardId: PLAIN_DIGIMON }], accept: false });
     const refusedCheck = (await install(refused)) as ReplacementInstallPrevent;
     await expect(refusedCheck.preventCheck(refused.ctx, "my-cs")).resolves.toBe(false);
-    expect(refused.placements).toEqual([]);
+    expect(refused.rotations).toEqual([]);
+  });
+});
+
+describe("BT26-058 public engine behavior", () => {
+  it("blocks a hand-written opponent Digimon effect but still allows an opponent Option effect", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "hiandromon" },
+            { card: "BT22-056", as: "protectedCs" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "redSource" }],
+          hand: [
+            { card: "BT26-014", as: "digimonEffect" },
+            { card: "BT12-099", as: "optionEffect" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("protectedCs").permanentId);
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("hiandromon"));
+
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("digimonEffect").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT26-014"));
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("protectedCs").permanentId),
+    ).toBe(true);
+
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("optionEffect").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.every((permanent) => permanent.topCard.cardId !== "BT22-056"));
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT22-056");
+  });
+
+  it("uses the Lv.5 [CS] alternate evolution and spends the shared OPT on the chosen protection", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-023", as: "blueCsBase" },
+            { card: "BT22-051", as: "otherCs" },
+          ],
+          hand: [{ card: CARD_ID, as: "hiandromon" }],
+          deck: ["BT1-009"],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("otherCs").permanentId);
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blueCsBase").permanentId,
+        instanceId: s.inst("hiandromon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some((decision) => decision.req.kind === "chooseTargets"));
+    await settle();
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("blueCsBase").topCard.cardId).toBe(CARD_ID);
+    expect(s.perm("blueCsBase").stack.map((card) => card.cardId)).toEqual(["BT22-023"]);
+    const choicesAfterEvolution = s.decisions.filter((decision) => decision.req.kind === "chooseTargets");
+    expect(choicesAfterEvolution).toHaveLength(1);
+    expect(choicesAfterEvolution[0]!.req.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.perm("blueCsBase").permanentId, s.perm("otherCs").permanentId]),
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("blueCsBase").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.decisions.filter((decision) => decision.req.kind === "chooseTargets")).toHaveLength(1);
+  });
+
+  it("prevents an own CS Digimon leaving by moving HiAndromon itself to stack bottom and promoting the prior card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: CARD_ID,
+              as: "hiandromon",
+              under: [
+                { card: "BT22-059", as: "oldBottom" },
+                { card: "BT26-054", as: "promoted" },
+              ],
+            },
+            { card: "BT22-051", as: "victim" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    const victimId = s.perm("victim").permanentId;
+    const hiandromonCardId = s.perm("hiandromon").topCard.instanceId;
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([victimId], "byEffect")).toBe(0);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === victimId)).toBe(true);
+    expect(s.perm("hiandromon").topCard.instanceId).toBe(s.inst("promoted").instanceId);
+    expect(s.perm("hiandromon").stack.map((card) => card.instanceId)).toEqual([
+      hiandromonCardId,
+      s.inst("oldBottom").instanceId,
+    ]);
+    expect(s.decisions.filter((decision) => decision.req.kind === "optional")).toHaveLength(1);
+  });
+
+  it("does not prevent leaving when the player declines or HiAndromon has no digivolution card", async () => {
+    const declined = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "hiandromon", under: [{ card: "BT26-054", as: "under" }] },
+            { card: "BT22-051", as: "victim" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    const declinedVictimId = declined.perm("victim").permanentId;
+    await declined.ready();
+
+    expect(await advance(declined.engine).verb.deletePermanent([declinedVictimId], "byEffect")).toBe(1);
+    expect(declined.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === declinedVictimId)).toBe(
+      false,
+    );
+    expect(declined.perm("hiandromon").topCard.cardId).toBe(CARD_ID);
+
+    const empty = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "hiandromon" },
+            { card: "BT22-051", as: "victim" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    const emptyVictimId = empty.perm("victim").permanentId;
+    await empty.ready();
+
+    expect(await advance(empty.engine).verb.deletePermanent([emptyVictimId], "byEffect")).toBe(1);
+    expect(empty.decisions.filter((decision) => decision.req.kind === "optional")).toHaveLength(0);
+  });
+
+  it("never protects an opponent's CS Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "hiandromon", under: ["BT26-054"] }] },
+        1: { battleArea: [{ card: "BT22-051", as: "opponentCs" }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    const opponentId = s.perm("opponentCs").permanentId;
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([opponentId], "byEffect")).toBe(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.decisions.filter((decision) => decision.req.kind === "optional")).toHaveLength(0);
   });
 });

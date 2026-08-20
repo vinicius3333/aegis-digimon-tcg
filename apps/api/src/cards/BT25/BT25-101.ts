@@ -5,8 +5,18 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { activated, colorWaiverStatic, security, staticModifier } from "../../engine/effects/builders.js";
+import { cardHasTrait } from "../../engine/cards/cardData.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
+/**
+ * BT25-101 — Divine Arms Version Ω.
+ *
+ * Q6475 gates Draw 2 and the link behind the TS hand-trash cost. Q6478/Q6480 allow the
+ * effect-driven free link to choose a breeding-area Digimon. Q6479 requires a trash candidate
+ * to actually carry a Link requirement; TS alone is insufficient. Q6481 is handled by the
+ * shared leave-prevention/link teardown: the paid link card is trashed before battle deletion,
+ * so its linked keywords are gone before Piercing is evaluated.
+ */
 const cardId = "BT25-101";
 const linkHostName = "Vulcanusmon";
 
@@ -15,7 +25,13 @@ const linkGrantDuration = EffectDuration.UntilEachTurnEnd;
 
 /** Does a card definition carry the [TS] trait? (source CardSource.HasTSTraits). */
 function hasTsTrait(def: CardDefinition): boolean {
-  return (def.types ?? []).some((t) => t.toUpperCase() === "TS");
+  return cardHasTrait(def, "TS");
+}
+
+/** Q6479: the trash card must itself have a printed Link requirement. */
+function canBeLinked(def: CardDefinition): boolean {
+  const requirement = def.linkRequirement?.trim();
+  return requirement !== undefined && requirement !== "" && requirement !== "-";
 }
 
 /**
@@ -43,13 +59,17 @@ function linkedHost(source: CardSource): ReturnType<CardSource["permanent"]> {
   return source.permanent();
 }
 
-/** Owner battle-area Digimon permanent ids (the link targets for the [Main]). */
+/** Owner field Digimon ids, including the breeding slot (Q6478/Q6480). */
 function ownerDigimonPermanentIds(ctx: EffectContext, source: CardSource): string[] {
   const owner = ctx.game.player(source.ownerSeat);
   const ids: string[] = [];
   for (const permanent of owner.battleArea) {
     if (permanent.topCard == null) continue;
     if (isDigimon(ctx.game.definitionOf(permanent.topCard))) ids.push(permanent.permanentId);
+  }
+  const breeding = owner.breeding;
+  if (breeding?.topCard !== undefined && isDigimon(ctx.game.definitionOf(breeding.topCard))) {
+    ids.push(breeding.permanentId);
   }
   return ids;
 }
@@ -84,7 +104,10 @@ async function resolveMain(ctx: EffectContext, source: CardSource): Promise<void
   if (hostIds.length === 0) return;
 
   const tsTrashIds = Array.from(owner.trash)
-    .filter((c) => hasTsTrait(ctx.game.definitionOf(c)))
+    .filter((c) => {
+      const def = ctx.game.definitionOf(c);
+      return hasTsTrait(def) && canBeLinked(def);
+    })
     .map((c) => c.instanceId);
 
   const willLink = await ctx.ask.optional(

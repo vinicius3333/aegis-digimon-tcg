@@ -4,7 +4,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, whenDigivolving } from "../../engine/effects/builders.js";
+import { onPlay, staticModifier, whenDigivolving } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-041 — Hudiemon (BT26, Green/Yellow Lv.4 Digimon, Insectoid/NSp).
@@ -17,6 +17,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 //   requirement, not an effect clause; carried by CardDefinition.evoCosts in cards.json.
 // [On Play] [When Digivolving] Add your top security card to the hand and ＜Recovery +1＞
 //   Then, you may suspend 1 Digimon.
+// [Your Turn] [Once Per Turn] inherited: When this Digimon wins a battle, gain 1 memory.
 //
 // One clause over two windows, so both entries share a resolver (BT26-025's idiom).
 // "Add your top security card to the hand" is `securityToHand(..., { fromTop: true })` and
@@ -90,6 +91,33 @@ const module: EffectModule = {
           optional: false,
           resolve: async (ctx) => {
             await securityToHandRecoverThenSuspend(ctx, source);
+          },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/inherited-battle-won-memory`,
+          description: "[Your Turn] [Once Per Turn] When this Digimon wins a battle, gain 1 memory.",
+          isInherited: true,
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self === undefined) return;
+            ctx.fx.subscribeSubTrigger({
+              event: "whenBattleWon",
+              sourcePermanentId: self.permanentId,
+              once: false,
+              oncePerTurnKey: `${cardId}/inherited-battle-won-memory`,
+              description: `${cardId}: when this Digimon wins a battle, gain 1 memory`,
+              matches: (subCtx) =>
+                subCtx.source.isOwnersTurn() && subCtx.trigger?.subjectPermanentId === self.permanentId,
+              run: async (subCtx) => {
+                subCtx.fx.gainMemory(1);
+              },
+            });
           },
         }),
       ];

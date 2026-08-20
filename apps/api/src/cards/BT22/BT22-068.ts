@@ -70,6 +70,7 @@ export const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "whenDeletesInBattle",
           sourceFilter: { isSelfRef: true },
+          notSimultaneous: true,
           actions: [
             {
               kind: "GainMemory",

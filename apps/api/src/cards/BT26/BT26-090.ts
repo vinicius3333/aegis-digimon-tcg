@@ -126,7 +126,8 @@ const module: EffectModule = {
             const chosenCard = candidates.find((c) => c.instanceId === chosen[0]!);
             const optionCost = chosenCard ? ctx.game.definitionOf(chosenCard).playCost : undefined;
 
-            await ctx.fx.suspend([self.permanentId]);
+            const suspended = await ctx.fx.suspend([self.permanentId]);
+            if (!suspended.includes(self.permanentId)) return;
 
             const opponentSeat = ctx.game.opponentOf(ownerSeat);
             const opponentMemory = Math.max(0, memoryFor(ctx, opponentSeat));

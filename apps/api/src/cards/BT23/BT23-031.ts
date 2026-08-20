@@ -95,6 +95,12 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [{ keyword: "Alliance", raw: "＜Alliance＞" }],
+    },
   ],
   coverage: "full",
   residual: [],

@@ -5,6 +5,7 @@ import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { whenAttacking } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
+import { cardHasTrait } from "../../engine/cards/cardData.js";
 
 // BT26-003 — Kyaromon (BT26, Black In-Training Digi-Egg).
 //
@@ -26,11 +27,10 @@ import { registerCard } from "../../engine/effects/registry.js";
 // there is no separate "may" on the redirect itself, so once the cost is paid the target
 // change is mandatory (mirrors the BeforePayCost cost-gate precedents' shape).
 //
-// `runTiming` collects OnAllyAttack candidates from BOTH players' zones (resolution.ts), so the
-// card itself must confirm the attacker belongs to the OPPONENT — added via `when`, which
-// BT19-078/BT26-004 omit (their own `when` is implicit through canActivate targets that happen
-// to only exist on the relevant side); this port checks the attacker's controller explicitly to
-// avoid firing on the owner's own attacks.
+// `runTiming` collects OnAllyAttack candidates from BOTH players' zones. `attackScope:
+// "opponent"` is required because whenAttacking otherwise binds the trigger to "this Digimon
+// attacks" before the card-specific predicate runs. The explicit predicate remains a defensive
+// controller check and documents the printed [Opponent's Turn] event ownership.
 
 const cardId = "BT26-003";
 
@@ -42,7 +42,7 @@ function tamerWithFaceDownUnder(ctx: EffectContext, source: CardSource): string[
       if (p.inBreeding || p.topCard === undefined) return false;
       const def = ctx.game.definitionOf(p.topCard);
       if (!def.kinds.includes(CardKind.Tamer)) return false;
-      return p.stack.some((c) => !c.faceUp);
+      return p.stack[0]?.faceUp === false;
     })
     .map((p) => p.permanentId);
 }
@@ -54,7 +54,7 @@ function glowingDawnDigimonTargets(ctx: EffectContext, source: CardSource): stri
     .filter((p) => {
       if (p.inBreeding || p.topCard === undefined) return false;
       const def = ctx.game.definitionOf(p.topCard);
-      return isDigimon(def) && (def.types ?? []).includes("Glowing Dawn");
+      return isDigimon(def) && cardHasTrait(def, "Glowing Dawn");
     })
     .map((p) => p.permanentId);
 }
@@ -73,6 +73,7 @@ export const module: EffectModule = {
             "attack target to 1 of your [Glowing Dawn] trait Digimon.",
           isInherited: true,
           maxPerTurn: 1,
+          attackScope: "opponent",
           when: (ctx) => {
             const attackerId = ctx.trigger.attackerPermanentId;
             if (attackerId === undefined) return false;
@@ -107,10 +108,11 @@ export const module: EffectModule = {
             const tamerPerm = ctx.game.permanentById(chosenTamerId);
             if (tamerPerm === undefined || tamerPerm.stack.length === 0) return;
 
-            const bottomCard = tamerPerm.stack[tamerPerm.stack.length - 1];
+            const bottomCard = tamerPerm.stack[0];
             if (bottomCard === undefined || bottomCard.faceUp) return;
 
-            await ctx.fx.trashDigivolutionCards(chosenTamerId, [bottomCard.instanceId]);
+            const trashed = await ctx.fx.trashDigivolutionCards(chosenTamerId, [bottomCard.instanceId]);
+            if (trashed.length !== 1) return;
 
             if (digimonTargets.length > 0) await ctx.fx.redirectAttack(digimonTargets);
           },

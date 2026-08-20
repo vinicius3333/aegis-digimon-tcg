@@ -1,8 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type PlayerState } from "@aegis/shared";
+import { EffectTiming, digivolutionRequirementsFor, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
-// Self-register every card module so the engine drives the REGISTERED BT25-084 override.
-import "../index.js";
+// Register only the card under audit. The fixtures need catalog definitions, not the effects of
+// every other card in the set; avoiding the set-wide index keeps this focused gate low-memory.
+import "./BT25-084.js";
 
 /**
  * A3 — BT25-084 (Titamon, Purple). documented behavior ref: documented behavior.
@@ -38,6 +39,87 @@ function alive(p: PlayerState, permanentId: string): boolean {
 }
 
 describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave cost", () => {
+  it("uses the cost-2 exact Titamon path only when the base has fewer than 3 printed colors", async () => {
+    expect(digivolutionRequirementsFor(TITAMON)).toEqual([
+      { namesExact: ["Titamon"], baseColorCountMax: 2, cost: 2, isAlternate: true },
+      { level: 5, traits: ["TS"], cost: 4, isAlternate: true },
+    ]);
+
+    const legal = setupEngine({
+      0: {
+        battleArea: [{ card: "BT11-057", as: "dualTitamon" }],
+        hand: [{ card: TITAMON, as: "newTitamon" }],
+        deck: ["BT1-013"],
+      },
+    });
+    legal.state.memory = 2;
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("dualTitamon").permanentId,
+        instanceId: legal.inst("newTitamon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("dualTitamon").topCard.cardId === TITAMON);
+    expect(legal.state.memory).toBe(0);
+    expect(legal.perm("dualTitamon").stack.at(-1)?.cardId).toBe("BT11-057");
+
+    const illegal = setupEngine({
+      0: {
+        battleArea: [{ card: TITAMON, as: "threeColorTitamon" }],
+        hand: [{ card: TITAMON, as: "newTitamon" }],
+      },
+    });
+    illegal.state.memory = 2;
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: illegal.perm("threeColorTitamon").permanentId,
+        instanceId: illegal.inst("newTitamon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(illegal.state.memory).toBe(2);
+    expect(illegal.perm("threeColorTitamon").topCard.instanceId).not.toBe(illegal.inst("newTitamon").instanceId);
+
+    const tsRoute = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-015", as: "level5Ts" }],
+        hand: [{ card: TITAMON, as: "newTitamon" }],
+        deck: ["BT1-013"],
+      },
+    });
+    tsRoute.state.memory = 4;
+    expect(
+      tsRoute.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: tsRoute.perm("level5Ts").permanentId,
+        instanceId: tsRoute.inst("newTitamon").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => tsRoute.perm("level5Ts").topCard.cardId === TITAMON);
+    expect(tsRoute.state.memory).toBe(0);
+
+    const wrongLevel = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-038", as: "level4Ts" }],
+        hand: [{ card: TITAMON, as: "newTitamon" }],
+      },
+    });
+    wrongLevel.state.memory = 4;
+    expect(
+      wrongLevel.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: wrongLevel.perm("level4Ts").permanentId,
+        instanceId: wrongLevel.inst("newTitamon").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(wrongLevel.state.memory).toBe(4);
+  });
+
   it("(a) On Play (by effect) deletes ALL of the opponent's highest-DP Digimon (every tie)", async () => {
     const s = setupEngine(
       {
@@ -71,6 +153,30 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
     expect(alive(p1, high1Id)).toBe(false);
     expect(alive(p1, high2Id)).toBe(false);
     expect(alive(p1, lowId)).toBe(false);
+  });
+
+  it("Q6397 grants no deletion when the selected hand-trash payment does not actually move", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: TITAMON, as: "titamon" }],
+          hand: [{ card: "BT1-013", as: "cost" }],
+        },
+        1: { battleArea: [{ card: "BT1-013", dp: 4000, as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const targetId = s.perm("target").permanentId;
+    const primitives = (s.engine as unknown as { primitives: { trash(ids: string[]): Promise<unknown[]> } }).primitives;
+    primitives.trash = async () => [];
+
+    await fireTiming(s, EffectTiming.OnPlay, {
+      subjectPermanentId: s.perm("titamon").permanentId,
+      playedPermanentId: s.perm("titamon").permanentId,
+    });
+
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(alive(s.state.players[1]!, targetId)).toBe(true);
   });
 
   it("(c)+(a) On Play by effect ALSO trashes the opponent's top security card", async () => {
@@ -190,13 +296,37 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
     expect(p0.hand.length).toBe(2);
 
     // An (opponent) effect tries to delete Titamon; the prevention pays trash-2 and keeps it.
-    const fx = (s.engine as unknown as { primitives: { deletePermanent(ids: string[]): Promise<number> } })
-      .primitives;
+    const fx = (s.engine as unknown as { primitives: { deletePermanent(ids: string[]): Promise<number> } }).primitives;
     await fx.deletePermanent([titamonId]);
     await settle(() => p0.hand.length < 2);
 
     expect(alive(p0, titamonId)).toBe(true); // prevented from leaving
     expect(p0.hand.length).toBe(0); // 2 cards trashed as the cost
+  });
+
+  it("Q6399 prevents the first 0-DP rule deletion, then the repeated rule check deletes it before its hand-trash trigger", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: TITAMON, as: "titamon" }],
+          hand: ["BT1-013", "BT1-013"],
+        },
+        1: { battleArea: [{ card: "BT1-013", dp: 4000, as: "lowest" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const titamonId = s.perm("titamon").permanentId;
+    const lowestId = s.perm("lowest").permanentId;
+    await s.engine.recomputeContinuousEffects();
+    s.perm("titamon").baseDP = 0;
+    s.perm("titamon").currentDP = 0;
+
+    await fireTiming(s, EffectTiming.OnStartMainPhase, {});
+    await settle(() => !alive(s.state.players[0]!, titamonId));
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT1-013")).toHaveLength(2);
+    expect(alive(s.state.players[1]!, lowestId)).toBe(true);
   });
 
   it("(producer) PLAYED by an effect fires its own On Play AND trashes security — no synthetic trigger", async () => {
@@ -218,8 +348,7 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
     // The REAL effect-play verb (PlayWithoutCost) — the producer fires the played card's own On Play
     // with enteredByEffect set. Reverting the producer leaves On Play unfired (delete + security both
     // skipped), so this fails-when-reverted on the producer itself, not just the gate.
-    const fx = (s.engine as unknown as { primitives: { playInstances(ids: string[]): Promise<unknown[]> } })
-      .primitives;
+    const fx = (s.engine as unknown as { primitives: { playInstances(ids: string[]): Promise<unknown[]> } }).primitives;
     await fx.playInstances([titamonId]);
     await settle(() => p1.security.length < 2);
 
@@ -296,6 +425,41 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
     expect(alive(p1, highId)).toBe(true); // the 11000 survives (only the lowest is hit)
   });
 
+  it("Q6400/Q6401 fires once per hand-trash action, not once per card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: TITAMON, as: "titamon" }],
+          hand: [
+            { card: "BT1-013", as: "cost1" },
+            { card: "BT1-013", as: "cost2" },
+            { card: "BT1-013", as: "cost3" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-013", dp: 3000, as: "low1" },
+            { card: "BT1-013", dp: 3000, as: "low2" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const p1 = s.state.players[1]!;
+    await s.engine.recomputeContinuousEffects();
+    const fx = (s.engine as unknown as { primitives: { trash(ids: string[]): Promise<unknown[]> } }).primitives;
+
+    // One action moving two cards emits one event, therefore deletes only one tied minimum.
+    await fx.trash([s.inst("cost1").instanceId, s.inst("cost2").instanceId]);
+    await settle(() => p1.battleArea.length === 1);
+    expect(p1.battleArea).toHaveLength(1);
+
+    // A separate trash action emits a second event and may delete the remaining Digimon.
+    await fx.trash([s.inst("cost3").instanceId]);
+    await settle(() => p1.battleArea.length === 0);
+    expect(p1.battleArea).toHaveLength(0);
+  });
+
   it("(e-neg) the opponent's hand being trashed does NOT fire it (your-hand-only seat gate)", async () => {
     const s = setupEngine(
       {
@@ -333,8 +497,7 @@ describe("A3 BT25-084 — shared OP/WD/WA + entered-by-effect security + leave c
     const titamonId = s.perm("titamon").permanentId;
 
     await s.engine.recomputeContinuousEffects();
-    const fx = (s.engine as unknown as { primitives: { deletePermanent(ids: string[]): Promise<number> } })
-      .primitives;
+    const fx = (s.engine as unknown as { primitives: { deletePermanent(ids: string[]): Promise<number> } }).primitives;
     await fx.deletePermanent([titamonId]);
     await settle(() => !alive(p0, titamonId));
 

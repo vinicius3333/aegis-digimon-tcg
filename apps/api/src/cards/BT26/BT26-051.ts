@@ -25,23 +25,24 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
  *     the turn.
  *
  * Clause mapping:
- *   [Digivolve] — a digivolution-cost requirement, not an effect clause.
+ *   [Digivolve] — a digivolution-cost requirement, not an effect clause. The catalog's
+ *     ordinary row is black-only; generated-digivolve-overrides.json carries the Lv.2
+ *     [Appmon] cost-0 path consumed by shared evolution legality.
  *   ＜Detach＞ — printed keyword on this card's own text, resolved by the engine's
  *     printed-keyword reader (engine/combat/keywords.ts); no module clause.
  *   EffectTiming.None — a persistent watcher: the [Your Turn] window installs a
- *     `whenLinked` sub-trigger anchored to this permanent, budgeted by `oncePerTurnKey`
- *     for the printed [Once Per Turn]. The engine flags subscriptions installed during a
+ *     `whenLinked` sub-trigger anchored to this permanent. `maxPerTurn: 1` lets
+ *     staticModifier inject a stable source-instance/effect key for the printed [Once Per
+ *     Turn], so separate Gomimon copies retain independent budgets. The engine flags
+ *     subscriptions installed during a
  *     continuous recompute and re-derives them each pass, so this does not accumulate
  *     (primitives.ts `subscribeSubTrigger`). Modeled on BT26-001's reactive-watcher shape.
  *     `whenLinked` carries `subjectPermanentId` = the permanent that was linked TO, so
  *     "when THIS Digimon gets linked" gates on it matching this permanent.
- *
- * RESIDUAL — link face: this card also carries a printed `linkEffect`:
- *     [When Linking] ＜De-Digivolve 2＞ 1 of your opponent's Digimon.
- *   No BT26 card in this set ports its `linkEffect` (BT26-028 / BT26-037 leave theirs
- *   unported too) and the clause-coverage gate does not read that field, so it is left
- *   unimplemented here for consistency rather than half-modeled. Track it with the
- *   set-wide link-face gap.
+ *   EffectTiming.None (`isLinked: true`) — the link face installs a second `whenLinked`
+ *     watcher. `linkedCardInstanceIds` binds it to the operation that linked this physical
+ *     Gomimon, then the shared De-Digivolve primitive removes up to 2 top sources from the
+ *     chosen opposing Digimon in the same immediate window.
  */
 const cardId = "BT26-051";
 
@@ -65,9 +66,7 @@ async function grantCollisionAndDp(ctx: EffectContext, ownerSeat: Seat): Promise
   if (candidates.length === 0) return;
 
   const chosen =
-    candidates.length === 1
-      ? candidates[0]!
-      : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
+    candidates.length === 1 ? candidates[0]! : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
   if (chosen === undefined) return;
 
   ctx.fx.grantKeyword(chosen, "Collision", EffectDuration.UntilEachTurnEnd);
@@ -87,6 +86,7 @@ const module: EffectModule = {
             "the [Social], [Tool], [Open] or [Seven Code] trait gains ＜Collision＞ and +3000 DP " +
             "for the turn.",
           optional: false,
+          maxPerTurn: 1,
           when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn(),
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
@@ -98,7 +98,6 @@ const module: EffectModule = {
               event: "whenLinked",
               sourcePermanentId: hostId,
               once: false,
-              oncePerTurnKey: `${cardId}/when-linked-collision-dp`,
               description: `${cardId}: this Digimon gets linked -> grant ＜Collision＞ and +3000 DP.`,
               matches: (subCtx) => {
                 if (!subCtx.source.isOnBattleArea() || !subCtx.source.isOwnersTurn()) return false;
@@ -106,6 +105,38 @@ const module: EffectModule = {
               },
               run: async (subCtx) => {
                 await grantCollisionAndDp(subCtx, ownerSeat);
+              },
+            });
+          },
+        }),
+        staticModifier({
+          source,
+          effectKey: `${cardId}/link-face-when-linking-de-digivolve`,
+          description: "[When Linking] ＜De-Digivolve 2＞ 1 of your opponent's Digimon.",
+          isLinked: true,
+          resolve: async (ctx) => {
+            const host = ctx.source.permanent();
+            if (host === undefined) return;
+            ctx.fx.subscribeSubTrigger({
+              event: "whenLinked",
+              sourcePermanentId: host.permanentId,
+              once: false,
+              description: `${cardId}: linked face [When Linking] De-Digivolve 2.`,
+              matches: (subCtx) => subCtx.trigger?.linkedCardInstanceIds?.includes(source.instanceId) === true,
+              run: async (subCtx) => {
+                const opponent = subCtx.game.player(subCtx.game.opponentOf(source.ownerSeat));
+                const candidates = opponent.battleArea
+                  .filter((permanent) => {
+                    if (permanent.inBreeding || permanent.topCard === undefined) return false;
+                    return isDigimon(subCtx.game.definitionOf(permanent.topCard));
+                  })
+                  .map((permanent) => permanent.permanentId);
+                if (candidates.length === 0) return;
+                const chosen =
+                  candidates.length === 1
+                    ? candidates[0]!
+                    : (await subCtx.ask.chooseTargets(subCtx, { candidates, min: 1, max: 1 }))[0];
+                if (chosen !== undefined) subCtx.fx.deDigivolve(chosen, 2, { byEffectSeat: source.ownerSeat });
               },
             });
           },

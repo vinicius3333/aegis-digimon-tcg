@@ -3,7 +3,9 @@ import { CardKind, EffectTiming, type CardDefinition, type Seat } from "@aegis/s
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives, SubTriggerInstall } from "../../engine/effects/EffectContext.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT26-054.js";
+import "../index.js";
 
 // BT26-054 (Andromon, BT26):
 //   "[On Play] [When Digivolving] You may play 1 [CS] trait Tamer card from your hand without
@@ -141,6 +143,33 @@ function effectFor(timing: EffectTiming, source: CardSource, key: string) {
 const PLAY_TAMER_KEY = "on-play-play-cs-tamer";
 const WATCHER_KEY = "reactive-alt-digivolve-on-cs-stack-add";
 
+describe("BT26-054 structural behavior", () => {
+  it("digivolves from an off-color level 4 [CS] Digimon for alternate cost 3", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-008", as: "base" }],
+          hand: [{ card: CARD_ID, as: "andromon" }],
+          deck: ["BT5-022"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("andromon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("andromon").instanceId);
+    expect(s.state.memory).toBe(0);
+  });
+});
+
 describe("BT26-054 [On Play] / [When Digivolving]: play a [CS] Tamer for free", () => {
   it("plays the chosen [CS] Tamer without paying the cost", async () => {
     const harness = makeHarness({ hand: [{ instanceId: "hand-cs-tamer", cardId: CS_TAMER }] });
@@ -211,7 +240,7 @@ describe("BT26-054 [All Turns] [Once Per Turn]: free digivolve when [CS] Digimon
 
     expect(sub.event).toBe("onAddDigivolutionCards");
     expect(sub.sourcePermanentId).toBe(SELF_PERMANENT);
-    expect(sub.oncePerTurnKey).toBe(`${CARD_ID}/${WATCHER_KEY}`);
+    expect(sub.oncePerTurnKey).toBe(`andromon-top/${CARD_ID}/${WATCHER_KEY}`);
     expect(sub.oncePerTiming).toBe(true);
   });
 
@@ -253,5 +282,41 @@ describe("BT26-054 [All Turns] [Once Per Turn]: free digivolve when [CS] Digimon
     const empty = makeHarness({ hand: [{ instanceId: "hand-plain-digimon", cardId: PLAIN_DIGIMON }] });
     await (await install(empty)).run(empty.ctx);
     expect(empty.digivolves).toEqual([]);
+  });
+});
+
+describe("BT26-054 inherited attack redirect", () => {
+  it("offers only its live host as the redirect target on the opponent's turn", async () => {
+    const source = makeSource({
+      permanent: () => ({ permanentId: SELF_PERMANENT }) as never,
+      isOwnersTurn: () => false,
+    });
+    const attacker = { permanentId: "attacker", controllerSeat: 1 as Seat };
+    const redirectAttack = vi.fn();
+    const ctx = {
+      source,
+      trigger: { attackerPermanentId: attacker.permanentId },
+      game: { permanentById: () => attacker },
+      fx: { redirectAttack },
+    } as unknown as EffectContext;
+    const effect = effectFor(EffectTiming.OnAllyAttack, source, "inherited-opponent-attack-redirect-self");
+
+    expect(effect.isInherited).toBe(true);
+    expect(effect.maxPerTurn).toBe(1);
+    expect(effect.canTrigger(ctx)).toBe(true);
+    await effect.resolve(ctx);
+    expect(redirectAttack).toHaveBeenCalledWith([SELF_PERMANENT], { optional: true });
+  });
+
+  it("does not trigger for its owner's attacker", () => {
+    const source = makeSource({ isOwnersTurn: () => false });
+    const ctx = {
+      source,
+      trigger: { attackerPermanentId: "attacker" },
+      game: { permanentById: () => ({ permanentId: "attacker", controllerSeat: 0 as Seat }) },
+    } as unknown as EffectContext;
+    expect(
+      effectFor(EffectTiming.OnAllyAttack, source, "inherited-opponent-attack-redirect-self").canTrigger(ctx),
+    ).toBe(false);
   });
 });

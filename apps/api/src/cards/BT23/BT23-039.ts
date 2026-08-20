@@ -32,7 +32,7 @@ export const compiled: CompiledCard = {
                 controllerDefault: "mine",
                 nameOrTrait: [
                   {
-                    tokens: ["Game", "Invincible (App Name)"],
+                    tokens: ["Game", "Invincible (App Name)", "Invincible"],
                     match: "trait",
                   },
                 ],
@@ -45,6 +45,32 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "AllTurns",
+      isLinked: true,
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinked",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
+            {
+              kind: "Suspend",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
@@ -54,6 +80,12 @@ export const compiled: CompiledCard = {
       traits: ["Appmon"],
       cost: 0,
       isAlternate: true,
+    },
+  ],
+  linkRequirement: [
+    {
+      cost: 1,
+      traits: ["Appmon"],
     },
   ],
 };

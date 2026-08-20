@@ -326,19 +326,22 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           const candidates = candidateLooseInstances(ctx, action.target, ["hand"]);
           chosen = await pickLoose(ctx, action.target, candidates, undefined, asker);
         }
-        if (chosen.length > 0) await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
+        const moved = chosen.length > 0 ? await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat }) : [];
         // Bind the branch-acted result so an "if you did" tail (BT16-094 OR-modal) can gate.
-        ctx.lastEffectActed = chosen.length > 0;
+        ctx.lastEffectActed = moved.length > 0;
         // Store actual trash count under the named key for downstream scaling. (CAP-E12/E13)
         if (action.trackCount !== undefined) {
           if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
-          ctx.namedCounts.set(action.trackCount, chosen.length);
+          ctx.namedCounts.set(action.trackCount, moved.length);
         }
         if (action.bindResultAs !== undefined) {
           if (ctx.boundPlayed === undefined) ctx.boundPlayed = new Map();
-          ctx.boundPlayed.set(action.bindResultAs, new Set(chosen));
+          ctx.boundPlayed.set(action.bindResultAs, new Set(moved.map((card) => card.instanceId)));
         }
-        return false;
+        // A selected card that a restriction/replacement kept in hand did not pay a
+        // printed "by trashing" gate. Abort the dependent tail just like an explicit
+        // decline; candidate selection alone is never proof that the cost was paid.
+        return action.abortOnDecline === true && (chosen.length === 0 || moved.length !== chosen.length);
       }
       // Security-zone trash ("trash the top security card", BT20-080 onDeletion body).
       // Security cards are loose card instances, not battle-area permanents, so
@@ -540,7 +543,11 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // The target is the permanent(s) just created by the prior play action in this same
       // effect resolution, not the card currently resolving the effect.
       for (const permanentId of ctx.lastPlayedPermanentIds ?? []) {
-        ctx.fx.delayedDeletePlayed?.(permanentId);
+        if (action.timing === "endOfOpponentTurn") {
+          ctx.fx.delayedDeletePlayed?.(permanentId, "endOfOpponentTurn");
+        } else {
+          ctx.fx.delayedDeletePlayed?.(permanentId);
+        }
       }
       return false;
     }

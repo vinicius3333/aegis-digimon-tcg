@@ -26,21 +26,20 @@ import { registerCard } from "../../engine/effects/registry.js";
  *
  * Clause mapping:
  *   [Digivolve] header — a digivolution-cost requirement, not an effect clause;
- *     already carried by CardDefinition.evoCosts in cards.json, so it needs no entry
- *     here.
+ *     carried by the generated alternate digivolution requirements.
  *
- *   ＜Alliance＞ / ＜Vortex＞ — printed keywords, parsed automatically from effectText by
- *     the engine's combat/keywords.ts (PRINTED_MATCHERS); need no explicit grant (same
- *     treatment as BT26-013's ＜Blocker＞).
+ *   ＜Alliance＞ / ＜Vortex＞ — explicitly granted while this Digimon is in the
+ *     battle area. The generic printed-keyword parser is combat-facing and does not
+ *     populate the continuous observation ledger used by the rest of the engine.
  *
  *   EffectTiming.WhenDigivolving / EffectTiming.OnAllyAttack (shared body, mandatory
  *     window, optional cost+play) — "By trashing any of your Digimon's bottom
  *     face-down digivolution card, you may play 1 6000 DP or lower [Ver.4] trait
  *     Digimon card from your hand without paying the cost." Modeled on BT26-090's
  *     "By suspending this Tamer, you may use 1 Option card ..." shape: the controller
- *     picks the hand card FIRST (`min: 0, max: 1` — declining pays no cost at all,
- *     same as BT10-041/EX4-030's free-Option shape), and only on a pick does the cost
- *     resolve. The "bottom face-down digivolution card" of the chosen own-Digimon
+ *     accepts the optional effect first, then picks exactly one eligible hand card;
+ *     declining therefore pays no cost. Only after that choice does the cost resolve.
+ *     The "bottom face-down digivolution card" of the chosen own-Digimon
  *     target uses BT26-018's `permanent.stack[0]` (bottom) +
  *     `ctx.fx.trashDigivolutionCards(targetId, [bottomCard.instanceId], { byEffectSeat })`
  *     pattern. `ctx.fx.playInstances([chosenId], { payCost: false })` is the
@@ -74,7 +73,11 @@ function ver4HandCandidates(ctx: EffectContext, ownerSeat: CardSource["ownerSeat
 function ownDigimonWithStack(ctx: EffectContext, source: CardSource): Permanent[] {
   const owner = ctx.game.player(source.ownerSeat);
   return Array.from(owner.battleArea).filter(
-    (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && p.stack.length > 0,
+    (p) =>
+      p.topCard !== undefined &&
+      isDigimon(ctx.game.definitionOf(p.topCard)) &&
+      p.stack[0] !== undefined &&
+      !p.stack[0].faceUp,
   );
 }
 
@@ -101,7 +104,7 @@ async function resolveTrashBottomToPlayVer4(ctx: EffectContext, source: CardSour
 
   const chosenHand = await ctx.ask.selectCards(ctx, {
     candidates: handCandidates.map((c) => c.instanceId),
-    min: 0,
+    min: 1,
     max: 1,
   });
   if (chosenHand.length === 0) return;
@@ -112,9 +115,10 @@ async function resolveTrashBottomToPlayVer4(ctx: EffectContext, source: CardSour
   const stackTarget = ctx.game.permanentById(stackTargetId);
   if (stackTarget === undefined || stackTarget.stack.length === 0) return;
   const bottomCard = stackTarget.stack[0]!;
-  await ctx.fx.trashDigivolutionCards(stackTargetId, [bottomCard.instanceId], {
+  const trashed = await ctx.fx.trashDigivolutionCards(stackTargetId, [bottomCard.instanceId], {
     byEffectSeat: source.ownerSeat,
   });
+  if (trashed.length !== 1) return;
 
   await ctx.fx.playInstances(chosenHand, { payCost: false });
 }
@@ -166,6 +170,18 @@ const module: EffectModule = {
       return [
         staticModifier({
           source,
+          effectKey: `${cardId}/alliance-vortex`,
+          description: "＜Alliance＞ ＜Vortex＞",
+          when: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self === undefined) return;
+            ctx.fx.grantKeyword(self.permanentId, "Alliance", EffectDuration.Permanent);
+            ctx.fx.grantKeyword(self.permanentId, "Vortex", EffectDuration.Permanent);
+          },
+        }),
+        staticModifier({
+          source,
           effectKey: `${cardId}/all-turns-divi-trashed-debuff`,
           description:
             "[All Turns] When effects trash face-down digivolution cards from your " +
@@ -181,6 +197,7 @@ const module: EffectModule = {
               description: `${cardId}: -6000 DP for the turn to 1 opponent Digimon when a digivolution card is trashed from one of your Digimon.`,
               matches: (subCtx) => {
                 if (subCtx.trigger?.byEffectSeat === undefined) return false;
+                if ((subCtx.trigger.trashedFaceDownDigivolutionInstanceIds?.length ?? 0) === 0) return false;
                 const subjectId = subCtx.trigger?.subjectPermanentId;
                 if (subjectId === undefined) return false;
                 const subject = subCtx.game.permanentById(subjectId);

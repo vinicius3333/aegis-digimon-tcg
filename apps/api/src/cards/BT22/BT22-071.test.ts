@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-071.js";
 
 describe("BT22-071 Devimon", () => {
@@ -44,5 +45,16 @@ describe("BT22-071 Devimon", () => {
         },
       ],
     });
+  });
+
+  it("plays Jimmy KEN on digivolving when the tamer boundary is satisfied", async () => {
+    const s = setupEngine(
+  { 0: { battleArea: [{ card: "BT22-069", as: "host" }], hand: [{ card: "BT22-071", as: "devimon" }, { card: "BT22-092", as: "jimmy" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("host").permanentId, instanceId: s.inst("devimon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT22-092"));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT22-092")).toBe(true);
   });
 });

@@ -1,7 +1,8 @@
-import { CardKind,  EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
+import { cardHasTrait } from "../../engine/cards/cardData.js";
 import { turnTiming, onPlay, security, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
@@ -24,8 +25,7 @@ const module: EffectModule = {
         turnTiming({
           source,
           effectKey: `${cardId}/start-turn-set-memory`,
-          description:
-            "[Start of Your Turn] If you have 2 or less memory, set your memory to 3.",
+          description: "[Start of Your Turn] If you have 2 or less memory, set your memory to 3.",
           when: (ctx) => ctx.source.isOnBattleArea(),
           canActivate: (ctx) => {
             const m = ctx.game.state.memory;
@@ -60,17 +60,18 @@ const module: EffectModule = {
                 if (!subCtx.source.isOwnersTurn()) return false;
                 const usedId = subCtx.trigger?.subjectPermanentId;
                 if (usedId === undefined) return false;
-                const opponentSeat = subCtx.game.opponentOf(source.ownerSeat);
+                const owner = subCtx.game.player(source.ownerSeat);
                 const cards = [
-                  ...Array.from(subCtx.game.player(source.ownerSeat).trash),
-                  ...Array.from(subCtx.game.player(source.ownerSeat).hand),
-                  ...Array.from(subCtx.game.player(opponentSeat).trash),
-                  ...Array.from(subCtx.game.player(opponentSeat).hand),
+                  ...Array.from(owner.trash),
+                  ...Array.from(owner.delay ?? []),
+                  ...Array.from(owner.hand),
+                  ...Array.from(owner.security),
+                  ...(owner.resolvingOption === undefined ? [] : [owner.resolvingOption]),
                 ];
                 const used = cards.find((card) => card.instanceId === usedId);
                 if (used === undefined) return false;
                 const def = subCtx.game.definitionOf(used);
-                return def.kinds?.includes(CardKind.Option) === true && (def.types ?? []).includes("TS");
+                return def.kinds?.includes(CardKind.Option) === true && cardHasTrait(def, "TS");
               },
               run: async (subCtx) => {
                 const host = subCtx.source.permanent();
@@ -80,9 +81,15 @@ const module: EffectModule = {
                   .filter((perm) => perm.topCard !== undefined && isDigimon(subCtx.game.definitionOf(perm.topCard)))
                   .map((perm) => perm.permanentId);
                 if (targets.length === 0) return;
+                const accepted = await subCtx.ask.optional(
+                  subCtx,
+                  "Suspend this Tamer to prevent 1 opponent Digimon from attacking?",
+                );
+                if (!accepted) return;
                 const chosen = await subCtx.ask.chooseTargets(subCtx, { candidates: targets, min: 1, max: 1 });
                 if (chosen.length === 0) return;
-                await subCtx.fx.suspend([host.permanentId]);
+                const suspended = await subCtx.fx.suspend([host.permanentId]);
+                if (!suspended.includes(host.permanentId)) return;
                 subCtx.fx.restrict(chosen[0]!, "attack", EffectDuration.UntilOpponentTurnEnd);
               },
             });
@@ -99,13 +106,13 @@ const module: EffectModule = {
           description:
             "[On Play] You may return 1 [TS] trait Option card from your trash to the hand. " +
             "If this effect didn't return, <Draw 1>.",
-          optional: true,
+          optional: false,
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
 
             const tsOptions = Array.from(owner.trash).filter((card) => {
               const def = ctx.game.definitionOf(card);
-              return (def.types ?? []).includes("TS") && def.kinds?.includes(CardKind.Option);
+              return cardHasTrait(def, "TS") && def.kinds?.includes(CardKind.Option);
             });
 
             let returned = false;
@@ -117,8 +124,8 @@ const module: EffectModule = {
                 max: 1,
               });
               if (chosen.length > 0) {
-                returned = true;
-                await ctx.fx.returnToHand(chosen);
+                const moved = await ctx.fx.returnToHand(chosen);
+                returned = moved.some((card) => card.instanceId === chosen[0]);
               }
             }
 

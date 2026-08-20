@@ -9,13 +9,11 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-055 — Giromon (BT26, Black Lv.5 Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-055 as of this port
-// (`node tools/kb/query.mjs card BT26-055` returned no knowledge-base entries — BT26 has
-// no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// Verified against committed Q7058: only one Counter effect may be activated per attack.
 //
 // Printed text:
 //   [Digivolve] Lv.4 w/[DM] trait: Cost 3 — a digivolution-cost requirement, not an
-//     effect clause; already carried by CardDefinition.evoCosts, not implemented here.
+//     effect clause; carried by the generated alternate digivolution requirements.
 //   ＜Fragment (2)＞ — printed keyword, parsed automatically for combat legality from
 //     effectText by the engine's combat/keywords.ts (PRINTED_MATCHERS + fragmentCountOf,
 //     which re-reads the "(2)" straight off the printed text). combat/controller.ts's
@@ -61,10 +59,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 //     (fired from GameEngine.ts/combat/controller.ts/primitives.ts on delete-or-bounce),
 //     gated to THIS permanent via the `deletedPermanentId` payload field, mirroring
 //     BT26-044/BT26-057/BT19-071's reactive-`staticModifier`+`subscribeSubTrigger` idiom.
-//     `maxPerTurn: 1` on the installing effect documents the printed "[Once Per Turn]"
-//     cap per the codebase's existing (best-effort) convention (BT26-044, BT13-008,
-//     EX7-005) — the subTrigger dispatch path does not itself consult `maxPerTurn`, a
-//     pre-existing engine gap this port does not attempt to fix.
+//     The installing static effect's `maxPerTurn` is documentation only; the persistent
+//     watcher enforces the printed cap through a stable, source-instance-scoped
+//     `oncePerTurnKey`. Source scoping makes separate Giromon copies independent.
 
 const cardId = "BT26-055";
 const VER3_TRAIT = "Ver.3";
@@ -133,14 +130,17 @@ async function resolvePlaceThenMaybeDelete(ctx: EffectContext, source: CardSourc
   if (!wantToDelete) return;
 
   const ownChoice = await chooseOne(ctx, ownVer3);
-  if (ownChoice !== undefined) await ctx.fx.deletePermanent([ownChoice]);
+  if (ownChoice !== undefined) await ctx.fx.deletePermanent([ownChoice], "byEffect");
 
-  if (opponentTargets.length > 0) {
-    const lowestCost = Math.min(...opponentTargets.map((p) => ctx.game.definitionOf(p.topCard!).playCost ?? 0));
-    const toDelete = opponentTargets
-      .filter((p) => (ctx.game.definitionOf(p.topCard!).playCost ?? 0) === lowestCost)
+  const costedOpponentTargets = opponentTargets.filter(
+    (permanent) => ctx.game.definitionOf(permanent.topCard!).playCost !== undefined,
+  );
+  if (costedOpponentTargets.length > 0) {
+    const lowestCost = Math.min(...costedOpponentTargets.map((p) => ctx.game.definitionOf(p.topCard!).playCost!));
+    const toDelete = costedOpponentTargets
+      .filter((p) => ctx.game.definitionOf(p.topCard!).playCost === lowestCost)
       .map((p) => p.permanentId);
-    if (toDelete.length > 0) await ctx.fx.deletePermanent(toDelete);
+    if (toDelete.length > 0) await ctx.fx.deletePermanent(toDelete, "byEffect");
   }
 }
 
@@ -239,7 +239,7 @@ const module: EffectModule = {
               event: "whenLeavesPlay",
               sourcePermanentId: selfId,
               once: false,
-              oncePerTurnKey: `${cardId}/inherited-leave-trash-security`,
+              oncePerTurnKey: `${source.instanceId}/${cardId}/inherited-leave-trash-security`,
               description:
                 "[All Turns] [Once Per Turn] Trash your opponent's top security card when " +
                 "this Digimon leaves the battle area.",

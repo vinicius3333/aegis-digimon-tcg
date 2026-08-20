@@ -1,7 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { EffectDuration } from "@aegis/shared";
 import type { CardSource } from "./CardSource.js";
-import type { EffectContext, SubTriggerInstall } from "./EffectContext.js";
+import type { EffectContext, ReplacementInstall, SubTriggerInstall } from "./EffectContext.js";
 import { staticModifier } from "./builders.js";
 
 function fakeSource(instanceId: string): CardSource {
@@ -53,13 +53,9 @@ describe("staticModifier: maxPerTurn auto-threads a stable oncePerTurnKey onto s
 
     await effect.resolve(ctx);
 
-    expect(grantKeyword).toHaveBeenCalledWith(
-      "P1",
-      "SecurityAttack",
-      EffectDuration.Permanent,
-      1,
-      { continuous: true },
-    );
+    expect(grantKeyword).toHaveBeenCalledWith("P1", "SecurityAttack", EffectDuration.Permanent, 1, {
+      continuous: true,
+    });
   });
 
   it("injects a stable key when maxPerTurn is set and the card supplies none", async () => {
@@ -146,6 +142,35 @@ describe("staticModifier: maxPerTurn auto-threads a stable oncePerTurnKey onto s
     await effect.resolve(fakeCtx(source, subscribeSubTrigger));
 
     expect(installed[0]!.oncePerTurnKey).toBe("TEST-001/custom-key");
+  });
+
+  it("threads the same physical-source budget onto a prevent replacement", async () => {
+    const installed: ReplacementInstall[] = [];
+    const source = fakeSource("inst-prevent");
+    const effect = staticModifier({
+      source,
+      effectKey: "TEST-001/prevent-leave",
+      description: "[All Turns] [Once Per Turn] prevent leaving",
+      maxPerTurn: 1,
+      resolve: async (ctx) => {
+        ctx.fx.subscribeReplacement({
+          event: "wouldLeavePlay",
+          mode: "prevent",
+          sourcePermanentId: "P1",
+          description: "test prevent",
+          preventCheck: async () => true,
+        });
+      },
+    });
+    const ctx = fakeCtx(source, () => 0);
+    ctx.fx.subscribeReplacement = (replacement) => {
+      installed.push(replacement);
+      return 0;
+    };
+
+    await effect.resolve(ctx);
+
+    expect(installed[0]!.oncePerTurnKey).toBe("inst-prevent/TEST-001/prevent-leave");
   });
 
   it("leaves subscribeSubTrigger untouched when maxPerTurn is not set (no forced budget on an unlimited [All Turns] watcher)", async () => {

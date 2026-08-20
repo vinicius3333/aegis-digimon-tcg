@@ -1,9 +1,12 @@
 import { describe, it, expect, vi } from "vitest";
-import { CardKind, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
+import { CardKind, EffectTiming, digivolutionRequirementsFor, type CardDefinition, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives, SubTriggerInstall } from "../../engine/effects/EffectContext.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./BT26-024.js";
+import "../index.js";
 
 // BT26-024 (Tinkermon, BT26): "[Your Turn] When any of your other Digimon with the
 // [Vegetation], [Fairy] or [WG] trait are played, this Digimon may digivolve into a Digimon
@@ -38,7 +41,7 @@ function fakeDef(over: Partial<CardDefinition> = {}): CardDefinition {
 
 function definitionFor(cardId: string): CardDefinition {
   if (cardId === TAMER) return fakeDef({ cardId, kinds: [CardKind.Tamer] as never });
-  if (cardId === TRAIT_DIGIMON) return fakeDef({ cardId, types: ["Fairy", "WG"] });
+  if (cardId === TRAIT_DIGIMON) return fakeDef({ cardId, attributes: ["Fairy"], forms: ["WG"] });
   return fakeDef({ cardId, types: ["Machine"] });
 }
 
@@ -139,6 +142,84 @@ function matchContext(subject: string | undefined, source = makeSource()): Effec
 }
 
 describe("BT26-024 [Your Turn]: reactive free digivolve when another trait Digimon is played", () => {
+  it("uses the exact off-color Lv.2 [WG] cost-0 evolution path and rejects a near-match", async () => {
+    expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({
+      level: 2,
+      traits: ["WG"],
+      cost: 0,
+      isAlternate: true,
+    });
+    const valid = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-003", as: "blueWgEgg" }],
+        hand: [{ card: CARD_ID, as: "tinkermon" }],
+        deck: ["BT1-009"],
+      },
+    });
+    valid.state.memory = 0;
+    expect(
+      valid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: valid.perm("blueWgEgg").permanentId,
+        instanceId: valid.inst("tinkermon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => valid.perm("blueWgEgg").topCard.cardId === CARD_ID);
+    expect(valid.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT1-003", as: "redEgg" }], hand: [{ card: CARD_ID, as: "tinkermon" }] },
+    });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("redEgg").permanentId,
+        instanceId: invalid.inst("tinkermon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
+
+  it("publicly reacts to another trait Digimon's play and freely digivolves from hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "tinkermon" }],
+          hand: [
+            { card: "BT26-034", as: "playedVegetation" },
+            { card: "BT26-027", as: "petermon" },
+          ],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedVegetation").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("tinkermon").topCard.instanceId === s.inst("petermon").instanceId);
+    await settle();
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("tinkermon").stack.some((card) => card.cardId === CARD_ID)).toBe(true);
+  });
+
+  it("grants inherited Barrier only while Tinkermon is under another Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-059", as: "host", under: [{ card: CARD_ID, as: "inheritedTinkermon" }] },
+          { card: CARD_ID, as: "topTinkermon" },
+        ],
+      },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("topTinkermon"), "Barrier")).toBe(false);
+  });
+
   it("installs one whenPlayed watcher anchored to this permanent", async () => {
     const harness = makeHarness({});
     const sub = await install(harness);

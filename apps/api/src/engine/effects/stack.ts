@@ -3,7 +3,6 @@ import type { EffectContext } from "./EffectContext.js";
 import type { CollectedEffect } from "./collect.js";
 import { UseTracker, canActivate } from "./kernel.js";
 
-
 /** One effect paired with the source that produced it (collection output). */
 export type { CollectedEffect } from "./collect.js";
 
@@ -331,7 +330,7 @@ async function resolveOne(
     }
   }
 
-  ctx.fx.enterEffectResolution?.(source.ownerSeat);
+  ctx.fx.enterEffectResolution?.(source.ownerSeat, [...source.definition.kinds]);
   try {
     await effect.resolve(ctx);
   } finally {

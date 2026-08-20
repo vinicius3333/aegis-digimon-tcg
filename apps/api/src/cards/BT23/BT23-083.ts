@@ -37,12 +37,9 @@ const module: EffectModule = {
           effectKey: `${cardId}/start-main-phase`,
           description:
             "[Start of Your Main Phase] If you have a Digimon with the [Royal Base] or [CS] trait, gain 1 memory.",
-          when: (ctx) => ctx.source.isOnBattleArea(),
+          when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn(),
           canActivate: (ctx) => hasRoyalBaseOrCsDigimon(ctx, source),
           resolve: async (ctx) => {
-            // `when` only gates isOnBattleArea(), not isOwnersTurn(), so this clause is
-            // also a candidate at the OPPONENT's Start-of-Main-Phase firing; credit this
-            // owner explicitly rather than the turn player.
             ctx.fx.gainMemoryForSeat(source.ownerSeat, 1);
           },
         }),
@@ -86,10 +83,7 @@ const module: EffectModule = {
               run: async (subCtx) => {
                 const host = subCtx.source.permanent();
                 if (host === undefined || host.isSuspended) return;
-                const willActivate = await subCtx.ask.optional(
-                  subCtx,
-                  "Suspend this Tamer to gain 1 memory?",
-                );
+                const willActivate = await subCtx.ask.optional(subCtx, "Suspend this Tamer to gain 1 memory?");
                 if (!willActivate) return;
                 await subCtx.fx.suspend([host.permanentId]);
                 // [All Turns]: cards can be placed face up in security on either turn.

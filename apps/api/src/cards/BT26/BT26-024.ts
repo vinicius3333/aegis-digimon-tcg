@@ -1,4 +1,4 @@
-import { CardKind, EffectTiming } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
 import type { CardDefinition, Seat } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -6,6 +6,7 @@ import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
+import { cardHasTrait } from "../../engine/cards/cardData.js";
 
 // BT26-024 — Tinkermon (BT26, Yellow Lv.3 Digimon, Fairy/WG).
 //
@@ -35,8 +36,7 @@ const TRAITS = ["Vegetation", "Fairy", "WG"] as const;
 const isDigimon = (def: CardDefinition): boolean => def.kinds?.includes(CardKind.Digimon) === true;
 
 function hasWatchedTrait(def: CardDefinition): boolean {
-  const types = def.types ?? [];
-  return TRAITS.some((trait) => types.includes(trait));
+  return TRAITS.some((trait) => cardHasTrait(def, trait));
 }
 
 function traitDigimonHandCandidates(ctx: EffectContext, ownerSeat: Seat): string[] {
@@ -81,6 +81,16 @@ const module: EffectModule = {
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     if (timing === EffectTiming.None) {
       return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/inherited-barrier`,
+          description: "＜Barrier＞",
+          isInherited: true,
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Barrier", EffectDuration.Permanent);
+          },
+        }),
         staticModifier({
           source,
           effectKey: `${cardId}/reactive-alt-digivolve-on-ally-played`,

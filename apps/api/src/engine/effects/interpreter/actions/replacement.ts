@@ -29,6 +29,9 @@ export async function runReplacement(
   ctx: EffectContext,
   action: Extract<Action, { kind: "Replacement" }>,
 ): Promise<void> {
+  const oncePerTurnKey = (action as typeof action & { oncePerTurnKey?: string }).oncePerTurnKey;
+  const replacementBudget =
+    oncePerTurnKey === undefined ? {} : { oncePerTurnKey: `${ctx.source.instanceId}/${oncePerTurnKey}` };
   const event = REPLACEMENT_EVENT_MAP[action.event];
   if (event === undefined) {
     unsupported(ctx, action, `Replacement event "${action.event}" is not a known game event`);
@@ -117,6 +120,7 @@ export async function runReplacement(
     const leaveCause = action.leaveCause ?? (sourceleaveReason === "effect" ? "byEffect" : "any");
     const exceptDeletion = action.exceptDeletion === true;
     ctx.fx.subscribeReplacement({
+      ...replacementBudget,
       event,
       sourcePermanentId: self?.permanentId,
       mode: "prevent",
@@ -220,6 +224,7 @@ export async function runReplacement(
     const interactiveCost = action.cost;
     const ownerSeat = ctx.source.ownerSeat;
     ctx.fx.subscribeReplacement({
+      ...replacementBudget,
       event,
       sourcePermanentId: self?.permanentId,
       mode: "reduceCost",
@@ -274,6 +279,7 @@ export async function runReplacement(
   // (not instead of, despite the name — see ReplacementInstallInstead's doc comment) the
   // event; it never itself blocks the removal.
   ctx.fx.subscribeReplacement({
+    ...replacementBudget,
     event,
     sourcePermanentId: self?.permanentId,
     mode: "instead",

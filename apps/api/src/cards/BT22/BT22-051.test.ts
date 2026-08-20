@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-051.js";
+import "../index.js";
 
 describe("BT22-051 Okuwamon", () => {
   it("returns the lowest-DP suspended opponent Digimon only with a same-level stack pair", () => {
@@ -34,5 +36,56 @@ describe("BT22-051 Okuwamon", () => {
         },
       ],
     });
+  });
+
+  it("uses Q4903's repeated level to suspend and return the lowest-DP opponent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-050", as: "base", under: ["BT22-050"] }],
+          hand: [{ card: "BT22-051", as: "okuwamon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("okuwamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
+  });
+
+  it("trashes top security after its host survives and deletes in battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT22-052", as: "host", under: ["BT22-051"] }] },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "defender", suspended: true }],
+        security: ["BT1-010", "BT1-011"],
+      },
+    });
+    await s.ready();
+    const defenderId = s.perm("defender").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: defenderId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== defenderId));
+    await settle();
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash).toHaveLength(2);
   });
 });

@@ -1,5 +1,5 @@
 import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { Seat } from "@aegis/shared";
+import type { CardInstance, Seat } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -10,11 +10,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 /**
  * BT26-029 — Aegiochusmon: Holy (BT26, Yellow/Black Lv.5 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-029` returns no errata/Q&A hits), so this port is
- * provisional: it follows the printed text directly and mirrors the closest existing
- * hand-written cards for each clause shape. Re-check against the KB once BT26 rulings
- * are scraped.
+ * The committed KB contains Q6994-Q6995 (2026-08-18), covering security-effect
+ * priority and the exact top/bottom stacked-card protection semantics.
  *
  * Printed text:
  *   [Digivolve] [Aegiomon]: Cost 3
@@ -37,12 +34,9 @@ import { registerCard } from "../../engine/effects/registry.js";
  *     there is nothing to pay and the clause does nothing. The protection maps onto the
  *     two engine substrates that exist:
  *       - "can't reduce the DP" -> `restrict(..., "dpImmune", { byOpponentEffectsOnly })`
- *       - "trash any of its stacked cards" -> `stackTrashLock`, which the digivolution-card
- *         trash sites consult against the trashing effect's seat. Because `deDigivolve`
- *         also consults it, the "return them to DECKS" half is covered on the de-digivolve
- *         route too.
- *     RESIDUAL: an effect that returns stacked cards to a HAND has no dedicated lock in
- *     the engine, so that narrow half of "or return them to hands" is not enforced yet.
+ *       - "trash any of its stacked cards ... or return them to hands or decks" ->
+ *         `stackTrashLock`, which the digivolution-card trash, De-Digivolve, and direct
+ *         stack-return primitives consult against the resolving effect's seat.
  *   EffectTiming.None — the [All Turns] DP watcher and the [Rule] trait grant, plus the
  *     inherited ＜De-Digivolve 1＞ watcher. "Your security stack is removed from" is gated
  *     on `removedFromSecuritySeat === ownerSeat` and covers both removal routes the engine
@@ -61,9 +55,7 @@ function opponentDigimonIds(ctx: EffectContext, ownerSeat: Seat): string[] {
   const opponentSeat = ctx.game.opponentOf(ownerSeat);
   return ctx.game
     .player(opponentSeat)
-    .battleArea.filter(
-      (p) => !p.inBreeding && p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
-    )
+    .battleArea.filter((p) => !p.inBreeding && p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)))
     .map((p) => p.permanentId);
 }
 
@@ -74,9 +66,7 @@ async function penalizeThreeOpponentDigimon(ctx: EffectContext, ownerSeat: Seat)
 
   const take = Math.min(DP_PENALTY_TARGETS, candidates.length);
   const chosen =
-    candidates.length <= take
-      ? candidates
-      : await ctx.ask.chooseTargets(ctx, { candidates, min: take, max: take });
+    candidates.length <= take ? candidates : await ctx.ask.chooseTargets(ctx, { candidates, min: take, max: take });
   for (const id of chosen) {
     ctx.fx.modifyDP(id, DP_PENALTY, EffectDuration.UntilEachTurnEnd);
   }
@@ -88,9 +78,7 @@ async function deDigivolveOneOpponentDigimon(ctx: EffectContext, ownerSeat: Seat
   if (candidates.length === 0) return;
 
   const chosen =
-    candidates.length === 1
-      ? candidates[0]!
-      : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
+    candidates.length === 1 ? candidates[0]! : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
   if (chosen === undefined) return;
 
   ctx.fx.deDigivolve(chosen, 1, { byEffectSeat: ownerSeat });
@@ -108,9 +96,7 @@ async function paySecurityAndProtect(ctx: EffectContext, ownerSeat: Seat): Promi
   if (paid.length === 0) return;
 
   const chosen =
-    candidates.length === 1
-      ? candidates[0]!
-      : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
+    candidates.length === 1 ? candidates[0]! : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
   if (chosen === undefined) return;
 
   ctx.fx.restrict(chosen, "dpImmune", EffectDuration.UntilOpponentTurnEnd, {
@@ -131,7 +117,17 @@ const module: EffectModule = {
             "[On Play] [When Digivolving] By trashing your top security card, until your " +
             "opponent's turn ends, their effects can't reduce the DP of 1 of your Digimon, " +
             "trash any of its stacked cards, or return them to hands or decks.",
-          optional: false,
+          optional: true,
+          canActivate: (ctx) =>
+            ctx.game.player(source.ownerSeat).security.length > 0 &&
+            ctx.game
+              .player(source.ownerSeat)
+              .battleArea.some(
+                (permanent) =>
+                  !permanent.inBreeding &&
+                  permanent.topCard !== undefined &&
+                  isDigimon(ctx.game.definitionOf(permanent.topCard)),
+              ),
           resolve: async (ctx) => paySecurityAndProtect(ctx, source.ownerSeat),
         }),
       ];
@@ -146,7 +142,17 @@ const module: EffectModule = {
             "[On Play] [When Digivolving] By trashing your top security card, until your " +
             "opponent's turn ends, their effects can't reduce the DP of 1 of your Digimon, " +
             "trash any of its stacked cards, or return them to hands or decks.",
-          optional: false,
+          optional: true,
+          canActivate: (ctx) =>
+            ctx.game.player(source.ownerSeat).security.length > 0 &&
+            ctx.game
+              .player(source.ownerSeat)
+              .battleArea.some(
+                (permanent) =>
+                  !permanent.inBreeding &&
+                  permanent.topCard !== undefined &&
+                  isDigimon(ctx.game.definitionOf(permanent.topCard)),
+              ),
           resolve: async (ctx) => paySecurityAndProtect(ctx, source.ownerSeat),
         }),
       ];
@@ -156,11 +162,46 @@ const module: EffectModule = {
       return [
         staticModifier({
           source,
+          effectKey: `${cardId}/decode-aegiomon`,
+          description:
+            "＜Decode ([Aegiomon])＞ (When this Digimon would leave other than in battle, " +
+            "you may play 1 [Aegiomon] from its digivolution cards without paying the cost.)",
+          when: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self === undefined) return;
+            ctx.fx.subscribeReplacement({
+              event: "wouldLeavePlay",
+              sourcePermanentId: self.permanentId,
+              mode: "instead",
+              description: `${cardId}: Decode ([Aegiomon])`,
+              causeAllows: (cause) => cause !== "byBattle",
+              appliesTo: (_subCtx, leavingPermanentId) => leavingPermanentId === self.permanentId,
+              apply: async (subCtx) => {
+                const candidates = self.stack.filter((card: CardInstance) => {
+                  const def = subCtx.game.definitionOf(card);
+                  return isDigimon(def) && def.nameEn.includes("Aegiomon");
+                });
+                if (candidates.length === 0) return;
+                const chosen = await subCtx.ask.selectCards(subCtx, {
+                  candidates: candidates.map((card) => card.instanceId),
+                  min: 0,
+                  max: 1,
+                  visibleCards: candidates.map(({ instanceId, cardId: id }) => ({ instanceId, cardId: id })),
+                });
+                if (chosen.length > 0) await subCtx.fx.playInstances(chosen, { payCost: false });
+              },
+            });
+          },
+        }),
+        staticModifier({
+          source,
           effectKey: `${cardId}/security-removed-dp-watchers`,
           description:
             "[All Turns] [Once Per Turn] When your security stack is removed from, 3 of your " +
             "opponent's Digimon get -5000 DP for the turn.",
           optional: false,
+          maxPerTurn: 1,
           when: (ctx) => ctx.source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
@@ -172,7 +213,6 @@ const module: EffectModule = {
                 event,
                 sourcePermanentId: self.permanentId,
                 once: false,
-                oncePerTurnKey: `${cardId}/security-removed-dp`,
                 description: `${cardId}: your security stack is removed from (${event}) -> 3 opponent Digimon -5000 DP.`,
                 matches: (subCtx) =>
                   subCtx.source.isOnBattleArea() && subCtx.trigger?.removedFromSecuritySeat === ownerSeat,
@@ -203,6 +243,7 @@ const module: EffectModule = {
             "＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
           optional: false,
           isInherited: true,
+          maxPerTurn: 1,
           when: (ctx) => ctx.source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
@@ -214,7 +255,6 @@ const module: EffectModule = {
                 event,
                 sourcePermanentId: self.permanentId,
                 once: false,
-                oncePerTurnKey: `${cardId}/inherited-security-removed-dedigivolve`,
                 description: `${cardId}: your security stack is removed from (${event}) -> ＜De-Digivolve 1＞.`,
                 matches: (subCtx) =>
                   subCtx.source.isOnBattleArea() && subCtx.trigger?.removedFromSecuritySeat === ownerSeat,

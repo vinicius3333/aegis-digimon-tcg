@@ -9,6 +9,10 @@ import type {
   ReplacementInstall,
   ReplacementInstallPrevent,
 } from "../../engine/effects/EffectContext.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import "./BT26-085.js";
 
 // BT26-085 (Giant Slayer, BT26):
@@ -214,5 +218,88 @@ describe("BT26-085 [All Turns]: stay on the field by digivolving into Chronomon:
     await sub.preventCheck(harness.ctx, SELF_PERMANENT);
 
     expect(harness.offered).toEqual([["hand-destroy-mode", "trash-destroy-mode"]]);
+  });
+});
+
+function primitives(s: ReturnType<typeof setupEngine>): Primitives {
+  return (s.engine as unknown as { primitives: Primitives }).primitives;
+}
+
+describe("BT26-085 engine and Assembly integration", () => {
+  it("plays by Assembly with five different levels and pays the reduced cost", async () => {
+    const materials = ["BT26-009", "BT24-034", "BT1-057", "BT1-080", "BT26-060"];
+    const s = setupEngine({
+      0: {
+        hand: [{ card: CARD_ID, as: "giantSlayer" }],
+        trash: materials.map((card, index) => ({ card, as: `material-${index}` })),
+      },
+    });
+    s.state.memory = 7;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("giantSlayer").instanceId,
+        assembly: { materialInstanceIds: materials.map((_card, index) => s.inst(`material-${index}`).instanceId) },
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === CARD_ID)?.stack.length === 5,
+    );
+
+    const giantSlayer = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === CARD_ID)!;
+    await settle(() => observe(s.engine).hasRestriction(giantSlayer, "dpImmune"));
+    // Stack arrays are bottom-first; the first declared material is closest to Giant Slayer.
+    expect(giantSlayer.stack.map((card) => card.cardId)).toEqual([...materials].reverse());
+    expect(s.state.memory).toBe(0);
+    expect(observe(s.engine).hasRestriction(giantSlayer, "dpImmune")).toBe(true);
+  });
+
+  it("blocks an opponent effect from trashing its stack but permits its controller's effect", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          {
+            card: CARD_ID,
+            as: "giantSlayer",
+            under: [{ card: "BT24-034", as: "stackCard" }],
+          },
+        ],
+      },
+    });
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("giantSlayer"));
+    const stackId = s.inst("stackCard").instanceId;
+
+    await expect(
+      primitives(s).trashDigivolutionCards(s.perm("giantSlayer").permanentId, [stackId], { byEffectSeat: 1 }),
+    ).resolves.toEqual([]);
+    expect(s.perm("giantSlayer").stack.map((card) => card.instanceId)).toEqual([stackId]);
+
+    await expect(
+      primitives(s).trashDigivolutionCards(s.perm("giantSlayer").permanentId, [stackId], { byEffectSeat: 0 }),
+    ).resolves.toHaveLength(1);
+    expect(s.perm("giantSlayer").stack).toHaveLength(0);
+  });
+
+  it("prevents effect deletion by digivolving into Destroy Mode from trash for free", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          trash: [{ card: "BT26-060", as: "destroyMode" }],
+          battleArea: [{ card: CARD_ID, as: "giantSlayer" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.engine.recomputeContinuousEffects();
+    const permanentId = s.perm("giantSlayer").permanentId;
+
+    await primitives(s).deletePermanent([permanentId]);
+    await settle(() => s.perm("giantSlayer").topCard?.cardId === "BT26-060");
+
+    expect(s.perm("giantSlayer").permanentId).toBe(permanentId);
+    expect(s.perm("giantSlayer").topCard?.instanceId).toBe(s.inst("destroyMode").instanceId);
+    expect(s.perm("giantSlayer").stack.some((card) => card.cardId === CARD_ID)).toBe(true);
   });
 });

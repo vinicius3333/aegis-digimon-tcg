@@ -10,11 +10,9 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
 /**
  * BT26-037 — Weatherdramon (BT26, Green Lv.4 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-037` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * The committed KB contains Q7014-Q7017 (2026-08-18): linked candidates must print
+ * <Link>, "may battle" starts a standard battle even against an effect-immune Digimon,
+ * and any ordered pair of two distinct listed names satisfies the three-name App Fusion.
  *
  * Printed text:
  *   [App Fusion] [Weathermon] & [Rocketmon] & [Newsmon]: Cost 0
@@ -24,20 +22,24 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
  *   [On Play] [When Digivolving] You may link 1 level 3 Digimon card with the [Navi],
  *     [System] or [Seven Code] trait from this Digimon's digivolution cards to this
  *     Digimon without paying the cost.
+ *   (link face) [When Linking] This Digimon may battle 1 of your opponent's Digimon.
  *
  * Clause mapping: identical shape to its sibling BT26-028 (Medicmon) — see that file's
  * header for the full rationale. This card grants ＜Blocker＞ instead of ＜Barrier＞, and
  * the link-eligible traits are [Navi]/[System]/[Seven Code] instead of [Life]/[System]/
  * [Seven Code].
  *
- * RESIDUAL — ＜Detach ([Seven Code] trait)＞: same unimplementable-keyword rationale as
- * BT26-028 (see `engine/effects/detach.ts`'s module header) — zero KB rules-corpus hits,
- * unpublished behavior, intentionally not implemented. Re-check the moment
- * `node tools/kb/query.mjs rules "Detach"` returns a hit or an official ruling surfaces.
+ * The linked face is a linked-only continuous watcher on `whenLinked`.
+ * `linkedCardInstanceIds` binds it to the same operation that linked this Weatherdramon;
+ * `forceBattle` then performs Q7015/Q7016's immediate standard rules battle without an
+ * attack declaration or effect-immunity gate.
+ *
+ * ＜Detach ([Seven Code] trait)＞ is handled by the shared pre-battle-deletion Detach
+ * window, including eligible-link selection, ordinary trash events, and one-sided prevention.
  *
  * [App Fusion] and [Assembly -2] are structural play-legality data, not EffectModule
- * clauses; per this port's constraints, effects.json is not touched for BT26 cards, so
- * neither requirement is structurally enforced for this card yet.
+ * clauses. Both are exposed through shared overrides because BT26 is absent from the
+ * historical compiled effects artifact.
  */
 const cardId = "BT26-037";
 
@@ -62,6 +64,40 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
             if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Blocker", EffectDuration.UntilEachTurnEnd);
+          },
+        }),
+        staticModifier({
+          source,
+          effectKey: `${cardId}/link-face-when-linking-battle`,
+          description: "[When Linking] This Digimon may battle 1 of your opponent's Digimon.",
+          isLinked: true,
+          resolve: async (ctx) => {
+            const host = ctx.source.permanent();
+            if (host === undefined) return;
+            const hostId = host.permanentId;
+            ctx.fx.subscribeSubTrigger({
+              event: "whenLinked",
+              sourcePermanentId: hostId,
+              once: false,
+              description: `${cardId}: linked face [When Linking] may battle an opponent Digimon.`,
+              matches: (subCtx) => subCtx.trigger?.linkedCardInstanceIds?.includes(source.instanceId) === true,
+              run: async (subCtx) => {
+                const opponent = subCtx.game.player(subCtx.game.opponentOf(source.ownerSeat));
+                const candidates = opponent.battleArea
+                  .filter((permanent) => {
+                    if (permanent.inBreeding || permanent.topCard === undefined) return false;
+                    return isDigimon(subCtx.game.definitionOf(permanent.topCard));
+                  })
+                  .map((permanent) => permanent.permanentId);
+                if (candidates.length === 0) return;
+                if (!(await subCtx.ask.optional(subCtx, "Battle 1 of your opponent's Digimon?"))) return;
+                const chosen =
+                  candidates.length === 1
+                    ? candidates[0]!
+                    : (await subCtx.ask.chooseTargets(subCtx, { candidates, min: 1, max: 1 }))[0];
+                if (chosen !== undefined) await subCtx.fx.forceBattle?.(hostId, chosen);
+              },
+            });
           },
         }),
       ];

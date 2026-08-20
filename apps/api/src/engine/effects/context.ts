@@ -22,7 +22,7 @@ import { grantedTokenEffectsForTiming } from "./interpreter.js";
 import { UseTracker } from "./kernel.js";
 import { linkMax } from "./mindLink.js";
 import { findPermanentInState } from "../state/access.js";
-import type { ContinuousEffectLedger } from "./continuous.js";
+import { effectiveKinds, effectiveTraits, type ContinuousEffectLedger } from "./continuous.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives, TriggerInfo } from "./EffectContext.js";
 
 /**
@@ -126,6 +126,12 @@ export function createGameAccess(
   effectiveColors?: (permanent: Permanent) => import("@aegis/shared").CardColor[],
   colorRequirementWaived?: (instanceId: string) => boolean,
   canDeclareAttack?: (permanent: Permanent) => boolean,
+  effectiveTraits?: (permanentId: string, printedTraits: readonly string[]) => string[],
+  effectiveKindsResolver?: (
+    permanentId: string,
+    printedKinds: readonly import("@aegis/shared").CardKind[],
+  ) => import("@aegis/shared").CardKind[],
+  baseGrantedDigivolve?: (seat: Seat, base: Permanent, evolving: CardDefinition) => { cost: number } | undefined,
 ): GameAccess {
   const player = (seat: Seat): PlayerState => {
     const p = state.players[seat];
@@ -156,7 +162,22 @@ export function createGameAccess(
       (effectiveColors ?? ((p) => (p.topCard === undefined ? [] : requireCardDefinition(p.topCard.cardId).colors)))(
         permanent,
       ),
+    effectiveTraits: (permanentId): string[] => {
+      const permanent = permanentById(permanentId);
+      const definition = permanent?.topCard === undefined ? undefined : requireCardDefinition(permanent.topCard.cardId);
+      const printed =
+        definition === undefined
+          ? []
+          : [...(definition.forms ?? []), ...(definition.attributes ?? []), ...(definition.types ?? [])];
+      return (effectiveTraits ?? ((_id, traits) => [...traits]))(permanentId, printed);
+    },
+    effectiveKinds: (permanentId): import("@aegis/shared").CardKind[] => {
+      const permanent = permanentById(permanentId);
+      const printed = permanent?.topCard === undefined ? [] : requireCardDefinition(permanent.topCard.cardId).kinds;
+      return (effectiveKindsResolver ?? ((_id, kinds) => [...kinds]))(permanentId, printed);
+    },
     colorRequirementWaived: (instanceId): boolean => (colorRequirementWaived ?? (() => false))(instanceId),
+    baseGrantedDigivolve,
   };
 }
 
@@ -231,6 +252,7 @@ export function unimplementedPrimitives(): Primitives {
     link: () => refuse("effect-primitives", "link"),
     trash: () => refuse("effect-primitives", "trash"),
     trashDigivolutionCards: () => refuse("effect-primitives", "trashDigivolutionCards"),
+    trashDigivolutionCardsAtomic: () => refuse("effect-primitives", "trashDigivolutionCardsAtomic"),
     redirectDigivolutionTrashHosts: () => refuse("effect-primitives", "redirectDigivolutionTrashHosts"),
     armorPurge: () => refuse("effect-primitives", "armorPurge"),
     ascendToSecurity: () => refuse("effect-primitives", "ascendToSecurity"),
@@ -352,6 +374,15 @@ export function gatherTriggeredEffects(
     env.effectiveColors,
     env.colorRequirementWaived,
     env.canDeclareAttack,
+    (permanentId, printedTraits) => effectiveTraits(env.continuous, permanentId, printedTraits),
+    (permanentId, printedKinds) => {
+      const permanent = findPermanentInState(env.state, permanentId);
+      return effectiveKinds(
+        env.continuous,
+        permanentId,
+        permanent?.topCard === undefined ? printedKinds : requireCardDefinition(permanent.topCard.cardId).kinds,
+      );
+    },
   );
   const lookup = createCardStateLookup(env.state);
 

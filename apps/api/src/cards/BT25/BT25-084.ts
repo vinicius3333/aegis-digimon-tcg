@@ -18,6 +18,11 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // The `enteredByEffect` marker on the firing trigger is set by the engine seam that plays/digivolves
 // this card BY AN EFFECT; a manual hard play/digivolve and the When Attacking window leave it unset,
 // so the gate correctly fails there.
+//
+// KB Q6397-Q6401 additionally fixes the payment/event boundaries: the shared effect requires the
+// full trash-1 payment; leave prevention requires both cards in one indivisible payment; a repeated
+// 0-DP rule check happens before the hand-trash watcher can activate (Q6399); and that watcher fires
+// once per trash action rather than once per card.
 
 const sharedActions = (gateSecurityByEffect: boolean) => {
   const actions: NonNullable<CompiledCard["effects"][number]["actions"]> = [
@@ -116,8 +121,8 @@ const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
   digivolutionRequirement: [
-    { cost: 2, isAlternate: true },
-    { cost: 4, isAlternate: true, traits: ["TS"] },
+    { namesExact: ["Titamon"], baseColorCountMax: 2, cost: 2, isAlternate: true },
+    { level: 5, traits: ["TS"], cost: 4, isAlternate: true },
   ],
 };
 

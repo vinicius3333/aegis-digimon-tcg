@@ -4,6 +4,7 @@ import type { Restriction, SubTriggerEventName } from "../effects/EffectContext.
 import { internalsOf } from "./internals.js";
 import { attackedWithDigimonInCurrentOrPreviousTurn } from "../turnActivity.js";
 import { effectiveColors, effectiveNames } from "../effects/continuous.js";
+import { cardHasTrait } from "../cards/cardData.js";
 
 /**
  * Named reads over engine state a test cannot see from synced state alone — continuous
@@ -65,13 +66,25 @@ export function observe(engine: GameEngine) {
     },
 
     effectiveNames(permanent: Permanent): string[] {
-      const printed = permanent.topCard === undefined ? "" : getCardDefinition(permanent.topCard.cardId)?.nameEn ?? "";
+      const printed =
+        permanent.topCard === undefined ? "" : (getCardDefinition(permanent.topCard.cardId)?.nameEn ?? "");
       return effectiveNames(internals.continuous, permanent, printed);
     },
 
     effectiveColors(permanent: Permanent): string[] {
-      const printed = permanent.topCard === undefined ? [] : getCardDefinition(permanent.topCard.cardId)?.colors ?? [];
+      const printed =
+        permanent.topCard === undefined ? [] : (getCardDefinition(permanent.topCard.cardId)?.colors ?? []);
       return effectiveColors(internals.continuous, permanent.permanentId, printed);
+    },
+
+    /** Whether a permanent has a printed or continuously granted trait token. */
+    hasEffectiveTrait(permanent: Permanent, trait: string): boolean {
+      const printed = permanent.topCard === undefined ? undefined : getCardDefinition(permanent.topCard.cardId);
+      const want = trait.toLowerCase();
+      return (
+        (printed !== undefined && cardHasTrait(printed, trait)) ||
+        internals.continuous.grantedTraits(permanent.permanentId).some((candidate) => candidate === want)
+      );
     },
 
     /**

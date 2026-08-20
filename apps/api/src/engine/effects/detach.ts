@@ -3,16 +3,13 @@ import type { CardInstance } from "@aegis/shared/schema/CardInstance.js";
 import type { Permanent } from "@aegis/shared/schema/Permanent.js";
 
 /**
- * PROVISIONAL — the ＜Detach (trait)＞ engine capability (BT26-010, -019, -028, -037, -051,
- * -063, -084).
+ * ＜Detach (trait)＞ engine capability (BT26-010, -019, -028, -037, -051, -063, -084).
  *
- * ## Why this is provisional, not a verified port
- *
- * The rules corpus has no definition of "Detach" — verified by
- * `node tools/kb/query.mjs rules "Detach"` (no match) and a grep of
- * `data/kb/rules/*.md` (no hit). The keyword is new to BT26 and unpublished as
- * far as the official sources currently collected by this project. This module
- * therefore implements only the behavior explicitly supported by printed text.
+ * Q6964 establishes the operative semantics: immediately before a Digimon carrying
+ * ＜Detach＞ would be deleted in battle, its controller may trash 1 linked card carrying
+ * the noted trait to prevent only that Digimon's deletion. The linked card leaves before
+ * battle deletion settles, so its linked effects (notably BT26-010's ＜Piercing＞) are gone
+ * when the opponent is deleted.
  *
  * ## What the printed text says (all 7 occurrences, verbatim from cards.json)
  *
@@ -41,37 +38,24 @@ import type { Permanent } from "@aegis/shared/schema/Permanent.js";
  * BT26 set for what ＜Detach＞ itself DOES when used, nor when it may be used, nor what (if
  * anything) it costs or grants.
  *
- * ## What this module implements
- *
- * Only the eligibility predicate the trait note actually specifies: which of a permanent's own
- * LINKED cards (`permanent.linked`, the same zone `＜Link＞`/`whenLinked` already model) carry
- * the named trait and could therefore be the target of a future "detach" action. The removal
- * itself reuses the engine's existing `trash` primitive (`effects/primitives.ts`) — moving a
+ * The eligibility predicate selects which of a permanent's own LINKED cards
+ * (`permanent.linked`, the same zone `＜Link＞`/`whenLinked` already model) carry the
+ * named trait. The removal reuses the engine's existing `trash` primitive — moving a
  * card out of `permanent.linked` into its owner's trash is already fully correct there (DP
  * recompute, `whenLinkTrashed`, Overflow eligibility all already fire; see EX10-062/EX10-073's
  * "trashing 1 of this Digimon's link cards" cost pattern, which many published cards'
  * `linkEffect` text already uses). This module does NOT duplicate that logic — it only adds the
  * trait-filtered SELECTION step, then calls the existing primitive to perform the actual move.
  *
- * ## Open questions a KB refresh (or Bandai FAQ) must settle before any of the 7 cards ports
- *
- *   1. WHAT happens when a card is detached — is there a stated benefit (draw, DP, memory), or
- *      is "detach" itself the entire effect (e.g. purely a resource/cost verb used by some OTHER
- *      card's text that hasn't printed yet)?
- *   2. WHEN can it be used — an activated [Main]/[Your Turn] ability at will, an immediate-type
- *      reaction, or only as a NAMED COST inside another effect's "by detaching..." clause (the
- *      way "by trashing 1 of this Digimon's link cards" already works as a cost elsewhere)?
- *   3. WHERE does the detached card go — trash (this module's assumption, by analogy to the
- *      existing "trash 1 of this Digimon's link cards" cost pattern), back to hand, or
- *      somewhere else (e.g. a materials pool for [Assembly]/[App Fusion], both of which these
- *      cards' cousins use)?
- *   4. WHOSE ability is it — the host Digimon's (like `whenLinked` grants), or only available
- *      while the card carrying ＜Detach＞ is ITSELF the one sitting in the link zone?
- *   5. Is it once-per-turn, unlimited, or tied to a specific timing window at all?
- *
- * Re-check this module (and delete this comment) the moment `node tools/kb/query.mjs rules
- * "Detach"` returns a hit, or an official FAQ / errata surfaces.
+ * Combat owns the optional reaction window; this module owns parsing, eligibility, and the
+ * event-preserving move only. Effect deletion never calls this seam.
  */
+
+/** Trait notes printed by one or more ＜Detach ([trait] trait)＞ keywords on `definition`. */
+export function detachTraitTokens(definition: CardDefinition): string[] {
+  const text = definition.effectText ?? "";
+  return [...text.matchAll(/[<＜]\s*Detach\s*\(\s*\[([^\]]+)]\s*trait\s*\)\s*[>＞]/gi)].map((match) => match[1]!);
+}
 
 /**
  * The subset of `permanent`'s own linked cards that carry ANY of `traitTokens` — the one

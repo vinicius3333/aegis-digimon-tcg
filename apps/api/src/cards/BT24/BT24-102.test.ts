@@ -1,5 +1,6 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import { onPlay } from "../../engine/effects/builders.js";
 import { registerCard, unregisterCard } from "../../engine/effects/registry.js";
@@ -74,15 +75,17 @@ describe("BT24-102 [All Turns] [TS] trait Digimon get +1000 DP", () => {
         battleArea: [
           { card: HOMEROS, dp: 0, as: "homeros" },
           { card: TS_DIGIMON, dp: 2000, as: "tsDigi" },
+          { card: "BT1-009", dp: 2000, as: "nonTs" },
         ],
       },
+      1: { battleArea: [{ card: TS_DIGIMON, dp: 2000, as: "opponentTs" }] },
     });
 
-    await (
-      s.engine as unknown as { recomputeContinuousEffects(): Promise<void> }
-    ).recomputeContinuousEffects();
+    await (s.engine as unknown as { recomputeContinuousEffects(): Promise<void> }).recomputeContinuousEffects();
 
     expect(s.perm("tsDigi").currentDP).toBe(3000);
+    expect(s.perm("nonTs").currentDP).toBe(2000);
+    expect(s.perm("opponentTs").currentDP).toBe(2000);
   });
 });
 
@@ -141,5 +144,35 @@ describe("BT24-102 [End of Your Turn] suspend to activate an [Olympos XII] Digim
     expect(fired).toBe(1);
     expect(s.state.memory).toBe(6);
     expect(s.perm("homeros").isSuspended).toBe(true);
+  });
+
+  it("does not pay or reactivate when Homeros is already suspended", async () => {
+    original = unregisterCard(OLYMPOS_DIGIMON);
+    registerCard(stub);
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: HOMEROS, dp: 0, as: "homeros", suspended: true },
+            { card: OLYMPOS_DIGIMON, dp: 5000, as: "olympos" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("homeros"));
+    await settle(() => false, 60);
+    expect(fired).toBe(0);
+    expect(s.perm("homeros").isSuspended).toBe(true);
+  });
+});
+
+describe("BT24-102 Security", () => {
+  it("plays Homeros from security without paying its cost", async () => {
+    const s = setup({ 0: { security: [{ card: HOMEROS, as: "securityHomeros", faceUp: true }] } });
+    const before = s.state.memory;
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityHomeros"));
+    expect(s.state.memory).toBe(before);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === HOMEROS)).toBe(true);
   });
 });

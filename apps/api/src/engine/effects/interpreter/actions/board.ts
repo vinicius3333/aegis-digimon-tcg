@@ -180,11 +180,15 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         for (const id of ids) ctx.fx.grantPierce(id, duration);
         return false;
       }
-      if (kw === "LinkMax") {
-        // ＜Link +N＞ raises the affected permanent's link limit.
+      if (kw === "Link" || kw === "LinkMax") {
+        // The catalog uses "Link" for the printed ＜Link +N＞ keyword while hand-authored
+        // effects use the runtime ledger name "LinkMax". Both spellings raise the limit.
         // Recorded in the continuous ledger; `linkMax` (mindLink.ts) sums it on the base 1.
         const delta = keyword.amount ?? 1;
         for (const id of ids) ctx.fx.grantLinkMax(id, delta, duration);
+        for (const extra of action.keywords ?? []) {
+          for (const id of ids) ctx.fx.grantKeyword(id, extra.keyword, duration, extra.amount);
+        }
         return false;
       }
       if (ACTION_TYPE_KEYWORDS.has(kw)) {

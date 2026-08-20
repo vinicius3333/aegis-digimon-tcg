@@ -1,4 +1,4 @@
-import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
+import { EffectDuration, EffectTiming, isDigimon, type CardInstance } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -31,11 +31,10 @@ import { requireOpponentAsk } from "../../engine/decisions/decisionApi.js";
  * Clause mapping:
  *   EffectTiming.None — ＜Security A. +1＞/＜Retaliation＞ static grants (`hasKeyword` on
  *     the continuous ledger, not the printed-text scan, is what combat legality actually
- *     reads — BT5-085/BT12-063 precedent). ＜Decode ([Plutomon])＞ needs no grant: the
- *     Decode keyword mechanic has no gameplay implementation anywhere in this engine yet
- *     (only cosmetic keyword-name detection in `combat/keywords.ts`) — the same
- *     non-implementation as every other Decode-carrying card in the corpus, not a gap
- *     specific to this port.
+ *     reads — BT5-085/BT12-063 precedent). ＜Decode ([Plutomon])＞ installs an optional
+ *     `wouldLeavePlay`/`instead` replacement: on every non-battle leave it may play a
+ *     [Plutomon] from this Digimon's digivolution cards for free without preventing the
+ *     original leave (Comprehensive Rules §16-36 and the BT19-024 engine precedent).
  *   EffectTiming.OnPlay / EffectTiming.WhenDigivolving / EffectTiming.OnAllyAttack — "By
  *     trashing 1 card in your hand, delete 1 of your opponent's level 6 or lower Digimon."
  *     The trash is the (declinable) cost; only paying it enables the delete.
@@ -45,13 +44,11 @@ import { requireOpponentAsk } from "../../engine/decisions/decisionApi.js";
  *     `whenPlayed` and `whenOneOfYoursDigivolves`, `matches` narrowed to the OPPONENT
  *     controlling the subject permanent (both events fire unconditionally for either
  *     seat — GameEngine.ts, ST21-09 IR precedent — so the seat filter must live in
- *     `matches`, not the event name). `maxPerTurn: 1` on the hosting `staticModifier` is
- *     NOT engine-enforced for a hand-written EffectTiming.None + subscribeSubTrigger
- *     reaction (GameEngine.ts:1429; ST16-13/BT26-059 precedent, documented there with the
- *     identical caveat) — there is no compiled per-turn ledger for this shape to lean on.
+ *     `matches`, not the event name). The hand-written subscriptions explicitly share one
+ *     stable `oncePerTurnKey`, so the play and digivolve paths consume one turn budget.
  *   EffectTiming.OnDeclaration (`activated`, `isFromTrash: true`) — "[Trash][Main] If your
- *     hand has 5 or fewer cards, play this card with the cost reduced by 4." Previously
- *     RESIDUAL: the printed `[Trash]` tag means this card can be PLAYED DIRECTLY FROM THE
+ *     hand has 5 or fewer cards, play this card with the cost reduced by 4." The printed
+ *     `[Trash]` tag means this card can be PLAYED DIRECTLY FROM THE
  *     TRASH during the Main phase (confirmed against the identically shaped BT24-076's
  *     compiled IR, whose `isFromTrash: true` / `PlayWithoutCost` action with `from:
  *     ["trash"]` encodes exactly this), but `isFromTrash` was never consumed at runtime
@@ -134,6 +131,40 @@ const module: EffectModule = {
         }),
         staticModifier({
           source,
+          effectKey: `${cardId}/decode-plutomon`,
+          description:
+            "＜Decode ([Plutomon])＞ (When this Digimon would leave the battle area other than " +
+            "in battle, you may play 1 [Plutomon] from its digivolution cards without paying the cost.)",
+          when: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self === undefined) return;
+            ctx.fx.subscribeReplacement({
+              event: "wouldLeavePlay",
+              sourcePermanentId: self.permanentId,
+              mode: "instead",
+              description: `${cardId}: Decode ([Plutomon])`,
+              causeAllows: (cause) => cause !== "byBattle",
+              appliesTo: (_subCtx, leavingPermanentId) => leavingPermanentId === self.permanentId,
+              apply: async (subCtx) => {
+                const candidates = self.stack.filter((card: CardInstance) => {
+                  const def = subCtx.game.definitionOf(card);
+                  return isDigimon(def) && def.nameEn.includes("Plutomon");
+                });
+                if (candidates.length === 0) return;
+                const chosen = await subCtx.ask.selectCards(subCtx, {
+                  candidates: candidates.map((card) => card.instanceId),
+                  min: 0,
+                  max: 1,
+                  visibleCards: candidates.map(({ instanceId, cardId: id }) => ({ instanceId, cardId: id })),
+                });
+                if (chosen.length > 0) await subCtx.fx.playInstances(chosen, { payCost: false });
+              },
+            });
+          },
+        }),
+        staticModifier({
+          source,
           effectKey: `${cardId}/all-turns-opponent-play-or-digivolve-trash-down`,
           description:
             "[All Turns] [Once Per Turn] When any of your opponent's Digimon are played or " +
@@ -148,7 +179,9 @@ const module: EffectModule = {
               const subjectId = subCtx.trigger?.subjectPermanentId;
               if (subjectId === undefined) return false;
               const subject = subCtx.game.permanentById(subjectId);
-              return subject !== undefined && subject.controllerSeat !== source.ownerSeat;
+              if (subject === undefined || subject.controllerSeat === source.ownerSeat || subject.topCard === undefined)
+                return false;
+              return isDigimon(subCtx.game.definitionOf(subject.topCard));
             };
 
             ctx.fx.subscribeSubTrigger({

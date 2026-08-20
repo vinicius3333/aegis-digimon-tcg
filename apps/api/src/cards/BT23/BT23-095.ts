@@ -21,6 +21,7 @@ export const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               kind: ["Digimon", "Tamer"],
+              zone: ["battleArea", "breedingArea"],
               nameOrTrait: [
                 {
                   tokens: ["CS"],
@@ -71,46 +72,17 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "GainKeyword",
+              kind: "Return",
               target: {
-                filter: {
-                  isSelfRef: true,
-                },
+                filter: { controller: "opponent", suspended: true, kind: ["Digimon"] },
                 count: 1,
-                isSelf: true,
               },
-              keyword: {
-                keyword: "Delay",
-                raw: "＜Delay＞",
-              },
-              duration: "permanent",
+              to: "deckBottom",
             },
           ],
         },
       ],
-    },
-    {
-      trigger: "Main",
-      actions: [
-        {
-          kind: "Return",
-          target: {
-            filter: {
-              controller: "opponent",
-              suspended: true,
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
-          to: "deckBottom",
-        },
-      ],
-      keywords: [
-        {
-          keyword: "Delay",
-          raw: "＜Delay＞",
-        },
-      ],
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
     },
     {
       trigger: "Security",

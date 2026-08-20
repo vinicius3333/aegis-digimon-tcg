@@ -6,15 +6,13 @@ import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { turnTiming, whenAttacking } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
+import { canDigivolveOntoWithAlternates, cardHasTrait } from "../../engine/cards/cardData.js";
 
 /**
  * BT26-034 — Palmon (BT26, Green Lv.3 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-034` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * The committed KB contains Q7007 (2026-08-18): "4 or less memory" includes 4
+ * through every position to its right on the controller's side of the gauge.
  *
  * Printed text:
  *   [Digivolve] Lv.2 w/[TS] trait: Cost 0
@@ -43,9 +41,8 @@ import { registerCard } from "../../engine/effects/registry.js";
  *     `optional: true` covers "may".
  *
  *   Inherited EffectTiming.OnUseAttack — "[Once Per Turn] You may suspend 1 of your
- *     opponent's Digimon." Modeled on BT25-058's `oppDigimonOrTamer`-style candidate
- *     list (no unsuspended-only filter — suspending an already-suspended Digimon is a
- *     legal, if pointless, choice) narrowed to Digimon only, with `ctx.fx.suspend`.
+ *     opponent's Digimon." The candidate list contains only unsuspended battle-area
+ *     Digimon because suspension must change the target's state.
  *     `isInherited: true`, `optional: true`, `maxPerTurn: 1` for "[Once Per Turn]".
  */
 const cardId = "BT26-034";
@@ -55,13 +52,16 @@ const TS_TRAIT = "TS";
 
 function isVegetationOrTsDigimon(def: CardDefinition): boolean {
   if (!isDigimon(def)) return false;
-  const types = def.types ?? [];
-  return types.includes(VEGETATION_TRAIT) || types.includes(TS_TRAIT);
+  return cardHasTrait(def, VEGETATION_TRAIT) || cardHasTrait(def, TS_TRAIT);
 }
 
-function digivolveCandidates(ctx: EffectContext, ownerSeat: Seat): CardInstance[] {
-  return Array.from(ctx.game.player(ownerSeat).hand).filter((card) =>
-    isVegetationOrTsDigimon(ctx.game.definitionOf(card)),
+function digivolveCandidates(ctx: EffectContext, ownerSeat: Seat, host?: Permanent): CardInstance[] {
+  if (host?.topCard === undefined) return [];
+  const base = ctx.game.definitionOf(host.topCard);
+  return Array.from(ctx.game.player(ownerSeat).hand).filter(
+    (card) =>
+      isVegetationOrTsDigimon(ctx.game.definitionOf(card)) &&
+      canDigivolveOntoWithAlternates(ctx.game.definitionOf(card), base),
   );
 }
 
@@ -74,7 +74,7 @@ function memoryFor(ctx: EffectContext, seat: Seat): number {
 function opponentDigimonTargets(ctx: EffectContext, source: CardSource): Permanent[] {
   const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
   return Array.from(opponent.battleArea).filter(
-    (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
+    (p) => p.topCard !== undefined && !p.inBreeding && !p.isSuspended && isDigimon(ctx.game.definitionOf(p.topCard)),
   );
 }
 
@@ -98,17 +98,17 @@ const module: EffectModule = {
           optional: true,
           when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn(),
           canActivate: (ctx) =>
-            memoryFor(ctx, ownerSeat) <= 4 && digivolveCandidates(ctx, ownerSeat).length > 0,
+            memoryFor(ctx, ownerSeat) <= 4 && digivolveCandidates(ctx, ownerSeat, ctx.source.permanent()).length > 0,
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
             if (self === undefined) return;
 
-            const candidates = digivolveCandidates(ctx, ownerSeat);
+            const candidates = digivolveCandidates(ctx, ownerSeat, self);
             if (candidates.length === 0) return;
 
             const chosen = await ctx.ask.selectCards(ctx, {
               candidates: candidates.map((c) => c.instanceId),
-              min: 0,
+              min: 1,
               max: 1,
             });
             if (chosen.length === 0) return;
@@ -126,8 +126,7 @@ const module: EffectModule = {
         whenAttacking({
           source,
           effectKey: `${cardId}/when-attacking-suspend-opponent`,
-          description:
-            "[When Attacking] [Once Per Turn] You may suspend 1 of your opponent's Digimon.",
+          description: "[When Attacking] [Once Per Turn] You may suspend 1 of your opponent's Digimon.",
           isInherited: true,
           optional: true,
           maxPerTurn: 1,
@@ -138,7 +137,7 @@ const module: EffectModule = {
 
             const chosen = await ctx.ask.chooseTargets(ctx, {
               candidates: targets.map((p) => p.permanentId),
-              min: 0,
+              min: 1,
               max: 1,
             });
             if (chosen.length === 0) return;

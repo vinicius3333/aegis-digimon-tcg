@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-070.js";
 
 describe("BT22-070 DarkTyrannomon (X Antibody)", () => {
@@ -35,5 +36,47 @@ describe("BT22-070 DarkTyrannomon (X Antibody)", () => {
         },
       ],
     });
+  });
+
+  it("pays the normal evolution cost for its optional attack evolution", () => {
+    expect(compiled.effects.find((entry) => entry.trigger === "WhenAttacking")?.actions[0]).toMatchObject({
+      kind: "Digivolve",
+      from: ["hand"],
+      payCost: true,
+      optional: true,
+      into: {
+        nameOrTrait: [
+          { tokens: ["Tyrannomon"], match: "name" },
+          { tokens: ["Dinosaur"], match: "trait" },
+        ],
+      },
+    });
+  });
+
+  it("deletes a level 4 opponent through the public zero-cost alternate evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX3-059", as: "darktyrannomon" }],
+          hand: [{ card: "BT22-070", as: "x-antibody" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    const targetId = s.perm("target").permanentId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("darktyrannomon").permanentId,
+        instanceId: s.inst("x-antibody").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 });

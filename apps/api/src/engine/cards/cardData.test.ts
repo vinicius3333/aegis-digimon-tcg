@@ -21,6 +21,7 @@ import {
   isDualKind,
   matchingEvoCost,
   canDigivolveOnto,
+  cardHasTrait,
 } from "./cardData.js";
 
 // These tests run against the real generated card table (cards.json), so they
@@ -51,6 +52,12 @@ describe("card-data lookup", () => {
 });
 
 describe("derived static facts", () => {
+  it("treats [Rule] Trait: Has [...] as an effective printed trait in every zone", () => {
+    expect(cardHasTrait("BT26-029", "Angel")).toBe(true);
+    expect(cardHasTrait("BT26-046", "Avian")).toBe(true);
+    expect(cardHasTrait("BT26-056", "Dark Animal")).toBe(true);
+    expect(cardHasTrait("BT26-029", "Fallen Angel")).toBe(false);
+  });
   it("reads colors / level / DP / play cost for a Tamer (BT7-089)", () => {
     expect(colorsOf("BT7-089")).toEqual([CardColor.Green]);
     expect(hasColor("BT7-089", CardColor.Green)).toBe(true);

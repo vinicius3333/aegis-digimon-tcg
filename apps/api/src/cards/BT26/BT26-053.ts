@@ -1,4 +1,4 @@
-import { CardKind, EffectTiming } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
 import type { CardDefinition, CardInstance, Permanent, Seat } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -10,11 +10,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 /**
  * BT26-053 — Wolvermon (BT26, Black Lv.4 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-053` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * The committed KB has no card-specific ruling or erratum for BT26-053; behavior follows
+ * every printed clause.
  *
  * Printed text:
  *   [Digivolve] Lv.3 w/[Glowing Dawn] trait: Cost 2
@@ -26,14 +23,10 @@ import { registerCard } from "../../engine/effects/registry.js";
  *
  * Clause mapping:
  *   [Digivolve] header — a digivolution-cost requirement, not an effect clause;
- *     already carried by CardDefinition.evoCosts in cards.json, so it needs no entry
- *     here.
+ *     carried by the generated alternate digivolution requirements.
  *
- *   ＜Blocker＞ — a printed keyword, parsed automatically from effectText by the
- *     engine's combat/keywords.ts (PRINTED_MATCHERS); needs no explicit grant (same
- *     treatment as BT26-013's/BT26-048's/BT26-098's printed keywords). It is also the
- *     card's inheritedEffectText, but that is the same keyword string, so no separate
- *     handling is needed.
+ *   ＜Blocker＞ — explicitly granted both as the top-card keyword and as an inherited
+ *     keyword because combat legality reads the continuous keyword ledger.
  *
  *   EffectTiming.None, isInherited: false, reactive (staticModifier +
  *     subscribeSubTrigger on "whenAttackTargetSwitched" — the live SubTrigger for
@@ -51,13 +44,9 @@ import { registerCard } from "../../engine/effects/registry.js";
  *     without paying the cost" shape: the controller picks the Option candidate FIRST
  *     (`min: 0, max: 1` — declining pays no cost at all), and only on a pick does the
  *     bottom-card cost resolve, followed by `ctx.fx.useOptionFromHand(chosenId,
- *     optionCost)` — the trash + `whenOptionUsed`-fire lifecycle verb that
- *     BT10-041/EX4-030/EX2-060/BT26-090 all call the same way for a "use ... without
- *     paying the cost" clause. `maxPerTurn: 1` is set on the installing effect per the
- *     codebase's existing best-effort convention for a subTrigger-driven "[Once Per
- *     Turn]" reaction (BT26-044, BT13-008, EX7-005) — the subTrigger dispatch path
- *     does not itself consult `maxPerTurn` (GameEngine.ts:1429), a pre-existing engine
- *     gap this port does not attempt to fix.
+ *     optionCost)` — the trash + `whenOptionUsed`-fire lifecycle verb. The persistent
+ *     builder injects an instance-scoped once-per-turn key and decline/failure paths
+ *     release the reserved budget.
  */
 const cardId = "BT26-053";
 
@@ -109,8 +98,10 @@ async function payByTrashingBottomFaceDownUnderTamer(ctx: EffectContext, ownerSe
   const bottomCard = chosenTamer.stack[0];
   if (bottomCard === undefined) return false;
 
-  await ctx.fx.trashDigivolutionCards(chosenTamer.permanentId, [bottomCard.instanceId]);
-  return true;
+  const trashed = await ctx.fx.trashDigivolutionCards(chosenTamer.permanentId, [bottomCard.instanceId], {
+    byEffectSeat: ownerSeat,
+  });
+  return trashed.length === 1;
 }
 
 /**
@@ -121,21 +112,29 @@ async function payByTrashingBottomFaceDownUnderTamer(ctx: EffectContext, ownerSe
  */
 async function resolveTrashBottomToUseGlowingDawnOption(ctx: EffectContext, ownerSeat: Seat): Promise<void> {
   const candidates = optionCandidates(ctx, ownerSeat);
-  if (candidates.length === 0) return;
-  if (tamersWithFaceDownBottom(ctx, ownerSeat).length === 0) return;
+  if (candidates.length === 0 || tamersWithFaceDownBottom(ctx, ownerSeat).length === 0) {
+    ctx.oncePerTurnActivationDeclined = true;
+    return;
+  }
 
   const chosen = await ctx.ask.selectCards(ctx, {
     candidates: candidates.map((c) => c.instanceId),
     min: 0,
     max: 1,
   });
-  if (chosen.length === 0) return;
+  if (chosen.length === 0) {
+    ctx.oncePerTurnActivationDeclined = true;
+    return;
+  }
 
   const chosenCard = candidates.find((c) => c.instanceId === chosen[0]!);
   const optionCost = chosenCard ? ctx.game.definitionOf(chosenCard).playCost : undefined;
 
   const paid = await payByTrashingBottomFaceDownUnderTamer(ctx, ownerSeat);
-  if (!paid) return;
+  if (!paid) {
+    ctx.oncePerTurnActivationDeclined = true;
+    return;
+  }
 
   await ctx.fx.useOptionFromHand(ctx, chosen[0]!, optionCost);
 }
@@ -149,6 +148,27 @@ const module: EffectModule = {
     // the cost.
     if (timing === EffectTiming.None) {
       return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/blocker`,
+          description: "＜Blocker＞",
+          when: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Blocker", EffectDuration.Permanent);
+          },
+        }),
+        staticModifier({
+          source,
+          effectKey: `${cardId}/inherited-blocker`,
+          description: "Inherited: ＜Blocker＞",
+          isInherited: true,
+          when: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const host = ctx.source.permanent();
+            if (host !== undefined) ctx.fx.grantKeyword(host.permanentId, "Blocker", EffectDuration.Permanent);
+          },
+        }),
         staticModifier({
           source,
           effectKey: `${cardId}/all-turns-attack-target-switch-use-option`,
@@ -168,7 +188,6 @@ const module: EffectModule = {
               event: "whenAttackTargetSwitched",
               sourcePermanentId: self.permanentId,
               once: false,
-              oncePerTurnKey: `${cardId}/all-turns-attack-target-switch-use-option`,
               description:
                 `${cardId}: attack targets change -> may trash a Tamer's bottom ` +
                 "face-down card to use a [Glowing Dawn] Option (cost 4 or less) for free.",

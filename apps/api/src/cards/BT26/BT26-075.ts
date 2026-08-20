@@ -4,8 +4,9 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { activated, onDeletion, security, staticModifier } from "../../engine/effects/builders.js";
+import { activated, colorWaiverStatic, onDeletion, security, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
+import { cardHasTrait, permanentHasTrait } from "../../engine/cards/cardData.js";
 
 // BT26-075 — ScourgeChiropmon // Despair Blast (BT26 Purple/Yellow DUAL Digimon/Option).
 //
@@ -33,10 +34,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 //   whether to pay, then pay by trashing the chosen Tamer's bottom digivolution card).
 //
 // Option side [Despair Blast]:
-// ＜Use Req. ([Glowing Dawn] trait)＞ — data-only: satisfied by the hand-authored
-//   `optionColorRequirements` field on the card record (["Purple"] in cards.json), not an
-//   executable action (see BT26-031/BT26-050/BT26-033/BT26-056/BT26-057 precedent and
-//   commit 1298f75fa).
+// ＜Use Req. ([Glowing Dawn] trait)＞ — a hand-resident color-requirement waiver. Because
+//   this handwritten module replaces the compiled one, the trait condition is retained
+//   explicitly rather than relying only on the ordinary Purple optionColorRequirements row.
 // [Main] Delete 1 of your opponent's Digimon with the lowest level.
 //   "1 ... with the lowest level" is a superlative filter (ties broken by player choice),
 //   not "all" — mirrors BT17-028's `lowestLevelOpponentDigimon` + `chooseTargets` idiom.
@@ -79,8 +79,11 @@ async function payByTrashingBottomFaceDownUnderTamer(ctx: EffectContext, ownerSe
   const bottomCard = chosenTamer.stack[0];
   if (bottomCard === undefined) return false;
 
-  await ctx.fx.trashDigivolutionCards(chosenTamer.permanentId, [bottomCard.instanceId]);
-  return true;
+  const trashed = await ctx.fx.trashDigivolutionCards(chosenTamer.permanentId, [bottomCard.instanceId], {
+    byEffectSeat: ownerSeat,
+    byEffectCardId: cardId,
+  });
+  return trashed.length === 1;
 }
 
 /** `ownerSeat`'s trash cards with the [Glowing Dawn] trait and a play cost of 5 or less. */
@@ -88,7 +91,7 @@ function glowingDawnTrashCandidates(ctx: EffectContext, ownerSeat: Seat): CardIn
   const owner = ctx.game.player(ownerSeat);
   return Array.from(owner.trash).filter((c) => {
     const def = ctx.game.definitionOf(c);
-    return (def.types ?? []).includes(GLOWING_DAWN_TRAIT) && (def.playCost ?? 0) <= 5;
+    return (def.types ?? []).includes(GLOWING_DAWN_TRAIT) && def.playCost !== undefined && def.playCost <= 5;
   });
 }
 
@@ -139,6 +142,21 @@ const module: EffectModule = {
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     if (timing === EffectTiming.None) {
       return [
+        colorWaiverStatic({
+          source,
+          effectKey: `${cardId}/use-req-glowing-dawn`,
+          description: "＜Use Req. ([Glowing Dawn] trait)＞ Ignore this card's color requirements.",
+          when: (ctx) =>
+            Array.from(ctx.game.player(source.ownerSeat).battleArea).some(
+              (permanent) =>
+                !permanent.inBreeding &&
+                permanent.topCard !== undefined &&
+                permanentHasTrait(ctx.game, permanent, GLOWING_DAWN_TRAIT),
+            ),
+          resolve: async (ctx) => {
+            ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.UntilEachTurnEnd);
+          },
+        }),
         // Printed ＜Execute＞ / ＜Ascension＞ keywords.
         staticModifier({
           source,

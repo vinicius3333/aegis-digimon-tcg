@@ -16,7 +16,8 @@ import "../../cards/index.js";
  * happen without the keyword — ruling out "it always redirects/replays/prevents" bugs.
  */
 
-const NON_KEYWORD_CARD = "AD1-001"; // no keywords in its printed text
+const NON_KEYWORD_CARD = "AD1-001"; // no top-level combat keyword used by these fixtures
+const VANILLA_CARD = "BT1-013"; // no main, inherited, Security, or keyword text
 
 describe("§16-23 <Raid> — switch the attack target to the opponent's highest-DP unsuspended Digimon", () => {
   it("a printed-<Raid> attacker redirects a player-directed attack onto the opponent's highest-DP unsuspended Digimon", async () => {
@@ -189,11 +190,11 @@ describe("§16-32 <Scapegoat> — delete another Digimon to prevent a non-owner-
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
-    const other = digimon(0, 1000, NON_KEYWORD_CARD);
-    const target = digimon(0, 4000, NON_KEYWORD_CARD); // NO <Scapegoat>
+    const other = digimon(0, 1000, VANILLA_CARD);
+    const target = digimon(0, 4000, VANILLA_CARD); // NO <Scapegoat>
     target.isSuspended = true;
     p0.battleArea.push(other, target);
-    const attacker = digimon(1, 9000, NON_KEYWORD_CARD);
+    const attacker = digimon(1, 9000, VANILLA_CARD);
     p1.battleArea.push(attacker);
     await s.engine.recomputeContinuousEffects();
     s.state.turnSeat = 1;

@@ -14,6 +14,7 @@ export const compiled: CompiledCard = {
           kind: "Replacement",
           event: "wouldDigivolve",
           sourceFilter: {
+            isSelfRef: true,
             controller: "mine",
             kind: ["Digimon"],
             nameOrTrait: [

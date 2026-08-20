@@ -15,7 +15,7 @@ function marcusCandidates(ctx: EffectContext, source: CardSource): string[] {
     .map((p) => p.permanentId);
 }
 
-const module: EffectModule = {
+export const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     if (timing === EffectTiming.OnUseOption) {

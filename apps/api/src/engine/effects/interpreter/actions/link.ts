@@ -27,7 +27,13 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
     // ineligible recipient is never offered (server-authoritative — V4/V5).
     const matches = (p: Permanent, f: Filter): boolean => permanentMatchesFilter(ctx, p, f, ctx.source);
     const recipients = candidatePermanents(ctx, { ...action.recipient, filter: recipientFilter }).filter((p) =>
-      canLinkToTargetPermanent(p, recipientFilter, matches, ctx.game.definitionOf),
+      canLinkToTargetPermanent(
+        p,
+        recipientFilter,
+        matches,
+        ctx.game.definitionOf,
+        action.allowBreedingRecipient === true,
+      ),
     );
     if (recipients.length === 0) return;
     const recipientTarget = action.recipient.count === "all" ? recipients.length : (action.recipient.count ?? 1);
@@ -54,10 +60,25 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
   // Server-authoritative <Link> eligibility (KB Q4881): only cards carrying the Link
   // mechanic may be linked. A client link intent against a no-<Link> target is rejected
   // here by excluding it from the selectable set — never trusted.
-  const candidates = candidateLooseInstances(ctx, action.target, action.from ?? ["hand", "digivolutionCards"]).filter(
-    (cand) => linkEligible(ctx.game.definitionOf({ cardId: cand.cardId } as never)),
+  const candidates = candidateLooseInstances(ctx, action.target, action.from ?? ["hand", "digivolutionCards"]);
+  // A resolving Option is deliberately in no zone (§9-1-4), and a Security effect can still
+  // refer to "this card" before security processing moves it. Preserve that physical identity
+  // for self-link effects instead of requiring the source to appear in a normal source zone.
+  if (
+    action.target.filter.isSelfRef === true &&
+    ctx.source.permanent() === undefined &&
+    !candidates.some((candidate) => candidate.instanceId === ctx.source.instanceId)
+  ) {
+    candidates.push({
+      instanceId: ctx.source.instanceId,
+      cardId: ctx.source.cardId,
+      ownerSeat: ctx.source.ownerSeat,
+    });
+  }
+  const eligibleCandidates = candidates.filter((cand) =>
+    linkEligible(ctx.game.definitionOf({ cardId: cand.cardId } as never)),
   );
-  if (candidates.length === 0) return;
+  if (eligibleCandidates.length === 0) return;
   // The link limit is NOT a declaration-time gate. §4-8-5: "1 card can have a maximum of 1
   // link card. When linking to a Digimon that has already reached the link limit, the same
   // number of the existing link cards are trashed at the same time as the newly linked cards" —
@@ -68,14 +89,14 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
   // rule-check pass already does on every fixpoint pass. So `runLink` must land the full
   // requested count here and let that sweep trim any excess, the same way the player-facing
   // `linkCard` verb (actions/link.ts) never gates on headroom either — both paths must agree.
-  const chosen = await pickLoose(ctx, action.target, candidates);
+  const chosen = await pickLoose(ctx, action.target, eligibleCandidates);
   if (chosen.length === 0) return;
   // Real link-cost calculation (the seam Phase 8's BT25-004/045 link-cost REDUCTION builds on).
   // Each link card carries a printed link cost ("Cost N" in linkRequirement); `costDelta` is a
   // signed adjustment ("with the cost reduced by N" => negative). Pay the floored cost per card
   // via the shared memory plumbing — the engine now HAS a link cost to reduce.
   for (const instanceId of chosen) {
-    const cand = candidates.find((c) => c.instanceId === instanceId);
+    const cand = eligibleCandidates.find((c) => c.instanceId === instanceId);
     if (cand === undefined) continue;
     const def = ctx.game.definitionOf({ cardId: cand.cardId } as never);
     // The link cost combines the declaring action's own `costDelta` (BT25-045's baked self-link

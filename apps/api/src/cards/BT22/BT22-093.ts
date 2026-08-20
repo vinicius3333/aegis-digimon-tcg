@@ -46,9 +46,7 @@ const module: EffectModule = {
             const opponentSeat = ctx.game.opponentOf(ctx.source.ownerSeat);
             const opponentDigimon = ctx.game
               .player(opponentSeat)
-              .battleArea.filter(
-                (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
-              );
+              .battleArea.filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)));
             return opponentDigimon.length >= 1;
           },
           resolve: async (ctx) => {

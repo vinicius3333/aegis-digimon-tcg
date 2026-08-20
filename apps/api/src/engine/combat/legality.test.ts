@@ -1,18 +1,7 @@
 import { describe, it, expect } from "vitest";
-import {
-  GameState,
-  PlayerState,
-  Permanent,
-  CardInstance,
-  type Seat,
-} from "@aegis/shared";
+import { GameState, PlayerState, Permanent, CardInstance, type Seat } from "@aegis/shared";
 import { GameStateAccess } from "../state/access.js";
-import {
-  canAttackerDeclare,
-  canAttackTarget,
-  canBlock,
-  eligibleBlockers,
-} from "./legality.js";
+import { canAttackerDeclare, canAttackTarget, canBlock, eligibleBlockers } from "./legality.js";
 
 // Real card ids from the generated data: AD1-001/AD1-002 are Digimon; AD1-019 is
 // a pure Tamer (no DP, never a Digimon). DP for combat is read from the schema's
@@ -25,11 +14,7 @@ const TAMER = "AD1-019";
 const VORTEX_DIGIMON = "BT25-053";
 
 let seq = 0;
-function digimonPermanent(
-  seat: Seat,
-  cardId: string,
-  opts: { suspended?: boolean; dp?: number } = {},
-): Permanent {
+function digimonPermanent(seat: Seat, cardId: string, opts: { suspended?: boolean; dp?: number } = {}): Permanent {
   seq += 1;
   const top = new CardInstance();
   top.instanceId = `inst-${seq}`;
@@ -60,6 +45,16 @@ function makeState(): { state: GameState; access: GameStateAccess } {
 }
 
 describe("canAttackerDeclare", () => {
+  it("allows an already-suspended attacker when the effect attacks without suspending", () => {
+    const { state, access } = makeState();
+    const attacker = digimonPermanent(0, DIGIMON_A);
+    attacker.isSuspended = true;
+    state.players[0]?.battleArea.push(attacker);
+
+    expect(canAttackerDeclare(access, 0, attacker)).toBe("illegal-target");
+    expect(canAttackerDeclare(access, 0, attacker, undefined, false, true)).toBeNull();
+  });
+
   it("accepts an own, unsuspended battle-area Digimon", () => {
     const { state, access } = makeState();
     const attacker = digimonPermanent(0, DIGIMON_A);
@@ -104,9 +99,7 @@ describe("canAttackTarget", () => {
     const defender = digimonPermanent(1, DIGIMON_B, { suspended: true });
     state.players[0]?.battleArea.push(attacker);
     state.players[1]?.battleArea.push(defender);
-    expect(
-      canAttackTarget(access, 0, attacker, { kind: "permanent", permanentId: defender.permanentId }),
-    ).toBeNull();
+    expect(canAttackTarget(access, 0, attacker, { kind: "permanent", permanentId: defender.permanentId })).toBeNull();
   });
 
   it("rejects attacking an opponent's UNSUSPENDED Digimon", () => {
@@ -115,9 +108,9 @@ describe("canAttackTarget", () => {
     const defender = digimonPermanent(1, DIGIMON_B, { suspended: false });
     state.players[0]?.battleArea.push(attacker);
     state.players[1]?.battleArea.push(defender);
-    expect(
-      canAttackTarget(access, 0, attacker, { kind: "permanent", permanentId: defender.permanentId }),
-    ).toBe("illegal-target");
+    expect(canAttackTarget(access, 0, attacker, { kind: "permanent", permanentId: defender.permanentId })).toBe(
+      "illegal-target",
+    );
   });
 
   it("rejects attacking your own Digimon", () => {
@@ -125,18 +118,16 @@ describe("canAttackTarget", () => {
     const attacker = digimonPermanent(0, DIGIMON_A);
     const friendly = digimonPermanent(0, DIGIMON_B, { suspended: true });
     state.players[0]?.battleArea.push(attacker, friendly);
-    expect(
-      canAttackTarget(access, 0, attacker, { kind: "permanent", permanentId: friendly.permanentId }),
-    ).toBe("illegal-target");
+    expect(canAttackTarget(access, 0, attacker, { kind: "permanent", permanentId: friendly.permanentId })).toBe(
+      "illegal-target",
+    );
   });
 
   it("rejects an unknown target permanent", () => {
     const { state, access } = makeState();
     const attacker = digimonPermanent(0, DIGIMON_A);
     state.players[0]?.battleArea.push(attacker);
-    expect(
-      canAttackTarget(access, 0, attacker, { kind: "permanent", permanentId: "nope" }),
-    ).toBe("illegal-target");
+    expect(canAttackTarget(access, 0, attacker, { kind: "permanent", permanentId: "nope" })).toBe("illegal-target");
   });
 });
 
@@ -148,9 +139,7 @@ describe("canBlock / eligibleBlockers", () => {
     state.players[0]?.battleArea.push(attacker);
     state.players[1]?.battleArea.push(blocker);
     expect(canBlock(access, attacker, blocker)).toBeNull();
-    expect(eligibleBlockers(access, attacker).map((p) => p.permanentId)).toEqual([
-      blocker.permanentId,
-    ]);
+    expect(eligibleBlockers(access, attacker).map((p) => p.permanentId)).toEqual([blocker.permanentId]);
   });
 
   it("a suspended Digimon cannot block", () => {
@@ -270,14 +259,30 @@ describe("legality reads the continuous ledger (restrictions + ＜Blocker＞)", 
 
     expect(canAttackerDeclare(access, 0, attacker, r as never)).toBeNull();
     expect(canAttackTarget(access, 0, attacker, { kind: "player" }, r as never)).toBeNull();
-    expect(canAttackTarget(access, 0, attacker, {
-      kind: "permanent",
-      permanentId: restricted.permanentId,
-    }, r as never)).toBe("illegal-target");
-    expect(canAttackTarget(access, 0, attacker, {
-      kind: "permanent",
-      permanentId: other.permanentId,
-    }, r as never)).toBeNull();
+    expect(
+      canAttackTarget(
+        access,
+        0,
+        attacker,
+        {
+          kind: "permanent",
+          permanentId: restricted.permanentId,
+        },
+        r as never,
+      ),
+    ).toBe("illegal-target");
+    expect(
+      canAttackTarget(
+        access,
+        0,
+        attacker,
+        {
+          kind: "permanent",
+          permanentId: other.permanentId,
+        },
+        r as never,
+      ),
+    ).toBeNull();
   });
 
   it("with a reader, only a Digimon with ＜Blocker＞ (granted) may block", () => {
@@ -294,9 +299,7 @@ describe("legality reads the continuous ledger (restrictions + ＜Blocker＞)", 
     // Granted ＜Blocker＞: now eligible.
     const r = reader({ keywords: [[blocker.permanentId, "Blocker"]] });
     expect(canBlock(access, attacker, blocker, r as never)).toBeNull();
-    expect(eligibleBlockers(access, attacker, r as never).map((p) => p.permanentId)).toEqual([
-      blocker.permanentId,
-    ]);
+    expect(eligibleBlockers(access, attacker, r as never).map((p) => p.permanentId)).toEqual([blocker.permanentId]);
   });
 
   it("an 'attack target can't change' restriction on the ATTACKER forbids every block", () => {
@@ -339,10 +342,7 @@ describe("legality reads the continuous ledger (restrictions + ＜Blocker＞)", 
 // illegal unless a VortexCanAttackPlayers grant relaxes it. This is the CONSUME site for the
 // otherwise-inert ＜Vortex＞ keyword — without it the keyword grant would be a dead store (INRT-01).
 describe("base ＜Vortex＞ attack subsystem (keyword consume site)", () => {
-  function reader(opts: {
-    keywords?: [string, string][];
-    vortexCanAttackPlayers?: string[];
-  }): {
+  function reader(opts: { keywords?: [string, string][]; vortexCanAttackPlayers?: string[] }): {
     hasRestriction: (p: string, r: string) => boolean;
     hasKeyword: (p: string, k: string) => boolean;
     vortexCanAttackPlayers: (p: string) => boolean;
@@ -368,9 +368,7 @@ describe("base ＜Vortex＞ attack subsystem (keyword consume site)", () => {
     const { state, access } = makeState();
     const attacker = digimonPermanent(0, VORTEX_DIGIMON); // printed ＜Vortex＞
     state.players[0]?.battleArea.push(attacker);
-    expect(
-      canAttackTarget(access, 0, attacker, { kind: "player" }, reader({}) as never, true),
-    ).toBe("illegal-target");
+    expect(canAttackTarget(access, 0, attacker, { kind: "player" }, reader({}) as never, true)).toBe("illegal-target");
   });
 
   it("a ＜Vortex＞ attack against an opponent's SUSPENDED Digimon is legal (base target)", () => {

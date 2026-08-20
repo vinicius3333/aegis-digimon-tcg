@@ -9,11 +9,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 /**
  * BT26-083 — Junomon: Hysteric Mode (BT26, Purple/Yellow Lv.7 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-083` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * The committed KB contains Q7124 (2026-08-18), confirming that the effect still
+ * performs Recovery +3 when its controller starts with 0 security cards.
  *
  * Printed text:
  *   [Digivolve] Lv.6 w/[TS] trait: Cost 4

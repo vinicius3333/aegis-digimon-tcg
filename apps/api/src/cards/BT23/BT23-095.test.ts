@@ -2,14 +2,11 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./BT23-095.js";
 
 describe("BT23-095 Crescent Leaf", () => {
-  it("arms Delay on a CS attack without returning a Digimon immediately", () => {
+  it("activates Delay on a CS attack and returns a suspended Digimon in that window", () => {
     const turn = compiled.effects.find((effect) => effect.trigger === "YourTurn") as any;
     expect(turn.actions[0].actions).toHaveLength(1);
-    expect(turn.actions[0].actions[0]).toMatchObject({ kind: "GainKeyword", keyword: { keyword: "Delay" } });
-    const delay = compiled.effects.find((effect) =>
-      effect.keywords?.some((keyword) => keyword.keyword === "Delay"),
-    ) as any;
-    expect(delay.actions[0]).toMatchObject({ kind: "Return", to: "deckBottom" });
+    expect(turn.keywords[0].keyword).toBe("Delay");
+    expect(turn.actions[0].actions[0]).toMatchObject({ kind: "Return", to: "deckBottom" });
   });
 
   it("keeps the Main and Security return-then-place sequences", () => {

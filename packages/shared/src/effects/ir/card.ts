@@ -19,12 +19,14 @@ export interface CardEffect {
   description?: string;
   /** From the inheritedEffectText field (ESS). */
   isInherited?: boolean;
+  /** From a printed link effect; active only while this card is linked to a Digimon. */
+  isLinked?: boolean;
   /** From the securityEffectText field. */
   isSecurity?: boolean;
   /**
    * Deferral window for a [Security] effect whose text delays resolution ("At the end of the
-   * battle, ...", EX8-035). NOT YET CONSUMED — such effects still resolve at security-check time;
-   * the annotation preserves the printed intent until the deferred-security capability lands.
+   * battle, ...", EX8-035). The executable action still carries the concrete deferred event;
+   * this annotation preserves the printed timing for catalog, UI, and audit provenance.
    */
   timing?: "endOfBattle";
   /**

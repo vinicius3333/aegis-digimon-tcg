@@ -1,5 +1,5 @@
 import type { CompiledCard, CompiledEffects } from "./ir/card.js";
-import type { AssemblyRequirement, DnaDigivolveRequirement } from "./ir/requirements/fusion.js";
+import type { AppFusionRequirement, AssemblyRequirement, DnaDigivolveRequirement } from "./ir/requirements/fusion.js";
 import type { BaseGrantedDigivolve, DigivolutionRequirement } from "./ir/requirements/digivolve.js";
 import type { DigiXrosRequirement } from "./ir/requirements/xrosLink.js";
 import effectsJson from "./effects.json" with { type: "json" };
@@ -14,13 +14,49 @@ export const ASSEMBLY_REQUIREMENT_OVERRIDES: Record<string, AssemblyRequirement[
   "BT26-017": [{ reduceCost: 4, materials: [{ traits: ["Shambala"], levelMax: 5, count: 2, differentLevels: true }] }],
   "BT26-028": [{ reduceCost: 2, materials: [{ traits: ["Life", "System", "Seven Code"], level: 3, count: 1 }] }],
   "BT26-037": [{ reduceCost: 2, materials: [{ traits: ["Navi", "System", "Seven Code"], level: 3, count: 1 }] }],
-  "BT26-047": [{ reduceCost: 6, materials: [{ traits: ["Larva", "Insectoid", "Titan"], count: 4, differentLevels: true }] }],
-  "BT26-073": [{ reduceCost: 2, materials: [{ nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }, { tokens: ["TS"], match: "trait" }], levelMax: 4, count: 1 }] }],
+  "BT26-047": [
+    { reduceCost: 6, materials: [{ traits: ["Larva", "Insectoid", "Titan"], count: 4, differentLevels: true }] },
+  ],
+  "BT26-073": [
+    {
+      reduceCost: 2,
+      materials: [
+        {
+          nameOrTrait: [
+            { tokens: ["Chronomon"], match: "text" },
+            { tokens: ["TS"], match: "trait" },
+          ],
+          levelMax: 4,
+          count: 1,
+        },
+      ],
+    },
+  ],
   "BT26-079": [{ reduceCost: 2, materials: [{ names: ["Plutomon"], count: 1 }] }],
   "BT26-081": [{ reduceCost: 5, materials: [{ names: ["Minervamon"], count: 1 }] }],
   "BT26-083": [{ reduceCost: 4, materials: [{ names: ["Junomon"], count: 1 }] }],
-  "BT26-085": [{ reduceCost: 5, materials: [{ nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }, { tokens: ["Shaman"], match: "trait" }], count: 5, differentLevels: true }] }],
+  "BT26-085": [
+    {
+      reduceCost: 5,
+      materials: [
+        {
+          nameOrTrait: [
+            { tokens: ["Chronomon"], match: "text" },
+            { tokens: ["Shaman"], match: "trait" },
+          ],
+          count: 5,
+          differentLevels: true,
+        },
+      ],
+    },
+  ],
   "BT26-086": [{ reduceCost: 7, materials: [{ traits: ["Seven Code"], count: 7, differentNames: true }] }],
+};
+
+/** BT26 App Fusion headers are absent from the historical compiled effects artifact. */
+export const APP_FUSION_REQUIREMENT_OVERRIDES: Record<string, AppFusionRequirement[]> = {
+  "BT26-028": [{ names: ["Aidmon", "Supplemon", "Spamon"], cost: 0 }],
+  "BT26-037": [{ names: ["Weathermon", "Rocketmon", "Newsmon"], cost: 0 }],
 };
 
 /** Look up the compiled IR record for a card id, or undefined when absent. */
@@ -67,6 +103,14 @@ export function dnaDigivolutionRequirementsFor(cardId: string): DnaDigivolveRequ
  * the CLIENT (digivolve-target highlighting + cost labels) read ONE source of truth.
  */
 export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequirement[]> = {
+  // BT26-074 Cerberusmon: [Digivolve] Lv.4 w/[TS] trait: Cost 3.
+  "BT26-074": [{ cost: 3, isAlternate: true, level: 4, traits: ["TS"] }],
+  // BT26-082 Ravemon: [Digivolve] [Crowmon] OR Lv.5 w/[DATA SQUAD] trait: Cost 3.
+  // The card catalog carries only its ordinary purple Lv.5 cost-4 row.
+  "BT26-082": [
+    { cost: 3, isAlternate: true, namesExact: ["Crowmon"] },
+    { cost: 3, isAlternate: true, level: 5, traits: ["DATA SQUAD"] },
+  ],
   "BT11-022": [{ cost: 0, isAlternate: true, namesExact: ["Bebydomon"] }],
   "BT11-031": [{ cost: 2, isAlternate: true, namesExact: ["MetalGreymon"] }],
   "BT11-034": [{ cost: 0, isAlternate: true, level: 2, traits: ["Xros Heart"] }],
@@ -138,6 +182,27 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
       cost: 2,
       isAlternate: true,
       names: ["MoonMillenniummon"],
+    },
+  ],
+  // BT22-063/067 may evolve from their named CS Tamers only while their owner has at most
+  // three security cards. The historical aggregate retained the name and cost but dropped
+  // the live security gate, which made these paths available at four or five security.
+  "BT22-063": [
+    { level: 5, traits: ["CS"], cost: 3, isAlternate: true },
+    {
+      names: ["Kyoko Kuremi"],
+      cost: 5,
+      whileCondition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3 },
+      isAlternate: true,
+    },
+  ],
+  "BT22-067": [
+    { level: 5, traits: ["CS"], cost: 3, isAlternate: true },
+    {
+      names: ["Rie Kishibe"],
+      cost: 5,
+      whileCondition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3 },
+      isAlternate: true,
     },
   ],
   // BT21-063/066/072 (Gumdramon line): "[Digivolve] Lv.N w/＜Save＞ in text or w/[Hero] trait: Cost C".
@@ -344,6 +409,13 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     },
     { cost: 4, isAlternate: true, level: 3, traits: ["CS"] },
   ],
+  // BT25-084: the cost-2 slide path is only from an exact [Titamon] whose printed card has
+  // fewer than three colors. The generated requirement retained the name but lost the negative
+  // color-count gate, which allowed the new three-color Titamon to slide onto itself.
+  "BT25-084": [
+    { namesExact: ["Titamon"], baseColorCountMax: 2, cost: 2, isAlternate: true },
+    { level: 5, traits: ["TS"], cost: 4, isAlternate: true },
+  ],
 
   // Special-mechanic digivolves: "Digivolve from [ExactCard]" paths (Armor / X-Antibody / Blast)
   // `PermanentCondition: TopCard.CardNames.Contains("<base>")` + a digivolution cost. The English
@@ -460,6 +532,15 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
   ],
   "BT13-092": [
     { cost: 0, isAlternate: true, names: ["Ravemon"], burstDigivolve: { returnTamerNamesExact: ["Keenan Crier"] } },
+  ],
+  "BT25-104": [
+    { cost: 5, isAlternate: true, level: 6, traits: ["DATA SQUAD"] },
+    {
+      cost: 0,
+      isAlternate: true,
+      names: ["ShineGreymon"],
+      burstDigivolve: { returnTamerNamesExact: ["Marcus Damon"] },
+    },
   ],
 
   // RB1-036 (Proximamon): the Siriusmon alternate path is legal only when the
@@ -585,6 +666,15 @@ export const BASE_GRANTED_DIGIVOLVE: Record<string, BaseGrantedDigivolve[]> = {
       ignoreRequirements: true,
     },
   ],
+  // BT25-082 BlackGatomon (Q6387-Q6389).
+  "BT25-082": [
+    {
+      target: { traits: ["Three Musketeers"] },
+      cost: 4,
+      ignoreRequirements: true,
+      condition: { kind: "tamerHasText", text: "Three Musketeers" },
+    },
+  ],
 };
 
 /** The base-granted digivolution paths a card in play offers, or undefined when it grants none. */
@@ -706,8 +796,8 @@ export function appFusionCostFor(
   targetCardId: string,
   fusingNames: { topName: string; linkedNames: string[] },
 ): number | undefined {
-  const compiled = compiledEffects[targetCardId];
-  const requirements = compiled?.appFusionRequirement;
+  const requirements =
+    APP_FUSION_REQUIREMENT_OVERRIDES[targetCardId] ?? compiledEffects[targetCardId]?.appFusionRequirement;
   if (requirements === undefined || requirements.length === 0) return undefined;
   for (const requirement of requirements) {
     const required = requirement.names ?? [];

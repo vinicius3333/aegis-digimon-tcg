@@ -158,10 +158,14 @@ export const compiled: CompiledCard = {
       isAlternate: true,
     },
     {
-      traits: ["Hudie"],
-      names: ["Erika Mishima"],
+      namesExact: ["Erika Mishima"],
       cost: 3,
       isAlternate: true,
+      controllerControls: {
+        kind: ["Tamer"],
+        traits: ["Hudie"],
+        min: 4,
+      },
     },
   ],
 };

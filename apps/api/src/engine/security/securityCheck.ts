@@ -93,8 +93,13 @@ export interface SecurityCheckDeps {
    *     so a watcher knows which Digimon did the check.
    */
   fireSubTrigger?(
-    event: "whenSecurityRemoved" | "whenCheckedFaceUpSecurity" | "whenSecurityBattleEnded",
-    info: { attackerPermanentId: string; securityInstanceId: string; removedFromSecuritySeat?: Seat },
+    event: "whenSecurityRemoved" | "whenCheckedFaceUpSecurity" | "whenSecurityBattleEnded" | "whenBattleWon",
+    info: {
+      attackerPermanentId: string;
+      securityInstanceId: string;
+      removedFromSecuritySeat?: Seat;
+      subjectPermanentId?: string;
+    },
   ): Promise<void>;
 
   /**
@@ -222,9 +227,7 @@ export async function runSecurityCheck(
     // WITHOUT BATTLING and without paying the cost" (EX5-053, KB Q3644/Q3645). When
     // that happens, skip the normal resolve-and-battle branch entirely: the card was
     // already handled by the effect, so battling it again would be wrong.
-    const relocatedByOnSecurityCheck = !defender.security.some(
-      (c) => c.instanceId === revealed.instanceId,
-    );
+    const relocatedByOnSecurityCheck = !defender.security.some((c) => c.instanceId === revealed.instanceId);
 
     // Resolve the card's [Security] effect WHILE it is still in the security stack
     // (Comprehensive Rules §15-14-5: a {Security} effect activates while its card is
@@ -237,9 +240,7 @@ export async function runSecurityCheck(
     // An attacker that already left play (e.g. via the [Security] effect) never battles.
     const remainsInSecurity = defender.security.some((card) => card.instanceId === revealed.instanceId);
     const battlesAttacker =
-      remainsInSecurity &&
-      deps.isDigimon(revealed) &&
-      deps.permanentById(attacker.permanentId) !== undefined;
+      remainsInSecurity && deps.isDigimon(revealed) && deps.permanentById(attacker.permanentId) !== undefined;
     const resolution: "effect" | "battle" | "trashed" = battlesAttacker
       ? "battle"
       : hadSecurityEffect
@@ -250,9 +251,7 @@ export async function runSecurityCheck(
     // SecurityCards[0]) — located by instanceId, NOT a blind shift: if the
     // [Security] effect already moved the card out (played itself / returned to
     // hand), a shift would wrongly remove a DIFFERENT security card.
-    const revealedIndex = defender.security.findIndex(
-      (c) => c.instanceId === revealed.instanceId,
-    );
+    const revealedIndex = defender.security.findIndex((c) => c.instanceId === revealed.instanceId);
     if (revealedIndex >= 0) extractCardAt(defender, Zone.Security, revealedIndex);
 
     await deps.fireTiming(EffectTiming.OnLoseSecurity, {
@@ -321,6 +320,15 @@ async function battleSecurityDigimon(
     if (deps.hasKeyword?.(attackerPermanent.permanentId, "Jamming") !== true) {
       await deps.deletePermanents([attacker.permanentId]);
     }
+  } else if (outcome.securityDigimonDeleted) {
+    // A Security Digimon battle is still a battle for "when this Digimon wins a battle"
+    // (BT26-038 Q7020). Publish after the losing-side deletion/prevention boundary, matching
+    // Q7022/Q7023, even though the Security Digimon itself is a loose card and never deleted.
+    await deps.fireSubTrigger?.("whenBattleWon", {
+      attackerPermanentId: attacker.permanentId,
+      securityInstanceId: revealed.instanceId,
+      subjectPermanentId: attacker.permanentId,
+    });
   }
   // The Security Digimon is a loose card, not a field permanent: CR 14-2-3 keeps it
   // alive whatever the DP compare says, and CR 13-1-8-4 sends it to the trash unless
@@ -333,9 +341,7 @@ function trashIfStillLoose(state: GameState, seat: Seat, card: CardInstance): vo
   if (player === undefined) return;
   const inHand = player.hand.some((c) => c.instanceId === card.instanceId);
   const inSecurity = player.security.some((c) => c.instanceId === card.instanceId);
-  const onField = player.battleArea.some(
-    (p) => p.topCard?.instanceId === card.instanceId,
-  );
+  const onField = player.battleArea.some((p) => p.topCard?.instanceId === card.instanceId);
   const inTrash = player.trash.some((c) => c.instanceId === card.instanceId);
   const inDeck = player.deck.some((c) => c.instanceId === card.instanceId);
   const inDelay = player.delayZone?.some((c) => c.instanceId === card.instanceId) ?? false;

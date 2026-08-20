@@ -8,6 +8,12 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "Static",
+      actions: [],
+      isLinked: true,
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
+    },
+    {
       trigger: "OnPlay",
       actions: [
         {

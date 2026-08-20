@@ -1,18 +1,15 @@
-import { EffectTiming } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
-import { whenAttacking } from "../../engine/effects/builders.js";
+import { staticModifier, whenAttacking } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**
  * BT26-019 — Mailmon (BT26, Blue Lv.3 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-019` returns no errata/Q&A hits), so this port is
- * provisional: it follows the printed text directly and mirrors the closest existing
- * hand-written cards for each clause shape. Re-check against the KB once BT26 rulings
- * are scraped.
+ * Catalog source: `packages/shared/src/cards/data/cards.json`; the local KB has no
+ * BT26-019 errata or Q&A, so the committed printed text is authoritative.
  *
  * Printed text:
  *   [Digivolve] Lv.2 w/[Appmon] trait: Cost 0
@@ -28,12 +25,10 @@ import { registerCard } from "../../engine/effects/registry.js";
  *     size is checked when the effect resolves (the printed "if" is an activation
  *     condition, so it also gates the trigger via `when`).
  *
- * RESIDUAL — link face: this card also carries a printed `linkEffect`:
- *     [When Linking] 1 of your opponent's Digimon or Tamers can't suspend until their turn ends.
- *   No BT26 card in this set ports its `linkEffect` (BT26-028 / BT26-037 leave theirs
- *   unported too) and the clause-coverage gate does not read that field, so it is left
- *   unimplemented here for consistency rather than half-modeled. Track it with the
- *   set-wide link-face gap.
+ *   Link face — an `isLinked` static installs a `whenLinked` watcher. The link primitive
+ *     recomputes after attachment and publishes every `linkedCardInstanceIds` in the same
+ *     simultaneous window, so only this newly linked Mailmon fires. Its chosen opposing
+ *     Digimon/Tamer receives the `suspend` restriction until that opponent's turn ends.
  */
 const cardId = "BT26-019";
 
@@ -49,11 +44,50 @@ const module: EffectModule = {
           effectKey: `${cardId}/when-attacking-draw`,
           description: "[When Attacking] If your hand has 7 or fewer cards, ＜Draw 1＞",
           optional: false,
-          when: (ctx) =>
-            ctx.source.isOnBattleArea() && ctx.game.player(source.ownerSeat).hand.length <= MAX_HAND_SIZE,
+          when: (ctx) => ctx.source.isOnBattleArea() && ctx.game.player(source.ownerSeat).hand.length <= MAX_HAND_SIZE,
           resolve: async (ctx) => {
             if (ctx.game.player(source.ownerSeat).hand.length > MAX_HAND_SIZE) return;
             await ctx.fx.draw(source.ownerSeat, 1);
+          },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/link-face-when-linking-cant-suspend`,
+          description: "[When Linking] 1 of your opponent's Digimon or Tamers can't suspend until their turn ends.",
+          isLinked: true,
+          resolve: async (ctx) => {
+            const host = ctx.source.permanent();
+            if (host === undefined) return;
+            ctx.fx.subscribeSubTrigger({
+              event: "whenLinked",
+              sourcePermanentId: host.permanentId,
+              once: false,
+              description: `${cardId}: linked face [When Linking] can't suspend.`,
+              matches: (subCtx) => subCtx.trigger?.linkedCardInstanceIds?.includes(source.instanceId) === true,
+              run: async (subCtx) => {
+                const opponent = subCtx.game.opponentOf(source.ownerSeat);
+                const candidates = Array.from(subCtx.game.player(opponent).battleArea)
+                  .filter((permanent) => {
+                    if (permanent.inBreeding || permanent.topCard === undefined) return false;
+                    const definition = subCtx.game.definitionOf(permanent.topCard);
+                    return definition.kinds.includes(CardKind.Digimon) || definition.kinds.includes(CardKind.Tamer);
+                  })
+                  .map((permanent) => permanent.permanentId);
+                if (candidates.length === 0) return;
+                const chosen =
+                  candidates.length === 1
+                    ? candidates
+                    : await subCtx.ask.chooseTargets(subCtx, { candidates, min: 1, max: 1 });
+                if (chosen[0] !== undefined) {
+                  subCtx.fx.restrict(chosen[0], "suspend", EffectDuration.UntilOpponentTurnEnd);
+                }
+              },
+            });
           },
         }),
       ];

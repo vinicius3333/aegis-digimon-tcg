@@ -5,7 +5,7 @@ type Actions = CompiledCard["effects"][number]["actions"];
 
 // Hand-corrected effect IR for BT25-104 (ShineGreymon: Burst Mode // Final Shining
 // Burst), a Red/Yellow DUAL card. The AUTO-GENERATED header was intentionally
-// removed so runtime effect records preserves this file. Grounded in the rules KB
+// removed so runtime effect-record generation preserves this file. Grounded in the rules KB
 // (errata + Q&A) and the source documented behavior; rulings/errata win over printed text.
 //
 // Why this was rewritten (the runtime record output was partial AND wrong):
@@ -19,15 +19,10 @@ type Actions = CompiledCard["effects"][number]["actions"];
 //     effect on this card's Option side" was two EMPTY effect blocks. Q6496/Q6497: this
 //     directly activates the [Main] shown on the same DUAL card's Option side (not an
 //     Option "use"). Modeled with ActivateMain, which runs this card's own Main effect.
-//     the [DATA SQUAD] trait). Corrected.
 //
-// Keyword abilities (＜Raid＞ ＜Piercing＞ ＜Blocker＞ ＜Barrier＞) are carried as
-// descriptive keyword markers, matching the whole corpus: the engine reads keyword
-// PRESENCE from the printed effectText (interpreter.textHasKeyword), not from executable
-// IR actions, so an empty-actions keyword effect is the established representation.
-// ＜Security A. +1＞ is the one keyword with a continuous-grant verb (grantKeyword
-// "SecurityAttack" +1), so it is an executable GainKeyword action (the SecurityCheck
-// strikeFor reader sums these grants — §16-4-3 stacking, §16-4-4 clamps negatives to 0).
+// Keyword abilities are explicit permanent continuous grants. Descriptive `keywords`
+// metadata alone is not authoritative for runtime combat/leave-prevention consumers, which
+// read the continuous ledger. Security Attack carries its numeric +1 amount.
 //
 // "[Your Turn] All of your [Marcus Damon]s are also treated as 12000 DP Digimon and gain
 // ＜Rush＞" (Q6499/Q6500/Q6506): flips every Tamer named [Marcus Damon] to ALSO-Digimon
@@ -48,6 +43,7 @@ type Actions = CompiledCard["effects"][number]["actions"];
 const marcusTarget = {
   filter: {
     controller: "mine",
+    kind: ["Tamer"],
     nameOrTrait: [{ tokens: ["Marcus Damon"], match: "name" }],
   },
   count: "all",
@@ -55,60 +51,55 @@ const marcusTarget = {
 
 const compiled: CompiledCard = {
   effects: [
-    // ＜Raid＞ (keyword marker; combat reads it from printed text).
-    {
-      trigger: "WhenAttacking",
-      keywords: [{ keyword: "Raid" }],
-      actions: [],
-    },
-    // ＜Piercing＞ (keyword marker).
-    {
-      trigger: "Static",
-      keywords: [{ keyword: "Piercing" }],
-      actions: [],
-    },
-    // ＜Security A. +1＞ — continuous keyword grant on self (executable).
+    // ＜Raid＞ ＜Piercing＞ ＜Security A. +1＞ ＜Blocker＞ ＜Barrier＞.
     {
       trigger: "Static",
       actions: [
         {
           kind: "GainKeyword",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          keyword: { keyword: "Raid" },
+          duration: "permanent",
+        },
+        {
+          kind: "GainKeyword",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          keyword: { keyword: "Piercing" },
+          duration: "permanent",
+        },
+        {
+          kind: "GainKeyword",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           keyword: { keyword: "SecurityAttack", amount: 1 },
           duration: "permanent",
         },
+        {
+          kind: "GainKeyword",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          keyword: { keyword: "Blocker" },
+          duration: "permanent",
+        },
+        {
+          kind: "GainKeyword",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          keyword: { keyword: "Barrier" },
+          duration: "permanent",
+        },
       ],
-    },
-    // ＜Blocker＞ (keyword marker).
-    {
-      trigger: "Static",
-      keywords: [{ keyword: "Blocker" }],
-      actions: [],
-    },
-    // ＜Barrier＞ (keyword marker).
-    {
-      trigger: "Static",
-      keywords: [{ keyword: "Barrier" }],
-      actions: [],
-    },
-    // ＜Burst Digivolve＞ marker (the named-material Burst path is not representable
-    // beyond the keyword marker, matching the corpus' BlastDigivolve handling).
-    {
-      trigger: "Static",
-      keywords: [{ keyword: "BlastDigivolve" }],
-      actions: [],
     },
     // [When Digivolving] [Once Per Turn] Activate 1 [Main] effect on this card's Option
     // side (Q6496/Q6497: directly activates the same DUAL card's Option-side [Main]).
     {
       trigger: "WhenDigivolving",
       frequency: "OncePerTurn",
+      sharedUseKey: "bt25-104/activate-option-main",
       actions: [{ kind: "ActivateMain" }],
     },
     // [When Attacking] [Once Per Turn] Activate 1 [Main] effect on this card's Option side.
     {
       trigger: "WhenAttacking",
       frequency: "OncePerTurn",
+      sharedUseKey: "bt25-104/activate-option-main",
       actions: [{ kind: "ActivateMain" }],
     },
     // [Your Turn] All of your [Marcus Damon]s are also treated as 12000 DP Digimon and

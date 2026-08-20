@@ -1,10 +1,11 @@
-import { CardKind, EffectTiming, isDigimon } from "@aegis/shared";
+import { CardKind, EffectTiming, isDigimon, isTamer } from "@aegis/shared";
 import type { Permanent, Seat } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { whenDigivolving, staticModifier, onDeletion } from "../../engine/effects/builders.js";
+import { requireOpponentAsk } from "../../engine/decisions/decisionApi.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-076 — Crowmon (BT26, Purple Lv.5 Digimon, Mysterious Bird/DATA SQUAD).
@@ -39,11 +40,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 //     BT26-057's `tamersWithFaceDownBottom` / `payByTrashingBottomFaceDownUnderTamer`
 //     idiom verbatim, gated by `ctx.ask.optional` per that same precedent (an unpaid cost
 //     skips the effect). "They trash 1 card in their hand" is the opponent's hand, but
-//     `decisionApi.ts` always prompts `ctx.source.ownerSeat` (documented engine gap) — so
-//     per BT26-072's identical "[On Deletion] Your opponent trashes 1 card in their hand"
-//     precedent, THIS card's controller picks which of the opponent's hand cards is
-//     trashed (`selectCards` over the opponent's hand, min:1). Divergence noted, not
-//     worked around.
+//     `requireOpponentAsk(ctx).selectCards` addresses the decision to the opponent's seat,
+//     matching BT26-072's identical "Your opponent trashes 1 card in their hand" clause.
 //
 //   EffectTiming.None (staticModifier) — "[Your Turn] [Once Per Turn] When your
 //     opponent's hand is trashed from or effects trash cards from under your Tamers,
@@ -224,7 +222,12 @@ const module: EffectModule = {
             const opponentHandIds = Array.from(opponent.hand).map((c) => c.instanceId);
             if (opponentHandIds.length === 0) return;
 
-            const chosenCard = await ctx.ask.selectCards(ctx, { candidates: opponentHandIds, min: 1, max: 1 });
+            // "They trash 1 card in their hand" — the opponent chooses their own card.
+            const chosenCard = await requireOpponentAsk(ctx).selectCards(ctx, {
+              candidates: opponentHandIds,
+              min: 1,
+              max: 1,
+            });
             if (chosenCard.length === 0) return;
             await ctx.fx.trash(chosenCard);
           },
@@ -298,6 +301,9 @@ const module: EffectModule = {
             const candidates = Array.from(owner.trash).filter((c) => {
               const def = ctx.game.definitionOf(c);
               if ((def.playCost ?? Number.POSITIVE_INFINITY) > 5) return false;
+              // Options are used, not played. A dual card remains eligible through its
+              // Digimon kind, while ordinary Options with the DATA SQUAD trait are excluded.
+              if (!isDigimon(def) && !isTamer(def)) return false;
               const types = def.types ?? [];
               return types.includes("Avian") || types.includes("Bird") || types.includes(DATA_SQUAD_TRAIT);
             });

@@ -9,9 +9,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-043 — Piximon (BT26, Green Lv.5 Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-043 as of this port
-// (`node tools/kb/query.mjs card BT26-043` returned no knowledge-base entries — BT26
-// has no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// The committed KB contains Q7034 (2026-08-18), confirming that the unsuspend lock may
+// target a different opposing Digimon or Tamer from the permanent suspended first.
 //
 // Printed text:
 //   [Digivolve] Lv.4 w/[DM] trait: Cost 3 — a digivolution-cost requirement, not an
@@ -33,9 +32,10 @@ import { registerCard } from "../../engine/effects/registry.js";
 //     target pool (`isDigimonOrTamer` via `def.kinds.includes(CardKind.Tamer)`,
 //     `ctx.fx.suspend`). "Then, by placing your deck's top card face down as this
 //     Digimon's bottom digivolution card" has no discretionary component (the card is
-//     always the deck's actual top card, not a choice), so it is read literally off
+//     always the deck's actual top card, not a card-selection choice), so after the
+//     controller accepts the optional "by" payment it is read literally off
 //     `ctx.game.player(seat).deck[0]` and placed via `ctx.fx.placeUnder(self, [id],
-//     { belowTop: false })` — the same deck-top-to-stack-bottom idiom as BT26-023's
+//     { belowTop: false, faceUp: false })` — the same deck-top-to-stack-bottom idiom as BT26-023's
 //     ＜Training＞ clause and BT11-061's `ctx.fx.placeUnder`, but with `belowTop: false`
 //     (a literal true-bottom placement) matching BT11-061's own "bottom digivolution
 //     card" reading rather than BT26-023's Training-specific `belowTop: true` parity
@@ -78,7 +78,7 @@ function digimonOrTamerTargets(ctx: EffectContext, seat: Seat): Permanent[] {
 
 function opponentDigimonTargets(ctx: EffectContext, seat: Seat): Permanent[] {
   return Array.from(ctx.game.player(seat).battleArea).filter(
-    (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
+    (p) => p.topCard !== undefined && !p.isSuspended && isDigimon(ctx.game.definitionOf(p.topCard)),
   );
 }
 
@@ -102,7 +102,10 @@ async function chooseOne(ctx: EffectContext, candidates: Permanent[]): Promise<s
 async function resolveSuspendPlaceAndLock(ctx: EffectContext, source: CardSource): Promise<void> {
   const opponentSeat = ctx.game.opponentOf(source.ownerSeat);
 
-  const suspendTargetId = await chooseOne(ctx, digimonOrTamerTargets(ctx, opponentSeat));
+  const suspendTargetId = await chooseOne(
+    ctx,
+    digimonOrTamerTargets(ctx, opponentSeat).filter((permanent) => !permanent.isSuspended),
+  );
   if (suspendTargetId !== undefined) {
     await ctx.fx.suspend([suspendTargetId]);
   }
@@ -111,9 +114,17 @@ async function resolveSuspendPlaceAndLock(ctx: EffectContext, source: CardSource
   if (self === undefined) return;
 
   const topOfDeck = ctx.game.player(source.ownerSeat).deck[0];
-  if (topOfDeck !== undefined) {
-    await ctx.fx.placeUnder(self.permanentId, [topOfDeck.instanceId], { belowTop: false });
-  }
+  if (topOfDeck === undefined) return;
+  const willPay = await ctx.ask.optional(
+    ctx,
+    "Place your deck's top card face down as this Digimon's bottom digivolution card?",
+  );
+  if (!willPay) return;
+  const placed = await ctx.fx.placeUnder(self.permanentId, [topOfDeck.instanceId], {
+    belowTop: false,
+    faceUp: false,
+  });
+  if (!placed.some((card) => card.instanceId === topOfDeck.instanceId)) return;
 
   const afterPlace = ctx.game.permanentById(self.permanentId);
   const faceDownCount = afterPlace?.stack.filter((c) => c.faceUp !== true).length ?? 0;
@@ -139,8 +150,7 @@ const module: EffectModule = {
             "digivolution cards, 1 of your opponent's Digimon or Tamers can't " +
             "unsuspend until their turn ends.",
           optional: false,
-          canActivate: (ctx) =>
-            digimonOrTamerTargets(ctx, ctx.game.opponentOf(source.ownerSeat)).length > 0,
+          canActivate: () => true,
           resolve: async (ctx) => {
             await resolveSuspendPlaceAndLock(ctx, source);
           },
@@ -160,8 +170,7 @@ const module: EffectModule = {
             "digivolution cards, 1 of your opponent's Digimon or Tamers can't " +
             "unsuspend until their turn ends.",
           optional: false,
-          canActivate: (ctx) =>
-            digimonOrTamerTargets(ctx, ctx.game.opponentOf(source.ownerSeat)).length > 0,
+          canActivate: () => true,
           resolve: async (ctx) => {
             await resolveSuspendPlaceAndLock(ctx, source);
           },
@@ -187,9 +196,7 @@ const module: EffectModule = {
             // "[All Turns]": the current turn seat is the owner's turn when
             // isOwnersTurn() holds, else the opponent's — used only to expire the
             // one-shot watcher at the end of whichever turn it was installed in.
-            const currentTurnSeat = ctx.source.isOwnersTurn()
-              ? ownerSeat
-              : ctx.game.opponentOf(ownerSeat);
+            const currentTurnSeat = ctx.source.isOwnersTurn() ? ownerSeat : ctx.game.opponentOf(ownerSeat);
 
             ctx.fx.subscribeSubTrigger({
               event: "whenPlayed",
@@ -208,12 +215,17 @@ const module: EffectModule = {
               run: async (subCtx) => {
                 const opponentSeat = subCtx.game.opponentOf(ownerSeat);
                 const candidates = opponentDigimonTargets(subCtx, opponentSeat);
-                if (candidates.length === 0) return;
-                const accept = await subCtx.ask.optional(
-                  subCtx,
-                  "Piximon: suspend 1 of your opponent's Digimon?",
-                );
-                if (!accept) return;
+                if (candidates.length === 0) {
+                  // A trigger with no legal target did not activate the optional effect.
+                  // Re-arm this turn's one-shot watcher so a later allied play can use it.
+                  await module.effectsForTiming(EffectTiming.OnStartTurn, source)[0]!.resolve(subCtx);
+                  return;
+                }
+                const accept = await subCtx.ask.optional(subCtx, "Piximon: suspend 1 of your opponent's Digimon?");
+                if (!accept) {
+                  await module.effectsForTiming(EffectTiming.OnStartTurn, source)[0]!.resolve(subCtx);
+                  return;
+                }
                 const targetId = await chooseOne(subCtx, candidates);
                 if (targetId === undefined) return;
                 await subCtx.fx.suspend([targetId]);

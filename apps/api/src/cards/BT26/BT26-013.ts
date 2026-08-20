@@ -15,8 +15,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 // [Digivolve] Lv.3 w/[Shambala]/[TS] trait: Cost 2 — a digivolution-cost requirement,
 //   not an effect clause; already carried centrally by ALTERNATE_DIGIVOLUTION_OVERRIDES,
 //   so it needs no entry here.
-// ＜Blocker＞ — printed keyword, parsed automatically from effectText by the engine's
-//   combat/keywords.ts (PRINTED_MATCHERS); needs no explicit grant (same as BT24-056).
+// ＜Blocker＞ — combat legality reads the continuous keyword ledger, so this hand-written
+//   module grants it explicitly while Musyamon is the permanent's top card.
 // [On Play] [On Deletion] By trashing 1 card in your hand, delete 1 of your opponent's
 //   Digimon with 6000 DP or less.
 // Inherited: [Your Turn] This Digimon gets +2000 DP.
@@ -35,13 +35,12 @@ async function resolveTrashToDelete(ctx: EffectContext, source: CardSource): Pro
 
   const toTrash = await ctx.ask.selectCards(ctx, { candidates: handIds, min: 0, max: 1 });
   if (toTrash.length === 0) return;
-  await ctx.fx.trash(toTrash);
+  const trashed = await ctx.fx.trash(toTrash);
+  if (trashed.length !== 1) return;
 
   const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
   const candidates = opponent.battleArea
-    .filter(
-      (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && p.currentDP <= 6000,
-    )
+    .filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && p.currentDP <= 6000)
     .map((p) => p.permanentId);
   if (candidates.length === 0) return;
 
@@ -89,6 +88,15 @@ const module: EffectModule = {
     // Inherited: [Your Turn] This Digimon gets +2000 DP.
     if (timing === EffectTiming.None) {
       return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/blocker`,
+          description: "＜Blocker＞",
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Blocker", EffectDuration.Permanent);
+          },
+        }),
         staticModifier({
           source,
           effectKey: `${cardId}/inherited-dp-boost`,

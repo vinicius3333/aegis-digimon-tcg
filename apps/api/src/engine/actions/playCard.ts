@@ -13,12 +13,7 @@ import {
   getCompiledCard,
 } from "@aegis/shared";
 import { definitionOf, dpOf } from "../cards/cardData.js";
-import {
-  extractCardAt,
-  insertCard,
-  placePermanent as appendPermanent,
-} from "../state/access.js";
-
+import { extractCardAt, insertCard, placePermanent as appendPermanent } from "../state/access.js";
 
 /** The narrowed intent this action handles (mirrors the @aegis/shared Intent variant). */
 export interface PlayCardIntent {
@@ -146,12 +141,7 @@ export interface PlayCardDeps {
    * the engine so this module stays decoupled from effect-stack internals
    * (subsystems: effect-framework, effect-stack-resolution).
    */
-  fireTiming(
-    state: GameState,
-    seat: Seat,
-    timing: EffectTiming,
-    sourceInstanceId: string,
-  ): Promise<void>;
+  fireTiming(state: GameState, seat: Seat, timing: EffectTiming, sourceInstanceId: string): Promise<void>;
   /** Notify armed watchers after a genuine Option use finishes resolving its [Main] effect. */
   fireOptionUsed?(usedInstanceId: string, usedOptionCost?: number): Promise<void>;
   /**
@@ -172,6 +162,7 @@ export interface PlayCardDeps {
     instance: CardInstance,
     definition: CardDefinition,
     baseCost: number,
+    mode: PlayMode,
   ): Promise<number>;
   /**
    * SYNCHRONOUS predicate: does `instance` have any `BeforePayCost` effect (i.e. is the pay-time
@@ -200,12 +191,7 @@ export interface PlayCardDeps {
    * or no eligible target exists — the caller falls through to the normal trash.
    * Optional: when absent, an Option-side DUAL card always trashes (the prior behavior).
    */
-  artsDigivolve?(
-    state: GameState,
-    seat: Seat,
-    instance: CardInstance,
-    definition: CardDefinition,
-  ): Promise<boolean>;
+  artsDigivolve?(state: GameState, seat: Seat, instance: CardInstance, definition: CardDefinition): Promise<boolean>;
   /** Optional narration hook (server -> client event log). */
   emit?: (event: PlayCardEvent) => void;
 }
@@ -288,9 +274,7 @@ export function validatePlayCard(
   // 5. Affordability: the play cost (after any continuous cost modifiers) must be
   //    payable (documented behavior MaxMemoryCost >= cost).
   const printed = normalizeCost(definition.playCost);
-  const cost = deps.adjustedPlayCost
-    ? Math.max(0, deps.adjustedPlayCost(state, seat, definition, printed))
-    : printed;
+  const cost = deps.adjustedPlayCost ? Math.max(0, deps.adjustedPlayCost(state, seat, definition, printed)) : printed;
   // A self/cross-card reducer may only be finalized at BeforePayCost because its
   // condition, scaling, or optional payment is evaluated against the live board.
   // Let that narrow class enter the async finalization path; applyPlayCard performs
@@ -345,10 +329,9 @@ export async function applyPlayCard(
   // rare EX9-043 / BT25-076 case). For every other card, the cost is the passive cost computed
   // synchronously above, and placement stays in the same microtask (no behavioral/timing change).
   const needsFinalize =
-    deps.finalizePlayCost !== undefined &&
-    (deps.hasBeforePayCost === undefined || deps.hasBeforePayCost(handInstance));
+    deps.finalizePlayCost !== undefined && (deps.hasBeforePayCost === undefined || deps.hasBeforePayCost(handInstance));
   const cost = needsFinalize
-    ? Math.max(0, await deps.finalizePlayCost!(state, seat, handInstance, definition, passiveCost))
+    ? Math.max(0, await deps.finalizePlayCost!(state, seat, handInstance, definition, passiveCost, mode))
     : passiveCost;
 
   // (0b) Re-check affordability against the FINALIZED cost. The synchronous IntentResult was
@@ -430,7 +413,6 @@ export async function applyPlayCard(
   let routedToTrash = false;
   try {
     await deps.fireTiming(state, seat, ON_USE_OPTION_TIMING, instance.instanceId);
-    await deps.fireOptionUsed?.(instance.instanceId, definition.playCost);
   } finally {
     // CR §4-19 Arts Digivolve: a rule on DUAL cards, not a per-card effect. It OVERWRITES
     // the trash step below (§4-19-2), so it must be offered BEFORE that step, while the
@@ -471,12 +453,9 @@ export async function applyPlayCard(
   // the on-play body's own placement should route it. Checking "some" instead of "every" here
   // previously misrouted that shape straight to the delay zone, skipping its on-play body.
   const compiled = getCompiledCard(instance.cardId);
-  const mainClauses = (compiled?.effects ?? []).filter(
-    (eff) => eff.trigger === "Main" && !eff.isSecurity,
-  );
+  const mainClauses = (compiled?.effects ?? []).filter((eff) => eff.trigger === "Main" && !eff.isSecurity);
   const hasDelay =
-    mainClauses.length > 0 &&
-    mainClauses.every((eff) => (eff.keywords ?? []).some((kw) => kw.keyword === "Delay"));
+    mainClauses.length > 0 && mainClauses.every((eff) => (eff.keywords ?? []).some((kw) => kw.keyword === "Delay"));
   if (hasDelay) {
     const trashIdx = player.trash.findIndex((c) => c.instanceId === instance.instanceId);
     if (trashIdx >= 0) {
@@ -491,6 +470,12 @@ export async function applyPlayCard(
       });
     }
   }
+
+  // Q6432: "when you use an Option" reactions activate only after the used Option's
+  // [Main] effect has finished and the card has completed its post-use routing.  Firing
+  // from inside the resolvingOption window made watchers observe a card in no area and
+  // allowed their effects to resolve before the Option reached trash/delay/battle.
+  await deps.fireOptionUsed?.(instance.instanceId, definition.playCost);
 
   return {
     ok: true,
@@ -552,10 +537,7 @@ function normalizeCost(playCost: number): number {
  * Locate a card instance in a seat's hand and report its index, or undefined when it
  * is not there (the `playCard` intent in API-CONTRACT carries a hand instanceId).
  */
-function findInHand(
-  player: PlayerState,
-  instanceId: string,
-): { instance: CardInstance; index: number } | undefined {
+function findInHand(player: PlayerState, instanceId: string): { instance: CardInstance; index: number } | undefined {
   const index = player.hand.findIndex((c) => c.instanceId === instanceId);
   if (index < 0) return undefined;
   const instance = player.hand[index];

@@ -39,6 +39,11 @@ export interface LinkAction extends ActionBase {
    * ("to this Digimon").
    */
   recipient?: Target;
+  /**
+   * Some card effects explicitly link to a Digimon "on the field", which includes the
+   * breeding area (BT24-097 Q5707). Normal Link declarations must leave this false.
+   */
+  allowBreedingRecipient?: boolean;
   /** Default ["hand","digivolutionCards"]. */
   from?: ZoneRef[];
 }

@@ -1,28 +1,24 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
+import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
 import type { Permanent } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, whenDigivolving } from "../../engine/effects/builders.js";
+import { onPlay, staticModifier, whenDigivolving } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-071 — Flarerizamon (BT26, Purple/Red Lv.4 Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-071 as of this port
-// (`node tools/kb/query.mjs card BT26-071` returned no knowledge-base entries — BT26 has
-// no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// The committed KB has no card-specific ruling for BT26-071; behavior follows the printed
+// text and the engine's established "By [cost], [effect]" activation semantics.
 //
 // Printed text:
 //   [Digivolve] Lv.3 w/[NSo] trait: Cost 2 — a digivolution-cost requirement, not an
-//     effect clause; already carried by CardDefinition.evoCosts, not implemented here.
+//     effect clause; supplied by the committed generated digivolution requirements.
 //   [On Play] [When Digivolving] By deleting 1 of your Digimon, delete 1 of your
 //     opponent's level 4 or lower Digimon.
-//   Inherited: ＜Raid＞ — printed keyword, parsed automatically for combat legality from
-//     effectText by the engine's combat/keywords.ts (PRINTED_MATCHERS); needs no
-//     explicit grant here (same treatment as BT26-013's ＜Blocker＞ and BT26-055's
-//     ＜Fragment＞ note — ＜Raid＞ itself has no separate ledger-gated behavior to grant,
-//     unlike ＜Fragment＞).
+//   Inherited: ＜Raid＞ — explicitly granted from stack position because attack legality
+//     reads the continuous keyword ledger; a top-card Flarerizamon must not confer it.
 //
 // Clause mapping:
 //   EffectTiming.OnPlay / EffectTiming.WhenDigivolving (shared body via
@@ -56,7 +52,7 @@ function opponentLevel4OrLowerDigimonIds(ctx: EffectContext, source: CardSource)
       if (p.inBreeding) return false;
       if (p.topCard === undefined) return false;
       const def = ctx.game.definitionOf(p.topCard);
-      return isDigimon(def) && (def.level ?? 0) <= 4;
+      return isDigimon(def) && def.level !== undefined && def.level <= 4;
     })
     .map((p) => p.permanentId);
 }
@@ -73,9 +69,10 @@ async function resolveDeleteOwnToDeleteOpponent(ctx: EffectContext, source: Card
   const ownCandidates = battleAreaDigimon(ctx, source).map((p) => p.permanentId);
   if (ownCandidates.length === 0) return;
 
-  const ownChosen = await ctx.ask.chooseTargets(ctx, { candidates: ownCandidates, min: 0, max: 1 });
+  const ownChosen = await ctx.ask.chooseTargets(ctx, { candidates: ownCandidates, min: 1, max: 1 });
   if (ownChosen.length === 0) return;
-  await ctx.fx.deletePermanent(ownChosen);
+  const paid = await ctx.fx.deletePermanent(ownChosen, "byEffect");
+  if (paid !== 1) return;
 
   let opponentChosenId: string;
   if (opponentTargets.length === 1) {
@@ -86,12 +83,28 @@ async function resolveDeleteOwnToDeleteOpponent(ctx: EffectContext, source: Card
     opponentChosenId = chosen[0]!;
   }
 
-  await ctx.fx.deletePermanent([opponentChosenId]);
+  await ctx.fx.deletePermanent([opponentChosenId], "byEffect");
 }
 
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/inherited-raid`,
+          description: "Inherited: ＜Raid＞",
+          isInherited: true,
+          when: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const host = source.permanent();
+            if (host !== undefined) ctx.fx.grantKeyword(host.permanentId, "Raid", EffectDuration.Permanent);
+          },
+        }),
+      ];
+    }
+
     if (timing === EffectTiming.OnPlay) {
       return [
         onPlay({
@@ -99,7 +112,7 @@ const module: EffectModule = {
           effectKey: `${cardId}/on-play-delete-own-to-delete-opponent`,
           description:
             "[On Play] By deleting 1 of your Digimon, delete 1 of your opponent's " + "level 4 or lower Digimon.",
-          optional: false,
+          optional: true,
           canActivate: (ctx) =>
             opponentLevel4OrLowerDigimonIds(ctx, source).length > 0 && battleAreaDigimon(ctx, source).length > 0,
           resolve: async (ctx) => {
@@ -117,7 +130,7 @@ const module: EffectModule = {
           description:
             "[When Digivolving] By deleting 1 of your Digimon, delete 1 of your " +
             "opponent's level 4 or lower Digimon.",
-          optional: false,
+          optional: true,
           canActivate: (ctx) =>
             opponentLevel4OrLowerDigimonIds(ctx, source).length > 0 && battleAreaDigimon(ctx, source).length > 0,
           resolve: async (ctx) => {

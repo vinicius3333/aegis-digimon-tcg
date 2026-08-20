@@ -51,9 +51,9 @@ function opponentLevel4OrLowerDigimonIds(ctx: EffectContext, source: CardSource)
   const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
   return opponent.battleArea
     .filter((p) => {
-      if (p.topCard === undefined) return false;
+      if (p.inBreeding || p.topCard === undefined) return false;
       const def = ctx.game.definitionOf(p.topCard);
-      return isDigimon(def) && (def.level ?? 0) <= 4;
+      return isDigimon(def) && def.level !== undefined && def.level <= 4;
     })
     .map((p) => p.permanentId);
 }
@@ -77,7 +77,8 @@ async function placeHandCardToReturnOpponent(ctx: EffectContext, source: CardSou
 
   const toPlace = await ctx.ask.selectCards(ctx, { candidates: handIds, min: 0, max: 1 });
   if (toPlace.length === 0) return;
-  await ctx.fx.placeUnder(self.permanentId, toPlace, { faceUp: false });
+  const placed = await ctx.fx.placeUnder(self.permanentId, toPlace, { faceUp: false });
+  if (placed.length !== 1) return;
 
   let chosenId: string;
   if (targets.length === 1) {
@@ -118,7 +119,7 @@ const module: EffectModule = {
     }
 
     // [When Attacking] Same clause, plus the inherited "<Draw 1>" clause below.
-    if (timing === EffectTiming.OnAllyAttack) {
+    if (timing === EffectTiming.OnUseAttack) {
       return [
         whenAttacking({
           source,
@@ -174,8 +175,9 @@ const module: EffectModule = {
             const top = ctx.game.player(source.ownerSeat).deck[0];
             if (top === undefined) return;
 
-            await ctx.fx.suspend([self.permanentId]);
-            await ctx.fx.placeUnder(self.permanentId, [top.instanceId], { belowTop: true });
+            const suspended = await ctx.fx.suspend([self.permanentId]);
+            if (suspended.length !== 1) return;
+            await ctx.fx.placeUnder(self.permanentId, [top.instanceId], { belowTop: true, faceUp: false });
           },
         }),
       ];

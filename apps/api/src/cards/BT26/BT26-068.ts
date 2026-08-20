@@ -16,9 +16,8 @@ import { requireOpponentAsk } from "../../engine/decisions/decisionApi.js";
 //
 // Printed text:
 //   [Digivolve] Lv.3 w/[TS] trait: Cost 2 — a digivolution-cost requirement, not an
-//     effect clause; already carried by CardDefinition.evoCosts in cards.json (the
-//     printed header was garbled in the source and has already been corrected
-//     centrally), so it needs no entry here.
+//     effect clause. The catalog's ordinary row happens to have the same cost but is
+//     purple-only; the trait-based path is carried by generated-digivolve-overrides.json.
 //   [On Play] [When Digivolving] If your hand has 5 or fewer cards, both players
 //     ＜Draw 2＞.
 //   [All Turns] [Once Per Turn] When effects add to your opponent's hand, by trashing
@@ -49,10 +48,10 @@ import { requireOpponentAsk } from "../../engine/decisions/decisionApi.js";
 //     `ctx.ask.optional` before it is paid. The opponent's card is chosen by the opponent
 //     via `ctx.ask.opponent.selectCards` (decisionApi.ts) over their own hand — the
 //     decision is addressed to the opponent's seat, not the controller's. Per
-//     AGENTS.md: `maxPerTurn` on an `EffectTiming.None` host is NOT engine-enforced
-//     (GameEngine.ts:1429) — set here as documentation only, matching BT26-059/ST16-13's
-//     identical caveat; there is no compiled per-turn ledger for a hand-written
-//     `EffectTiming.None` host to lean on.
+//     builders.ts, `staticModifier` scopes an omitted watcher key to the source instance
+//     and effect key, then the SubTrigger turn ledger enforces the printed once-per-turn
+//     independently for each copy. A declined or unpayable cost marks the activation as
+//     declined so subtriggers.ts releases the reserved budget.
 
 const cardId = "BT26-068";
 
@@ -79,7 +78,7 @@ async function drawAndTrashFromHand(ctx: EffectContext, source: CardSource): Pro
     max: 1,
   });
   if (chosen.length > 0) {
-    await ctx.fx.trash(chosen);
+    await ctx.fx.trash(chosen, { byEffectSeat: source.ownerSeat });
   }
 }
 
@@ -154,7 +153,6 @@ const module: EffectModule = {
               event: "whenEffectAddsToOpponentHand",
               sourcePermanentId: self.permanentId,
               once: false,
-              oncePerTurnKey: `${cardId}/opponent-hand-added-trade-trash`,
               description:
                 `${cardId}: when effects add to your opponent's hand, by trashing 1 card in ` +
                 "your hand, your opponent trashes 1 card in their hand.",
@@ -164,21 +162,34 @@ const module: EffectModule = {
               },
               run: async (subCtx) => {
                 const owner = subCtx.game.player(source.ownerSeat);
-                if (owner.hand.length === 0) return;
+                if (owner.hand.length === 0) {
+                  subCtx.oncePerTurnActivationDeclined = true;
+                  return;
+                }
 
                 const willPay = await subCtx.ask.optional(
                   subCtx,
                   "Trash 1 card from your hand to make your opponent trash 1 card from their hand?",
                 );
-                if (!willPay) return;
+                if (!willPay) {
+                  subCtx.oncePerTurnActivationDeclined = true;
+                  return;
+                }
 
                 const ownChosen = await subCtx.ask.selectCards(subCtx, {
                   candidates: owner.hand.map((c) => c.instanceId),
                   min: 1,
                   max: 1,
                 });
-                if (ownChosen.length === 0) return;
-                await subCtx.fx.trash(ownChosen);
+                if (ownChosen.length === 0) {
+                  subCtx.oncePerTurnActivationDeclined = true;
+                  return;
+                }
+                const paid = await subCtx.fx.trash(ownChosen, { byEffectSeat: source.ownerSeat });
+                if (!paid.some((card) => card.instanceId === ownChosen[0])) {
+                  subCtx.oncePerTurnActivationDeclined = true;
+                  return;
+                }
 
                 const opponentSeat = subCtx.game.opponentOf(source.ownerSeat);
                 const opponent = subCtx.game.player(opponentSeat);
@@ -191,7 +202,7 @@ const module: EffectModule = {
                   max: 1,
                 });
                 if (opponentChosen.length > 0) {
-                  await subCtx.fx.trash(opponentChosen);
+                  await subCtx.fx.trash(opponentChosen, { byEffectSeat: source.ownerSeat });
                 }
               },
             });

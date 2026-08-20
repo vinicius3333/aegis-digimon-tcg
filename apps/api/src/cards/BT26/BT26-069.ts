@@ -3,7 +3,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, whenDigivolving, staticModifier } from "../../engine/effects/builders.js";
+import { handResidentStatic, onPlay, staticModifier, whenDigivolving } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-069 — Dobermon (BT26, Purple Lv.4 Digimon).
@@ -24,22 +24,13 @@ import { registerCard } from "../../engine/effects/registry.js";
 //     trash with the cost reduced by 1.
 //
 // Clause mapping:
-//   "When this card is trashed from the hand..." is UNIMPLEMENTED — confirmed missing
-//   primitive, not a card-design choice. A hand-resident self-reactive watcher has to be
-//   installed via `ctx.fx.subscribeSubTrigger({ event: "whenTrashedFromHand", ... })`
-//   while the card sits in hand (no permanent exists yet), so the install carries no
-//   `sourcePermanentId`. But `GameEngine.fireSubTrigger`'s `makeContext` (GameEngine.ts
-//   ~1340-1352) ALWAYS returns `undefined` when `sub.sourcePermanentId` is undefined
-//   (`srcPerm` becomes `undefined`, so `srcPerm?.topCard === undefined` is vacuously
-//   true), and `SubTriggerRegistry.fire` only runs a sub with `ctx === undefined`
-//   directly when it ALSO has no `matches` predicate — which this clause needs (to gate
-//   on its own card id). Verified empirically: registering BT24-013 (the only other
-//   printed card with this exact "trashed from hand -> draw" shape, IR-compiled) in a
-//   player's hand and trashing it via the `trash` primitive does not draw a card (deck
-//   count unchanged). Writing a `subscribeSubTrigger` call for this clause would be dead
-//   code that can never fire — no fake pass. Reported as the missing primitive: an
-//   anchor-less `SubTriggerInstall` needs a delivery path that does not require a live
-//   permanent (e.g. binding `ctx.source` from the loose `CardInstance` itself).
+//   EffectTiming.None (loose-card static watcher) — "When this card is trashed from
+//     the hand, if your hand has 5 or fewer cards, <Draw 1>." The production SubTrigger
+//     bus now supports loose-card anchors via `sourceInstanceId`; `whenTrashedFromHand`
+//     identifies the exact discarded instance, and the hand-size gate is evaluated in
+//     `matches` at activation timing as required by Q7091. The one-shot install deliberately
+//     survives the continuous recompute between the aggregate `whenHandTrashed` event and
+//     the per-card event, while its loose-card anchor follows the instance into the trash.
 //
 //   EffectTiming.OnPlay / EffectTiming.WhenDigivolving (shared body) — "By trashing 1
 //     card in your hand, delete 1 level 4 or lower Digimon." No "opponent's" qualifier in
@@ -75,7 +66,8 @@ async function resolveTrashToDeleteLevel4OrLower(ctx: EffectContext, source: Car
 
   const toTrash = await ctx.ask.selectCards(ctx, { candidates: owner.hand.map((c) => c.instanceId), min: 0, max: 1 });
   if (toTrash.length === 0) return;
-  await ctx.fx.trash(toTrash);
+  const trashed = await ctx.fx.trash(toTrash);
+  if (trashed.length !== 1) return;
 
   const candidates: string[] = [];
   for (const player of ctx.game.state.players) {
@@ -93,6 +85,21 @@ async function resolveTrashToDeleteLevel4OrLower(ctx: EffectContext, source: Car
   const chosen = await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 });
   if (chosen.length === 0) return;
   await ctx.fx.deletePermanent(chosen, "byEffect");
+}
+
+function installTrashedFromHandDrawWatcher(ctx: EffectContext, source: CardSource): void {
+  ctx.fx.subscribeSubTrigger({
+    event: "whenTrashedFromHand",
+    sourceInstanceId: source.instanceId,
+    once: true,
+    description: `${cardId}: when this card is trashed from hand with 5 or fewer cards remaining, draw 1.`,
+    matches: (subCtx) =>
+      subCtx.trigger?.trashedFromHandInstanceId === source.instanceId &&
+      subCtx.game.player(source.ownerSeat).hand.length <= 5,
+    run: async (subCtx) => {
+      await subCtx.fx.draw(source.ownerSeat, 1);
+    },
+  });
 }
 
 const module: EffectModule = {
@@ -135,6 +142,12 @@ const module: EffectModule = {
     // card in the trash with the cost reduced by 1.
     if (timing === EffectTiming.None) {
       return [
+        handResidentStatic({
+          source,
+          effectKey: `${cardId}/trashed-from-hand-draw/hand-anchor`,
+          description: "When this card is trashed from the hand, if your hand has 5 or fewer cards, <Draw 1>.",
+          resolve: async (ctx) => installTrashedFromHandDrawWatcher(ctx, source),
+        }),
         staticModifier({
           source,
           effectKey: `${cardId}/inherited-hand-trashed-digivolve-titan`,
@@ -158,6 +171,11 @@ const module: EffectModule = {
               matches: (subCtx) => subCtx.trigger?.handTrashedSeat === source.ownerSeat,
               run: async (subCtx) => {
                 if (!source.isOwnersTurn()) return; // [Your Turn]
+
+                const currentHost = subCtx.game.permanentById(hostPermanentId);
+                if (currentHost === undefined || currentHost.inBreeding || currentHost.topCard === undefined) return;
+                const hostDef = subCtx.game.definitionOf(currentHost.topCard);
+                if (!isDigimon(hostDef) || !(hostDef.types ?? []).includes(TITAN_TRAIT)) return;
 
                 const owner = subCtx.game.player(source.ownerSeat);
                 const candidates = owner.trash.filter((c) => {

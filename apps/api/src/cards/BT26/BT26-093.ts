@@ -152,7 +152,8 @@ const module: EffectModule = {
                 const selfPerm = subCtx.source.permanent();
                 if (selfPerm === undefined || selfPerm.isSuspended) return;
 
-                await subCtx.fx.suspend([selfPerm.permanentId]);
+                const suspended = await subCtx.fx.suspend([selfPerm.permanentId]);
+                if (!suspended.includes(selfPerm.permanentId)) return;
 
                 const owner = subCtx.game.player(source.ownerSeat);
                 const topCardInstance = owner.deck[0];

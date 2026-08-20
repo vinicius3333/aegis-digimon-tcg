@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-099.js";
 
 describe("BT22-099 Kuremi Detective Agency", () => {
@@ -38,5 +39,26 @@ describe("BT22-099 Kuremi Detective Agency", () => {
       isSecurity: true,
       actions: [{ kind: "PlaceInBattleAreaSelf" }],
     });
+  });
+
+  it("reveals into observable hand/deck state and places the used Option", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT22-099", as: "agency" }],
+          battleArea: ["BT22-054"],
+          deck: ["BT1-001", "BT1-002", "BT22-054"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const agencyId = s.inst("agency").instanceId;
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: agencyId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === agencyId));
+    expect(s.state.players[0]!.hand.some((c) => c.cardId === "BT22-054")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === agencyId)).toBe(true);
   });
 });

@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { effectsOf } from "../../engine/effects/collect.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-074.js";
 
 describe("BT22-074 SkullMeramon", () => {
@@ -46,5 +50,26 @@ describe("BT22-074 SkullMeramon", () => {
         count: 1,
       },
     });
+  });
+
+  it("pays exactly 3 and gains Security Attack when public Main activation deletes nothing", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT22-074", as: "skull" }] } }, { autoAcceptOptional: true });
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.perm("skull").topCard!);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT22-074/"),
+    )!.effectKey;
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("skull").topCard!.instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("skull"), "SecurityAttack"));
+    expect(s.state.memory).toBe(2);
+    expect(observe(s.engine).hasKeyword(s.perm("skull"), "SecurityAttack")).toBe(true);
   });
 });

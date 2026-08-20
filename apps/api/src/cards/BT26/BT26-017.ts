@@ -11,11 +11,9 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
 /**
  * BT26-017 — Zanbamon (BT26, Red/Purple Lv.6 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-017` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * Knowledge base: Q6982 confirms that effects triggered by Zanbamon's deletion are
+ * simultaneous and their controller chooses their activation order. Trigger ordering is
+ * handled by the shared effect stack; the module only declares Zanbamon's own trigger.
  *
  * Printed text:
  *   [Digivolve] Lv.5 w/[Shambala]/[TS] trait: Cost 3
@@ -37,9 +35,8 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
  *   EffectTiming.OnDestroyedAnyone — "You may play 1 [Shambala] or [TS] trait card with a
  *     play cost of 5 or less from your trash without paying the cost."
  *
- * [Assembly -4] is structural play-legality data (assemblyRequirement), not an
- * EffectModule clause; per this port's constraints, effects.json is not touched for
- * BT26 cards, so the Assembly requirement is not structurally enforced for this card yet.
+ * Alternate evolution and [Assembly -4] are structural legality/cost data, exposed by
+ * digivolutionRequirementsFor/assemblyRequirementFor rather than EffectModule effects.
  */
 const cardId = "BT26-017";
 
@@ -73,7 +70,7 @@ const module: EffectModule = {
           description: "＜Blocker＞",
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
-            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Blocker", EffectDuration.UntilEachTurnEnd);
+            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Blocker", EffectDuration.Permanent);
           },
         }),
         staticModifier({
@@ -82,7 +79,7 @@ const module: EffectModule = {
           description: "＜Retaliation＞",
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
-            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Retaliation", EffectDuration.UntilEachTurnEnd);
+            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Retaliation", EffectDuration.Permanent);
           },
         }),
       ];

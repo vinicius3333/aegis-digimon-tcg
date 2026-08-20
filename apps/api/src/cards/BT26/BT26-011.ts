@@ -7,16 +7,17 @@ import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { onPlay, whenDigivolving, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
+import { cardHasTrait } from "../../engine/cards/cardData.js";
 
 // BT26-011 — Buraimon (BT26, Red Lv.4 Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-011 as of this port
-// (`node tools/kb/query.mjs card BT26-011` returned no knowledge-base entries). implemented
-// from the printed card text only.
+// KB Q6965 (2026-08-18) defines "a card with X in its text" as every printed field:
+// name, traits, effects, inherited effects, Rule text, and all evolution/Xros/Fusion/
+// Link/Assembly requirements. `matchNameOrTrait(..., {match:"text"})` implements that
+// complete catalog search rather than checking only effectText.
 //
 // [Digivolve] Lv.3 w/[TS] trait: Cost 2 — a digivolution-cost requirement, not an effect
-//   clause; already carried by CardDefinition.evoCosts in cards.json and read directly by
-//   the engine's digivolution logic, so it needs no entry here.
+//   clause; carried by generated-digivolve-overrides.json and read centrally.
 // ＜Raid＞
 // [On Play] [When Digivolving] By trashing 1 card with [Chronomon] in its text or the
 //   [Shaman] trait from your hand, ＜Draw 2＞.
@@ -36,8 +37,7 @@ import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 const cardId = "BT26-011";
 
 const hasChronomonTextOrShamanTrait = (def: CardDefinition): boolean =>
-  matchNameOrTrait(def, { tokens: ["Chronomon"], match: "text" }) ||
-  matchNameOrTrait(def, { tokens: ["Shaman"], match: "trait" });
+  matchNameOrTrait(def, { tokens: ["Chronomon"], match: "text" }) || cardHasTrait(def, "Shaman");
 
 /** [On Play] [When Digivolving] By trashing 1 matching card from hand, draw 2. */
 async function trashForDrawTwo(ctx: EffectContext, source: CardSource): Promise<void> {
@@ -54,7 +54,8 @@ async function trashForDrawTwo(ctx: EffectContext, source: CardSource): Promise<
   });
   if (chosen.length === 0) return;
 
-  await ctx.fx.trash(chosen);
+  const paid = await ctx.fx.trash(chosen);
+  if (paid.length !== 1 || paid[0]!.instanceId !== chosen[0]) return;
   await ctx.fx.draw(source.ownerSeat, 2);
 }
 

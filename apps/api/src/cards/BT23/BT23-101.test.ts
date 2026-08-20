@@ -22,4 +22,16 @@ describe("BT23-101 Hudiemon", () => {
       cost: { kind: "return" },
     });
   });
+
+  it("carries both exact alternate digivolution paths and the four-Hudie-Tamer gate", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 3, traits: ["CS"], cost: 4, isAlternate: true },
+      {
+        namesExact: ["Erika Mishima"],
+        cost: 3,
+        isAlternate: true,
+        controllerControls: { kind: ["Tamer"], traits: ["Hudie"], min: 4 },
+      },
+    ]);
+  });
 });

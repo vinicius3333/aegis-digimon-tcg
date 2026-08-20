@@ -1,7 +1,33 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT23-071.js";
 
 describe("BT23-071 Dullahamon", () => {
+  it("must delete one opposing highest-level Digimon and leaves lower levels intact", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT23-071", as: "dullahamon" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "low" },
+          { card: "BT23-101", as: "high" },
+        ],
+      },
+    });
+    const lowId = s.perm("low").permanentId;
+    const highId = s.perm("high").permanentId;
+    await (
+      s.engine as unknown as {
+        fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
+      }
+    ).fireTiming(EffectTiming.WhenDigivolving, {
+      subjectPermanentId: s.perm("dullahamon").permanentId,
+    });
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === highId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === lowId)).toBe(true);
+  });
+
   it("declares Piercing, Security Attack +1, and Execute", () => {
     expect(
       compiled.effects

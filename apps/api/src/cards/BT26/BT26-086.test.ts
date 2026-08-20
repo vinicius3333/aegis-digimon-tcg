@@ -3,6 +3,9 @@ import { CardKind, EffectDuration, EffectTiming, type CardDefinition, type Seat 
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives, SubTriggerInstall } from "../../engine/effects/EffectContext.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import "./BT26-086.js";
 
 // BT26-086 (Dantemon, BT26):
@@ -171,7 +174,7 @@ describe("BT26-086 [On Play] / [When Digivolving]: link stacked Appmon, then att
     expect(harness.calls).toEqual([`link:${SELF_PERMANENT}:stack-a,stack-b`, `forceAttack:${SELF_PERMANENT}:true`]);
   });
 
-  it("offers one card per printed name and skips non-[Appmon] stack cards", async () => {
+  it("offers every Appmon printing, honors the selected printing, and rejects duplicate names", async () => {
     const harness = makeHarness({
       stack: [
         { instanceId: "stack-a", cardId: APPMON_A },
@@ -179,13 +182,14 @@ describe("BT26-086 [On Play] / [When Digivolving]: link stacked Appmon, then att
         { instanceId: "stack-b", cardId: APPMON_B },
         { instanceId: "stack-plain", cardId: PLAIN },
       ],
-      pick: () => [],
+      pick: () => ["stack-a-dup", "stack-a", "stack-b"],
       accept: false,
     });
 
     await effectFor(EffectTiming.OnPlay, harness.source, LINK_KEY).resolve(harness.ctx);
 
-    expect(harness.offered).toEqual([["stack-a", "stack-b"]]);
+    expect(harness.offered).toEqual([["stack-a", "stack-a-dup", "stack-b"]]);
+    expect(harness.calls).toEqual([`link:${SELF_PERMANENT}:stack-a-dup,stack-b`]);
   });
 
   it("still offers the unsuspended attack when there is nothing to link", async () => {
@@ -268,5 +272,50 @@ describe("BT26-086 [All Turns] [Once Per Turn]: when this Digimon gets linked", 
     await (await install(harness)).run(harness.ctx);
 
     expect(harness.calls).toEqual([]);
+  });
+});
+
+describe("BT26-086 evolution-stack integration", () => {
+  it("links seven differently named Appmons from its stack, deletes, and bottoms top security", async () => {
+    const appmons = ["BT26-010", "BT26-019", "BT26-028", "BT26-037", "BT26-051", "BT26-063", "BT26-084"];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: CARD_ID,
+              as: "dantemon",
+              under: appmons.map((card, index) => ({ card, as: `appmon-${index}` })),
+            },
+          ],
+        },
+        1: {
+          deck: [{ card: "AD1-001", as: "existingDeck" }],
+          security: [
+            { card: "AD1-002", as: "securityTop" },
+            { card: "AD1-003", as: "securityCheckedByThenAttack" },
+            { card: "BT5-021", as: "securityBottom" },
+          ],
+          battleArea: [{ card: "AD1-004", as: "deleteTarget" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.engine.recomputeContinuousEffects();
+    const securityTopId = s.inst("securityTop").instanceId;
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("dantemon"));
+    await settle(() => s.perm("dantemon").linked.length === 7);
+
+    expect(s.perm("dantemon").linked).toHaveLength(7);
+    expect(s.perm("dantemon").stack).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("securityBottom").instanceId,
+    ]);
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("existingDeck").instanceId,
+      securityTopId,
+    ]);
   });
 });

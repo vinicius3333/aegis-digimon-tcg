@@ -1,10 +1,11 @@
-import { CardKind, EffectTiming } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
 import type { CardDefinition, Permanent, Seat } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { activated, whenAttacking, whenDigivolving } from "../../engine/effects/builders.js";
+import { activated, colorWaiverStatic, whenAttacking, whenDigivolving } from "../../engine/effects/builders.js";
+import { cardHasTrait, permanentHasTrait } from "../../engine/cards/cardData.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-080 — Bacchusmon (BT26, Purple/Green Lv.6 dual Digimon/Option, Shaman/Olympos XII/
@@ -25,16 +26,18 @@ import { registerCard } from "../../engine/effects/registry.js";
 // [When Attacking] [Once Per Turn] Delete 1 of your opponent's Digimon with the same
 //   orientation as this Digimon.
 //
-// Option side [Bacchus Fluid]:
-// ＜Use Req. ([TS] trait)＞ — data-only for a DUAL card's Option side, the same treatment
-//   BT26-031/BT26-033/BT26-050 give theirs (the `optionColorRequirements` field on the card
-//   record, ["Purple"] here), not an executable clause.
+// Option side [Reversal of the Dead]:
+// ＜Use Req. ([TS] trait)＞ — a hand-resident color-requirement waiver. This direct module
+//   replaces the compiled module, so the clause must be retained explicitly here; otherwise a
+//   controller with a [TS] card but no Purple source is incorrectly barred from using this side.
 // [Main] You may unsuspend 1 Digimon. Then, delete all of your opponent's unsuspended Digimon
 //   with the lowest DP.
 //
 // "By suspending 1 Digimon" is a cost, so the clause is optional and needs an unsuspended
 // Digimon on the board to pay with; the attack itself is `forceAttack(self,
 // { withoutSuspending: true })` (BT12-083's mapping of the same printed phrase).
+// The shared attack-legality seam honors `withoutSuspending` even when Bacchusmon is already
+// suspended, so Q7113's legal choice to suspend this Digimon itself can still produce the attack.
 // "the same orientation as this Digimon" compares `isSuspended` against this permanent's own
 // state at resolution time. The Option's "delete all ... with the lowest DP" reuses
 // BT26-033's shape: compute the minimum over the eligible set, then delete every tie.
@@ -54,9 +57,30 @@ function allDigimon(ctx: EffectContext): Permanent[] {
   return [...digimonOf(ctx, 0 as Seat), ...digimonOf(ctx, 1 as Seat)];
 }
 
+function ownerHasTsCardInPlay(ctx: EffectContext, source: CardSource): boolean {
+  return Array.from(ctx.game.player(source.ownerSeat).battleArea).some((permanent) => {
+    if (permanent.inBreeding || permanent.topCard === undefined) return false;
+    return permanentHasTrait(ctx.game, permanent, "TS");
+  });
+}
+
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
+    if (timing === EffectTiming.None) {
+      return [
+        colorWaiverStatic({
+          source,
+          effectKey: `${cardId}/use-req-ts`,
+          description: "＜Use Req. ([TS] trait)＞ Ignore this card's color requirements.",
+          when: (ctx) => ownerHasTsCardInPlay(ctx, source),
+          resolve: async (ctx) => {
+            ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.UntilEachTurnEnd);
+          },
+        }),
+      ];
+    }
+
     if (timing === EffectTiming.WhenDigivolving) {
       return [
         whenDigivolving({
@@ -74,7 +98,9 @@ const module: EffectModule = {
               .map((permanent) => permanent.permanentId);
             if (costCandidates.length === 0) return;
 
-            const toSuspend = await ctx.ask.chooseTargets(ctx, { candidates: costCandidates, min: 0, max: 1 });
+            // The effect itself is optional. Once its activation is accepted, "By suspending"
+            // is the mandatory cost, so the target decision cannot be declined a second time.
+            const toSuspend = await ctx.ask.chooseTargets(ctx, { candidates: costCandidates, min: 1, max: 1 });
             if (toSuspend.length === 0) return;
 
             await ctx.fx.suspend(toSuspend);

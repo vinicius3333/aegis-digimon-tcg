@@ -82,6 +82,9 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          sourceFilter: {
+            controller: "mine",
+          },
           actions: [
             {
               kind: "GainKeyword",
@@ -105,7 +108,7 @@ export const compiled: CompiledCard = {
               controller: "mine",
               from: ["deck"],
               source: {
-                filter: { controllerDefault: "mine", kind: ["Digimon"] },
+                filter: { controllerDefault: "mine" },
                 count: 1,
               },
               toTop: true,

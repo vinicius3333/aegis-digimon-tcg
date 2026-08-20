@@ -3,6 +3,7 @@ import { CardKind, EffectTiming, type CardDefinition, type Seat } from "@aegis/s
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT26-092.js";
 
 // BT26-092 (Shota Kuroi, BT26 Tamer):
@@ -237,5 +238,60 @@ describe("BT26-092 [Opponent's Turn]: redirect an opponent's attack onto a [TS] 
 
     expect(effect.canTrigger(harness.ctx)).toBe(true);
     expect(effectFor(EffectTiming.OnAllyAttack, ownTurn.source, REDIRECT_KEY).canTrigger(ownTurn.ctx)).toBe(false);
+  });
+
+  it("pays with the real Tamer and redirects an opponent's player attack to a TS Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          deck: ["AD1-001"],
+          security: ["AD1-002"],
+          battleArea: [
+            { card: "BT26-092", as: "shota" },
+            { card: "BT24-014", dp: 8000, as: "tsTarget" },
+          ],
+        },
+        1: { battleArea: [{ card: "AD1-003", dp: 5000, as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    const shotaId = s.perm("shota").topCard!.instanceId;
+    const shotaPermanentId = s.perm("shota").permanentId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.at(-1)?.instanceId === shotaId);
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === shotaPermanentId)).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(shotaId);
+  });
+
+  it("plays itself from Security without paying the cost", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT26-092", as: "shotaSecurity" }] },
+      1: { battleArea: [{ card: "AD1-003", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    const shotaId = s.inst("shotaSecurity").instanceId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === shotaId),
+    );
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === shotaId)).toBe(true);
   });
 });

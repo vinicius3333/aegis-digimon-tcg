@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-089.js";
 
 describe("BT22-089 Mirei Mikagura", () => {
@@ -63,5 +64,29 @@ describe("BT22-089 Mirei Mikagura", () => {
       payCost: false,
       target: { filter: { isSelfRef: true }, isSelf: true, count: 1 },
     });
+  });
+
+  it("pays the On Play hand-trash cost and draws two through a public play intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT22-089", as: "mirei" },
+            { card: "BT22-054", as: "cost" },
+          ],
+          deck: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const mireiId = s.inst("mirei").instanceId;
+    const costId = s.inst("cost").instanceId;
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: mireiId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 2);
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === costId)).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-001", "BT1-002"]));
   });
 });

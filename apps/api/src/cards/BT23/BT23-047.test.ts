@@ -1,7 +1,77 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../index.js";
 import { compiled } from "./BT23-047.js";
 
 describe("BT23-047 Examon", () => {
+  it("suspends exactly five opposing Digimon/Tamers and locks every opposing Digimon's next unsuspend", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-047", as: "exa" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "one" },
+            { card: "BT1-010", as: "two" },
+            { card: "BT1-015", as: "three" },
+            { card: "BT1-019", as: "four" },
+            { card: "BT22-083", as: "tamer" },
+            { card: "BT1-020", as: "sixth" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("exa"));
+
+    for (const alias of ["one", "two", "three", "four", "tamer"]) expect(s.perm(alias).isSuspended).toBe(true);
+    expect(s.perm("sixth").isSuspended).toBe(false);
+    for (const alias of ["one", "two", "three", "four", "sixth"]) {
+      expect(observe(s.engine).isRestricted(s.perm(alias), "unsuspend")).toBe(true);
+    }
+  });
+
+  it("reacts to any opponent security removal, trashes an Option, deletes a suspended card, and fires once", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-047", as: "exa" },
+            { card: "BT1-009", as: "otherAttacker" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT23-100", as: "firstOption" },
+            { card: "P-035", as: "secondOption" },
+            { card: "BT1-009", as: "firstSuspended", suspended: true },
+            { card: "BT1-010", as: "secondSuspended", suspended: true },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.perm("firstOption").placedByEffect = true;
+    s.perm("secondOption").placedByEffect = true;
+    const firstOptionId = s.perm("firstOption").topCard!.instanceId;
+    const secondOptionId = s.perm("secondOption").topCard!.instanceId;
+    const firstSuspendedId = s.perm("firstSuspended").permanentId;
+    const secondSuspendedId = s.perm("secondSuspended").permanentId;
+
+    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", {
+      removedFromSecuritySeat: 1,
+      attackerPermanentId: s.perm("otherAttacker").permanentId,
+    });
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === firstOptionId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === firstSuspendedId)).toBe(false);
+
+    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === secondOptionId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === secondSuspendedId)).toBe(true);
+  });
+
   it("declares Piercing, Security Attack +1, and Partition", () => {
     expect(
       compiled.effects
@@ -38,7 +108,7 @@ describe("BT23-047 Examon", () => {
     expect(watcher).toMatchObject({
       kind: "SubTrigger",
       event: "whenSecurityRemoved",
-      sourceFilter: { isSelfRef: true },
+      sourceFilter: { controller: "opponent" },
       actions: [
         {
           kind: "Trash",

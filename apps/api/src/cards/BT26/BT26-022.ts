@@ -1,20 +1,17 @@
-import { CardColor, EffectTiming, isDigimon } from "@aegis/shared";
+import { CardColor, EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
 import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, whenDigivolving, turnTiming } from "../../engine/effects/builders.js";
+import { onPlay, whenDigivolving, turnTiming, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
+import { cardHasTrait } from "../../engine/cards/cardData.js";
 
 /**
  * BT26-022 — Sorcermon (BT26, Blue/Yellow Lv.4 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-022` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * KB Q6985 confirms that an empty security stack does not prevent the Recovery +1 half.
  *
  * Printed text:
  *   [Digivolve] Lv.3 w/[TS] trait: Cost 2
@@ -64,14 +61,14 @@ function isRedOrPurpleDigimon(def: CardDefinition): boolean {
 function hasRedOrPurpleDigimon(ctx: EffectContext, source: CardSource): boolean {
   const owner = ctx.game.player(source.ownerSeat);
   return owner.battleArea.some(
-    (p) => p.topCard !== undefined && isRedOrPurpleDigimon(ctx.game.definitionOf(p.topCard)),
+    (p) => !p.inBreeding && p.topCard !== undefined && isRedOrPurpleDigimon(ctx.game.definitionOf(p.topCard)),
   );
 }
 
 function isBlueOrRedIliadDigimon(def: CardDefinition): boolean {
   if (!isDigimon(def)) return false;
   if (!(def.colors.includes(CardColor.Blue) || def.colors.includes(CardColor.Red))) return false;
-  return (def.types ?? []).includes("Iliad");
+  return cardHasTrait(def, "Iliad");
 }
 
 async function addTopSecurityToHandAndRecover(ctx: EffectContext, source: CardSource): Promise<void> {
@@ -134,25 +131,38 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             if (!hasRedOrPurpleDigimon(ctx, source)) return;
 
-            const owner = ctx.game.player(source.ownerSeat);
-            const candidates = owner.hand.filter((c) => isBlueOrRedIliadDigimon(ctx.game.definitionOf(c)));
-            if (candidates.length === 0) return;
-
-            let chosenId: string;
-            if (candidates.length === 1) {
-              chosenId = candidates[0]!.instanceId;
-            } else {
-              const chosen = await ctx.ask.selectCards(ctx, {
-                candidates: candidates.map((c) => c.instanceId),
-                min: 1,
-                max: 1,
-              });
-              if (chosen.length === 0) return;
-              chosenId = chosen[0]!;
-            }
-
             await ctx.fx.addSecurity(source.ownerSeat, [source.instanceId], { toTop: false });
+            const ownerAfterCost = ctx.game.player(source.ownerSeat);
+            const paid =
+              !ownerAfterCost.battleArea.some((permanent) => permanent.topCard?.instanceId === source.instanceId) &&
+              ownerAfterCost.security.some((card) => card.instanceId === source.instanceId);
+            if (!paid) return;
+
+            const candidates = ownerAfterCost.hand.filter((c) => isBlueOrRedIliadDigimon(ctx.game.definitionOf(c)));
+            if (candidates.length === 0) return;
+            const chosen = await ctx.ask.selectCards(ctx, {
+              candidates: candidates.map((c) => c.instanceId),
+              min: 1,
+              max: 1,
+            });
+            if (chosen.length === 0) return;
+            const chosenId = chosen[0]!;
             await ctx.fx.playInstances([chosenId], { payCost: true, costDelta: 4 });
+          },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/inherited-barrier`,
+          description: "＜Barrier＞",
+          isInherited: true,
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Barrier", EffectDuration.Permanent);
           },
         }),
       ];

@@ -87,58 +87,21 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "GainKeyword",
-              target: {
-                filter: {
-                  isSelfRef: true,
-                },
-                count: 1,
-                isSelf: true,
-              },
-              keyword: {
-                keyword: "Delay",
-                raw: "＜Delay＞",
-              },
-              duration: "untilTurnEnd",
+              kind: "Restrict",
+              target: { filter: { controllerDefault: "opponent", kind: ["Digimon"] }, count: 1 },
+              restriction: "suspend",
+              duration: "untilOpponentTurnEnd",
+            },
+            {
+              kind: "Restrict",
+              target: { filter: { controllerDefault: "opponent", kind: ["Tamer"] }, count: 1 },
+              restriction: "suspend",
+              duration: "untilOpponentTurnEnd",
             },
           ],
         },
       ],
-    },
-    {
-      trigger: "Main",
-      actions: [
-        {
-          kind: "Restrict",
-          target: {
-            filter: {
-              controllerDefault: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
-          restriction: "suspend",
-          duration: "untilOpponentTurnEnd",
-        },
-        {
-          kind: "Restrict",
-          target: {
-            filter: {
-              controllerDefault: "opponent",
-              kind: ["Tamer"],
-            },
-            count: 1,
-          },
-          restriction: "suspend",
-          duration: "untilOpponentTurnEnd",
-        },
-      ],
-      keywords: [
-        {
-          keyword: "Delay",
-          raw: "＜Delay＞",
-        },
-      ],
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
     },
     {
       trigger: "Security",

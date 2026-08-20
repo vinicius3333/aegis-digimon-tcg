@@ -17,6 +17,7 @@ import {
   type Permanent,
 } from "@aegis/shared";
 import { tamerOntoDigivolveLevel } from "./tamerOntoDigivolve.js";
+import type { GameAccess } from "../effects/EffectContext.js";
 
 /**
  * Engine-side card-data-model access layer.
@@ -46,14 +47,13 @@ export function lookupDefinition(cardId: string): CardDefinition | undefined {
  * These cannot be installed as battle-area static effects: the source card is still in hand
  * when affordability is calculated. Keep the rule server-authoritative at the digivolve seam.
  */
-export function intrinsicDigivolutionCostReduction(
-  evolving: CardDefinition | undefined,
-  base: Permanent,
-): number {
+export function intrinsicDigivolutionCostReduction(evolving: CardDefinition | undefined, base: Permanent): number {
   if (!evolving) return 0;
   return intrinsicDigivolutionCostReductionFor(
     evolving.cardId,
     base.stack.map((card) => card.cardId),
+    base.topCard?.cardId,
+    base.stack.filter((card) => !card.faceUp).length,
   );
 }
 
@@ -63,14 +63,11 @@ export function intrinsicDigivolutionCostReduction(
  * construction), so a missing definition surfaces as a loud bug, not undefined.
  */
 export function definitionOf(cardIdOrInstance: string | CardInstance): CardDefinition {
-  const cardId =
-    typeof cardIdOrInstance === "string"
-      ? cardIdOrInstance
-      : cardIdOrInstance.cardId;
+  const cardId = typeof cardIdOrInstance === "string" ? cardIdOrInstance : cardIdOrInstance.cardId;
   if (typeof cardId !== "string") {
     throw new Error(
       `definitionOf: cardId resolved to ${typeof cardId} (${JSON.stringify(cardId)}). ` +
-      `Input was ${typeof cardIdOrInstance}: ${JSON.stringify(cardIdOrInstance).slice(0, 200)}`,
+        `Input was ${typeof cardIdOrInstance}: ${JSON.stringify(cardIdOrInstance).slice(0, 200)}`,
     );
   }
   return requireCardDefinition(cardId);
@@ -158,11 +155,7 @@ export function isDigiEgg(def: CardDefinition | string): boolean {
 /** A card is a field permanent if it is a Digimon, Tamer, or DigiEgg (source IsPermanent). */
 export function isPermanentKind(def: CardDefinition | string): boolean {
   const kinds = resolve(def).kinds;
-  return (
-    kinds.includes(CardKind.Digimon) ||
-    kinds.includes(CardKind.Tamer) ||
-    kinds.includes(CardKind.DigiEgg)
-  );
+  return kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.Tamer) || kinds.includes(CardKind.DigiEgg);
 }
 
 /** ACE card (source IsACE: OverflowMemory >= 1). */
@@ -249,10 +242,7 @@ export function matchingEvoCostIgnoringColor(
 }
 
 /** True when `evolving` can be placed on `base` by some printed EvoCost. */
-export function canDigivolveOnto(
-  evolving: CardDefinition | string,
-  base: CardDefinition | string,
-): boolean {
+export function canDigivolveOnto(evolving: CardDefinition | string, base: CardDefinition | string): boolean {
   return matchingEvoCost(evolving, base) !== undefined;
 }
 
@@ -284,11 +274,25 @@ export function cardHasTrait(def: CardDefinition | string, trait: string): boole
   // a trait token (e.g. text "[NSP]" vs data "NSp"). Trait values are whole-token identities, so a
   // case-folded equality cannot over-match (it never collapses "App" into "Appmon").
   const want = trait.toLowerCase();
+  const ruleTraits = Array.from(
+    (d.effectText ?? "").matchAll(/\[Rule\]\s*Trait:\s*Has(?:\s+the)?\s*\[([^\]]+)\]/gi),
+    (match) => match[1]!.trim().toLowerCase(),
+  );
   return (
     (d.forms ?? []).some((t) => t.toLowerCase() === want) ||
     (d.attributes ?? []).some((t) => t.toLowerCase() === want) ||
-    (d.types ?? []).some((t) => t.toLowerCase() === want)
+    (d.types ?? []).some((t) => t.toLowerCase() === want) ||
+    ruleTraits.includes(want)
   );
+}
+
+/** Match a live permanent against its printed and continuously granted traits. */
+export function permanentHasTrait(game: GameAccess, permanent: Permanent, trait: string): boolean {
+  if (permanent.topCard === undefined) return false;
+  const effective = game.effectiveTraits?.(permanent.permanentId);
+  if (effective === undefined) return cardHasTrait(game.definitionOf(permanent.topCard), trait);
+  const wanted = trait.toLowerCase();
+  return effective.some((candidate) => candidate.toLowerCase() === wanted);
 }
 
 /**
@@ -341,6 +345,8 @@ function requirementHasGate(req: DigivolutionRequirement): boolean {
  */
 export interface AlternateDigivolveOptions {
   isBlastDigivolve?: boolean;
+  /** Match only this stable index in `digivolutionRequirementsFor`; invalid/nonmatching indexes fail. */
+  requirementIndex?: number;
 }
 
 /**
@@ -373,7 +379,8 @@ function matchGatedRequirement(
   options: AlternateDigivolveOptions | undefined,
   identityOnly: boolean,
 ): DigivolutionRequirement | undefined {
-  for (const req of requirements) {
+  for (const [requirementIndex, req] of requirements.entries()) {
+    if (options?.requirementIndex !== undefined && options.requirementIndex !== requirementIndex) continue;
     // A requirement with NO gate (no level/traits/names/texts/baseIsTamer) is a data defect,
     // not a real "digivolve onto any base" rule — every printed alternate digivolution names a
     // level, trait, name, or Tamer base. The runtime record flattens special-mechanic paths it can't
@@ -394,6 +401,7 @@ function matchGatedRequirement(
     if (req.baseColors && req.baseColors.length > 0) {
       if (!req.baseColors.some((c) => baseDef.colors.includes(c as CardColor))) continue;
     }
+    if (req.baseColorCountMax !== undefined && baseDef.colors.length > req.baseColorCountMax) continue;
     // Level gate: exact match, or within [levelMin, levelMax].
     if (req.level !== undefined) {
       if (baseDef.level === undefined || baseDef.level !== req.level) continue;
@@ -474,9 +482,7 @@ export function matchingAlternateDigivolutionRequirement(
     // at the "as if" level for that shared color. The stale gateless/baseIsTamer-only
     // effects.json entry for these cards is intentionally ignored here.
     const evolvingDef = resolve(evolving);
-    const evo = evolvingDef.evoCosts.find(
-      (c) => c.level === tamerOntoLevel && baseDef.colors.includes(c.color),
-    );
+    const evo = evolvingDef.evoCosts.find((c) => c.level === tamerOntoLevel && baseDef.colors.includes(c.color));
     if (evo === undefined) return undefined;
     return { cost: evo.memoryCost, isAlternate: true, baseIsTamer: true };
   }

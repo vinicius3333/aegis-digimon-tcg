@@ -9,30 +9,26 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-018 — Sangomon (BT26, Blue Lv.3 Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-018 as of this port
-// (`node tools/kb/query.mjs card BT26-018` returned no knowledge-base entries). implemented
-// from the printed card text only.
+// The committed KB has no card-specific entries for BT26-018 as of 2026-08-20. The
+// implementation follows the printed text.
 //
 // [Digivolve] Lv.2 blue: Cost 0 — a digivolution-cost requirement, not an effect clause;
 //   already carried by CardDefinition.evoCosts in cards.json and read directly by the
 //   engine's digivolution logic, so it needs no entry here. (The card's printed
-//   [Digivolve] header text is garbled in the source data; per instructions it is
-//   ignored here and was already corrected centrally.)
+//   [Digivolve] header text is garbled in the source data as
+//   `[Digivolve] Lv.0 w/[2] trait: Cost DS`; the intended normalized header is
+//   `[Digivolve] Lv.2 w/[DS] trait: Cost 0`, represented by the generated override.)
 // [When Moving] [On Play] Reveal the top 3 cards of your deck. Add 1 card with [Aqua]
 //   or [Sea Animal] in any of its traits or 1 card with the [DS] trait among them to
 //   the hand. Return the rest to the bottom of the deck. Then, trash the bottom
 //   digivolution card of 1 of your opponent's Digimon.
 // [Rule] Trait: Has [Aquatic] Type — mirrored via the same grantNameTrait("trait", …)
 //   pattern the interpreter uses for every other "[Rule] Trait: Has [X] Type" card
-//   (e.g. EX11-053, BT18-020's compiled IR). NOTE: unlike every sibling [Aquatic]-trait
-//   card in cards.json (BT18-020, BT19-018/019/021/024/027/028, EX6-013/015, EX8-026/029,
-//   P-164 — all of which carry "Aquatic" in CardDefinition.types), BT26-018's own types
-//   are only ["Mollusk", "DS"] — the data is missing "Aquatic". packages/shared/** is
-//   off-limits to edit in this port, so this is flagged as a known data gap, not fixed
-//   here; the grant below still declares the rule correctly for anything that reads it
-//   through the continuous name/trait-grant layer instead of raw CardDefinition.types.
-// ＜Jamming＞ (inherited, printed) — parsed automatically from inheritedEffectText by the
-//   engine's combat/keywords.ts (PRINTED_MATCHERS); needs no explicit grant.
+//   (e.g. EX11-053, BT18-020's compiled IR). The catalog keeps printed traits separate
+//   from Rule-granted traits; `effectiveTraits` unions this runtime Aquatic grant with
+//   forms/attributes/types for every permanent consumer.
+// ＜Jamming＞ (inherited, printed) — granted to the host through the continuous keyword
+//   ledger while this card is a digivolution source.
 
 const cardId = "BT26-018";
 
@@ -61,18 +57,29 @@ async function resolveRevealAndTrashBottom(ctx: EffectContext, source: CardSourc
 
     let selected: string[] = [];
     if (candidates.length > 0) {
-      selected = await ctx.ask.selectCards(ctx, { candidates, min: 0, max: 1 });
-      if (selected.length > 0) await ctx.fx.returnToHand(selected);
+      selected = await ctx.ask.selectCards(ctx, { candidates, min: 1, max: 1 });
     }
+    const moved = selected.length > 0 ? await ctx.fx.returnToHand(selected) : [];
+    const movedIds = new Set(moved.map((card) => card.instanceId));
 
-    const rest = revealed.filter((c) => !selected.includes(c.instanceId)).map((c) => c.instanceId);
+    let rest = revealed.filter((card) => !movedIds.has(card.instanceId)).map((card) => card.instanceId);
+    if (rest.length > 1 && ctx.ask.orderCards !== undefined) {
+      rest = await ctx.ask.orderCards(ctx, {
+        candidates: rest,
+        visibleCards: revealed
+          .filter((card) => rest.includes(card.instanceId))
+          .map(({ instanceId, cardId }) => ({ instanceId, cardId })),
+        destination: "deckBottom",
+      });
+    }
     if (rest.length > 0) await ctx.fx.returnToDeck(rest, { toTop: false });
   }
 
   // Then, trash the bottom digivolution card of 1 of your opponent's Digimon.
   const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
   const targets = opponent.battleArea.filter(
-    (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && p.stack.length > 0,
+    (p) =>
+      !p.inBreeding && p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && p.stack.length > 0,
   );
   if (targets.length === 0) return;
 
@@ -140,6 +147,18 @@ const module: EffectModule = {
     // [Rule] Trait: Has [Aquatic] Type.
     if (timing === EffectTiming.None) {
       return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/inherited-jamming`,
+          description: "＜Jamming＞ (inherited)",
+          optional: false,
+          isInherited: true,
+          when: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const host = ctx.source.permanent();
+            if (host !== undefined) ctx.fx.grantKeyword(host.permanentId, "Jamming", EffectDuration.Permanent);
+          },
+        }),
         staticModifier({
           source,
           effectKey: `${cardId}/rule-aquatic-trait`,

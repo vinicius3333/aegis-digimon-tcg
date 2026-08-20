@@ -26,6 +26,7 @@ export const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               kind: ["Digimon", "Tamer"],
+              zone: ["battleArea", "breedingArea"],
               nameOrTrait: [
                 {
                   tokens: ["CS"],
@@ -73,43 +74,6 @@ export const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "Main",
-      keywords: [
-        {
-          keyword: "Delay",
-          raw: "＜Delay＞",
-        },
-      ],
-      actions: [
-        {
-          kind: "GainKeyword",
-          target: {
-            filter: {
-              controllerDefault: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
-            bindAs: "BT23094DelayTarget",
-          },
-          keyword: {
-            keyword: "SecurityAttack",
-            amount: -1,
-            raw: "＜Security A. -1＞",
-          },
-          duration: "untilOpponentTurnEnd",
-        },
-        {
-          kind: "DisableTimingEffect",
-          target: {
-            fromSelectionRef: "BT23094DelayTarget",
-            count: 1,
-          },
-          timings: ["whenDigivolving", "whenAttacking"],
-          duration: "untilOpponentTurnEnd",
-        },
-      ],
-    },
-    {
       trigger: "YourTurn",
       actions: [
         {
@@ -130,20 +94,29 @@ export const compiled: CompiledCard = {
               kind: "GainKeyword",
               target: {
                 filter: {
-                  isSelfRef: true,
+                  controllerDefault: "opponent",
+                  kind: ["Digimon"],
                 },
                 count: 1,
-                isSelf: true,
+                bindAs: "BT23094DelayTarget",
               },
               keyword: {
-                keyword: "Delay",
-                raw: "＜Delay＞",
+                keyword: "SecurityAttack",
+                amount: -1,
+                raw: "＜Security A. -1＞",
               },
-              duration: "permanent",
+              duration: "untilOpponentTurnEnd",
+            },
+            {
+              kind: "DisableTimingEffect",
+              target: { fromSelectionRef: "BT23094DelayTarget", count: 1 },
+              timings: ["whenDigivolving", "whenAttacking"],
+              duration: "untilOpponentTurnEnd",
             },
           ],
         },
       ],
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
     },
     {
       trigger: "Security",

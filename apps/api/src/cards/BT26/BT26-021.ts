@@ -31,7 +31,7 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
  *     [TS] Digimon (combat/legality.ts honors it) for EffectDuration.UntilEachTurnEnd.
  *   EffectTiming.OnDeclaration — the [Main] activated ability. `playInstances` accepts a
  *     trash-resident instance (its loose lookup spans hand/security/deck/trash), so the
- *     Tamer is played straight from trash with `costDelta: -2`.
+ *     Tamer is played straight from trash while paying with `costDelta: 2`.
  *   EffectTiming.None (isInherited: true) — the [All Turns] watcher, installed as a
  *     `whenAttacking` sub-trigger budgeted by `oncePerTurnKey`. The printed text says "a
  *     Digimon", unqualified, so it is not gated to either player's attacker. "By trashing
@@ -90,8 +90,15 @@ async function trashHandThenBottomTwo(ctx: EffectContext, ownerSeat: Seat): Prom
     min: 0,
     max: 1,
   });
-  if (paid.length === 0) return;
-  await ctx.fx.trash(paid);
+  if (paid.length === 0) {
+    ctx.oncePerTurnActivationDeclined = true;
+    return;
+  }
+  const trashedCost = await ctx.fx.trash(paid);
+  if (!trashedCost.some((card) => card.instanceId === paid[0]!)) {
+    ctx.oncePerTurnActivationDeclined = true;
+    return;
+  }
 
   const chosen =
     targets.length === 1 ? targets[0]! : (await ctx.ask.chooseTargets(ctx, { candidates: targets, min: 1, max: 1 }))[0];
@@ -154,9 +161,9 @@ const module: EffectModule = {
               .map((c) => c.instanceId);
             if (candidates.length === 0) return;
 
-            const chosen = await ctx.ask.selectCards(ctx, { candidates, min: 0, max: 1 });
+            const chosen = await ctx.ask.selectCards(ctx, { candidates, min: 1, max: 1 });
             if (chosen.length === 0) return;
-            await ctx.fx.playInstances([chosen[0]!], { costDelta: -TAMER_COST_REDUCTION });
+            await ctx.fx.playInstances([chosen[0]!], { payCost: true, costDelta: TAMER_COST_REDUCTION });
           },
         }),
       ];
@@ -184,7 +191,20 @@ const module: EffectModule = {
               once: false,
               oncePerTurnKey: `${cardId}/inherited-attack-trash-bottom`,
               description: `${cardId}: a Digimon attacks -> may trash 1 hand card to trash 2 bottom digivolution cards.`,
-              matches: (subCtx) => subCtx.source.isOnBattleArea(),
+              matches: (subCtx) => {
+                if (!subCtx.source.isOnBattleArea()) return false;
+                if (subCtx.game.player(ownerSeat).hand.length === 0) return false;
+                const opponentSeat = subCtx.game.opponentOf(ownerSeat);
+                return subCtx.game
+                  .player(opponentSeat)
+                  .battleArea.some(
+                    (permanent) =>
+                      !permanent.inBreeding &&
+                      permanent.topCard !== undefined &&
+                      isDigimon(subCtx.game.definitionOf(permanent.topCard)) &&
+                      permanent.stack.length >= BOTTOM_CARDS_TRASHED,
+                  );
+              },
               run: async (subCtx) => {
                 await trashHandThenBottomTwo(subCtx, ownerSeat);
               },

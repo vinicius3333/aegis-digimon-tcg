@@ -260,7 +260,9 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         toTop?: boolean;
         faceDown?: boolean;
       } = { to: spec.to, underFilter: spec.underFilter, toTop: spec.toTop, faceDown: spec.faceDown };
-      const alternatives = spec.orDispositions ?? [];
+      const alternatives = (spec.orDispositions ?? []).filter(
+        (choice) => choice.filter === undefined || definitionMatches(choice.filter, ctx.game.definitionOf(c)),
+      );
       if (alternatives.length > 0) {
         const choices = [disposition, ...alternatives];
         const labels = choices.map((choice) => choice.to ?? "hand");
@@ -280,7 +282,11 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       else if (disposition.to === "placeUnder")
         toPlaceUnder.push({ instanceId: c.instanceId, underFilter: disposition.underFilter });
       else if (disposition.to === "underTamer")
-        toUnderTamer.push({ instanceId: c.instanceId, underFilter: disposition.underFilter, faceDown: disposition.faceDown });
+        toUnderTamer.push({
+          instanceId: c.instanceId,
+          underFilter: disposition.underFilter,
+          faceDown: disposition.faceDown,
+        });
       else toHand.push(c.instanceId);
     }
   }

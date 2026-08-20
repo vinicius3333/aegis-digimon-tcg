@@ -10,9 +10,10 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-001 — Yokomon (BT26, Red In-Training Digi-Egg, Bulb/Iliad/TS).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-001 as of this port
-// (`node tools/kb/query.mjs card BT26-001` returned no knowledge-base entries — BT26 has
-// no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// Audited against KB Q6948-Q6951: every printed field counts for Chronomon text;
+// returning a genuinely external card to either player's deck triggers, while merely
+// revealing and restoring a deck card does not; controller attribution follows whose
+// effect performed the move, not whose deck received the card.
 //
 // Printed text (inherited-only card; this Digi-Egg carries no effect of its own — its
 // whole ability is granted to whatever Digimon it sits under as a digivolution card):
@@ -36,11 +37,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 // from the interpreter, an established hand-written-card pattern — see EX4-030/BT7-024/
 // BT26-009/BT26-065) for "with [Chronomon] in its text".
 //
-// RESIDUAL (shared with BT26-044, an engine-level nuance, not new here): with
-// `ignoreRequirements: true` and no `costOverride`, `digivolveFromInstance`'s base cost
-// defaults to 0, so `costDelta: -1` floors at 0 regardless — "the cost reduced by 1"
-// therefore always resolves as free. Worth revisiting once a costOverride convention for
-// this effect shape is settled; not invented here.
+// `digivolveFromInstance` preserves the cheapest printed cost while ignoring only the
+// color/level gate, so `costDelta: -1` implements the printed reduction against a real
+// baseline and is suppressed by a live digivolution-cost-reduction prohibition.
 
 const cardId = "BT26-001";
 const CHRONOMON_TOKEN = "Chronomon";
@@ -59,11 +58,7 @@ function chronomonHandCandidates(ctx: EffectContext, ownerSeat: Seat) {
  * hand with the cost reduced by 1." `hostId` is the CURRENT top permanent this Digi-Egg
  * sits under as a digivolution card (the inherited ability's subject).
  */
-async function resolveMayDigivolveIntoChronomon(
-  ctx: EffectContext,
-  hostId: string,
-  ownerSeat: Seat,
-): Promise<void> {
+async function resolveMayDigivolveIntoChronomon(ctx: EffectContext, hostId: string, ownerSeat: Seat): Promise<void> {
   const host = ctx.game.permanentById(hostId);
   if (host === undefined || host.inBreeding) return;
 
@@ -75,20 +70,27 @@ async function resolveMayDigivolveIntoChronomon(
     "Digivolve this Digimon into a Digimon card with [Chronomon] in its text in the hand, " +
       "with the cost reduced by 1?",
   );
-  if (!wantToActivate) return;
+  if (!wantToActivate) {
+    ctx.oncePerTurnActivationDeclined = true;
+    return;
+  }
 
   const chosen = await ctx.ask.selectCards(ctx, {
     candidates: candidates.map((c) => c.instanceId),
     min: 1,
     max: 1,
   });
-  if (chosen.length === 0) return;
+  if (chosen.length === 0) {
+    ctx.oncePerTurnActivationDeclined = true;
+    return;
+  }
 
-  await ctx.fx.digivolveFromInstance(hostId, chosen[0]!, {
+  const evolved = await ctx.fx.digivolveFromInstance(hostId, chosen[0]!, {
     payCost: true,
     costDelta: -1,
     ignoreRequirements: true,
   });
+  if (evolved === undefined) ctx.oncePerTurnActivationDeclined = true;
 }
 
 const module: EffectModule = {
@@ -115,11 +117,17 @@ const module: EffectModule = {
               event: "whenEffectAddsToDeck",
               sourcePermanentId: hostId,
               once: false,
-              oncePerTurnKey: `${cardId}/inherited-reactive-alt-digivolve`,
+              oncePerTurnKey: `${source.instanceId}/${cardId}/inherited-reactive-alt-digivolve`,
               description: `${cardId}: an effect of yours adds cards to a deck -> may alt-digivolve.`,
               matches: (subCtx) => {
                 if (!subCtx.source.isOnBattleArea() || !subCtx.source.isOwnersTurn()) return false;
-                return subCtx.trigger?.effectAddedToDeckSeat === ownerSeat;
+                if (subCtx.trigger?.effectAddedToDeckBySeat !== ownerSeat) return false;
+                const liveHost = subCtx.game.permanentById(hostId);
+                return (
+                  liveHost !== undefined &&
+                  !liveHost.inBreeding &&
+                  chronomonHandCandidates(subCtx, ownerSeat).length > 0
+                );
               },
               run: async (subCtx) => {
                 await resolveMayDigivolveIntoChronomon(subCtx, hostId, ownerSeat);

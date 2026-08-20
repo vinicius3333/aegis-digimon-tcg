@@ -86,6 +86,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSuspended",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "ModifyDP",
@@ -121,18 +122,18 @@ export const compiled: CompiledCard = {
                 ],
               },
             },
+            {
+              kind: "Unsuspend",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+            },
           ],
           raw: "When this Digimon suspends",
-        },
-        {
-          kind: "Unsuspend",
-          target: {
-            filter: {
-              isSelfRef: true,
-            },
-            count: 1,
-            isSelf: true,
-          },
         },
       ],
       frequency: "OncePerTurn",

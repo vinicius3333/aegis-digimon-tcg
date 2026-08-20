@@ -1,20 +1,17 @@
-import { CardColor, EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition, CardInstance } from "@aegis/shared";
+import { CardColor, CardKind, EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
+import type { CardDefinition, CardInstance, Permanent } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, whenDigivolving, turnTiming } from "../../engine/effects/builders.js";
+import { onPlay, staticModifier, whenDigivolving, turnTiming } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**
  * BT26-067 — Wizardmon (BT26, Purple/Red Lv.4 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-067` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * The committed knowledge base has no BT26-067 Q&A or errata entries, so the printed
+ * catalog text is the card-specific authority for this implementation.
  *
  * Printed text:
  *   [Digivolve] Lv.3 w/[TS] trait: Cost 2
@@ -25,8 +22,8 @@ import { registerCard } from "../../engine/effects/registry.js";
  * Inherited: ＜Retaliation＞
  *
  * Clause mapping:
- *   [Digivolve] header — a digivolution-cost requirement, not an effect clause; already
- *     carried by CardDefinition.evoCosts in cards.json, so it needs no entry here.
+ *   [Digivolve] header — a digivolution-cost requirement, not an effect clause; represented
+ *     by the compiled alternate evolution requirement rather than an effect entry here.
  *
  *   EffectTiming.OnPlay / EffectTiming.WhenDigivolving (shared, mandatory) — "＜Draw
  *     1＞ and trash 1 card in your hand." Modeled on BT22-006's draw-then-trash-from-
@@ -51,22 +48,23 @@ import { registerCard } from "../../engine/effects/registry.js";
  *     `playInstances` locates the instance in whichever zone it currently sits, so no
  *     hand/trash distinction is needed at the call site.
  *
- *   Inherited ＜Retaliation＞ — printed keyword, parsed automatically from
- *     inheritedEffectText by the engine's combat/keywords.ts (PRINTED_MATCHERS); needs
- *     no explicit grant (same treatment as BT26-013's ＜Blocker＞/BT26-022's
- *     ＜Barrier＞).
+ *   Inherited ＜Retaliation＞ — explicitly granted from stack position because combat
+ *     legality reads the continuous keyword ledger.
  */
 const cardId = "BT26-067";
 
-function isBlueOrYellowDigimon(def: CardDefinition): boolean {
-  return isDigimon(def) && (def.colors.includes(CardColor.Blue) || def.colors.includes(CardColor.Yellow));
-}
-
 function hasBlueOrYellowDigimon(ctx: EffectContext, source: CardSource): boolean {
   const owner = ctx.game.player(source.ownerSeat);
-  return owner.battleArea.some(
-    (p) => p.topCard !== undefined && isBlueOrYellowDigimon(ctx.game.definitionOf(p.topCard)),
-  );
+  return owner.battleArea.some((permanent) => isEffectiveBlueOrYellowDigimon(ctx, permanent));
+}
+
+function isEffectiveBlueOrYellowDigimon(ctx: EffectContext, permanent: Permanent): boolean {
+  if (permanent.topCard === undefined) return false;
+  const def = ctx.game.definitionOf(permanent.topCard);
+  const kinds = ctx.game.effectiveKinds?.(permanent.permanentId) ?? def.kinds;
+  if (!kinds.includes(CardKind.Digimon)) return false;
+  const colors = ctx.game.effectiveColors?.(permanent) ?? def.colors;
+  return colors.includes(CardColor.Blue) || colors.includes(CardColor.Yellow);
 }
 
 function isRedOrBlueIliadDigimon(def: CardDefinition): boolean {
@@ -93,20 +91,36 @@ async function drawAndTrashFromHand(ctx: EffectContext, source: CardSource): Pro
     max: 1,
   });
   if (chosen.length > 0) {
-    await ctx.fx.trash(chosen);
+    await ctx.fx.trash(chosen, { byEffectSeat: source.ownerSeat });
   }
 }
 
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/inherited-retaliation`,
+          description: "Inherited: ＜Retaliation＞",
+          isInherited: true,
+          when: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const host = source.permanent();
+            if (host !== undefined) ctx.fx.grantKeyword(host.permanentId, "Retaliation", EffectDuration.Permanent);
+          },
+        }),
+      ];
+    }
+
     // [On Play] <Draw 1> and trash 1 card in your hand.
     if (timing === EffectTiming.OnPlay) {
       return [
         onPlay({
           source,
           effectKey: `${cardId}/on-play-draw-and-trash`,
-          description: "[On Play] <Draw 1> and trash 1 card in your hand.",
+          description: "[On Play] ＜Draw 1＞ and trash 1 card in your hand.",
           optional: false,
           resolve: async (ctx) => {
             await drawAndTrashFromHand(ctx, source);
@@ -121,7 +135,7 @@ const module: EffectModule = {
         whenDigivolving({
           source,
           effectKey: `${cardId}/when-digivolving-draw-and-trash`,
-          description: "[When Digivolving] <Draw 1> and trash 1 card in your hand.",
+          description: "[When Digivolving] ＜Draw 1＞ and trash 1 card in your hand.",
           optional: false,
           resolve: async (ctx) => {
             await drawAndTrashFromHand(ctx, source);
@@ -167,7 +181,8 @@ const module: EffectModule = {
               chosenId = chosen[0]!;
             }
 
-            await ctx.fx.returnToDeck([source.instanceId], { toTop: false });
+            const returned = await ctx.fx.returnToDeck([source.instanceId], { toTop: false });
+            if (!returned.some((card) => card.instanceId === source.instanceId)) return;
             await ctx.fx.playInstances([chosenId], { payCost: true, costDelta: 4 });
           },
         }),

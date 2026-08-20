@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-091.js";
 
 describe("BT22-091 Arata Sanada", () => {
@@ -74,5 +76,21 @@ describe("BT22-091 Arata Sanada", () => {
     expect((inherited?.actions[0] as any).actions[0].target.filter.nameOrTrait).toEqual([
       { tokens: ["Unidentified", "CS"], match: "trait" },
     ]);
+  });
+
+  it("plays the checked physical Tamer from security without paying memory", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT22-091", as: "arata", faceUp: true }] } });
+    const arataId = s.inst("arata").instanceId;
+    const memory = s.state.memory;
+
+    await (
+      s.engine as unknown as {
+        fireTiming(timing: EffectTiming, trigger: { sourceInstanceId: string }): Promise<void>;
+      }
+    ).fireTiming(EffectTiming.SecuritySkill, { sourceInstanceId: arataId });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === arataId));
+
+    expect(s.state.memory).toBe(memory);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === arataId)).toBe(true);
   });
 });

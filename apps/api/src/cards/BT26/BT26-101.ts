@@ -6,6 +6,7 @@ import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { activated, colorWaiverStatic, security } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
+import { permanentHasTrait } from "../../engine/cards/cardData.js";
 
 /**
  * BT26-101 — Cross Arts (BT26, White Option).
@@ -29,13 +30,9 @@ import { registerCard } from "../../engine/effects/registry.js";
  * ＜Use Req. ([TS] trait)＞ is implemented as a hand-resident color-requirement waiver,
  * gated by having a [TS] trait card in the battle area.
  *
- * PROVISIONAL READING: the printed text reads as one sentence ending "...until your
- * opponent's turn ends." followed by a new sentence "Then, activate 1 of the effects
- * below:". Read that way, the Tamer-gated Blocker/+3000 DP grant is conditional on the
- * named Tamer, while "activate 1 of the effects below" is a separate, unconditional
- * step that always resolves. This mirrors the common Digimon-TCG pattern of a
- * conditional bonus clause followed by an unconditional modal choice. Flag for review
- * if a future BT26 Q&A says otherwise.
+ * Q7182 explicitly confirms that the Tamer-gated Blocker/+3000 DP grant is conditional,
+ * while the post-"Then" modal choice is a separate step that still resolves without the
+ * named Tamer.
  */
 
 const cardId = "BT26-101";
@@ -57,7 +54,7 @@ function hasNamedTamer(ctx: EffectContext, source: CardSource): boolean {
 function tsTraitDigimon(ctx: EffectContext, source: CardSource): Permanent[] {
   const owner = ctx.game.player(source.ownerSeat);
   return owner.battleArea.filter((p: Permanent) => {
-    if (p.topCard === undefined) return false;
+    if (p.inBreeding || p.topCard === undefined) return false;
     const def = ctx.game.definitionOf(p.topCard);
     return isDigimon(def) && (def.types ?? []).includes("TS");
   });
@@ -66,7 +63,7 @@ function tsTraitDigimon(ctx: EffectContext, source: CardSource): Permanent[] {
 function hasTsInPlay(ctx: EffectContext, source: CardSource): boolean {
   return ctx.game.player(source.ownerSeat).battleArea.some((permanent) => {
     if (permanent.inBreeding || permanent.topCard === undefined) return false;
-    return (ctx.game.definitionOf(permanent.topCard).types ?? []).includes("TS");
+    return permanentHasTrait(ctx.game, permanent, "TS");
   });
 }
 
@@ -93,26 +90,17 @@ async function resolveMain(ctx: EffectContext, source: CardSource): Promise<void
   const idx = await ctx.ask.chooseOption(ctx, MODAL_OPTIONS);
 
   if (idx === 0) {
-    const referenceId =
-      tsDigimon.length === 1
-        ? tsDigimon[0]!.permanentId
-        : (
-            await ctx.ask.chooseTargets(ctx, {
-              candidates: tsDigimon.map((p) => p.permanentId),
-              min: 1,
-              max: 1,
-            })
-          )[0];
-    if (referenceId === undefined) return;
-    const reference = ctx.game.permanentById(referenceId);
-    if (reference === undefined) return;
-    const threshold = reference.currentDP;
+    // "with as much DP as 1 of your [TS] trait Digimon or less" is a predicate on the
+    // opponent's target, not an instruction to choose a reference Digimon. A target is
+    // legal when at least one of our [TS] Digimon has that much DP, which is equivalent
+    // to comparing against the greatest current DP among them.
+    const threshold = Math.max(...tsDigimon.map((permanent) => permanent.currentDP));
 
     const opponentSeat = ctx.game.opponentOf(source.ownerSeat);
     const deleteCandidates = ctx.game
       .player(opponentSeat)
       .battleArea.filter((p: Permanent) => {
-        if (p.topCard === undefined) return false;
+        if (p.inBreeding || p.topCard === undefined) return false;
         return isDigimon(ctx.game.definitionOf(p.topCard)) && p.currentDP <= threshold;
       })
       .map((p) => p.permanentId);

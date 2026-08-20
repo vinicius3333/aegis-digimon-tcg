@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-088.js";
 
 describe("BT22-088 Arisa Kinosaki", () => {
@@ -57,5 +58,17 @@ describe("BT22-088 Arisa Kinosaki", () => {
         },
       ],
     });
+  });
+
+  it("plays the physical Tamer through a public play intent", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT22-088", as: "arisa" }] } });
+    const arisaId = s.inst("arisa").instanceId;
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: arisaId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === arisaId), 300);
+
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === arisaId)).toBe(true);
   });
 });

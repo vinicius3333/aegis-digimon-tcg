@@ -55,6 +55,8 @@ export interface RevealAddAction extends ActionBase {
     orDispositions?: {
       to: "hand" | "trash" | "play" | "digivolve" | "placeUnder" | "underTamer" | "security";
       underFilter?: Filter;
+      /** Only offer this destination when the selected card also matches this filter. */
+      filter?: Filter;
     }[];
     /**
      * "You may ..." forms: the player may take fewer than `count`, down to zero, even when enough

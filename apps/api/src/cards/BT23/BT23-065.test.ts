@@ -1,7 +1,36 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT23-065.js";
 
 describe("BT23-065 Phantomon", () => {
+  it("plays a level-4 Ghost from trash when Phantomon is deleted", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-065", as: "phantomon" }],
+          trash: [
+            { card: "BT23-064", as: "ghost" },
+            { card: "BT23-066", as: "tooHigh" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const ghostId = s.inst("ghost").instanceId;
+    const highId = s.inst("tooHigh").instanceId;
+    await (
+      s.engine as unknown as {
+        fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
+      }
+    ).fireTiming(EffectTiming.OnDestroyedAnyone, {
+      subjectPermanentId: s.perm("phantomon").permanentId,
+    });
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === ghostId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === highId)).toBe(true);
+  });
+
   it("offers the hand Main effect only while Violet Inboots is present", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "Main") as any;
     expect(effect.isFromHand).toBe(true);

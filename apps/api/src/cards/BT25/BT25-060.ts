@@ -11,212 +11,209 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 3. KB Q6357: the linked card must itself carry <Link>; the link is modeled as an explicit
 //    free Link action followed by the dependent unsuspend.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "SecurityAttack",
-          "amount": 1,
-          "raw": "＜Security Attack +1＞"
-        }
-      ]
+          keyword: "SecurityAttack",
+          amount: 1,
+          raw: "＜Security Attack +1＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Reboot",
-          "raw": "＜Reboot＞"
-        }
-      ]
+          keyword: "Reboot",
+          raw: "＜Reboot＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Link",
-          "amount": 1,
-          "raw": "＜Link +1＞"
-        }
-      ]
+          keyword: "Link",
+          amount: 1,
+          raw: "＜Link +1＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Link",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Appmon"], "match": "trait" }],
-              "hasLinkRequirement": true
+          kind: "Link",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+              hasLinkRequirement: true,
+              hostFilter: { isSelfRef: true },
             },
-            "count": 1
+            count: 1,
           },
-          "recipient": {
-            "filter": { "isSelfRef": true },
-            "count": 1,
-            "isSelf": true
+          recipient: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
           },
-          "from": ["hand", "digivolutionCards"],
-          "payCost": false,
-          "optional": true,
-          "abortOnDecline": true
+          from: ["hand", "digivolutionCards"],
+          payCost: false,
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true
-        }
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Link",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Appmon"], "match": "trait" }],
-              "hasLinkRequirement": true
+          kind: "Link",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+              hasLinkRequirement: true,
+              hostFilter: { isSelfRef: true },
             },
-            "count": 1
+            count: 1,
           },
-          "recipient": {
-            "filter": { "isSelfRef": true },
-            "count": 1,
-            "isSelf": true
+          recipient: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
           },
-          "from": ["hand", "digivolutionCards"],
-          "payCost": false,
-          "optional": true,
-          "abortOnDecline": true
+          from: ["hand", "digivolutionCards"],
+          payCost: false,
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true
-        }
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenLinked",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
+          actions: [
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": { "isSelfRef": true },
-                "count": 1,
-                "isSelf": true
+              kind: "GainKeyword",
+              target: {
+                filter: { isSelfRef: true },
+                count: 1,
+                isSelf: true,
               },
-              "keyword": { "keyword": "Piercing", "raw": "＜Piercing＞" },
-              "duration": "untilYourTurnEnd"
+              keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
+              duration: "untilYourTurnEnd",
             },
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": { "isSelfRef": true },
-                "count": 1,
-                "isSelf": true
+              kind: "GainKeyword",
+              target: {
+                filter: { isSelfRef: true },
+                count: 1,
+                isSelf: true,
               },
-              "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
-              "duration": "untilYourTurnEnd"
+              keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
+              duration: "untilYourTurnEnd",
             },
             {
-              "kind": "GrantStatic",
-              "target": {
-                "filter": { "isSelfRef": true },
-                "count": 1,
-                "isSelf": true
+              kind: "GrantStatic",
+              target: {
+                filter: { isSelfRef: true },
+                count: 1,
+                isSelf: true,
               },
-              "grant": "immuneToOpponentDigimonEffects",
-              "duration": "untilYourTurnEnd"
-            }
-          ]
+              grant: "immuneToOpponentDigimonEffects",
+              duration: "untilYourTurnEnd",
+            },
+          ],
         },
         {
-          "kind": "SubTrigger",
-          "event": "whenUnsuspended",
-          "sourceFilter": { "isSelfRef": true },
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenUnsuspended",
+          sourceFilter: { isSelfRef: true },
+          actions: [
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": { "isSelfRef": true },
-                "count": 1,
-                "isSelf": true
+              kind: "GainKeyword",
+              target: {
+                filter: { isSelfRef: true },
+                count: 1,
+                isSelf: true,
               },
-              "keyword": { "keyword": "Piercing", "raw": "＜Piercing＞" },
-              "duration": "untilYourTurnEnd"
+              keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
+              duration: "untilYourTurnEnd",
             },
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": { "isSelfRef": true },
-                "count": 1,
-                "isSelf": true
+              kind: "GainKeyword",
+              target: {
+                filter: { isSelfRef: true },
+                count: 1,
+                isSelf: true,
               },
-              "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" },
-              "duration": "untilYourTurnEnd"
+              keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
+              duration: "untilYourTurnEnd",
             },
             {
-              "kind": "GrantStatic",
-              "target": {
-                "filter": { "isSelfRef": true },
-                "count": 1,
-                "isSelf": true
+              kind: "GrantStatic",
+              target: {
+                filter: { isSelfRef: true },
+                count: 1,
+                isSelf: true,
               },
-              "grant": "immuneToOpponentDigimonEffects",
-              "duration": "untilYourTurnEnd"
-            }
-          ]
-        }
+              grant: "immuneToOpponentDigimonEffects",
+              duration: "untilYourTurnEnd",
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "appFusionRequirement": [
+  coverage: "full",
+  residual: [],
+  appFusionRequirement: [
     {
-      "names": [
-        "Bootmon",
-        "Shutmon"
-      ],
-      "cost": 0
-    }
-  ]
+      names: ["Bootmon", "Shutmon"],
+      cost: 0,
+    },
+  ],
 };
 
 registerIrCard("BT25-060", compiled);
+export { compiled };

@@ -1,8 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
-import { CardKind, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
+import { CardKind, EffectTiming, digivolutionRequirementsFor, type CardDefinition, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT26-035.js";
 
 // BT26-035 (Morphomon, BT26): "[When Moving] [On Play] You may suspend 1 Digimon."
@@ -91,6 +93,46 @@ function effectFor(timing: EffectTiming, source: CardSource, key: string) {
 }
 
 describe("BT26-035 [On Play] / [When Moving]: you may suspend 1 Digimon", () => {
+  it("uses the exact level-2 NSp alternate evolution for cost 0 and rejects a plain egg", async () => {
+    expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({
+      level: 2,
+      traits: ["NSp"],
+      cost: 0,
+      isAlternate: true,
+    });
+    const legal = setupEngine({
+      0: {
+        breeding: { card: "P-148", as: "nspEgg" },
+        hand: [{ card: CARD_ID, as: "morphomon" }],
+      },
+    });
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: legal.perm("nspEgg").permanentId,
+        instanceId: legal.inst("morphomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.perm("nspEgg").topCard.cardId === CARD_ID);
+    expect(legal.state.memory).toBe(0);
+
+    const illegal = setupEngine({
+      0: {
+        breeding: { card: "BT1-001", as: "plainEgg" },
+        hand: [{ card: CARD_ID, as: "morphomon" }],
+      },
+    });
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: illegal.perm("plainEgg").permanentId,
+        instanceId: illegal.inst("morphomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
   it("suspends the chosen Digimon on play", async () => {
     const { ctx, suspended, source } = makeContext({
       theirBattleArea: [{ permanentId: "opp-digimon", topCard: digimonCard }],
@@ -156,5 +198,84 @@ describe("BT26-035 [On Play] / [When Moving]: you may suspend 1 Digimon", () => 
 
     await moving.resolve(own.ctx);
     expect(own.suspended).toEqual([["opp-digimon"]]);
+  });
+
+  it("inherited battle-win effect digivolves a matching ally through the reduced-cost primitive", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-082", as: "winner", under: [CARD_ID] },
+            { card: "BT1-066", as: "evolver" },
+          ],
+          hand: [{ card: "BT26-041", as: "hudiemon" }],
+          deck: ["AD1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenBattleWon", {
+      subjectPermanentId: s.perm("winner").permanentId,
+      attackerPermanentId: s.perm("winner").permanentId,
+    });
+    await settle(() => s.perm("evolver").topCard.cardId === "BT26-041");
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("inherited effect does not trigger for the wrong winner or on the opponent's turn", async () => {
+    const wrongWinner = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-082", as: "host", under: [CARD_ID] },
+            { card: "BT1-082", as: "otherWinner" },
+            { card: CARD_ID, as: "evolver" },
+          ],
+          hand: [{ card: "BT26-041", as: "hudiemon" }],
+        },
+        1: { battleArea: [{ card: "BT26-035", as: "loser", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loserId = wrongWinner.perm("loser").permanentId;
+    expect(
+      wrongWinner.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: wrongWinner.perm("otherWinner").permanentId,
+        target: { kind: "permanent", permanentId: loserId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !wrongWinner.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === loserId),
+    );
+    expect(wrongWinner.perm("evolver").topCard.cardId).toBe(CARD_ID);
+    expect(wrongWinner.state.players[0]!.hand.some((card) => card.cardId === "BT26-041")).toBe(true);
+
+    const opponentTurn = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-082", as: "host", under: [CARD_ID], suspended: true },
+          { card: CARD_ID, as: "evolver" },
+        ],
+        hand: [{ card: "BT26-041", as: "hudiemon" }],
+      },
+      1: { battleArea: [{ card: "BT26-035", as: "attacker" }] },
+    });
+    opponentTurn.state.turnSeat = 1;
+    const attackerId = opponentTurn.perm("attacker").permanentId;
+    expect(
+      opponentTurn.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "permanent", permanentId: opponentTurn.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !opponentTurn.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackerId),
+    );
+    expect(opponentTurn.perm("evolver").topCard.cardId).toBe(CARD_ID);
   });
 });

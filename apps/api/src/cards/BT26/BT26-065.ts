@@ -10,13 +10,12 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-065 — Falcomon (BT26, Purple Lv.3 Digimon, Avian/DATA SQUAD).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-065 as of this port
-// (`node tools/kb/query.mjs card BT26-065` returned no knowledge-base entries). implemented
-// from the printed card text only; the reveal/select-two-filters/return-to-bottom shape
-// mirrors the reviewed BT26-052 precedent (an AND of two independent adds, not an OR of
-// one). The inherited [When Attacking][Once Per Turn] draw-then-trash-from-hand clause
-// mirrors ST16-13's mandatory draw+trash idiom and BT26-009's whenAttacking
-// self-attacker gate.
+// The committed KB contains Q7088 (2026-08-18), confirming that "1 purple card with
+// [Ravemon] in its name or [Avian]/[Bird] in its traits" applies the purple-card gate
+// to BOTH alternatives. The reveal/select-two-filters/return-to-bottom shape mirrors
+// reviewed BT26-052: an AND of two independent mandatory adds when candidates exist,
+// not an optional OR. The inherited [When Attacking][Once Per Turn] draw-then-trash
+// clause mirrors ST16-13's mandatory draw+trash idiom.
 //
 // [Digivolve] Lv.2 w/[DATA SQUAD] trait: Cost 0 — a digivolution-cost requirement, not
 //   an effect clause; already carried by CardDefinition.evoCosts in cards.json and read
@@ -45,8 +44,8 @@ function isPurpleRavemonOrAvianBird(def: CardDefinition): boolean {
 }
 
 /**
- * Reveal the top 3 cards of the owner's deck. Add up to 1 [Keenan Crier]/[DATA SQUAD]
- * card and up to 1 purple [Ravemon]/[Avian]/[Bird] card among them to the hand (a single
+ * Reveal the top 3 cards of the owner's deck. Add 1 [Keenan Crier]/[DATA SQUAD]
+ * card and 1 purple [Ravemon]/[Avian]/[Bird] card among them to the hand (a single
  * revealed card can only fill one of the two slots, since it can only move to the hand
  * once), then return whatever is left to the bottom of the deck.
  */
@@ -64,7 +63,7 @@ async function resolveRevealAndAddToHand(ctx: EffectContext, source: CardSource)
   if (keenanCandidates.length > 0) {
     keenanPick = await ctx.ask.selectCards(ctx, {
       candidates: keenanCandidates,
-      min: 0,
+      min: 1,
       max: 1,
     });
   }
@@ -77,7 +76,7 @@ async function resolveRevealAndAddToHand(ctx: EffectContext, source: CardSource)
   if (avianCandidates.length > 0) {
     avianPick = await ctx.ask.selectCards(ctx, {
       candidates: avianCandidates,
-      min: 0,
+      min: 1,
       max: 1,
     });
   }
@@ -112,7 +111,7 @@ const module: EffectModule = {
 
     // [When Attacking] (inherited) [Once Per Turn] <Draw 1> and trash 1 card in your
     // hand.
-    if (timing === EffectTiming.OnAllyAttack) {
+    if (timing === EffectTiming.OnUseAttack) {
       return [
         whenAttacking({
           source,

@@ -11,7 +11,14 @@ export type Intent =
 
   // --- Main-phase verbs ---
   | { type: "playCard"; instanceId: string; targetSlot?: number; digiXros?: DigiXrosPlan; assembly?: AssemblyPlan } // play Digimon/Tamer/Option from hand; digiXros/assembly declare the alternate material-based plays
-  | { type: "digivolve"; permanentId: string; instanceId: string; useAlternateCost?: boolean } // stack hand card onto a permanent; useAlternateCost picks the alternate digivolution requirement
+  | {
+      type: "digivolve";
+      permanentId: string;
+      instanceId: string;
+      useAlternateCost?: boolean;
+      /** Explicit index in digivolutionRequirementsFor(cardId); server revalidates every gate. */
+      alternateRequirementIndex?: number;
+    } // stack hand card onto a permanent; boolean remains the first-match compatibility path
   | { type: "hatchEgg" } // breeding: move top egg to raising area
   | { type: "moveFromBreeding"; permanentId: string } // move raised Digimon to battle area
   | { type: "activateEffect"; sourceInstanceId: string; effectKey: string } // activate a [Main]/activated effect
@@ -135,9 +142,6 @@ export type RejectReason =
   | "link-requirement-unmet"; // target Digimon doesn't meet the link card's category requirement
 
 /** Narrowing helper used by intent handlers. */
-export function isIntentOfType<T extends IntentType>(
-  intent: Intent,
-  type: T,
-): intent is Extract<Intent, { type: T }> {
+export function isIntentOfType<T extends IntentType>(intent: Intent, type: T): intent is Extract<Intent, { type: T }> {
   return intent.type === type;
 }

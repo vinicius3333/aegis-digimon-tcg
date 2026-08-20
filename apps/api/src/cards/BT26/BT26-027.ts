@@ -4,20 +4,21 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, turnTiming } from "../../engine/effects/builders.js";
+import { onPlay, staticModifier, turnTiming } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-027 — Petermon (BT26, Yellow/Green Lv.4 Digimon, Fairy/WG).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-027 as of this port
-// (`node tools/kb/query.mjs card BT26-027` returned no knowledge-base entries). Implemented
-// from the printed card text only.
+// The committed KB has no card-specific entries for BT26-027 as of 2026-08-20. The
+// implementation follows the printed text.
 //
 // [Digivolve] Lv.3 w/[WG] trait: Cost 2 — a digivolution-cost requirement, not an effect
 //   clause; carried by CardDefinition.evoCosts in cards.json.
 // [On Play] [Start of Opponent's Main Phase] By suspending 1 of your Digimon with the
 //   [Vegetation], [Fairy] or [WG] trait, give 1 of your opponent's Digimon
 //   ＜Security A. -2＞ until their turn ends.
+// Inherited: ＜Barrier＞ — a static inherited keyword grant while this card is under a
+//   Digimon.
 //
 // Two printed windows over one clause, so both entries share a single resolver (BT26-025's
 // idiom). The [Start of Opponent's Main Phase] entry is the mirror of BT26-093's
@@ -71,10 +72,11 @@ async function suspendTraitDigimonAndWeakenSecurityAttack(ctx: EffectContext, so
   const costTargets = costCandidates(ctx, source);
   if (costTargets.length === 0) return;
 
-  const toSuspend = await ctx.ask.chooseTargets(ctx, { candidates: costTargets, min: 0, max: 1 });
+  const toSuspend = await ctx.ask.chooseTargets(ctx, { candidates: costTargets, min: 1, max: 1 });
   if (toSuspend.length === 0) return;
 
-  await ctx.fx.suspend(toSuspend);
+  const paid = await ctx.fx.suspend(toSuspend);
+  if (!paid.includes(toSuspend[0]!)) return;
 
   const targets = opponentDigimon(ctx, source);
   if (targets.length === 0) return;
@@ -93,6 +95,25 @@ const CLAUSE =
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/inherited-barrier`,
+          description: "＜Barrier＞ (inherited)",
+          optional: false,
+          isInherited: true,
+          when: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const host = ctx.source.permanent();
+            if (host !== undefined) {
+              ctx.fx.grantKeyword(host.permanentId, "Barrier", EffectDuration.Permanent);
+            }
+          },
+        }),
+      ];
+    }
+
     if (timing === EffectTiming.OnPlay) {
       return [
         onPlay({

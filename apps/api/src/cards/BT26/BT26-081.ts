@@ -56,11 +56,12 @@ function hasIliadOrTsTrait(def: CardDefinition): boolean {
 
 /** "Play up to 8 play cost's total worth of [Iliad] trait cards from hand/trash without paying costs." */
 async function resolvePlayIliadBudget(ctx: EffectContext, source: CardSource): Promise<void> {
-  const owner = ctx.game.player(source.ownerSeat);
   let remaining = BUDGET;
+  const owner = ctx.game.player(source.ownerSeat);
+  const available = [...owner.hand, ...owner.trash];
 
   const poolOf = (): CardInstance[] =>
-    [...owner.hand, ...owner.trash].filter((c) => {
+    available.filter((c) => {
       const def = ctx.game.definitionOf(c);
       return isPermanentKind(def) && hasIliadTrait(def) && def.playCost <= remaining;
     });
@@ -76,7 +77,12 @@ async function resolvePlayIliadBudget(ctx: EffectContext, source: CardSource): P
     const chosen = pool.find((c) => c.instanceId === picked[0]);
     if (chosen === undefined) break;
     const def = ctx.game.definitionOf(chosen);
-    await ctx.fx.playInstances([chosen.instanceId], { payCost: false });
+    const played = await ctx.fx.playInstances([chosen.instanceId], { payCost: false });
+    available.splice(
+      available.findIndex((candidate) => candidate.instanceId === chosen.instanceId),
+      1,
+    );
+    if (played.length === 0) continue;
     remaining -= def.playCost;
     if (remaining <= 0) break;
   }

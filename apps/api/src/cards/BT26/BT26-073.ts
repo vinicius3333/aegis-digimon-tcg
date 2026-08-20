@@ -10,11 +10,10 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
 /**
  * BT26-073 — Aegiochusmon: Dark (BT26, Purple/Red Lv.5 Digimon).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-073` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * The committed KB contains Q7098-Q7099 (2026-08-18). Q7098 confirms that the level-4
+ * ceiling in the Assembly requirement applies to both alternatives. Q7099 confirms
+ * that "[Chronomon] in text" searches all printed card fields, including names,
+ * traits, effects, inherited effects, rules, and special requirements.
  *
  * Printed text:
  *   [Digivolve] [Aegiomon]: Cost 3
@@ -33,7 +32,8 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
  *     deck bottom"): the controller picks which to pay, then deletes 1 opponent Digimon
  *     level <= 5. Modeled as a `chooseOption` between the two cost paths, each gated on
  *     its own legality (self must still be on the field to self-delete; a matching trash
- *     card must exist to pay the alternate cost).
+ *     card must exist to pay the alternate cost). Because "By ..." introduces an
+ *     activation cost, the player may decline the triggered effect before choosing a mode.
  *   EffectTiming.OnDestroyedAnyone — "You may play 1 [TS] trait card with a play cost of
  *     5 or less from your hand or trash without paying the cost."
  *   EffectTiming.None — the ＜Security A. +1＞ inherited grant (this card's OWN
@@ -41,10 +41,8 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
  *     `inheritedEffectText`, so `resolveKeywords`'s printed-text scan of the top card
  *     never picks it up — an explicit `isInherited: true` staticModifier grant is
  *     required, mirroring BT12-063's inherited-Blocker shape) and the "[Rule] Trait: Has
- *     [Wizard] Type" self-trait grant (`ctx.fx.grantNameTrait`, BT26-018 precedent —
- *     `packages/shared/**` is off-limits here, and this card's `types` array
- *     (["Shaman","Iliad","TS"]) is genuinely missing "Wizard", the same kind of data gap
- *     BT26-018 flagged for [Aquatic]).
+ *     [Wizard] Type" self-trait grant (`ctx.fx.grantNameTrait`, BT26-018 precedent).
+ *     Runtime `effectiveTraits` unions that Rule grant with the printed trait fields.
  */
 const cardId = "BT26-073";
 
@@ -62,13 +60,18 @@ async function resolveCostThenDelete(
 ): Promise<void> {
   const self = ctx.source.permanent();
   const owner = ctx.game.player(source.ownerSeat);
-  const trashCandidates = owner.trash
-    .filter((c) => hasShamanOrTs(ctx.game.definitionOf(c)))
-    .map((c) => c.instanceId);
+  const trashCandidates = owner.trash.filter((c) => hasShamanOrTs(ctx.game.definitionOf(c))).map((c) => c.instanceId);
 
   const canSelfDelete = self !== undefined;
   const canTrashReturn = trashCandidates.length > 0;
   if (!canSelfDelete && !canTrashReturn) return;
+
+  const willActivate = await ctx.ask.optional(
+    ctx,
+    "Delete this Digimon or return 1 [Shaman]/[TS] trait card from your trash to the " +
+      "bottom of the deck to delete 1 opponent level 5 or lower Digimon?",
+  );
+  if (!willActivate) return;
 
   let payBySelfDelete: boolean;
   if (canSelfDelete && canTrashReturn) {
@@ -83,11 +86,13 @@ async function resolveCostThenDelete(
 
   if (payBySelfDelete) {
     if (self === undefined) return;
-    await ctx.fx.deletePermanent([self.permanentId]);
+    const deleted = await ctx.fx.deletePermanent([self.permanentId], "byEffect");
+    if (deleted === 0) return;
   } else {
     const picked = await ctx.ask.selectCards(ctx, { candidates: trashCandidates, min: 1, max: 1 });
     if (picked.length === 0) return;
-    await ctx.fx.returnToDeck(picked, { toTop: false });
+    const returned = await ctx.fx.returnToDeck(picked, { toTop: false });
+    if (returned.length !== 1) return;
   }
 
   const opponent = ctx.game.opponentOf(source.ownerSeat);
@@ -104,7 +109,7 @@ async function resolveCostThenDelete(
     deleteCandidates.length === 1
       ? deleteCandidates[0]!
       : (await ctx.ask.chooseTargets(ctx, { candidates: deleteCandidates, min: 1, max: 1 }))[0];
-  if (chosen !== undefined) await ctx.fx.deletePermanent([chosen]);
+  if (chosen !== undefined) await ctx.fx.deletePermanent([chosen], "byEffect");
 }
 
 const module: EffectModule = {
@@ -175,7 +180,8 @@ const module: EffectModule = {
           isInherited: true,
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
-            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "SecurityAttack", EffectDuration.UntilEachTurnEnd, 1);
+            if (self !== undefined)
+              ctx.fx.grantKeyword(self.permanentId, "SecurityAttack", EffectDuration.UntilEachTurnEnd, 1);
           },
         }),
         staticModifier({
@@ -185,7 +191,8 @@ const module: EffectModule = {
           when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
-            if (self !== undefined) ctx.fx.grantNameTrait(self.permanentId, "trait", ["Wizard"], EffectDuration.Permanent);
+            if (self !== undefined)
+              ctx.fx.grantNameTrait(self.permanentId, "trait", ["Wizard"], EffectDuration.Permanent);
           },
         }),
       ];

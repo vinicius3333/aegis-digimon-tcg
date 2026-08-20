@@ -68,6 +68,8 @@ export interface Condition {
     | "triggerAddedSecurityHasTrait" // whenAddSecurity: a just-added card matches `filter`
     | "triggerByYourEffect" // whenDigivolutionTrashed: byEffectSeat === ownerSeat (KB P-004 "when YOU trash")
     | "triggerEnteredByEffect" // entered play BY an effect, not a manual play/digivolve (BT25-084). A When Attacking entry never sets it.
+    | "triggerPlayedOrDigivolvedByEffect" // either a whenPlayed effect event or an effect-driven digivolve (BT25-077)
+    | "selfEnteredByEffect" // the live source permanent's current top entered by an effect (BT25-080)
     | "triggerPlayedByEffectSource" // the exact card named by `sourceCardId` drove the play
     | "triggerOptionCostAtLeast" // the Option's ORIGINAL use cost, not a reduced one (BT19-040; KB Q5471-Q5473)
     | "triggerSubjectHasColor" // evaluated POST-digivolve (BT25-026; KB Q6290/Q6291)
@@ -96,6 +98,7 @@ export interface Condition {
     | "totalSecurityCount" // both stacks summed
     | "totalDigimonCount" // both players' battle-area Digimon (BT9-110)
     | "totalDigimonGte" // legacy alias with an implicit gte (ST19-11)
+    | "totalDigimonLevelsGte" // sum of printed levels on both players' battle-area Digimon (BT25-077)
     | "permanentCount" // `seat`'s permanents matching `filter`; with `filter.distinctNames`, distinct names only (BT21-010)
     | "selfHasMinTrash" // honors a `filter` on the counted trash cards, unlike `zoneCount` (BT2-111)
     | "selfHasTrait" // the LIVE top card's trait union, unlike selfDigivolutionStackHasTrait (EX12-004)

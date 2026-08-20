@@ -51,6 +51,7 @@ export const compiled: CompiledCard = {
             controller: "opponent",
             kind: ["Digimon"],
           },
+          notSimultaneous: true,
           actions: [
             {
               kind: "Digivolve",

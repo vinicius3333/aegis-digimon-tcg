@@ -43,6 +43,7 @@ export const compiled: CompiledCard = {
               },
             ],
           },
+          from: ["hand"],
           payCost: true,
           condition: {
             kind: "isYourTurn",
@@ -78,6 +79,7 @@ export const compiled: CompiledCard = {
               },
             ],
           },
+          from: ["hand"],
           payCost: true,
           condition: {
             kind: "isYourTurn",
@@ -86,6 +88,12 @@ export const compiled: CompiledCard = {
           optional: true,
         },
       ],
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [{ keyword: "Barrier", raw: "＜Barrier＞" }],
     },
   ],
   coverage: "full",

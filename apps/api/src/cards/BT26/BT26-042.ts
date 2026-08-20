@@ -4,6 +4,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
+import { cardHasTrait } from "../../engine/cards/cardData.js";
 import { onPlay, whenDigivolving, whenAttacking } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
@@ -98,14 +99,14 @@ async function resolveSuspendAndLock(ctx: EffectContext, source: CardSource): Pr
 }
 
 function hasInsectoidOrTitanTrait(def: CardDefinition): boolean {
-  const types = def.types ?? [];
-  return types.includes(INSECTOID_TRAIT) || types.includes(TITAN_TRAIT);
+  return cardHasTrait(def, INSECTOID_TRAIT) || cardHasTrait(def, TITAN_TRAIT);
 }
 
 function insectoidOrTitanTargets(ctx: EffectContext, source: CardSource): Permanent[] {
   const owner = ctx.game.player(source.ownerSeat);
   return Array.from(owner.battleArea).filter(
     (p) =>
+      !p.inBreeding &&
       p.topCard !== undefined &&
       isDigimon(ctx.game.definitionOf(p.topCard)) &&
       hasInsectoidOrTitanTrait(ctx.game.definitionOf(p.topCard)),

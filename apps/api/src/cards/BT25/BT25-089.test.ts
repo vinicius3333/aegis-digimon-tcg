@@ -1,138 +1,123 @@
-import { describe, it, expect } from "vitest";
-import {
-  GameState,
-  PlayerState,
-  Permanent,
-  CardInstance,
-  type Seat,
-  type ServerEvent,
-} from "@aegis/shared";
-import { MemoryGauge } from "../../engine/MemoryGauge.js";
-import { ModifierLedger } from "../../engine/effects/modifiers.js";
-import { SubTriggerRegistry } from "../../engine/effects/subtriggers.js";
-import {
-  createPrimitives,
-  type PrimitivesEngine,
-  type SelectionPort,
-} from "../../engine/effects/primitives.js";
-// Self-register the compiled-IR cards so getCompiledCard can resolve the fusion target's
-// appFusionRequirement at runtime (the engine reads it inside appFuseInto).
+import { EffectTiming } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
-/**
- * Phase A3 — App Fusion (the Appmon mechanic) for PRIM-01 (BT25-089 clause).
- *
- * BT25-089's [End of Your Turn] tail lets "1 of your Digimon app fuse into a Digimon card in
- * the hand." The clause was previously mismodeled as DnaDigivolve (inert); it is now an AppFuse
- * action driving the real engine appFuseInto verb. App Fusion plays the fusion-TARGET card ON
- * TOP of an existing battle-area Digimon, carrying its stack underneath (NOT DnaDigivolve — no
- * permanent consumed). Legality and cost are owned by the target's appFusionRequirement (documented behavior
- * CanAppFusionFromTargetPermanent over AddAppfuseMethodByName): the fusing permanent's TOP card
- * + its LINKED cards must cover >= 2 distinct required names.
- *
- * Fusion target: BT25-072 (Shutmon, appFusionRequirement names ["Logamon","Timemon"]) in HAND.
- * Fusing permanent: top = BT25-070 (Logamon), linked = BT21-059 (Timemon) — both required names
- * covered, so the fusion is LEGAL.
- *
- * Fails-when-reverted: stub appFuseInto to a no-op and the "result on top + source under it"
- * assertions go RED. The denial case proves the legality is enforced server-side.
- */
-
-const TARGET = "BT25-072"; // Shutmon — appFusion names [Logamon, Timemon], DP 7000
-const LOGAMON = "BT25-070";
-const TIMEMON = "BT21-059";
-const UNRELATED = "BT23-016"; // Dokamon — not in BT25-072's appFusion names
-
-let seq = 0;
-function card(cardId: string, seat: Seat, faceUp = true): CardInstance {
-  const c = new CardInstance();
-  c.instanceId = `i${seq++}`;
-  c.cardId = cardId;
-  c.ownerSeat = seat;
-  c.faceUp = faceUp;
-  return c;
-}
-
-interface Harness {
-  state: GameState;
-  fx: ReturnType<typeof createPrimitives>;
-  events: ServerEvent[];
-}
-
-function harness(memoryValue = 5): Harness {
-  seq = 0;
-  const state = new GameState();
-  state.turnSeat = 0;
-  state.memory = memoryValue;
-  for (const seat of [0, 1] as Seat[]) {
-    const player = new PlayerState();
-    player.seat = seat;
-    state.players[seat] = player;
-  }
-  const events: ServerEvent[] = [];
-  const memory = new MemoryGauge(state, (e) => events.push(e));
-  let permSeq = 0;
-  let tokSeq = 0;
-  const ask: SelectionPort = { selectInstances: async (_s, candidates) => candidates };
-  const engine: PrimitivesEngine = {
-    state,
-    emit: (e) => events.push(e),
-    nextPermanentId: () => `perm-${permSeq++}`,
-    nextInstanceId: () => `tok-${tokSeq++}`,
-    memory,
-    modifiers: new ModifierLedger(),
-    subTriggers: new SubTriggerRegistry(),
-    ask,
-    controllerSeat: () => state.turnSeat,
-    fireTiming: async () => {},
-  };
-  return { state, fx: createPrimitives(engine), events };
-}
-
-function fusingPermanent(state: GameState, topId: string, linkedId: string): Permanent {
-  const p = new Permanent();
-  p.permanentId = "fuser";
-  p.controllerSeat = 0;
-  const top = card(topId, 0);
-  top.instanceId = "fuser-top";
-  p.topCard = top;
-  const linked = card(linkedId, 0);
-  linked.instanceId = "fuser-link";
-  p.linked.push(linked);
-  p.baseDP = 6000;
-  p.currentDP = 6000;
-  state.players[0]?.battleArea.push(p);
-  return p;
-}
-
-describe("A3 App Fusion (BT25-089) — fuse into a hand Digimon, carrying the stack", () => {
-  it("plays the fusion-target from hand on top of the fusing Digimon, the source sliding under", async () => {
-    const h = harness();
-    const p0 = h.state.players[0]!;
-    const fuser = fusingPermanent(h.state, LOGAMON, TIMEMON);
-    const target = card(TARGET, 0, false);
-    p0.hand.push(target); // the fusion-result lives in HAND (BT25-089's `from`)
-
-    const result = await h.fx.appFuseInto(fuser.permanentId, target.instanceId);
-
-    expect(result, "the fusion must be legal (top Logamon + linked Timemon)").toBeDefined();
-    expect(fuser.topCard?.cardId).toBe(TARGET);
-    expect(fuser.stack.map((c) => c.cardId)).toContain(LOGAMON);
-    expect(p0.hand.some((c) => c.instanceId === target.instanceId)).toBe(false);
-    expect(fuser.baseDP).toBe(7000); // recomputed from Shutmon, not Logamon (6000)
+describe("BT25-089 Kazuki & Itsuki", () => {
+  it("gains exactly 1 memory at start main only when the opponent has a battle-area Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-089", as: "tamer" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+    });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tamer"));
+    expect(s.state.memory).toBe(1);
   });
 
-  it("DENIES the fusion when the fusing Digimon does not satisfy the target's app-fusion names", async () => {
-    const h = harness();
-    const p0 = h.state.players[0]!;
-    const fuser = fusingPermanent(h.state, LOGAMON, UNRELATED); // only Logamon covered
-    const target = card(TARGET, 0, false);
-    p0.hand.push(target);
+  it("suspends itself, pays link cost reduced by 2, and links an Appmon from hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-089", as: "tamer" },
+            { card: "BT21-009", as: "host" },
+          ],
+          hand: [{ card: "BT26-010", as: "link" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("tamer"));
 
-    const result = await h.fx.appFuseInto(fuser.permanentId, target.instanceId);
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toContain(s.inst("link").instanceId);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.memory).toBe(2);
+  });
 
-    expect(result, "an illegal fusion must be refused").toBeUndefined();
-    expect(fuser.topCard?.cardId).toBe(LOGAMON);
-    expect(p0.hand.some((c) => c.instanceId === target.instanceId)).toBe(true);
+  it("does not offer an Appmon card without its own Link requirement (Q6422)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-089", as: "tamer" },
+            { card: "BT21-009", as: "host" },
+          ],
+          hand: [{ card: "BT21-005", as: "noLink" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("tamer"));
+    expect(s.perm("tamer").isSuspended).toBe(false);
+    expect(s.perm("host").linked).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("noLink").instanceId);
+  });
+
+  it("app fuses a legal host at end of turn and carries the old top under the result", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-089", as: "tamer" },
+            { card: "BT25-070", as: "host", linked: [{ card: "BT21-059", as: "timemon" }] },
+          ],
+          hand: [{ card: "BT25-072", as: "result" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("tamer"));
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("result").instanceId);
+    // Shutmon's own When Digivolving may immediately link the carried Logamon;
+    // either destination proves App Fusion first carried the old top under it.
+    expect([...s.perm("host").stack, ...s.perm("host").linked].map((card) => card.cardId)).toContain("BT25-070");
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+
+  it("does not app fuse when the host lacks the target's second required Appmon name", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-089", as: "tamer" },
+            { card: "BT25-070", as: "host", linked: [{ card: "BT23-016" }] },
+          ],
+          hand: [{ card: "BT25-072", as: "result" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("tamer"));
+    expect(s.perm("host").topCard.cardId).toBe("BT25-070");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("result").instanceId);
+  });
+
+  it("plays itself for free from Security", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT25-089", as: "tamer" }] },
+      1: { battleArea: [{ card: "AD1-001", as: "attacker", dp: 20000 }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("tamer").instanceId),
+    );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("tamer").instanceId),
+    ).toBe(true);
   });
 });

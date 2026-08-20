@@ -8,9 +8,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-004 — Pagumon (BT26, Purple In-Training Digi-Egg).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-004 as of this port
-// (`node tools/kb/query.mjs card BT26-004` returned no knowledge-base entries). implemented
-// from the printed card text only.
+// Catalog source: `packages/shared/src/cards/data/cards.json`.
+// KB sources Q6954-Q6957 establish that the face-down card is placed at the bottom,
+// can't be reordered, is private to its owner, and becomes face up if trashed.
 //
 // Inherited Effect:
 //   [When Attacking] [Once Per Turn] By placing 1 card from your hand face down under
@@ -20,9 +20,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 // EffectTiming.OnAllyAttack + the whenAttacking builder + isInherited: true) and on
 // BT25-090's `tamerWithFaceDownUnder`-style helper for scanning the owner's Tamers,
 // adapted here to filter by the [Glowing Dawn] trait rather than by having a
-// face-down card already underneath. Placement uses ctx.fx.placeUnder (the existing
-// "face down under a permanent" primitive — see EX6/BT21/ST24/BT26-089 usages); no
-// new primitive was needed.
+// face-down card already underneath. `placeUnder` defaults to the bottom of the stack
+// and `faceUp: false` supplies the remaining Q6954-Q6957 placement semantics.
 
 const cardId = "BT26-004";
 
@@ -56,8 +55,7 @@ const module: EffectModule = {
           isInherited: true,
           maxPerTurn: 1,
           canActivate: (ctx) =>
-            ctx.game.player(source.ownerSeat).hand.length > 0 &&
-            glowingDawnTamerTargets(ctx, source).length > 0,
+            ctx.game.player(source.ownerSeat).hand.length > 0 && glowingDawnTamerTargets(ctx, source).length > 0,
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             const tamerTargets = glowingDawnTamerTargets(ctx, source);
@@ -65,7 +63,7 @@ const module: EffectModule = {
 
             const cardChosen = await ctx.ask.selectCards(ctx, {
               candidates: Array.from(owner.hand).map((c) => c.instanceId),
-              min: 0,
+              min: 1,
               max: 1,
             });
             if (cardChosen.length === 0) return;
@@ -83,7 +81,8 @@ const module: EffectModule = {
               targetPermanentId = chosen[0]!;
             }
 
-            await ctx.fx.placeUnder(targetPermanentId, cardChosen, { faceUp: false });
+            const placed = await ctx.fx.placeUnder(targetPermanentId, cardChosen, { faceUp: false });
+            if (placed.length === 0) return;
             await ctx.fx.draw(source.ownerSeat, 1);
           },
         }),

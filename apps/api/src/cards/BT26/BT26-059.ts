@@ -15,14 +15,11 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-059 — Plutomon (BT26, Black/Purple Lv.6 Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-059 as of this port
-// (`node tools/kb/query.mjs card BT26-059` returned no knowledge-base entries — BT26
-// has no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// Verified against committed Q7074-Q7078.
 //
 // Printed text:
 //   [Digivolve] Lv.5 w/[TS] trait: Cost 4 — a digivolution-cost requirement, not an
-//     effect clause; already carried by CardDefinition.evoCosts in cards.json, so it
-//     needs no entry here.
+//     effect clause; carried by the generated alternate digivolution requirements.
 //   When this card would be played, if your hand has fewer cards than your opponent's,
 //     reduce the cost by 6.
 //   [On Play] [When Digivolving] [When Attacking] [Once Per Turn] By trashing 1 card in
@@ -60,13 +57,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 //     (`handTrashedSeat === source.ownerSeat`), the printed text says "hands" (plural,
 //     no possessive) — distinct phrasing from every other "your hand"/"your opponent's
 //     hand" card in cards.json — so this reacts to EITHER seat's hand being trashed
-//     (`matches` omitted; `subscribeSubTrigger`'s absent `matches` fires for every event
-//     of the type per EffectContext.ts's `SubTriggerInstall.matches` doc). `maxPerTurn: 1`
-//     on the None-timing `staticModifier` host is not engine-enforced (GameEngine.ts:1429)
-//     — the per-turn budget here is carried entirely by the "may" prompt being declinable
-//     and by `ctx.fx.deletePermanent` naturally no-op'ing once no opponent Digimon remain;
-//     there is no compiled per-turn ledger to lean on for a hand-written EffectTiming.None
-//     host, matching ST16-13's identical comment-only caveat.
+//     (`matches` omitted; `subscribeSubTrigger`'s absent `matches` fires for either seat).
+//     `staticModifier` derives an instance-scoped once-per-turn key; declining releases
+//     the reserved budget so the next qualifying hand-trash event may be accepted.
 
 const cardId = "BT26-059";
 const TITAN_TRAIT = "Titan";
@@ -117,7 +110,8 @@ async function resolveTrashHandToPlayTitanFromTrash(ctx: EffectContext, source: 
   });
   if (chosenCost.length === 0) return;
 
-  await ctx.fx.trash(chosenCost);
+  const paid = await ctx.fx.trash(chosenCost, { byEffectSeat: source.ownerSeat });
+  if (paid.length !== 1) return;
   if (!source.isOwnersTurn()) return;
   await ctx.fx.playInstances([targetId], { payCost: true, costDelta: 7 });
 }
@@ -125,9 +119,11 @@ async function resolveTrashHandToPlayTitanFromTrash(ctx: EffectContext, source: 
 /** Opponent's battle-area Digimon at the lowest printed level among them. */
 function opponentLowestLevelDigimon(ctx: EffectContext, source: CardSource): Permanent[] {
   const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
-  const digimon = Array.from(opponent.battleArea).filter(
-    (p) => !p.inBreeding && p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
-  );
+  const digimon = Array.from(opponent.battleArea).filter((p) => {
+    if (p.inBreeding || p.topCard === undefined) return false;
+    const definition = ctx.game.definitionOf(p.topCard);
+    return isDigimon(definition) && definition.level !== undefined;
+  });
   if (digimon.length === 0) return [];
   const minLevel = Math.min(...digimon.map((p) => ctx.game.definitionOf(p.topCard!).level ?? Infinity));
   return digimon.filter((p) => (ctx.game.definitionOf(p.topCard!).level ?? Infinity) === minLevel);
@@ -243,7 +239,6 @@ const module: EffectModule = {
               event: "whenHandTrashed",
               sourcePermanentId: self.permanentId,
               once: false,
-              oncePerTurnKey: `${cardId}/hand-trashed-delete-lowest-level`,
               description: `${cardId}: when hands are trashed from, may delete opponent's lowest level Digimon.`,
               run: async (subCtx) => {
                 const targets = opponentLowestLevelDigimon(subCtx, source);
@@ -253,9 +248,15 @@ const module: EffectModule = {
                   subCtx,
                   "Delete all of your opponent's lowest level Digimon?",
                 );
-                if (!willDelete) return;
+                if (!willDelete) {
+                  subCtx.oncePerTurnActivationDeclined = true;
+                  return;
+                }
 
-                await subCtx.fx.deletePermanent(targets.map((p) => p.permanentId));
+                await subCtx.fx.deletePermanent(
+                  targets.map((p) => p.permanentId),
+                  "byEffect",
+                );
               },
             });
           },

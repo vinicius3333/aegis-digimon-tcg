@@ -1,7 +1,54 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../index.js";
 import { compiled } from "./BT23-046.js";
 
 describe("BT23-046 Rosemon", () => {
+  it("may suspend an opponent's Digimon as the cost and locks it from unsuspending", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-046", as: "rose", suspended: true }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "costCandidate" },
+            { card: "BT22-083", as: "otherTarget", suspended: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("rose"));
+
+    expect(s.perm("costCandidate").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("costCandidate"), "unsuspend")).toBe(true);
+  });
+
+  it("redirects an opponent's player attack to a suspended qualifying Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-046", as: "rose", suspended: true }] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === attackerId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-046")).toBe(true);
+  });
+
   it("declares Fortitude", () => {
     expect((compiled.effects.find((entry) => entry.trigger === "Static") as any).keywords[0].keyword).toBe("Fortitude");
   });
@@ -14,7 +61,7 @@ describe("BT23-046 Rosemon", () => {
         target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 },
         restriction: "unsuspend",
         duration: "untilOpponentTurnEnd",
-        cost: { kind: "suspend", target: { filter: { controller: "mine", kind: ["Digimon", "Tamer"] }, count: 1 } },
+        cost: { kind: "suspend", target: { filter: { controller: "any", kind: ["Digimon", "Tamer"] }, count: 1 } },
         optional: true,
         abortOnDecline: true,
       });

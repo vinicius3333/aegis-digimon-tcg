@@ -9,12 +9,11 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-062 — Ghostmon (BT26, Purple/Red Digimon).
 //
-// Provisional port: no KB entry (errata/Q&A) exists yet for BT26-062 as of this port
-// (`node tools/kb/query.mjs card BT26-062` returned no knowledge-base entries — BT26 has
-// no Q&A yet). implemented from the printed card text only; revisit once rulings land.
+// The committed KB has no card-specific ruling or erratum for BT26-062; behavior follows
+// the complete printed text and the engine's established "By [cost]" semantics.
 //
 // [Digivolve] Lv.2 w/[NSo] trait: Cost 0 — a digivolution-cost requirement, not an effect
-//   clause; already carried by CardDefinition.evoCosts, not implemented here.
+//   clause; carried by the generated alternate digivolution requirements.
 // [Start of Your Main Phase] By trashing 1 card with the [Ghost] or [NSo] trait from your
 //   hand, ＜Draw 1＞ and gain 1 memory.
 //   "By ~ing, ..." is a declinable cost gating the draw+memory (BT26-057/BT26-098 idiom):
@@ -54,18 +53,12 @@ const module: EffectModule = {
           description:
             "[Start of Your Main Phase] By trashing 1 card with the [Ghost] or [NSo] " +
             "trait from your hand, ＜Draw 1＞ and gain 1 memory.",
+          optional: true,
           when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           canActivate: (ctx) => ghostOrNsoHandCandidates(ctx, source.ownerSeat).length > 0,
           resolve: async (ctx) => {
             const candidates = ghostOrNsoHandCandidates(ctx, source.ownerSeat);
             if (candidates.length === 0) return;
-
-            const wantToPay = await ctx.ask.optional(
-              ctx,
-              "Trash 1 [Ghost] or [NSo] trait card from your hand to draw 1 card and " +
-                "gain 1 memory?",
-            );
-            if (!wantToPay) return;
 
             const chosen = await ctx.ask.selectCards(ctx, {
               candidates,
@@ -74,7 +67,8 @@ const module: EffectModule = {
             });
             if (chosen.length === 0) return;
 
-            await ctx.fx.trash(chosen);
+            const trashed = await ctx.fx.trash(chosen, { byEffectSeat: source.ownerSeat });
+            if (trashed.length !== 1) return;
             await ctx.fx.draw(source.ownerSeat, 1);
             ctx.fx.gainMemory(1);
           },

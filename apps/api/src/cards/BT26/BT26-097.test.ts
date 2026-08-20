@@ -3,6 +3,7 @@ import { CardKind, EffectTiming, type CardDefinition, type Seat } from "@aegis/s
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT26-097.js";
 
 // BT26-097 (The Thunder Emperor Awakens, BT26 Option):
@@ -281,5 +282,72 @@ describe("BT26-097 [Main]: place a Yuki Tamer under Aegiomon, digivolve, then bu
     await effectFor(EffectTiming.OnUseOption, harness.source, MAIN_KEY).resolve(harness.ctx);
 
     expect(harness.calls).toEqual([]);
+  });
+
+  it("resolves the complete chain on a real evolution stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT26-097", as: "option" },
+            { card: "BT26-033", as: "jupitermon" },
+          ],
+          trash: [{ card: "BT26-029", as: "aegiochusmon" }],
+          battleArea: [
+            { card: "BT25-086", as: "dan" },
+            { card: "BT24-034", as: "aegiomon" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 2;
+    const danId = s.perm("dan").topCard!.instanceId;
+    const danPermanentId = s.perm("dan").permanentId;
+    const oldAegiomonId = s.perm("aegiomon").topCard!.instanceId;
+    const aegiochusmonId = s.inst("aegiochusmon").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("aegiomon").topCard?.instanceId === s.inst("jupitermon").instanceId);
+    await settle(() => s.perm("aegiomon").stack.some((card) => card.instanceId === aegiochusmonId));
+
+    expect(s.perm("aegiomon").topCard!.cardId).toBe("BT26-033");
+    expect(s.perm("aegiomon").stack.map((card) => card.instanceId)).toEqual([
+      danId,
+      oldAegiomonId,
+      aegiochusmonId,
+    ]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === danPermanentId)).toBe(false);
+    expect(s.state.memory).toBe(0);
+  });
+});
+
+describe("BT26-097 [Security]", () => {
+  it("plays an eligible TS permanent from hand for free, then returns itself to hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT26-090", as: "tsTamer" }],
+          security: [{ card: "BT26-097", as: "optionSecurity" }],
+        },
+        1: { battleArea: [{ card: "AD1-003", as: "attacker" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    const optionId = s.inst("optionSecurity").instanceId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === optionId));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT26-090")).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(optionId);
   });
 });

@@ -10,11 +10,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 /**
  * BT26-089 — Kyo Sawashiro (BT26, Yellow Tamer).
  *
- * BT26 is a new set with no source documented behavior reference and no knowledge-base entries yet
- * (`node tools/kb/query.mjs card BT26-089` returns no errata/Q&A/rules hits), so this
- * port is provisional: it follows the printed text directly and mirrors the closest
- * existing hand-written cards for each clause shape. Re-check against the KB once
- * BT26 rulings are scraped.
+ * The committed KB contains Q7137-Q7142 (2026-08-18), covering face-down stack order
+ * and visibility, trash normalization, the mandatory "by" gate for the After clause,
+ * and security-check timing.
  *
  * Printed text:
  *   [Start of Your Main Phase] By placing 1 [BEATBREAK] trait card from your hand face
@@ -65,18 +63,17 @@ function hasBeatbreakTrait(def: CardDefinition): boolean {
  */
 async function suspendAndPlaceTopDeckCardUnderSelf(
   ctx: EffectContext,
-  source: CardSource,
+  _source: CardSource,
 ): Promise<boolean> {
   const self = ctx.source.permanent();
   if (self === undefined || self.isSuspended) return false;
+  const topCardInstance = ctx.game.player(self.controllerSeat).deck[0];
 
-  await ctx.fx.suspend([self.permanentId]);
+  const suspended = await ctx.fx.suspend([self.permanentId]);
+  if (!suspended.includes(self.permanentId)) return false;
 
-  const owner = ctx.game.player(source.ownerSeat);
-  const topCardInstance = owner.deck[0];
   if (topCardInstance !== undefined) {
-    topCardInstance.faceUp = false;
-    await ctx.fx.placeUnder(self.permanentId, [topCardInstance.instanceId]);
+    await ctx.fx.placeUnder(self.permanentId, [topCardInstance.instanceId], { faceUp: false });
   }
   return true;
 }
@@ -135,7 +132,8 @@ const module: EffectModule = {
             });
             if (chosen.length === 0) return;
 
-            await ctx.fx.placeUnder(selfPerm.permanentId, chosen, { faceUp: false });
+            const placed = await ctx.fx.placeUnder(selfPerm.permanentId, chosen, { faceUp: false });
+            if (placed.length === 0) return;
             await ctx.fx.draw(source.ownerSeat, 1);
             ctx.fx.gainMemory(1);
           },
