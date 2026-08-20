@@ -5,6 +5,16 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT1-086.js";
 
 describe("BT1-086 Matt Ishida", () => {
+  it("rejects play when memory is below the cost floor", () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT1-086", as: "matt" }] } });
+    s.state.memory = -10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("matt").instanceId })).toEqual({
+      ok: false,
+      reason: "insufficient-memory",
+    });
+  });
+
   it("sets memory to 3 at the start of its owner's turn when memory is 2 or less", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT1-086", as: "matt" }] } });
     s.state.memory = 1;
