@@ -102,7 +102,7 @@ export const compiled: CompiledCard = {
                 "Digimon"
               ]
             },
-            "unit": "digivolutionCards"
+            "unit": "selfFaceDownDigivolutionCards"
           }
         }
       ]
@@ -159,7 +159,7 @@ export const compiled: CompiledCard = {
                 "Digimon"
               ]
             },
-            "unit": "digivolutionCards"
+            "unit": "selfFaceDownDigivolutionCards"
           }
         }
       ]
