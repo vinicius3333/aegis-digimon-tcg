@@ -31,6 +31,7 @@ export const compiled: CompiledCard = {
                 target: {
                   filter: {
                     isSelfRef: true,
+                    zone: "trash",
                   },
                   count: 1,
                   isSelf: true,
