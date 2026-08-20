@@ -8,6 +8,26 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "CostModifier",
+          costType: "digivolve",
+          mode: "set",
+          amount: 0,
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Aegiochusmon"], match: "name" }],
+          },
+          duration: "permanent",
+          scaling: { per: 1, filter: { controller: "mine" }, unit: "security" },
+          handResident: true,
+        },
+      ],
+    },
+    {
       trigger: "OnPlay",
       actions: [
         {
@@ -89,6 +109,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "mine" },
           actions: [
             {
               kind: "trashSecurityTop",

@@ -1,4 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT24_099 } from "./BT24-099.js";
 import "../index.js";
 
@@ -26,6 +29,8 @@ describe("BT24-099 Super Hacking", () => {
           count: 1,
         },
       },
+      optional: true,
+      abortOnDecline: true,
     });
     expect(main?.actions?.[1]).toMatchObject({ kind: "PlaceInBattleAreaSelf" });
     const arm = BT24_099.effects?.find((entry) => entry.trigger === "AllTurns");
@@ -33,7 +38,8 @@ describe("BT24-099 Super Hacking", () => {
       event: "onDeletionOf",
       sourceFilter: { controller: "any", kind: ["Digimon"] },
     });
-    expect((arm?.actions?.[0] as { actions?: unknown[] }).actions?.[0]).toMatchObject({
+    const armAction = arm?.actions?.[0] as { actions?: unknown[] } | undefined;
+    expect(armAction?.actions?.[0]).toMatchObject({
       kind: "GainKeyword",
       keyword: { keyword: "Delay" },
     });
@@ -49,5 +55,39 @@ describe("BT24-099 Super Hacking", () => {
       },
       recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
     });
+    expect(BT24_099.effects?.find((entry) => entry.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [{ kind: "PlaceInBattleAreaSelf" }],
+    });
+  });
+
+  it("pays the Appmon hand-trash cost atomically before draw and battle-area placement (Q5711)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "appmon" }],
+          hand: [
+            { card: "BT24-099", as: "option" },
+            { card: "BT21-009", as: "costCard" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT24-099"));
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("costCard").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+  });
+
+  it("places itself in the battle area from security", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT24-099", as: "securityOption", faceUp: true }] } });
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT24-099")).toBe(true);
   });
 });
