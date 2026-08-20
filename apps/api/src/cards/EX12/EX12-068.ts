@@ -93,7 +93,7 @@ const module: EffectModule = {
                     max: 1,
                   });
                   if (chosen.length > 0 && subCtx.fx.useOptionFromHand) {
-                    await subCtx.fx.useOptionFromHand(subCtx, chosen[0]!);
+                    await subCtx.fx.useOptionFromHand(subCtx, chosen[0]!, 2);
                   }
                 }
               },

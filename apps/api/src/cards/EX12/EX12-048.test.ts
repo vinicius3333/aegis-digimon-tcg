@@ -66,13 +66,14 @@ describe("EX12-048 module structure", () => {
     expect(requireMod().cardId).toBe(cardId);
   });
 
-  it("returns 4 effects at EffectTiming.None (Rush, Raid, Piercing, SecurityAttack)", () => {
+  it("returns keyword grants plus the live leave-play replacement", () => {
     const effects = requireMod().effectsForTiming(EffectTiming.None, makeSource(makePerm()));
-    expect(effects).toHaveLength(4);
+    expect(effects).toHaveLength(5);
     expect(effects[0]!.effectKey).toBe(`${cardId}/rush`);
     expect(effects[1]!.effectKey).toBe(`${cardId}/raid`);
     expect(effects[2]!.effectKey).toBe(`${cardId}/piercing`);
     expect(effects[3]!.effectKey).toBe(`${cardId}/security-attack`);
+    expect(effects[4]!.effectKey).toBe(`${cardId}/would-leave-play-digivolution-cards`);
   });
 
   it("returns 1 effect at OnPlay", () => {

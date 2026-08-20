@@ -20,11 +20,8 @@ import { registerCard } from "../../engine/effects/registry.js";
  *   You may play 2 Lv.5 cards with [Gokuumon] in their texts or the [SW] trait from this
  *   Digimon's digivolution cards without paying the cost.
  *
- * RESIDUAL:
- *   The [All Turns] leave-play replacement — `subscribeReplacement` with mode "instead"
- *   permanently prevents the permanent from leaving. The correct semantics (play from stack
- *   AND still leave) require a "run-then-depart" mode not available in the current engine.
- *   Omitted; the clause is recorded as residual.
+ * The engine's `wouldLeavePlay` `instead` replacement runs its side effect and then continues
+ * the original departure, which matches this card's "would leave ... you may play" wording.
  */
 const cardId = "EX12-048";
 
@@ -143,6 +140,40 @@ const module: EffectModule = {
             }
           },
         }),
+        staticModifier({
+          source,
+          effectKey: `${cardId}/would-leave-play-digivolution-cards`,
+          description:
+            "[All Turns] When this Digimon would leave the battle area other than by your effects, " +
+            "you may play 2 level 5 cards with [Gokuumon] in their texts or [SW] from its " +
+            "digivolution cards without paying the costs.",
+          when: (ctx) => source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const self = source.permanent();
+            if (self === undefined) return;
+            ctx.fx.subscribeReplacement({
+              event: "wouldLeavePlay",
+              sourcePermanentId: self.permanentId,
+              mode: "instead",
+              description: `${cardId}: play up to 2 matching stack cards when leaving`,
+              oncePerTurnKey: `${cardId}/would-leave-play-digivolution-cards`,
+              causeAllows: (_cause, resolvingSeat) => resolvingSeat !== source.ownerSeat,
+              appliesTo: (_subCtx, leavingPermanentId) => leavingPermanentId === self.permanentId,
+              apply: async (subCtx) => {
+                const stackCandidates = self.stack.filter((card: CardInstance) => {
+                  const def = subCtx.game.definitionOf(card);
+                  return def.level === 5 && hasGokuumonOrSW(def);
+                });
+                if (stackCandidates.length === 0) return;
+                if (!(await subCtx.ask.optional(subCtx, "Play matching cards from this Digimon's digivolution cards?"))) return;
+                const chosen = await subCtx.ask.selectCards(subCtx, {
+                  candidates: stackCandidates.map((card) => card.instanceId), min: 0, max: 2,
+                });
+                if (chosen.length > 0) await subCtx.fx.playInstances(chosen, { payCost: false });
+              },
+            });
+          },
+        }),
       ];
     }
 
@@ -173,10 +204,6 @@ const module: EffectModule = {
         }),
       ];
     }
-
-    // [All Turns] leave-play replacement clause:
-    // RESIDUAL — requires "run-then-depart" replacement mode not present in the engine.
-    // `subscribeReplacement` mode "instead" would permanently prevent the departure; omitted.
 
     return [];
   },

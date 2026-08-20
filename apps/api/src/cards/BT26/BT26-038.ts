@@ -171,6 +171,7 @@ const module: EffectModule = {
               sourcePermanentId: self.permanentId,
               once: false,
               oncePerTurnKey: `${cardId}/inherited-battle-won-digivolve`,
+              description: `${cardId}: when this Digimon wins a battle, may digivolve a trait Digimon from hand`,
               matches: (subCtx) =>
                 subCtx.source.isOwnersTurn() && subCtx.trigger?.subjectPermanentId === self.permanentId,
               run: async (subCtx) => {
