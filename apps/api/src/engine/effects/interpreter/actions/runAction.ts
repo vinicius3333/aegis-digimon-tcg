@@ -58,10 +58,6 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     action.kind !== "WaiveColorRequirement" &&
     action.optional
   ) {
-    // A Link clause is activated by a field permanent. When an Option's Main
-    // effect is resolving from hand there is no recipient source permanent;
-    // optional Link text is therefore unavailable, not an engine gap.
-    if (action.kind === "Link" && ctx.source.permanent() === undefined) return false;
     // An optional hatch is meaningful only when it can move the top Digi-Egg into
     // an empty breeding slot. Do this before opening the confirmation so the UI
     // never offers an action that the Hatch primitive would immediately no-op.

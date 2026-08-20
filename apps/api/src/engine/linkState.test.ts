@@ -403,6 +403,13 @@ describe("A3 CanLinkToTargetPermanent — dynamic recipient eligibility (documen
     ).toBe(false);
   });
 
+  it("allows breeding only through an explicit card-effect override", () => {
+    const breeding = digimonDef();
+    const recipient = recipientWith(breeding, { inBreeding: true });
+    expect(canLinkToTargetPermanent(recipient, recipientFilter, matchesAnyDigimon, defOf(breeding), true)).toBe(true);
+    expect(canLinkToTargetPermanent(recipient, recipientFilter, matchesAnyDigimon, defOf(breeding))).toBe(false);
+  });
+
   /**
    * The structured per-card target condition is re-evaluated against current state: when the
    * link card's recipient requires a trait the candidate lacks, matchesFilter returns false and

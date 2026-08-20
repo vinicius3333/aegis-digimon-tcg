@@ -6,7 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // The use-cost reduction is a replacement-style cost modifier, while the
 // security-removal clause arms a genuine Delay payload (rather than resolving
 // the digivolution immediately when security is removed).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
@@ -96,4 +96,3 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT21-093", compiled);
-export { compiled };

@@ -1,4 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT24_098 } from "./BT24-098.js";
 import "../index.js";
 
@@ -16,7 +19,8 @@ describe("BT24-098 Invasion of the Titans", () => {
       event: "whenPlayed",
       sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] },
     });
-    expect((arm?.actions?.[0] as { actions?: unknown[] }).actions?.[0]).toMatchObject({
+    const armAction = arm?.actions?.[0] as { actions?: unknown[] } | undefined;
+    expect(armAction?.actions?.[0]).toMatchObject({
       kind: "GainKeyword",
       keyword: { keyword: "Delay" },
     });
@@ -37,6 +41,67 @@ describe("BT24-098 Invasion of the Titans", () => {
         count: 1,
       },
     });
-    expect(BT24_098.effects?.some((entry) => entry.trigger === "Security")).toBe(false);
+    expect(BT24_098.effects?.find((entry) => entry.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: { op: "lte", value: 4 },
+              nameOrTrait: [{ tokens: ["Titan"], match: "trait" }],
+            },
+            count: 1,
+          },
+        },
+        { kind: "AddToHandSelf" },
+      ],
+    });
+  });
+
+  it("draws two, trashes exactly two hand cards, and places itself in the battle area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-042", as: "purpleTitan" }],
+          hand: [
+            { card: "BT24-098", as: "option" },
+            { card: "BT1-009", as: "discard1" },
+            { card: "BT1-009", as: "discard2" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT24-098"));
+    expect(s.state.players[0]!.trash).toHaveLength(2);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+  });
+
+  it("plays only a level-4-or-lower Titan from hand/trash, then adds itself to hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT24-098", as: "securityOption", faceUp: true }],
+          hand: [{ card: "BT24-042", as: "eligibleTitan" }],
+          trash: ["BT24-075"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT24-042")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT24-075")).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT24-098")).toBe(true);
   });
 });

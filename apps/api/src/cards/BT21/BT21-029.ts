@@ -11,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //
 // KB Q4538: the token of the player that activated this effect is played as opponent's Digimon.
 // Audit: dual trigger — onDeletionOf + whenSecurityRemoved both fire the same PlayToken.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",

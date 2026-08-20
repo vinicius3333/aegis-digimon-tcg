@@ -38,6 +38,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "Security",
+      isSecurity: true,
       actions: [
         {
           kind: "ActivateMain",
@@ -70,10 +71,30 @@ export const compiled: CompiledCard = {
           },
           recipient: {
             filter: { controller: "mine", kind: ["Digimon"] },
+            orFilters: [{ controller: "mine", kind: ["Digimon"], zone: "breeding" }],
             count: 1,
           },
+          allowBreedingRecipient: true,
           payCost: false,
           optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      isLinked: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: { op: "lte", value: 5 },
+            },
+            count: 1,
+          },
         },
       ],
     },

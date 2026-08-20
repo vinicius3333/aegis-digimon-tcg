@@ -72,6 +72,11 @@ describe("BT25-059 Ceresmon", () => {
           kind: "ModifyDP",
           amount: -3000,
           duration: "untilOpponentTurnEnd",
+          scaling: {
+            per: 1,
+            unit: "cards",
+            filter: { controllerDefault: "any", suspended: true, kind: ["Digimon"] },
+          },
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
         },
       ],
@@ -209,5 +214,9 @@ describe("BT25-059 Ceresmon", () => {
     await advance(s.engine).verb.unsuspend([s.perm("toSuspend").permanentId]);
     await advance(s.engine).verb.suspend([s.perm("toSuspend").permanentId]);
     expect(s.perm("target").currentDP).toBe(3000); // Once Per Turn: no second -9000
+
+    await advance(s.engine).runTurn(0);
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("target").currentDP).toBe(12000); // untilOpponentTurnEnd expires after seat 1's turn
   });
 });

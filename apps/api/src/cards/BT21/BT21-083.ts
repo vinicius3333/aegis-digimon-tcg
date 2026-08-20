@@ -44,7 +44,7 @@ function hasXrosHeartBlueFlareOrHero(types: string[] | undefined): boolean {
   return types.some((t) => XROS_HEART_BLUE_FLARE_HERO_TRAITS.has(t));
 }
 
-const module: EffectModule = {
+export const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     // [Start of Your Main Phase] By placing 1 Digimon card with [Xros Heart]/[Blue Flare]/[Hero]

@@ -38,6 +38,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "Security",
+      isSecurity: true,
       actions: [
         {
           kind: "ActivateMain",
@@ -60,14 +61,12 @@ export const compiled: CompiledCard = {
         {
           kind: "Restrict",
           target: {
-            filter: {
-              isSelfRef: true,
-            },
+            filter: {},
             count: 1,
-            isSelf: true,
+            sameTarget: true,
           },
           restriction: "unsuspend",
-          duration: "untilOpponentTurnEnd",
+          duration: "untilOpponentNextUnsuspendPhase",
         },
         {
           kind: "Link",
@@ -78,10 +77,27 @@ export const compiled: CompiledCard = {
           },
           recipient: {
             filter: { controller: "mine", kind: ["Digimon"] },
+            orFilters: [{ controller: "mine", kind: ["Digimon"], zone: "breeding" }],
             count: 1,
           },
+          allowBreedingRecipient: true,
           payCost: false,
           optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      isLinked: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Return",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], suspended: true },
+            count: 1,
+          },
+          to: "hand",
         },
       ],
     },

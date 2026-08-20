@@ -142,7 +142,7 @@ function installVemmonReturnWatcher(ctx: EffectContext, hostPermanentId: string)
   });
 }
 
-const module: EffectModule = {
+export const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     // [On Play] Reveal 3, add 1 Vemmon-in-text to hand, trash rest; then place up to 2
