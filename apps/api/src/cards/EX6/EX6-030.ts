@@ -52,7 +52,7 @@ const module: EffectModule = {
               });
               if (chosen.length > 0) {
                 await ctx.fx.playInstances(chosen, { payCost: false });
-                played = true;
+                _played = true;
               }
             }
 
