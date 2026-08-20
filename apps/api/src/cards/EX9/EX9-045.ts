@@ -81,7 +81,7 @@ export const compiled: CompiledCard = {
       "trigger": "AllTurns",
       "actions": [
         {
-          "kind": "SubTrigger",
+          "kind": "Replacement",
           "event": "wouldLeavePlay",
           "sourceFilter": {
             "controller": "mine",
