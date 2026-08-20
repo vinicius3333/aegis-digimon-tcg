@@ -29,4 +29,58 @@ describe("BT22-037 Chirinmon", () => {
     expect(module.effectsForTiming(EffectTiming.OnUseAttack, {} as never)).toHaveLength(1);
     expect(module.effectsForTiming(EffectTiming.OnDiscardSecurity, {} as never)).toHaveLength(1);
   });
+
+  it("trashes top security and pays the destination evolution cost reduced by 2", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-034", as: "base" }],
+          hand: [{ card: "BT22-037", as: "chirinmon" }, { card: "BT22-041", as: "target" }],
+          security: ["BT1-028"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("chirinmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT22-041");
+
+    expect(s.state.memory).toBe(5); // 3 for Chirinmon, then 4 - 2 for BT22-041.
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT22-034", "BT22-037", "BT22-041"]);
+    expect(s.perm("base").topCard.cardId).toBe("BT22-041");
+  });
+
+  it("does not trash security when the optional hand selection is unavailable", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-034", as: "base" }],
+          hand: [{ card: "BT22-037", as: "chirinmon" }, "BT22-043"],
+          security: ["BT1-028"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("chirinmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT22-037");
+
+    expect(s.state.memory).toBe(7);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
 });
