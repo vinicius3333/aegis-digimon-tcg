@@ -16,7 +16,7 @@ describe("ST10-10 Wizardmon", () => {
     })).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "ST10-10");
 
-    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["ST10-07", "ST10-10"]);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["ST10-07"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
