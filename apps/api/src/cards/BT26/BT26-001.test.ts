@@ -31,9 +31,19 @@ describe("BT26-001 Yokomon", () => {
       source: cardSource,
       game: {
         player: () => ({ hand: [chronomon] }),
-        permanentById: () => ({ permanentId: "host-yokomon", inBreeding: false }),
+        permanentById: () => ({
+          permanentId: "host-yokomon",
+          inBreeding: false,
+          topCard: { instanceId: "base", cardId: "BASE" },
+        }),
         definitionOf: () =>
-          ({ kinds: [CardKind.Digimon], nameEn: "Chronomon", evoCosts: [{ memoryCost: 4 }] }) as CardDefinition,
+          ({
+            kinds: [CardKind.Digimon],
+            nameEn: "Chronomon",
+            colors: ["Red"],
+            level: 4,
+            evoCosts: [{ color: "Red", level: 4, memoryCost: 4 }],
+          }) as CardDefinition,
       },
       fx: { subscribeSubTrigger: (sub: SubTriggerInstall) => (subscription = sub) },
     } as unknown as EffectContext;
@@ -54,7 +64,10 @@ describe("BT26-001 Yokomon", () => {
       {
         0: {
           battleArea: [{ card: "BT26-013", as: "host", under: [{ card: CARD_ID, as: "yokomon" }] }],
-          hand: [{ card: "BT26-015", as: "chronomonText" }],
+          hand: [
+            { card: "BT26-060", as: "illegalChronomonText" },
+            { card: "BT26-015", as: "chronomonText" },
+          ],
           deck: [{ card: "BT1-001", as: "bonusDraw" }],
         },
         1: { trash: [{ card: "BT1-009", as: "opponentCard" }] },
@@ -70,6 +83,32 @@ describe("BT26-001 Yokomon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("bonusDraw").instanceId);
     expect(s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("opponentCard").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("illegalChronomonText").instanceId,
+    );
+  });
+
+  it("does not offer a Chronomon-text Digimon that cannot evolve onto the current stack top", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-013", as: "host", under: [CARD_ID] }],
+          hand: [{ card: "BT26-060", as: "illegalChronomonText" }],
+          trash: [{ card: "BT1-001", as: "moved" }],
+          deck: ["BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    await advance(s.engine).verb.returnToDeck([s.inst("moved").instanceId]);
+
+    expect(s.perm("host").topCard.cardId).toBe("BT26-013");
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("illegalChronomonText").instanceId,
+    );
   });
 
   it("spends its once-per-turn budget only after a successful evolution", async () => {

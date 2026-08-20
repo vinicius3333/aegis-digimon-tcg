@@ -1,5 +1,6 @@
 import { EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition, Seat } from "@aegis/shared";
+import type { CardDefinition, Permanent, Seat } from "@aegis/shared";
+import { canDigivolveOntoWithAlternates } from "../../engine/cards/cardData.js";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -31,15 +32,11 @@ import { registerCard } from "../../engine/effects/registry.js";
 // Modeled on BT26-044's `staticModifier` + `subscribeSubTrigger` reactive-alt-digivolve
 // idiom: `oncePerTurnKey` for the printed "[Once Per Turn]" (the ENGINE's real per-turn
 // gate for a None-timing watcher — `maxPerTurn` on the enclosing staticModifier is not
-// itself consulted for persistent effects), `ctx.fx.digivolveFromInstance(hostId, chosen,
-// { payCost: true, costDelta: -1, ignoreRequirements: true })` for the trait-filtered
-// (not printed-evo-chain) alternate digivolve target, and `matchNameOrTrait` (imported
-// from the interpreter, an established hand-written-card pattern — see EX4-030/BT7-024/
-// BT26-009/BT26-065) for "with [Chronomon] in its text".
-//
-// `digivolveFromInstance` preserves the cheapest printed cost while ignoring only the
-// color/level gate, so `costDelta: -1` implements the printed reduction against a real
-// baseline and is suppressed by a live digivolution-cost-reduction prohibition.
+// itself consulted for persistent effects), and `matchNameOrTrait` (imported from the
+// interpreter, an established hand-written-card pattern — see EX4-030/BT7-024/
+// BT26-009/BT26-065) for "with [Chronomon] in its text". The candidate must also pass
+// the engine's normal evolution legality check against the live top card of this stack;
+// the printed cost reduction does not waive any evolution requirement.
 
 const cardId = "BT26-001";
 const CHRONOMON_TOKEN = "Chronomon";
@@ -48,9 +45,15 @@ function isChronomonTextDigimon(def: CardDefinition): boolean {
   return isDigimon(def) && matchNameOrTrait(def, { tokens: [CHRONOMON_TOKEN], match: "text" });
 }
 
-function chronomonHandCandidates(ctx: EffectContext, ownerSeat: Seat) {
+function chronomonHandCandidates(ctx: EffectContext, ownerSeat: Seat, host: Permanent) {
+  if (host.topCard === undefined) return [];
+
+  const base = ctx.game.definitionOf(host.topCard);
   const owner = ctx.game.player(ownerSeat);
-  return Array.from(owner.hand).filter((c) => isChronomonTextDigimon(ctx.game.definitionOf(c)));
+  return Array.from(owner.hand).filter((c) => {
+    const definition = ctx.game.definitionOf(c);
+    return isChronomonTextDigimon(definition) && canDigivolveOntoWithAlternates(definition, base);
+  });
 }
 
 /**
@@ -62,7 +65,7 @@ async function resolveMayDigivolveIntoChronomon(ctx: EffectContext, hostId: stri
   const host = ctx.game.permanentById(hostId);
   if (host === undefined || host.inBreeding) return;
 
-  const candidates = chronomonHandCandidates(ctx, ownerSeat);
+  const candidates = chronomonHandCandidates(ctx, ownerSeat, host);
   if (candidates.length === 0) return;
 
   const wantToActivate = await ctx.ask.optional(
@@ -88,7 +91,6 @@ async function resolveMayDigivolveIntoChronomon(ctx: EffectContext, hostId: stri
   const evolved = await ctx.fx.digivolveFromInstance(hostId, chosen[0]!, {
     payCost: true,
     costDelta: -1,
-    ignoreRequirements: true,
   });
   if (evolved === undefined) ctx.oncePerTurnActivationDeclined = true;
 }
@@ -126,7 +128,7 @@ const module: EffectModule = {
                 return (
                   liveHost !== undefined &&
                   !liveHost.inBreeding &&
-                  chronomonHandCandidates(subCtx, ownerSeat).length > 0
+                  chronomonHandCandidates(subCtx, ownerSeat, liveHost).length > 0
                 );
               },
               run: async (subCtx) => {
