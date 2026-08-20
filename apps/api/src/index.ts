@@ -1,8 +1,9 @@
 import { createServer } from "node:http";
+import { matchMaker } from "colyseus";
 import { WebSocketTransport } from "@colyseus/ws-transport";
 import express from "express";
 import { ROOM_TYPE, ROOM_TYPE_BOT, ROOM_TYPE_PRIVATE, ROOM_TYPE_RANKED, ROOM_TYPE_TOURNAMENT } from "@aegis/shared";
-import { AegisRoom, roomRegistry, roomCodeRegistry } from "./rooms/AegisRoom.js";
+import { AegisRoom, roomRegistry } from "./rooms/AegisRoom.js";
 import "./cards/index.js"; // side-effect: registers every implemented card EffectModule
 import { log, logError, flushLogs } from "./logger.js";
 import { installAccountRoutes } from "./accounts/routes.js";
@@ -18,13 +19,11 @@ import {
 } from "./tournaments/runtime.js";
 import { drainForShutdown, startDeadlineWorker, type DeadlineWorker } from "./tournaments/scheduler/index.js";
 import { accountStore } from "./accounts/runtime.js";
-import {
-  createDeploymentRuntime,
-  installDeploymentRoutes,
-  type DeploymentSlot,
-} from "./deployment/runtime.js";
+import { createDeploymentRuntime, installDeploymentRoutes, type DeploymentSlot } from "./deployment/runtime.js";
 import { DeploymentServer } from "./deployment/DeploymentServer.js";
 import { corsOriginForRequest } from "./http/cors.js";
+import { createClusterRuntime } from "./cluster/runtime.js";
+import { roomCodeDirectory, setRoomCodeDirectory } from "./rooms/AegisRoom.js";
 
 const app = express();
 app.use((req, res, next) => {
@@ -45,7 +44,19 @@ app.use(express.json());
 // The runtime singletons, not fresh instances: `TopCutProgram`'s in-process lock only serializes
 // callers that SHARE the instance, and the routes, the resolution listener and the sweep are three
 // callers of the same transition.
-installAccountRoutes(app, accountStore, participantStore, seriesStore, swissProgram, eliminationStore, botSeatingStore, topCutProgram);
+installAccountRoutes(
+  app,
+  accountStore,
+  participantStore,
+  seriesStore,
+  swissProgram,
+  eliminationStore,
+  botSeatingStore,
+  topCutProgram,
+);
+
+const cluster = createClusterRuntime();
+setRoomCodeDirectory(cluster.roomCodes);
 
 const configuredSlot = process.env.AEGIS_DEPLOYMENT_SLOT ?? "legacy";
 if (!["blue", "green", "legacy"].includes(configuredSlot)) {
@@ -59,7 +70,9 @@ const deploymentRuntime = createDeploymentRuntime({
   activeRooms: () => roomRegistry.size,
   connectedClients: () => [...roomRegistry.values()].reduce((total, room) => total + room.clients.length, 0),
   readiness: () => accountStore.healthCheck(),
+  broadcastAcceptingNewRooms: cluster.broadcastAcceptingNewRooms,
 });
+cluster.onAcceptingNewRoomsChanged((accepting) => deploymentRuntime.applyAcceptingNewRooms(accepting));
 installDeploymentRoutes({ app, runtime: deploymentRuntime });
 
 /**
@@ -68,52 +81,75 @@ installDeploymentRoutes({ app, runtime: deploymentRuntime });
  * already-open legacy web bundle. The room must have exactly one human player.
  * Returns 404 if absent, 409 if ineligible, or 200 { ok: true } on success.
  */
-app.post("/bot/join", (req, res) => {
+app.post("/bot/join", async (req, res) => {
   const { roomId } = req.body as { roomId?: string };
   if (!roomId) {
     log(`[BOT_JOIN] ${JSON.stringify({ status: 400, outcome: "room_id_required", slot: configuredSlot })}`);
     res.status(400).json({ error: "roomId required" });
     return;
   }
-  const room = roomRegistry.get(roomId);
-  if (!room) {
+  const local = roomRegistry.get(roomId);
+  if (local === undefined && !cluster.clustered) {
     log(`[BOT_JOIN] ${JSON.stringify({ roomId, status: 404, outcome: "room_not_found", slot: configuredSlot })}`);
     res.status(404).json({ error: "room not found" });
     return;
   }
-  if (room.clients.length !== 1) {
-    log(`[BOT_JOIN] ${JSON.stringify({ roomId, status: 409, outcome: "unexpected_client_count", clients: room.clients.length, slot: configuredSlot })}`);
+  if (local !== undefined && local.clients.length !== 1) {
+    log(
+      `[BOT_JOIN] ${JSON.stringify({ roomId, status: 409, outcome: "unexpected_client_count", clients: local.clients.length, slot: configuredSlot })}`,
+    );
     res.status(409).json({ error: "room must have exactly one human player" });
     return;
   }
-  if (!room.addBot()) {
-    log(`[BOT_JOIN] ${JSON.stringify({ roomId, status: 409, outcome: "room_ineligible", clients: room.clients.length, slot: configuredSlot })}`);
+  // A room this process does not own lives on a sibling: `remoteRoomCall` runs `seatBot` there
+  // and returns its answer, so the caller cannot tell which process held the match.
+  const seated = local !== undefined ? local.addBot() : await remoteAddBot(roomId);
+  if (seated === undefined) {
+    log(`[BOT_JOIN] ${JSON.stringify({ roomId, status: 404, outcome: "room_not_found", slot: configuredSlot })}`);
+    res.status(404).json({ error: "room not found" });
+    return;
+  }
+  if (!seated) {
+    log(`[BOT_JOIN] ${JSON.stringify({ roomId, status: 409, outcome: "room_ineligible", slot: configuredSlot })}`);
     res.status(409).json({ error: "bot is not allowed in this room" });
     return;
   }
-  log(`[BOT_JOIN] ${JSON.stringify({ roomId, status: 200, outcome: "bot_joined", clients: room.clients.length, slot: configuredSlot })}`);
+  log(`[BOT_JOIN] ${JSON.stringify({ roomId, status: 200, outcome: "bot_joined", slot: configuredSlot })}`);
   res.json({ ok: true });
 });
+
+/** Seat a bot in a room owned by another process. Undefined when no process owns that room. */
+async function remoteAddBot(roomId: string): Promise<boolean | undefined> {
+  try {
+    return await matchMaker.remoteRoomCall<boolean>(roomId, "addBot");
+  } catch (error) {
+    log(`[BOT_JOIN] ${JSON.stringify({ roomId, outcome: "remote_call_failed", error: String(error) })}`);
+    return undefined;
+  }
+}
 
 /**
  * POST /room/lookup  { roomCode: string }
  * Resolves a private room code to its Colyseus room ID so the client can
  * joinById. Returns 404 if the code is unknown or the room is full/gone.
  */
-app.post("/room/lookup", (req, res) => {
+app.post("/room/lookup", async (req, res) => {
   const { roomCode } = req.body as { roomCode?: string };
   if (!roomCode) {
     res.status(400).json({ error: "roomCode required" });
     return;
   }
-  const roomId = roomCodeRegistry.get(roomCode.toUpperCase());
+  const code = roomCode.toUpperCase();
+  const roomId = await roomCodeDirectory().resolve(code);
   if (!roomId) {
     res.status(404).json({ error: "room not found" });
     return;
   }
-  const room = roomRegistry.get(roomId);
-  if (!room || room.clients.length >= 2) {
-    roomCodeRegistry.delete(roomCode.toUpperCase());
+  // Asked of the matchmaker rather than this process's registry: in a cluster the room is
+  // usually somewhere else, and the driver is the only place that knows its seat count.
+  const [listing] = await matchMaker.query({ roomId });
+  if (listing === undefined || listing.clients >= 2) {
+    roomCodeDirectory().release(code);
     res.status(404).json({ error: "room not available" });
     return;
   }
@@ -125,6 +161,10 @@ const gameServer = new DeploymentServer(deploymentRuntime, {
   transport: new WebSocketTransport({ server: httpServer }),
   // Aegis owns SIGTERM/SIGINT below so it can refuse a stop while rooms exist.
   gracefullyShutdown: false,
+  presence: cluster.presence,
+  driver: cluster.driver,
+  // Undefined in single-process mode, where Colyseus keeps its own default.
+  ...(cluster.publicAddress === undefined ? {} : { publicAddress: cluster.publicAddress }),
 });
 // Explicit false values are security boundaries: Colyseus merges handler options
 // over client-supplied create options, so clients cannot promote another room type
@@ -134,7 +174,9 @@ gameServer.define(ROOM_TYPE_BOT, AegisRoom, { botRoom: true });
 gameServer.define(ROOM_TYPE_RANKED, AegisRoom, { botRoom: false, rankedRoom: true });
 // Filtered by BOTH tournament join keys: the legacy flow matches a room per bracket match, the
 // program flow one per Tournament Game, and neither may ever land in the other's room.
-gameServer.define(ROOM_TYPE_TOURNAMENT, AegisRoom, { botRoom: false, tournamentRoom: true }).filterBy(["tournamentMatchId", "tournamentGameId"]);
+gameServer
+  .define(ROOM_TYPE_TOURNAMENT, AegisRoom, { botRoom: false, tournamentRoom: true })
+  .filterBy(["tournamentMatchId", "tournamentGameId"]);
 gameServer.define(ROOM_TYPE_PRIVATE, AegisRoom, { botRoom: false, private: true });
 
 /**
@@ -201,7 +243,7 @@ log(`[aegis/api] tournament deadline worker ${deadlineWorker ? "started" : "disa
 const port = Number(process.env.PORT ?? 2567);
 gameServer
   .listen(port)
-    .then(() => log(`[aegis/api] Colyseus listening on :${port} (rooms "${ROOM_TYPE}" + "${ROOM_TYPE_PRIVATE}")`))
+  .then(() => log(`[aegis/api] Colyseus listening on :${port} (rooms "${ROOM_TYPE}" + "${ROOM_TYPE_PRIVATE}")`))
   .catch((err: unknown) => {
     logError("[aegis/api] failed to start:", err);
     process.exit(1);
@@ -226,6 +268,7 @@ const shutdown = (signal: string) => {
     stopDeadlineWorker: () => deadlineWorker?.stop(),
     shutdownRooms: () => gameServer.gracefullyShutdown(false),
   })
+    .then(() => cluster.shutdown())
     .then(() => flushLogs())
     .finally(() => process.exit(0));
 };

@@ -11,6 +11,15 @@ export interface DeploymentRuntimeOptions {
   connectedClients: () => number;
   readiness: () => Promise<boolean>;
   acceptingNewRooms?: boolean;
+  /**
+   * Propagates drain/activate to the slot's other processes.
+   *
+   * A drain is a statement about the slot, but the admin call lands on whichever process the
+   * proxy picked, so without this only that one process would stop accepting rooms while its
+   * siblings kept taking new matches into a slot that is being retired. Absent in single-process
+   * mode, where the process IS the slot.
+   */
+  broadcastAcceptingNewRooms?: (accepting: boolean) => void;
 }
 
 export interface DeploymentStatus {
@@ -22,6 +31,8 @@ export interface DeploymentStatus {
 }
 
 export interface DeploymentRuntime {
+  /** Apply a drain/activate decision that another process of this slot made. */
+  applyAcceptingNewRooms: (accepting: boolean) => void;
   health: () => Pick<DeploymentStatus, "slot" | "revision" | "acceptingNewRooms"> & { status: "ok" };
   status: () => DeploymentStatus;
   isAuthorized: (authorization: string | undefined) => boolean;
@@ -54,12 +65,17 @@ export function createDeploymentRuntime(options: DeploymentRuntimeOptions): Depl
     status,
     isAuthorized: (authorization) => bearerMatches(authorization, options.adminToken),
     isReady: options.readiness,
+    applyAcceptingNewRooms: (accepting) => {
+      acceptingNewRooms = accepting;
+    },
     drain: () => {
       acceptingNewRooms = false;
+      options.broadcastAcceptingNewRooms?.(false);
       return status();
     },
     activate: () => {
       acceptingNewRooms = true;
+      options.broadcastAcceptingNewRooms?.(true);
       return status();
     },
     allowMatchmaking: (method) => acceptingNewRooms || DRAIN_ALLOWED_METHODS.has(method.toLocaleLowerCase()),
