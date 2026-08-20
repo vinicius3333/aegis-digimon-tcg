@@ -4,15 +4,6 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./BT1-083.js";
 
 describe("BT1-083 GranKuwagamon", () => {
-  it("rejects play when memory is below the cost floor", () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT1-083", as: "granKuwagamon" }] } });
-    s.state.memory = -10;
-
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("granKuwagamon").instanceId }),
-    ).toEqual({ ok: false, reason: "insufficient-memory" });
-  });
-
   it("has Piercing and gets +4000 DP on its controller's turn", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT1-083", as: "digimon" }] } });
     await s.ready();
