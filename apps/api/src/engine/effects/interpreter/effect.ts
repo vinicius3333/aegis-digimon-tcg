@@ -316,7 +316,9 @@ export function withIntrinsicDelayGate(effect: CardEffect): CardEffect {
 export function withSubTriggerFrequency(effect: CardEffect, effectKey: string): CardEffect {
   if (effect.frequency !== "OncePerTurn") return effect;
   const actions = (effect.actions ?? []).map((action): typeof action =>
-    action.kind === "SubTrigger" ? ({ ...action, oncePerTurnKey: effectKey } as typeof action) : action,
+    action.kind === "SubTrigger" || action.kind === "Replacement"
+      ? ({ ...action, oncePerTurnKey: effectKey } as typeof action)
+      : action,
   );
   return { ...effect, actions };
 }

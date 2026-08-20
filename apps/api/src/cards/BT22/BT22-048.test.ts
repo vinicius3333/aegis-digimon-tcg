@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-048.js";
+import "../index.js";
 
 describe("BT22-048 Togemon", () => {
   it("grants Raid and Piercing only with a same-level stack pair", () => {
@@ -31,5 +34,46 @@ describe("BT22-048 Togemon", () => {
         },
       ],
     });
+  });
+
+  it("pays 2 on a CS base and gains DP, Raid, and Piercing with a repeated level", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-044", as: "base", under: ["BT22-044"] }],
+          hand: [{ card: "BT22-048", as: "togemon" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("togemon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").currentDP).toBe(8000);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Raid")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("base"))).toBe(true);
+  });
+
+  it("applies +3000 DP but grants no keywords without Q4901's repeated level", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT22-048", as: "togemon" }] } }, { autoSelectCards: true });
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("togemon").instanceId })).toEqual({ ok: true });
+    await settle();
+    const togemon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT22-048")!;
+
+    expect(togemon.currentDP).toBe(8000);
+    expect(observe(s.engine).hasKeyword(togemon, "Raid")).toBe(false);
+    expect(observe(s.engine).hasPierce(togemon)).toBe(false);
   });
 });

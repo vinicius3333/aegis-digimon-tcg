@@ -1049,10 +1049,16 @@ export async function payCost(
           // binary-choice helper ctx.ask.chooseOption (index 0 = top, 1 = bottom).
           for (const instanceId of picked) {
             const idx = await ctx.ask.chooseOption(ctx, ["top", "bottom"]);
-            await ctx.fx.placeUnder(hostPermId, [instanceId], { belowTop: idx === 0 });
+            await ctx.fx.placeUnder(hostPermId, [instanceId], {
+              belowTop: idx === 0,
+              faceUp: cost.faceDown !== true,
+            });
           }
         } else {
-          await ctx.fx.placeUnder(hostPermId, picked, { belowTop: cost.position !== "bottom" });
+          await ctx.fx.placeUnder(hostPermId, picked, {
+            belowTop: cost.position !== "bottom",
+            faceUp: cost.faceDown !== true,
+          });
         }
         if (cost.storeAs !== undefined && picked.length > 0) {
           const pickedCard = srcCandidates.find((c) => c.instanceId === picked[0]);

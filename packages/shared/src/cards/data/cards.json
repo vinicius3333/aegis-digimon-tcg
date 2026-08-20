@@ -53649,6 +53649,7 @@
     "maxCountInDeck": 4,
     "imageId": "BT22-050",
     "linkDp": 3000,
+    "linkRequirement": "[Link] [Appmon] trait: Cost 2",
     "linkEffect": "[When Linking] Suspend 1 of your opponent's Digimon."
   },
   {
