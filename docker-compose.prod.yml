@@ -16,6 +16,11 @@ services:
       context: .
       dockerfile: apps/api/Dockerfile
     restart: unless-stopped
+    # The game loop is one Node process on one core; the ceiling exists so a runaway match
+    # cannot starve the rest of the host, and the memory headroom covers roughly a thousand
+    # concurrent rooms (measured at ~2 MB per room in a match).
+    cpus: 3
+    mem_limit: 4g
     environment:
       NODE_ENV: production
       PORT: "2567"
@@ -46,6 +51,8 @@ services:
   postgres:
     image: postgres:16-alpine
     restart: unless-stopped
+    cpus: 1
+    mem_limit: 2g
     environment:
       POSTGRES_DB: ${POSTGRES_DB:-aegis}
       POSTGRES_USER: ${POSTGRES_USER:-aegis}
@@ -69,6 +76,8 @@ services:
         VITE_AEGIS_REVISION: ${AEGIS_REVISION:-production}
         VITE_AEGIS_DEPLOYMENT_MODE: ${AEGIS_DEPLOYMENT_MODE:-direct}
     restart: unless-stopped
+    cpus: 0.5
+    mem_limit: 256m
     depends_on:
       api:
         condition: service_healthy
