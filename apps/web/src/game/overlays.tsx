@@ -120,11 +120,11 @@ export function MulliganOverlay({
           ))}
         </div>
         <div className="mulligan-actions">
-          <Button size="lg" variant="secondary" icon={Icons.Dices} onClick={onMulligan}>
-            {t("overlay.mulligan")}
-          </Button>
           <Button size="lg" icon={Icons.Check} onClick={onKeep}>
             {t("overlay.keep")}
+          </Button>
+          <Button size="lg" variant="secondary" icon={Icons.Dices} onClick={onMulligan}>
+            {t("overlay.mulligan")}
           </Button>
         </div>
       </section>
@@ -1546,17 +1546,20 @@ export function DecisionOverlay({
 
       {isOptional ? (
         <div style={{ display: "flex", gap: 10 }}>
-          <Button full variant="secondary" onClick={() => onRespond({ kind: "optional", accept: false })}>
-            {t("overlay.decline")}
-          </Button>
           <Button full icon={Icons.Sparkles} onClick={() => onRespond({ kind: "optional", accept: true })}>
             {t("overlay.activate")}
+          </Button>
+          <Button full variant="secondary" onClick={() => onRespond({ kind: "optional", accept: false })}>
+            {t("overlay.decline")}
           </Button>
         </div>
       ) : null}
 
       {isSelect ? (
         <div style={{ display: "flex", gap: 10 }}>
+          <Button full icon={Icons.Check} disabled={!canConfirm} onClick={confirmSelect}>
+            {t("overlay.confirmTargets")}
+          </Button>
           {min === 0 ? (
             <Button
               full
@@ -1568,9 +1571,6 @@ export function DecisionOverlay({
               {t("common.none")}
             </Button>
           ) : null}
-          <Button full icon={Icons.Check} disabled={!canConfirm} onClick={confirmSelect}>
-            {t("overlay.confirmTargets")}
-          </Button>
         </div>
       ) : null}
 
@@ -1872,16 +1872,16 @@ export function ActionConfirmationOverlay({
           </div>
         </div>
         <div style={{ display: "flex", gap: 10 }}>
-          <Button full variant="ghost" onClick={onCancel}>
-            {t("common.cancel")}
+          <Button full onClick={onConfirm}>
+            {confirmLabel}
           </Button>
           {alternateLabel && onAlternate ? (
             <Button full variant="secondary" onClick={onAlternate}>
               {alternateLabel}
             </Button>
           ) : null}
-          <Button full onClick={onConfirm}>
-            {confirmLabel}
+          <Button full variant="ghost" onClick={onCancel}>
+            {t("common.cancel")}
           </Button>
         </div>
       </div>
@@ -3016,12 +3016,6 @@ export function DigiXrosMaterialOverlay({
 
         {/* actions */}
         <div style={{ display: "flex", gap: 10 }}>
-          <Button full variant="ghost" onClick={onCancel}>
-            {t("common.cancel")}
-          </Button>
-          <Button full variant="secondary" onClick={onSkip}>
-            {t("overlay.xrosPlayWithout")}
-          </Button>
           <Button
             full
             icon={Icons.Sparkles}
@@ -3029,6 +3023,12 @@ export function DigiXrosMaterialOverlay({
             onClick={() => onConfirm(picks, chosenExpanderPermanentIds)}
           >
             {picks.length === 1 ? t("overlay.xrosConfirmOne") : t("overlay.xrosConfirm", { count: picks.length })}
+          </Button>
+          <Button full variant="secondary" onClick={onSkip}>
+            {t("overlay.xrosPlayWithout")}
+          </Button>
+          <Button full variant="ghost" onClick={onCancel}>
+            {t("common.cancel")}
           </Button>
         </div>
       </div>
