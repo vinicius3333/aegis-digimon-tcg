@@ -113,4 +113,29 @@ describe("BT1-081 HerculesKabuterimon", () => {
     expect(s.state.phase).toBe(Phase.End);
     expect(s.events).toContainEqual(expect.objectContaining({ kind: "turnEnded", endingSeat: 0, nextSeat: 1 }));
   });
+
+  it("still resolves the optional payment from exactly zero memory", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-081", as: "attacker" }] },
+        1: { security: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 0;
+    const turn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Main);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await turn;
+
+    expect(s.state.phase).toBe(Phase.End);
+    expect(s.events).toContainEqual(expect.objectContaining({ kind: "turnEnded", endingSeat: 0, nextSeat: 1 }));
+  });
 });
