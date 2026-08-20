@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./EX8-022.js";
 
 describe("EX8-022", () => {
@@ -8,4 +11,9 @@ describe("EX8-022", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[1]).toMatchObject({ kind: "GainMemory", amount: 1, condition: { kind: "opponentHasNone" } });
   });
   it("inherits Security Attack -1 against an opposing Digimon when attacking", () => expect(compiled.effects?.find((entry) => entry.isInherited)?.actions[0]).toMatchObject({ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: -1 }, duration: "untilOpponentTurnEnd" }));
+  it("exposes Ice Clad on live state", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX8-022", as: "frigimon" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("frigimon"), "IceClad")).toBe(true);
+  });
 });
