@@ -3821,14 +3821,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
 
   /**
    * Redirect the currently-resolving attack onto one of `candidatePermanentIds`
-   * (chosen by the source's controller). A no-op when no attack is open or no
-   * candidate resolves. The candidate ids are battle-area permanents the redirect
-   * filter resolved (the interpreter supplies them); the controller picks one.
+   * (chosen by the source's controller). The reserved id `"player"` represents the
+   * opponent player, allowing cards that say "another opponent's Digimon or the player".
    */
   const redirectAttack: Primitives["redirectAttack"] = async (candidatePermanentIds, opts) => {
     const combat = engine.combat;
     if (combat === undefined || !combat.isAttacking) return;
-    const candidates = candidatePermanentIds.filter((id) => access.permanentById(id) !== undefined);
+    const candidates = candidatePermanentIds.filter((id) => id === "player" || access.permanentById(id) !== undefined);
     if (candidates.length === 0) return;
     // The chooser is the source's controller by default; BT4-075 passes the opponent seat so
     // the DEFENDING player picks among their own unsuspended Digimon. When `optional`, the
@@ -3850,7 +3849,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const pick = chosen[0];
     if (pick === undefined) return; // declined (or no pick): attack proceeds unchanged
     const attackerId = combat.currentAttackerId;
-    combat.redirectTarget({ kind: "permanent", permanentId: pick });
+    combat.redirectTarget(pick === "player" ? { kind: "player" } : { kind: "permanent", permanentId: pick });
     // The attack target was just switched — notify reactive watchers ("when this Digimon's
     // attack target is switched", BT11-008). The attacker is the event subject; a watcher's
     // sourceFilter isSelfRef gates it to its own attack.
