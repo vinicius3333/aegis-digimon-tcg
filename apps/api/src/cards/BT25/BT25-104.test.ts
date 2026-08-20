@@ -77,6 +77,56 @@ describe("BT25-104 ShineGreymon: Burst Mode", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.currentDP === 5000)).toBe(true);
   });
 
+  it("reduces exactly one opposing Digimon and ignores opposing Tamers", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-021", as: "dataSquad" }],
+          hand: [{ card: "BT25-104", as: "option" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-013", dp: 30000, as: "chosen" },
+            { card: "BT1-013", dp: 30000, as: "other" },
+            { card: "BT12-092", as: "tamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("chosen").permanentId);
+    await s.ready();
+    s.state.memory = 6;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("chosen").currentDP === 15000);
+
+    expect(s.perm("chosen").currentDP).toBe(15000);
+    expect(s.perm("other").currentDP).toBe(30000);
+    expect(s.perm("tamer").currentDP).toBe(0);
+  });
+
+  it("does not waive the red/yellow Option requirement without a DATA SQUAD card", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT25-104", as: "option" }] } });
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("option").instanceId,
+        useAs: "option",
+      } as never),
+    ).toEqual({ ok: false, reason: "color-requirement-unmet" });
+  });
+
   it("activates the Option-side Main effect from When Digivolving", async () => {
     const s = setupEngine(
       {
