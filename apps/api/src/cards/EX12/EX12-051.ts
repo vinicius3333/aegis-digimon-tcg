@@ -168,11 +168,6 @@ const module: EffectModule = {
       ];
     }
 
-    // [All Turns][Once Per Turn] (inherited):
-    // When this Digimon wins a battle, trash opponent's top security.
-    // RESIDUAL: whenBattleWon has ZERO engine callers — this watcher can never fire.
-    // The subscription is omitted to avoid a dead-letter watcher.
-
     return [];
   },
 };
