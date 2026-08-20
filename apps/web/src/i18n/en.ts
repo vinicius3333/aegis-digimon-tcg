@@ -31,6 +31,12 @@ export const en = {
   "brand.subtitle": "CARD GAME",
   "menu.actionsAria": "Home shortcuts",
 
+  "beta.tag": "Beta",
+  "beta.message": "Aegis is still in beta. Things may break and data can be reset.",
+  "beta.reportLink": "Report a bug on Discord",
+  "beta.dismiss": "Got it",
+  "beta.dismissAria": "Dismiss the beta notice",
+
   "onboarding.welcomeTitle": "Choose how to play",
   "onboarding.discordTitle": "Continue with Discord",
   "onboarding.discordCopy": "Decks and stats stay on your account.",

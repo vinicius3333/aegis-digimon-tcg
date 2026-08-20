@@ -34,6 +34,12 @@ export const ptBR: Record<keyof typeof en, string> = {
   "brand.subtitle": "JOGO DE CARTAS",
   "menu.actionsAria": "Atalhos da tela inicial",
 
+  "beta.tag": "Beta",
+  "beta.message": "O Aegis ainda está em beta. Coisas podem quebrar e os dados podem ser reiniciados.",
+  "beta.reportLink": "Relate um bug no Discord",
+  "beta.dismiss": "Entendi",
+  "beta.dismissAria": "Dispensar o aviso de beta",
+
   "onboarding.welcomeTitle": "Escolha como jogar",
   "onboarding.discordTitle": "Continuar com Discord",
   "onboarding.discordCopy": "Decks e estatísticas ficam na sua conta.",
