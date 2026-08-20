@@ -535,12 +535,12 @@ export function EvadeOverlay({
       <div style={{ fontSize: 12.5, color: "var(--ds-fg-secondary)", marginBottom: 18, lineHeight: 1.5 }}>
         {t("overlay.evadePrompt", { name: cardId ? name(cardId) : t("overlay.thisDigimon") })}
       </div>
-      <div style={{ display: "flex", gap: 10 }}>
-        <Button full variant="secondary" onClick={onDecline}>
-          {t("overlay.letDeleted")}
-        </Button>
+      <div className="game-actions-row">
         <Button full icon={Icons.Shield} onClick={onAccept}>
           {t("overlay.suspendToEvade")}
+        </Button>
+        <Button full variant="secondary" onClick={onDecline}>
+          {t("overlay.letDeleted")}
         </Button>
       </div>
     </div>
@@ -604,12 +604,12 @@ export function BarrierOverlay({
       <div style={{ fontSize: 12.5, color: "var(--ds-fg-secondary)", marginBottom: 18, lineHeight: 1.5 }}>
         {t("overlay.barrierPrompt", { name: cardId ? name(cardId) : t("overlay.thisDigimon") })}
       </div>
-      <div style={{ display: "flex", gap: 10 }}>
-        <Button full variant="secondary" onClick={onDecline}>
-          {t("overlay.letDeleted")}
-        </Button>
+      <div className="game-actions-row">
         <Button full icon={Icons.Shield} onClick={onAccept}>
           {t("overlay.trashSecurity")}
+        </Button>
+        <Button full variant="secondary" onClick={onDecline}>
+          {t("overlay.letDeleted")}
         </Button>
       </div>
     </div>
@@ -1545,7 +1545,7 @@ export function DecisionOverlay({
       ) : null}
 
       {isOptional ? (
-        <div style={{ display: "flex", gap: 10 }}>
+        <div className="game-actions-row">
           <Button full icon={Icons.Sparkles} onClick={() => onRespond({ kind: "optional", accept: true })}>
             {t("overlay.activate")}
           </Button>
@@ -1556,7 +1556,7 @@ export function DecisionOverlay({
       ) : null}
 
       {isSelect ? (
-        <div style={{ display: "flex", gap: 10 }}>
+        <div className="game-actions-row">
           <Button full icon={Icons.Check} disabled={!canConfirm} onClick={confirmSelect}>
             {t("overlay.confirmTargets")}
           </Button>
@@ -1793,12 +1793,12 @@ export function GameOverOverlay({
             </div>
           ))}
         </div>
-        <div style={{ display: "flex", gap: 10 }}>
-          <Button full variant="secondary" icon={Icons.LayoutDashboard} onClick={onMenu}>
-            {t("overlay.mainMenu")}
-          </Button>
+        <div className="game-actions-row">
           <Button full icon={Icons.Swords} onClick={onRematch}>
             {t("overlay.findRematch")}
+          </Button>
+          <Button full variant="secondary" icon={Icons.LayoutDashboard} onClick={onMenu}>
+            {t("overlay.mainMenu")}
           </Button>
         </div>
       </Dialog>
@@ -1871,7 +1871,7 @@ export function ActionConfirmationOverlay({
             <div style={{ marginTop: 7, color: "var(--ds-fg)", lineHeight: 1.45 }}>{detail}</div>
           </div>
         </div>
-        <div style={{ display: "flex", gap: 10 }}>
+        <div className="game-actions-row">
           <Button full onClick={onConfirm}>
             {confirmLabel}
           </Button>
@@ -2456,7 +2456,7 @@ export function StackViewerOverlay({
               <CardArt cardId={preview} width={260} />
             </div>
           ) : null}
-          <div style={{ display: "flex", gap: 10, width: "100%" }}>
+          <div className="game-actions-row" style={{ width: "100%" }}>
             {canAttack ? (
               <Button size="md" variant="danger" full icon={Icons.Swords} onClick={onAttack}>
                 {t("overlay.attack")}
@@ -3015,7 +3015,7 @@ export function DigiXrosMaterialOverlay({
         </div>
 
         {/* actions */}
-        <div style={{ display: "flex", gap: 10 }}>
+        <div className="game-actions-row">
           <Button
             full
             icon={Icons.Sparkles}

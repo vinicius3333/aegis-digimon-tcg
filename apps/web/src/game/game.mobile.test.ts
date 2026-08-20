@@ -100,6 +100,32 @@ describe("mobile portrait match layout", () => {
   });
 });
 
+describe("choice rows lead with the affirmative action", () => {
+  // The affirmative action leads the DOM, so it also leads the tab order. A row
+  // reverses to put it on the right; stacked, DOM order already reads top-down.
+  it("reverses horizontal rows so the leading action sits on the right", () => {
+    expect(gameCss).toMatch(/\.game-actions-row \{[^}]*flex-direction:\s*row-reverse/);
+    expect(gameCss).toMatch(/\.mulligan-actions \{[^}]*flex-direction:\s*row-reverse/);
+  });
+
+  it.each([
+    ["EvadeOverlay", "overlay.suspendToEvade", "overlay.letDeleted"],
+    ["BarrierOverlay", "overlay.trashSecurity", "overlay.letDeleted"],
+    ["ActionConfirmationOverlay", "{confirmLabel}", "common.cancel"],
+    ["DigiXrosMaterialOverlay", "overlay.xrosConfirm", "common.cancel"],
+    ["GameOverOverlay", "overlay.findRematch", "overlay.mainMenu"],
+    ["MulliganOverlay", "overlay.keep", "overlay.mulligan"],
+  ])("%s lists its confirming action before %s", (name, confirming, trailing) => {
+    const start = overlaysSource.indexOf(`export function ${name}(`);
+    expect(start).toBeGreaterThan(-1);
+    const next = overlaysSource.indexOf("\nexport function ", start + 1);
+    const body = overlaysSource.slice(start, next === -1 ? undefined : next);
+    expect(body).toMatch(/className="(game-actions-row|mulligan-actions)"/);
+    expect(body.indexOf(confirming)).toBeGreaterThan(-1);
+    expect(body.indexOf(confirming)).toBeLessThan(body.indexOf(trailing));
+  });
+});
+
 describe("match overlays opt into the mobile sheet", () => {
   // Every dialog-style overlay on the match screen must carry the shared classes,
   // otherwise it keeps its desktop centring on a phone and overflows the viewport.

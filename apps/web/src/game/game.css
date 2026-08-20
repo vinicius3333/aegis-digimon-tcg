@@ -158,7 +158,12 @@ button.opponent-action-feed__current:focus-visible { outline: 2px solid var(--ds
 .mulligan-detail { margin: 0 0 var(--ds-space-6); color: var(--ds-brand-on-ink-muted); font-size: var(--ds-text-sm); }
 .mulligan-cards { display: flex; flex-wrap: wrap; justify-content: center; gap: var(--ds-space-4); margin-bottom: var(--ds-space-7); }
 .mulligan-card { flex: none; animation: aegis-pop 360ms ease-out both; }
-.mulligan-actions { display: flex; justify-content: center; gap: var(--ds-space-3); }
+/* Every choice row lists the affirmative action first, and the reading order the
+   player scans follows the axis: right to left in a row, top to bottom stacked.
+   `row-reverse` puts the leading action on the right without reordering the DOM,
+   so the tab order and the visual order both start at the affirmative. */
+.game-actions-row { display: flex; flex-direction: row-reverse; gap: var(--ds-space-3); }
+.mulligan-actions { display: flex; flex-direction: row-reverse; justify-content: center; gap: var(--ds-space-3); }
 .combat-prompt { max-width: calc(100% - var(--ds-space-6)); }
 .decision-overlay__heading { min-width: 0; flex: 1; }
 .decision-overlay__view-board { flex: none; }
