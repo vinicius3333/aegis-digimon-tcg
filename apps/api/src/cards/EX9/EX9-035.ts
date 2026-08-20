@@ -43,6 +43,7 @@ export const compiled: CompiledCard = {
               },
               "count": 1,
               "to": "placeUnder",
+              "faceDown": true,
               "underFilter": {
                 "controllerDefault": "mine",
                 "kind": [
