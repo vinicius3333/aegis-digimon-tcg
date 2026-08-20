@@ -85,15 +85,14 @@ const module: EffectModule = {
                 const hostDef = subCtx.game.definitionOf(host.topCard);
                 const ownerTrash = subCtx.game.player(source.ownerSeat).trash;
 
-                // Find qualifying [Dark Animal]/[SoC] Digimon in owner's trash that this
-                // Digimon can legally digivolve into (Q2371: requirements apply).
-                const candidates = ownerTrash.filter((c) => {
+                // The event identifies the exact hand card trashed by this effect. Do not
+                // offer an older qualifying card already in trash (the effect refers to the
+                // card that was just trashed).
+                const trashedInstanceId = subCtx.trigger.trashedFromHandInstanceId;
+                const trashed = ownerTrash.find((c) => c.instanceId === trashedInstanceId);
+                const candidates = trashed === undefined ? [] : [trashed].filter((c) => {
                   const def = subCtx.game.definitionOf(c);
-                  return (
-                    isDigimon(def) &&
-                    isDarkAnimalOrSoC(def) &&
-                    canDigivolveOnto(def, hostDef)
-                  );
+                  return isDigimon(def) && isDarkAnimalOrSoC(def) && canDigivolveOnto(def, hostDef);
                 });
 
                 if (candidates.length === 0) return;
