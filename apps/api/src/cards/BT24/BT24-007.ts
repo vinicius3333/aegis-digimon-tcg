@@ -60,9 +60,7 @@ const module: EffectModule = {
               },
               run: async (subCtx) => {
                 const owner = subCtx.game.player(source.ownerSeat);
-                const eligible = owner.trash.filter((c) =>
-                  cardCondition(subCtx.game.definitionOf(c)),
-                );
+                const eligible = owner.trash.filter((c) => cardCondition(subCtx.game.definitionOf(c)));
                 if (eligible.length === 0) return;
 
                 const chosen = await subCtx.ask.selectCards(subCtx, {
@@ -73,6 +71,7 @@ const module: EffectModule = {
                 if (chosen.length === 0) return;
 
                 await subCtx.fx.playInstances(chosen, {
+                  payCost: true,
                   costDelta: 2,
                 });
               },

@@ -82,6 +82,6 @@ describe("BT24-007 Tsunomon", () => {
     const install = subscribeSubTrigger.mock.calls[0]![0];
     await install.run({ ...ctx, source: source(), trigger: { handTrashedSeat: 0 } });
 
-    expect(playInstances).toHaveBeenCalledWith(["demon-instance"], { costDelta: 2 });
+    expect(playInstances).toHaveBeenCalledWith(["demon-instance"], { payCost: true, costDelta: 2 });
   });
 });
