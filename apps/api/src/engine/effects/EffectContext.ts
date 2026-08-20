@@ -636,7 +636,7 @@ export interface Primitives {
    * digivolution card to the new top. Returns false when there is no digivolution card to
    * promote (the cost is then unpayable).
    */
-  placeOwnTopAtStackBottom(permanentId: string): boolean;
+  placeOwnTopAtStackBottom(permanentId: string): Promise<boolean>;
   /**
    * Relocate a battle-area permanent (top + stack + linked) under another permanent
    * as digivolution cards. The source permanent ceases to exist. `shedOwnCards` is the

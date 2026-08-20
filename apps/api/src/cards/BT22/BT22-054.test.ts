@@ -63,8 +63,9 @@ describe("BT22-054 Hagurumon", () => {
       {
         0: {
           deck: ["BT22-001"],
-          battleArea: [{ card: "BT22-055", as: "host", under: ["BT22-054", "BT22-043"] }],
+          battleArea: [{ card: "BT22-056", as: "host", under: ["BT22-043", "BT22-054"] }],
         },
+        1: { battleArea: [{ card: "BT22-071", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -89,6 +90,8 @@ describe("BT22-054 Hagurumon", () => {
 
     expect(s.state.players[0]!.hand).toHaveLength(initialHand + 1);
     expect(host.topCard!.instanceId).toBe(initialTopUnder);
+    expect(host.topCard!.cardId).toBe("BT22-054");
     expect(host.stack[0]!.instanceId).toBe(initialTop);
+    expect(s.perm("opponent").currentDP).toBe(3000);
   });
 });

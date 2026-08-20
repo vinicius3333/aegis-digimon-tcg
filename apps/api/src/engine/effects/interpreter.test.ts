@@ -478,7 +478,7 @@ function makeContext(opts: {
       rec.calls.push({ verb: "deDigivolve", args: a });
       return [];
     },
-    placeOwnTopAtStackBottom: (...a) => {
+    placeOwnTopAtStackBottom: async (...a) => {
       rec.calls.push({ verb: "placeOwnTopAtStackBottom", args: a });
       return true;
     },

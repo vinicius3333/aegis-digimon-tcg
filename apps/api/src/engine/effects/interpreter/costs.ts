@@ -879,7 +879,7 @@ export async function payCost(
       if (cost.raw && /bottom digivolution card/i.test(cost.raw) && /top\s+(?:stacked\s+)?card/i.test(cost.raw)) {
         const selfPerm = ctx.source.permanent();
         if (selfPerm === undefined) return false;
-        const rotated = ctx.fx.placeOwnTopAtStackBottom(selfPerm.permanentId);
+        const rotated = await ctx.fx.placeOwnTopAtStackBottom(selfPerm.permanentId);
         if (rotated && out) out.paidCount = 1;
         return rotated;
       }

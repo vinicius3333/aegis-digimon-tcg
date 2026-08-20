@@ -1282,7 +1282,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
    * new top (the Digimon stays in play, one stage rotated). Requires >= 1 digivolution card to
    * promote; returns false (cost unpayable) otherwise.
    */
-  const placeOwnTopAtStackBottom = (permanentId: string): boolean => {
+  const placeOwnTopAtStackBottom = async (permanentId: string): Promise<boolean> => {
     const permanent = access.permanentById(permanentId);
     if (permanent === undefined || permanent.topCard === undefined) return false;
     if (permanent.stack.length === 0) return false;
@@ -1299,6 +1299,15 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       instanceIds: [oldTop.instanceId],
       from: Zone.BattleArea,
       to: Zone.BattleArea,
+    });
+    // The promoted card's continuous watcher must exist before the placement event opens.
+    // BT22-054 Q4907 explicitly permits the newly revealed Hagurumon to observe this same
+    // rotation, while the old top is the CS card just added to its digivolution cards.
+    await engine.recomputeContinuousEffects?.();
+    await engine.fireSubTrigger?.("onAddDigivolutionCards", {
+      subjectPermanentId: permanentId,
+      addedDigivolutionCardInstanceIds: [oldTop.instanceId],
+      addedDigivolutionCardsPosition: "bottom",
     });
     return true;
   };
