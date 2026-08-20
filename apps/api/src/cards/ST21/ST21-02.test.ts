@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("ST21-02 Gomamon", () => {
@@ -12,5 +13,15 @@ describe("ST21-02 Gomamon", () => {
       exceptTamerEffects: true,
       duration: "permanent",
     });
+  });
+
+  it("blocks opponent Digimon-effect memory gain but exempts Tamers", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "ST21-02", as: "gomamon" }] } });
+    await (s.engine as unknown as { recomputeContinuousEffects(): Promise<void> }).recomputeContinuousEffects();
+    const ledger = (s.engine as unknown as { continuous: { canGainMemoryFromEffect: (seat: number, source: { definition: { kinds: string[] } }) => boolean } }).continuous;
+
+    expect(ledger.canGainMemoryFromEffect(1, { definition: { kinds: ["Digimon"] } })).toBe(false);
+    expect(ledger.canGainMemoryFromEffect(1, { definition: { kinds: ["Tamer"] } })).toBe(true);
+    expect(ledger.canGainMemoryFromEffect(0, { definition: { kinds: ["Digimon"] } })).toBe(true);
   });
 });
