@@ -48,7 +48,7 @@ function opponentDigimon(ctx: EffectContext): string[] {
     .map((p) => p.permanentId);
 }
 
-const module: EffectModule = {
+export const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     // [When Digivolving] By placing 4 cards with [Vemmon] in their texts from your trash as
