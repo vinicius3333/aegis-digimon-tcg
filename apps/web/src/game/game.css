@@ -559,6 +559,9 @@ button.opponent-action-feed__current:focus-visible { outline: 2px solid var(--ds
   .game-sidebar > div:nth-child(3) { flex: 1; min-width: 190px; mask-image: linear-gradient(to bottom, #000 calc(100% - 14px), transparent); }
   /* Surrender needs no column of its own. */
   .game-sidebar > div:last-child { min-width: 0; flex: 0 0 auto; }
+  /* Side by side on the strip: stacked, the two buttons are taller than it is. */
+  .game-sidebar__footer { flex-direction: row !important; }
+  .game-sidebar__footer > button { flex: 1; min-width: 0; }
   /* The rails hold compact piles at this size, so they need only the pile width. */
   .game-pile-column { width: 72px !important; padding: var(--ds-space-2) !important; }
 

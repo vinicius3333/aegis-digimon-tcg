@@ -1,0 +1,163 @@
+/* Bug reporting: the floating entry point and the report modal. Layout only —
+   colors, spacing and radii come from the design tokens the rest of the client uses. */
+
+.bug-report-button {
+  position: fixed;
+  right: var(--ds-space-4);
+  bottom: calc(var(--ds-nav-height-narrow) + var(--ds-space-4));
+  z-index: 40;
+  display: inline-flex;
+  gap: var(--ds-space-2);
+  align-items: center;
+  padding: var(--ds-space-2) var(--ds-space-4);
+  border: 1px solid var(--ds-border);
+  border-radius: 999px;
+  background: var(--ds-surface-raised);
+  color: var(--ds-fg-secondary);
+  font: inherit;
+  font-size: 0.85rem;
+  font-weight: 600;
+  box-shadow: var(--ds-shadow-lg);
+  cursor: pointer;
+}
+
+.bug-report-button:hover {
+  border-color: var(--ds-border-strong);
+  color: var(--ds-fg);
+}
+
+@media (min-width: 900px) {
+  .bug-report-button {
+    right: var(--ds-space-6);
+    bottom: var(--ds-space-6);
+  }
+}
+
+.bug-report {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-4);
+  width: min(560px, 92vw);
+  max-height: 86vh;
+  overflow-y: auto;
+}
+
+.bug-report__head h2 {
+  margin: 0;
+  color: var(--ds-fg);
+}
+
+.bug-report__head p {
+  margin: var(--ds-space-1) 0 0;
+  color: var(--ds-fg-muted);
+  font-size: 0.9rem;
+}
+
+.bug-report__rules {
+  margin: var(--ds-space-2) 0 0;
+  padding-left: var(--ds-space-4);
+  color: var(--ds-fg-muted);
+  font-size: 0.78rem;
+}
+
+.bug-report__rules li + li {
+  margin-top: 2px;
+}
+
+.bug-report__cards {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+}
+
+.bug-report__combobox {
+  position: relative;
+}
+
+.bug-report__suggestions {
+  position: absolute;
+  z-index: 2;
+  right: 0;
+  left: 0;
+  max-height: 240px;
+  margin: var(--ds-space-1) 0 0;
+  padding: 0;
+  overflow-y: auto;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-raised);
+  list-style: none;
+  box-shadow: var(--ds-shadow-lg);
+}
+
+.bug-report__suggestion {
+  display: flex;
+  gap: var(--ds-space-2);
+  justify-content: space-between;
+  width: 100%;
+  padding: var(--ds-space-2) var(--ds-space-3);
+  border: 0;
+  background: transparent;
+  color: var(--ds-fg);
+  font: inherit;
+  font-size: 0.85rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.bug-report__suggestion[data-active] {
+  background: var(--ds-accent-surface);
+}
+
+.bug-report__suggestion span {
+  color: var(--ds-fg-muted);
+  font-family: var(--ds-font-mono);
+}
+
+.bug-report__hint {
+  margin: 0;
+  color: var(--ds-fg-muted);
+  font-size: 0.78rem;
+}
+
+.bug-report__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-2);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.bug-report__chip {
+  display: inline-flex;
+  gap: var(--ds-space-2);
+  align-items: center;
+  padding: 2px var(--ds-space-2);
+  border: 1px solid var(--ds-border);
+  border-radius: 999px;
+  background: var(--ds-surface-muted);
+  color: var(--ds-fg-secondary);
+  font-size: 0.78rem;
+}
+
+.bug-report__chip button {
+  display: inline-flex;
+  align-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ds-fg-muted);
+  cursor: pointer;
+}
+
+.bug-report__description textarea {
+  min-height: 160px;
+  resize: vertical;
+}
+
+.bug-report__actions {
+  display: flex;
+  gap: var(--ds-space-2);
+  justify-content: flex-end;
+}

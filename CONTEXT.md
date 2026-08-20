@@ -148,3 +148,11 @@ A short-lived Aegis event that forms and progresses automatically as
 participants arrive, withdraw or miss deadlines, without rewriting published
 pairings or completed results.
 _Avoid_: in-memory tournament, mutable history
+
+**Bug Report**:
+A signed-in player's account of one card behaving wrongly: a one-line overview,
+the cards they name, the steps to reproduce, and optionally the opponent's deck
+and a Discord link to a clip. The build and the browser are captured, never
+typed. Aegis stores none of it — a report is filed straight to the project's
+public GitHub repository, where it becomes an issue and is triaged.
+_Avoid_: ticket, feedback

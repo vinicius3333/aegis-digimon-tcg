@@ -26,6 +26,7 @@ import { SwissProgram } from "../tournaments/swiss/index.js";
 import { BotSeatingStore } from "../tournaments/bots/index.js";
 import { EliminationStore } from "../tournaments/elimination/index.js";
 import { ArbitrationService, installArbitrationRoutes } from "../tournaments/arbitration/index.js";
+import { installBugReportRoutes, type IssueTracker } from "../bugs/index.js";
 import { openEliminationEvent } from "../tournaments/lifecycle/openEliminationEvent.js";
 import { TopCutProgram } from "../tournaments/topcut/index.js";
 import { tokenBucketLimiter, type TokenBucketOptions } from "../http/rateLimit.js";
@@ -65,14 +66,18 @@ export function installAccountRoutes(
   botSeating: BotSeatingStore = new BotSeatingStore(store),
   topCut: TopCutProgram = new TopCutProgram(store, elimination),
   arbitration: ArbitrationService = new ArbitrationService(store, participants, series, swiss, elimination),
+  bugTracker?: IssueTracker,
 ): void {
+  const sessionFromRequest = (req: Request) => store.session(cookie(req, SESSION_COOKIE));
   // The organizer's override surface, in its own module. See src/tournaments/arbitration.
   installArbitrationRoutes({
     app,
     accounts: store,
     arbitration,
-    session: (req) => store.session(cookie(req, SESSION_COOKIE)),
+    session: sessionFromRequest,
   });
+  // Player bug reports, filed straight to the project's GitHub issues. See src/bugs.
+  installBugReportRoutes({ app, tracker: bugTracker, session: sessionFromRequest });
   const get = (path: string, handler: AsyncHandler) => app.get(path, asyncRoute(handler));
   const post = (path: string, handler: AsyncHandler) => app.post(path, asyncRoute(handler));
   const put = (path: string, handler: AsyncHandler) => app.put(path, asyncRoute(handler));

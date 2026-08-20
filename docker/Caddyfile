@@ -63,6 +63,9 @@
 	handle /account/* {
 		import api_upstreams
 	}
+	handle /bug-reports* {
+		reverse_proxy api:2567
+	}
 	@tournament_api {
 		path /tournaments*
 		not header Accept *text/html*
