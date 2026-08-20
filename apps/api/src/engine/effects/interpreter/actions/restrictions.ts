@@ -5,13 +5,16 @@ import { toDuration } from "../duration.js";
 import { definitionMatches } from "../matching/definition.js";
 import { seatsForController } from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
+import { evaluateCondition } from "../conditions.js";
 import type { Action } from "@aegis/shared";
 
 export async function runRestrictionAction(ctx: EffectContext, action: Action): Promise<boolean> {
   switch (action.kind) {
     case "Restrict": {
+      if (action.while !== undefined && !evaluateCondition(ctx, action.while)) return false;
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
+      const continuous = action.while !== undefined ? true : undefined;
       // Target-scoped prohibition (BT10-042): affected Digimon can't attack THIS source,
       // but may still attack the player or a different Digimon. A plain `attack`
       // restriction would incorrectly suppress the entire declaration.
@@ -24,8 +27,8 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action): 
       }
       if ((action.restriction as string) === "attackOrBlock") {
         for (const id of ids) {
-          ctx.fx.restrict(id, "attack", duration);
-          ctx.fx.restrict(id, "block", duration);
+          ctx.fx.restrict(id, "attack", duration, { continuous });
+          ctx.fx.restrict(id, "block", duration, { continuous });
         }
         return false;
       }
@@ -41,7 +44,7 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action): 
       if (restriction === "activateEffects") return false;
       const fromSourceKind = action.fromSourceKind as string[] | undefined;
       const byOpponentEffectsOnly = action.byOpponentEffectsOnly === true ? true : undefined;
-      for (const id of ids) ctx.fx.restrict(id, restriction, duration, { fromSourceKind, byOpponentEffectsOnly });
+      for (const id of ids) ctx.fx.restrict(id, restriction, duration, { fromSourceKind, byOpponentEffectsOnly, continuous });
       return false;
     }
     case "RestrictUnsuspendedDigivolve": {
