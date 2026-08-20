@@ -15,15 +15,11 @@ export const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+              "or": [
+                { "isToken": true },
                 {
-                  "tokens": [
-                    "Puppet"
-                  ],
-                  "match": "trait"
+                  "kind": ["Digimon"],
+                  "nameOrTrait": [{ "tokens": ["Puppet"], "match": "trait" }]
                 }
               ]
             },
@@ -40,15 +36,11 @@ export const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+              "or": [
+                { "isToken": true },
                 {
-                  "tokens": [
-                    "Puppet"
-                  ],
-                  "match": "trait"
+                  "kind": ["Digimon"],
+                  "nameOrTrait": [{ "tokens": ["Puppet"], "match": "trait" }]
                 }
               ]
             },
@@ -69,7 +61,7 @@ export const compiled: CompiledCard = {
           "kind": "SubTrigger",
           "event": "onDeletionOf",
           "sourceFilter": {
-            "controllerDefault": "mine",
+            "controller": "mine",
             "excludeSelf": true,
             "kind": [
               "Digimon"
