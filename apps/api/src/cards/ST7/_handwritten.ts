@@ -105,13 +105,14 @@ export function st7Module(cardId: string): EffectModule {
                 description: "Digivolve into Gallantmon for cost 4 while the opponent has a level 6 or higher Digimon.",
                 optional: true,
                 canActivate: (ctx) =>
+                  source.isOwnersTurn() &&
                   opposing(ctx, source).some((p) => (ctx.game.definitionOf(p.topCard!).level ?? 0) >= 6),
                 resolve: async (ctx) => {
                   const self = source.permanent();
                   if (!self) return;
                   const cards = ctx.game
                     .player(source.ownerSeat)
-                    .hand.filter((card) => ctx.game.definitionOf(card).nameEn.includes("Gallantmon"));
+                    .hand.filter((card) => ctx.game.definitionOf(card).nameEn === "Gallantmon");
                   if (!cards.length) return;
                   const [picked] = await ctx.ask.selectCards(ctx, {
                     candidates: cards.map(({ instanceId }) => instanceId),
@@ -239,23 +240,17 @@ export function st7Module(cardId: string): EffectModule {
             : [];
         case "ST7-12": {
           const resolve = async (ctx: EffectContext) => {
-            const candidates = opposing(ctx, source);
+            const candidates = opposing(ctx, source).filter((permanent) => permanent.currentDP <= 8000);
             const byId = new Map(candidates.map((p) => [p.permanentId, p]));
             const selected = await ctx.ask.chooseTargets(ctx, {
               candidates: [...byId.keys()],
               min: candidates.length > 0 ? 1 : 0,
               max: candidates.length,
             });
-            const accepted: string[] = [];
-            let spent = 0;
-            for (const id of selected) {
-              const target = byId.get(id);
-              if (target && spent + target.currentDP <= 8000) {
-                accepted.push(id);
-                spent += target.currentDP;
-              }
-            }
-            if (accepted.length) await ctx.fx.deletePermanent(accepted);
+            const total = selected.reduce((sum, id) => sum + (byId.get(id)?.currentDP ?? 0), 0);
+            // Never silently reinterpret an over-cap response as a different subset.
+            if (selected.length === 0 || total > 8000) return;
+            await ctx.fx.deletePermanent(selected);
           };
           if (timing === EffectTiming.OnUseOption)
             return [

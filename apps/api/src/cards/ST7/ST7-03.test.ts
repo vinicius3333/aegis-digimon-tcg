@@ -54,6 +54,21 @@ describe("ST7-03 Guilmon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 
+  it("does not use the alternate path for a near-name Gallantmon card", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST7-03", as: "guilmon" }], hand: [{ card: "BT17-018", as: "crimson" }] },
+      1: { battleArea: ["ST7-09"] },
+    });
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("guilmon").permanentId,
+        instanceId: s.inst("crimson").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+
   it("does not draw when its host and the opposing Digimon are deleted simultaneously", async () => {
     const s = setupEngine({
       0: {
