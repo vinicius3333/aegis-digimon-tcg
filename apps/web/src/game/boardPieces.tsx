@@ -445,84 +445,84 @@ export function PermanentView({
       ) : null}
       {hasEffects ? (
         <button
+          className="game-effect-button"
+          // The permanent above starts an attack drag on pointerdown, and its
+          // pointerup tap opens the card menu — which on touch swallowed this
+          // button's click entirely. The gesture has to stop at the button.
+          onPointerDown={(e) => e.stopPropagation()}
+          onPointerUp={(e) => e.stopPropagation()}
           onClick={(e) => {
             e.stopPropagation();
             if (activatable.length === 1) handleEffectClick(e, activatable[0]!);
             else setShowEffects((v) => !v);
           }}
-          title={activatable.length === 1 ? activatable[0]!.description : "Activate effect"}
+          title={activatable.length === 1 ? activatable[0]!.description : t("game.activateEffect")}
           aria-label={
             activatable.length === 1
               ? `${t("game.activateEffect")}: ${activatable[0]!.description}`
               : t("game.activateEffect")
           }
+          aria-expanded={activatable.length > 1 ? showEffects : undefined}
           style={{
             position: "absolute",
-            bottom: -10,
+            bottom: -13,
             left: "50%",
             transform: "translateX(-50%)",
-            zIndex: 4,
-            background: "var(--ds-primary)",
-            color: "#fff",
-            border: "none",
-            borderRadius: 8,
-            padding: "2px 7px",
-            fontSize: 10,
-            fontWeight: 700,
-            cursor: "pointer",
-            whiteSpace: "nowrap",
-            boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
+            zIndex: 6,
+            width: "max-content",
+            maxWidth: permanentWidth + 28,
           }}
         >
-          ⚡ Main
+          <span aria-hidden="true">⚡</span>
+          <span>Main</span>
+          {activatable.length > 1 ? (
+            <span className="game-effect-button__count" aria-hidden="true">
+              {activatable.length}
+            </span>
+          ) : null}
         </button>
       ) : null}
+      {/* A popover anchored to the card ran off the side of the battle row, which
+          scrolls sideways and clips vertically — on a phone the outer card's menu
+          was unreadable. A centered sheet is anchored to the viewport instead, so
+          the choice reads the same wherever the permanent sits. */}
       {showEffects && activatable.length > 1 ? (
-        <div
-          style={{
-            position: "absolute",
-            bottom: 4,
-            left: "50%",
-            transform: "translateX(-50%)",
-            zIndex: 10,
-            background: "var(--ds-surface)",
-            border: "1.5px solid var(--ds-primary)",
-            borderRadius: 10,
-            boxShadow: "0 8px 24px rgba(0,0,0,0.3)",
-            padding: 6,
-            display: "flex",
-            flexDirection: "column",
-            gap: 4,
-            minWidth: 160,
-          }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          {activatable.map((entry) => (
-            <button
-              key={entry.effectKey}
-              onClick={(e) => handleEffectClick(e, entry)}
-              title={entry.description}
-              aria-label={`${t("game.activateEffect")}: ${entry.description}`}
-              style={{
-                background: "var(--ds-primary-light)",
-                color: "var(--ds-primary)",
-                border: "1px solid var(--ds-primary)",
-                borderRadius: 7,
-                padding: "4px 8px",
-                fontSize: 11,
-                fontWeight: 600,
-                cursor: "pointer",
-                textAlign: "left",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-                maxWidth: 200,
-              }}
-            >
-              ⚡ {entry.description.length > 40 ? entry.description.slice(0, 40) + "…" : entry.description}
-            </button>
-          ))}
-        </div>
+        <>
+          <div
+            className="game-effect-scrim"
+            onPointerDown={(e) => e.stopPropagation()}
+            onPointerUp={(e) => e.stopPropagation()}
+            onClick={(e) => {
+              e.stopPropagation();
+              setShowEffects(false);
+            }}
+          />
+          <div
+            className="game-effect-menu"
+            role="menu"
+            aria-label={`${t("game.activateEffect")}: ${cardName}`}
+            onPointerDown={(e) => e.stopPropagation()}
+            onPointerUp={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="game-effect-menu__title">{cardName}</p>
+            {activatable.map((entry) => (
+              <button
+                key={entry.effectKey}
+                className="game-effect-menu__item"
+                role="menuitem"
+                onPointerDown={(e) => e.stopPropagation()}
+                onPointerUp={(e) => e.stopPropagation()}
+                onClick={(e) => handleEffectClick(e, entry)}
+                title={entry.description}
+                aria-label={`${t("game.activateEffect")}: ${entry.description}`}
+              >
+                <span aria-hidden="true">⚡</span>
+                <span className="game-effect-menu__text">{entry.description}</span>
+              </button>
+            ))}
+          </div>
+        </>
       ) : null}
     </div>
   );
