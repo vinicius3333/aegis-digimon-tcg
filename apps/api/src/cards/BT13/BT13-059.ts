@@ -7,7 +7,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [All Turns][Once Per Turn] When an opponent's Digimon becomes suspended, you may:
 //   • Suspend 1 of your opponent's Digimon, or
 //   • Unsuspend 1 of your Digimon.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",

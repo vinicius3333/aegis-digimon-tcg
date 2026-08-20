@@ -1,4 +1,4 @@
-import { EffectDuration, EffectTiming } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
 import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -123,12 +123,50 @@ const module: EffectModule = {
             );
           },
         }),
+        staticModifier({
+          source,
+          effectKey: `${cardId}/delete-on-tamer-placed`,
+          description:
+            "[All Turns] When a Tamer card is placed in this Digimon's digivolution cards, delete 1 of your opponent's Digimon with 6000 DP or less.",
+          isInherited: false,
+          when: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const host = ctx.source.permanent();
+            if (host === undefined) return;
+            ctx.fx.subscribeSubTrigger({
+              event: "onAddDigivolutionCards",
+              sourcePermanentId: host.permanentId,
+              once: false,
+              description: `${cardId}: delete an opposing Digimon with 6000 DP or less when a Tamer is placed under this Digimon`,
+              matches: (subCtx) => {
+                if (subCtx.trigger.subjectPermanentId !== host.permanentId) return false;
+                const addedIds = subCtx.trigger.addedDigivolutionCardInstanceIds ?? [];
+                return addedIds.some((instanceId) => {
+                  const card = subCtx.game.permanentById(host.permanentId)?.stack.find((c) => c.instanceId === instanceId);
+                  return card !== undefined && subCtx.game.definitionOf(card).kinds?.includes(CardKind.Tamer);
+                });
+              },
+              run: async (subCtx) => {
+                const opponent = subCtx.game.player(subCtx.game.opponentOf(source.ownerSeat));
+                const candidates = Array.from(opponent.battleArea)
+                  .filter((p) => {
+                    if (p.topCard === undefined) return false;
+                    const def = subCtx.game.definitionOf(p.topCard);
+                    return isDigimon(def) && (def.dp ?? 0) <= 6000;
+                  })
+                  .map((p) => p.permanentId);
+                if (candidates.length === 0) return;
+                const chosen =
+                  candidates.length === 1
+                    ? candidates
+                    : await subCtx.ask.chooseTargets(subCtx, { candidates, min: 1, max: 1 });
+                if (chosen.length > 0) await subCtx.fx.deletePermanent([chosen[0]!]);
+              },
+            });
+          },
+        }),
       ];
     }
-
-    // [All Turns] onAddDigivolutionCards SubTrigger — RESIDUAL: not available in EffectModule API.
-    // When a Tamer card is placed in this Digimon's digivolution cards, delete 1 opponent
-    // Digimon with 6000 DP or less.
 
     return [];
   },

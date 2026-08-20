@@ -122,7 +122,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "selfDigivolutionStackDistinctColorCount", "op": "gte", "value": 4,
             "raw": "this Digimon has 4 or more colors in its digivolution cards"
           }
         }

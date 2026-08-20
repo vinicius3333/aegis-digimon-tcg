@@ -152,7 +152,15 @@ const compiled: CompiledCard = {
             }
           ],
           "cost": {
-            "kind": "raw",
+            "kind": "place",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestDP" },
+              "count": 1,
+              "from": ["battleArea"]
+            },
+            "destination": "security",
+            "position": "bottom",
+            "targetIsPermanent": true,
             "raw": "by placing 1 of your opponent's Digimon with the lowest DP as the bottom security card"
           }
         },
@@ -167,7 +175,14 @@ const compiled: CompiledCard = {
             }
           ],
           "cost": {
-            "kind": "raw",
+            "kind": "place",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestDP" },
+              "count": 1
+            },
+            "destination": "security",
+            "position": "bottom",
+            "targetIsPermanent": true,
             "raw": "by placing 1 of your opponent's Digimon with the lowest DP as the bottom security card"
           }
         }
@@ -175,10 +190,8 @@ const compiled: CompiledCard = {
       "frequency": "OncePerTurn"
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "AllTurns SubTrigger cost: placing opponent's battle-area Digimon (a permanent) as their bottom security is not yet supported by the 'place' cost system — cost encoded as kind:raw; the trash action (SecurityManipulation trashTop) is correctly encoded and fires after the raw cost is paid (engine executes the trash, not the placement)"
-  ],
+  "coverage": "full",
+  "residual": [],
   "digivolutionRequirement": [
     {
       "names": [

@@ -59,7 +59,7 @@ describe("BT26-017 [On Play]/[When Digivolving]: grant Security A. +1 and Progre
 
     const grants: Array<[string, string, number | undefined]> = [];
     const fx = {
-      grantKeyword: vi.fn((permanentId: string, keyword: string, _d: unknown, amount?: number) => {
+      grantKeyword: vi.fn<(...args: any[]) => any>((permanentId: string, keyword: string, _d: unknown, amount?: number) => {
         grants.push([permanentId, keyword, amount]);
       }),
     } as unknown as Primitives;

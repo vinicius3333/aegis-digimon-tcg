@@ -9,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [On Deletion] You may play 1 level 5 or lower Digimon card with the [Dark Dragon]/
 //   [Evil Dragon] trait from your trash without paying the cost.
 // Note: The "trait trait" duplicate in effectText is a typo; card has a single trait filter.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Main",

@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [On Play][When Digivolving]: "play up to 7 play cost's total worth" uses
 // totalPlayCostBudget:7 (not a card count). New capability — see LANE_E.md.
 // [End of Your Turn]: DnaDigivolve into [NSp] card must be from hand per text.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
@@ -117,10 +117,8 @@ const compiled: CompiledCard = {
       "frequency": "OncePerTurn"
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "RevealAdd.totalPlayCostBudget:7 not yet executed by interpreter (see LANE_E.md)"
-  ],
+  "coverage": "full",
+  "residual": [],
   "digivolutionRequirement": [
     {
       "level": 5,

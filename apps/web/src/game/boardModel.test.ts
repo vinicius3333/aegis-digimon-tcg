@@ -6,6 +6,7 @@ import { translator } from "../i18n";
 import {
   activeBlockWindow,
   activeCounterWindow,
+  buildMatchLog,
   canMoveFromBreeding,
   canUseBreedingAction,
   decisionEffectSource,
@@ -223,6 +224,27 @@ describe("friendly memory log", () => {
 
     expect(line?.text).toBe("Memória alterada: 0 → -5");
     expect(line?.text).not.toContain("playCard");
+  });
+
+  it("collapses the duplicate memory line a paid play emits", () => {
+    const events: ServerEvent[] = [
+      { kind: "memoryChanged", from: 3, to: 1, reason: "playCard" },
+      { kind: "memoryChanged", from: 3, to: 1, reason: "payCost" },
+    ];
+
+    expect(buildMatchLog(events, 0, new Map(), translator("pt-BR")).map((line) => line.text)).toEqual([
+      "Memória alterada: 3 → 1",
+    ]);
+  });
+
+  it("keeps two identical non-memory lines, which are two real moves", () => {
+    // Both players milling 2 cards reads the same way; collapsing it would hide one of the moves.
+    const events: ServerEvent[] = [
+      { kind: "cardsMoved", instanceIds: ["a", "b"], from: "deck", to: "trash" },
+      { kind: "cardsMoved", instanceIds: ["c", "d"], from: "deck", to: "trash" },
+    ];
+
+    expect(buildMatchLog(events, 0, new Map(), translator("pt-BR"))).toHaveLength(2);
   });
 });
 

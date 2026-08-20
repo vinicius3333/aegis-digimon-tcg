@@ -283,8 +283,11 @@ export async function retireDeadlines(
   // confrontation ended, and make the worker report the work as never done.
   for (const subjectId of subjectIds)
     await db.query(
+      // `id` is a uuid column, so the exception parameter is cast to uuid on BOTH sides of the
+        // guard: casting it to text made Postgres compare uuid <> text and reject the statement
+        // (pg-mem accepts the untyped comparison, which is why only the real-Postgres lane sees it).
       `UPDATE tournament_deadlines SET executed_at=$1, result=$2, lease_expires_at=NULL
-        WHERE subject_id=$3 AND executed_at IS NULL AND ($4::text IS NULL OR id <> $4)`,
+        WHERE subject_id=$3 AND executed_at IS NULL AND ($4::uuid IS NULL OR id <> $4::uuid)`,
       [at, result, subjectId, exceptId ?? null],
     );
 }

@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",
@@ -22,7 +22,7 @@ const compiled: CompiledCard = {
           },
           "duration": "forTheTurn",
           "condition": {
-            "kind": "raw",
+            "kind": "combinedTrashCount", "op": "gte", "value": 20,
             "raw": "the total number of cards in both players' trashes is 20 or more"
           }
         }

@@ -14,7 +14,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - [Main] PlayWithoutCost: corrected target filter from name:"Fanglongmon" (wrong prop) to
 //   nameOrTrait with match:"name" and tokens:["Fanglongmon"] (substring match).
 // - [Security] Return: zone:"trash" was already present in the original — preserved.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",

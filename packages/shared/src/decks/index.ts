@@ -1,4 +1,5 @@
-import { CARD_POOL_CUTOFF_DATE, isCardInActivePool, releaseDateForSet } from "../cards/cardPool.js";
+import { releaseDateForSet } from "../cards/cardPool.js";
+import { isBanned } from "../banlist.js";
 import { getCardDefinition } from "../cards/registry.js";
 import { catalogDeck, type CatalogFile } from "./catalogSchema.js";
 import bt4Catalog from "./data/bt4.json" with { type: "json" };
@@ -46,8 +47,6 @@ import { BT9_DECKS } from "./bt9.js";
 import { BT10_DECKS } from "./bt10.js";
 import { ADDITIONAL_COLLECTION_DECKS } from "./additionalCollections.js";
 import type { FamousDeck } from "./types.js";
-
-export type FamousDeckCutoffDate = `${number}-${number}-${number}`;
 
 /** Hand-authored recipes that predate the stored catalog format. */
 export const VALIDATED_FAMOUS_DECKS: readonly FamousDeck[] = Object.freeze([
@@ -130,16 +129,14 @@ export function famousDeckById(
   return decks.find((deck) => deck.deckId === deckId);
 }
 
-/** A deck is exposed only when every card exists and belongs to the requested pool. */
-export function isFamousDeckAvailable(
-  deck: FamousDeck,
-  cutoffDate: FamousDeckCutoffDate = CARD_POOL_CUTOFF_DATE,
-): boolean {
-  const formatReleaseDate = releaseDateForSet(deck.anchorProduct ?? deck.block);
-  if (formatReleaseDate && formatReleaseDate > cutoffDate) return false;
+/**
+ * A deck is exposed only when every card exists and is still legal. A recipe built around a
+ * card the current banlist forbids outright cannot be adapted by trimming copies, so it is
+ * withheld rather than offered as an unplayable preset.
+ */
+export function isFamousDeckAvailable(deck: FamousDeck): boolean {
   return [...deck.decklist.mainDeck, ...deck.decklist.eggDeck].every((cardId) => {
-    const definition = getCardDefinition(cardId);
-    return definition !== undefined && isCardInActivePool(definition, cutoffDate);
+    return getCardDefinition(cardId) !== undefined && !isBanned(cardId);
   });
 }
 
@@ -149,13 +146,10 @@ export interface FamousDeckGroup {
 }
 
 /** Available deck recipes grouped from the most recent format collection to the oldest. */
-export function famousDeckGroups(
-  decks: readonly FamousDeck[] = ALL_FAMOUS_DECKS,
-  cutoffDate: FamousDeckCutoffDate = CARD_POOL_CUTOFF_DATE,
-): FamousDeckGroup[] {
+export function famousDeckGroups(decks: readonly FamousDeck[] = ALL_FAMOUS_DECKS): FamousDeckGroup[] {
   const byCollection = new Map<string, FamousDeck[]>();
   for (const deck of decks) {
-    if (!isFamousDeckAvailable(deck, cutoffDate)) continue;
+    if (!isFamousDeckAvailable(deck)) continue;
     byCollection.set(deck.block, [...(byCollection.get(deck.block) ?? []), deck]);
   }
   return [...byCollection.entries()]

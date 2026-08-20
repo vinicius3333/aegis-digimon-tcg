@@ -16,7 +16,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    phase. Correct encoding: Restrict all opponent Digimon from unsuspending until their next
 //    unsuspend phase (duration: opponentNextUnsuspendPhase).
 // 2. Target for the restriction must be opponent's Digimon (not mine).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Counter",
@@ -148,10 +148,8 @@ const compiled: CompiledCard = {
       ]
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "Restrict duration 'untilOpponentNextUnsuspendPhase' may not be a supported duration value in the interpreter — needs new capability"
-  ]
+  "coverage": "full",
+  "residual": []
 };
 
 registerIrCard("EX5-041", compiled);

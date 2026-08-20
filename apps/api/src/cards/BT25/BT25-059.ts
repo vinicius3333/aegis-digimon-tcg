@@ -24,7 +24,7 @@ const compiled: CompiledCard = {
               "amount": 5,
               "raw": "reduce the cost by 5",
               "condition": {
-                "kind": "raw",
+                "kind": "permanentCount", "filter": {"suspended": true, "kind": ["Digimon"]}, "op": "gte", "value": 2,
                 "raw": "there are 2 or more suspended Digimon"
               }
             }

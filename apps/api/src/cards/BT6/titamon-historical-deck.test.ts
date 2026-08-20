@@ -71,9 +71,9 @@ describe("BT6 Titamon historical deck gauntlet", () => {
       ) &&
       s.state.players[0]!.hand.length === 3 &&
       s.state.memory === 2 &&
-      s.state.pendingDecision === undefined
-    );
-    await settle(() => false, 100);
+      s.state.pendingDecision === undefined,
+    5000);
+    await settle(() => false, 1000);
     await s.engine.recomputeContinuousEffects();
 
     const promote = s.state.players[0]!.battleArea.find(({ topCard }) =>
@@ -92,7 +92,7 @@ describe("BT6 Titamon historical deck gauntlet", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 3 && !observe(s.engine).isAttacking());
+    await settle(() => s.state.players[1]!.security.length === 3 && !observe(s.engine).isAttacking(), 5000);
 
     expect(s.state.players[1]!.security).toHaveLength(3);
     assertNoLoudGap(s);

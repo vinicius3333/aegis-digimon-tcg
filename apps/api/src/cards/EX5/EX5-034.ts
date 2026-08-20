@@ -11,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q3600: security total = sum of both players' security cards
 // Fix: the "you may" applies to the whole package (choose a target and apply BOTH effects
 //   together). Use a single optional compound action binding the target once.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
@@ -88,8 +88,8 @@ const compiled: CompiledCard = {
           },
           "actions": [
             {
-              "kind": "ChooseTarget",
-              "chooser": "mine",
+              "kind": "SelectBind",
+              "chooser": "controller",
               "target": {
                 "filter": {
                   "controller": "opponent",

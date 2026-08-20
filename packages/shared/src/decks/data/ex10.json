@@ -874,13 +874,14 @@
     },
     {
       "id": "ex10-dgo-2025-10-25-1-growlmon",
-      "revision": 1,
+      "revision": 2,
       "name": "EX10 Growlmon",
       "archetype": "Growlmon",
       "collection": "EX10",
       "formatBlock": "EX10",
       "colors": ["Red", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Cerberusmon (X Antibody) EX5-061 to 1; the freed copies reinforce Cerberusmon BT16-075 to 4, Arresterdramon: Superior Mode BT21-072 to 3.",
       "tournament": {
         "name": "Regionals — TAK Games",
         "date": "2025-10-25",
@@ -938,19 +939,19 @@
         {
           "cardId": "BT16-075",
           "name": "Cerberusmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "EX5-061",
           "name": "Cerberusmon (X Antibody)",
-          "qty": 3,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT21-072",
           "name": "Arresterdramon: Superior Mode",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {

@@ -42,7 +42,7 @@ describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP",
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const p0 = s.state.players[0];
+    const _p0 = s.state.players[0];
 
     const bulkmonPerm = s.perm("bulkmonPerm");
     const soloogarmonInst = s.inst("soloogarmonInst");

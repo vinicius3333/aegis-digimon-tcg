@@ -97,7 +97,7 @@ const module: EffectModule = {
             "is deleted, ＜Delay＞. • You may play 1 Digimon card with the [Seven Great Demon " +
             "Lords] trait from the digivolution cards of your [Gate of Deadly Sins] in the " +
             "breeding area without paying the cost.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

@@ -9,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [inherited] [Your Turn] All of your opponent's Security Digimon get -3000 DP.
 // Q4782: All 3 cards must be placed; partial cost cannot be met.
 // Note: The cost already encodes faceDown/position/host correctly via place cost fields.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "EndOfYourTurn",

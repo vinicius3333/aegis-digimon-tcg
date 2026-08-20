@@ -27,7 +27,9 @@ const compiled: CompiledCard = {
             "kind": "trash",
             "target": {
               "filter": {
-                "controller": "mine"
+                "controller": "mine",
+                "zone": "security",
+                "position": "top"
               },
               "count": 1
             },
@@ -79,7 +81,9 @@ const compiled: CompiledCard = {
             "kind": "trash",
             "target": {
               "filter": {
-                "controller": "mine"
+                "controller": "mine",
+                "zone": "security",
+                "position": "top"
               },
               "count": 1
             },

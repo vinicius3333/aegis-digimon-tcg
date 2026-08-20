@@ -206,7 +206,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/piercing`,
           description: "＜Piercing＞",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {
@@ -218,7 +218,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/vortex`,
           description: "＜Vortex＞",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {

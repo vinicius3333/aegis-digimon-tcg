@@ -61,7 +61,7 @@ const compiled: CompiledCard = {
           "controller": "mine",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectActed",
             "raw": "this effect placed"
           }
         },
@@ -69,8 +69,10 @@ const compiled: CompiledCard = {
           "kind": "GainMemory",
           "amount": 2,
           "condition": {
-            "kind": "raw",
-            "raw": "there are 4 or more [Hybrid] trait cards under this Tamer"
+            "kind": "selfDigivolutionStackCountAtLeast",
+            "count": 4,
+            "filter": { "nameOrTrait": [{ "tokens": ["Hybrid"], "match": "trait" }] },
+            "raw": "if there are 4 or more [Hybrid] trait cards under this Tamer, gain 2 memory"
           }
         }
       ]
@@ -113,7 +115,7 @@ const compiled: CompiledCard = {
           "controller": "mine",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectActed",
             "raw": "this effect placed"
           }
         },
@@ -121,8 +123,10 @@ const compiled: CompiledCard = {
           "kind": "GainMemory",
           "amount": 2,
           "condition": {
-            "kind": "raw",
-            "raw": "there are 4 or more [Hybrid] trait cards under this Tamer"
+            "kind": "selfDigivolutionStackCountAtLeast",
+            "count": 4,
+            "filter": { "nameOrTrait": [{ "tokens": ["Hybrid"], "match": "trait" }] },
+            "raw": "if there are 4 or more [Hybrid] trait cards under this Tamer, gain 2 memory"
           }
         }
       ]
@@ -146,7 +150,7 @@ const compiled: CompiledCard = {
           },
           "duration": "forTheAttack",
           "cost": {
-            "kind": "raw",
+            "kind": "attack",
             "raw": "By attacking with this Digimon with the [Hybrid] or [Ten Warriors] trait"
           },
           "optional": true,

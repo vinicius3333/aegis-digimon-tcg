@@ -8,16 +8,16 @@ describe("BT22-035 Entermon", () => {
       const effect = compiled.effects.find((entry) => entry.trigger === trigger);
       expect(effect?.actions[0]).toMatchObject({
         kind: "Link",
-        source: {
+        target: {
           filter: {
             controller: "mine",
             kind: ["Digimon"],
             levelComparison: { op: "lte", value: 4 },
             hasLinkRequirement: true,
           },
-          from: ["hand", "digivolutionCards"],
+          count: 1,
         },
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        from: ["hand", "digivolutionCards"],
         payCost: false,
         optional: true,
       });

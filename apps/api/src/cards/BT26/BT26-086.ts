@@ -26,9 +26,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 //   opponent's Digimon. Then, if this Digimon has 7 link cards, return your opponent's top
 //   security card to the bottom of the deck.
 //
-// RESIDUAL — [Assembly -7]: the Assembly play mode reads its recipe from the compiled
-//   `effects.json` record, and no BT26 card has one (BT26-083/BT26-085 are left the same
-//   way). A hand-written module cannot supply an Assembly recipe; port once BT26 is compiled.
+// The [Assembly -7] recipe is supplied by the shared hand-authored
+// `ASSEMBLY_REQUIREMENT_OVERRIDES` table because BT26's effect modules are hand-written.
 //
 // "with different names" is enforced by offering at most ONE stacked card per printed name:
 //   the printed clause caps the SELECTION, and de-duplicating the candidate list is the only

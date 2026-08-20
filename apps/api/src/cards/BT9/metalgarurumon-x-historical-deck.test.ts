@@ -99,8 +99,9 @@ describe("BT9 MetalGarurumon X historical deck gauntlet", () => {
     await settle(() =>
       !s.perm("wereGarurumon").isSuspended &&
       lowestCardIds.every((id) => s.state.players[1]!.hand.some(({ instanceId }) => instanceId === id)) &&
+      observe(s.engine).hasKeyword(s.perm("wereGarurumon"), "Blocker") &&
       s.state.pendingDecision === undefined
-    );
+    , 5000);
 
     expect(s.state.memory).toBe(1);
     expect(observe(s.engine).hasKeyword(s.perm("wereGarurumon"), "Blocker")).toBe(true);

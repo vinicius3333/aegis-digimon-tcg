@@ -62,7 +62,7 @@ function makeContext(opts: {
   definitionOf?: (id: string) => CardDefinition;
 }): EffectContext {
   const rec = opts.recorder;
-  const record =
+  const _record =
     (verb: string) =>
     (...args: unknown[]) => {
       rec.calls.push({ verb, args });

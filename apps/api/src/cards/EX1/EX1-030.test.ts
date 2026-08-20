@@ -9,7 +9,7 @@ describe("EX1-030 Angewomon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX1-030", as: "angewomon" }], security: ["BT1-001", "BT1-001", "BT1-001"] }, 1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }], security: ["BT1-001", "BT1-001"] } }, { autoSelectCards: true });
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("angewomon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
-    await settle(() => s.perm("target").currentDP === 2000);
+    await settle(() => s.perm("target").currentDP === 2000 && observe(s.engine).securityDp(1) === -3000, 5000);
     expect(observe(s.engine).securityDp(1)).toBe(-3000);
   });
 

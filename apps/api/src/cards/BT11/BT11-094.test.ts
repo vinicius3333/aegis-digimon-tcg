@@ -41,7 +41,7 @@ describe("BT11-094 Mirei Mikagura", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const mireiPerm = s.perm("mireiPerm");
+    const _mireiPerm = s.perm("mireiPerm");
 
     s.state.memory = 3;
     s.state.turnSeat = 0;

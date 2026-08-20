@@ -6,6 +6,7 @@ import "../BT9/BT9-109.js";
 import "../BT8/BT8-057.js";
 import "./BT1-108.js";
 import "./BT1-109.js";
+import "../index.js"; // the full catalog is registered in a real match
 
 describe("BT1-109 Smashed Potatoes", () => {
   it("Q978 floors the next green level-5-to-6 digivolution cost at zero", async () => {
@@ -121,7 +122,10 @@ describe("BT1-109 Smashed Potatoes", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("attacker").topCard.cardId === "BT9-055");
 
-    expect(s.state.memory).toBe(4);
+    // 4 before the attack, +3 from Digitamamon's own [When Attacking] gain, and NOTHING for the
+    // digivolution itself — that free digivolve is the reduction under test (an unreduced cost
+    // would show up as a lower total here).
+    expect(s.state.memory).toBe(7);
   });
 
   it("Q1736 keeps the resolved reduction after Shivamon later prevents new Option uses", async () => {

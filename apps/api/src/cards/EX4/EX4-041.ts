@@ -10,7 +10,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   trait. Text says "If that card has the [Blue Flare] or [Twilight] trait, add it to your hand.
 //   Trash the rest." — added nameOrTrait match:"trait" with tokens ["Blue Flare","Twilight"].
 // - Inherited [All Turns] ModifyDP +1000 permanent (for each digivolution card gained) preserved.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",

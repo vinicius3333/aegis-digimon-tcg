@@ -57,12 +57,14 @@ function makeCtx(args: {
     grantKeyword: { permanentId: string; keyword: string; duration: EffectDuration }[];
     returnToDeck: { ids: string[]; toTop?: boolean }[];
     digivolve: { target: string; source: string; payCost?: boolean }[];
+    movePermanentZone: { permanentId: string; direction: "toBreeding" | "toBattle" }[];
   };
 } {
   const calls = {
     grantKeyword: [] as { permanentId: string; keyword: string; duration: EffectDuration }[],
     returnToDeck: [] as { ids: string[]; toTop?: boolean }[],
     digivolve: [] as { target: string; source: string; payCost?: boolean }[],
+    movePermanentZone: [] as { permanentId: string; direction: "toBreeding" | "toBattle" }[],
   };
   let optIdx = 0;
   let selIdx = 0;
@@ -87,6 +89,10 @@ function makeCtx(args: {
       digivolveFromInstance: async (target: string, src: string, o?: { payCost?: boolean }) => {
         calls.digivolve.push({ target, source: src, payCost: o?.payCost });
         return undefined;
+      },
+      movePermanentZone: async (permanentId: string, direction: "toBreeding" | "toBattle") => {
+        calls.movePermanentZone.push({ permanentId, direction });
+        return true;
       },
     },
     ask: {
@@ -143,15 +149,14 @@ describe("EX10-013 Lucemon", () => {
     }
   });
 
-  it("offers [When Digivolving] may-move only in the breeding area, and is inert (blocked)", async () => {
+  it("moves the breeding permanent to battle when the optional effect is accepted", async () => {
     const effBattle = onlyEffect(EffectTiming.WhenDigivolving, makeSource(selfPermanent()));
     expect(effBattle.optional).toBe(true);
     // canActivate is false on a battle-area permanent (the move only applies in breeding).
     const battleCtx = makeCtx({ source: makeSource(selfPermanent()), trash: [] }).ctx;
     expect(effBattle.canActivate(battleCtx)).toBe(false);
 
-    // In the breeding area canActivate is true, but resolve is an inert no-op (blocked):
-    // no move primitive exists. It must not throw and must not call any fx verb.
+    // In the breeding area the effect is offered and calls the identity-preserving move seam.
     const breedingPerm = selfPermanent({ inBreeding: true });
     const source = makeSource(breedingPerm);
     const effBreeding = onlyEffect(EffectTiming.WhenDigivolving, source);
@@ -161,6 +166,7 @@ describe("EX10-013 Lucemon", () => {
     expect(calls.grantKeyword).toHaveLength(0);
     expect(calls.returnToDeck).toHaveLength(0);
     expect(calls.digivolve).toHaveLength(0);
+    expect(calls.movePermanentZone).toEqual([{ permanentId: "p-self", direction: "toBattle" }]);
   });
 
   it("[End of Your Turn]: requires >=5 [Lucemon]-text cards AND a legal Chaos Mode in trash", () => {

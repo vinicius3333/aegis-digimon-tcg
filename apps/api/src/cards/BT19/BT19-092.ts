@@ -27,6 +27,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "to": "deckBottom",
+          "bindResultAs": "upgraded",
           "cost": {
             "kind": "return",
             "target": {
@@ -63,7 +64,8 @@ const compiled: CompiledCard = {
           },
           "to": "deckBottom",
           "condition": {
-            "kind": "raw",
+            "kind": "bindingEmpty",
+            "ref": "upgraded",
             "raw": "the upgraded return was not used"
           }
         }

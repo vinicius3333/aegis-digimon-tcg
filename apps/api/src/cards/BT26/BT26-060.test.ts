@@ -95,15 +95,15 @@ function makeHarness(options: {
   const deleted: string[][] = [];
   const installs: SubTriggerInstall[] = [];
   const fx = {
-    returnToDeck: vi.fn(async (ids: string[], opts: unknown) => {
+    returnToDeck: vi.fn<(...args: any[]) => any>(async (ids: string[], opts: unknown) => {
       returned.push({ ids, opts });
       return [];
     }),
-    deletePermanent: vi.fn(async (ids: string[]) => {
+    deletePermanent: vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
       deleted.push(ids);
       return ids.length;
     }),
-    subscribeSubTrigger: vi.fn((sub: SubTriggerInstall) => {
+    subscribeSubTrigger: vi.fn<(...args: any[]) => any>((sub: SubTriggerInstall) => {
       installs.push(sub);
       return installs.length;
     }),
@@ -111,14 +111,14 @@ function makeHarness(options: {
 
   const offered: string[][] = [];
   const ask = {
-    chooseTargets: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => {
+    chooseTargets: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => {
       offered.push(opts.candidates);
       return options.pick ? options.pick(opts.candidates) : [opts.candidates[0]!];
     }),
     ...(options.order === undefined
       ? {}
       : {
-          orderCards: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => options.order!(opts.candidates)),
+          orderCards: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => options.order!(opts.candidates)),
         }),
   } as unknown as EffectContext["ask"];
 

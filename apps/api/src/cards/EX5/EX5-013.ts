@@ -16,7 +16,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 1. The cost filter must be OR logic: [Deva] trait OR 6000 DP or less.
 //    The old IR used AND logic (both conditions).
 // 2. The cost filter must allow any Digimon (not just mine): controller restriction removed.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Counter",

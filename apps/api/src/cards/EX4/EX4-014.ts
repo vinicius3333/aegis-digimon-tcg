@@ -13,7 +13,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Fixes:
 //   - Remove controllerDefault "mine" — both players' plays count
 //   - Add second SubTrigger for [Twilight] trait play → return from trash
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "YourTurn",

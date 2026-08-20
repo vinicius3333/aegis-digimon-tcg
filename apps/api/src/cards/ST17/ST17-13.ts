@@ -1,9 +1,10 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, isDigimon } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { security, whenDigivolving } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
+import { canDigivolveOnto } from "../../engine/cards/cardData.js";
 
 /**
  * ST17-13 — Magnamon (ST17, Yellow/White Lv.6 Digimon).
@@ -71,9 +72,7 @@ const module: EffectModule = {
                 max: 1,
               });
               if (picks.length > 0) {
-                const targetPerm = opponent.battleArea.find(
-                  (p) => p.topCard.instanceId === picks[0],
-                );
+                const targetPerm = opponent.battleArea.find((p) => p.topCard.instanceId === picks[0]);
                 if (targetPerm !== undefined) {
                   const def = ctx.game.definitionOf(targetPerm.topCard);
                   const colorCount = def.colors.length;
@@ -82,11 +81,9 @@ const module: EffectModule = {
                     // Trash the top `colorCount` digi-cards from the target.
                     const stackIds = targetPerm.stack.map((c) => c.instanceId);
                     const toTrash = stackIds.slice(stackIds.length - colorCount);
-                    await ctx.fx.trashDigivolutionCards(
-                      targetPerm.permanentId,
-                      toTrash,
-                      { byEffectSeat: source.ownerSeat },
-                    );
+                    await ctx.fx.trashDigivolutionCards(targetPerm.permanentId, toTrash, {
+                      byEffectSeat: source.ownerSeat,
+                    });
                   }
                 }
               }
@@ -147,7 +144,37 @@ const module: EffectModule = {
                 }
               }
             }
-            // Residual: "At end of battle digivolve into this card" not implemented.
+            ctx.fx.subscribeSubTrigger({
+              event: "whenSecurityBattleEnded",
+              sourceInstanceId: source.instanceId,
+              once: true,
+              description: `${cardId}: at end of security battle, may digivolve into this card`,
+              run: async (subCtx) => {
+                const selfDef = subCtx.game.definitionOf({ cardId: source.cardId } as never);
+                const candidates = subCtx.game.player(source.ownerSeat).battleArea.filter((permanent) => {
+                  if (permanent.inBreeding || permanent.topCard === undefined) return false;
+                  const baseDef = subCtx.game.definitionOf(permanent.topCard);
+                  return isDigimon(baseDef) && canDigivolveOnto(selfDef, baseDef);
+                });
+                if (candidates.length === 0) return;
+                if (
+                  !(await subCtx.ask.optional(
+                    subCtx,
+                    "At the end of the security battle, digivolve one of your Digimon into this card without paying the cost?",
+                  ))
+                )
+                  return;
+                const chosen = await subCtx.ask.chooseTargets(subCtx, {
+                  candidates: candidates.map((permanent) => permanent.permanentId),
+                  min: 1,
+                  max: 1,
+                });
+                const targetId = chosen[0];
+                if (targetId !== undefined) {
+                  await subCtx.fx.digivolveFromInstance(targetId, source.instanceId, { payCost: false });
+                }
+              },
+            });
           },
         }),
       );

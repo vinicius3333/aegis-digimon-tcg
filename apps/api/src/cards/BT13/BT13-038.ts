@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "WhenAttacking",
@@ -31,7 +31,9 @@ const compiled: CompiledCard = {
             "kind": "trash",
             "target": {
               "filter": {
-                "controller": "mine"
+                "controller": "mine",
+                "zone": "security",
+                "position": "top"
               },
               "count": 1
             },
@@ -59,7 +61,9 @@ const compiled: CompiledCard = {
           "amount": -2000,
           "duration": "forTheTurn",
           "condition": {
-            "kind": "raw",
+            "kind": "totalSecurityCount",
+            "op": "lte",
+            "value": 6,
             "raw": "there're 6 or fewer total cards in both players' security stacks"
           }
         }

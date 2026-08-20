@@ -1,10 +1,7 @@
 import { createServer, type Server } from "node:http";
 import express from "express";
 import { afterEach, describe, expect, it } from "vitest";
-import {
-  createDeploymentRuntime,
-  installDeploymentRoutes,
-} from "./runtime.js";
+import { createDeploymentRuntime, installDeploymentRoutes } from "./runtime.js";
 
 const ADMIN_TOKEN = "test-deployment-admin-token";
 
@@ -46,10 +43,12 @@ async function startHarness({ acceptingNewRooms = true } = {}): Promise<Harness>
   return {
     baseUrl: `http://127.0.0.1:${address.port}`,
     close: async () => {
-      await new Promise<void>((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
+      await new Promise<void>((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
     },
     counts,
-    setReady(value) { ready = value; },
+    setReady(value) {
+      ready = value;
+    },
   };
 }
 
@@ -61,10 +60,15 @@ async function adminPost(baseUrl: string, path: string, token = ADMIN_TOKEN): Pr
 }
 
 afterEach(async () => {
-  await Promise.all(openServers.splice(0).map((server) => new Promise<void>((resolve) => {
-    if (!server.listening) return resolve();
-    server.close(() => resolve());
-  })));
+  await Promise.all(
+    openServers.splice(0).map(
+      (server) =>
+        new Promise<void>((resolve) => {
+          if (!server.listening) return resolve();
+          server.close(() => resolve());
+        }),
+    ),
+  );
 });
 
 describe("deployment HTTP contract", () => {
@@ -144,5 +148,29 @@ describe("deployment HTTP contract", () => {
     expect((await fetch(`${harness.baseUrl}/ready`)).status).toBe(200);
 
     await harness.close();
+  });
+
+  it("tells the slot's other processes to drain, and follows what they say", () => {
+    const broadcasts: boolean[] = [];
+    const runtime = createDeploymentRuntime({
+      slot: "blue",
+      revision: "abc123",
+      adminToken: "token",
+      activeRooms: () => 0,
+      connectedClients: () => 0,
+      readiness: () => Promise.resolve(true),
+      broadcastAcceptingNewRooms: (accepting) => void broadcasts.push(accepting),
+    });
+
+    runtime.drain();
+    runtime.activate();
+    expect(broadcasts).toEqual([false, true]);
+
+    // A sibling drained the slot: this process must stop taking new rooms without being
+    // asked directly, and without echoing the decision back around the cluster.
+    runtime.applyAcceptingNewRooms(false);
+    expect(runtime.allowMatchmaking("joinOrCreate")).toBe(false);
+    expect(runtime.allowMatchmaking("reconnect")).toBe(true);
+    expect(broadcasts).toEqual([false, true]);
   });
 });

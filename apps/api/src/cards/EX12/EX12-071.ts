@@ -97,7 +97,7 @@ const module: EffectModule = {
             "[All Turns] ＜Delay＞ When one of your [SW] trait Digimon is played, you may " +
             "digivolve 1 of your Digimon into a [Saneiketsu] trait Digimon from your hand " +
             "without paying the cost.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

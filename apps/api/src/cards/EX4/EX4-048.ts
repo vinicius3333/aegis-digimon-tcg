@@ -6,7 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 1. [WhenDigivolving] Delete target: opponent Digimon with play cost >= 13.
 // 2. [EndOfYourTurn] Digivolve into: Gaiomon card in hand with play cost >= 13.
 // Q&A Q3492: "(Rule) Name: Also treated as having [Greymon]" semantics.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",

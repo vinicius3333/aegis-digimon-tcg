@@ -53,13 +53,16 @@ describe("BT10-032 Renamon", () => {
     await settle(() => s.perm("target").currentDP === 3000);
     expect(s.perm("target").currentDP).toBe(3000);
 
+    // Resolve the alias ONCE: a card in flight between zones is momentarily in none of
+    // them, and `inst` throws when it polls at exactly that moment.
+    const secondOptionId = s.inst("secondOption").instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "playCard",
-        instanceId: s.inst("secondOption").instanceId,
+        instanceId: secondOptionId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("secondOption").instanceId));
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === secondOptionId), 5000);
     expect(s.perm("target").currentDP).toBe(3000);
   });
 

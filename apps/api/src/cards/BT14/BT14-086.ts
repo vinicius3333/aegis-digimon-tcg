@@ -104,7 +104,7 @@ const compiled: CompiledCard = {
             }
           },
           "while": {
-            "kind": "raw",
+            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens":["Numemon"],"match":"name"},{"tokens":["Monzaemon"],"match":"name"},{"tokens":["DigiPolice"],"match":"trait"}]},
             "raw": "this Digimon has [Numemon] or [Monzaemon] in its name or [DigiPolice] trait"
           }
         },
@@ -144,7 +144,7 @@ const compiled: CompiledCard = {
             }
           },
           "while": {
-            "kind": "raw",
+            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens":["Numemon"],"match":"name"},{"tokens":["Monzaemon"],"match":"name"},{"tokens":["DigiPolice"],"match":"trait"}]},
             "raw": "this Digimon has [Numemon] or [Monzaemon] in its name or [DigiPolice] trait"
           }
         }
@@ -201,4 +201,5 @@ const compiled: CompiledCard = {
   "residual": []
 };
 
+export { compiled };
 registerIrCard("BT14-086", compiled);

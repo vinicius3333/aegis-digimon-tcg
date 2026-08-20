@@ -20,7 +20,7 @@ const module: EffectModule = {
             "opponent's security stack, <Draw 1>.",
           isInherited: true,
           maxPerTurn: 1,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
@@ -35,7 +35,7 @@ const module: EffectModule = {
                 return subCtx.source.isOnBattleArea() && subCtx.source.isOwnersTurn();
               },
               run: async (subCtx) => {
-                subCtx.fx.draw(source.ownerSeat, 1);
+                await subCtx.fx.draw(source.ownerSeat, 1);
               },
             });
           },

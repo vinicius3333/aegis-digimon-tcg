@@ -93,7 +93,8 @@ describe("whenUnsuspended SubTrigger fires at every unsuspend seam", () => {
   });
 
   it("turn-start seam: BT11-032 returns an opponent's level<=3 Digimon when the Active-phase unsuspend flips it", async () => {
-    const s = setup();
+    // The bounce asks which opponent Digimon to return, so the harness answers for the seat.
+    const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
 
@@ -105,7 +106,7 @@ describe("whenUnsuspended SubTrigger fires at every unsuspend seam", () => {
     await recomputeContinuous(s); // install BT11-032's "[Your Turn] when this becomes unsuspended" watcher
 
     await unsuspendForActivePhase(s, 0);
-    await settle(() => !p1.battleArea.includes(foe));
+    await settle(() => !p1.battleArea.includes(foe), 5000);
 
     expect(target.isSuspended).toBe(false);
     expect(p1.battleArea.includes(foe)).toBe(false);

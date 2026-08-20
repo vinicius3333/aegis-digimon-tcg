@@ -3,7 +3,7 @@
 // OnDeletion PlaceUnder: added optional:true (Q&A confirms "you don't have to place").
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",
@@ -23,6 +23,7 @@ const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "mine",
+              "zone": "hand",
               "kind": [
                 "Digimon"
               ],
@@ -37,8 +38,10 @@ const compiled: CompiledCard = {
             },
             "count": 1
           },
+          "from": ["hand"],
           "underFilter": {
             "controller": "mine",
+            "zone": "breedingArea",
             "nameOrTrait": [
               {
                 "tokens": [

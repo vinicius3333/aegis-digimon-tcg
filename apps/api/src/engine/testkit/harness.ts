@@ -458,6 +458,12 @@ function findInstanceById(state: GameState, instanceId: string): CardInstance | 
  * many ticks a flow costs — so it is set generously. It was raised from 200 when combat
  * suspension gained its `whenSuspended` fire (each fire trails a continuous recompute), which
  * pushed the attack flow past the old bound and failed several tests that were in fact correct.
+ *
+ * Do NOT floor or globally raise per-call `maxTicks`: under `autoSelectCards` a longer drain
+ * auto-answers decisions it reaches, so a predicate-less settle's observed state genuinely
+ * depends on its tick budget. When a legitimate change makes flows cost more ticks (the
+ * per-family action dispatch added one promise hop per action), raise the budgets of the
+ * specific tests that outgrew theirs.
  */
 export async function settle(predicate: () => boolean = () => false, maxTicks = 500): Promise<void> {
   for (let i = 0; i < maxTicks && !predicate(); i++) {

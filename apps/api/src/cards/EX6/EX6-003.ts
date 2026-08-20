@@ -8,7 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Fix: use excludeNameOrTrait:{tokens:["Fallen Angel"], match:"trait"} on the placeAsSecurity
 // source filter. The engine's definitionMatches (interpreter.ts:226) checks excludeNameOrTrait
 // and returns false for any card matching the exclusion.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "WhenAttacking",

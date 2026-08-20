@@ -18,7 +18,7 @@ const compiled: CompiledCard = {
               "kind": "GainMemory",
               "amount": 1,
               "condition": {
-                "kind": "raw",
+                "kind": "selfColorCount", "value": 2,
                 "raw": "this Digimon has 2 or more colors"
               }
             }
@@ -34,3 +34,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT16-004", compiled);
+export { compiled };

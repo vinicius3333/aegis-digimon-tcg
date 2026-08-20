@@ -126,7 +126,7 @@ const module: EffectModule = {
             "[All Turns] When face-down cards are placed in any of your Digimon's " +
             "digivolution cards, <Delay> - Any of those Digimon may digivolve into a " +
             "level 6 or lower [DM] trait Digimon card in the hand without paying the cost.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
             if (self === undefined) return;

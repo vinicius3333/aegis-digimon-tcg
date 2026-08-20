@@ -105,7 +105,7 @@ const compiled: CompiledCard = {
             "isSelf": true
           },
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectDigivolved",
             "raw": "digivolved by this effect"
           }
         }
@@ -152,3 +152,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT17-022", compiled);
+export { compiled };

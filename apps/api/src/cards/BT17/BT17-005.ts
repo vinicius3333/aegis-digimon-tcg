@@ -14,7 +14,8 @@ const compiled: CompiledCard = {
           "kind": "GainMemory",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "selfHasTrait",
+            "filter": { "nameOrTrait": [{ "tokens": ["Unidentified"], "match": "trait" }] },
             "raw": "this Digimon had the [Unidentified] trait"
           }
         }
@@ -27,3 +28,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT17-005", compiled);
+export { compiled };

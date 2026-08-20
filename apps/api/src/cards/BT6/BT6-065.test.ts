@@ -19,7 +19,7 @@ describe("BT6-065 Gundramon", () => {
       1: { battleArea: [{ card: "BT6-030", as: "target" }] },
     }, { autoSelectCards: true, autoAcceptOptional: true });
     s.state.memory = 0;
-    const targetInstanceId = s.perm("target").topCard!.instanceId;
+    const _targetInstanceId = s.perm("target").topCard!.instanceId;
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("gundramon"));

@@ -1,8 +1,25 @@
 import { randomBytes } from "node:crypto";
-import { cardPoolLabel, isDigimonWorldAvatarId, type BanlistPolicy, type CreateTournamentInput, type SeriesScoreView, type TournamentSummary, type TournamentView } from "@aegis/shared";
+import {
+  latestReleasedProductLabel,
+  isDigimonWorldAvatarId,
+  type BanlistPolicy,
+  type CreateTournamentInput,
+  type SeriesScoreView,
+  type TournamentSummary,
+  type TournamentView,
+} from "@aegis/shared";
 import type { Express, NextFunction, Request, Response } from "express";
-import { defaultBanlistPolicy, LEGACY_DEFAULT_PRESET_ID, validateCreateTournament } from "../tournaments/rules/index.js";
-import { ParticipantStore, WindowOrderError, type ParticipantFailure, type TournamentWindows } from "../tournaments/participants/index.js";
+import {
+  defaultBanlistPolicy,
+  LEGACY_DEFAULT_PRESET_ID,
+  validateCreateTournament,
+} from "../tournaments/rules/index.js";
+import {
+  ParticipantStore,
+  WindowOrderError,
+  type ParticipantFailure,
+  type TournamentWindows,
+} from "../tournaments/participants/index.js";
 import { matchClockContext, SeriesStore, type SeriesFailure } from "../tournaments/series/index.js";
 import { seriesDurationFor } from "../tournaments/rules/clocks.js";
 import { SwissProgram } from "../tournaments/swiss/index.js";
@@ -14,7 +31,15 @@ import { openEliminationEvent } from "../tournaments/lifecycle/openEliminationEv
 import { TopCutProgram } from "../tournaments/topcut/index.js";
 import { tokenBucketLimiter, type TokenBucketOptions } from "../http/rateLimit.js";
 import { TOURNAMENT_RULES_PRESETS, type TournamentRulesPreset } from "../tournaments/rules/index.js";
-import { AccountStore, DeckLimitError, DisplayNameTakenError, InvalidDisplayNameError, MAX_SAVED_DECKS, type AuthSession, type Tournament } from "./AccountStore.js";
+import {
+  AccountStore,
+  DeckLimitError,
+  DisplayNameTakenError,
+  InvalidDisplayNameError,
+  MAX_SAVED_DECKS,
+  type AuthSession,
+  type Tournament,
+} from "./AccountStore.js";
 
 const SESSION_COOKIE = "aegis_session";
 const DISPLAY_NAME_RATE_LIMIT: TokenBucketOptions = { capacity: 10, refillMs: 3_000 };
@@ -25,7 +50,11 @@ const NOT_FOUND_FAILURES: readonly ParticipantFailure[] = ["tournament_not_found
 // Same split for the series module: what does not exist is a 404, what the caller has no standing
 // to ask for is a 403, and everything else is a conflict with the confrontation's current state.
 const SERIES_NOT_FOUND_FAILURES: readonly SeriesFailure[] = ["match_not_found", "series_not_found", "game_not_found"];
-const WINDOW_KEYS = ["registrationClosesAt", "checkInOpensAt", "checkInClosesAt"] as const satisfies readonly (keyof TournamentWindows)[];
+const WINDOW_KEYS = [
+  "registrationClosesAt",
+  "checkInOpensAt",
+  "checkInClosesAt",
+] as const satisfies readonly (keyof TournamentWindows)[];
 
 export function installAccountRoutes(
   app: Express,
@@ -55,8 +84,15 @@ export function installAccountRoutes(
   const del = (path: string, handler: AsyncHandler) => app.delete(path, asyncRoute(handler));
   const limitDisplayNameChange = tokenBucketLimiter(DISPLAY_NAME_RATE_LIMIT);
   get("/auth/me", async (req, res) => res.json((await store.session(cookie(req, SESSION_COOKIE)))?.account ?? null));
-  post("/auth/logout", async (req, res) => { await store.revokeSession(cookie(req, SESSION_COOKIE)); expire(res, SESSION_COOKIE); res.sendStatus(204); });
-  post("/auth/room-ticket", async (req, res) => { const session = await requireSession(req, res, store); if (session) res.json({ ticket: await store.createRoomTicket(session.account.id) }); });
+  post("/auth/logout", async (req, res) => {
+    await store.revokeSession(cookie(req, SESSION_COOKIE));
+    expire(res, SESSION_COOKIE);
+    res.sendStatus(204);
+  });
+  post("/auth/room-ticket", async (req, res) => {
+    const session = await requireSession(req, res, store);
+    if (session) res.json({ ticket: await store.createRoomTicket(session.account.id) });
+  });
 
   post("/auth/magic-link", async (req, res) => {
     const email = typeof req.body.email === "string" ? req.body.email.trim().toLowerCase() : "";
@@ -69,55 +105,125 @@ export function installAccountRoutes(
   get("/auth/magic-link/consume", async (req, res) => {
     const token = typeof req.query.token === "string" ? req.query.token : "";
     const account = await store.consumeMagicLink(token);
-    if (!account) { res.status(400).json({ error: "invalid or expired sign-in link" }); return; }
+    if (!account) {
+      res.status(400).json({ error: "invalid or expired sign-in link" });
+      return;
+    }
     setSession(res, await store.issueSession(account));
     res.redirect(process.env.AEGIS_WEB_URL ?? "/");
   });
 
   get("/auth/discord", (_req, res) => {
-    const clientId = process.env.DISCORD_CLIENT_ID; const redirectUri = process.env.DISCORD_REDIRECT_URI;
-    if (!clientId || !redirectUri) { res.status(503).json({ error: "Discord login is not configured" }); return; }
-    const state = randomBytes(24).toString("base64url"); setCookie(res, "aegis_oauth_state", state, 600);
+    const clientId = process.env.DISCORD_CLIENT_ID;
+    const redirectUri = process.env.DISCORD_REDIRECT_URI;
+    if (!clientId || !redirectUri) {
+      res.status(503).json({ error: "Discord login is not configured" });
+      return;
+    }
+    const state = randomBytes(24).toString("base64url");
+    setCookie(res, "aegis_oauth_state", state, 600);
     const url = new URL("https://discord.com/oauth2/authorize");
-    url.search = new URLSearchParams({ client_id: clientId, redirect_uri: redirectUri, response_type: "code", scope: "identify", state }).toString();
+    url.search = new URLSearchParams({
+      client_id: clientId,
+      redirect_uri: redirectUri,
+      response_type: "code",
+      scope: "identify",
+      state,
+    }).toString();
     res.redirect(url.toString());
   });
   get("/auth/discord/callback", async (req, res) => {
     const code = typeof req.query.code === "string" ? req.query.code : "";
-    if (!code || req.query.state !== cookie(req, "aegis_oauth_state")) { res.status(400).json({ error: "invalid OAuth state" }); return; }
+    if (!code || req.query.state !== cookie(req, "aegis_oauth_state")) {
+      res.status(400).json({ error: "invalid OAuth state" });
+      return;
+    }
     expire(res, "aegis_oauth_state");
     try {
-      const token = await discordToken(code); const user = await discordUser(token);
-      const account = await store.accountForIdentity("discord", user.id, user.global_name ?? user.username, user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png` : null);
-      setSession(res, await store.issueSession(account)); res.redirect(process.env.AEGIS_WEB_URL ?? "/");
-    } catch { res.status(502).json({ error: "Discord sign-in failed" }); }
+      const token = await discordToken(code);
+      const user = await discordUser(token);
+      const account = await store.accountForIdentity(
+        "discord",
+        user.id,
+        user.global_name ?? user.username,
+        user.avatar ? `https://cdn.discordapp.com/avatars/${user.id}/${user.avatar}.png` : null,
+      );
+      setSession(res, await store.issueSession(account));
+      res.redirect(process.env.AEGIS_WEB_URL ?? "/");
+    } catch {
+      res.status(502).json({ error: "Discord sign-in failed" });
+    }
   });
 
-  get("/account/decks", async (req, res) => { const session = await requireSession(req, res, store); if (session) res.json(await store.decks(session.account.id)); });
-  put("/account/decks/:id?", async (req, res) => {
-    const session = await requireSession(req, res, store); if (!session) return;
-    const { name, mainDeck, eggDeck } = req.body as { name?: unknown; mainDeck?: unknown; eggDeck?: unknown };
-    if (typeof name !== "string" || !Array.isArray(mainDeck) || !Array.isArray(eggDeck) || !mainDeck.every((v) => typeof v === "string") || !eggDeck.every((v) => typeof v === "string")) { res.status(400).json({ error: "invalid deck" }); return; }
-    try { res.json(await store.saveDeck(session.account.id, { id: req.params.id!, name, mainDeck, eggDeck })); }
-    catch (error) { if (error instanceof DeckLimitError) { res.status(409).json({ error: "deck limit reached", limit: MAX_SAVED_DECKS }); return; } throw error; }
+  get("/account/decks", async (req, res) => {
+    const session = await requireSession(req, res, store);
+    if (session) res.json(await store.decks(session.account.id));
   });
-  del("/account/decks/:id", async (req, res) => { const session = await requireSession(req, res, store); if (session) res.sendStatus(await store.deleteDeck(session.account.id, req.params.id!) ? 204 : 404); });
-  get("/account/profile", async (req, res) => { const session = await requireSession(req, res, store); if (session) res.json({ account: session.account, ...await store.profile(session.account.id) }); });
+  put("/account/decks/:id?", async (req, res) => {
+    const session = await requireSession(req, res, store);
+    if (!session) return;
+    const { name, mainDeck, eggDeck } = req.body as { name?: unknown; mainDeck?: unknown; eggDeck?: unknown };
+    if (
+      typeof name !== "string" ||
+      !Array.isArray(mainDeck) ||
+      !Array.isArray(eggDeck) ||
+      !mainDeck.every((v) => typeof v === "string") ||
+      !eggDeck.every((v) => typeof v === "string")
+    ) {
+      res.status(400).json({ error: "invalid deck" });
+      return;
+    }
+    try {
+      res.json(await store.saveDeck(session.account.id, { id: req.params.id!, name, mainDeck, eggDeck }));
+    } catch (error) {
+      if (error instanceof DeckLimitError) {
+        res.status(409).json({ error: "deck limit reached", limit: MAX_SAVED_DECKS });
+        return;
+      }
+      throw error;
+    }
+  });
+  del("/account/decks/:id", async (req, res) => {
+    const session = await requireSession(req, res, store);
+    if (session) res.sendStatus((await store.deleteDeck(session.account.id, req.params.id!)) ? 204 : 404);
+  });
+  get("/account/profile", async (req, res) => {
+    const session = await requireSession(req, res, store);
+    if (session) res.json({ account: session.account, ...(await store.profile(session.account.id)) });
+  });
   put("/account/profile/avatar", async (req, res) => {
-    const session = await requireSession(req, res, store); if (!session) return;
+    const session = await requireSession(req, res, store);
+    if (!session) return;
     const avatarId = (req.body as { avatarId?: unknown }).avatarId;
-    if (!isDigimonWorldAvatarId(avatarId)) { res.status(400).json({ error: "invalid avatar" }); return; }
+    if (!isDigimonWorldAvatarId(avatarId)) {
+      res.status(400).json({ error: "invalid avatar" });
+      return;
+    }
     res.json(await store.updateAvatar(session.account.id, avatarId));
   });
   put("/account/profile/display-name", async (req, res) => {
-    const session = await requireSession(req, res, store); if (!session) return;
-    if (!limitDisplayNameChange(session.account.id)) { res.status(429).json({ error: "too_many_requests" }); return; }
+    const session = await requireSession(req, res, store);
+    if (!session) return;
+    if (!limitDisplayNameChange(session.account.id)) {
+      res.status(429).json({ error: "too_many_requests" });
+      return;
+    }
     const displayName = (req.body as { displayName?: unknown }).displayName;
-    if (typeof displayName !== "string") { res.status(400).json({ error: "invalid_display_name" }); return; }
-    try { res.json(await store.updateDisplayName(session.account.id, displayName)); }
-    catch (error) {
-      if (error instanceof InvalidDisplayNameError) { res.status(400).json({ error: "invalid_display_name" }); return; }
-      if (error instanceof DisplayNameTakenError) { res.status(409).json({ error: "display_name_taken" }); return; }
+    if (typeof displayName !== "string") {
+      res.status(400).json({ error: "invalid_display_name" });
+      return;
+    }
+    try {
+      res.json(await store.updateDisplayName(session.account.id, displayName));
+    } catch (error) {
+      if (error instanceof InvalidDisplayNameError) {
+        res.status(400).json({ error: "invalid_display_name" });
+        return;
+      }
+      if (error instanceof DisplayNameTakenError) {
+        res.status(409).json({ error: "display_name_taken" });
+        return;
+      }
       throw error;
     }
   });
@@ -129,12 +235,16 @@ export function installAccountRoutes(
   get("/tournaments/:id", async (req, res) => {
     const id = req.params.id!;
     const tournament = await store.tournament(id);
-    if (!tournament) { res.sendStatus(404); return; }
+    if (!tournament) {
+      res.sendStatus(404);
+      return;
+    }
     // `satisfies` rather than a cast: the shared `TournamentView` is the contract the web client
     // compiles against, so a field renamed there must fail here rather than at runtime.
     const payload = {
       ...toTournamentSummary(tournament),
-      rules: tournament.rules, banlistCards: tournament.banlistCards,
+      rules: tournament.rules,
+      banlistCards: tournament.banlistCards,
       participants: await participants.participantViews(id),
       phases: await swiss.phaseViews(id),
       // The FROZEN standings once the cut has been drawn from them, the live Swiss projection
@@ -152,69 +262,139 @@ export function installAccountRoutes(
     res.json(payload);
   });
   post("/tournaments", async (req, res) => {
-    const session = await requireSession(req, res, store); if (!session) return;
-    if (!session.account.isAdmin) { res.status(403).json({ error: "admin_required" }); return; }
+    const session = await requireSession(req, res, store);
+    if (!session) return;
+    if (!session.account.isAdmin) {
+      res.status(403).json({ error: "admin_required" });
+      return;
+    }
     const parsed = parseCreateTournament(req.body as Record<string, unknown>);
-    if (!parsed) { res.status(400).json({ error: "invalid tournament" }); return; }
+    if (!parsed) {
+      res.status(400).json({ error: "invalid tournament" });
+      return;
+    }
     const validated = validateCreateTournament(parsed.input, Date.now());
-    if (!validated.ok) { res.status(400).json({ error: "invalid tournament", reasons: validated.errors }); return; }
+    if (!validated.ok) {
+      res.status(400).json({ error: "invalid tournament", reasons: validated.errors });
+      return;
+    }
     const { input, preset, rules, banlistCards } = validated.value;
-    const tournament = await store.createTournament(session.account.id, { name: input.name, block: parsed.block, startsAt: input.startsAt, maxPlayers: input.maxPlayers, structure: input.structure, bestOf: input.bestOf, topCutEnabled: input.topCut, allowBots: input.allowBots, rulesetPreset: preset.id, rules, banlistPolicy: input.banlist, banlistCards });
-    res.status(201).json({ ...toTournamentSummary(tournament), rules: tournament.rules, banlistCards: tournament.banlistCards });
+    const tournament = await store.createTournament(session.account.id, {
+      name: input.name,
+      block: parsed.block,
+      startsAt: input.startsAt,
+      maxPlayers: input.maxPlayers,
+      structure: input.structure,
+      bestOf: input.bestOf,
+      topCutEnabled: input.topCut,
+      allowBots: input.allowBots,
+      rulesetPreset: preset.id,
+      rules,
+      banlistPolicy: input.banlist,
+      banlistCards,
+    });
+    res
+      .status(201)
+      .json({ ...toTournamentSummary(tournament), rules: tournament.rules, banlistCards: tournament.banlistCards });
   });
   // Legacy casual registration. Kept as-is rather than redirected: it writes the
   // `tournament_registrations` row the single-elimination bracket still seeds from, and it asks
   // for no deck. Competitive entry is POST /tournaments/:id/participants; the two coexist until
   // the bracket moves onto participants in a later slice.
-  post("/tournaments/:id/register", async (req, res) => { const session = await requireSession(req, res, store); if (session) res.sendStatus(await store.registerTournament(req.params.id!, session.account.id) ? 204 : 409); });
+  post("/tournaments/:id/register", async (req, res) => {
+    const session = await requireSession(req, res, store);
+    if (session) res.sendStatus((await store.registerTournament(req.params.id!, session.account.id)) ? 204 : 409);
+  });
 
   post("/tournaments/:id/participants", async (req, res) => {
-    const session = await requireSession(req, res, store); if (!session) return;
+    const session = await requireSession(req, res, store);
+    if (!session) return;
     const { savedDeckId } = req.body as { savedDeckId?: unknown };
-    if (typeof savedDeckId !== "string" || !savedDeckId) { res.status(400).json({ error: "savedDeckId is required" }); return; }
-    const result = await participants.register({ tournamentId: req.params.id!, accountId: session.account.id, savedDeckId });
-    if (!result.ok) { sendParticipantFailure(res, result.reason, result.violations); return; }
+    if (typeof savedDeckId !== "string" || !savedDeckId) {
+      res.status(400).json({ error: "savedDeckId is required" });
+      return;
+    }
+    const result = await participants.register({
+      tournamentId: req.params.id!,
+      accountId: session.account.id,
+      savedDeckId,
+    });
+    if (!result.ok) {
+      sendParticipantFailure(res, result.reason, result.violations);
+      return;
+    }
     res.status(201).json(result.value);
   });
   post("/tournaments/:id/check-in", async (req, res) => {
-    const session = await requireSession(req, res, store); if (!session) return;
+    const session = await requireSession(req, res, store);
+    if (!session) return;
     const result = await participants.checkIn({ tournamentId: req.params.id!, accountId: session.account.id });
-    if (!result.ok) { sendParticipantFailure(res, result.reason); return; }
+    if (!result.ok) {
+      sendParticipantFailure(res, result.reason);
+      return;
+    }
     res.json(result.value);
   });
   post("/tournaments/:id/drop", async (req, res) => {
-    const session = await requireSession(req, res, store); if (!session) return;
+    const session = await requireSession(req, res, store);
+    if (!session) return;
     const result = await participants.drop({ tournamentId: req.params.id!, accountId: session.account.id });
-    if (!result.ok) { sendParticipantFailure(res, result.reason); return; }
+    if (!result.ok) {
+      sendParticipantFailure(res, result.reason);
+      return;
+    }
     res.json(result.value);
   });
 
   // Organizer-only schedule control. The deadline scheduler will drive the same two operations
   // once it exists; until then this is how a window is set and how a field is frozen at all.
   post("/tournaments/:id/windows", async (req, res) => {
-    const session = await requireSession(req, res, store); if (!session) return;
-    if (!await participants.isOrganizer(req.params.id!, session.account.id)) { res.sendStatus(403); return; }
+    const session = await requireSession(req, res, store);
+    if (!session) return;
+    if (!(await participants.isOrganizer(req.params.id!, session.account.id))) {
+      res.sendStatus(403);
+      return;
+    }
     const windows: Partial<TournamentWindows> = {};
     for (const key of WINDOW_KEYS) {
       const value = (req.body as Record<string, unknown>)[key];
       if (value === undefined) continue;
-      if (value !== null && !Number.isFinite(value)) { res.status(400).json({ error: `${key} must be a timestamp or null` }); return; }
+      if (value !== null && !Number.isFinite(value)) {
+        res.status(400).json({ error: `${key} must be a timestamp or null` });
+        return;
+      }
       windows[key] = value === null ? null : Number(value);
     }
     try {
-      if (!await participants.setWindows(req.params.id!, windows)) { res.sendStatus(404); return; }
+      if (!(await participants.setWindows(req.params.id!, windows))) {
+        res.sendStatus(404);
+        return;
+      }
       res.json(await participants.windows(req.params.id!));
-    } catch (error) { if (error instanceof WindowOrderError) { res.status(400).json({ error: error.message }); return; } throw error; }
+    } catch (error) {
+      if (error instanceof WindowOrderError) {
+        res.status(400).json({ error: error.message });
+        return;
+      }
+      throw error;
+    }
   });
   post("/tournaments/:id/close-check-in", async (req, res) => {
-    const session = await requireSession(req, res, store); if (!session) return;
-    if (!await participants.isOrganizer(req.params.id!, session.account.id)) { res.sendStatus(403); return; }
+    const session = await requireSession(req, res, store);
+    if (!session) return;
+    if (!(await participants.isOrganizer(req.params.id!, session.account.id))) {
+      res.sendStatus(403);
+      return;
+    }
     // Closing check-in starts the event, and WHICH start that is depends on the structure. Both
     // branches are idempotent, so a retried request neither re-freezes a field nor redraws a
     // bracket, and neither branch can run the other's format: the dispatch here is the only place
     // that decides, and each callee re-checks the structure for itself.
     const tournament = await store.tournament(req.params.id!);
-    if (!tournament) { res.sendStatus(404); return; }
+    if (!tournament) {
+      res.sendStatus(404);
+      return;
+    }
     if (tournament.structure === "single_elimination") {
       const opened = await openEliminationEvent({
         tournamentId: req.params.id!,
@@ -225,13 +405,26 @@ export function installAccountRoutes(
       // A cancellation is not a failure of the request — it is the correct outcome for a field that
       // never reached the minimum — but it is emphatically not a running event either, so it
       // answers 409 with the state the organizer must now see.
-      if (opened.kind === "cancel") { res.status(409).json({ status: "cancelled", error: opened.reason }); return; }
-      if (opened.kind === "failed") { res.status(409).json({ error: opened.reason }); return; }
-      res.json({ participants: await participants.participantViews(req.params.id!), bracket: opened.bracket, botsSeated: opened.botsSeated });
+      if (opened.kind === "cancel") {
+        res.status(409).json({ status: "cancelled", error: opened.reason });
+        return;
+      }
+      if (opened.kind === "failed") {
+        res.status(409).json({ error: opened.reason });
+        return;
+      }
+      res.json({
+        participants: await participants.participantViews(req.params.id!),
+        bracket: opened.bracket,
+        botsSeated: opened.botsSeated,
+      });
       return;
     }
     const result = await participants.closeCheckIn({ tournamentId: req.params.id! });
-    if (!result.ok) { sendParticipantFailure(res, result.reason); return; }
+    if (!result.ok) {
+      sendParticipantFailure(res, result.reason);
+      return;
+    }
     // Closing check-in IS the start of a Swiss event (implementation plan, "Criação e formação
     // volátil" step 6): the confirmed field is what freezes the round count and the Top Cut size,
     // and round 1 is published from it in the same breath. Idempotent, and a no-op for any other
@@ -239,16 +432,32 @@ export function installAccountRoutes(
     const program = await swiss.startTournamentProgram(req.params.id!);
     // The field is frozen either way — that write committed — but a Swiss event whose round 1 did
     // not publish has NOT started, and answering 200 would tell the organizer it had.
-    res.status(program.ok ? 200 : 409).json({ participants: result.value, phase: program.ok ? program.value : null, error: program.ok ? undefined : program.reason });
+    res
+      .status(program.ok ? 200 : 409)
+      .json({
+        participants: result.value,
+        phase: program.ok ? program.value : null,
+        error: program.ok ? undefined : program.reason,
+      });
   });
   // The organizer's undo for an event that has not started. Deliberately unavailable from the
   // moment it starts: from then on the tournament is a record other players appear in.
   del("/tournaments/:id", async (req, res) => {
-    const session = await requireSession(req, res, store); if (!session) return;
+    const session = await requireSession(req, res, store);
+    if (!session) return;
     const outcome = await store.deleteTournament(req.params.id!, session.account.id, session.account.isAdmin);
-    if (outcome === "deleted") { res.sendStatus(204); return; }
-    if (outcome === "not_found") { res.sendStatus(404); return; }
-    if (outcome === "forbidden") { res.sendStatus(403); return; }
+    if (outcome === "deleted") {
+      res.sendStatus(204);
+      return;
+    }
+    if (outcome === "not_found") {
+      res.sendStatus(404);
+      return;
+    }
+    if (outcome === "forbidden") {
+      res.sendStatus(403);
+      return;
+    }
     res.status(409).json({ error: "tournament_already_started" });
   });
   // The manual nudge. The deadline worker will call the same sweep on every tick once it exists;
@@ -256,22 +465,33 @@ export function installAccountRoutes(
   // is how a tournament that lost its round-close notification gets moving again. Idempotent, so
   // pressing it twice is harmless.
   post("/tournaments/:id/sweep", async (req, res) => {
-    const session = await requireSession(req, res, store); if (!session) return;
-    if (!await participants.isOrganizer(req.params.id!, session.account.id)) { res.sendStatus(403); return; }
+    const session = await requireSession(req, res, store);
+    if (!session) return;
+    if (!(await participants.isOrganizer(req.params.id!, session.account.id))) {
+      res.sendStatus(403);
+      return;
+    }
     // Both passes, in the order the deadline worker runs them: closing the last Swiss round is what
     // parks the phase for the cut, so sweeping the cut afterwards finishes the job in one request.
     const advanced = await swiss.sweepOpenTournaments();
     res.json({ advanced: advanced + (await topCut.sweepFrozenSwissPhases()) });
   });
 
-  post("/tournaments/:id/start", async (req, res) => { const session = await requireSession(req, res, store); if (session) res.sendStatus(await store.startTournament(req.params.id!, session.account.id) ? 204 : 409); });
+  post("/tournaments/:id/start", async (req, res) => {
+    const session = await requireSession(req, res, store);
+    if (session) res.sendStatus((await store.startTournament(req.params.id!, session.account.id)) ? 204 : 409);
+  });
   // The BO3 confrontation. Presence starts the shared clock; the authorization is what lets a
   // client create or enter the room for the next game. Neither endpoint advances anything — the
   // series module owns the score and the deadline, and the room only plays one game.
   post("/tournaments/:id/matches/:matchId/present", async (req, res) => {
-    const session = await requireSession(req, res, store); if (!session) return;
+    const session = await requireSession(req, res, store);
+    if (!session) return;
     const tournament = await store.tournament(req.params.id!);
-    if (!tournament) { res.sendStatus(404); return; }
+    if (!tournament) {
+      res.sendStatus(404);
+      return;
+    }
     const result = await series.markPresent({
       // Both ids matter: the ruleset below is read from THIS tournament, so the match has to be
       // one of its own. Without it, any event's ruleset could be applied to any match.
@@ -281,17 +501,33 @@ export function installAccountRoutes(
       winsRequired: tournament.rules?.match.winsRequired ?? (tournament.bestOf === 3 ? 2 : 1),
       seriesDurationMs: await seriesDurationMs(store, tournament, req.params.matchId!),
     });
-    if (!result.ok) { sendSeriesFailure(res, result.reason); return; }
+    if (!result.ok) {
+      sendSeriesFailure(res, result.reason);
+      return;
+    }
     res.json(withoutParticipantIds(result.value));
   });
   post("/series/:id/authorize-game", async (req, res) => {
-    const session = await requireSession(req, res, store); if (!session) return;
+    const session = await requireSession(req, res, store);
+    if (!session) return;
     const result = await series.authorizeNextGame({ seriesId: req.params.id!, accountId: session.account.id });
-    if (!result.ok) { sendSeriesFailure(res, result.reason); return; }
+    if (!result.ok) {
+      sendSeriesFailure(res, result.reason);
+      return;
+    }
     res.json(withoutParticipantIds(result.value));
   });
 
-  post("/tournaments/:id/matches/:matchId/ticket", async (req, res) => { const session = await requireSession(req, res, store); if (!session) return; const ticket = await store.createTournamentMatchTicket(session.account.id, req.params.id!, req.params.matchId!); if (!ticket) { res.sendStatus(403); return; } res.json({ ticket, tournamentMatchId: req.params.matchId! }); });
+  post("/tournaments/:id/matches/:matchId/ticket", async (req, res) => {
+    const session = await requireSession(req, res, store);
+    if (!session) return;
+    const ticket = await store.createTournamentMatchTicket(session.account.id, req.params.id!, req.params.matchId!);
+    if (!ticket) {
+      res.sendStatus(403);
+      return;
+    }
+    res.json({ ticket, tournamentMatchId: req.params.matchId! });
+  });
 }
 
 /**
@@ -314,14 +550,27 @@ type TournamentDetailExtras = {
  * still stores the pre-program `in_progress` — while `block`, `createdBy` and `winnerAccountId`
  * remain alongside it for the existing bracket client.
  */
-function toTournamentSummary(tournament: Tournament): TournamentSummary & Pick<Tournament, "block" | "createdBy" | "winnerAccountId"> & { registrations: number } {
+function toTournamentSummary(
+  tournament: Tournament,
+): TournamentSummary & Pick<Tournament, "block" | "createdBy" | "winnerAccountId"> & { registrations: number } {
   return {
-    id: tournament.id, name: tournament.name, status: tournament.status === "in_progress" ? "running" : tournament.status,
-    structure: tournament.structure, topCutEnabled: tournament.topCutEnabled, topCutSize: tournament.topCutSize,
-    bestOf: tournament.bestOf, allowBots: tournament.allowBots, rulesetPreset: tournament.rulesetPreset,
-    rulesetVersion: tournament.rulesetVersion, startsAt: tournament.startsAt, maxPlayers: tournament.maxPlayers,
-    registeredCount: tournament.registrations, banlistPolicy: tournament.banlistPolicy,
-    block: tournament.block, createdBy: tournament.createdBy, winnerAccountId: tournament.winnerAccountId,
+    id: tournament.id,
+    name: tournament.name,
+    status: tournament.status === "in_progress" ? "running" : tournament.status,
+    structure: tournament.structure,
+    topCutEnabled: tournament.topCutEnabled,
+    topCutSize: tournament.topCutSize,
+    bestOf: tournament.bestOf,
+    allowBots: tournament.allowBots,
+    rulesetPreset: tournament.rulesetPreset,
+    rulesetVersion: tournament.rulesetVersion,
+    startsAt: tournament.startsAt,
+    maxPlayers: tournament.maxPlayers,
+    registeredCount: tournament.registrations,
+    banlistPolicy: tournament.banlistPolicy,
+    block: tournament.block,
+    createdBy: tournament.createdBy,
+    winnerAccountId: tournament.winnerAccountId,
     // Deprecated alias for `registeredCount`. Remove once the web client reads the shared contract.
     registrations: tournament.registrations,
   };
@@ -357,7 +606,9 @@ function toPresetView(preset: TournamentRulesPreset) {
  * single-elimination best-of-one lightning cup with no Top Cut, no bots and no banlist enforcement.
  * `block` is not part of the shared contract and defaults to the current card-pool label.
  */
-function parseCreateTournament(body: Record<string, unknown>): { input: CreateTournamentInput; block: string } | undefined {
+function parseCreateTournament(
+  body: Record<string, unknown>,
+): { input: CreateTournamentInput; block: string } | undefined {
   const { name, block, startsAt, maxPlayers, structure, topCut, bestOf, allowBots, rulesetPreset, banlist } = body;
   if (typeof name !== "string" || !Number.isFinite(startsAt) || !Number.isInteger(maxPlayers)) return undefined;
   if (structure !== undefined && structure !== "swiss" && structure !== "single_elimination") return undefined;
@@ -367,11 +618,17 @@ function parseCreateTournament(body: Record<string, unknown>): { input: CreateTo
   if (!policy) return undefined;
   return {
     input: {
-      name, structure: structure ?? "single_elimination", topCut: topCut === true, bestOf: bestOf ?? 1,
-      startsAt: Number(startsAt), maxPlayers: Number(maxPlayers), allowBots: allowBots === true,
-      rulesetPreset: preset, banlist: policy,
+      name,
+      structure: structure ?? "single_elimination",
+      topCut: topCut === true,
+      bestOf: bestOf ?? 1,
+      startsAt: Number(startsAt),
+      maxPlayers: Number(maxPlayers),
+      allowBots: allowBots === true,
+      rulesetPreset: preset,
+      banlist: policy,
     },
-    block: typeof block === "string" && block.trim() ? block.trim() : cardPoolLabel(),
+    block: typeof block === "string" && block.trim() ? block.trim() : latestReleasedProductLabel(),
   };
 }
 
@@ -392,7 +649,9 @@ function parseBanlistPolicy(value: unknown): BanlistPolicy | undefined {
  * and a confrontation's seats reach it as accounts — so the safe shape is the one that never sends
  * it rather than one that trusts every future response builder to remember.
  */
-function withoutParticipantIds<T extends { participantIds?: unknown; series?: unknown }>(value: T): Omit<T, "participantIds"> {
+function withoutParticipantIds<T extends { participantIds?: unknown; series?: unknown }>(
+  value: T,
+): Omit<T, "participantIds"> {
   const { participantIds: _dropped, ...rest } = value;
   const nested = rest as { series?: { participantIds?: unknown } };
   if (nested.series && typeof nested.series === "object") {
@@ -412,7 +671,10 @@ function withoutParticipantIds<T extends { participantIds?: unknown; series?: un
  */
 async function seriesDurationMs(store: AccountStore, tournament: Tournament, matchId: string): Promise<number | null> {
   const context = await matchClockContext(store.pool, matchId);
-  return seriesDurationFor(tournament.rules, context ?? { phaseKind: null, isFinal: false, structure: tournament.structure });
+  return seriesDurationFor(
+    tournament.rules,
+    context ?? { phaseKind: null, isFinal: false, structure: tournament.structure },
+  );
 }
 
 function sendSeriesFailure(res: Response, reason: SeriesFailure): void {
@@ -421,18 +683,84 @@ function sendSeriesFailure(res: Response, reason: SeriesFailure): void {
 }
 
 function sendParticipantFailure(res: Response, reason: ParticipantFailure, violations?: unknown): void {
-  res.status(NOT_FOUND_FAILURES.includes(reason) ? 404 : 409).json(violations ? { error: reason, violations } : { error: reason });
+  res
+    .status(NOT_FOUND_FAILURES.includes(reason) ? 404 : 409)
+    .json(violations ? { error: reason, violations } : { error: reason });
 }
 
 type AsyncHandler = (req: Request, res: Response) => unknown | Promise<unknown>;
-function asyncRoute(handler: AsyncHandler) { return (req: Request, res: Response, next: NextFunction): void => { Promise.resolve(handler(req, res)).catch(next); }; }
+function asyncRoute(handler: AsyncHandler) {
+  return (req: Request, res: Response, next: NextFunction): void => {
+    Promise.resolve(handler(req, res)).catch(next);
+  };
+}
 
-async function requireSession(req: Request, res: Response, store: AccountStore): Promise<AuthSession | undefined> { const session = await store.session(cookie(req, SESSION_COOKIE)); if (!session) res.sendStatus(401); return session; }
-function cookie(req: Request, key: string): string | undefined { return req.headers.cookie?.split(";").map((part) => part.trim().split("=")).find(([name]) => name === key)?.[1]; }
-function setSession(res: Response, session: AuthSession): void { setCookie(res, SESSION_COOKIE, session.id, Math.max(1, Math.floor((session.expiresAt - Date.now()) / 1000))); }
-function setCookie(res: Response, key: string, value: string, maxAge: number): void { res.append("Set-Cookie", `${key}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${process.env.NODE_ENV === "production" ? "; Secure" : ""}`); }
-function expire(res: Response, key: string): void { setCookie(res, key, "", 0); }
-async function sendMagicLink(email: string, token: string): Promise<void> { const key = process.env.RESEND_API_KEY; const from = process.env.AEGIS_EMAIL_FROM; if (!key || !from) return; await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ from, to: [email], subject: "Sign in to Aegis", html: `<p><a href="${process.env.AEGIS_API_URL ?? "http://localhost:2567"}/auth/magic-link/consume?token=${token}">Sign in to Aegis</a></p>` }) }).then((response) => { if (!response.ok) throw new Error("email delivery failed"); }); }
-async function discordToken(code: string): Promise<string> { const body = new URLSearchParams({ client_id: required("DISCORD_CLIENT_ID"), client_secret: required("DISCORD_CLIENT_SECRET"), grant_type: "authorization_code", code, redirect_uri: required("DISCORD_REDIRECT_URI") }); const response = await fetch("https://discord.com/api/oauth2/token", { method: "POST", headers: { "Content-Type": "application/x-www-form-urlencoded" }, body }); const json = await response.json() as { access_token?: string }; if (!response.ok || !json.access_token) throw new Error("token exchange failed"); return json.access_token; }
-async function discordUser(token: string): Promise<{ id: string; username: string; global_name?: string; avatar?: string }> { const response = await fetch("https://discord.com/api/users/@me", { headers: { Authorization: `Bearer ${token}` } }); if (!response.ok) throw new Error("user request failed"); return response.json() as Promise<{ id: string; username: string; global_name?: string; avatar?: string }>; }
-function required(key: string): string { const value = process.env[key]; if (!value) throw new Error(`${key} is not configured`); return value; }
+async function requireSession(req: Request, res: Response, store: AccountStore): Promise<AuthSession | undefined> {
+  const session = await store.session(cookie(req, SESSION_COOKIE));
+  if (!session) res.sendStatus(401);
+  return session;
+}
+function cookie(req: Request, key: string): string | undefined {
+  return req.headers.cookie
+    ?.split(";")
+    .map((part) => part.trim().split("="))
+    .find(([name]) => name === key)?.[1];
+}
+function setSession(res: Response, session: AuthSession): void {
+  setCookie(res, SESSION_COOKIE, session.id, Math.max(1, Math.floor((session.expiresAt - Date.now()) / 1000)));
+}
+function setCookie(res: Response, key: string, value: string, maxAge: number): void {
+  res.append(
+    "Set-Cookie",
+    `${key}=${value}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${maxAge}${process.env.NODE_ENV === "production" ? "; Secure" : ""}`,
+  );
+}
+function expire(res: Response, key: string): void {
+  setCookie(res, key, "", 0);
+}
+async function sendMagicLink(email: string, token: string): Promise<void> {
+  const key = process.env.RESEND_API_KEY;
+  const from = process.env.AEGIS_EMAIL_FROM;
+  if (!key || !from) return;
+  await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+    body: JSON.stringify({
+      from,
+      to: [email],
+      subject: "Sign in to Aegis",
+      html: `<p><a href="${process.env.AEGIS_API_URL ?? "http://localhost:2567"}/auth/magic-link/consume?token=${token}">Sign in to Aegis</a></p>`,
+    }),
+  }).then((response) => {
+    if (!response.ok) throw new Error("email delivery failed");
+  });
+}
+async function discordToken(code: string): Promise<string> {
+  const body = new URLSearchParams({
+    client_id: required("DISCORD_CLIENT_ID"),
+    client_secret: required("DISCORD_CLIENT_SECRET"),
+    grant_type: "authorization_code",
+    code,
+    redirect_uri: required("DISCORD_REDIRECT_URI"),
+  });
+  const response = await fetch("https://discord.com/api/oauth2/token", {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body,
+  });
+  const json = (await response.json()) as { access_token?: string };
+  if (!response.ok || !json.access_token) throw new Error("token exchange failed");
+  return json.access_token;
+}
+async function discordUser(
+  token: string,
+): Promise<{ id: string; username: string; global_name?: string; avatar?: string }> {
+  const response = await fetch("https://discord.com/api/users/@me", { headers: { Authorization: `Bearer ${token}` } });
+  if (!response.ok) throw new Error("user request failed");
+  return response.json() as Promise<{ id: string; username: string; global_name?: string; avatar?: string }>;
+}
+function required(key: string): string {
+  const value = process.env[key];
+  if (!value) throw new Error(`${key} is not configured`);
+  return value;
+}

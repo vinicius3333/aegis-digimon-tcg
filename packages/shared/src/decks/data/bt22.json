@@ -584,13 +584,14 @@
     },
     {
       "id": "bt22-dgo-2025-08-30-1-growlmon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT22 Growlmon",
       "archetype": "Growlmon",
       "collection": "BT22",
       "formatBlock": "BT22",
       "colors": ["Red", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Guilmon EX4-006 to 1, Growlmon EX3-057 to 1, Gravity Crush BT1-090 to 1; the freed copies reinforce Gallantmon BT13-111 to 4, Arresterdramon: Superior Mode BT21-072 to 4, Demonic Disaster BT5-106 to 4, WarGrowlmon EX3-062 to 3.",
       "tournament": {
         "name": "Regionals — SangSang Events",
         "date": "2025-08-30",
@@ -611,7 +612,7 @@
         {
           "cardId": "EX4-006",
           "name": "Guilmon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -629,7 +630,7 @@
         {
           "cardId": "EX3-057",
           "name": "Growlmon",
-          "qty": 2,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -641,13 +642,13 @@
         {
           "cardId": "BT21-072",
           "name": "Arresterdramon: Superior Mode",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "EX3-062",
           "name": "WarGrowlmon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -659,7 +660,7 @@
         {
           "cardId": "BT13-111",
           "name": "Gallantmon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -683,7 +684,7 @@
         {
           "cardId": "BT5-106",
           "name": "Demonic Disaster",
-          "qty": 2,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -707,7 +708,7 @@
         {
           "cardId": "BT1-090",
           "name": "Gravity Crush",
-          "qty": 4,
+          "qty": 1,
           "type": "Option"
         },
         {
@@ -1407,13 +1408,14 @@
     },
     {
       "id": "bt22-dgo-2025-09-20-2-leviamon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT22 Leviamon",
       "archetype": "Leviamon",
       "collection": "BT22",
       "formatBlock": "BT22",
       "colors": ["Blue", "Purple", "Green", "Yellow", "White"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Dobermon (X Antibody) EX5-059 to 1, Cerberusmon (X Antibody) EX5-061 to 1; the freed copies reinforce Leviamon (X Antibody) BT15-081 to 4, Dobermon BT16-068 to 4, Leviamon EX5-063 to 4, Purple Memory Boost! P-040 to 4, Seventh Lightning BT15-100 to 4.",
       "tournament": {
         "name": "Play!TCG Championship Finals",
         "date": "2025-09-20",
@@ -1463,7 +1465,7 @@
         {
           "cardId": "BT16-068",
           "name": "Dobermon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1475,7 +1477,7 @@
         {
           "cardId": "EX5-059",
           "name": "Dobermon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -1493,13 +1495,13 @@
         {
           "cardId": "EX5-061",
           "name": "Cerberusmon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT15-081",
           "name": "Leviamon (X Antibody)",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1511,7 +1513,7 @@
         {
           "cardId": "EX5-063",
           "name": "Leviamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1523,7 +1525,7 @@
         {
           "cardId": "BT15-100",
           "name": "Seventh Lightning",
-          "qty": 2,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -1535,7 +1537,7 @@
         {
           "cardId": "P-040",
           "name": "Purple Memory Boost!",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {

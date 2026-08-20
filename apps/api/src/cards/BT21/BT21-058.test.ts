@@ -17,6 +17,7 @@ import "../index.js";
 
 const SNATCHMON = "BT21-058";
 const VEMMON_CARD = "BT21-056"; // BT21 Vemmon — nameEn: "Vemmon"
+const VEMMON_IN_EFFECT_TEXT = "BT11-065"; // Snatchmon — mentions [Vemmon], but name/types do not.
 const PLAIN_CARD = "BT1-009"; // Agumon-like — no "Vemmon" in text
 
 function fireTiming(
@@ -99,5 +100,31 @@ describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () =>
     expect(p0?.hand.length).toBe(handBefore);
     // All 3 trashed.
     expect(p0?.trash.length).toBe(3);
+  });
+
+  it("recognizes a card whose printed effect text mentions [Vemmon]", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: SNATCHMON, dp: 7000, as: "snatchmon" }],
+          deck: [
+            { card: VEMMON_IN_EFFECT_TEXT, as: "vemmonInText" },
+            PLAIN_CARD,
+            PLAIN_CARD,
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const p0 = s.state.players[0];
+    const snatchmonId = s.perm("snatchmon").permanentId;
+    const qualifyingId = s.inst("vemmonInText").instanceId;
+
+    await fireTiming(s, EffectTiming.OnPlay, { subjectPermanentId: snatchmonId });
+    for (let i = 0; i < 400 && !p0?.hand.some((c) => c.instanceId === qualifyingId); i++) {
+      await Promise.resolve();
+    }
+
+    expect(p0?.hand.some((c) => c.instanceId === qualifyingId)).toBe(true);
   });
 });

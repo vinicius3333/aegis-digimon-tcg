@@ -14,8 +14,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // TrashDigivolution: fromTop:false => bottom 2 digivolution cards of 1 opponent Digimon.
 // SelectBind captures the Restrict target once so both attack/block restrictions apply
 // to the SAME Digimon (the text says "1 of their Digimon").
-// digivolutionCardsAtMost:1 filter is a partial-engine feature (CAP-H-02); recorded
-// faithfully but may over-match in the current engine build.
+// digivolutionCardsAtMost:1 is enforced by the interpreter's permanent filter matching.
 const compiled: CompiledCard = {
   "effects": [
     {
@@ -167,10 +166,8 @@ const compiled: CompiledCard = {
       "frequency": "OncePerTurn"
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "digivolutionCardsAtMost:1 filter on SelectBind target (CAP-H-02) not yet enforced in engine — filter currently over-matches Digimon with >1 digivolution card"
-  ],
+  "coverage": "full",
+  "residual": [],
   "digivolutionRequirement": [
     {
       "level": 3,

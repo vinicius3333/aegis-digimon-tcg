@@ -26,7 +26,14 @@ export const compiled: CompiledCard = {
               payCost: false,
               from: ["hand"],
               optional: true,
-              condition: { kind: "raw", raw: "any of them have [Greymon] or [Matt Ishida] in their names" },
+              condition: {
+                kind: "anyOf",
+                conditions: [
+                  { kind: "triggerSubjectMatchesFilter", filter: { nameOrTrait: [{ tokens: ["Greymon"], match: "name" }] } },
+                  { kind: "triggerSubjectMatchesFilter", filter: { nameOrTrait: [{ tokens: ["Matt Ishida"], match: "name" }] } },
+                ],
+                raw: "any of them have [Greymon] or [Matt Ishida] in their names",
+              },
             },
           ],
           raw: "When your Digimon or Tamers are played",
@@ -47,7 +54,14 @@ export const compiled: CompiledCard = {
               payCost: false,
               from: ["hand"],
               optional: true,
-              condition: { kind: "raw", raw: "any of them have [Greymon] or [Matt Ishida] in their names" },
+              condition: {
+                kind: "anyOf",
+                conditions: [
+                  { kind: "triggerSubjectMatchesFilter", filter: { nameOrTrait: [{ tokens: ["Greymon"], match: "name" }] } },
+                  { kind: "triggerSubjectMatchesFilter", filter: { nameOrTrait: [{ tokens: ["Matt Ishida"], match: "name" }] } },
+                ],
+                raw: "any of them have [Greymon] or [Matt Ishida] in their names",
+              },
             },
           ],
           raw: "When your Digimon or Tamers digivolve",

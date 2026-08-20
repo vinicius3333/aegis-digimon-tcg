@@ -5,6 +5,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./BT8-012.js";
 import "./BT8-038.js";
 import "../BT9/BT9-044.js";
+import "../index.js"; // the full catalog is registered in a real match
 
 describe("BT8/BT9 Armor Rush interactions", () => {
   it("keeps Flamedramon's attacking DP bonus after Armor Purge promotes its base", async () => {
@@ -69,7 +70,9 @@ describe("BT8/BT9 Armor Rush interactions", () => {
         battleArea: [{ card: "BT9-044", as: "armor", under: ["BT8-021", "BT8-038"] }],
         security: ["BT1-001"],
       },
-      1: { battleArea: [{ card: "BT4-114", as: "attacker", dp: 13_000 }] },
+      // A plain attacker: BT4-114 AncientGarurumon unsuspends itself with its own
+      // [When Attacking] clause, which would mask the post-attack suspension asserted below.
+      1: { battleArea: [{ card: "BT1-024", as: "attacker", dp: 13_000 }] },
     }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
     const permanentId = s.perm("armor").permanentId;
     const magnamonXId = s.perm("armor").topCard!.instanceId;
@@ -81,10 +84,12 @@ describe("BT8/BT9 Armor Rush interactions", () => {
       attackerPermanentId: s.perm("attacker").permanentId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
-    await settle(() =>
-      !observe(s.engine).isAttacking() &&
-      s.perm("attacker").isSuspended &&
-      s.state.players[0]!.security.some(({ instanceId }) => instanceId === magnamonXId)
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.perm("attacker").isSuspended &&
+        s.state.players[0]!.security.some(({ instanceId }) => instanceId === magnamonXId),
+      5000,
     );
 
     expect(s.events.some(({ kind }) => kind === "blocked")).toBe(false);

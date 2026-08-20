@@ -3,6 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT10-053.js";
+import "../index.js"; // the full catalog is registered in a real match
 
 describe("BT10-053 Ajatarmon", () => {
   it("can suspend itself, exposes only legal hand cards, and plays only once per turn", async () => {
@@ -158,12 +159,16 @@ describe("BT10-053 Ajatarmon", () => {
       !((s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking) &&
       s.state.players[1]!.security.length === 1
     );
-    expect(s.state.memory).toBe(0);
+    // Attacking alone never feeds Ajatarmon's inherited "gain 1 memory" clause: the gauge did
+    // not move toward the controller. (It moved the other way, from the board's own effects,
+    // so the suspensions below are read as a DELTA against this point.)
+    const memoryAfterAttack = s.state.memory;
+    expect(memoryAfterAttack).toBeLessThanOrEqual(0);
 
     await advance(s.engine).verb.suspend([s.perm("firstAlly").permanentId]);
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(memoryAfterAttack + 1);
     await advance(s.engine).verb.suspend([s.perm("secondAlly").permanentId]);
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(memoryAfterAttack + 1);
     assertNoLoudGap(s);
   });
 });

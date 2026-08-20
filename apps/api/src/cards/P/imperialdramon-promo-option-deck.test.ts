@@ -29,7 +29,9 @@ describe("Imperialdramon promo Option deck", () => {
     })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(
       (permanent) => permanent.topCard.cardId === "ST9-05",
-    ));
+    ) &&
+      ["ST9-04", "ST9-09"].every((cardId) => s.state.players[0]!.deck.some((card) => card.cardId === cardId)) &&
+      s.state.pendingDecision === undefined, 5000);
 
     const paildramon = s.state.players[0]!.battleArea.find(
       (permanent) => permanent.topCard.cardId === "ST9-05",
@@ -41,7 +43,11 @@ describe("Imperialdramon promo Option deck", () => {
       permanentId: paildramon.permanentId,
       instanceId: s.inst("dragonMode").instanceId,
     })).toEqual({ ok: true });
-    await settle(() => paildramon.topCard.cardId === "BT3-111");
+    await settle(() =>
+      paildramon.topCard.cardId === "BT3-111" &&
+      s.state.memory === 0 &&
+      s.state.pendingDecision === undefined,
+    5000);
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.deck.slice(-2).map((card) => card.cardId).sort()).toEqual([

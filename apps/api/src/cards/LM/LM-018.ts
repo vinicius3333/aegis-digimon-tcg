@@ -34,7 +34,7 @@ const compiled: CompiledCard = {
           "count": 1,
           "payCost": false,
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectActed",
             "raw": "you did"
           },
           "optional": true

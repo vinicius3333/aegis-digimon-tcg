@@ -25,7 +25,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/reboot`,
           description: "＜Reboot＞",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {
@@ -37,7 +37,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/blocker`,
           description: "＜Blocker＞",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {

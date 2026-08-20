@@ -105,7 +105,7 @@ const module: EffectModule = {
             "[Sovereign] in its traits, by suspending this Tamer, that Digimon gains ＜Rush＞ " +
             "for the turn.",
           optional: true,
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const me = source.permanent();
             if (me === undefined) return;

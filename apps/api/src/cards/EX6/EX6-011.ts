@@ -15,7 +15,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - Add GrantStatic immuneToOpponentEffects until opponent's turn end
 //   - Add Delete action conditioned on DNA digivolving (alongside the DeDigivolve)
 //   - Both OnPlay and WhenDigivolving effects get the same correction
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Counter",

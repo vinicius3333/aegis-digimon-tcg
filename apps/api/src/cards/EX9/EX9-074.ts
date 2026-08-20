@@ -11,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // New capabilities needed (see LANE_E.md):
 //   - Delete.target.filter.colorMatchesAnyDigivolutionCard:true
 //   - DeletePerColor (per-color mandatory delete using divo card colors)
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
@@ -80,7 +80,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "not", "condition": {"kind": "selfDigivolutionStackDistinctColorCount", "op": "gte", "value": 6},
             "raw": "this Digimon has fewer than 6 colors in its digivolution cards"
           }
         },
@@ -96,7 +96,7 @@ const compiled: CompiledCard = {
             }
           },
           "condition": {
-            "kind": "raw",
+            "kind": "selfDigivolutionStackDistinctColorCount", "op": "gte", "value": 6,
             "raw": "this Digimon has 6 or more colors in its digivolution cards"
           }
         }
@@ -148,7 +148,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "not", "condition": {"kind": "selfDigivolutionStackDistinctColorCount", "op": "gte", "value": 6},
             "raw": "this Digimon has fewer than 6 colors in its digivolution cards"
           }
         },
@@ -164,7 +164,7 @@ const compiled: CompiledCard = {
             }
           },
           "condition": {
-            "kind": "raw",
+            "kind": "selfDigivolutionStackDistinctColorCount", "op": "gte", "value": 6,
             "raw": "this Digimon has 6 or more colors in its digivolution cards"
           }
         }
@@ -195,11 +195,8 @@ const compiled: CompiledCard = {
       ]
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "Delete.target.filter.colorMatchesAnyDigivolutionCard not yet executed by interpreter (see LANE_E.md)",
-    "DeletePerColor action not yet executed by interpreter (see LANE_E.md)"
-  ]
+  "coverage": "full",
+  "residual": []
 };
 
 registerIrCard("EX9-074", compiled);

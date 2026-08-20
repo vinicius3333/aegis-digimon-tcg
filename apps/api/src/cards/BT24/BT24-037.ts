@@ -50,8 +50,7 @@ export const compiled: CompiledCard = {
           },
           duration: "forTheTurn",
           condition: {
-            kind: "raw",
-            raw: "DNA digivolving",
+            kind: "isDnaDigivolving", raw: "DNA digivolving",
           },
         },
         {
@@ -66,8 +65,7 @@ export const compiled: CompiledCard = {
           amount: 5000,
           duration: "forTheTurn",
           condition: {
-            kind: "raw",
-            raw: "DNA digivolving",
+            kind: "isDnaDigivolving", raw: "DNA digivolving",
           },
         },
       ],
@@ -115,8 +113,7 @@ export const compiled: CompiledCard = {
           },
           duration: "forTheTurn",
           condition: {
-            kind: "raw",
-            raw: "DNA digivolving",
+            kind: "isDnaDigivolving", raw: "DNA digivolving",
           },
         },
         {
@@ -131,8 +128,7 @@ export const compiled: CompiledCard = {
           amount: 5000,
           duration: "forTheTurn",
           condition: {
-            kind: "raw",
-            raw: "DNA digivolving",
+            kind: "isDnaDigivolving", raw: "DNA digivolving",
           },
         },
       ],

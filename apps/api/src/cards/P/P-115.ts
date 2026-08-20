@@ -76,7 +76,14 @@ const compiled: CompiledCard = {
             }
           },
           "while": {
-            "kind": "raw",
+            "kind": "allOf",
+            "conditions": [
+              { "kind": "selfLevelAtLeast", "value": 5 },
+              { "kind": "anyOf", "conditions": [
+                { "kind": "selfHasTrait", "filter": { "nameOrTrait": [{ "tokens": ["Bagra Army"], "match": "trait" }] } },
+                { "kind": "selfHasTrait", "filter": { "nameOrTrait": [{ "tokens": ["Twilight"], "match": "trait" }] } }
+              ] }
+            ],
             "raw": "this Digimon has the [Bagra Army] or [Twilight] trait and is level 5 or higher"
           }
         }

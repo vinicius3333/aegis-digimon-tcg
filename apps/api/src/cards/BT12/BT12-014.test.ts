@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-014.js";
-import { module } from "./BT12-014.js";
 describe("BT12-014 OmniShoutmon", () => {
   it("adds 3000 to its deletion budget per 2 digivolution cards", async () => {
     const s = setupEngine(

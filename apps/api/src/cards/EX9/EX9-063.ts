@@ -6,7 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Digimon's bottom face-down digivolution card" trashes from THIS Digimon's digivolution
 // stack (zone:"digivolutionCards"); the previous isSelfRef wrongly trashed the Digimon
 // itself. (playCostLte:4 on the play target was already correct.)
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",

@@ -69,8 +69,8 @@ describe("BT5 Rafflesimon/Rosemon Digi-Burst deck gauntlet", () => {
       observe(s.engine).keywordAmount(s.perm("rosemon"), "SecurityAttack") === 1 &&
       observe(s.engine).keywordAmount(s.perm("rafflesimon"), "SecurityAttack") === 1 &&
       observe(s.engine).isRestricted(s.perm("restrictedOpponent"), "attack") &&
-      s.state.pendingDecision === undefined
-    );
+      s.state.pendingDecision === undefined,
+    5000);
 
     const restrictionChoice = s.decisions.find(({ req }) =>
       req.kind === "chooseTargets" &&
@@ -99,8 +99,8 @@ describe("BT5 Rafflesimon/Rosemon Digi-Burst deck gauntlet", () => {
       s.perm("rafflesimon").stack.length === 0 &&
       s.perm("rosemon").currentDP === 15_000 &&
       s.perm("rafflesimon").currentDP === 13_000 &&
-      s.state.pendingDecision === undefined
-    );
+      s.state.pendingDecision === undefined,
+    5000);
 
     expect(observe(s.engine).isRestricted(s.perm("freeOpponent"), "attack")).toBe(false);
     expect(s.decisions.filter(({ req }) =>
@@ -114,7 +114,7 @@ describe("BT5 Rafflesimon/Rosemon Digi-Burst deck gauntlet", () => {
         attackerPermanentId: s.perm(alias).permanentId,
         target: { kind: "player" },
       })).toEqual({ ok: true });
-      await settle(() => !observe(s.engine).isAttacking());
+      await settle(() => !observe(s.engine).isAttacking(), 5000);
     }
 
     expect(s.state.players[1]!.security).toHaveLength(0);

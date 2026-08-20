@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // KB Q3843: [Your Turn] affects all of YOUR Digimon with the [NSp] trait;
 // the restriction is attackTargetChange on the controller's NSp Digimon, not the opponent's.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",

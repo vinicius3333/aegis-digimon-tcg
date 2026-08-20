@@ -223,7 +223,8 @@ describe("§15-15-3 Effects That Reveal Cards (comprehensive-0057/0201/0202/0203
         "scaffolding)",
     );
 
-    const s = setup();
+    // The reveal-add asks which revealed card to take, and the remainder asks for an order.
+    const s = setup({ autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
     const p0 = s.state.players[0]!;
     const green = instance("BT1-064", 0, false); // a real green card
     const nonGreen1 = instance("AD1-001", 0, false); // a real non-green card
@@ -246,7 +247,7 @@ describe("§15-15-3 Effects That Reveal Cards (comprehensive-0057/0201/0202/0203
       s.state.memory = requireCardDefinition("BT14-042").playCost;
       s.engine.applyIntent(0, { type: "playCard", instanceId: played.instanceId });
     }
-    await settle(() => p0.hand.some((c) => c.instanceId === green.instanceId), 200);
+    await settle(() => p0.hand.some((c) => c.instanceId === green.instanceId), 5000);
 
     expect(p0.hand.some((c) => c.instanceId === green.instanceId)).toBe(true);
     // Net: 3 revealed, 1 kept (added to hand), 2 returned to the SAME deck — the deck

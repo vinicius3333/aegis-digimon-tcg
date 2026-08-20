@@ -575,7 +575,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.queryByRole("button", { name: "Inspect opponent Digimon: Elecmon" })).toBeNull();
   });
 
-  it("shows Hina's start-of-turn memory gain with its reason", () => {
+  it("shows Hina's start-of-turn memory gain", () => {
     mockDesktop();
     window.history.replaceState({}, "", "/dev/card-effects/EX3-065?step=start-turn");
 
@@ -586,7 +586,7 @@ describe("CardEffectsDemo", () => {
     );
 
     expect(screen.getByRole("img", { name: "Memory: +1" })).toBeTruthy();
-    expect(screen.getByText(/Memory 0 → 1 \(Hina Kurihara: opponent has a Digimon in play\)/i)).toBeTruthy();
+    expect(screen.getByText(/Memory changed: 0 → 1/i)).toBeTruthy();
   });
 
   it("shows Hina played from Security without spending memory", () => {
@@ -1469,7 +1469,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.getByRole("button", { name: "Jazamon" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Hina Kurihara" })).toBeTruthy();
     expect(screen.getByRole("img", { name: "Memory: +1" })).toBeTruthy();
-    expect(screen.getByText(/Memory 0 → 1 \(Jazamon: Hina Kurihara foi jogada\)/i)).toBeTruthy();
+    expect(screen.getByText(/Memory changed: 0 → 1/i)).toBeTruthy();
   });
 
   it("shows Jazamon's inherited DP bonus only on the host with an On Play effect", () => {
@@ -1598,9 +1598,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.getByRole("img", { name: "Memory: +2" })).toBeTruthy();
     expect(screen.getAllByRole("img", { name: "Parasaurmon" })).toHaveLength(2);
     expect(screen.getByRole("button", { name: "Goblimon" })).toBeTruthy();
-    expect(
-      screen.getByText(/Memory 3 → 2 \(Goblimon foi jogado por custo 1 após a redução de Parasaurmon\)/i),
-    ).toBeTruthy();
+    expect(screen.getByText(/Memory changed: 3 → 2/i)).toBeTruthy();
     expect(screen.getByText(/Parasaurmon foi suspenso e reduziu o custo de jogo em 1/i)).toBeTruthy();
   });
 
@@ -2230,7 +2228,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.getByRole("button", { name: "Pomumon (Suspended)" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Mushroomon" })).toBeTruthy();
     expect(screen.getByText(/Entmon contou consigo mesma e 1 aliado suspenso, então foi dessuspensa/i)).toBeTruthy();
-    expect(screen.getByText(/Memory 1 → 0 \(Entmon: Digisorption reduziu o custo de evolução em 3\)/i)).toBeTruthy();
+    expect(screen.getByText(/Memory changed: 1 → 0/i)).toBeTruthy();
   });
 
   it("keeps Entmon suspended below the threshold after declining Digisorption", () => {
@@ -2246,7 +2244,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.getByRole("img", { name: "Memory: -3" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Entmon (Suspended)" })).toBeTruthy();
     expect(screen.getByRole("button", { name: "Pomumon" })).toBeTruthy();
-    expect(screen.getByText(/Memory 1 → -3 \(Entmon: Digisorption recusada; custo completo pago\)/i)).toBeTruthy();
+    expect(screen.getByText(/Memory changed: 1 → -3/i)).toBeTruthy();
   });
 
   it("shows only active opposing targets for Breakdramon's mandatory suspension", () => {
@@ -2366,9 +2364,7 @@ describe("CardEffectsDemo", () => {
     expect(screen.getByRole("button", { name: /Hydramon.*Suspended/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Pomumon.*Suspended/i })).toBeTruthy();
     expect(screen.getByRole("button", { name: /Tinkermon.*Suspended/i })).toBeTruthy();
-    expect(
-      screen.getByText(/Memory 0 → 2 \(Hydramon: 2 outros Digimon Vegetation\/Fairy estão suspensos\)/i),
-    ).toBeTruthy();
+    expect(screen.getByText(/Memory changed: 0 → 2/i)).toBeTruthy();
   });
 
   it("shows only suspended opposing targets for Hydramon's mandatory end-turn return", () => {

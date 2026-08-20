@@ -174,11 +174,13 @@ describe("nameOrTrait — name/trait gates actually reject non-matching cards", 
     expect(definitionMatches(filter, facts({ nameEn: "Agumon", types: ["Reptile"] }))).toBe(false);
   });
 
-  it("BT9-111 returns only [X Antibody] cards from its own stack (traitOrName)", () => {
+  it("BT9-111 returns only cards with [X Antibody] in their TRAITS from its own stack", () => {
     assertKeysGone("BT9-111", ["traitOrName"]);
     const filter = filterWith("BT9-111", "nameOrTrait");
     expect(definitionMatches(filter, facts({ nameEn: "Agumon", types: ["X Antibody"] }))).toBe(true);
-    expect(definitionMatches(filter, facts({ nameEn: "Omnimon X Antibody", types: [] }))).toBe(true);
+    // The printed text reads "with [X Antibody] in their traits", so the name alone never
+    // qualifies — an X Antibody card is identified by its trait, not by its title.
+    expect(definitionMatches(filter, facts({ nameEn: "Omnimon X Antibody", types: [] }))).toBe(false);
     expect(definitionMatches(filter, facts({ nameEn: "Omnimon", types: ["Dragon"] }))).toBe(false);
   });
 

@@ -48,8 +48,9 @@ describe("BT3 Imperialdramon historical deck gauntlet", () => {
         s.state.memory === 0 &&
         !s.perm("paildramon").isSuspended &&
         !s.perm("veemon").isSuspended &&
-        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("evolutionDraw").instanceId),
-    );
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("evolutionDraw").instanceId) &&
+        observe(s.engine).hasKeyword(s.perm("paildramon"), "Jamming"),
+    5000);
     await s.engine.recomputeContinuousEffects();
     await s.ready();
 
@@ -67,7 +68,7 @@ describe("BT3 Imperialdramon historical deck gauntlet", () => {
         !observe(s.engine).isAttacking() &&
         !s.perm("paildramon").isSuspended &&
         s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("attackDraw").instanceId),
-    );
+    5000);
 
     // Jamming keeps Imperialdramon alive against the 15000 DP security Omnimon.
     expect(
@@ -82,7 +83,7 @@ describe("BT3 Imperialdramon historical deck gauntlet", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+    await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking(), 5000);
 
     expect(s.perm("paildramon").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(2);

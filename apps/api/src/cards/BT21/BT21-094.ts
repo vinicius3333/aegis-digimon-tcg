@@ -41,6 +41,7 @@ export const compiled: CompiledCard = {
             kind: ["Digimon"],
             nameOrTrait: [{ tokens: ["Armor Form"], match: "trait" }],
           },
+          requireTrashedDigivolutionCardWasTop: true,
           actions: [
             {
               kind: "GainKeyword",

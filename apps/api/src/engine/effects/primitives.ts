@@ -1672,6 +1672,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // permanent (whose link card this is) is carried as `subjectPermanentId` so a watcher can gate
     // on "this Digimon" / "an opponent's Digimon".
     const linkTrashed: { instanceId: string; hostPermanentId: string }[] = [];
+    const optionBattleAreaTrashed: string[] = [];
     if (engine.fireSubTrigger) {
       for (const instanceId of instanceIds) {
         const host = hostOfLinkedInstance(state, instanceId);
@@ -1710,6 +1711,31 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       }
     }
     for (const instanceId of instanceIds) {
+      // Options placed in the battle area are permanents, but their printed
+      // trash cost names the Option card itself. Remove that permanent as a
+      // whole and publish the dedicated watcher event after the move.
+      let removedOptionPermanent: CardInstance | undefined;
+      for (const owner of state.players) {
+        const index = owner.battleArea.findIndex((p) => p.topCard?.instanceId === instanceId);
+        const permanent = index >= 0 ? owner.battleArea[index] : undefined;
+        if (permanent?.topCard !== undefined && isOption(requireCardDefinition(permanent.topCard.cardId))) {
+          const extracted = extractPermanentAt(owner, index)!;
+          dropPermanentLedgers(extracted.permanentId);
+          removedOptionPermanent = extracted.topCard;
+          for (const card of [...extracted.stack, ...extracted.linked]) {
+            card.faceUp = false;
+            insertCard(player(card.ownerSeat), Zone.Trash, card);
+          }
+          optionBattleAreaTrashed.push(instanceId);
+          break;
+        }
+      }
+      if (removedOptionPermanent !== undefined) {
+        removedOptionPermanent.faceUp = false;
+        insertCard(player(removedOptionPermanent.ownerSeat), Zone.Trash, removedOptionPermanent);
+        moved.push(removedOptionPermanent);
+        continue;
+      }
       // Pass includeTrash=false: a card already in trash must not be removed-then-
       // re-pushed (this verb moves cards INTO trash, never out of it).
       const removed = removeLooseInstance(state, instanceId, false);
@@ -1735,6 +1761,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     for (const entry of linkTrashed) {
       if (!movedIds.has(entry.instanceId)) continue;
       await engine.fireSubTrigger!("whenLinkTrashed", { subjectPermanentId: entry.hostPermanentId });
+    }
+    for (const instanceId of optionBattleAreaTrashed) {
+      await engine.fireSubTrigger?.("whenOptionInBattleAreaTrashed", { trashedOptionInstanceId: instanceId });
     }
     const discardedFromSecurity = fromSecurity.filter((id) => movedIds.has(id));
     if (discardedFromSecurity.length > 0) {
@@ -1785,6 +1814,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // BT9-109 X Antibody protects only its own instance, from every effect (including its
     // controller's). Keep other requested cards eligible so "trash the bottom 2" can trash the
     // unprotected one (KB Q1922). Rule-driven identity cleanup uses other seams and is unaffected.
+    const hostBeforeTrash = access.permanentById(hostPermanentId);
+    const topStackCardInstanceId = hostBeforeTrash?.stack.at(-1)?.instanceId;
     const trashableInstanceIds = instanceIds.filter((instanceId) => !continuous.stackCardTrashLocked(instanceId));
     const moved = await trash(trashableInstanceIds);
     ledger.dropSourceInstances(
@@ -1815,6 +1846,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         ...(opts?.isDigiBurst === true ? { isDigiBurstTrash: true } : {}),
       });
       for (let i = 0; i < moved.length; i++) {
+        const trashedCard = moved[i]!;
+        const wasTop = topStackCardInstanceId === trashedCard.instanceId;
         // onDigivolutionCardDiscarded ("when THIS digivolution card is trashed") FIRST: its
         // watcher is a CONTINUOUS install whose source IS the just-trashed card (isSelfRef,
         // BT10-006). fireSubTrigger runs a trailing recomputeContinuousEffects, which drops
@@ -1831,6 +1864,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         });
         await engine.fireSubTrigger("whenDigivolutionTrashed", {
           subjectPermanentId: hostPermanentId,
+          trashedDigivolutionCardWasTop: wasTop,
           ...(opts?.byEffectSeat !== undefined ? { byEffectSeat: opts.byEffectSeat } : {}),
         });
       }
@@ -2483,6 +2517,17 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // per permanent in whatever order this array happens to be in — see
     // `deletePermanentsBatched`'s own doc for why per-permanent application can cross the
     // turn-player/non-turn-player boundary the wrong way and change the clamped result.
+    const tokenDeletionIds = toDelete
+      .flatMap((permanentId) => {
+        const top = access.permanentById(permanentId)?.topCard;
+        return top !== undefined && requireCardDefinition(top.cardId).isToken === true ? [top.instanceId] : [];
+      });
+    if (tokenDeletionIds.length > 0 && engine.fireTiming) {
+      await engine.fireTiming(EffectTiming.OnDestroyedAnyone, {
+        deletedInstanceIds: tokenDeletionIds,
+        removalCause: cause,
+      });
+    }
     const movedByPermanent = access.deletePermanentsBatched(toDelete);
     const deletedEffectiveColorsByInstanceId: Record<string, CardColor[]> = {};
     for (let i = 0; i < toDelete.length; i++) {
@@ -3781,14 +3826,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
 
   /**
    * Redirect the currently-resolving attack onto one of `candidatePermanentIds`
-   * (chosen by the source's controller). A no-op when no attack is open or no
-   * candidate resolves. The candidate ids are battle-area permanents the redirect
-   * filter resolved (the interpreter supplies them); the controller picks one.
+   * (chosen by the source's controller). The reserved id `"player"` represents the
+   * opponent player, allowing cards that say "another opponent's Digimon or the player".
    */
   const redirectAttack: Primitives["redirectAttack"] = async (candidatePermanentIds, opts) => {
     const combat = engine.combat;
     if (combat === undefined || !combat.isAttacking) return;
-    const candidates = candidatePermanentIds.filter((id) => access.permanentById(id) !== undefined);
+    const candidates = candidatePermanentIds.filter((id) => id === "player" || access.permanentById(id) !== undefined);
     if (candidates.length === 0) return;
     // The chooser is the source's controller by default; BT4-075 passes the opponent seat so
     // the DEFENDING player picks among their own unsuspended Digimon. When `optional`, the
@@ -3810,7 +3854,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const pick = chosen[0];
     if (pick === undefined) return; // declined (or no pick): attack proceeds unchanged
     const attackerId = combat.currentAttackerId;
-    combat.redirectTarget({ kind: "permanent", permanentId: pick });
+    combat.redirectTarget(pick === "player" ? { kind: "player" } : { kind: "permanent", permanentId: pick });
     // The attack target was just switched — notify reactive watchers ("when this Digimon's
     // attack target is switched", BT11-008). The attacker is the event subject; a watcher's
     // sourceFilter isSelfRef gates it to its own attack.
@@ -3839,7 +3883,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const playToken = async (
     seat: Seat,
     tokenName: string,
-    opts?: { payCost?: boolean; suspended?: boolean },
+    opts?: {
+      payCost?: boolean;
+      suspended?: boolean;
+      keywords?: Array<{ keyword: string; amount?: number; specifiers?: string[] }>;
+    },
   ): Promise<Permanent | undefined> => {
     const cardId = resolveTokenCardId(tokenName);
     if (cardId === undefined) return undefined;
@@ -3857,6 +3905,15 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
 
     const owner = player(seat);
     const permanent = placePermanent(engine, owner, instance, def, opts?.suspended ?? false);
+    for (const keyword of opts?.keywords ?? []) {
+      engine.continuous?.addKeywordGrant(
+        permanent.permanentId,
+        keyword.keyword,
+        EffectDuration.Permanent,
+        keyword.amount,
+        keyword.specifiers === undefined ? undefined : { specifiers: keyword.specifiers },
+      );
+    }
     engine.emit({
       kind: "cardsMoved",
       instanceIds: [instance.instanceId],

@@ -61,21 +61,21 @@ describe("BT26-083 [On Play]/[When Digivolving]: trash all security, delete 1-pe
     const deleted: string[][] = [];
     const recovered: number[] = [];
     const fx = {
-      trashFromSecurity: vi.fn(async (_seat: Seat, n: number) => Array.from({ length: n }, (_, i) => ({ instanceId: `sec-${i}` }))),
-      deletePermanent: vi.fn(async (ids: string[]) => {
+      trashFromSecurity: vi.fn<(...args: any[]) => any>(async (_seat: Seat, n: number) => Array.from({ length: n }, (_, i) => ({ instanceId: `sec-${i}` }))),
+      deletePermanent: vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
         deleted.push(ids);
         const opp = players[1] as { battleArea: { permanentId: string }[] };
         opp.battleArea = opp.battleArea.filter((p) => !ids.includes(p.permanentId));
         return ids.length;
       }),
-      recoverToSecurity: vi.fn(async (_seat: Seat, n: number) => {
+      recoverToSecurity: vi.fn<(...args: any[]) => any>(async (_seat: Seat, n: number) => {
         recovered.push(n);
         return [];
       }),
     } as unknown as Primitives;
 
     const ask = {
-      chooseTargets: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!]),
+      chooseTargets: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!]),
     } as unknown as EffectContext["ask"];
 
     const source = makeSource();

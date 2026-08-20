@@ -3,9 +3,8 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // [On Deletion]: trash up to 3 (optional "you may"), then delete is mandatory (no "you may").
-// Dynamic level ceiling scaling (base 3 + 1 per trashed card) cannot be encoded in IR;
-// level cap is fixed at 3 as a partial approximation.
-const compiled: CompiledCard = {
+// The deletion ceiling is driven by the preceding hand-trash count.
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "EndOfYourTurn",
@@ -64,6 +63,7 @@ const compiled: CompiledCard = {
             "count": 3,
             "upTo": true
           },
+          "trackCount": "trashedThisEffect",
           "optional": true
         },
         {
@@ -78,15 +78,19 @@ const compiled: CompiledCard = {
               }
             },
             "count": 1
+          },
+          "scaling": {
+            "per": 1,
+            "unit": "namedCount",
+            "countSource": "trashedThisEffect",
+            "levelCeilingAdd": 1
           }
         }
       ]
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "For each card trashed by the [On Deletion] Trash effect, add 1 to the level this Delete may choose (dynamic level ceiling scaling not encodable in IR)"
-  ]
+  "coverage": "full",
+  "residual": []
 };
 
 registerIrCard("BT14-078", compiled);

@@ -8,6 +8,7 @@ import "./EX3-041.js";
 import "./EX3-044.js";
 import "./EX3-063.js";
 import "./EX3-074.js";
+import "../index.js"; // the full catalog is registered in a real match
 
 describe("EX3-041 Groundramon", () => {
   it("has the official identity and both printed evolution requirements", () => {
@@ -397,7 +398,9 @@ describe("EX3-041 Groundramon", () => {
         battleArea: [
           { card: "EX3-020", under: ["EX3-041"], as: "wingdramon" },
           { card: "EX3-074", under: ["EX3-041"], as: "examon" },
-          { card: "BT1-072", under: ["EX3-041"], as: "unrelated" },
+          // A host with no [Dramon]/[Examon] in its name AND no printed ＜Blocker＞ of its own
+          // (BT1-072 Woodmon prints one, which would mask the gate under test).
+          { card: "BT10-043", under: ["EX3-041"], as: "unrelated" },
         ],
       },
     });

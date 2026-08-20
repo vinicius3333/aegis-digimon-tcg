@@ -84,7 +84,7 @@ const compiled: CompiledCard = {
             }
           },
           "while": {
-            "kind": "raw",
+            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens":["Dark Animal"],"match":"trait"},{"tokens":["SoC"],"match":"trait"}]},
             "raw": "this Digimon has the [Dark Animal] or [SoC] trait"
           }
         },
@@ -105,7 +105,7 @@ const compiled: CompiledCard = {
             }
           },
           "while": {
-            "kind": "raw",
+            "kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens":["Dark Animal"],"match":"trait"},{"tokens":["SoC"],"match":"trait"}]},
             "raw": "this Digimon has the [Dark Animal] or [SoC] trait"
           }
         }
@@ -162,4 +162,5 @@ const compiled: CompiledCard = {
   "residual": []
 };
 
+export { compiled };
 registerIrCard("BT14-087", compiled);

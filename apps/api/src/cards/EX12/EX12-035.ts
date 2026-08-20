@@ -5,8 +5,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Hand-fixed IR for EX12-035.
 // TrashDigivolution: changed count:1 + amount:4 to scope:"acrossDigimon" + amount:4 so the
 // controller picks 4 cards from across ALL opponent Digimon's stacks (not just 1 Digimon).
-// AllTurns SubTrigger "whenOneOfYoursDigivolves" is an approximation; text says "when any
-// Digimon digivolves" (both players) — no whenAnyDigivolves engine event yet (residual #2).
+// AllTurns SubTrigger uses `whenAnyDigivolves`; its source filter is intentionally `any` so
+// the watcher fires for either player's Digimon, matching the printed "when any Digimon" text.
 const compiled: CompiledCard = {
   "effects": [
     {
@@ -128,7 +128,7 @@ const compiled: CompiledCard = {
         },
         {
           "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
+          "event": "whenAnyDigivolves",
           "sourceFilter": {
             "controllerDefault": "any",
             "kind": [

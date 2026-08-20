@@ -12,7 +12,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   in play, 1 of your opponent's Digimon gets -2000 DP for the turn.
 //
 // LANE_H CAPABILITY: AddDPFromSuspendedCost (CAP-LANE-H-01) — see LANE_H.md
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "WhenAttacking",

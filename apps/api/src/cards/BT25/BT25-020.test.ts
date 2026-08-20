@@ -11,7 +11,7 @@ describe("BT25-020 Marsmon", () => {
 
   it("installs a once-per-turn battle-won watcher for own TS Digimon", () => {
     const module = getEffectModule("BT25-020");
-    const subscribeSubTrigger = vi.fn();
+    const subscribeSubTrigger = vi.fn<(...args: any[]) => any>();
     const source = {
       cardId: "BT25-020",
       instanceId: "marsmon-1",

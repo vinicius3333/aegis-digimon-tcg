@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "WhenAttacking",
@@ -26,7 +26,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "anyOf", "conditions": [{"kind": "selfHasNameContaining", "names": ["Tyrannomon"]}, {"kind": "selfHasTrait", "filter": {"nameOrTrait": [{"tokens": ["Dinosaur"], "match": "trait"}]}}],
             "raw": "this Digimon has [Tyrannomon] in its name or the [Dinosaur] trait"
           }
         }

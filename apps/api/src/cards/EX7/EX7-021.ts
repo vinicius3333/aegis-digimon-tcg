@@ -4,11 +4,12 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // [When Digivolving]: "Trash any 2 digivolution cards of your opponent's Digimon" means
 // 2 total divo cards spread across any opponent Digimon (not 2 from a single target).
-// Encoded via totalDigivolutionBudget:2 — a new engine capability (see LANE_E.md).
+// The interpreter's acrossDigimon scope pools the opponent's stacks and lets
+// the controller choose exactly two cards across any number of Digimon.
 // fromTop is omitted (false by default) per card text — not top-specific.
 // Inherited [Your Turn]: target filter includes [Ice-Snow] trait per text
 // "this Digimon with the [Ice-Snow] trait gains".
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
@@ -33,10 +34,10 @@ const compiled: CompiledCard = {
               ],
               "digivolutionCards": "hasAny"
             },
-            "count": "all",
-            "totalDigivolutionBudget": 2
+            "count": "all"
           },
-          "amount": "budget",
+          "scope": "acrossDigimon",
+          "amount": 2,
           "fromTop": false
         },
         {
@@ -161,10 +162,8 @@ const compiled: CompiledCard = {
       "isInherited": true
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "TrashDigivolution.totalDigivolutionBudget:2 (spread across multiple Digimon) not yet executed by interpreter (see LANE_E.md)"
-  ]
+  "coverage": "full",
+  "residual": []
 };
 
 registerIrCard("EX7-021", compiled);

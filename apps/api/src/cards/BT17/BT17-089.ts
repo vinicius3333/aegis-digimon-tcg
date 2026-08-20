@@ -71,7 +71,7 @@ export const module: EffectModule = {
             if (suspended.controllerSeat !== source.ownerSeat) return false;
             return isDigimon(ctx.game.definitionOf(suspended.topCard));
           },
-          canActivate: (ctx) => source.isOnBattleArea(),
+          canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {
@@ -102,7 +102,7 @@ export const module: EffectModule = {
             // THIS Tamer's permanent must be the one that was suspended.
             return ctx.trigger.suspendedPermanentId === self.permanentId;
           },
-          canActivate: (ctx) => source.isOnBattleArea(),
+          canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             ctx.fx.gainMemory(1);
 

@@ -76,7 +76,7 @@ async function card(ctx: EffectContext, candidates: CardInstance[], max = 1, opt
   });
 }
 
-function stackHas(ctx: EffectContext, source: CardSource, token: string): boolean {
+function _stackHas(ctx: EffectContext, source: CardSource, token: string): boolean {
   return source.permanent()?.stack.some((item) => contains(ctx.game.definitionOf(item), token)) ?? false;
 }
 

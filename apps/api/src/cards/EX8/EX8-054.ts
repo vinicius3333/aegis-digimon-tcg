@@ -16,7 +16,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/rush`,
           description: "＜Rush＞",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {
@@ -28,7 +28,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/piercing`,
           description: "＜Piercing＞",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {
@@ -40,7 +40,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/security-attack`,
           description: "＜Security A. +1＞",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {
@@ -87,7 +87,7 @@ const module: EffectModule = {
             "this Digimon may attack a player.",
           maxPerTurn: 1,
           optional: true,
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           canActivate: (ctx) => {
             const opponent = ctx.game.opponentOf(source.ownerSeat);
             return Array.from(ctx.game.player(opponent).battleArea).some(

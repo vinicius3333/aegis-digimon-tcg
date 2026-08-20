@@ -23,9 +23,9 @@ describe("famous deck selection", () => {
     );
 
     const personalDeck = within(screen.getByLabelText("Your decks")).getByRole("button", { name: /My build/ });
-    const famousDeck = within(screen.getByRole("region", { name: "BT1" })).getByRole("button", {
-      name: /Red Omnimon/,
-    });
+    const bt1 = screen.getByRole("region", { name: "BT1" });
+    fireEvent.click(within(bt1).getByText("BT1"));
+    const famousDeck = within(bt1).getByRole("button", { name: /Red Omnimon/ });
     expect(personalDeck.closest(".deck-list-card")).toBeTruthy();
     expect(famousDeck.closest(".deck-list-card")).toBeTruthy();
     expect(screen.getByRole("heading", { name: "Famous decks" })).toBeTruthy();
@@ -33,7 +33,7 @@ describe("famous deck selection", () => {
     expect(screen.getByRole("heading", { name: "EX2" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "BT10" })).toBeTruthy();
     expect(screen.getByRole("heading", { name: "BT19" })).toBeTruthy();
-    expect(screen.queryByRole("heading", { name: "EX9" })).toBeNull();
+    expect(screen.getByRole("heading", { name: "EX9" })).toBeTruthy();
   });
 
   it("selects a famous preset without adding it to personal decks", () => {
@@ -52,8 +52,10 @@ describe("famous deck selection", () => {
       </I18nProvider>,
     );
 
-    const bt1Group = screen.getByRole("heading", { name: "BT1" }).closest("section");
+    const bt1Heading = screen.getByRole("heading", { name: "BT1" });
+    const bt1Group = bt1Heading.closest("section");
     if (!bt1Group) throw new Error("BT1 group is missing");
+    fireEvent.click(bt1Heading);
     fireEvent.click(within(bt1Group).getByRole("button", { name: /Red Omnimon/ }));
 
     expect(onSelectDeck).toHaveBeenCalledWith("bt1-red-omnimon");

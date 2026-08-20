@@ -32,7 +32,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //      still choose the plain +3 reduction even when the +4 threshold (5+ distinct
 //      digivolution-card names) is met, so both amounts stay live choices — never automatic
 //      upgrades, never additive.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "StartOfYourMainPhase",
@@ -75,7 +75,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectActed",
             "raw": "this effect deleted"
           }
         }
@@ -117,7 +117,9 @@ const compiled: CompiledCard = {
             "raw": "By deleting this Digimon with 7 or more cards with different names in its digivolution cards"
           },
           "condition": {
-            "kind": "raw",
+            "kind": "selfDigivolutionStackDistinctNameCount",
+            "op": "gte",
+            "value": 7,
             "raw": "this Digimon has 7 or more cards with different names in its digivolution cards"
           },
           "optional": true
@@ -142,7 +144,9 @@ const compiled: CompiledCard = {
               "amount": 4,
               "raw": "Reduce the play cost by 4.",
               "condition": {
-                "kind": "raw",
+              "kind": "selfDigivolutionStackDistinctNameCount",
+              "op": "gte",
+              "value": 5,
                 "raw": "this Digimon has 5 or more cards with different names in its digivolution cards"
               }
             }

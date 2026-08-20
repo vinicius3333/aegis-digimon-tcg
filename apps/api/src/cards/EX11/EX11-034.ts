@@ -147,6 +147,14 @@ const compiled: CompiledCard = {
             "hand"
           ],
           "payCost": true,
+          "costReductionScaling": {
+            "per": 1,
+            "unit": "security",
+            "filter": {
+              "controller": "mine",
+              "faceUp": true
+            }
+          },
           "optional": true
         }
       ],
@@ -176,6 +184,14 @@ const compiled: CompiledCard = {
             "hand"
           ],
           "payCost": true,
+          "costReductionScaling": {
+            "per": 1,
+            "unit": "security",
+            "filter": {
+              "controller": "mine",
+              "faceUp": true
+            }
+          },
           "optional": true
         }
       ],
@@ -184,9 +200,7 @@ const compiled: CompiledCard = {
     }
   ],
   "coverage": "full",
-  "residual": [
-    "reduce this effect's paid play cost by 1 for each of your face-up security cards — PlayFromZoneAction.costReduction is a static number with no dynamic/scaling variant; no primitive scopes a per-unit cost reduction to a single accompanying PlayFromZone action"
-  ],
+  "residual": [],
   "digivolutionRequirement": [
     {
       "level": 5,

@@ -100,7 +100,7 @@ const compiled: CompiledCard = {
           "reduceCost": 2,
           "optional": true,
           "condition": {
-            "kind": "raw",
+            "kind": "stackHasSameLevelCards", "value": 2,
             "raw": "this Digimon's stack has 2 or more same-level cards"
           }
         }

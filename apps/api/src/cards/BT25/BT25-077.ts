@@ -24,7 +24,7 @@ const compiled: CompiledCard = {
               "amount": 5,
               "raw": "reduce the cost by 5",
               "condition": {
-                "kind": "raw",
+                "kind": "totalDigimonGte", "value": 12,
                 "raw": "there are 12 or more levels' total worth of Digimon"
               }
             }
@@ -166,7 +166,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "triggerEnteredByEffect",
             "raw": "played or digivolved by an effect"
           }
         }

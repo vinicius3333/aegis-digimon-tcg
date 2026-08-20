@@ -439,13 +439,14 @@
     },
     {
       "id": "ex4-dgo-2022-06-25-4-gallantmon",
-      "revision": 1,
+      "revision": 2,
       "name": "EX4 Gallantmon",
       "archetype": "Gallantmon",
       "collection": "EX4",
       "formatBlock": "EX4",
       "colors": ["Red", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Guilmon EX4-006 to 1, Gravity Crush BT1-090 to 1; the freed copies reinforce Guilmon BT12-007 to 4, Gallantmon BT12-018 to 4.",
       "tournament": {
         "name": "Ultimate Cup — TAK Games",
         "date": "2022-06-25",
@@ -459,7 +460,7 @@
         {
           "cardId": "BT12-007",
           "name": "Guilmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -483,7 +484,7 @@
         {
           "cardId": "EX4-006",
           "name": "Guilmon",
-          "qty": 2,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -525,7 +526,7 @@
         {
           "cardId": "BT12-018",
           "name": "Gallantmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -561,7 +562,7 @@
         {
           "cardId": "BT1-090",
           "name": "Gravity Crush",
-          "qty": 2,
+          "qty": 1,
           "type": "Option"
         },
         {
@@ -588,13 +589,14 @@
     },
     {
       "id": "ex4-lt-2023-06-24-1-red-hybrid",
-      "revision": 1,
+      "revision": 2,
       "name": "EX4 Red Hybrid",
       "archetype": "Red Hybrid",
       "collection": "EX4",
       "formatBlock": "EX4",
       "colors": ["Red"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Gravity Crush BT1-090 to 1; the freed copies reinforce EmperorGreymon BT7-016 to 3.",
       "tournament": {
         "name": "TORNEO #35 DIGIMON ROSARIO 24/6",
         "date": "2023-06-24",
@@ -660,7 +662,7 @@
         {
           "cardId": "BT7-016",
           "name": "EmperorGreymon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -684,7 +686,7 @@
         {
           "cardId": "BT1-090",
           "name": "Gravity Crush",
-          "qty": 2,
+          "qty": 1,
           "type": "Option"
         }
       ],

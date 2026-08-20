@@ -67,15 +67,15 @@ function makeHarness(options: {
   const calls: string[] = [];
   const suspended: string[][] = [];
   const fx = {
-    securityToHand: vi.fn(async (seat: Seat, n: number, opts?: { fromTop?: boolean }) => {
+    securityToHand: vi.fn<(...args: any[]) => any>(async (seat: Seat, n: number, opts?: { fromTop?: boolean }) => {
       calls.push(`securityToHand:${seat}:${n}:${opts?.fromTop === true}`);
       return [];
     }),
-    recoverToSecurity: vi.fn(async (seat: Seat, n: number) => {
+    recoverToSecurity: vi.fn<(...args: any[]) => any>(async (seat: Seat, n: number) => {
       calls.push(`recoverToSecurity:${seat}:${n}`);
       return [];
     }),
-    suspend: vi.fn(async (ids: string[]) => {
+    suspend: vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
       calls.push(`suspend:${ids.join(",")}`);
       suspended.push(ids);
       return ids;
@@ -84,7 +84,7 @@ function makeHarness(options: {
 
   const offered: string[][] = [];
   const ask = {
-    chooseTargets: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => {
+    chooseTargets: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => {
       offered.push(opts.candidates);
       return options.pick ? options.pick(opts.candidates) : [opts.candidates[0]!];
     }),

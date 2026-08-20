@@ -4,13 +4,14 @@
   "decks": [
     {
       "id": "bt18-dgo-2024-11-09-1-miragegaogamon-galaxy",
-      "revision": 1,
+      "revision": 2,
       "name": "BT18 MirageGaogamon Galaxy",
       "archetype": "MirageGaogamon Galaxy",
       "collection": "BT18",
       "formatBlock": "BT18-19",
       "colors": ["Red", "Blue", "White"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: MirageGaogamon BT11-033 to 1; the freed copies reinforce Ryugumon BT19-027 to 4, Huankunmon EX6-014 to 4.",
       "tournament": {
         "name": "Regionals — Core TCG",
         "date": "2024-11-09",
@@ -80,7 +81,7 @@
         {
           "cardId": "EX6-014",
           "name": "Huankunmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -92,13 +93,13 @@
         {
           "cardId": "BT11-033",
           "name": "MirageGaogamon",
-          "qty": 3,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT19-027",
           "name": "Ryugumon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -270,13 +271,14 @@
     },
     {
       "id": "bt18-dgo-2024-11-09-7-purple-hybrid",
-      "revision": 1,
+      "revision": 2,
       "name": "BT18 Purple Hybrid",
       "archetype": "Purple Hybrid",
       "collection": "BT18",
       "formatBlock": "BT18-19",
       "colors": ["Purple", "White", "Yellow", "Black", "Green"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Jack Raid BT4-111 to 1; the freed copies reinforce Koichi Kimura BT18-094 to 4.",
       "tournament": {
         "name": "Core TCG Regionals",
         "date": "2024-11-09",
@@ -398,7 +400,7 @@
         {
           "cardId": "BT18-094",
           "name": "Koichi Kimura",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -410,7 +412,7 @@
         {
           "cardId": "BT4-111",
           "name": "Jack Raid",
-          "qty": 2,
+          "qty": 1,
           "type": "Option"
         }
       ],
@@ -425,13 +427,14 @@
     },
     {
       "id": "bt18-dgo-2024-11-16-1-fenriloogamon-takemikazuchi",
-      "revision": 1,
+      "revision": 2,
       "name": "BT18 Fenriloogamon Takemikazuchi",
       "archetype": "Fenriloogamon Takemikazuchi",
       "collection": "BT18",
       "formatBlock": "BT18-19",
       "colors": ["Red", "Yellow", "Green", "White", "Black", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Fenriloogamon BT17-069 to 1; the freed copies reinforce Tyrannomon BT15-011 to 4, Loogamon BT15-071 to 4, DexDorugamon BT17-065 to 4.",
       "tournament": {
         "name": "Ultimate Cup — TAK Games",
         "date": "2024-11-16",
@@ -453,7 +456,7 @@
         {
           "cardId": "BT15-071",
           "name": "Loogamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -471,13 +474,13 @@
         {
           "cardId": "BT17-065",
           "name": "DexDorugamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT15-011",
           "name": "Tyrannomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -501,7 +504,7 @@
         {
           "cardId": "BT17-069",
           "name": "Fenriloogamon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -719,13 +722,14 @@
     },
     {
       "id": "bt18-dgo-2024-11-23-1-magnamon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT18 Magnamon",
       "archetype": "Magnamon",
       "collection": "BT18",
       "formatBlock": "BT18-19",
       "colors": ["Red", "Blue", "Yellow", "Black"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Blinding Ray BT4-104 to 1; the freed copies reinforce Magnamon BT8-038 to 4, Mental Training P-104 to 4.",
       "tournament": {
         "name": "Ultimate Cup — NoHEROES TCG",
         "date": "2024-11-23",
@@ -771,7 +775,7 @@
         {
           "cardId": "BT8-038",
           "name": "Magnamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -837,7 +841,7 @@
         {
           "cardId": "P-104",
           "name": "Mental Training",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -849,7 +853,7 @@
         {
           "cardId": "BT4-104",
           "name": "Blinding Ray",
-          "qty": 3,
+          "qty": 1,
           "type": "Option"
         },
         {
@@ -876,13 +880,14 @@
     },
     {
       "id": "bt18-dgo-2024-11-30-1-miragegaogamon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT18 MirageGaogamon",
       "archetype": "MirageGaogamon",
       "collection": "BT18",
       "formatBlock": "BT18-19",
       "colors": ["Blue"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: MirageGaogamon BT11-033 to 1; the freed copies reinforce MirageGaogamon: Burst Mode BT13-033 to 4, ModokiBetamon BT6-021 to 4, Thomas H. Norstein BT13-097 to 3.",
       "tournament": {
         "name": "Ultimate Cup — Organized Play Events",
         "date": "2024-11-30",
@@ -904,7 +909,7 @@
         {
           "cardId": "BT6-021",
           "name": "ModokiBetamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -964,7 +969,7 @@
         {
           "cardId": "BT11-033",
           "name": "MirageGaogamon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -976,13 +981,13 @@
         {
           "cardId": "BT13-033",
           "name": "MirageGaogamon: Burst Mode",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT13-097",
           "name": "Thomas H. Norstein",
-          "qty": 2,
+          "qty": 3,
           "type": "Tamer"
         },
         {
@@ -1015,13 +1020,14 @@
     },
     {
       "id": "bt18-dgo-2024-11-30-2-leviamon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT18 Leviamon",
       "archetype": "Leviamon",
       "collection": "BT18",
       "formatBlock": "BT18-19",
       "colors": ["White", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Dobermon (X Antibody) EX5-059 to 1, Cerberusmon (X Antibody) EX5-061 to 1; the freed copies reinforce Leviamon (X Antibody) BT15-081 to 4, Dobermon BT16-068 to 4, Gazimon BT3-077 to 4, Leviamon EX5-063 to 4, Purple Memory Boost! P-040 to 4, Seventh Lightning BT15-100 to 3.",
       "tournament": {
         "name": "Ultimate Cup — Organized Play Events",
         "date": "2024-11-30",
@@ -1049,7 +1055,7 @@
         {
           "cardId": "BT3-077",
           "name": "Gazimon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1073,7 +1079,7 @@
         {
           "cardId": "BT16-068",
           "name": "Dobermon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1085,7 +1091,7 @@
         {
           "cardId": "EX5-059",
           "name": "Dobermon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -1103,13 +1109,13 @@
         {
           "cardId": "EX5-061",
           "name": "Cerberusmon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT15-081",
           "name": "Leviamon (X Antibody)",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1121,7 +1127,7 @@
         {
           "cardId": "EX5-063",
           "name": "Leviamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1139,7 +1145,7 @@
         {
           "cardId": "BT15-100",
           "name": "Seventh Lightning",
-          "qty": 2,
+          "qty": 3,
           "type": "Option"
         },
         {
@@ -1151,7 +1157,7 @@
         {
           "cardId": "P-040",
           "name": "Purple Memory Boost!",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -1178,13 +1184,14 @@
     },
     {
       "id": "bt18-dgo-2024-12-07-1-seven-great-demon-lords",
-      "revision": 1,
+      "revision": 2,
       "name": "BT18 Seven Great Demon Lords",
       "archetype": "Seven Great Demon Lords",
       "collection": "BT18",
       "formatBlock": "BT18-19",
       "colors": ["Red", "Yellow", "Green", "Black", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Matt Ishida BT2-090 to 0; the freed copies reinforce Mist Memory Boost! BT8-108 to 4.",
       "tournament": {
         "name": "Ultimate Cup — Carta Magica",
         "date": "2024-12-07",
@@ -1294,12 +1301,6 @@
           "type": "Tamer"
         },
         {
-          "cardId": "BT2-090",
-          "name": "Matt Ishida",
-          "qty": 1,
-          "type": "Tamer"
-        },
-        {
           "cardId": "BT15-100",
           "name": "Seventh Lightning",
           "qty": 1,
@@ -1314,7 +1315,7 @@
         {
           "cardId": "BT8-108",
           "name": "Mist Memory Boost!",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {

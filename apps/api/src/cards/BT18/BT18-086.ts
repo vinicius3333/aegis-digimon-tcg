@@ -56,7 +56,7 @@ const compiled: CompiledCard = {
               "kind": "Prevent",
               "mode": "leavePlay",
               "cost": {
-                "kind": "raw",
+                "kind": "moveToBattleArea",
                 "raw": "by moving this Digimon to battle area"
               },
               "optional": true,
@@ -92,9 +92,7 @@ const compiled: CompiledCard = {
               "kind": [
                 "Digimon"
               ],
-              "colors": [
-                "White"
-              ],
+              "excludeColors": ["White"],
               "nameOrTrait": [
                 {
                   "tokens": [
@@ -115,3 +113,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT18-086", compiled);
+export { compiled };

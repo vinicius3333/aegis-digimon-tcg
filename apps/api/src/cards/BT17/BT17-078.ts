@@ -54,8 +54,8 @@ const compiled: CompiledCard = {
           },
           "to": "deckBottom",
           "condition": {
-            "kind": "raw",
-            "raw": "DNA Digivolving"
+            "kind": "isDnaDigivolving",
+            "raw": "DNA digivolving"
           }
         },
         {
@@ -88,8 +88,8 @@ const compiled: CompiledCard = {
           },
           "to": "deckBottom",
           "condition": {
-            "kind": "raw",
-            "raw": "DNA Digivolving"
+            "kind": "isDnaDigivolving",
+            "raw": "DNA digivolving"
           }
         },
         {

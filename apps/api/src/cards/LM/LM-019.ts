@@ -1,4 +1,4 @@
-import { EffectTiming, EffectDuration, isDigimon } from "@aegis/shared";
+import { EffectTiming, isDigimon } from "@aegis/shared";
 import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -56,7 +56,7 @@ const module: EffectModule = {
             "[All Turns] When one of your Digimon with [Gammamon] in its text, other than [Bokomon], " +
             "would leave the battle area other than by one of your effects, by deleting this Digimon, " +
             "prevent it from leaving.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

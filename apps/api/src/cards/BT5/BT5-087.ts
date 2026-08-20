@@ -1,4 +1,4 @@
-import { CardColor, EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
+import { CardColor, EffectTiming, isDigimon } from "@aegis/shared";
 import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -35,7 +35,7 @@ const module: EffectModule = {
             "play up to 2 black and/or purple Digimon cards with play costs of 8 or " +
             "less from your trash without paying their memory costs.",
           optional: false,
-          canActivate: (ctx) => source.isOnBattleArea(),
+          canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const ownerSeat = source.ownerSeat;
 

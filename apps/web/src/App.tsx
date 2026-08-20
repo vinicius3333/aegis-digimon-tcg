@@ -1,11 +1,12 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { BetaBanner } from "./design/BetaBanner";
 import { Stage, TopNav, type PlayerIdentity, type Screen } from "./design/primitives";
 import { colorKey, type ColorName } from "./design/theme";
 import {
   activeCollectionCards,
   copyDeckPreset,
   deckById,
-  filterDeckToActivePool,
+  filterDeckToKnownCards,
   selectableDecks,
   upsertDeck,
   type DeckListing,
@@ -119,7 +120,7 @@ function AppShell() {
   }, [dark]);
 
   const saveDeck = (deck: DeckListing, setActive: boolean) => {
-    const filtered = filterDeckToActivePool(deck);
+    const filtered = filterDeckToKnownCards(deck);
     setDecks((ds) => upsertDeck(ds, filtered));
     void accountApi
       .me()
@@ -165,7 +166,11 @@ export function AegisClient({
     name: account.displayName,
     avatarId: account.avatarId,
     avatarUrl: account.avatarUrl,
-  } : player, [account, player]);
+  } : {
+    ...player,
+    avatarId: player.guestAvatarId ?? null,
+    avatarUrl: null,
+  }, [account, player]);
   const [route, setRoute] = useState<AppRoute>(() => {
     if (initialScreen) return { screen: initialScreen };
     const directRoute = routeFromPathname(window.location.pathname);
@@ -182,6 +187,14 @@ export function AegisClient({
     const expectedPath = pathForRoute(route);
     if (window.location.pathname !== expectedPath) window.history.replaceState(null, "", expectedPath);
   }, []);
+
+  useEffect(() => {
+    if (initialScreen || !account || screen !== "onboarding") return;
+    if (window.location.pathname !== pathForRoute({ screen: "home" })) {
+      window.history.replaceState(null, "", pathForRoute({ screen: "home" }));
+    }
+    setRoute({ screen: "home" });
+  }, [account, screen, initialScreen]);
 
   useEffect(() => {
     if (initialScreen) return;
@@ -224,14 +237,15 @@ export function AegisClient({
   return (
     <Stage>
       {showNav ? <TopNav screen={screen} onNav={navigateScreen} player={effectivePlayer} /> : null}
+      {screen === "game" ? null : <BetaBanner belowNav={showNav} />}
 
       <div id="aegis-main" className={`aegis-screen-region${showNav ? " aegis-screen-region--nav" : ""}`} tabIndex={-1}>
         <Suspense fallback={<ScreenFallback />}>
           {screen === "onboarding" && (
             <Onboarding
               initialColor={identityColor}
-              onEnter={({ name, color }) => {
-                setPlayer((p) => ({ ...p, name, color }));
+              onEnter={({ name, color, avatarId }) => {
+                setPlayer((p) => ({ ...p, name, color, guestAvatarId: avatarId }));
                 navigateScreen("home");
               }}
             />
@@ -295,6 +309,7 @@ export function AegisClient({
               dark={dark}
               onToggleDark={setDark}
               onRename={(name) => setPlayer((p) => ({ ...p, name }))}
+              onSelectAvatar={(avatarId) => setPlayer((p) => ({ ...p, guestAvatarId: avatarId }))}
               onAccountChange={(updated) => setAccount?.(updated)}
             />
           )}

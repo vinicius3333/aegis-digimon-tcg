@@ -15,7 +15,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //      is trashed, gain 1 memory. WIRED (Phase 13 added the onDiscardLibrary SubTrigger
 //      event + the TrashTopDeck fire seam at interpreter.ts): consumed via a SubTrigger
 //      watcher gated on the milled deck being the opponent's (interpreter discardLibraryGate
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",

@@ -504,7 +504,7 @@ describe("§2-13 Other Information (comprehensive-0052)", () => {
 
     // Two real cards sharing the same kind but (in general) differing rarity both match a
     // filter that only inspects kind — rarity has no bearing on `definitionMatches`, because
-    // the Filter type carries no rarity predicate at all (packages/shared/src/effects/ir.ts).
+    // the Filter type carries no rarity predicate at all (packages/shared/src/effects/ir/filters.ts).
     const commonDef = requireCardDefinition("AD1-001");
     const rareDef = requireCardDefinition("BT1-020");
     const filter: Filter = { kind: ["Digimon"] };

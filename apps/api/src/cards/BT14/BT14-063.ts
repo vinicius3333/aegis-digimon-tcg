@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // [On Deletion]: reveal top 3, add 1 [Monzaemon] to hand AND play 1 [Numemon] Digimon without cost.
 // KB Q2434: if only one kind found, do that one. KB Q2435: if both found, must do both.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnDeletion",

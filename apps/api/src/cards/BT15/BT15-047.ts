@@ -22,7 +22,7 @@ const compiled: CompiledCard = {
           "grant": "immuneToOpponentDigimonEffects",
           "duration": "permanent",
           "condition": {
-            "kind": "raw",
+            "kind": "selfIsSuspended",
             "raw": "this Digimon is suspended"
           }
         }
@@ -51,3 +51,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT15-047", compiled);
+export { compiled };

@@ -24,8 +24,8 @@ const module: EffectModule = {
             "[Start of Your Main Phase] You may place the top card of your deck under this Tamer. " +
             "Then, if your opponent has a Digimon, gain 1 memory.",
           optional: true,
-          when: (ctx) => source.isOnBattleArea(),
-          canActivate: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
+          canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
@@ -86,7 +86,7 @@ const module: EffectModule = {
           description:
             "[Your Turn] When effects trash any of this Tamer's digivolution cards, by suspending " +
             "this Tamer, 1 of your [Glowing Dawn] trait Digimon gains ＜Jamming＞ for the turn.",
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

@@ -55,8 +55,8 @@ describe("BT5 Diaboromon token-swarm deck gauntlet", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "TOKEN-Diaboromon").length === 2 &&
       s.perm("arata").isSuspended &&
-      s.state.pendingDecision === undefined
-    );
+      s.state.pendingDecision === undefined,
+    5000);
     expect(s.state.memory).toBe(7);
 
     expect(
@@ -68,8 +68,8 @@ describe("BT5 Diaboromon token-swarm deck gauntlet", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "TOKEN-Diaboromon").length === 3 &&
       s.perm("opponentStack").stack.length === 0 &&
-      s.state.pendingDecision === undefined
-    );
+      s.state.pendingDecision === undefined,
+    5000);
     expect(s.state.memory).toBe(3);
     expect(s.perm("opponentStack").topCard?.cardId).toBe("BT5-059");
 
@@ -87,9 +87,10 @@ describe("BT5 Diaboromon token-swarm deck gauntlet", () => {
     ).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("armageddemon").instanceId) &&
+      s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "TOKEN-Diaboromon").length === 2 &&
       s.state.memory === 0 &&
-      s.state.pendingDecision === undefined
-    );
+      s.state.pendingDecision === undefined,
+    5000);
 
     const costRequest = s.decisions
       .filter(({ req }) => req.kind === "chooseTargets")
@@ -109,7 +110,7 @@ describe("BT5 Diaboromon token-swarm deck gauntlet", () => {
       ({ topCard }) => topCard?.instanceId === s.inst("armageddemon").instanceId,
     );
     expect(armageddemon).toBeDefined();
-    await settle(() => observe(s.engine).hasKeyword(armageddemon!, "Rush"));
+    await settle(() => observe(s.engine).hasKeyword(armageddemon!, "Rush"), 5000);
     expect(observe(s.engine).hasKeyword(armageddemon!, "Rush")).toBe(true);
 
     expect(
@@ -119,7 +120,7 @@ describe("BT5 Diaboromon token-swarm deck gauntlet", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking(), 5000);
 
     assertNoLoudGap(s);
   });

@@ -7,7 +7,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 2. Second add nameOrTrait: all three names ([Gabumon], [Garurumon], [Omnimon]) in a
 //    single OR-match entry as they are a single target clause.
 // Q&A Q3487: must add as many applicable cards as possible (both if both present).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",

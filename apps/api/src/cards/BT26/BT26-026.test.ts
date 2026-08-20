@@ -34,19 +34,19 @@ describe("BT26-026 Cougarmon", () => {
             : { kinds: [CardKind.Option], types: ["Glowing Dawn"], playCost: 3 },
       },
       ask: {
-        selectCards: vi.fn(async () => {
+        selectCards: vi.fn<(...args: any[]) => any>(async () => {
           calls.push("selectOption");
           return [chosenOption.instanceId];
         }),
-        optional: vi.fn(async () => {
+        optional: vi.fn<(...args: any[]) => any>(async () => {
           calls.push("payCost");
           return true;
         }),
       },
       fx: {
-        trashDigivolutionCards: vi.fn(async () => [{ instanceId: "bottom" }]),
-        gainMemory: vi.fn(),
-        useOptionFromHand: vi.fn(async () => []),
+        trashDigivolutionCards: vi.fn<(...args: any[]) => any>(async () => [{ instanceId: "bottom" }]),
+        gainMemory: vi.fn<(...args: any[]) => any>(),
+        useOptionFromHand: vi.fn<(...args: any[]) => any>(async () => []),
       },
     } as unknown as EffectContext;
 

@@ -60,7 +60,7 @@ const compiled: CompiledCard = {
             }
           },
           "while": {
-            "kind": "raw",
+            "kind": "selfHasNameContaining", "names": ["Gargomon","Rapidmon"],
             "raw": "this Digimon has [Gargomon] or [Rapidmon] in its name"
           }
         }
@@ -83,3 +83,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT16-038", compiled);
+export { compiled };

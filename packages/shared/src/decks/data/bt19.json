@@ -4,13 +4,14 @@
   "decks": [
     {
       "id": "bt19-dgo-2024-11-09-10-lordknightmon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT19 LordKnightmon",
       "archetype": "LordKnightmon",
       "collection": "BT19",
       "formatBlock": "BT18-19",
       "colors": ["Purple", "Black", "White", "Yellow", "Red"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Dobermon (X Antibody) EX5-059 to 1, Cerberusmon (X Antibody) EX5-061 to 1; the freed copies reinforce Ogremon BT14-073 to 4, Deltamon BT19-069 to 4, LordKnightmon BT19-072 to 4, LordKnightmon (X Antibody) BT19-073 to 4, Gazimon BT3-077 to 4, Cerberusmon BT16-075 to 3.",
       "tournament": {
         "name": "Core TCG Regionals",
         "date": "2024-11-09",
@@ -30,7 +31,7 @@
         {
           "cardId": "BT3-077",
           "name": "Gazimon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -48,31 +49,31 @@
         {
           "cardId": "BT14-073",
           "name": "Ogremon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "EX5-059",
           "name": "Dobermon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT19-069",
           "name": "Deltamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT16-075",
           "name": "Cerberusmon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
           "cardId": "EX5-061",
           "name": "Cerberusmon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -96,13 +97,13 @@
         {
           "cardId": "BT19-072",
           "name": "LordKnightmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT19-073",
           "name": "LordKnightmon (X Antibody)",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1138,13 +1139,14 @@
     },
     {
       "id": "bt19-dgo-2025-01-04-3-purple-hybrid",
-      "revision": 1,
+      "revision": 2,
       "name": "BT19 Purple Hybrid",
       "archetype": "Purple Hybrid",
       "collection": "BT19",
       "formatBlock": "BT18-19",
       "colors": ["White", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Matt Ishida BT2-090 to 0, Jack Raid BT4-111 to 1; the freed copies reinforce Gazimon BT3-077 to 4, Nidhoggmon BT7-077 to 4, Koichi Kimura BT18-094 to 4, Argomon BT17-048 to 3.",
       "tournament": {
         "name": "Championship Finals — Bandai",
         "date": "2025-01-04",
@@ -1160,7 +1162,7 @@
         {
           "cardId": "BT3-077",
           "name": "Gazimon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1208,13 +1210,13 @@
         {
           "cardId": "BT17-048",
           "name": "Argomon",
-          "qty": 1,
+          "qty": 3,
           "type": "Digimon"
         },
         {
           "cardId": "BT7-077",
           "name": "Nidhoggmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1222,12 +1224,6 @@
           "name": "DeathXmon",
           "qty": 1,
           "type": "Digimon"
-        },
-        {
-          "cardId": "BT2-090",
-          "name": "Matt Ishida",
-          "qty": 3,
-          "type": "Tamer"
         },
         {
           "cardId": "BT7-091",
@@ -1238,7 +1234,7 @@
         {
           "cardId": "BT18-094",
           "name": "Koichi Kimura",
-          "qty": 2,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -1250,7 +1246,7 @@
         {
           "cardId": "BT4-111",
           "name": "Jack Raid",
-          "qty": 4,
+          "qty": 1,
           "type": "Option"
         },
         {
@@ -1289,13 +1285,14 @@
     },
     {
       "id": "bt19-dgo-2025-03-15-3-sakuyamon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT19 Sakuyamon",
       "archetype": "Sakuyamon",
       "collection": "BT19",
       "formatBlock": "BT19-20",
       "colors": ["Yellow", "Purple", "Green"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Sakuyamon BT19-040 to 1, Digivolution Plug-In S EX2-070 to 1; the freed copies reinforce Renamon EX2-019 to 4, Sakuyamon BT17-038 to 4.",
       "tournament": {
         "name": "Bandai World Championship",
         "date": "2025-03-15",
@@ -1314,7 +1311,7 @@
         {
           "cardId": "EX2-019",
           "name": "Renamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1356,13 +1353,13 @@
         {
           "cardId": "BT17-038",
           "name": "Sakuyamon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT19-040",
           "name": "Sakuyamon",
-          "qty": 2,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -1392,7 +1389,7 @@
         {
           "cardId": "EX2-070",
           "name": "Digivolution Plug-In S",
-          "qty": 3,
+          "qty": 1,
           "type": "Option"
         },
         {

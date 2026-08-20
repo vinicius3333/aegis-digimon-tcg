@@ -50,6 +50,7 @@ describe("BT5 Hexeblaumon historical deck gauntlet", () => {
         observe(s.engine).keywordAmount(s.perm("hexeblaumon"), "SecurityAttack") === 1 &&
         observe(s.engine).isRestricted(s.perm("sourceTarget"), "attack") &&
         !observe(s.engine).isAttacking(),
+      5000,
     );
 
     // Q1310: Jamming is evaluated after the source trash, during this same attack.

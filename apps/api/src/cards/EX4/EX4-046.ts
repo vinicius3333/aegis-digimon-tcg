@@ -18,7 +18,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    The text is: "When an opponent's Digimon attacks, you may suspend this Digimon to
 //    force the opponent's attack to target this Digimon instead" — this is the Blocker
 //    keyword semantics but as a cost-based redirect. Encoded as a keyword grant.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "WhenDigivolving",
@@ -79,7 +79,8 @@ const compiled: CompiledCard = {
           },
           "optional": true,
           "cost": {
-            "kind": "raw",
+            "kind": "suspend",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "raw": "suspend this Digimon"
           }
         },

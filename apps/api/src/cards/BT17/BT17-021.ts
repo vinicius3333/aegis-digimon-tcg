@@ -60,7 +60,8 @@ const compiled: CompiledCard = {
           "kind": "GainMemory",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "selfHasKeyword",
+            "keyword": "Jamming",
             "raw": "this Digimon has ＜Jamming＞"
           }
         }
@@ -74,3 +75,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT17-021", compiled);
+export { compiled };

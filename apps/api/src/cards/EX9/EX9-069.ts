@@ -24,7 +24,7 @@ const module: EffectModule = {
             "[Start of Your Main Phase] You may place 1 card from your hand at the bottom of " +
             "the digivolution cards of 1 of your Digimon with the [DM] trait.",
           optional: true,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           canActivate: (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             return owner.hand.length > 0;
@@ -63,7 +63,7 @@ const module: EffectModule = {
             "[Your Turn] When one of your Digimon has a card placed in its digivolution cards, " +
             "by suspending this Tamer, gain 1 memory. Then, if you have 7 or fewer cards in " +
             "your hand, <Draw 1>.",
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
@@ -100,7 +100,7 @@ const module: EffectModule = {
           description:
             "[Opponent's Turn] All of your Digimon gain ＜Reboot＞ until the end of your " +
             "opponent's turn.",
-          when: (ctx) => source.isOnBattleArea() && !source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && !source.isOwnersTurn(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             for (const p of owner.battleArea) {

@@ -15,6 +15,8 @@ export interface PlayerIdentity {
   shards: number;
   avatarId?: DigimonWorldAvatarId | null;
   avatarUrl?: string | null;
+  /** Portrait picked during guest onboarding; account avatars win over it. */
+  guestAvatarId?: DigimonWorldAvatarId | null;
 }
 
 /** A screen key in the client router. */
@@ -238,10 +240,12 @@ export function Avatar({ name, color = "Blue", size = 40, ring, avatarId, avatar
   const [imageState, setImageState] = useState({ sourceKey, index: 0 });
   const imageIndex = imageState.sourceKey === sourceKey ? imageState.index : 0;
   const imageUrl = imageSources[imageIndex];
-  // Digimon World portraits are card scans, with the frame border and a pixel
-  // ornament baked into the image. They get a tighter radius so the mask does not
-  // slice through the printed frame, and are shown whole rather than cropped.
+  // Digimon World portraits are card scans: printed frame, background scenery
+  // and a pixel ornament around a small subject. Large tiles show the whole
+  // card; small ones zoom past the frame onto the character, biased upward
+  // where the head sits, or it reads as a smudge.
   const isCardPortrait = Boolean(avatarId) && imageIndex === 0;
+  const cropsToSubject = isCardPortrait && size <= 96;
   return (
     <div
       style={{
@@ -250,7 +254,7 @@ export function Avatar({ name, color = "Blue", size = 40, ring, avatarId, avatar
         borderRadius: isCardPortrait ? "18%" : "30%",
         flexShrink: 0,
         overflow: "hidden",
-        background: `linear-gradient(150deg, ${c.base}, ${c.edge})`,
+        background: isCardPortrait ? "transparent" : `linear-gradient(150deg, ${c.base}, ${c.edge})`,
         color: "#ffffff",
         display: "grid",
         placeItems: "center",
@@ -272,8 +276,10 @@ export function Avatar({ name, color = "Blue", size = 40, ring, avatarId, avatar
             width: "100%",
             height: "100%",
             borderRadius: "inherit",
-            objectFit: isCardPortrait ? "contain" : "cover",
-            imageRendering: isCardPortrait ? "pixelated" : "auto",
+            objectFit: isCardPortrait && !cropsToSubject ? "contain" : "cover",
+            transform: cropsToSubject ? "scale(1.38)" : undefined,
+            transformOrigin: "50% 38%",
+            imageRendering: isCardPortrait && size > 150 ? "pixelated" : "auto",
           }}
         />
       ) : initials}
@@ -370,7 +376,7 @@ export function TopNav({ screen, onNav, player }: { screen: Screen; onNav: (s: S
         <div className="aegis-player-chip">
           <span>{player.name}</span>
           <button className="aegis-profile-avatar-button" onClick={() => navTo("settings")} aria-label={t("menu.settings")} aria-current={screen === "settings" ? "page" : undefined}>
-            <Avatar name={player.name} color={player.color} avatarId={player.avatarId} avatarUrl={player.avatarUrl} size={48} />
+            <Avatar name={player.name} color={player.color} avatarId={player.avatarId} avatarUrl={player.avatarUrl} size={56} />
           </button>
         </div>
       </div>
@@ -380,7 +386,7 @@ export function TopNav({ screen, onNav, player }: { screen: Screen; onNav: (s: S
       <div className="aegis-player-chip aegis-player-chip--mobile">
         <span>{player.name}</span>
         <button className="aegis-profile-avatar-button" onClick={() => navTo("settings")} aria-label={t("menu.settings")} aria-current={screen === "settings" ? "page" : undefined}>
-          <Avatar name={player.name} color={player.color} avatarId={player.avatarId} avatarUrl={player.avatarUrl} size={40} />
+          <Avatar name={player.name} color={player.color} avatarId={player.avatarId} avatarUrl={player.avatarUrl} size={48} />
         </button>
       </div>
     </header>

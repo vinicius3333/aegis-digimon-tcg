@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Main",
@@ -24,8 +24,12 @@ const compiled: CompiledCard = {
           "effectText": "[Start of Your Main Phase] This Digimon attacks.",
           "duration": "untilOpponentTurnEnd",
           "cost": {
-            "kind": "raw",
-            "raw": "By paying 2 cost and placing this card as the bottom digivolution card of 1 of your Digimon that's level 5 or has the [Legend-Arms] trait"
+          "kind": "compound",
+          "costs": [
+            { "kind": "payMemory", "memory": 2 },
+            { "kind": "place", "target": { "filter": { "zone": "hand", "controller": "mine", "kind": ["Option"] }, "count": 1, "from": ["hand"] }, "underFilter": { "controller": "mine", "kind": ["Digimon"], "levels": [5] }, "underOrFilters": [{ "controller": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Legend-Arms"], "match": "trait" }] }], "destination": "digivolutionStack", "position": "bottom", "host": "target" }
+          ],
+          "raw": "By paying 2 cost and placing this card as the bottom digivolution card of 1 of your Digimon that's level 5 or has the [Legend-Arms] trait"
           },
           "optional": true,
           "abortOnDecline": true

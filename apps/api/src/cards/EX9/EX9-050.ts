@@ -9,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [inherited] [Static] <Blocker>
 // Q4805: All 3 cards must be placed; partial cost cannot be met.
 // The place cost already encodes faceDown/position/host correctly.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "EndOfYourTurn",

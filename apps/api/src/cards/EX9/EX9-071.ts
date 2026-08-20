@@ -10,7 +10,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [Security] Gain 1 memory. Then, place this card in the battle area.
 // Q4833: All required face-down digivolution cards must be trashed; partial cost can't be met.
 // Q4834: "while you have [card] on the field" = card in battle area or breeding area.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",

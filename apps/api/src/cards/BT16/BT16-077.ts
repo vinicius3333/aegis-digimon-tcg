@@ -52,7 +52,7 @@ const compiled: CompiledCard = {
           ],
           "payCost": false,
           "condition": {
-            "kind": "raw",
+            "kind": "isDnaDigivolving",
             "raw": "DNA digivolving"
           },
           "optional": true
@@ -109,3 +109,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT16-077", compiled);
+export { compiled };

@@ -137,7 +137,7 @@ const module: EffectModule = {
             "[Opponent's Turn] When your opponent moves a Digimon from their breeding area, " +
             "by trashing 1 of this Digimon's digivolution cards, that Digimon gains " +
             "\"[When Attacking] Lose 3 memory\" for the turn.",
-          when: (ctx) => ctx.source.isOnBattleArea(),
+          when: (ctx) => ctx.source.isOnBattleArea() && !ctx.source.isOwnersTurn(),
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
             if (self === undefined) return;

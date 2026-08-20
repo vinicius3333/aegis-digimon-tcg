@@ -45,13 +45,44 @@ const PRINTED_MATCHERS: ReadonlyArray<readonly [Keyword, RegExp]> = [
   ["Engage", /[<＜]\s*Engage/i],
 ];
 
+/**
+ * The global twin of each printed matcher, built once.
+ *
+ * `matchAll` demands the `g` flag, and rebuilding these 40-odd RegExp objects per call showed up
+ * as 5% of engine CPU under load: the scan runs on every keyword read, and keyword reads run on
+ * every continuous-effect recomputation.
+ */
+const GLOBAL_PRINTED_MATCHERS: ReadonlyArray<readonly [Keyword, RegExp]> = PRINTED_MATCHERS.map(
+  ([name, matcher]) =>
+    [name, new RegExp(matcher.source, matcher.flags.includes("g") ? matcher.flags : `${matcher.flags}g`)] as const,
+);
+
+/**
+ * Printed keywords are a pure function of the card's printed text, and a match reads the same
+ * few thousand card texts over and over, so the scan is memoized on the text itself. The key
+ * space is bounded by the card pool; entries are immutable and shared, so callers must treat
+ * the returned array as read-only.
+ */
+const printedKeywordCache = new Map<string, readonly string[]>();
+
+const GRANT_CLAUSE = /\b(?:gain|gains|gained|getting|gets|has)\b/i;
+const FILTER_CLAUSE = /\bwith(?:out)?\s+[^.!?\n]{0,80}$/i;
+const USE_CLAUSE = /\b(?:use|using)\s*$/i;
+
 /** Keywords printed as abilities, excluding prose that grants them conditionally. */
-export function printedKeywordsOf(effectText: string | undefined): string[] {
+export function printedKeywordsOf(effectText: string | undefined): readonly string[] {
   if (effectText === undefined || effectText === "") return [];
+  const cached = printedKeywordCache.get(effectText);
+  if (cached !== undefined) return cached;
+  const found = scanPrintedKeywords(effectText);
+  printedKeywordCache.set(effectText, found);
+  return found;
+}
+
+function scanPrintedKeywords(effectText: string): readonly string[] {
   const found: string[] = [];
-  for (const [name, matcher] of PRINTED_MATCHERS) {
-    const flags = matcher.flags.includes("g") ? matcher.flags : `${matcher.flags}g`;
-    const everyOccurrence = new RegExp(matcher.source, flags);
+  for (const [name, everyOccurrence] of GLOBAL_PRINTED_MATCHERS) {
+    everyOccurrence.lastIndex = 0;
     for (const match of effectText.matchAll(everyOccurrence)) {
       const prefix = effectText.slice(0, match.index);
       const clauseStart = Math.max(prefix.lastIndexOf("."), prefix.lastIndexOf("\n")) + 1;
@@ -62,9 +93,9 @@ export function printedKeywordsOf(effectText: string | undefined): string[] {
       // <Piercing> and <Blocker>" reject both markers, not only the first one.
       // The continuous ledger publishes those keywords only while their actual
       // conditions/durations are active.
-      if (/\b(?:gain|gains|gained|getting|gets|has)\b/i.test(clausePrefix)) continue;
-      if (/\bwith(?:out)?\s+[^.!?\n]{0,80}$/i.test(clausePrefix)) continue;
-      if (/\b(?:use|using)\s*$/i.test(clausePrefix)) continue;
+      if (GRANT_CLAUSE.test(clausePrefix)) continue;
+      if (FILTER_CLAUSE.test(clausePrefix)) continue;
+      if (USE_CLAUSE.test(clausePrefix)) continue;
       found.push(name);
       break;
     }

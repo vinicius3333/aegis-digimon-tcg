@@ -74,9 +74,12 @@ describe.each(SIBLINGS)("%s — [Hand][Main] reduced-cost play + turn-end delete
     // REVERT-CONFIRM-RED: restore the old `Replacement`/`wouldBePlayed` Main effect => nothing is
     // ever played, the card stays in hand => this goes RED.
 
-    // Turn end: the armed watcher deletes exactly the permanent this effect played.
+    // Turn end: the armed watcher deletes exactly the permanent this effect played. The play
+    // lands one continuation before the arming action, so flush the rest of the resolution
+    // before firing the window — otherwise the watcher installs after it.
+    await settle(() => false, 200);
     void fireEndTurn(s);
-    await settle(() => !onField(s, inHand.instanceId));
+    await settle(() => !onField(s, inHand.instanceId), 5000);
     expect(onField(s, inHand.instanceId)).toBe(false);
     // The bystander is untouched — the honesty lever for the dead filter: the old IR's Delete
     // (count "all", `playedByThisEffect` ignored) matched EVERY permanent.

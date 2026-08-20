@@ -2,7 +2,7 @@ import { existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
-import { CARD_POOL_CUTOFF_DATE, CardKind, getCardDefinition, getCompiledCard, isCardInActivePool } from "@aegis/shared";
+import { CardKind, getCardDefinition, getCompiledCard, releaseDateForCard } from "@aegis/shared";
 import "../../cards/index.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { effectiveCopyLimit } from "../../engine/banlistRestrictions.js";
@@ -15,8 +15,8 @@ import { deckFingerprint, type MetaDeck } from "./types.js";
  * The shipped bot decks must stay legal without anyone remembering to re-check
  * them. This suite is the gate: it reads the same authorities the server reads —
  * `cards.json`, the effect registry, `data/kb/banlist.json`, and
- * `validateDecklist` — so a KB refresh, a card-pool advance, or an edited list
- * fails here instead of dealing an illegal deck into a tournament.
+ * `validateDecklist` — so a KB refresh or an edited list fails here instead of
+ * dealing an illegal deck into a tournament.
  */
 
 const CARDS_DIR = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "cards");
@@ -95,8 +95,8 @@ it("pins every deck version to its contents", () => {
 describe.each(ALL_META_DECKS.map((deck) => [deck.deckVersion, deck] as const))("%s", (_version, deck) => {
   const blockDate = blockReleaseDate(deck.block)!;
 
-  it("passes the server's deck-legality gate for its block", () => {
-    expect(validateDecklist(deck.decklist, { cardPoolCutoffDate: blockDate })).toEqual({ ok: true });
+  it("passes the server's deck-legality gate", () => {
+    expect(validateDecklist(deck.decklist)).toEqual({ ok: true });
   });
 
   it("has a legal deck shape", () => {
@@ -115,7 +115,9 @@ describe.each(ALL_META_DECKS.map((deck) => [deck.deckVersion, deck] as const))("
     for (const cardId of allCards(deck)) {
       const definition = getCardDefinition(cardId);
       expect(definition, `${cardId} is not in cards.json`).toBeDefined();
-      expect(isCardInActivePool(definition!, blockDate), `${cardId} postdates ${deck.block}`).toBe(true);
+      const releaseDate = releaseDateForCard(definition!);
+      expect(releaseDate, `${cardId} has no release date`).toBeDefined();
+      expect(releaseDate! <= blockDate, `${cardId} postdates ${deck.block}`).toBe(true);
     }
   });
 
@@ -156,19 +158,6 @@ describe.each(ALL_META_DECKS.map((deck) => [deck.deckVersion, deck] as const))("
     }
   });
 
-  const insidePool = blockDate <= CARD_POOL_CUTOFF_DATE;
-
-  it.skipIf(!insidePool)("is dealable today, its block being inside the active card pool", () => {
-    expect(validateDecklist(deck.decklist)).toEqual({ ok: true });
-  });
-
-  // The counterpart for a block published ahead of the pool. Such a deck may or may
-  // not happen to be dealable, so dealability says nothing; what must hold is that the
-  // default lookup never hands it out, because the server would reject it at deal time.
-  it.runIf(!insidePool)("is withheld by the default lookup until the card pool reaches its block", () => {
-    expect(metaDecksForBlock(deck.block)).not.toContain(deck);
-  });
-
   it("is immutable", () => {
     expect(Object.isFrozen(deck)).toBe(true);
     expect(Object.isFrozen(deck.decklist.mainDeck)).toBe(true);
@@ -179,30 +168,27 @@ describe.each(ALL_META_DECKS.map((deck) => [deck.deckVersion, deck] as const))("
 describe("metaDecksForBlock", () => {
   it("returns a block's own decks", () => {
     for (const block of COVERED_BLOCKS) {
-      const decks = metaDecksForBlock(block, { cardPoolCutoffDate: blockReleaseDate(block)! });
+      const decks = metaDecksForBlock(block);
       expect(decks.length).toBeGreaterThan(0);
       expect(decks.every((deck) => deck.block === block)).toBe(true);
     }
   });
 
-  it("falls back to the newest block the card pool allows", () => {
+  it("falls back to the newest covered block for an unrecognized label", () => {
     const newest = COVERED_BLOCKS.at(-1)!;
-    const unknownButRecent = metaDecksForBlock("NOT-A-SET", { cardPoolCutoffDate: "2099-01-01" });
+    const unknownButRecent = metaDecksForBlock("NOT-A-SET");
     expect(unknownButRecent.every((deck) => deck.block === newest)).toBe(true);
     expect(unknownButRecent.length).toBeGreaterThan(0);
   });
 
-  it("never returns a deck the card pool has not reached", () => {
-    const oldest = COVERED_BLOCKS[0]!;
-    const cutoff = blockReleaseDate(oldest)!;
-    for (const deck of metaDecksForBlock(COVERED_BLOCKS.at(-1)!, { cardPoolCutoffDate: cutoff })) {
-      expect(blockReleaseDate(deck.block)! <= cutoff).toBe(true);
+  it("never returns a deck from a block newer than the one asked for", () => {
+    const requested = blockReleaseDate("BT12")!;
+    for (const deck of metaDecksForBlock("BT12")) {
+      expect(blockReleaseDate(deck.block)! <= requested).toBe(true);
     }
   });
 
   it("returns nothing for a block older than every covered one", () => {
-    expect(metaDecksForBlock("ST1", { cardPoolCutoffDate: "2021-01-29" })).toEqual([]);
-    // Real products that predate the oldest covered block, under the default cutoff.
     for (const block of ["ST1", "ST2", "ST3", "P"]) {
       expect(metaDecksForBlock(block), `${block} should resolve to no deck`).toEqual([]);
     }
@@ -217,9 +203,8 @@ describe("metaDecksForBlock", () => {
     expect(Object.isFrozen(metaDecksForBlock("BT10"))).toBe(true);
   });
 
-  it("defaults to decks the operational card pool can deal", () => {
+  it("defaults to decks the server can deal", () => {
     for (const deck of metaDecksForBlock("NOT-A-SET")) {
-      expect(blockReleaseDate(deck.block)! <= CARD_POOL_CUTOFF_DATE).toBe(true);
       expect(validateDecklist(deck.decklist)).toEqual({ ok: true });
     }
   });

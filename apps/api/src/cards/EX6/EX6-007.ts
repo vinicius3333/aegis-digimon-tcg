@@ -16,7 +16,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     the card was just placed under ("that Digimon gets +4000 DP"), not an independently
 //     chosen/unrestricted Digimon.
 // All other clauses are the unchanged declarative effect record.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Main",

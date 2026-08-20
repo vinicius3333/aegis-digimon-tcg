@@ -147,13 +147,14 @@
     },
     {
       "id": "ex3-dgo-2022-11-26-2-metalgarurumon",
-      "revision": 1,
+      "revision": 2,
       "name": "EX3 MetalGarurumon",
       "archetype": "MetalGarurumon",
       "collection": "EX3",
       "formatBlock": "EX3",
       "colors": ["Blue", "White"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: WereGarurumon P-008 to 1, MetalGarurumon EX1-021 to 1, Hammer Spark ST2-13 to 1; the freed copies reinforce MetalGarurumon (X Antibody) BT9-031 to 4, Cool Boy BT9-092 to 4, X Antibody BT9-109 to 4, Blue Memory Boost! P-036 to 4, Garurumon BT5-024 to 4, ModokiBetamon BT6-021 to 3.",
       "tournament": {
         "name": "Ultimate Cup — Carta Magica",
         "date": "2022-11-26",
@@ -173,7 +174,7 @@
         {
           "cardId": "BT6-021",
           "name": "ModokiBetamon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -191,7 +192,7 @@
         {
           "cardId": "BT5-024",
           "name": "Garurumon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -215,19 +216,19 @@
         {
           "cardId": "P-008",
           "name": "WereGarurumon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT9-031",
           "name": "MetalGarurumon (X Antibody)",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "EX1-021",
           "name": "MetalGarurumon",
-          "qty": 2,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -239,7 +240,7 @@
         {
           "cardId": "BT9-092",
           "name": "Cool Boy",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -251,19 +252,19 @@
         {
           "cardId": "P-036",
           "name": "Blue Memory Boost!",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
           "cardId": "ST2-13",
           "name": "Hammer Spark",
-          "qty": 4,
+          "qty": 1,
           "type": "Option"
         },
         {
           "cardId": "BT9-109",
           "name": "X Antibody",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         }
       ],
@@ -278,13 +279,14 @@
     },
     {
       "id": "ex3-dgo-2022-11-26-4-bloom-hydra",
-      "revision": 1,
+      "revision": 2,
       "name": "EX3 Bloom Hydra",
       "archetype": "Bloom Hydra",
       "collection": "EX3",
       "formatBlock": "EX3",
       "colors": ["Green"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Blossomon BT3-054 to 1; the freed copies reinforce Parasaurmon EX3-040 to 4.",
       "tournament": {
         "name": "Ultimate Cup — Carta Magica",
         "date": "2022-11-26",
@@ -340,7 +342,7 @@
         {
           "cardId": "EX3-040",
           "name": "Parasaurmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -364,7 +366,7 @@
         {
           "cardId": "BT3-054",
           "name": "Blossomon",
-          "qty": 2,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -427,13 +429,14 @@
     },
     {
       "id": "ex3-dgo-2022-12-10-1-security-control",
-      "revision": 1,
+      "revision": 2,
       "name": "EX3 Security Control",
       "archetype": "Security Control",
       "collection": "EX3",
       "formatBlock": "EX3",
       "colors": ["Yellow", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Matt Ishida BT2-090 to 0; the freed copies reinforce BushiAgumon BT4-038 to 4.",
       "tournament": {
         "name": "2022 Regionals",
         "date": "2022-12-10",
@@ -451,7 +454,7 @@
         {
           "cardId": "BT4-038",
           "name": "BushiAgumon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -471,12 +474,6 @@
           "name": "DeathXmon",
           "qty": 2,
           "type": "Digimon"
-        },
-        {
-          "cardId": "BT2-090",
-          "name": "Matt Ishida",
-          "qty": 1,
-          "type": "Tamer"
         },
         {
           "cardId": "BT3-096",
@@ -697,13 +694,14 @@
     },
     {
       "id": "ex3-dgo-2022-12-10-3-grandiskuwagamon",
-      "revision": 1,
+      "revision": 2,
       "name": "EX3 GrandisKuwagamon",
       "archetype": "GrandisKuwagamon",
       "collection": "EX3",
       "formatBlock": "EX3",
       "colors": ["Green"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: GranKuwagamon P-025 to 1; the freed copies reinforce Mimi Tachikawa BT1-089 to 4, Kabuterimon ST4-08 to 4, Gran del Sol BT10-103 to 3.",
       "tournament": {
         "name": "2022 Regionals",
         "date": "2022-12-10",
@@ -763,7 +761,7 @@
         {
           "cardId": "ST4-08",
           "name": "Kabuterimon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -781,7 +779,7 @@
         {
           "cardId": "P-025",
           "name": "GranKuwagamon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -793,13 +791,13 @@
         {
           "cardId": "BT1-089",
           "name": "Mimi Tachikawa",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
           "cardId": "BT10-103",
           "name": "Gran del Sol",
-          "qty": 2,
+          "qty": 3,
           "type": "Option"
         },
         {
@@ -826,13 +824,14 @@
     },
     {
       "id": "ex3-dgo-2022-12-10-5-imperialdramon",
-      "revision": 1,
+      "revision": 2,
       "name": "EX3 Imperialdramon",
       "archetype": "Imperialdramon",
       "collection": "EX3",
       "formatBlock": "EX3",
       "colors": ["Blue", "Green"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Stingmon ST9-09 to 1, Hammer Spark ST2-13 to 1; the freed copies reinforce Veemon EX1-013 to 4, Blue Memory Boost! P-036 to 4, Dinobeemon ST9-11 to 4, Megadeath ST9-14 to 4, Davis Motomiya BT3-093 to 3.",
       "tournament": {
         "name": "2022 Regionals",
         "date": "2022-12-10",
@@ -850,7 +849,7 @@
         {
           "cardId": "EX1-013",
           "name": "Veemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -892,7 +891,7 @@
         {
           "cardId": "ST9-09",
           "name": "Stingmon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -910,7 +909,7 @@
         {
           "cardId": "ST9-11",
           "name": "Dinobeemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -934,7 +933,7 @@
         {
           "cardId": "BT3-093",
           "name": "Davis Motomiya",
-          "qty": 2,
+          "qty": 3,
           "type": "Tamer"
         },
         {
@@ -952,19 +951,19 @@
         {
           "cardId": "P-036",
           "name": "Blue Memory Boost!",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
           "cardId": "ST2-13",
           "name": "Hammer Spark",
-          "qty": 3,
+          "qty": 1,
           "type": "Option"
         },
         {
           "cardId": "ST9-14",
           "name": "Megadeath",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {

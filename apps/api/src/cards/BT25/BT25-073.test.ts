@@ -53,7 +53,9 @@ describe("A3 BT25-073 — pay by trashing a link card, then free-play a [TS] cos
           hand: [TS_CARD],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      // The clause is a Modal ("play a [TS] Digimon" / "use a [TS] Option"); option 0 is the
+      // play branch this case asserts, and without an answer the resolution never returns.
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 0 },
     );
     const p0 = s.state.players[0] as PlayerState;
     const linkCardId = s.inst("linkCard").instanceId;
@@ -82,7 +84,9 @@ describe("A3 BT25-073 — pay by trashing a link card, then free-play a [TS] cos
           hand: [TS_CARD],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      // The clause is a Modal ("play a [TS] Digimon" / "use a [TS] Option"); option 0 is the
+      // play branch this case asserts, and without an answer the resolution never returns.
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 0 },
     );
     const p0 = s.state.players[0] as PlayerState;
     const linkCardId = s.inst("linkCard").instanceId;

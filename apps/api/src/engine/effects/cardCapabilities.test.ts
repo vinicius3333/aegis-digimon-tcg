@@ -161,7 +161,8 @@ async function runMain(cardId: string, actions: unknown[], ctx: EffectContext, s
 describe("DeleteLevelBudget (BT17-051) + filter.hasLevel", () => {
   it("deletes opponent Digimon whose levels sum to <= budget, scaled by digivolution cards", async () => {
     // Source has 2 [Argomon] digivolution cards => +1 to the base budget of 4 (per 2 => +1).
-    const src = source("BT17-051", perm("SRC", 0 as Seat, "SRC", ["RED", "RED"]));
+    // The two stack cards must match the scaling filter (name [SRC]) for the +1 to apply.
+    const src = source("BT17-051", perm("SRC", 0 as Seat, "SRC", ["SRC", "SRC"]));
     const opponent = [
       perm("OPP_A", 1 as Seat, "OPP_L2"),
       perm("OPP_B", 1 as Seat, "OPP_L3"),

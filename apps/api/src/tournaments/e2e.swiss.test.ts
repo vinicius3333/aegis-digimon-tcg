@@ -192,6 +192,7 @@ beforeEach(async () => {
 
   cookieOf = new Map();
   const organizer = await accounts.accountForIdentity("discord", "organizer", "Organizer");
+  await accounts.pool.query("UPDATE accounts SET is_admin=true WHERE id=$1", [organizer.id]);
   cookieOf.set("organizer", `aegis_session=${(await accounts.issueSession(organizer)).id}`);
   for (const name of PLAYERS) {
     const account = await accounts.accountForIdentity("discord", name, name);

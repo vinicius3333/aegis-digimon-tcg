@@ -80,3 +80,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT15-080", compiled);
+export { compiled };

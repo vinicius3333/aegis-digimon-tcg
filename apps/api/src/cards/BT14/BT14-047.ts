@@ -13,7 +13,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // unsuspends the target — the opposite of the card's intent) instead of "Restrict" with
 // restriction:"unsuspend" (the BT3-057/BT12-106/EX12-063 pattern for "doesn't unsuspend next
 // unsuspend phase").
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",

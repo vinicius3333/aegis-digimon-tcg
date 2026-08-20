@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // KB Q3763: digivolve into Diaboromon does NOT ignore digivolution requirements.
 // Both Digivolve actions carry ignoreReqs:false to make this explicit.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",

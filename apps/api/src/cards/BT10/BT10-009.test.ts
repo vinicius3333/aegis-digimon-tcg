@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT10-009.js";
 import "./BT10-087.js";
+import "../index.js"; // the full catalog is registered in a real match
 
 describe("BT10-009 Shoutmon X4", () => {
   it("draws two cards on play", async () => {
@@ -90,6 +91,7 @@ describe("BT10-009 Shoutmon X4", () => {
       s.perm("taiki").stack.length === 2 &&
       !s.perm("taiki").isSuspended &&
       s.state.players[0]!.trash.some((card) => card.instanceId === x4Id),
+      5000,
     );
 
     expect(s.perm("taiki").stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining([
@@ -148,7 +150,7 @@ describe("BT10-009 Shoutmon X4", () => {
       attackerPermanentId: s.perm("shoutmonX4").permanentId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets", 5000);
     const destinationDecision = s.state.pendingDecision!;
     expect(s.engine.applyIntent(0, {
       type: "respondDecision",
@@ -162,7 +164,7 @@ describe("BT10-009 Shoutmon X4", () => {
     await settle(() =>
       s.state.pendingDecision?.kind === "chooseTargets" &&
       s.state.pendingDecision.decisionId !== destinationDecision.decisionId,
-    );
+    5000);
     const unsuspendDecision = s.state.pendingDecision!;
     expect(s.engine.applyIntent(0, {
       type: "respondDecision",
@@ -175,7 +177,7 @@ describe("BT10-009 Shoutmon X4", () => {
     await settle(() =>
       s.perm("destinationTamer").stack.length === 2 &&
       !s.perm("unsuspendedTamer").isSuspended,
-    );
+    5000);
 
     expect(s.perm("destinationTamer").stack).toHaveLength(2);
     expect(s.perm("destinationTamer").isSuspended).toBe(true);

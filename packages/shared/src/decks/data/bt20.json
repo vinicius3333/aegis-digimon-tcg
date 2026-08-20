@@ -158,13 +158,14 @@
     },
     {
       "id": "bt20-dgo-2025-03-15-1-purple-hybrid",
-      "revision": 1,
+      "revision": 2,
       "name": "BT20 Purple Hybrid",
       "archetype": "Purple Hybrid",
       "collection": "BT20",
       "formatBlock": "BT19-20",
       "colors": ["White", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Matt Ishida BT2-090 to 0, Jack Raid BT4-111 to 1; the freed copies reinforce Gallantmon BT13-111 to 4, Argomon BT17-048 to 4, Gazimon BT3-077 to 4, Nidhoggmon BT7-077 to 3.",
       "tournament": {
         "name": "Regionals — UKTC.GG",
         "date": "2025-03-15",
@@ -180,7 +181,7 @@
         {
           "cardId": "BT3-077",
           "name": "Gazimon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -234,7 +235,7 @@
         {
           "cardId": "BT17-048",
           "name": "Argomon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -246,20 +247,14 @@
         {
           "cardId": "BT7-077",
           "name": "Nidhoggmon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
           "cardId": "BT13-111",
           "name": "Gallantmon",
-          "qty": 2,
-          "type": "Digimon"
-        },
-        {
-          "cardId": "BT2-090",
-          "name": "Matt Ishida",
           "qty": 4,
-          "type": "Tamer"
+          "type": "Digimon"
         },
         {
           "cardId": "BT7-091",
@@ -282,7 +277,7 @@
         {
           "cardId": "BT4-111",
           "name": "Jack Raid",
-          "qty": 4,
+          "qty": 1,
           "type": "Option"
         },
         {
@@ -327,13 +322,14 @@
     },
     {
       "id": "bt20-dgo-2025-03-22-1-royal-knights",
-      "revision": 1,
+      "revision": 2,
       "name": "BT20 Royal Knights",
       "archetype": "Royal Knights",
       "collection": "BT20",
       "formatBlock": "BT19-20",
       "colors": ["Red", "Blue", "Yellow", "White", "Black", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Royal Knights of the Purge BT13-110 to 1; the freed copies reinforce Jesmon BT20-017 to 4, Dynasmon BT13-087 to 4.",
       "tournament": {
         "name": "Campus — Organized Play Events",
         "date": "2025-03-22",
@@ -397,7 +393,7 @@
         {
           "cardId": "BT13-087",
           "name": "Dynasmon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -421,7 +417,7 @@
         {
           "cardId": "BT20-017",
           "name": "Jesmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -463,7 +459,7 @@
         {
           "cardId": "BT13-110",
           "name": "Royal Knights of the Purge",
-          "qty": 4,
+          "qty": 1,
           "type": "Option"
         },
         {
@@ -484,13 +480,14 @@
     },
     {
       "id": "bt20-dgo-2025-03-22-2-fenriloogamon-takemikazuchi",
-      "revision": 1,
+      "revision": 2,
       "name": "BT20 Fenriloogamon Takemikazuchi",
       "archetype": "Fenriloogamon Takemikazuchi",
       "collection": "BT20",
       "formatBlock": "BT19-20",
       "colors": ["Red", "Yellow", "Green", "White", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Fenriloogamon BT17-069 to 1; the freed copies reinforce Helloogarmon BT14-078 to 4, Tyrannomon BT15-011 to 4, Loogarmon BT15-075 to 4.",
       "tournament": {
         "name": "Campus — Organized Play Events",
         "date": "2025-03-22",
@@ -530,19 +527,19 @@
         {
           "cardId": "BT15-075",
           "name": "Loogarmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT15-011",
           "name": "Tyrannomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT14-078",
           "name": "Helloogarmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -554,7 +551,7 @@
         {
           "cardId": "BT17-069",
           "name": "Fenriloogamon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -611,13 +608,14 @@
     },
     {
       "id": "bt20-dgo-2025-03-29-1-leviamon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT20 Leviamon",
       "archetype": "Leviamon",
       "collection": "BT20",
       "formatBlock": "BT19-20",
       "colors": ["White", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Dobermon (X Antibody) EX5-059 to 1, Cerberusmon (X Antibody) EX5-061 to 1; the freed copies reinforce Leviamon (X Antibody) BT15-081 to 4, Psychemon BT8-071 to 4, Leviamon EX5-063 to 4, X Antibody Proto Form EX5-070 to 4, Seventh Lightning BT15-100 to 4.",
       "tournament": {
         "name": "Regionals — SangSang Events",
         "date": "2025-03-29",
@@ -651,7 +649,7 @@
         {
           "cardId": "BT8-071",
           "name": "Psychemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -681,7 +679,7 @@
         {
           "cardId": "EX5-059",
           "name": "Dobermon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -705,13 +703,13 @@
         {
           "cardId": "EX5-061",
           "name": "Cerberusmon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT15-081",
           "name": "Leviamon (X Antibody)",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -723,13 +721,13 @@
         {
           "cardId": "EX5-063",
           "name": "Leviamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT15-100",
           "name": "Seventh Lightning",
-          "qty": 2,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -765,7 +763,7 @@
         {
           "cardId": "EX5-070",
           "name": "X Antibody Proto Form",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         }
       ],
@@ -780,13 +778,14 @@
     },
     {
       "id": "bt20-dgo-2025-03-29-1-sakuyamon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT20 Sakuyamon",
       "archetype": "Sakuyamon",
       "collection": "BT20",
       "formatBlock": "BT19-20",
       "colors": ["Yellow", "Black"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Sakuyamon BT19-040 to 1; the freed copies reinforce Renamon (X Antibody) EX8-031 to 4, Yellow Scramble LM-029 to 4.",
       "tournament": {
         "name": "Regionals — TAK Games",
         "date": "2025-03-29",
@@ -808,7 +807,7 @@
         {
           "cardId": "EX8-031",
           "name": "Renamon (X Antibody)",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -862,7 +861,7 @@
         {
           "cardId": "BT19-040",
           "name": "Sakuyamon",
-          "qty": 3,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -892,7 +891,7 @@
         {
           "cardId": "LM-029",
           "name": "Yellow Scramble",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -1394,13 +1393,14 @@
     },
     {
       "id": "bt20-omnimon-x-antibody-bandai",
-      "revision": 1,
+      "revision": 2,
       "name": "BT20 Omnimon (X Antibody)",
       "archetype": "Omnimon (X Antibody)",
       "collection": "BT20",
       "formatBlock": "BT20",
       "colors": ["Yellow", "Blue", "White", "Red", "Black", "Purple"],
       "sourceType": "product_recipe",
+      "approximation": "Adapted to the current banlist: Royal Knights of the Purge BT13-110 to 1; the freed copies reinforce Gankoomon BT13-019 to 4, Alphamon BT20-056 to 4.",
       "mainDeck": [
         {
           "cardId": "BT13-040",
@@ -1423,7 +1423,7 @@
         {
           "cardId": "BT13-019",
           "name": "Gankoomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1465,7 +1465,7 @@
         {
           "cardId": "BT20-056",
           "name": "Alphamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1495,7 +1495,7 @@
         {
           "cardId": "BT13-110",
           "name": "Royal Knights of the Purge",
-          "qty": 3,
+          "qty": 1,
           "type": "Option"
         },
         {

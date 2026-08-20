@@ -18,7 +18,7 @@ const module: EffectModule = {
           effectKey: `${cardId}/start-main`,
           description: "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.",
           optional: false,
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           canActivate: (ctx) => {
             const opp = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
             return opp.battleArea.some(

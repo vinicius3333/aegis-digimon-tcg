@@ -12,7 +12,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - Cost reduction Replacement: scope to "the Digimon chosen by this effect" (bindAs +
 //     fromSelectionRef), not any digivolve action by any of my Digimon
 //   - Remove stray nested Replacement (was doubly-nested, now flat inside Digivolve)
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "WhenDigivolving",

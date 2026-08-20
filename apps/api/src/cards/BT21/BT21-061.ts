@@ -69,6 +69,7 @@ export const compiled: CompiledCard = {
             {
               kind: "GainKeyword",
               target: {
+                sourceRef: "triggerSubject",
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
@@ -95,6 +96,7 @@ export const compiled: CompiledCard = {
             {
               kind: "Attack",
               target: {
+                sourceRef: "triggerSubject",
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
@@ -119,6 +121,7 @@ export const compiled: CompiledCard = {
             {
               kind: "GainKeyword",
               target: {
+                sourceRef: "triggerSubject",
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],
@@ -145,6 +148,7 @@ export const compiled: CompiledCard = {
             {
               kind: "Attack",
               target: {
+                sourceRef: "triggerSubject",
                 filter: {
                   controller: "mine",
                   kind: ["Digimon"],

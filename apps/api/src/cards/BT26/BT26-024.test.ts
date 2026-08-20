@@ -91,19 +91,19 @@ function makeHarness(options: {
   const installs: SubTriggerInstall[] = [];
   const digivolves: { target: string; instance: string; opts: unknown }[] = [];
   const fx = {
-    subscribeSubTrigger: vi.fn((sub: SubTriggerInstall) => {
+    subscribeSubTrigger: vi.fn<(...args: any[]) => any>((sub: SubTriggerInstall) => {
       installs.push(sub);
       return installs.length;
     }),
-    digivolveFromInstance: vi.fn(async (target: string, instance: string, opts: unknown) => {
+    digivolveFromInstance: vi.fn<(...args: any[]) => any>(async (target: string, instance: string, opts: unknown) => {
       digivolves.push({ target, instance, opts });
       return undefined;
     }),
   } as unknown as Primitives;
 
   const ask = {
-    optional: vi.fn(async () => options.accept ?? true),
-    selectCards: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) =>
+    optional: vi.fn<(...args: any[]) => any>(async () => options.accept ?? true),
+    selectCards: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) =>
       options.pick ? options.pick(opts.candidates) : [opts.candidates[0]!],
     ),
   } as unknown as EffectContext["ask"];

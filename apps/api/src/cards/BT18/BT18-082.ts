@@ -94,16 +94,14 @@ const compiled: CompiledCard = {
             {
               "kind": "Prevent",
               "mode": "leavePlay",
-              "cost": {
-                "kind": "trash",
-                "target": {
-                  "filter": {
-                    "controller": "mine"
-                  },
-                  "count": 1
-                },
-                "raw": "by trashing the bottom card of your security stack"
-              },
+          "cost": {
+            "kind": "trash",
+            "target": {
+              "filter": {"controller": "mine", "zone": "security", "position": "bottom"},
+              "count": 1
+            },
+            "raw": "by trashing the bottom card of your security stack"
+          },
               "optional": true,
               "abortOnDecline": true
             }
@@ -127,3 +125,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT18-082", compiled);
+export { compiled };

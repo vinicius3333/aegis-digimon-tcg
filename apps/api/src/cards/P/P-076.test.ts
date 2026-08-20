@@ -30,7 +30,11 @@ describe("P-076 Deltamon", () => {
       permanentId: s.perm("deltamon").permanentId,
       instanceId: s.inst("metalGreymon").instanceId,
     })).toEqual({ ok: true });
-    await settle(() => s.perm("deltamon").topCard.cardId === "BT8-067");
+    await settle(() =>
+      s.perm("deltamon").topCard.cardId === "BT8-067" &&
+      s.state.players[1]!.battleArea.length === 0 &&
+      s.state.pendingDecision === undefined,
+    5000);
     expect(s.state.memory).toBe(2);
 
     expect(s.engine.applyIntent(0, {
@@ -38,7 +42,7 @@ describe("P-076 Deltamon", () => {
       attackerPermanentId: s.perm("deltamon").permanentId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(() => s.state.players[1]!.battleArea.length === 0, 5000);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });

@@ -41,7 +41,9 @@ const compiled: CompiledCard = {
           "amount": -6000,
           "duration": "forTheTurn",
           "condition": {
-            "kind": "raw",
+            "kind": "totalDigimonCount",
+            "op": "gte",
+            "value": 3,
             "raw": "if there are 3 or more total Digimon (both players combined) — KB Q863"
           }
         }
@@ -57,10 +59,8 @@ const compiled: CompiledCard = {
       "isSecurity": true
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "boardCount condition: 'if there are 3 or more Digimon' counts both players' total Digimon — no structured Condition kind for cross-player board count; encoded as raw (KB Q863)"
-  ]
+  "coverage": "full",
+  "residual": []
 };
 
 registerIrCard("ST19-15", compiled);

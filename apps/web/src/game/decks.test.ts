@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { effectiveCopyLimit } from "@aegis/shared";
-import { copyDeckPreset, DECKS, FAMOUS_DECKS, filterDeckToActivePool, parseDeckList, type DeckListing } from "./decks";
+import { copyDeckPreset, DECKS, FAMOUS_DECKS, filterDeckToKnownCards, parseDeckList, type DeckListing } from "./decks";
 
 function copyLimitViolations(deck: DeckListing): string[] {
   const counts = new Map<string, number>();
@@ -14,24 +14,24 @@ function copyLimitViolations(deck: DeckListing): string[] {
 
 describe("active card pool deck filtering", () => {
   it("silently excludes inactive cards from imported lists", () => {
-    const deck = parseDeckList("2 Agumon BT1-009\n2 Active later card BT11-005");
+    const deck = parseDeckList("2 Agumon BT1-009\n2 Active later card BT21-005");
 
     expect(deck.mainDeck).toEqual(["BT1-009", "BT1-009"]);
     expect(deck.skipped).toBe(0);
   });
 
-  it("removes inactive stored cards and an inactive cover", () => {
+  it("removes stored ids the registry no longer knows, cover included", () => {
     const deck: DeckListing = {
       id: "saved",
       name: "Saved deck",
       color: "Red",
       blurb: "",
-      mainDeck: ["BT1-009", "BT11-005"],
-      eggDeck: ["BT1-001", "BT11-001"],
-      coverCardId: "BT11-005",
+      mainDeck: ["BT1-009", "ZZ-999"],
+      eggDeck: ["BT1-001", "ZZ-001"],
+      coverCardId: "ZZ-999",
     };
 
-    expect(filterDeckToActivePool(deck)).toMatchObject({
+    expect(filterDeckToKnownCards(deck)).toMatchObject({
       mainDeck: ["BT1-009"],
       eggDeck: ["BT1-001"],
       coverCardId: undefined,

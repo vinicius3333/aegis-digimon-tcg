@@ -18,7 +18,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // interpreter's `raw` condition kind recognizes for the digivolve-result binding
 // ("this effect digivolved" — see interpreter.ts's `evaluateCondition` "raw" case); the printed
 // order ("digivolved by this effect") does not match that regex and silently never fires.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "StartOfYourMainPhase",
@@ -100,7 +100,7 @@ const compiled: CompiledCard = {
           ],
           "toTop": false,
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectDigivolved",
             "raw": "this effect digivolved"
           },
           "optional": true

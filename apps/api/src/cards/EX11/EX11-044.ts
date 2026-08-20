@@ -61,7 +61,8 @@ const compiled: CompiledCard = {
           }
         }
       ],
-      "frequency": "OncePerTurn"
+      "frequency": "OncePerTurn",
+      "sharedUseKey": "ex11-044-main-effect"
     },
     {
       "trigger": "WhenDigivolving",
@@ -95,7 +96,8 @@ const compiled: CompiledCard = {
           }
         }
       ],
-      "frequency": "OncePerTurn"
+      "frequency": "OncePerTurn",
+      "sharedUseKey": "ex11-044-main-effect"
     },
     {
       "trigger": "WhenAttacking",
@@ -129,7 +131,8 @@ const compiled: CompiledCard = {
           }
         }
       ],
-      "frequency": "OncePerTurn"
+      "frequency": "OncePerTurn",
+      "sharedUseKey": "ex11-044-main-effect"
     },
     {
       "trigger": "AllTurns",
@@ -169,12 +172,8 @@ const compiled: CompiledCard = {
       "frequency": "OncePerTurn"
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "Cost trash 'from digivolutionCards': interpreter currently limits trash to the SOURCE Digimon's stack but Q5890 allows trashing from multiple Digimon's stacks — engine needs cross-Digimon stack trash support.",
-    "[Once Per Turn] shared across OnPlay/WhenDigivolving/WhenAttacking: printed text has one OPT tag covering all three triggers; IR gives each its own OPT counter. In practice these triggers are mutually exclusive per turn (can't play AND digivolve AND attack with the same Digimon), so the functional difference is nil. Shared-OPT-group mechanism would need a new IR feature.",
-    "PlaceUnder target count:3+upTo:true: Q5891 you must place 3 if 3+ available; Q5892 you may place 1 if only 1 available. The IR faithfully encodes 'up to 3' (upTo:true) with optional:true (can decline entirely). The 'upTo' is the correct encoding per both rulings."
-  ]
+  "coverage": "full",
+  "residual": []
 };
 
 registerIrCard("EX11-044", compiled);

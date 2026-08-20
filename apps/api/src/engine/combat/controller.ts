@@ -5,6 +5,7 @@ import {
   type AttackTarget,
   type ServerEvent,
   type CardColor,
+  getCardDefinition,
 } from "@aegis/shared";
 import type { GameStateAccess } from "../state/access.js";
 import type { RemovalCause, SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
@@ -95,6 +96,7 @@ export interface CombatTrigger {
   deletedInstanceIds?: string[];
   /** Subset of deletedInstanceIds that were stack cards (for inherited-effect gating). */
   deletedWasStackInstanceIds?: string[];
+  battleOpponentPermanentIdByInstanceId?: Record<string, string>;
 }
 
 /**
@@ -1016,29 +1018,8 @@ export class CombatController {
       });
     }
 
-    // ＜Retaliation＞ (§16-13): when a Digimon WITH THIS EFFECT is deleted in battle, the
-    // battled opponent's Digimon is also deleted. The keyword belongs to the DYING side —
-    // it is the holder's own death that triggers the effect against its opponent, not the
-    // survivor's keyword sparing it. §16-13-2's "just the Digimon with this effect is
-    // deleted" (echoed in the manual glossary as "When ONLY this Digimon is deleted in
-    // battle") excludes the equal-DP both-die tie (§14-2-1-3): Retaliation does not fire
-    // when both combatants die in the same battle, so the check is scoped to the pre-
-    // retaliation battle outcome, not the mutated result. A Retaliation kill does not
-    // chain: per KB rulings (BT13-079/BT14-028/EX4-004/LM-003 Q&A), a Digimon deleted BY
-    // Retaliation is "deletion by an effect", not "deletion in battle" — so even if that
-    // Digimon also has Retaliation, its own copy does not re-trigger here.
-    const battleDeletedIds = new Set(outcome.deletedPermanentIds);
-    const deletedIds = new Set(battleDeletedIds);
     const c = continuous;
-    const attackerDiedAlone = battleDeletedIds.has(attacker.permanentId) && !battleDeletedIds.has(defender.permanentId);
-    const defenderDiedAlone = battleDeletedIds.has(defender.permanentId) && !battleDeletedIds.has(attacker.permanentId);
-    if (attackerDiedAlone && c?.hasKeyword(attacker.permanentId, "Retaliation")) {
-      deletedIds.add(defender.permanentId);
-    }
-    if (defenderDiedAlone && c?.hasKeyword(defender.permanentId, "Retaliation")) {
-      deletedIds.add(attacker.permanentId);
-    }
-    const finalDeletedIds = [...deletedIds];
+    const finalDeletedIds = [...outcome.deletedPermanentIds];
 
     // ＜Evade＞ (§16-35): when this Digimon would be deleted by battle, you may
     // suspend it to prevent that deletion. Only usable when unsuspended (the
@@ -1081,11 +1062,42 @@ export class CombatController {
     }
     const postBarrierDeletedIds = resolvedDeletedIds.filter((id) => !barrieredIds.has(id));
 
+    // ＜Retaliation＞ (§16-13): when a Digimon WITH THIS EFFECT is deleted in battle, the battled
+    // opponent's Digimon is also deleted. The keyword belongs to the DYING side — it is the
+    // holder's own death that triggers the effect against its opponent, not the survivor's
+    // keyword sparing it.
+    //
+    // Read AFTER the battle-only preventions above and BEFORE the generic ones below, because
+    // that is exactly the set of Digimon deleted IN BATTLE. ＜Evade＞ and ＜Barrier＞ (§16-25-1)
+    // say "would be deleted IN BATTLE", so they settle the battle result first; §16-13-2's "just
+    // the Digimon with this effect is deleted in battle" then reads that settled result. An
+    // equal-DP tie normally deletes both (§14-2-1-3) and Retaliation does not fire — but if the
+    // battle opponent paid ＜Barrier＞, the holder really is the only one deleted in battle and
+    // the trigger condition IS met.
+    //
+    // The Digimon this adds is deleted BY AN EFFECT, not in battle (KB BT13-079/BT14-028/
+    // EX4-004/LM-003 Q&A), which is why it is added here rather than earlier: it must not be
+    // offered the battle-only ＜Evade＞/＜Barrier＞, but it still gets the generic "would be
+    // deleted" preventions below (＜Armor Purge＞ §16-19-1, ＜Fragment＞ §16-37-1, ＜Scapegoat＞
+    // §16-32-1). For the same reason a Retaliation kill does not chain: the newly added id is
+    // never re-examined, so a victim that also carries Retaliation does not re-trigger.
+    const battleDeletedIds = new Set(postBarrierDeletedIds);
+    const withRetaliation = new Set(battleDeletedIds);
+    const attackerDiedAlone = battleDeletedIds.has(attacker.permanentId) && !battleDeletedIds.has(defender.permanentId);
+    const defenderDiedAlone = battleDeletedIds.has(defender.permanentId) && !battleDeletedIds.has(attacker.permanentId);
+    if (attackerDiedAlone && c?.hasKeyword(attacker.permanentId, "Retaliation")) {
+      withRetaliation.add(defender.permanentId);
+    }
+    if (defenderDiedAlone && c?.hasKeyword(defender.permanentId, "Retaliation")) {
+      withRetaliation.add(attacker.permanentId);
+    }
+    const postRetaliationDeletedIds = [...withRetaliation];
+
     // ＜Armor Purge＞ (§16-19): by trashing this Digimon's own top card (promoting the
     // digivolution card beneath it to the new top), prevent this Digimon's deletion. Requires
     // >= 1 digivolution card to promote.
     const armorPurgedIds = new Set<string>();
-    for (const permanentId of postBarrierDeletedIds) {
+    for (const permanentId of postRetaliationDeletedIds) {
       if (!c?.hasKeyword(permanentId, "Armor Purge")) continue;
       const perm = this.access.permanentById(permanentId);
       if (perm === undefined || perm.topCard === undefined || perm.stack.length === 0) continue;
@@ -1098,7 +1110,7 @@ export class CombatController {
       await this.hooks.armorPurge?.(permanentId);
       armorPurgedIds.add(permanentId);
     }
-    const postArmorPurgeDeletedIds = postBarrierDeletedIds.filter((id) => !armorPurgedIds.has(id));
+    const postArmorPurgeDeletedIds = postRetaliationDeletedIds.filter((id) => !armorPurgedIds.has(id));
 
     // ＜Fragment (N)＞ (§16-37): by choosing and trashing N of ITS OWN digivolution cards,
     // prevent this Digimon's deletion. All-or-nothing: fewer than N chosen is a decline.
@@ -1199,7 +1211,18 @@ export class CombatController {
     const deleted: string[] = [];
     const deletedInstanceIds: string[] = [];
     const deletedWasStackInstanceIds: string[] = [];
+    const battleOpponentPermanentIdByInstanceId: Record<string, string> = {};
     const deletedEffectiveColorsByInstanceId: Record<string, CardColor[]> = {};
+    const tokenDeletionIds = postCardPreventionDeletedIds.flatMap((permanentId) => {
+      const top = this.access.permanentById(permanentId)?.topCard;
+      return top !== undefined && getCardDefinition(top.cardId)?.isToken === true ? [top.instanceId] : [];
+    });
+    if (tokenDeletionIds.length > 0) {
+      await this.hooks.fireTiming(EffectTiming.OnDestroyedAnyone, {
+        deletedInstanceIds: tokenDeletionIds,
+        removalCause: "byBattle",
+      });
+    }
     for (const permanentId of postCardPreventionDeletedIds) {
       // ＜Material Save＞ (§16-21): a plain "when deleted" reaction (no cause restriction), so
       // it applies to a battle death exactly like an effect deletion. Must run BEFORE the
@@ -1214,6 +1237,8 @@ export class CombatController {
       const stackIds = this.access.permanentById(permanentId)?.stack.map((c) => c.instanceId) ?? [];
       const effectiveColors = this.hooks.effectiveColorsOf?.(permanentId) ?? [];
       const moved = this.access.deletePermanent(permanentId);
+      const battleOpponentId = permanentId === attacker.permanentId ? defender.permanentId : attacker.permanentId;
+      for (const instanceId of moved) battleOpponentPermanentIdByInstanceId[instanceId] = battleOpponentId;
       for (const instanceId of moved) deletedEffectiveColorsByInstanceId[instanceId] = effectiveColors;
       deletedInstanceIds.push(...moved);
       deletedWasStackInstanceIds.push(...stackIds);
@@ -1259,6 +1284,7 @@ export class CombatController {
         deletedInstanceIds,
         deletedWasStackInstanceIds,
         deletedEffectiveColorsByInstanceId,
+        battleOpponentPermanentIdByInstanceId,
         removalCause: "byBattle",
       });
     }

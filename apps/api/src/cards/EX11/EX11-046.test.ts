@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js"; // register the compiled cards so the real activateEffect path runs
 
 /**
@@ -55,5 +56,32 @@ describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-co
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === costly.permanentId)).toBe(true);
     // ... while the cheaper one was deleted.
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === cheap.permanentId)).toBe(false);
+  });
+
+  it("grants Blocker when the evolving Digimon has at least 4 Vemmon in its stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: GALACTICMON_BASE,
+              as: "base",
+              under: ["BT11-061", "BT11-061", "BT11-061", "BT11-061"],
+            },
+          ],
+          hand: [{ card: GALACTICMON, as: "evolving" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+
+    const base = s.perm("base");
+    s.engine.applyIntent(0, { type: "digivolve", permanentId: base.permanentId, instanceId: s.inst("evolving").instanceId });
+    await settle(() => observe(s.engine).hasKeyword(base, "Blocker"));
+
+    expect(base.topCard?.cardId).toBe(GALACTICMON);
+    expect(base.stack.filter((card) => card.cardId === "BT11-061")).toHaveLength(4);
+    expect(observe(s.engine).hasKeyword(base, "Blocker")).toBe(true);
   });
 });

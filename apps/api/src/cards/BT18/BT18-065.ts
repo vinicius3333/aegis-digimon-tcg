@@ -94,25 +94,23 @@ const compiled: CompiledCard = {
       "trigger": "AllTurns",
       "actions": [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [
-                {
-                  "tokens": ["Vemmon"],
-                  "match": "name"
-                }
-              ]
+          "kind": "SubTrigger",
+          "event": "onDigivolutionCardReturnToDeckBottom",
+          "sourceFilter": {
+            "nameOrTrait": [{"tokens": ["Vemmon"], "match": "name"}]
+          },
+          "actions": [
+            {
+              "kind": "Unsuspend",
+              "target": {"filter": {"isSelfRef": true}, "count": 1, "isSelf": true}
             },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
-          },
-          "duration": "untilOpponentTurnEnd"
+            {
+              "kind": "GainKeyword",
+              "target": {"filter": {"isSelfRef": true}, "count": 1, "isSelf": true},
+              "keyword": {"keyword": "Blocker", "raw": "＜Blocker＞"},
+              "duration": "untilOpponentTurnEnd"
+            }
+          ]
         }
       ],
       "isInherited": true,
@@ -124,3 +122,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT18-065", compiled);
+export { compiled };

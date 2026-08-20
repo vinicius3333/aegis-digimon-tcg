@@ -102,15 +102,15 @@ function makeHarness(options: {
   const digivolves: { target: string; instance: string; opts: unknown }[] = [];
   const installs: SubTriggerInstall[] = [];
   const fx = {
-    playFromHand: vi.fn(async (ids: string[], opts: unknown) => {
+    playFromHand: vi.fn<(...args: any[]) => any>(async (ids: string[], opts: unknown) => {
       played.push({ ids, opts });
       return [];
     }),
-    digivolveFromInstance: vi.fn(async (target: string, instance: string, opts: unknown) => {
+    digivolveFromInstance: vi.fn<(...args: any[]) => any>(async (target: string, instance: string, opts: unknown) => {
       digivolves.push({ target, instance, opts });
       return undefined;
     }),
-    subscribeSubTrigger: vi.fn((sub: SubTriggerInstall) => {
+    subscribeSubTrigger: vi.fn<(...args: any[]) => any>((sub: SubTriggerInstall) => {
       installs.push(sub);
       return installs.length;
     }),
@@ -118,8 +118,8 @@ function makeHarness(options: {
 
   const offered: string[][] = [];
   const ask = {
-    optional: vi.fn(async () => options.accept ?? true),
-    selectCards: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => {
+    optional: vi.fn<(...args: any[]) => any>(async () => options.accept ?? true),
+    selectCards: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => {
       offered.push(opts.candidates);
       return options.pick ? options.pick(opts.candidates) : [opts.candidates[0]!];
     }),

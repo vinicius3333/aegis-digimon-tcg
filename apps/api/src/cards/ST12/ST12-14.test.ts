@@ -10,7 +10,7 @@ describe("ST12-14 Aus Generics", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "ST12-04", as: "huckmon" }], hand: [{ card: "ST12-14", as: "option" }] } }, { autoSelectCards: true, autoOrderTriggers: true });
     s.state.memory = 3;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-    await settle(() => s.perm("huckmon").currentDP === s.perm("huckmon").baseDP + 2000 && observe(s.engine).hasPierce(s.perm("huckmon")));
+    await settle(() => s.perm("huckmon").currentDP === s.perm("huckmon").baseDP + 2000 && observe(s.engine).hasPierce(s.perm("huckmon")) && s.state.memory === 3, 5000);
     expect(s.state.memory).toBe(3);
     expect(observe(s.engine).hasPierce(s.perm("huckmon"))).toBe(true);
   });

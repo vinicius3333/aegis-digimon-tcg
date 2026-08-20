@@ -1,37 +1,15 @@
 // @ts-nocheck
 // EX9-062 SkullGreymon — hand-fixed IR.
 // Scaling corrected to target face-down digivolution cards (faceDown:true in filter).
-// Engine capability gap: faceDown filter in Scaling.filter not yet implemented (LANE_H.md).
-// Current engine counts all digivolution cards until faceDown filter is added.
+// Scaling uses the dedicated face-down digivolution-card counter.
 //
-// "This card is also treated as level 4 for [Kimeramon]'s assembly" — the GrantStatic
-// grant:"name" tokens:["Kimeramon"] is the best current approximation; it is not a literal
-// name grant but allows the card to match Kimeramon's assembly material slots. A dedicated
-// grantAssemblyMaterial primitive would be more faithful but doesn't exist yet.
+// "This card is also treated as level 4 for [Kimeramon]'s assembly" is enforced by the
+// shared Assembly material matcher, independently of the printed level 5.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
-    {
-      "trigger": "Static",
-      "actions": [
-        {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "grant": "name",
-          "tokens": [
-            "Kimeramon"
-          ]
-        }
-      ]
-    },
     {
       "trigger": "OnPlay",
       "actions": [
@@ -52,7 +30,7 @@ const compiled: CompiledCard = {
               ],
               "faceDown": true
             },
-            "unit": "digivolutionCards"
+            "unit": "selfFaceDownDigivolutionCards"
           }
         },
         {
@@ -100,7 +78,7 @@ const compiled: CompiledCard = {
               ],
               "faceDown": true
             },
-            "unit": "digivolutionCards"
+            "unit": "selfFaceDownDigivolutionCards"
           }
         },
         {
@@ -199,10 +177,7 @@ const compiled: CompiledCard = {
     }
   ],
   "coverage": "full",
-  "residual": [
-    "scaling counts all digivolution cards; faceDown filter in Scaling.filter not yet implemented (LANE_H.md)",
-    "GrantStatic name:Kimeramon is an approximation; faithful encoding needs grantAssemblyMaterial primitive"
-  ],
+  "residual": [],
   "digivolutionRequirement": [
     {
       "level": 4,

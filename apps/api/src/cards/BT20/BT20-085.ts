@@ -74,7 +74,7 @@ const compiled: CompiledCard = {
           ],
           "payCost": false,
           "condition": {
-            "kind": "raw",
+            "kind": "youHaveNone", "filter": {"kind": ["Digimon"]},
             "raw": "you don't have a Digimon"
           },
           "optional": true

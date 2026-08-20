@@ -156,7 +156,7 @@ const module: EffectModule = {
             "While you have a Digimon with [Plutomon] or [Titamon] in its name, they " +
             "also get +3000 DP.",
           optional: false,
-          when: (ctx) => source.isInSecurity?.() === true,
+          when: (_ctx) => source.isInSecurity?.() === true,
           resolve: async (ctx) => {
             const withBonus = hasPlutomonOrTitamonDigimon(ctx, source);
             for (const perm of titanBattleTargets(ctx, source)) {

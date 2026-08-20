@@ -9,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // cards.json), which is exactly what the interpreter's leaveCount already computes
 // (`max(0, security.length - leaveCount)`). `until` is a re-encoding of a concept the
 // engine already reads under a different key, not a new capability.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Counter",

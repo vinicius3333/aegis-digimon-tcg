@@ -399,7 +399,9 @@ describe("§15-8-3 Trigger-Type Effects (comprehensive-0173)", () => {
         "conditions are met, then the effect will activate",
     );
 
-    const s = setup();
+    // The suspend still asks WHICH Digimon; the rule under test is that the effect triggers
+    // and activates on its own, with no player declaration.
+    const s = setup({ autoSelectCards: true });
     const p0 = s.state.players[0]!;
     const p1 = s.state.players[1]!;
     const kuwagamon = instance("BT1-070", 0, false);
@@ -409,7 +411,7 @@ describe("§15-8-3 Trigger-Type Effects (comprehensive-0173)", () => {
     s.state.memory = requireCardDefinition("BT1-070").playCost;
 
     s.engine.applyIntent(0, { type: "playCard", instanceId: kuwagamon.instanceId });
-    await settle(() => target.isSuspended, 200);
+    await settle(() => target.isSuspended, 5000);
     expect(target.isSuspended).toBe(true); // triggered and activated with no player declaration
   });
 

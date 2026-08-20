@@ -24,7 +24,7 @@ const compiled: CompiledCard = {
             "Omnimon"
           ],
           "condition": {
-            "kind": "raw",
+            "kind": "triggerRevealedFromDeck",
             "raw": "this card is revealed from the deck"
           }
         }
@@ -102,3 +102,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT15-060", compiled);
+export { compiled };

@@ -143,13 +143,14 @@
     },
     {
       "id": "bt17-dgo-2024-08-18-1-miragegaogamon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT17 MirageGaogamon",
       "archetype": "MirageGaogamon",
       "collection": "BT17",
       "formatBlock": "BT17",
       "colors": ["Blue"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: MirageGaogamon BT11-033 to 1; the freed copies reinforce Gaomon BT11-020 to 4, GaoGamon BT13-025 to 4, MachGaogamon BT13-029 to 4.",
       "tournament": {
         "name": "Regionals — TAK Games",
         "date": "2024-08-18",
@@ -165,7 +166,7 @@
         {
           "cardId": "BT11-020",
           "name": "Gaomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -183,7 +184,7 @@
         {
           "cardId": "BT13-025",
           "name": "GaoGamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -213,7 +214,7 @@
         {
           "cardId": "BT13-029",
           "name": "MachGaogamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -231,7 +232,7 @@
         {
           "cardId": "BT11-033",
           "name": "MirageGaogamon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -306,13 +307,14 @@
     },
     {
       "id": "bt17-dgo-2024-08-18-1-yellow-vaccine",
-      "revision": 1,
+      "revision": 2,
       "name": "BT17 Yellow Vaccine",
       "archetype": "Yellow Vaccine",
       "collection": "BT17",
       "formatBlock": "BT17",
       "colors": ["Red", "Blue", "Yellow", "Black"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Blinding Ray BT4-104 to 1, Awakening of the Golden Knight BT9-098 to 1; the freed copies reinforce MagnaAngemon BT14-037 to 4, Physical Training P-105 to 4, T.K. Takaishi BT1-087 to 4, Angewomon BT15-038 to 3.",
       "tournament": {
         "name": "Ultimate Cup — IanTCG",
         "date": "2024-08-18",
@@ -364,13 +366,13 @@
         {
           "cardId": "BT14-037",
           "name": "MagnaAngemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT15-038",
           "name": "Angewomon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -394,19 +396,19 @@
         {
           "cardId": "BT1-087",
           "name": "T.K. Takaishi",
-          "qty": 2,
+          "qty": 4,
           "type": "Tamer"
         },
         {
           "cardId": "BT4-104",
           "name": "Blinding Ray",
-          "qty": 4,
+          "qty": 1,
           "type": "Option"
         },
         {
           "cardId": "BT9-098",
           "name": "Awakening of the Golden Knight",
-          "qty": 3,
+          "qty": 1,
           "type": "Option"
         },
         {
@@ -418,7 +420,7 @@
         {
           "cardId": "P-105",
           "name": "Physical Training",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         }
       ],
@@ -433,13 +435,14 @@
     },
     {
       "id": "bt17-dgo-2024-08-18-2-magnamon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT17 Magnamon",
       "archetype": "Magnamon",
       "collection": "BT17",
       "formatBlock": "BT17",
       "colors": ["Red", "Blue", "Yellow", "Black"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Blinding Ray BT4-104 to 1, Awakening of the Golden Knight BT9-098 to 1; the freed copies reinforce Veemon BT16-017 to 4, Mental Training P-104 to 4, Flamedramon P-137 to 4.",
       "tournament": {
         "name": "Ultimate Cup — IanTCG",
         "date": "2024-08-18",
@@ -473,7 +476,7 @@
         {
           "cardId": "BT16-017",
           "name": "Veemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -485,7 +488,7 @@
         {
           "cardId": "P-137",
           "name": "Flamedramon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -563,19 +566,19 @@
         {
           "cardId": "P-104",
           "name": "Mental Training",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
           "cardId": "BT4-104",
           "name": "Blinding Ray",
-          "qty": 2,
+          "qty": 1,
           "type": "Option"
         },
         {
           "cardId": "BT9-098",
           "name": "Awakening of the Golden Knight",
-          "qty": 3,
+          "qty": 1,
           "type": "Option"
         },
         {
@@ -596,13 +599,14 @@
     },
     {
       "id": "bt17-dgo-2024-08-25-1-three-great-angels",
-      "revision": 1,
+      "revision": 2,
       "name": "BT17 Three Great Angels",
       "archetype": "Three Great Angels",
       "collection": "BT17",
       "formatBlock": "BT17",
       "colors": ["Yellow"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: T.K. Takaishi BT14-084 to 1; the freed copies reinforce Kudamon BT13-034 to 4, Revelation of Light BT15-092 to 4, Dominimon EX6-030 to 4.",
       "tournament": {
         "name": "Regionals — Gametrade Distribuzione",
         "date": "2024-08-25",
@@ -617,7 +621,7 @@
         {
           "cardId": "BT13-034",
           "name": "Kudamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -689,7 +693,7 @@
         {
           "cardId": "EX6-030",
           "name": "Dominimon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -707,7 +711,7 @@
         {
           "cardId": "BT14-084",
           "name": "T.K. Takaishi",
-          "qty": 4,
+          "qty": 1,
           "type": "Tamer"
         },
         {
@@ -731,7 +735,7 @@
         {
           "cardId": "BT15-092",
           "name": "Revelation of Light",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -758,13 +762,14 @@
     },
     {
       "id": "bt17-dgo-2024-08-31-1-imperialdramon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT17 Imperialdramon",
       "archetype": "Imperialdramon",
       "collection": "BT17",
       "formatBlock": "BT17",
       "colors": ["Blue", "Green"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Stingmon ST9-09 to 1; the freed copies reinforce Imperialdramon: Fighter Mode BT16-027 to 4.",
       "tournament": {
         "name": "Regionals — Carta Magica",
         "date": "2024-08-31",
@@ -828,7 +833,7 @@
         {
           "cardId": "ST9-09",
           "name": "Stingmon",
-          "qty": 2,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -852,7 +857,7 @@
         {
           "cardId": "BT16-027",
           "name": "Imperialdramon: Fighter Mode",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1235,13 +1240,14 @@
     },
     {
       "id": "bt17-dgo-2024-10-05-1-miragegaogamon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT17 MirageGaogamon",
       "archetype": "MirageGaogamon",
       "collection": "BT17",
       "formatBlock": "BT17",
       "colors": ["Blue"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: MirageGaogamon BT11-033 to 1; the freed copies reinforce Gaomon BT11-020 to 4, MirageGaogamon: Burst Mode BT13-033 to 4, Thomas H. Norstein BT13-097 to 4.",
       "tournament": {
         "name": "Play!TCG Regionals",
         "date": "2024-10-05",
@@ -1255,7 +1261,7 @@
         {
           "cardId": "BT11-020",
           "name": "Gaomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1315,19 +1321,19 @@
         {
           "cardId": "BT11-033",
           "name": "MirageGaogamon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT13-033",
           "name": "MirageGaogamon: Burst Mode",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT13-097",
           "name": "Thomas H. Norstein",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -1372,13 +1378,14 @@
     },
     {
       "id": "bt17-dgo-2024-10-05-2-fenriloogamon-takemikazuchi",
-      "revision": 1,
+      "revision": 2,
       "name": "BT17 Fenriloogamon Takemikazuchi",
       "archetype": "Fenriloogamon Takemikazuchi",
       "collection": "BT17",
       "formatBlock": "BT17",
       "colors": ["Purple", "Red", "White", "Black", "Yellow", "Green"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: SkullBaluchimon BT10-080 to 1, Fenriloogamon BT17-069 to 1; the freed copies reinforce Loogamon BT15-071 to 4, Ukkomon BT16-082 to 4, The Demon Wolf of the Castle of Nine Wolves BT16-099 to 4, Kazuchimon BT17-040 to 4.",
       "tournament": {
         "name": "Play!TCG Regionals",
         "date": "2024-10-05",
@@ -1398,13 +1405,13 @@
         {
           "cardId": "BT15-071",
           "name": "Loogamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT16-082",
           "name": "Ukkomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1428,7 +1435,7 @@
         {
           "cardId": "BT10-080",
           "name": "SkullBaluchimon",
-          "qty": 2,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -1446,13 +1453,13 @@
         {
           "cardId": "BT17-069",
           "name": "Fenriloogamon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
           "cardId": "BT17-040",
           "name": "Kazuchimon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1482,7 +1489,7 @@
         {
           "cardId": "BT16-099",
           "name": "The Demon Wolf of the Castle of Nine Wolves",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         }
       ],

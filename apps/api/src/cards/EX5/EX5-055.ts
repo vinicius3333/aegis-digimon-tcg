@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
@@ -48,7 +48,7 @@ const compiled: CompiledCard = {
           "position": "top",
           "scope": "acrossDigimon",
           "condition": {
-            "kind": "raw",
+            "kind": "lastTargetCanTrashDigivolution",
             "raw": "If it has no digivolution cards, or becomes a level 3 Digimon, you can't trash any more cards"
           }
         },
@@ -102,7 +102,7 @@ const compiled: CompiledCard = {
           "position": "top",
           "scope": "acrossDigimon",
           "condition": {
-            "kind": "raw",
+            "kind": "lastTargetCanTrashDigivolution",
             "raw": "If it has no digivolution cards, or becomes a level 3 Digimon, you can't trash any more cards"
           }
         },

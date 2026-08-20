@@ -64,14 +64,14 @@ describe("BT26-028 [On Play]/[When Digivolving]: link a level-3 eligible-trait d
 
     const linked: string[][] = [];
     const fx = {
-      link: vi.fn(async (_targetId: string, ids: string[]) => {
+      link: vi.fn<(...args: any[]) => any>(async (_targetId: string, ids: string[]) => {
         linked.push(ids);
         return ids;
       }),
     } as unknown as Primitives;
 
     const ask = {
-      selectCards: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!]),
+      selectCards: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!]),
     } as unknown as EffectContext["ask"];
 
     const ctx = { source, trigger: {}, game, fx, ask } as unknown as EffectContext;

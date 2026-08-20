@@ -1,5 +1,4 @@
 import { EffectTiming, isDigimon } from "@aegis/shared";
-import type { Permanent } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -108,7 +107,7 @@ const module: EffectModule = {
           description:
             "[Start of Your Turn] Trash the top card of this Digimon. If you do, trash the top card of your opponent's security stack.",
           when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn(),
-          canActivate: (ctx) => {
+          canActivate: (_ctx) => {
             const perm = source.permanent();
             if (perm === undefined) return false;
             return perm.stack.length >= 1;

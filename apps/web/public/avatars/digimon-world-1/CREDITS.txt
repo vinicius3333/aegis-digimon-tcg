@@ -1,0 +1,7 @@
+Digimon World (PlayStation) card portraits.
+
+Ripped by metaldodomon, published on The Spriters Resource.
+Sliced from the two card sheets by tools/extract-dw-card-avatars.py.
+
+Aegis is an unofficial, non-commercial fan project and is not affiliated with,
+endorsed by, or sponsored by Bandai.

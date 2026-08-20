@@ -100,7 +100,7 @@ describe("BT10-era Beelzemon deck", () => {
         permanent.permanentId === levelFourPermanentId,
       ) &&
       s.perm("impmon").currentDP === 14_000,
-    );
+    5000);
 
     expect(s.state.memory).toBe(6);
     expect(s.perm("impmon").currentDP).toBe(14_000);
@@ -113,7 +113,7 @@ describe("BT10-era Beelzemon deck", () => {
       s.perm("impmon").topCard.instanceId === s.inst("blastMode").instanceId &&
       s.state.players[1]!.battleArea.length === 0 &&
       s.perm("impmon").currentDP === 18_000,
-    );
+    5000);
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("impmon").currentDP).toBe(18_000);
@@ -123,7 +123,7 @@ describe("BT10-era Beelzemon deck", () => {
       attackerPermanentId: s.perm("impmon").permanentId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => s.state.players[1]!.security.length === 0, 5000);
 
     expect(s.state.players[1]!.security).toHaveLength(0);
   });

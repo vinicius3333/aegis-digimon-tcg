@@ -38,7 +38,7 @@ function fakeDefinition(cardId: string, nameEn = cardId): CardDefinition {
   };
 }
 
-function fakeCardInstance(cardId: string, instanceId: string, nameEn?: string): CardInstance {
+function fakeCardInstance(cardId: string, instanceId: string, _nameEn?: string): CardInstance {
   return { cardId, instanceId, ownerSeat: 0 as Seat } as never;
 }
 

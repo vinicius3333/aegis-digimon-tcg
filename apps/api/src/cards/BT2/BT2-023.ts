@@ -22,6 +22,7 @@ const compiled: CompiledCard = {
             "per": 1,
             "filter": {
               "digivolutionCards": "none",
+              "zone": "battleArea",
               "controller": "opponent",
               "kind": [
                 "Digimon"

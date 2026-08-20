@@ -302,7 +302,7 @@ describe("§15-16 Effect Timings (comprehensive-0207/0208)", () => {
         "that effect completes",
     );
 
-    const s = setup();
+    const s = setup({ autoSelectCards: true });
     const p0 = s.state.players[0]!;
     const p1 = s.state.players[1]!;
     const kuwagamon = instance("BT1-070", 0, false);
@@ -312,7 +312,7 @@ describe("§15-16 Effect Timings (comprehensive-0207/0208)", () => {
     s.state.memory = requireCardDefinition("BT1-070").playCost;
 
     s.engine.applyIntent(0, { type: "playCard", instanceId: kuwagamon.instanceId });
-    await settle(() => target.isSuspended, 200);
+    await settle(() => target.isSuspended, 5000);
     expect(target.isSuspended).toBe(true);
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT1-070")).toBe(true); // play itself completed
   });

@@ -1,8 +1,8 @@
-import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
+import { EffectTiming, isDigimon } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
-import { onPlay, whenDigivolving, staticModifier, turnTiming } from "../../engine/effects/builders.js";
+import { onPlay, whenDigivolving, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "EX6-057";
@@ -89,7 +89,7 @@ const module: EffectModule = {
             "[All Turns] [Once Per Turn] When this Digimon would leave the battle area other " +
             "than in battle, by deleting 1 level 5 or lower Digimon, prevent it from leaving.",
           maxPerTurn: 1,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
@@ -141,11 +141,11 @@ const module: EffectModule = {
             "[Opponent's Turn] [Once Per Turn] When another Digimon is deleted, trash the top " +
             "card of your opponent's security stack.",
           maxPerTurn: 1,
-          when: (ctx) => source.isOnBattleArea() && !source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && !source.isOwnersTurn(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
-            const opponent = ctx.game.opponentOf(source.ownerSeat);
+            const _opponent = ctx.game.opponentOf(source.ownerSeat);
             ctx.fx.subscribeSubTrigger({
               event: "onDeletionOf",
               sourcePermanentId: self.permanentId,

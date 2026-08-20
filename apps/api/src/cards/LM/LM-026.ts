@@ -1,7 +1,7 @@
 // @ts-nocheck
 // Hand-audited implementation for LM-026 (Megidramon).
 import type { CompiledCard } from "@aegis/shared";
-import { EffectTiming, isDigimon } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -35,7 +35,7 @@ const module: EffectModule = {
         source,
         effectKey: `${cardId}/leave-play-guilmon`,
         description: "[All Turns] When this Digimon would leave, play a Guilmon from its stack or trash and place this card under it.",
-        when: (ctx) => source.isOnBattleArea() && source.permanent() !== undefined,
+        when: (_ctx) => source.isOnBattleArea() && source.permanent() !== undefined,
         resolve: async (ctx) => {
           const host = source.permanent();
           if (host === undefined) return;

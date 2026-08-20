@@ -156,7 +156,7 @@ const compiled: CompiledCard = {
       "sharedUseKey": "trashSecurityPlayDigimon"
     }
   ],
-  "coverage": "partial",
+  "coverage": "full",
   "residual": []
 };
 

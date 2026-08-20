@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
@@ -157,7 +157,7 @@ const compiled: CompiledCard = {
               },
               "payCost": true,
               "condition": {
-                "kind": "raw",
+                "kind": "triggerSubjectMatchesFilter", "filter": {"nameOrTrait": [{"tokens": ["WG"], "match": "trait"}]},
                 "raw": "any of them have the [WG] trait"
               },
               "optional": true
@@ -201,7 +201,7 @@ const compiled: CompiledCard = {
               },
               "payCost": true,
               "condition": {
-                "kind": "raw",
+                "kind": "triggerSubjectMatchesFilter", "filter": {"nameOrTrait": [{"tokens": ["WG"], "match": "trait"}]},
                 "raw": "any of them have the [WG] trait"
               },
               "optional": true

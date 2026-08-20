@@ -39,7 +39,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectActed",
             "raw": "this effect added to a hand"
           }
         },
@@ -117,7 +117,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectActed",
             "raw": "this effect added to a hand"
           }
         },
@@ -133,3 +133,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT16-099", compiled);
+export { compiled };

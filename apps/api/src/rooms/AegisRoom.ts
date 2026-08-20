@@ -8,13 +8,14 @@ import {
   EVENT_CHANNEL,
   DECISION_CHANNEL,
 } from "@aegis/shared";
-import { GameEngine, type GameEngineOptions, type SeatJoinOptions } from "../engine/GameEngine.js";
+import { GameEngine, type SeatJoinOptions } from "../engine/GameEngine.js";
 import { BotPlayer, type BotOptions } from "../bot/BotPlayer.js";
 import { randomBotDeck } from "../engine/testDecks.js";
 import { accountStore } from "../accounts/runtime.js";
 import type { AccountStore, DeckSnapshot } from "../accounts/AccountStore.js";
 import { seriesStore } from "../tournaments/runtime.js";
 import type { SeriesStore } from "../tournaments/series/index.js";
+import { createLocalRoomCodeDirectory, type RoomCodeDirectory } from "../cluster/roomCodes.js";
 
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // no 0/O/1/I
 
@@ -66,8 +67,24 @@ type JoinIdentity = { account: { id: string; displayName: string } | undefined; 
  */
 export const roomRegistry = new Map<string, AegisRoom>();
 
-/** Maps private room codes to Colyseus room IDs for lookup. */
-export const roomCodeRegistry = new Map<string, string>();
+/**
+ * Where private room codes are resolved to Colyseus room ids.
+ *
+ * Injected rather than fixed, because the answer depends on the deployment: one process resolves
+ * from its own memory, while a cluster has to resolve a code claimed by a sibling. Defaults to
+ * the local directory so nothing has to configure anything to run a single process.
+ */
+let roomCodes: RoomCodeDirectory = createLocalRoomCodeDirectory();
+
+/** Point every room at a shared code directory (called once, at boot). */
+export function setRoomCodeDirectory(directory: RoomCodeDirectory): void {
+  roomCodes = directory;
+}
+
+/** The directory in force, for callers that resolve codes outside a room. */
+export function roomCodeDirectory(): RoomCodeDirectory {
+  return roomCodes;
+}
 
 /**
  * The one and only room class (REQUIRED name "AegisRoom"), registered as room
@@ -92,7 +109,10 @@ export class AegisRoom extends Room<GameState> {
    * redeemed. A bot seat has no client and therefore no `accountByClient` entry, so this is the
    * only way the room can say who won.
    */
-  private tournamentSeatHolders: ({ accountId: string } | { participantId: string } | undefined)[] = [undefined, undefined];
+  private tournamentSeatHolders: ({ accountId: string } | { participantId: string } | undefined)[] = [
+    undefined,
+    undefined,
+  ];
   private isBotRoom = false;
   private readonly BOT_SEAT = 1 as Seat;
   private isPrivate = false;
@@ -102,11 +122,6 @@ export class AegisRoom extends Room<GameState> {
   private tournamentGameId: string | undefined;
   private readyTimeout: Delayed | undefined;
   private matchStartRequested = false;
-
-  /** Production rooms use the public pool; isolated scenario rooms may widen it. */
-  protected cardPoolCutoffDate(): GameEngineOptions["cardPoolCutoffDate"] {
-    return undefined;
-  }
 
   /** Seam: the tournament series module this room reports to. Tests substitute their own. */
   protected series(): SeriesStore {
@@ -132,26 +147,33 @@ export class AegisRoom extends Room<GameState> {
   // up waiting and starts anyway, so the match never hangs indefinitely.
   private readonly READY_TIMEOUT_SECONDS = 60;
 
-  override async onAuth(
-    client: Client,
-    options: AegisJoinOptions,
-  ): Promise<boolean> {
+  override async onAuth(client: Client, options: AegisJoinOptions): Promise<boolean> {
     if (this.matchStartRequested || this.seatByClient.size >= this.maxClients) return false;
     const identity = await this.resolveIdentity(options);
     if (!identity) return false;
     const account = identity.account;
     if (account) options.displayName = account.displayName;
     const normalizedName = options.displayName.trim().toLocaleLowerCase();
-    if (!normalizedName || this.state.players.some((player) => player?.displayName.trim().toLocaleLowerCase() === normalizedName)) return false;
-    if ((options.ranked === true) !== this.isRankedRoom || ((this.isRankedRoom || this.isTournamentRoom) && !account)) return false;
-    if ((this.isRankedRoom || this.isTournamentRoom) && account && [...this.accountByClient.values()].includes(account.id)) return false;
+    if (
+      !normalizedName ||
+      this.state.players.some((player) => player?.displayName.trim().toLocaleLowerCase() === normalizedName)
+    )
+      return false;
+    if ((options.ranked === true) !== this.isRankedRoom || ((this.isRankedRoom || this.isTournamentRoom) && !account))
+      return false;
+    if (
+      (this.isRankedRoom || this.isTournamentRoom) &&
+      account &&
+      [...this.accountByClient.values()].includes(account.id)
+    )
+      return false;
     // The host of a private room is always allowed; anybody after them needs the code.
     if (this.isPrivate && this.clients.length > 0 && options.roomCode !== this.state.roomCode) return false;
     // Every cheap check has passed, so it is finally safe to take the exclusive claims. Claiming
     // before a rejection would pin a bracket match or a Tournament Game to a room nobody ever
     // enters, and neither can be re-bound afterwards: the match would wedge (onDispose only
     // releases what was committed) and the game's UNIQUE room_id would refuse every later room.
-    if (!await identity.commit()) return false;
+    if (!(await identity.commit())) return false;
     if (account) this.accountByClient.set(client.sessionId, account.id);
     return true;
   }
@@ -176,9 +198,14 @@ export class AegisRoom extends Room<GameState> {
     if (gameId && token) {
       // PROGRAM flow. Nothing from the legacy flow may ride along, and this room must not already
       // be a legacy bracket room.
-      if (!this.isTournamentRoom || this.tournamentMatchId || options.tournamentMatchId || options.authTicket) return undefined;
+      if (!this.isTournamentRoom || this.tournamentMatchId || options.tournamentMatchId || options.authTicket)
+        return undefined;
       if (this.tournamentGameId && this.tournamentGameId !== gameId) return undefined;
-      const entry = await this.series().inspectAuthorization({ gameId, authorizationToken: token, roomId: this.roomId });
+      const entry = await this.series().inspectAuthorization({
+        gameId,
+        authorizationToken: token,
+        roomId: this.roomId,
+      });
       if (!entry.ok) return undefined;
       const { accountId, displayName, deck } = entry.value;
       // A bot's authorization is never valid over the wire. It has no Account, it is only ever
@@ -214,7 +241,7 @@ export class AegisRoom extends Room<GameState> {
       return {
         account: ticket.account,
         commit: async () => {
-          if (!await this.accounts().claimTournamentRoom(matchId, this.roomId)) return false;
+          if (!(await this.accounts().claimTournamentRoom(matchId, this.roomId))) return false;
           this.tournamentMatchId = matchId;
           return true;
         },
@@ -222,11 +249,20 @@ export class AegisRoom extends Room<GameState> {
     }
     return {
       account: ticket?.account,
-      commit: async () => { if (ticket?.tournamentMatchId) this.tournamentMatchId = ticket.tournamentMatchId; return true; },
+      commit: async () => {
+        if (ticket?.tournamentMatchId) this.tournamentMatchId = ticket.tournamentMatchId;
+        return true;
+      },
     };
   }
 
-  override onCreate(options: { seed?: number; private?: boolean; botRoom?: boolean; rankedRoom?: boolean; tournamentRoom?: boolean }): void {
+  override onCreate(options: {
+    seed?: number;
+    private?: boolean;
+    botRoom?: boolean;
+    rankedRoom?: boolean;
+    tournamentRoom?: boolean;
+  }): void {
     this.setState(new GameState());
     this.isBotRoom = options.botRoom === true;
     if (this.isBotRoom) {
@@ -239,11 +275,11 @@ export class AegisRoom extends Room<GameState> {
       this.isPrivate = true;
       const code = generateRoomCode();
       this.state.roomCode = code;
-      roomCodeRegistry.set(code, this.roomId);
+      roomCodes.claim(code, this.roomId);
       this.autoDispose = true;
     }
     this.engine = new GameEngine(this.state, {
-      seed: options.seed ?? (Date.now() >>> 0),
+      seed: options.seed ?? Date.now() >>> 0,
       requestDecision: (seat, req) => this.requestDecision(seat, req),
       onBothReady: () => this.startMatchNow(),
       onActionSettled: (seat, intentType) => {
@@ -257,7 +293,9 @@ export class AegisRoom extends Room<GameState> {
           // could change the outcome — but it must never surface as an unhandled rejection, which
           // in production kills the process and in tests hides every other failure behind noise.
           void this.lock().catch((error: unknown) => console.error("[AegisRoom] failed to lock finished room", error));
-          void this.recordAuthoritativeResult(event).catch((error) => console.error("[AegisRoom] failed to persist match result", error));
+          void this.recordAuthoritativeResult(event).catch((error) =>
+            console.error("[AegisRoom] failed to persist match result", error),
+          );
         }
         this.broadcast(EVENT_CHANNEL, event);
         // Rebuild each client's StateView after any event that can move a CardInstance
@@ -265,11 +303,7 @@ export class AegisRoom extends Room<GameState> {
         // (hand/eggDeck). @colyseus/schema snapshots node visibility when the view is
         // built, so a card redacted while private stays redacted after it goes public
         // unless the view is rebuilt — otherwise the opponent reads topCard=undefined.
-        if (
-          event.kind === "cardPlayed" ||
-          event.kind === "cardsMoved" ||
-          event.kind === "digivolved"
-        ) {
+        if (event.kind === "cardPlayed" || event.kind === "cardsMoved" || event.kind === "digivolved") {
           this.rebuildClientViews();
         }
         // After dealing opening hands, force a state patch so clients receive
@@ -283,14 +317,15 @@ export class AegisRoom extends Room<GameState> {
           // visible. Rebuilding here, after runSetup() populates the hands, ensures
           // every dealt card is in the view's visible set before broadcastPatch().
           this.rebuildClientViews();
-          console.log("[AegisRoom] matchStarted — rebuilt views. Hand sizes:", this.state.players.map((p, i) => `seat${i}=${p?.hand?.length ?? "?"}`).join(", "));
+          console.log(
+            "[AegisRoom] matchStarted — rebuilt views. Hand sizes:",
+            this.state.players.map((p, i) => `seat${i}=${p?.hand?.length ?? "?"}`).join(", "),
+          );
           this.broadcastPatch();
           console.log("[AegisRoom] broadcastPatch() returned");
         }
         for (const bot of this.bots) bot?.onEvent(event);
       },
-    }, {
-      cardPoolCutoffDate: this.cardPoolCutoffDate(),
     });
 
     // One catch-all handler: every client intent type is reassembled into a
@@ -311,14 +346,19 @@ export class AegisRoom extends Room<GameState> {
    * opens, whether the confrontation is over and what a timeout means. The room does not know
    * whether this was game 2 of a best-of-three, and must not learn.
    */
-  private async recordAuthoritativeResult(event: Extract<import("@aegis/shared").ServerEvent, { kind: "gameOver" }>): Promise<void> {
+  private async recordAuthoritativeResult(
+    event: Extract<import("@aegis/shared").ServerEvent, { kind: "gameOver" }>,
+  ): Promise<void> {
     // The Tournament Game path comes first and does not require two Accounts: a seat driven by a
     // bot has no client, so `accountByClient` holds nothing for it and the two-account guard below
     // would silently discard a perfectly good result.
     if (this.tournamentGameId) {
-      const outcome = event.result.outcome === "draw" ? ({ kind: "draw" } as const) : this.winnerOutcome(event.result.winnerSeat);
+      const outcome =
+        event.result.outcome === "draw" ? ({ kind: "draw" } as const) : this.winnerOutcome(event.result.winnerSeat);
       if (!outcome) {
-        console.error(`[AegisRoom] tournament game result UNATTRIBUTABLE gameId=${this.tournamentGameId} roomId=${this.roomId} winnerSeat=${event.result.outcome === "draw" ? "-" : event.result.winnerSeat}`);
+        console.error(
+          `[AegisRoom] tournament game result UNATTRIBUTABLE gameId=${this.tournamentGameId} roomId=${this.roomId} winnerSeat=${event.result.outcome === "draw" ? "-" : event.result.winnerSeat}`,
+        );
         return;
       }
       const recorded = await this.series().recordGameResult({
@@ -329,7 +369,10 @@ export class AegisRoom extends Room<GameState> {
       });
       // A refusal here means a finished game was NOT persisted — the confrontation is now stuck
       // waiting on a result that will never arrive. It must be loud enough to alert on.
-      if (!recorded.ok) console.error(`[AegisRoom] tournament game result REJECTED gameId=${this.tournamentGameId} roomId=${this.roomId} reason=${recorded.reason}`);
+      if (!recorded.ok)
+        console.error(
+          `[AegisRoom] tournament game result REJECTED gameId=${this.tournamentGameId} roomId=${this.roomId} reason=${recorded.reason}`,
+        );
       return;
     }
     const accounts = ([0, 1] as Seat[]).map((seat) => {
@@ -345,11 +388,49 @@ export class AegisRoom extends Room<GameState> {
       const player = this.state.players[seat];
       return player ? this.deckByClient.get(player.sessionId) : undefined;
     });
-    if (this.isTournamentRoom && this.tournamentMatchId) { const snapshots = decks[0] && decks[1] ? [decks[0], decks[1]] as [DeckSnapshot, DeckSnapshot] : undefined; if (event.result.outcome === "draw") { await this.accounts().recordTournamentRoomDraw(this.tournamentMatchId, this.roomId, [accounts[0], accounts[1]], event.reason, snapshots); return; } const winner = event.result.winnerSeat; await this.accounts().recordTournamentRoomResult(this.tournamentMatchId, this.roomId, [accounts[0], accounts[1]], accounts[winner], event.reason, snapshots); return; }
+    if (this.isTournamentRoom && this.tournamentMatchId) {
+      const snapshots = decks[0] && decks[1] ? ([decks[0], decks[1]] as [DeckSnapshot, DeckSnapshot]) : undefined;
+      if (event.result.outcome === "draw") {
+        await this.accounts().recordTournamentRoomDraw(
+          this.tournamentMatchId,
+          this.roomId,
+          [accounts[0], accounts[1]],
+          event.reason,
+          snapshots,
+        );
+        return;
+      }
+      const winner = event.result.winnerSeat;
+      await this.accounts().recordTournamentRoomResult(
+        this.tournamentMatchId,
+        this.roomId,
+        [accounts[0], accounts[1]],
+        accounts[winner],
+        event.reason,
+        snapshots,
+      );
+      return;
+    }
     if (!ranked) return;
-    if (event.result.outcome === "draw") { await this.accounts().recordMatch({ roomId: this.roomId, mode: "ranked", playerAccountIds: [accounts[0], accounts[1]], reason: event.reason, deckSnapshots: decks[0] && decks[1] ? [decks[0], decks[1]] : undefined }); return; }
+    if (event.result.outcome === "draw") {
+      await this.accounts().recordMatch({
+        roomId: this.roomId,
+        mode: "ranked",
+        playerAccountIds: [accounts[0], accounts[1]],
+        reason: event.reason,
+        deckSnapshots: decks[0] && decks[1] ? [decks[0], decks[1]] : undefined,
+      });
+      return;
+    }
     const winner = event.result.winnerSeat;
-    await this.accounts().recordMatch({ roomId: this.roomId, mode: "ranked", playerAccountIds: [accounts[0], accounts[1]], winnerAccountId: accounts[winner], reason: event.reason, deckSnapshots: decks[0] && decks[1] ? [decks[0], decks[1]] : undefined });
+    await this.accounts().recordMatch({
+      roomId: this.roomId,
+      mode: "ranked",
+      playerAccountIds: [accounts[0], accounts[1]],
+      winnerAccountId: accounts[winner],
+      reason: event.reason,
+      deckSnapshots: decks[0] && decks[1] ? [decks[0], decks[1]] : undefined,
+    });
   }
 
   /**
@@ -360,13 +441,19 @@ export class AegisRoom extends Room<GameState> {
    * `undefined` means the seat belongs to nobody the room knows about, which is never expected and
    * must not be reported as somebody else's win.
    */
-  private winnerOutcome(winnerSeat: Seat): { kind: "winner"; winnerAccountId: string } | { kind: "winnerParticipant"; winnerParticipantId: string } | undefined {
+  private winnerOutcome(
+    winnerSeat: Seat,
+  ):
+    | { kind: "winner"; winnerAccountId: string }
+    | { kind: "winnerParticipant"; winnerParticipantId: string }
+    | undefined {
     const player = this.state.players[winnerSeat];
     const accountId = player ? this.accountByClient.get(player.sessionId) : undefined;
     if (accountId) return { kind: "winner", winnerAccountId: accountId };
     const holder = this.tournamentSeatHolders[winnerSeat];
     if (holder && "accountId" in holder) return { kind: "winner", winnerAccountId: holder.accountId };
-    if (holder && "participantId" in holder) return { kind: "winnerParticipant", winnerParticipantId: holder.participantId };
+    if (holder && "participantId" in holder)
+      return { kind: "winnerParticipant", winnerParticipantId: holder.participantId };
     return undefined;
   }
 
@@ -383,7 +470,11 @@ export class AegisRoom extends Room<GameState> {
    * Returns false rather than throwing on every refusal, so a driver retrying a room it lost a race
    * for reads one uniform answer.
    */
-  async seatTournamentBot(input: { gameId: string; authorizationToken: string; botOptions?: BotOptions }): Promise<boolean> {
+  async seatTournamentBot(input: {
+    gameId: string;
+    authorizationToken: string;
+    botOptions?: BotOptions;
+  }): Promise<boolean> {
     if (!this.isTournamentRoom || this.matchStartRequested) return false;
     if (this.tournamentGameId && this.tournamentGameId !== input.gameId) return false;
     if (this.seatByClient.size + this.occupiedBotSeats().length >= 2) return false;
@@ -392,10 +483,18 @@ export class AegisRoom extends Room<GameState> {
     // would seat an unattended bot in a person's seat. Checked BEFORE anything is consumed:
     // `inspectAuthorization` validates without binding a room or spending the token, so a human's
     // token presented here is refused and stays usable by the person it belongs to.
-    const inspected = await this.series().inspectAuthorization({ gameId: input.gameId, authorizationToken: input.authorizationToken, roomId: this.roomId });
+    const inspected = await this.series().inspectAuthorization({
+      gameId: input.gameId,
+      authorizationToken: input.authorizationToken,
+      roomId: this.roomId,
+    });
     if (!inspected.ok || inspected.value.kind !== "bot" || !inspected.value.participantId) return false;
 
-    const claimed = await this.series().claimGame({ gameId: input.gameId, authorizationToken: input.authorizationToken, roomId: this.roomId });
+    const claimed = await this.series().claimGame({
+      gameId: input.gameId,
+      authorizationToken: input.authorizationToken,
+      roomId: this.roomId,
+    });
     if (!claimed.ok) return false;
     const { participantId, kind, displayName, deck } = claimed.value;
     if (kind !== "bot" || !participantId) return false;
@@ -406,12 +505,20 @@ export class AegisRoom extends Room<GameState> {
     if (taken.has(seat)) return false;
 
     this.tournamentSeatHolders[seat] = { participantId };
-    this.bots[seat] = new BotPlayer(seat, this.state, (intent) => {
-      const result = this.engine.applyIntent(seat, intent);
-      this.rebuildClientViews();
-      return result;
-    }, input.botOptions);
-    this.engine.seatPlayer(seat, `bot:${participantId}`, { displayName, deck: { mainDeck: [...deck.mainDeck], eggDeck: [...deck.eggDeck] } });
+    this.bots[seat] = new BotPlayer(
+      seat,
+      this.state,
+      (intent) => {
+        const result = this.engine.applyIntent(seat, intent);
+        this.rebuildClientViews();
+        return result;
+      },
+      input.botOptions,
+    );
+    this.engine.seatPlayer(seat, `bot:${participantId}`, {
+      displayName,
+      deck: { mainDeck: [...deck.mainDeck], eggDeck: [...deck.eggDeck] },
+    });
     // The bot announces readiness through the ordinary intent, so the ready gate closes for the
     // usual reason rather than being bypassed. Against a person that means the match starts when
     // THEY are ready (with the existing timeout as the fallback), instead of dealing them a hand
@@ -445,16 +552,24 @@ export class AegisRoom extends Room<GameState> {
     // Legacy only. A Tournament Game's room binding is permanent by design: the game either
     // finished here or is voided by the scheduler, and re-binding it to a second room would be the
     // duplicate-claim the UNIQUE room_id exists to prevent.
-    if (!this.tournamentGameId && this.tournamentMatchId) void this.accounts().releaseTournamentRoom(this.tournamentMatchId, this.roomId).catch((error) => console.error("[AegisRoom] failed to release tournament room", error));
+    if (!this.tournamentGameId && this.tournamentMatchId)
+      void this.accounts()
+        .releaseTournamentRoom(this.tournamentMatchId, this.roomId)
+        .catch((error) => console.error("[AegisRoom] failed to release tournament room", error));
     roomRegistry.delete(this.roomId);
     if (this.state.roomCode) {
-      roomCodeRegistry.delete(this.state.roomCode);
+      roomCodes.release(this.state.roomCode);
     }
   }
 
   override onJoin(client: Client, options: AegisJoinOptions): void {
     this.rankedByClient.set(client.sessionId, options.ranked === true);
-    this.deckByClient.set(client.sessionId, { deckId: options.deckId ?? null, deckName: options.deckName ?? "Deck sem nome", mainDeck: [...options.deck.mainDeck], eggDeck: [...options.deck.eggDeck] });
+    this.deckByClient.set(client.sessionId, {
+      deckId: options.deckId ?? null,
+      deckName: options.deckName ?? "Deck sem nome",
+      mainDeck: [...options.deck.mainDeck],
+      eggDeck: [...options.deck.eggDeck],
+    });
     // Assign the first free seat instead of using clients.length - 1, which
     // breaks when a client disconnects and reconnects (e.g. React StrictMode
     // double-mounts, or genuine network reconnect).
@@ -467,12 +582,16 @@ export class AegisRoom extends Room<GameState> {
     // player and their own identity/deck must replace the departed player's.
     const existing = this.state.players[seat];
     if (existing && existing.sessionId !== client.sessionId) {
-      console.log(`[AegisRoom] onJoin sessionId=${client.sessionId} seat=${seat} → replacing departed player ${existing.sessionId}`);
+      console.log(
+        `[AegisRoom] onJoin sessionId=${client.sessionId} seat=${seat} → replacing departed player ${existing.sessionId}`,
+      );
       this.seatByClient.set(client.sessionId, seat);
       this.engine.seatPlayer(seat, client.sessionId, options);
       client.view = this.engine.makeStateView(seat);
     } else {
-      console.log(`[AegisRoom] onJoin sessionId=${client.sessionId} seat=${seat} takenSeats=[${[...taken].join(",")}] totalClients=${this.clients.length} allSessionIds=[${this.clients.map(c => c.sessionId).join(", ")}]`);
+      console.log(
+        `[AegisRoom] onJoin sessionId=${client.sessionId} seat=${seat} takenSeats=[${[...taken].join(",")}] totalClients=${this.clients.length} allSessionIds=[${this.clients.map((c) => c.sessionId).join(", ")}]`,
+      );
       this.seatByClient.set(client.sessionId, seat);
       this.engine.seatPlayer(seat, client.sessionId, options);
       // Per-client visibility: hide hidden zones from the other seat.
@@ -495,15 +614,21 @@ export class AegisRoom extends Room<GameState> {
     this.readyTimeout = undefined;
     // Advertise that the game is genuinely under way, so a scheduler can tell a room that never
     // started apart from one that started and stopped reporting.
-    if (this.tournamentGameId) void this.series().markGamePlaying(this.tournamentGameId, this.roomId).catch((error: unknown) => console.error("[AegisRoom] failed to mark tournament game playing", error));
+    if (this.tournamentGameId)
+      void this.series()
+        .markGamePlaying(this.tournamentGameId, this.roomId)
+        .catch((error: unknown) => console.error("[AegisRoom] failed to mark tournament game playing", error));
     this.engine.startMatch();
   }
 
   override async onLeave(client: Client, consented: boolean): Promise<void> {
     const seat = this.seatByClient.get(client.sessionId);
     const accountId = this.accountByClient.get(client.sessionId);
-    const countsAsDodge = this.isRankedRoom && this.matchStartRequested && !this.state.gameOver && accountId !== undefined;
-    console.log(`[AegisRoom] onLeave sessionId=${client.sessionId} seat=${seat} consented=${consented} totalClients=${this.clients.length}`);
+    const countsAsDodge =
+      this.isRankedRoom && this.matchStartRequested && !this.state.gameOver && accountId !== undefined;
+    console.log(
+      `[AegisRoom] onLeave sessionId=${client.sessionId} seat=${seat} consented=${consented} totalClients=${this.clients.length}`,
+    );
     if (seat === undefined) {
       this.accountByClient.delete(client.sessionId);
       this.rankedByClient.delete(client.sessionId);
@@ -540,7 +665,8 @@ export class AegisRoom extends Room<GameState> {
       this.engine.handleReconnect(seat);
       if (!this.matchStartRequested) {
         await this.unlock();
-        if (this.clients.length === 2) this.readyTimeout = this.clock.setTimeout(() => this.startMatchNow(), this.READY_TIMEOUT_SECONDS * 1000);
+        if (this.clients.length === 2)
+          this.readyTimeout = this.clock.setTimeout(() => this.startMatchNow(), this.READY_TIMEOUT_SECONDS * 1000);
       }
       client.view = this.engine.makeStateView(seat);
       // Re-send any pending decision so the resumed client can continue.
@@ -573,7 +699,14 @@ export class AegisRoom extends Room<GameState> {
     // Tournament rooms stay refused here, and that refusal is what `POST /bot/join` inherits. A
     // tournament bot is seated only through seatTournamentBot(), against an authorization no HTTP
     // caller can obtain.
-    if (this.isRankedRoom || this.isTournamentRoom || this.isPrivate || this.bots[this.BOT_SEAT] !== undefined || this.clients.length !== 1) return false;
+    if (
+      this.isRankedRoom ||
+      this.isTournamentRoom ||
+      this.isPrivate ||
+      this.bots[this.BOT_SEAT] !== undefined ||
+      this.clients.length !== 1
+    )
+      return false;
 
     this.bots[this.BOT_SEAT] = new BotPlayer(this.BOT_SEAT, this.state, (intent) => {
       const result = this.engine.applyIntent(this.BOT_SEAT, intent);
@@ -653,14 +786,16 @@ export class AegisRoom extends Room<GameState> {
       bot.onDecisionRequested(req);
       return;
     }
-    const client = this.clients.find(
-      (c) => this.seatByClient.get(c.sessionId) === seat,
-    );
+    const client = this.clients.find((c) => this.seatByClient.get(c.sessionId) === seat);
     const handSize = this.state.players[seat]?.hand?.length ?? "?";
     if (!client) {
-      console.log(`[AegisRoom] requestDecision seat=${seat} kind=${req.kind} id=${req.decisionId} → NOT FOUND. clients=[${this.clients.map(c => `${c.sessionId}(→seat${this.seatByClient.get(c.sessionId) ?? "?"})`).join(", ")}] seatByClientKeys=[${[...this.seatByClient.entries()].map(([sid, s]) => `${sid}→${s}`).join(", ")}]`);
+      console.log(
+        `[AegisRoom] requestDecision seat=${seat} kind=${req.kind} id=${req.decisionId} → NOT FOUND. clients=[${this.clients.map((c) => `${c.sessionId}(→seat${this.seatByClient.get(c.sessionId) ?? "?"})`).join(", ")}] seatByClientKeys=[${[...this.seatByClient.entries()].map(([sid, s]) => `${sid}→${s}`).join(", ")}]`,
+      );
     } else {
-      console.log(`[AegisRoom] requestDecision seat=${seat} kind=${req.kind} id=${req.decisionId} → client ${client.sessionId} (handSize=${handSize})`);
+      console.log(
+        `[AegisRoom] requestDecision seat=${seat} kind=${req.kind} id=${req.decisionId} → client ${client.sessionId} (handSize=${handSize})`,
+      );
     }
     // Publish the matching pendingDecision before its richer unicast request.
     // Otherwise an older scheduled state patch can arrive after DECISION_CHANNEL,

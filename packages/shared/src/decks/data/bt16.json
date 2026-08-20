@@ -4,13 +4,14 @@
   "decks": [
     {
       "id": "bt16-dgo-2024-06-01-1-numemon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT16 Numemon",
       "archetype": "Numemon",
       "collection": "BT16",
       "formatBlock": "BT16",
       "colors": ["Yellow", "White", "Black"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Ukkomon P-123 to 1, Numemon (X Antibody) BT15-057 to 1, Lui Ohwada P-130 to 1; the freed copies reinforce Numemon BT14-058 to 4, PlatinumNumemon BT14-066 to 4, Valkyrimon BT16-013 to 4, Chuumon BT3-061 to 4, Satsuki Tamahime BT14-086 to 4, Etemon EX5-048 to 3.",
       "tournament": {
         "name": "Regionals — Play!TCG",
         "date": "2024-06-01",
@@ -26,7 +27,7 @@
         {
           "cardId": "BT3-061",
           "name": "Chuumon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -44,7 +45,7 @@
         {
           "cardId": "P-123",
           "name": "Ukkomon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -56,13 +57,13 @@
         {
           "cardId": "BT14-058",
           "name": "Numemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT15-057",
           "name": "Numemon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -74,7 +75,7 @@
         {
           "cardId": "EX5-048",
           "name": "Etemon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -92,13 +93,13 @@
         {
           "cardId": "BT14-066",
           "name": "PlatinumNumemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT16-013",
           "name": "Valkyrimon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -122,7 +123,7 @@
         {
           "cardId": "BT14-086",
           "name": "Satsuki Tamahime",
-          "qty": 2,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -134,7 +135,7 @@
         {
           "cardId": "P-130",
           "name": "Lui Ohwada",
-          "qty": 2,
+          "qty": 1,
           "type": "Tamer"
         },
         {
@@ -161,13 +162,14 @@
     },
     {
       "id": "bt16-dgo-2024-06-01-2-armor-vaccine",
-      "revision": 1,
+      "revision": 2,
       "name": "BT16 Armor Vaccine",
       "archetype": "Armor Vaccine",
       "collection": "BT16",
       "formatBlock": "BT16",
       "colors": ["Blue", "Yellow", "Green", "White", "Black"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: T.K. Takaishi BT14-084 to 1, Awakening of the Golden Knight BT9-098 to 1; the freed copies reinforce Emissary of Hope BT14-093 to 4, Kudamon BT13-034 to 4, Angewomon BT15-038 to 4, Ukkomon BT16-082 to 3.",
       "tournament": {
         "name": "Regionals — Play!TCG",
         "date": "2024-06-01",
@@ -183,13 +185,13 @@
         {
           "cardId": "BT16-082",
           "name": "Ukkomon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
           "cardId": "BT13-034",
           "name": "Kudamon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -231,7 +233,7 @@
         {
           "cardId": "BT15-038",
           "name": "Angewomon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -267,7 +269,7 @@
         {
           "cardId": "BT14-084",
           "name": "T.K. Takaishi",
-          "qty": 4,
+          "qty": 1,
           "type": "Tamer"
         },
         {
@@ -285,13 +287,13 @@
         {
           "cardId": "BT14-093",
           "name": "Emissary of Hope",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
           "cardId": "BT9-098",
           "name": "Awakening of the Golden Knight",
-          "qty": 4,
+          "qty": 1,
           "type": "Option"
         },
         {
@@ -324,13 +326,14 @@
     },
     {
       "id": "bt16-dgo-2024-06-01-3-blue-flare",
-      "revision": 1,
+      "revision": 2,
       "name": "BT16 Blue Flare",
       "archetype": "Blue Flare",
       "collection": "BT16",
       "formatBlock": "BT16",
       "colors": ["Blue", "White", "Black"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Ukkomon P-123 to 1, Lui Ohwada P-130 to 1; the freed copies reinforce MailBirdramon BT10-021 to 4, Zudomon BT14-026 to 4, MailBirdramon EX4-018 to 4, Kiriha Aonuma & Nene Amano EX4-062 to 4.",
       "tournament": {
         "name": "Regionals — Play!TCG",
         "date": "2024-06-01",
@@ -358,7 +361,7 @@
         {
           "cardId": "P-123",
           "name": "Ukkomon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -370,13 +373,13 @@
         {
           "cardId": "BT10-021",
           "name": "MailBirdramon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "EX4-018",
           "name": "MailBirdramon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -394,7 +397,7 @@
         {
           "cardId": "BT14-026",
           "name": "Zudomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -424,13 +427,13 @@
         {
           "cardId": "EX4-062",
           "name": "Kiriha Aonuma & Nene Amano",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
           "cardId": "P-130",
           "name": "Lui Ohwada",
-          "qty": 2,
+          "qty": 1,
           "type": "Tamer"
         },
         {
@@ -469,13 +472,14 @@
     },
     {
       "id": "bt16-dgo-2024-06-15-2-phoenixmon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT16 Phoenixmon",
       "archetype": "Phoenixmon",
       "collection": "BT16",
       "formatBlock": "BT16",
       "colors": ["Red"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Garudamon (X Antibody) BT16-011 to 1; the freed copies reinforce Biyomon BT11-007 to 4, Birdramon BT11-011 to 4, Biyomon BT13-010 to 4.",
       "tournament": {
         "name": "Regionals — Gameria Barcelona",
         "date": "2024-06-15",
@@ -491,13 +495,13 @@
         {
           "cardId": "BT11-007",
           "name": "Biyomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT13-010",
           "name": "Biyomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -509,7 +513,7 @@
         {
           "cardId": "BT11-011",
           "name": "Birdramon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -545,7 +549,7 @@
         {
           "cardId": "BT16-011",
           "name": "Garudamon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -632,13 +636,14 @@
     },
     {
       "id": "bt16-dgo-2024-06-22-1-imperialdramon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT16 Imperialdramon",
       "archetype": "Imperialdramon",
       "collection": "BT16",
       "formatBlock": "BT16",
       "colors": ["Blue", "Green"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Stingmon ST9-09 to 1, Hammer Spark ST2-13 to 1; the freed copies reinforce Wormmon BT16-040 to 4, Paildramon ST9-05 to 4, Imperialdramon: Fighter Mode BT16-027 to 3.",
       "tournament": {
         "name": "Ultimate Cup — Raid'n'Trade",
         "date": "2024-06-22",
@@ -672,7 +677,7 @@
         {
           "cardId": "BT16-040",
           "name": "Wormmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -702,7 +707,7 @@
         {
           "cardId": "ST9-09",
           "name": "Stingmon",
-          "qty": 2,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -714,13 +719,13 @@
         {
           "cardId": "ST9-05",
           "name": "Paildramon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT16-027",
           "name": "Imperialdramon: Fighter Mode",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -756,7 +761,7 @@
         {
           "cardId": "ST2-13",
           "name": "Hammer Spark",
-          "qty": 3,
+          "qty": 1,
           "type": "Option"
         },
         {
@@ -789,13 +794,14 @@
     },
     {
       "id": "bt16-dgo-2024-06-29-1-leviamon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT16 Leviamon",
       "archetype": "Leviamon",
       "collection": "BT16",
       "formatBlock": "BT16",
       "colors": ["Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Dobermon (X Antibody) EX5-059 to 1, Cerberusmon (X Antibody) EX5-061 to 1; the freed copies reinforce Ignitemon BT11-076 to 4, Leviamon (X Antibody) BT15-081 to 4, Dobermon BT16-068 to 4, Octomon EX5-058 to 4, Leviamon EX5-063 to 4, X Antibody Proto Form EX5-070 to 4.",
       "tournament": {
         "name": "Regionals — PlayLatam",
         "date": "2024-06-29",
@@ -811,7 +817,7 @@
         {
           "cardId": "BT11-076",
           "name": "Ignitemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -835,19 +841,19 @@
         {
           "cardId": "BT16-068",
           "name": "Dobermon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "EX5-058",
           "name": "Octomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "EX5-059",
           "name": "Dobermon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -865,7 +871,7 @@
         {
           "cardId": "EX5-061",
           "name": "Cerberusmon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -877,7 +883,7 @@
         {
           "cardId": "BT15-081",
           "name": "Leviamon (X Antibody)",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -889,7 +895,7 @@
         {
           "cardId": "EX5-063",
           "name": "Leviamon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -919,7 +925,7 @@
         {
           "cardId": "EX5-070",
           "name": "X Antibody Proto Form",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         }
       ],
@@ -934,13 +940,14 @@
     },
     {
       "id": "bt16-dgo-2024-06-29-1-miragegaogamon",
-      "revision": 1,
+      "revision": 2,
       "name": "BT16 MirageGaogamon",
       "archetype": "MirageGaogamon",
       "collection": "BT16",
       "formatBlock": "BT16",
       "colors": ["Blue"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: MirageGaogamon BT11-033 to 1; the freed copies reinforce MirageGaogamon: Burst Mode BT13-033 to 4, Thomas H. Norstein BT13-097 to 4, Thomas H. Norstein BT4-093 to 4.",
       "tournament": {
         "name": "Regionals — NoHEROES TCG",
         "date": "2024-06-29",
@@ -1022,7 +1029,7 @@
         {
           "cardId": "BT11-033",
           "name": "MirageGaogamon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -1040,19 +1047,19 @@
         {
           "cardId": "BT13-033",
           "name": "MirageGaogamon: Burst Mode",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT13-097",
           "name": "Thomas H. Norstein",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
           "cardId": "BT4-093",
           "name": "Thomas H. Norstein",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -1248,13 +1255,14 @@
     },
     {
       "id": "bt16-numemon-brandon-playtcg-2024",
-      "revision": 1,
+      "revision": 2,
       "name": "BT16 Numemon",
       "archetype": "Numemon",
       "collection": "BT16",
       "formatBlock": "BT16",
       "colors": ["Black"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Ukkomon P-123 to 1, Numemon (X Antibody) BT15-057 to 1; the freed copies reinforce Numemon BT14-058 to 4, PlatinumNumemon BT14-066 to 4, Satsuki Tamahime BT14-086 to 4, Gazimon BT3-077 to 4.",
       "tournament": {
         "name": "PlayTCG Regional",
         "date": "2024-08-04",
@@ -1268,7 +1276,7 @@
         {
           "cardId": "BT3-077",
           "name": "Gazimon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1280,7 +1288,7 @@
         {
           "cardId": "P-123",
           "name": "Ukkomon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -1304,13 +1312,13 @@
         {
           "cardId": "BT14-058",
           "name": "Numemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "BT15-057",
           "name": "Numemon (X Antibody)",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -1334,7 +1342,7 @@
         {
           "cardId": "BT14-066",
           "name": "PlatinumNumemon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -1358,7 +1366,7 @@
         {
           "cardId": "BT14-086",
           "name": "Satsuki Tamahime",
-          "qty": 2,
+          "qty": 4,
           "type": "Tamer"
         },
         {

@@ -157,7 +157,7 @@ const compiled: CompiledCard = {
           },
           "to": "deckBottom",
           "condition": {
-            "kind": "raw",
+            "kind": "triggerEnteredByEffect",
             "raw": "played or digivolved by effects"
           },
           "optional": true

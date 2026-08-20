@@ -65,14 +65,14 @@ function makeContext(options: {
 
   const suspended: string[][] = [];
   const fx = {
-    suspend: vi.fn(async (ids: string[]) => {
+    suspend: vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
       suspended.push(ids);
       return ids;
     }),
   } as unknown as Primitives;
 
   const ask = {
-    chooseTargets: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) =>
+    chooseTargets: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) =>
       options.chosen ? options.chosen(opts.candidates) : [opts.candidates[0]!],
     ),
   } as unknown as EffectContext["ask"];

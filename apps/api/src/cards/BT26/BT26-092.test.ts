@@ -91,27 +91,27 @@ function makeHarness(options: {
 
   const calls: string[] = [];
   const fx = {
-    trash: vi.fn(async (ids: string[]) => {
+    trash: vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
       calls.push(`trash:${ids.join(",")}`);
       return [];
     }),
-    draw: vi.fn(async (seat: Seat, n: number) => {
+    draw: vi.fn<(...args: any[]) => any>(async (seat: Seat, n: number) => {
       calls.push(`draw:${seat}:${n}`);
       return [];
     }),
-    gainMemory: vi.fn((n: number) => calls.push(`gainMemory:${n}`)),
-    returnToDeck: vi.fn(async (ids: string[], opts?: { toTop?: boolean }) => {
+    gainMemory: vi.fn<(...args: any[]) => any>((n: number) => calls.push(`gainMemory:${n}`)),
+    returnToDeck: vi.fn<(...args: any[]) => any>(async (ids: string[], opts?: { toTop?: boolean }) => {
       calls.push(`returnToDeck:${ids.join(",")}:${opts?.toTop === true}`);
       return [];
     }),
-    redirectAttack: vi.fn(async (ids: string[], opts?: { optional?: boolean }) => {
+    redirectAttack: vi.fn<(...args: any[]) => any>(async (ids: string[], opts?: { optional?: boolean }) => {
       calls.push(`redirectAttack:${ids.join(",")}:${opts?.optional === true}`);
     }),
   } as unknown as Primitives;
 
   const offered: string[][] = [];
   const ask = {
-    selectCards: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => {
+    selectCards: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => {
       offered.push(opts.candidates);
       return options.pick ? options.pick(opts.candidates) : [opts.candidates[0]!];
     }),

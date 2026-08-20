@@ -48,7 +48,8 @@ export type EnforcedRestriction =
   | "dpImmune"
   | "beAffected"
   | "cantBeDeDigivolved"
-  | "cannotActivateWhenDigivolving"; // "can't activate [When Digivolving] effects" (BT19-038 KB Q5541–Q5545)
+  | "cannotActivateWhenDigivolving" // "can't activate [When Digivolving] effects" (BT19-038 KB Q5541–Q5545)
+  | "activateOnPlay"; // "can't activate [On Play] effects" (EX8-029)
 
 /**
  * Kinds the ledger still stores but nothing honors. `restrict()` rejects them, so a card
@@ -88,6 +89,7 @@ export type SubTriggerEventName =
   | "onAddDigivolutionCards"
   | "whenPlayed"
   | "whenOptionPlayed"
+  | "whenOptionInBattleAreaTrashed"
   | "whenLeavesPlay"
   | "whenLinked"
   | "whenLinkTrashed"
@@ -148,6 +150,8 @@ export interface TriggerInfo {
   /** Card id being played during the pay-time cost window. */
   wouldBePlayedCardId?: string;
   attackerPermanentId?: string;
+  /** Named attack procedure that caused the current attack watcher, when applicable. */
+  attackMechanic?: string;
   /** The defending permanent of the in-flight battle (the original target or the blocker). */
   defenderPermanentId?: string;
   /** The Digimon that declared a block this battle (＜Blocker＞ window). */
@@ -170,12 +174,16 @@ export interface TriggerInfo {
    * permanent is gone.
    */
   deletedWasStackInstanceIds?: string[];
+  /** Battle opponent for each card instance deleted in a battle. */
+  battleOpponentPermanentIdByInstanceId?: Record<string, string>;
   /** Why the cards in this deletion window left play. */
   removalCause?: RemovalCause;
   /** True when this simultaneous deletion batch is the rule check for Digimon at exactly 0 DP. */
   deletedByDpZero?: boolean;
   /** Security card currently being checked. */
   securityInstanceId?: string;
+  /** Option permanent card instance that was trashed from the battle area. */
+  trashedOptionInstanceId?: string;
   /** The checked security card was face-up before the check revealed it. */
   securityWasFaceUp?: boolean;
   /** Permanent that was suspended (OnTappedAnyone). */
@@ -268,6 +276,8 @@ export interface TriggerInfo {
   byEffectSeat?: Seat;
   /** Printed card ID of the effect that produced the event, when known. */
   byEffectCardId?: string;
+  /** Whether the trashed digivolution card was the top card of its stack. */
+  trashedDigivolutionCardWasTop?: boolean;
   /** True only when a digivolution card was trashed to pay a ＜Digi-Burst＞ cost. */
   isDigiBurstTrash?: boolean;
   /**
@@ -438,6 +448,8 @@ export interface GameAccess {
   colorRequirementWaived?(instanceId: string): boolean;
   /** Server-authoritative live keyword/mechanic lookup for the source permanent. */
   hasKeyword?(permanentId: string, keyword: string): boolean;
+  /** Whether the permanent can currently declare an ordinary (tapping) attack. */
+  canDeclareAttack?(permanent: Permanent): boolean;
   /** Whether `seat` completed a digivolution since the current turn began. */
   digivolvedThisTurn?(seat: Seat): boolean;
   /** Whether the permanent is currently prevented from activating this timing. */
@@ -1177,7 +1189,11 @@ export interface Primitives {
   playToken(
     seat: Seat,
     tokenName: string,
-    opts?: { payCost?: boolean; suspended?: boolean },
+    opts?: {
+      payCost?: boolean;
+      suspended?: boolean;
+      keywords?: Array<{ keyword: string; amount?: number; specifiers?: string[] }>;
+    },
   ): Promise<Permanent | undefined>;
   /** Apply a transient DP modifier to a seat's security Digimon during a check. */
   modifySecurityDp(seat: Seat, delta: number, opts?: { continuous?: boolean; duration?: EffectDuration }): void;
@@ -1513,6 +1529,8 @@ export interface EffectContext {
   activeTiming?: string;
   /** Exact rules clause currently resolving, including inherited/security provenance. Display-only. */
   activeEffectText?: string;
+  /** Temporary restrictions installed by a RestrictEffect action in this resolution. */
+  effectRestrictions?: Set<string>;
   game: GameAccess;
   fx: Primitives;
   ask: DecisionApi;

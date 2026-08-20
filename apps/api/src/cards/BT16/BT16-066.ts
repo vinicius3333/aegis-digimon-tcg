@@ -26,7 +26,7 @@ const compiled: CompiledCard = {
           "kind": "GainMemory",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectDidNotAct",
             "raw": "they didn't"
           }
         }
@@ -51,7 +51,7 @@ const compiled: CompiledCard = {
           "kind": "GainMemory",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "ifThisEffectDidNotAct",
             "raw": "they didn't"
           }
         }
@@ -94,3 +94,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT16-066", compiled);
+export { compiled };

@@ -125,6 +125,7 @@ export function createGameAccess(
   isTimingEffectDisabled?: (permanentId: string, timing: "whenDigivolving" | "whenAttacking" | "onPlay") => boolean,
   effectiveColors?: (permanent: Permanent) => import("@aegis/shared").CardColor[],
   colorRequirementWaived?: (instanceId: string) => boolean,
+  canDeclareAttack?: (permanent: Permanent) => boolean,
 ): GameAccess {
   const player = (seat: Seat): PlayerState => {
     const p = state.players[seat];
@@ -147,6 +148,7 @@ export function createGameAccess(
     linkCostReduction: (recipientId: string, cardTraits: readonly string[]): number =>
       (linkCostReduction ?? (() => 0))(recipientId, cardTraits),
     hasKeyword: (permanentId: string, keyword: string): boolean => (hasKeyword ?? (() => false))(permanentId, keyword),
+    canDeclareAttack,
     digivolvedThisTurn: (seat: Seat): boolean => (digivolvedThisTurn ?? (() => false))(seat),
     isTimingEffectDisabled: (permanentId, timing): boolean =>
       (isTimingEffectDisabled ?? (() => false))(permanentId, timing),
@@ -315,6 +317,8 @@ export interface EffectEnvironment {
   digivolvedThisTurn?: (seat: Seat) => boolean;
   effectiveColors?: (permanent: Permanent) => import("@aegis/shared").CardColor[];
   colorRequirementWaived?: (instanceId: string) => boolean;
+  /** Shared ordinary-attack legality used by attack costs before they are offered. */
+  canDeclareAttack?: (permanent: Permanent) => boolean;
   /** Trigger payload for the active timing window. */
   triggerInfo?: TriggerInfo;
 }
@@ -347,6 +351,7 @@ export function gatherTriggeredEffects(
     undefined,
     env.effectiveColors,
     env.colorRequirementWaived,
+    env.canDeclareAttack,
   );
   const lookup = createCardStateLookup(env.state);
 
@@ -436,6 +441,9 @@ function applyTimingEffectDisable(
       timing === EffectTiming.WhenDigivolving &&
       env.continuous.hasRestriction(permanent.permanentId, "cannotActivateWhenDigivolving")
     ) {
+      return false;
+    }
+    if (timing === EffectTiming.OnPlay && env.continuous.hasRestriction(permanent.permanentId, "activateOnPlay")) {
       return false;
     }
     if (!env.continuous.isTimingEffectDisabled(permanent.permanentId, mask)) return true;

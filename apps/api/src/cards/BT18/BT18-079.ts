@@ -24,7 +24,8 @@ const compiled: CompiledCard = {
               ]
             },
             "unit": "colors"
-          }
+          },
+          "trackCount": "trashedThisEffect"
         },
         {
           "kind": "ModifyDP",
@@ -39,10 +40,8 @@ const compiled: CompiledCard = {
           "duration": "forTheTurn",
           "scaling": {
             "per": 1,
-            "filter": {
-              "controllerDefault": "mine"
-            },
-            "unit": "cards"
+            "unit": "namedCount",
+            "countSource": "trashedThisEffect"
           }
         }
       ]
@@ -64,7 +63,8 @@ const compiled: CompiledCard = {
               ]
             },
             "unit": "colors"
-          }
+          },
+          "trackCount": "trashedThisEffect"
         },
         {
           "kind": "ModifyDP",
@@ -79,10 +79,8 @@ const compiled: CompiledCard = {
           "duration": "forTheTurn",
           "scaling": {
             "per": 1,
-            "filter": {
-              "controllerDefault": "mine"
-            },
-            "unit": "cards"
+            "unit": "namedCount",
+            "countSource": "trashedThisEffect"
           }
         }
       ]
@@ -160,3 +158,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT18-079", compiled);
+export { compiled };

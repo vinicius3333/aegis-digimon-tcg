@@ -1,4 +1,4 @@
-import { CardColor, EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
+import { EffectTiming, isDigimon } from "@aegis/shared";
 import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -28,7 +28,7 @@ const module: EffectModule = {
           description:
             "[When Digivolving] Both players trash the top 5 cards of their decks.",
           optional: false,
-          canActivate: (ctx) => source.isOnBattleArea(),
+          canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const seats = [source.ownerSeat, ctx.game.opponentOf(source.ownerSeat)];
             for (const seat of seats) {

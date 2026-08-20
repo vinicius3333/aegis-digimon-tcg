@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
@@ -41,7 +41,7 @@ const compiled: CompiledCard = {
           "restriction": "beAffected",
           "duration": "untilOpponentTurnEnd",
           "condition": {
-            "kind": "raw",
+          "kind": "ifThisEffectActed",
             "raw": "if this effect suspends your Digimon"
           }
         }

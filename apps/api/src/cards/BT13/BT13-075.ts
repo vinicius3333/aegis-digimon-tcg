@@ -1,10 +1,10 @@
-import { EffectDuration, EffectTiming, CardKind, isDigimon } from "@aegis/shared";
+import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
 import type { CardDefinition, CardInstance, Permanent } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext, GameAccess } from "../../engine/effects/EffectContext.js";
-import { onPlay, whenDigivolving, turnTiming } from "../../engine/effects/builders.js";
+import { onPlay, whenDigivolving } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**
@@ -141,26 +141,52 @@ const module: EffectModule = {
       ];
     }
 
-    // [All Turns][Once Per Turn] When an effect would remove this Digimon from the battle area,
-    // by returning 1 [X Antibody] or [Royal Knight] digivolution card to deck bottom, prevent it.
-    // RESIDUAL: the WhenRemoveField replacement + preventCheck + digivolution-card-to-deck-bottom
-    // chain is not expressible through the current subscribeReplacement API. Registered as an
-    // inert placeholder so the timing window is present but returns no active effect.
     if (timing === EffectTiming.None) {
       return [
-        turnTiming({
-          source,
-          effectKey: `${cardId}/all-turns-prevent-removal-residual`,
+        {
+          effectKey: `${cardId}/all-turns-prevent-removal`,
           description:
             "[All Turns][Once Per Turn] When an effect would remove this Digimon from the battle " +
             "area, by returning 1 card with the [X Antibody] or [Royal Knight] trait from this " +
-            "Digimon's digivolution cards to the bottom of the deck, prevent that removal. " +
-            "(RESIDUAL: WhenRemoveField replacement not yet expressible — inert.)",
+            "Digimon's digivolution cards to the bottom of the deck, prevent that removal.",
           maxPerTurn: 1,
-          when: () => false,
-          canActivate: () => false,
-          resolve: async () => {},
-        }),
+          optional: false,
+          isInherited: false,
+          isSecurity: false,
+          isLinked: false,
+          canTrigger: (ctx) => ctx.source.isOnBattleArea(),
+          canActivate: () => true,
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self === undefined) return;
+            ctx.fx.subscribeReplacement({
+              event: "wouldLeavePlay",
+              sourcePermanentId: self.permanentId,
+              mode: "prevent",
+              oncePerTurnKey: `${cardId}/all-turns-prevent-removal/${self.permanentId}`,
+              description:
+                "[All Turns][Once Per Turn] Return 1 [X Antibody]/[Royal Knight] card from this Digimon's stack to prevent its removal.",
+              protects: (_subCtx, leavingId) => leavingId === self.permanentId,
+              preventCheck: async (subCtx, leavingId) => {
+                if (leavingId !== self.permanentId) return false;
+                const current = subCtx.game.permanentById(self.permanentId);
+                if (current === undefined) return false;
+                const candidates = current.stack.filter((card) =>
+                  hasXAntibodyOrRoyalKnight(subCtx.game.definitionOf(card)),
+                );
+                if (candidates.length === 0) return false;
+                const chosen = await subCtx.ask.selectCards(subCtx, {
+                  candidates: candidates.map((card) => card.instanceId),
+                  min: 1,
+                  max: 1,
+                });
+                if (chosen.length === 0) return false;
+                await subCtx.fx.returnToDeck(chosen, { toTop: false });
+                return true;
+              },
+            });
+          },
+        } as Effect,
       ];
     }
 

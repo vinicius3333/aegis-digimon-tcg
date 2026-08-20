@@ -14,7 +14,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - Add "wouldBePlayed" event for play cost reduction (already had this)
 //   - Add separate "wouldDigivolve" Replacement for digivolution cost reduction
 //   - Add digivolutionCardCount: gte 3 to the youHave condition filter
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",

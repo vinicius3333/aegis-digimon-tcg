@@ -4,13 +4,14 @@
   "decks": [
     {
       "id": "ex8-dgo-2025-01-18-1-purple-hybrid",
-      "revision": 1,
+      "revision": 2,
       "name": "EX8 Purple Hybrid",
       "archetype": "Purple Hybrid",
       "collection": "EX8",
       "formatBlock": "EX8",
       "colors": ["White", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Matt Ishida BT2-090 to 0, Jack Raid BT4-111 to 1; the freed copies reinforce Purple Memory Boost! P-040 to 4, Argomon BT17-048 to 4, Koichi Kimura BT18-094 to 4, Gazimon BT3-077 to 3.",
       "tournament": {
         "name": "Championship Finals — PlayLatam",
         "date": "2025-01-18",
@@ -26,7 +27,7 @@
         {
           "cardId": "BT3-077",
           "name": "Gazimon",
-          "qty": 2,
+          "qty": 3,
           "type": "Digimon"
         },
         {
@@ -86,7 +87,7 @@
         {
           "cardId": "BT17-048",
           "name": "Argomon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -108,12 +109,6 @@
           "type": "Digimon"
         },
         {
-          "cardId": "BT2-090",
-          "name": "Matt Ishida",
-          "qty": 3,
-          "type": "Tamer"
-        },
-        {
           "cardId": "BT7-091",
           "name": "Koichi Kimura",
           "qty": 4,
@@ -122,7 +117,7 @@
         {
           "cardId": "BT18-094",
           "name": "Koichi Kimura",
-          "qty": 2,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -134,7 +129,7 @@
         {
           "cardId": "BT4-111",
           "name": "Jack Raid",
-          "qty": 4,
+          "qty": 1,
           "type": "Option"
         },
         {
@@ -146,7 +141,7 @@
         {
           "cardId": "P-040",
           "name": "Purple Memory Boost!",
-          "qty": 3,
+          "qty": 4,
           "type": "Option"
         },
         {
@@ -336,13 +331,14 @@
     },
     {
       "id": "ex8-dgo-2025-01-25-1-gallantmon",
-      "revision": 1,
+      "revision": 2,
       "name": "EX8 Gallantmon",
       "archetype": "Gallantmon",
       "collection": "EX8",
       "formatBlock": "EX8",
       "colors": ["Red", "Blue", "Yellow", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Guilmon EX4-006 to 1; the freed copies reinforce Growlmon BT12-010 to 4.",
       "tournament": {
         "name": "Championship Finals — TAK Games",
         "date": "2025-01-25",
@@ -370,7 +366,7 @@
         {
           "cardId": "EX4-006",
           "name": "Guilmon",
-          "qty": 2,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -382,7 +378,7 @@
         {
           "cardId": "BT12-010",
           "name": "Growlmon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -487,13 +483,14 @@
     },
     {
       "id": "ex8-dgo-2025-01-25-2-fenriloogamon-takemikazuchi",
-      "revision": 1,
+      "revision": 2,
       "name": "EX8 Fenriloogamon Takemikazuchi",
       "archetype": "Fenriloogamon Takemikazuchi",
       "collection": "EX8",
       "formatBlock": "EX8",
       "colors": ["Red", "Yellow", "White", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Fenriloogamon BT17-069 to 1; the freed copies reinforce Eiji Nagasumi BT14-087 to 4, Tyrannomon BT15-011 to 4, Ukkomon BT16-082 to 4.",
       "tournament": {
         "name": "Championship Finals — TAK Games",
         "date": "2025-01-25",
@@ -521,7 +518,7 @@
         {
           "cardId": "BT16-082",
           "name": "Ukkomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -539,7 +536,7 @@
         {
           "cardId": "BT15-011",
           "name": "Tyrannomon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -563,7 +560,7 @@
         {
           "cardId": "BT17-069",
           "name": "Fenriloogamon",
-          "qty": 4,
+          "qty": 1,
           "type": "Digimon"
         },
         {
@@ -581,7 +578,7 @@
         {
           "cardId": "BT14-087",
           "name": "Eiji Nagasumi",
-          "qty": 3,
+          "qty": 4,
           "type": "Tamer"
         },
         {
@@ -626,13 +623,14 @@
     },
     {
       "id": "ex8-dgo-2025-02-09-2-imperialdramon",
-      "revision": 1,
+      "revision": 2,
       "name": "EX8 Imperialdramon",
       "archetype": "Imperialdramon",
       "collection": "EX8",
       "formatBlock": "EX8",
       "colors": ["Blue", "Green"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Stingmon ST9-09 to 1; the freed copies reinforce Stingmon BT12-050 to 4.",
       "tournament": {
         "name": "Ultimate Cup — NoHEROES TCG",
         "date": "2025-02-09",
@@ -702,13 +700,13 @@
         {
           "cardId": "BT12-050",
           "name": "Stingmon",
-          "qty": 2,
+          "qty": 4,
           "type": "Digimon"
         },
         {
           "cardId": "ST9-09",
           "name": "Stingmon",
-          "qty": 3,
+          "qty": 1,
           "type": "Digimon"
         },
         {

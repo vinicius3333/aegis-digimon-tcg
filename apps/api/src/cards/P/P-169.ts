@@ -21,8 +21,8 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/start-main`,
           description: "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.",
-          when: (ctx) => source.isOnBattleArea(),
-          canActivate: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
+          canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const opponent = ctx.game.opponentOf(source.ownerSeat);
             const opp = ctx.game.player(opponent);
@@ -46,7 +46,7 @@ const module: EffectModule = {
             "[All Turns] When effects trash digivolution cards of any of your [Mineral]/[Rock] " +
             "trait Digimon, by suspending this Tamer, place 1 [Mineral]/[Rock] trait card from " +
             "your trash as any of your Digimon's bottom digivolution card.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

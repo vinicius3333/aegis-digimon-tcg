@@ -33,17 +33,23 @@ const compiled: CompiledCard = {
         {
           "kind": "Delete",
           "target": {
+            // "your opponent's Tamers OR level 6 or lower Digimon": the level bounds only the
+            // Digimon branch. Flattened into one filter it also bounded Tamers, which carry no
+            // level at all, so no Tamer could ever be chosen.
             "filter": {
               "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 6
-              }
+              "kind": ["Tamer"]
             },
+            "orFilters": [
+              {
+                "controller": "opponent",
+                "kind": ["Digimon"],
+                "levelComparison": {
+                  "op": "lte",
+                  "value": 6
+                }
+              }
+            ],
             "count": 1
           }
         }
@@ -55,17 +61,23 @@ const compiled: CompiledCard = {
         {
           "kind": "Delete",
           "target": {
+            // "your opponent's Tamers OR level 6 or lower Digimon": the level bounds only the
+            // Digimon branch. Flattened into one filter it also bounded Tamers, which carry no
+            // level at all, so no Tamer could ever be chosen.
             "filter": {
               "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 6
-              }
+              "kind": ["Tamer"]
             },
+            "orFilters": [
+              {
+                "controller": "opponent",
+                "kind": ["Digimon"],
+                "levelComparison": {
+                  "op": "lte",
+                  "value": 6
+                }
+              }
+            ],
             "count": 1
           }
         }

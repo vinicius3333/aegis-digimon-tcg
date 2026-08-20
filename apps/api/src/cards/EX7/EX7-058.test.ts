@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { Phase } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -65,7 +66,11 @@ describe('A3 EX7-058 — granted "[End of Attack] Delete this Digimon." (malform
       ),
     ).toBe(true);
 
+    // Hand the turn to seat 1 for its own attack: the play above spent memory, which ends
+    // seat 0's Main phase, so the phase and the gauge are re-armed here too.
     s.state.turnSeat = 1;
+    s.state.phase = Phase.Main;
+    s.state.memory = 3;
     // Attacking suspends the attacker — this used to fire the malformed shape's bogus
     // "whenSuspended" fallback watcher and throw. It must now complete cleanly.
     const attackRes = engine.applyIntent(1, {

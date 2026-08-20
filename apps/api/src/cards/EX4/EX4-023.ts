@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OpponentsTurn",
@@ -31,8 +31,13 @@ const compiled: CompiledCard = {
               },
               "toTop": true,
               "cost": {
-                "kind": "raw",
-                "raw": "by revealing 1 card of the same level in your hand"
+              "kind": "reveal",
+              "target": {
+                "filter": { "zone": "hand", "controller": "mine", "level": "same" },
+                "count": 1,
+                "from": ["hand"]
+              },
+              "raw": "by revealing 1 card of the same level in your hand"
               },
               "optional": true,
               "abortOnDecline": true

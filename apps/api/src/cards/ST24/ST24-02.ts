@@ -54,7 +54,7 @@ const compiled: CompiledCard = {
           "controller": "mine",
           "amount": 1,
           "condition": {
-            "kind": "raw",
+            "kind": "handAtMost", "value": 7,
             "raw": "your hand has 7 or fewer cards"
           }
         }

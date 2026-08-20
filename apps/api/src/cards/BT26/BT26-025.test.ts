@@ -44,8 +44,8 @@ describe("BT26-025 inherited [When Attacking]", () => {
       opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
       definitionOf: () => fakeDef(),
     } as unknown as GameAccess;
-    const securityToHand = vi.fn();
-    const recoverToSecurity = vi.fn();
+    const securityToHand = vi.fn<(...args: any[]) => any>();
+    const recoverToSecurity = vi.fn<(...args: any[]) => any>();
     const fx = { securityToHand, recoverToSecurity } as unknown as Primitives;
     const source = makeSource();
     const ctx = { source, trigger: {}, game, fx, ask: {} } as unknown as EffectContext;

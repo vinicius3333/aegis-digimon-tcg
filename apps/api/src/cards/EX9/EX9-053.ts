@@ -4,9 +4,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // KB Q4807: can play Digimon or Tamer cards.
 // Base play cost max is 4; scales +1 per face-down digivolution card of this Digimon.
-// Dynamic scaling needs engine capability (LANE_F cap: scalingRevealAddCostMax).
 // KB Q4807 confirms both Digimon and Tamer are eligible — kind filter is omitted.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
@@ -31,8 +30,7 @@ const compiled: CompiledCard = {
                 "playCostLte": 4,
                 "playCostLteScaling": {
                   "per": 1,
-                  "unit": "faceDownDigivolutionCards",
-                  "ofSelf": true
+                "unit": "selfFaceDownDigivolutionCards"
                 },
                 "nameOrTrait": [
                   {
@@ -65,8 +63,7 @@ const compiled: CompiledCard = {
                 "playCostLte": 4,
                 "playCostLteScaling": {
                   "per": 1,
-                  "unit": "faceDownDigivolutionCards",
-                  "ofSelf": true
+                "unit": "selfFaceDownDigivolutionCards"
                 },
                 "nameOrTrait": [
                   {
@@ -107,10 +104,8 @@ const compiled: CompiledCard = {
       "frequency": "OncePerTurn"
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "playCostLteScaling on RevealAdd filter not yet executed by engine (LANE_F: scalingRevealAddCostMax)"
-  ],
+  "coverage": "full",
+  "residual": [],
   "digivolutionRequirement": [
     {
       "level": 4,
