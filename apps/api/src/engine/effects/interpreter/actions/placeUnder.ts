@@ -210,7 +210,7 @@ export async function runPlaceUnder(
   // The placeUnder primitive records them as material cards in the host's stack (belowTop as
   // the DigiXros convention; the flag is structural metadata for the DigiXros system to read).
   if (chosen.length > 0) {
-    await ctx.fx.placeUnder(hostId, chosen, { belowTop: action.position !== "bottom" });
+    await ctx.fx.placeUnder(hostId, chosen, { belowTop: action.position !== "bottom", faceUp: action.faceDown !== true });
   }
   if (action.bindHostAs && chosen.length > 0) {
     ctx.boundPlayed ??= new Map();
