@@ -41,8 +41,7 @@ const module: EffectModule = {
         turnTiming({
           source,
           effectKey: `${cardId}/start-turn-set-memory`,
-          description:
-            "[Start of Your Turn] If you have 2 or less memory, set your memory to 3.",
+          description: "[Start of Your Turn] If you have 2 or less memory, set your memory to 3.",
           optional: false,
           when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn(),
           canActivate: (ctx) => {

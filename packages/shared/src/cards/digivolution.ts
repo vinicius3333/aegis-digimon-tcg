@@ -8,9 +8,17 @@ import { getCardDefinition } from "./registry.js";
 export function intrinsicDigivolutionCostReductionFor(
   evolvingCardId: string,
   baseStackCardIds: readonly string[],
+  baseTopCardId?: string,
+  baseFaceDownCardCount = 0,
 ): number {
+  if (evolvingCardId === "BT22-061") {
+    return baseTopCardId !== undefined && getCardDefinition(baseTopCardId)?.types?.includes("Ver.2") === true
+      ? baseFaceDownCardCount
+      : 0;
+  }
+  if (evolvingCardId === "BT22-076") {
+    return baseTopCardId !== undefined && getCardDefinition(baseTopCardId)?.types?.includes("Ver.1") === true ? 2 : 0;
+  }
   if (evolvingCardId !== "BT10-086") return 0;
-  return baseStackCardIds.some((cardId) => getCardDefinition(cardId)?.nameEn === "X Antibody")
-    ? 2
-    : 0;
+  return baseStackCardIds.some((cardId) => getCardDefinition(cardId)?.nameEn === "X Antibody") ? 2 : 0;
 }

@@ -461,6 +461,25 @@ describe("BT10-086 intrinsic digivolution cost reduction", () => {
   });
 });
 
+describe("BT22-076 intrinsic Ver.1 digivolution cost reduction", () => {
+  it("shows the reduced cost 3 for a legal yellow level-5 Ver.1 base", () => {
+    const options = getDigivolveCostOptions("BT22-076", permOf("BT22-038"));
+    expect(options).toContainEqual(expect.objectContaining({ type: "normal", cost: 3 }));
+  });
+});
+
+describe("BT22-061 intrinsic face-down-source digivolution reduction", () => {
+  it("shows cost 1 from a Ver.2 Vegiemon with two face-down sources", () => {
+    const base = permOf("BT22-049");
+    base.stack = [
+      { cardId: "BT1-001", instanceId: "fd-1", faceUp: false },
+      { cardId: "BT1-002", instanceId: "fd-2", faceUp: false },
+    ] as typeof base.stack;
+    const options = getDigivolveCostOptions("BT22-061", base);
+    expect(options).toContainEqual(expect.objectContaining({ type: "alternate", cost: 1 }));
+  });
+});
+
 describe("Tamer-onto digivolution cost paths (BT17-012 family)", () => {
   // Bug: BT17-012 prints SPECIFIC named requirements ([Takuya Kanbara]: Cost 2,
   // [Agunimon]: Cost 1) alongside a generic "onto any red Tamer as level 3" effect.

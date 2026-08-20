@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-065.js";
+
+type EngineInternals = {
+  primitives: { deletePermanent(ids: string[], cause: "byEffect"): Promise<unknown> };
+};
 
 describe("BT22-065 PlatinumNumemon", () => {
   it("reduces one opposing Digimon by 8000 DP on play and digivolving", () => {
@@ -22,6 +27,7 @@ describe("BT22-065 PlatinumNumemon", () => {
           kind: "SubTrigger",
           event: "onDeletionOf",
           sourceFilter: { controller: "opponent", kind: ["Digimon"] },
+          notSimultaneous: true,
           actions: [
             {
               kind: "Digivolve",
@@ -43,5 +49,50 @@ describe("BT22-065 PlatinumNumemon", () => {
         },
       ],
     });
+  });
+
+  it("deletes by DP and freely evolves another CS Digimon through public play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-054", as: "cs-base" }],
+          hand: [{ card: "BT22-065", as: "platinum" }, { card: "BT22-056", as: "cs-evolution" }],
+        },
+        1: { battleArea: [{ card: "BT22-074", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 9;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("platinum").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("cs-base").topCard?.cardId === "BT22-056");
+    await settle();
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.perm("cs-base").topCard?.cardId).toBe("BT22-056");
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does not evolve when PlatinumNumemon is deleted in the same batch as the opponent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-065", as: "platinum" }, { card: "BT22-054", as: "cs-base" }],
+          hand: [{ card: "BT22-056", as: "cs-evolution" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await (s.engine as unknown as EngineInternals).primitives.deletePermanent(
+      [s.perm("platinum").permanentId, s.perm("opponent").permanentId],
+      "byEffect",
+    );
+    await settle();
+
+    expect(s.perm("cs-base").topCard?.cardId).toBe("BT22-054");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT22-056")).toBe(true);
   });
 });

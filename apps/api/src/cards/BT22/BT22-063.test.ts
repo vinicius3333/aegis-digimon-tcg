@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { digivolutionRequirementsFor } from "@aegis/shared";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-063.js";
 
 describe("BT22-063 Alphamon", () => {
@@ -31,6 +33,7 @@ describe("BT22-063 Alphamon", () => {
       {
         kind: "SubTrigger",
         event: "whenSuspended",
+        sourceFilter: { isSelfRef: true },
         actions: [
           {
             kind: "ModifyDP",
@@ -47,9 +50,9 @@ describe("BT22-063 Alphamon", () => {
               ],
             },
           },
+          { kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
         ],
       },
-      { kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
     ]);
   });
 
@@ -60,5 +63,25 @@ describe("BT22-063 Alphamon", () => {
       isAlternate: true,
       whileCondition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3 },
     });
+  });
+
+  it("exposes the same three-security Kyoko gate to shared legality consumers", () => {
+    expect(digivolutionRequirementsFor("BT22-063")?.find((entry) => entry.names?.includes("Kyoko Kuremi"))).toMatchObject({
+      cost: 5,
+      whileCondition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3 },
+    });
+  });
+
+  it("unsuspends after attacking even when neither DP-boost condition is true", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT22-063", as: "alphamon" }] }, 1: { security: ["BT1-001"] } },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("alphamon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.perm("alphamon").isSuspended === false);
+
+    expect(s.perm("alphamon").isSuspended).toBe(false);
   });
 });

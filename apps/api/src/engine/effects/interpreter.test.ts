@@ -528,7 +528,7 @@ function makeContext(opts: {
       rec.calls.push({ verb: "deDigivolve", args: a });
       return [];
     },
-    placeOwnTopAtStackBottom: (...a) => {
+    placeOwnTopAtStackBottom: async (...a) => {
       rec.calls.push({ verb: "placeOwnTopAtStackBottom", args: a });
       return true;
     },
@@ -3368,7 +3368,7 @@ describe("v3 IR actions (round-3 fixes) dispatch to real primitives", () => {
     expect(paid).toBe(true);
     expect(recorder.calls).toContainEqual({
       verb: "placeUnder",
-      args: ["SELF#NAMED-COST", ["G1", "W1"], { belowTop: false }],
+      args: ["SELF#NAMED-COST", ["G1", "W1"], { belowTop: false, faceUp: true }],
     });
   });
 

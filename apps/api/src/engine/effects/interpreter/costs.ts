@@ -77,7 +77,19 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const n = cost.target.count === "all" ? available : cost.target.count;
     return n > 0 && available >= n;
   }
-  if (cost.kind === "trash" && cost.target?.filter.zone === "digivolutionCards") {
+  if (
+    cost.kind === "trash" &&
+    (cost.target?.filter.zone === "digivolutionCards" ||
+      (cost.target?.filter.isSelfRef === true &&
+        (cost.target.filter.faceDown !== undefined || cost.target.filter.position !== undefined)))
+  ) {
+    if (cost.target.filter.isSelfRef === true) {
+      const self = ctx.source.permanent();
+      if (self === undefined) return false;
+      const candidates = self.stack.filter((card) => cost.target!.filter.faceDown !== true || !card.faceUp);
+      const required = cost.target.count === "all" ? candidates.length : cost.target.count;
+      return required > 0 && candidates.length >= required;
+    }
     const candidates = candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
     const required = cost.target.count === "all" ? candidates.length : cost.target.count;
     if (required <= 0) return false;
@@ -104,6 +116,14 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     return n <= memoryForSeat - MEMORY_MIN;
   }
   if (cost.kind === "place" && cost.target !== undefined) {
+    // Self-restack costs operate on the source permanent's own evolution stack,
+    // not on loose cards from hand. Keep this in sync with payCost's dedicated
+    // placeOwnTopAtStackBottom route below so an available cost is actually
+    // offered to the controller.
+    if (cost.raw && /bottom digivolution card/i.test(cost.raw) && /top\s+(?:stacked\s+)?card/i.test(cost.raw)) {
+      const selfPerm = ctx.source.permanent();
+      return selfPerm !== undefined && selfPerm.stack.length > 0;
+    }
     // A placement cost needs both halves to exist before an optional activation is
     // offered: enough matching loose cards in the declared source zones and a legal
     // destination host. EX3-066 otherwise asked to place a Cyborg with an empty
@@ -341,6 +361,8 @@ export async function payCost(
       const trashStackZone = cost.target.filter.zone;
       const trashesStackCards =
         trashStackZone === "digivolutionCards" ||
+        (cost.target.filter.isSelfRef === true &&
+          (cost.target.filter.faceDown !== undefined || cost.target.filter.position !== undefined)) ||
         cost.target.from?.includes("digivolutionCards") === true ||
         trashStackZone === "underMyTamers" ||
         trashStackZone === "underTamers" ||
@@ -415,6 +437,7 @@ export async function payCost(
           const n = cost.target.count === "all" ? host.stack.length : cost.target.count;
           if (n <= 0) return false;
           let eligible: LooseCandidate[] = Array.from(host.stack)
+            .filter((card) => cost.target!.filter.faceDown !== true || !card.faceUp)
             .filter((card) => definitionMatches(cost.target!.filter, ctx.game.definitionOf(card)))
             .filter((card) => ctx.fx.canTrashDigivolutionCard?.(card.instanceId) !== false)
             .map((card) => ({
@@ -858,7 +881,7 @@ export async function payCost(
       if (cost.raw && /bottom digivolution card/i.test(cost.raw) && /top\s+(?:stacked\s+)?card/i.test(cost.raw)) {
         const selfPerm = ctx.source.permanent();
         if (selfPerm === undefined) return false;
-        const rotated = ctx.fx.placeOwnTopAtStackBottom(selfPerm.permanentId);
+        const rotated = await ctx.fx.placeOwnTopAtStackBottom(selfPerm.permanentId);
         if (rotated && out) out.paidCount = 1;
         return rotated;
       }
@@ -1028,10 +1051,16 @@ export async function payCost(
           // binary-choice helper ctx.ask.chooseOption (index 0 = top, 1 = bottom).
           for (const instanceId of picked) {
             const idx = await ctx.ask.chooseOption(ctx, ["top", "bottom"]);
-            await ctx.fx.placeUnder(hostPermId, [instanceId], { belowTop: idx === 0 });
+            await ctx.fx.placeUnder(hostPermId, [instanceId], {
+              belowTop: idx === 0,
+              faceUp: cost.faceDown !== true,
+            });
           }
         } else {
-          await ctx.fx.placeUnder(hostPermId, picked, { belowTop: cost.position !== "bottom" });
+          await ctx.fx.placeUnder(hostPermId, picked, {
+            belowTop: cost.position !== "bottom",
+            faceUp: cost.faceDown !== true,
+          });
         }
         if (cost.storeAs !== undefined && picked.length > 0) {
           const pickedCard = srcCandidates.find((c) => c.instanceId === picked[0]);

@@ -164,6 +164,8 @@ export interface TriggerInfo {
   deletedPermanentId?: string;
   /** Every permanent in the same simultaneous deletion action, captured before movement. */
   deletedPermanentIds?: string[];
+  /** Physical cards that became link cards in the current linking operation. */
+  linkedInstanceIds?: string[];
   deletedInstanceIds?: string[];
   /** Printed card id of the deleted permanent's top card, captured before it leaves play. */
   deletedTopCardId?: string;
@@ -649,7 +651,7 @@ export interface Primitives {
    * digivolution card to the new top. Returns false when there is no digivolution card to
    * promote (the cost is then unpayable).
    */
-  placeOwnTopAtStackBottom(permanentId: string): boolean;
+  placeOwnTopAtStackBottom(permanentId: string): Promise<boolean>;
   /**
    * Relocate a battle-area permanent (top + stack + linked) under another permanent
    * as digivolution cards. The source permanent ceases to exist. `shedOwnCards` is the

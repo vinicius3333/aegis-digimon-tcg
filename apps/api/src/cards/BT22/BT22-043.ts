@@ -22,17 +22,20 @@ export const compiled: CompiledCard = {
             {
               kind: "PlayWithoutCost",
               target: {
-                filter: { controller: "mine", trait: ["CS"], cardType: "Tamer" },
+                filter: {
+                  controller: "mine",
+                  kind: ["Tamer"],
+                  nameOrTrait: [{ tokens: ["CS"], match: "trait" }],
+                },
                 count: 1,
                 upTo: false,
               },
               from: ["hand"],
               payCost: false,
               condition: {
-                kind: "CountCondition",
-                zone: "field",
-                filter: { controller: "mine", cardType: "Tamer" },
-                operator: "<=",
+                kind: "permanentCount",
+                filter: { controller: "mine", kind: ["Tamer"] },
+                op: "lte",
                 value: 1,
               },
             },

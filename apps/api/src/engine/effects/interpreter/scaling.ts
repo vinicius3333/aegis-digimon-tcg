@@ -179,7 +179,14 @@ export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
     }
     case "digivolutionCards": {
       const self = ctx.source.permanent();
-      raw = self ? self.stack.filter((card) => definitionMatches(filter, ctx.game.definitionOf(card))).length : 0;
+      raw = self
+        ? self.stack.filter(
+            (card) =>
+              (filter.faceDown !== true || !card.faceUp) &&
+              (filter.faceUp !== true || card.faceUp) &&
+              definitionMatches(filter, ctx.game.definitionOf(card)),
+          ).length
+        : 0;
       break;
     }
     case "selfFaceDownDigivolutionCards": {

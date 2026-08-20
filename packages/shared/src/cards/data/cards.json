@@ -38168,6 +38168,7 @@
     "maxCountInDeck": 4,
     "imageId": "BT22-050",
     "linkDp": 3000,
+    "linkRequirement": "[Link] [Appmon] trait: Cost 2",
     "linkEffect": "[When Linking] Suspend 1 of your opponent's Digimon."
   },
   {
@@ -38300,6 +38301,7 @@
     "maxCountInDeck": 4,
     "imageId": "BT22-055",
     "linkDp": 2000,
+    "linkRequirement": "[Link] [Appmon] trait: Cost 2",
     "linkEffect": "＜Blocker＞"
   },
   {
@@ -38381,7 +38383,8 @@
     "maxCountInDeck": 4,
     "imageId": "BT22-058",
     "linkDp": 3000,
-    "linkEffect": "[When Linking] ＜De-Digivolve 1＞ 1 of your opponent's Digimon."
+    "linkEffect": "[When Linking] ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
+    "linkRequirement": "[Link] [Appmon] trait: Cost 2"
   },
   {
     "cardId": "BT22-059",

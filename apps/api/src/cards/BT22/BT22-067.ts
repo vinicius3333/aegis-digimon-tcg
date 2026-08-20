@@ -171,8 +171,7 @@ const module: EffectModule = {
           // the attack is in flight with no defending permanent (i.e. it targets the player).
           // The defender's presence is read from the trigger (BT1-001 idiom): an undefined
           // targetPermanentId means the attack is player-directed.
-          when: (ctx) =>
-            ctx.source.isOnBattleArea() && ctx.trigger.targetPermanentId === undefined,
+          when: (ctx) => ctx.source.isOnBattleArea() && ctx.trigger.targetPermanentId === undefined,
           canActivate: (ctx) => ctx.source.isOnBattleArea(),
           resolve: async (ctx) => {
             // Reveal the top 3 of the owner's deck (they stay on top, face-up, until moved).

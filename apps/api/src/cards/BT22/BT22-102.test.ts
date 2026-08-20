@@ -1,4 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-102.js";
 
 describe("BT22-102 Sayo", () => {
@@ -43,5 +46,15 @@ describe("BT22-102 Sayo", () => {
       isSecurity: true,
       actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
     });
+  });
+
+  it("executes its gated memory gain on public state", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT22-102", as: "sayo" }] },
+      1: { battleArea: ["BT1-019"] },
+    });
+    s.state.memory = 0;
+    await advance(s.engine).fireForInstance(EffectTiming.OnStartMainPhase, s.perm("sayo").topCard!);
+    expect(s.state.memory).toBe(1);
   });
 });

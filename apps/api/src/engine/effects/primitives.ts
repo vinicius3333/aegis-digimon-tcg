@@ -144,6 +144,8 @@ export interface PrimitivesEngine {
    * played") before an effect-driven paid play charges memory.
    */
   finalizeEffectPlayCost?: (instanceId: string, baseCost: number, useAsOption?: boolean) => Promise<number>;
+  /** Resolve each newly linked physical card's own [When Linking] window. */
+  fireWhenLinking?: (instanceIds: string[], targetPermanentId: string) => Promise<void>;
   /** Resolve the trashed card's own deck-trash trigger without requiring a field watcher. */
   resolveSelfWhenTrashedFromDeck?: (instanceId: string) => Promise<void>;
   /** Memory rewards printed on materials that successfully participate in a DNA digivolution. */
@@ -1346,7 +1348,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
    * new top (the Digimon stays in play, one stage rotated). Requires >= 1 digivolution card to
    * promote; returns false (cost unpayable) otherwise.
    */
-  const placeOwnTopAtStackBottom = (permanentId: string): boolean => {
+  const placeOwnTopAtStackBottom = async (permanentId: string): Promise<boolean> => {
     const permanent = access.permanentById(permanentId);
     if (permanent === undefined || permanent.topCard === undefined) return false;
     if (permanent.stack.length === 0) return false;
@@ -1363,6 +1365,15 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       instanceIds: [oldTop.instanceId],
       from: Zone.BattleArea,
       to: Zone.BattleArea,
+    });
+    // The promoted card's continuous watcher must exist before the placement event opens.
+    // BT22-054 Q4907 explicitly permits the newly revealed Hagurumon to observe this same
+    // rotation, while the old top is the CS card just added to its digivolution cards.
+    await engine.recomputeContinuousEffects?.();
+    await engine.fireSubTrigger?.("onAddDigivolutionCards", {
+      subjectPermanentId: permanentId,
+      addedDigivolutionCardInstanceIds: [oldTop.instanceId],
+      addedDigivolutionCardsPosition: "bottom",
     });
     return true;
   };
@@ -1698,6 +1709,20 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         subjectPermanentId: targetPermanentId,
         linkedCardInstanceIds: linked.map((card) => card.instanceId),
       });
+      await engine.fireWhenLinking?.(
+        linked.map((card) => card.instanceId),
+        targetPermanentId,
+      );
+      // Linked-card effects belong to the physical cards that just became links, not to every
+      // card already linked to the recipient. Publish their exact instance ids as the gate.
+      await engine.fireWhenLinking?.(
+        linked.map((card) => card.instanceId),
+        targetPermanentId,
+      );
+      // SubTrigger bus: "when this Digimon gets linked" / "when a card is linked to this
+      // Digimon" watchers. The recipient permanent (which gained the link) is the subject.
+      // The dispatch above carries the exact physical identities and is the single
+      // simultaneous window for both host and linked-card effects.
     }
     return linked;
   };

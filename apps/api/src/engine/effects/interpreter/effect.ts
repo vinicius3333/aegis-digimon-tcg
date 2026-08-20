@@ -124,6 +124,8 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
       // moved." — the engine's own OnMove window (GameEngine fires it exactly at the
       // breeding <-> battle move point), not the continuous/static bucket.
       return EffectTiming.OnMove;
+    case "WhenLinking":
+      return EffectTiming.OnLinking;
     case "AllTurns":
     case "YourTurn":
     case "OpponentsTurn":
@@ -317,7 +319,7 @@ export function withIntrinsicDelayGate(effect: CardEffect): CardEffect {
 export function withSubTriggerFrequency(effect: CardEffect, effectKey: string): CardEffect {
   if (effect.frequency !== "OncePerTurn") return effect;
   const actions = (effect.actions ?? []).map((action): typeof action =>
-    action.kind === "SubTrigger"
+    action.kind === "SubTrigger" || action.kind === "Replacement"
       ? ({ ...action, oncePerTurnKey: action.oncePerTurnKey ?? effectKey } as typeof action)
       : action,
   );

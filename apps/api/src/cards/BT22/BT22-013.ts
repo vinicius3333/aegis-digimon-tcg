@@ -115,7 +115,9 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           condition: {
-            kind: "selfHasNameContaining", names: ["Omnimon"], raw: "this Digimon has [Omnimon] in its name",
+            kind: "selfHasNameContaining",
+            names: ["Omnimon"],
+            raw: "this Digimon has [Omnimon] in its name",
           },
         },
       ],

@@ -98,6 +98,8 @@ export enum EffectTiming {
    * append-only precedent as `EffectDuration.Permanent`.
    */
   OnCounterTiming,
+  /** A card has just become a link card and resolves its printed [When Linking] effect. */
+  OnLinking,
 }
 
 // Duration of a temporary modifier; mirrors documented behavior EffectDuration.

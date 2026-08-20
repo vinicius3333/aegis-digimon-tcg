@@ -30,6 +30,7 @@ export type EffectTrigger =
   | "Trash"
   | "Breeding"
   | "WhenMoving"
+  | "WhenLinking"
   | "Rule"
   | "Static"
   /** Fires on the surviving Digimon when it deletes an opponent's Digimon in battle. */

@@ -139,6 +139,13 @@ describe("BT25-060 Rebootmon", () => {
 
     await advance(s.engine).verb.unsuspend([s.perm("reboot").permanentId]);
     expect(observe(s.engine).hasPierce(s.perm("reboot"))).toBe(true);
+
+    advance(s.engine).ledgers.modifiers.sweep(s.state, "ownerTurnEnd", 0 as Seat);
+    advance(s.engine).ledgers.continuous.sweep(s.state, "ownerTurnEnd", 0 as Seat);
+    expect(observe(s.engine).hasPierce(s.perm("reboot"))).toBe(false);
+    await advance(s.engine).verb.suspend([s.perm("reboot").permanentId]);
+    await advance(s.engine).verb.unsuspend([s.perm("reboot").permanentId]);
+    expect(observe(s.engine).hasPierce(s.perm("reboot"))).toBe(false); // shared Once Per Turn is consumed
   });
 
   it("When Digivolving links only this Digimon's stack, then unsuspends this suspended Rebootmon", async () => {

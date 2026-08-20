@@ -631,6 +631,14 @@ export class GameEngine {
         const instance = this.findLooseInstance(instanceId);
         return instance === undefined ? baseCost : this.fireBeforePayCost(instance, baseCost, useAsOption);
       },
+      fireWhenLinking: async (instanceIds, targetPermanentId) => {
+        for (const instanceId of instanceIds) {
+          await this.fireTimingForInstance(EffectTiming.OnLinking, instanceId, {
+            subjectPermanentId: targetPermanentId,
+            linkedInstanceIds: instanceIds,
+          });
+        }
+      },
       resolveSelfWhenTrashedFromDeck: async (instanceId) => {
         const instance = this.findLooseInstance(instanceId);
         if (instance === undefined) return;
@@ -1198,7 +1206,7 @@ export class GameEngine {
         if (evolving === undefined) return liveReduction;
         const ctx = this.buildEffectContext(this.cardSourceOf(evolving), {});
         const intrinsicReduction = wouldDigivolveSelfReducersFor(into.cardId).reduce(
-          (total, reducer) => total + potentialWouldDigivolveSelfReduction(ctx, reducer),
+          (total, reducer) => total + potentialWouldDigivolveSelfReduction(ctx, reducer, target),
           0,
         );
         return liveReduction + intrinsicReduction;
@@ -1228,7 +1236,7 @@ export class GameEngine {
         ctx.activeEffectText = ctx.source.definition.effectText;
         let intrinsicReduction = 0;
         for (const reducer of wouldDigivolveSelfReducersFor(into.cardId)) {
-          intrinsicReduction += await applyWouldDigivolveSelfReducer(ctx, reducer);
+          intrinsicReduction += await applyWouldDigivolveSelfReducer(ctx, reducer, target);
         }
         return liveReduction + intrinsicReduction;
       },

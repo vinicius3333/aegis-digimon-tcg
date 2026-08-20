@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-075.js";
 
 describe("BT22-075 Fakemon", () => {
@@ -39,5 +40,19 @@ describe("BT22-075 Fakemon", () => {
         },
       ],
     });
+  });
+
+  it("plays its physical link card free when Fakemon would be deleted", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT22-075", as: "fakemon", linked: [{ card: "BT22-071", as: "linked" }] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const linkedId = s.inst("linked").instanceId;
+    await s.ready();
+    await (
+      s.engine as unknown as { primitives: { deletePermanent(ids: string[], cause: "byEffect"): Promise<unknown> } }
+    ).primitives.deletePermanent([s.perm("fakemon").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === linkedId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === linkedId)).toBe(true);
   });
 });

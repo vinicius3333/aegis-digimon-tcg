@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-081.js";
 
 describe("BT22-081 Eater Eve", () => {
@@ -35,5 +36,24 @@ describe("BT22-081 Eater Eve", () => {
         },
       ],
     });
+  });
+
+  it("places Yuuko from trash under the publicly played Eater Eve", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT22-081", as: "eve" }], trash: [{ card: "BT22-083", as: "yuuko" }] },
+        1: { battleArea: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const eveId = s.inst("eve").instanceId;
+    s.state.memory = 6;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: eveId })).toEqual({ ok: true });
+    await settle(() => {
+      const eve = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === eveId);
+      return eve?.stack.some((card) => card.cardId === "BT22-083") === true;
+    });
+    const eve = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === eveId)!;
+    expect(eve.stack.some((card) => card.cardId === "BT22-083")).toBe(true);
   });
 });

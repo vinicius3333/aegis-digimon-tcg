@@ -64,6 +64,7 @@ export const compiled: CompiledCard = {
             kind: ["Digimon"],
             excludeSelf: true,
           },
+          oncePerTurnKey: "BT22-040/deletion-reactivation",
         },
       ],
     },

@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-095.js";
 
 describe("BT22-095 Akemi Suedou", () => {
@@ -62,5 +64,17 @@ describe("BT22-095 Akemi Suedou", () => {
       if (action.kind !== "Aura") throw new Error("BT22-095 inherited keyword is not an Aura");
       expect(action.while).toMatchObject({ kind: "selfHasName", names: ["Mother Eater"] });
     }
+  });
+
+  it("plays the checked physical Tamer from security without changing memory", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT22-095", as: "akemi", faceUp: true }] } });
+    const akemiId = s.inst("akemi").instanceId;
+    const initialMemory = s.state.memory;
+
+    await (s.engine as any).fireTiming(EffectTiming.SecuritySkill, { sourceInstanceId: akemiId });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === akemiId));
+
+    expect(s.state.memory).toBe(initialMemory);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === akemiId)).toBe(true);
   });
 });
