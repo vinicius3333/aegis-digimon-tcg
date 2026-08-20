@@ -10,6 +10,7 @@ import { Icons, type IconComponent } from "../design/icons";
 import { deckBlurbLabel, displayCoverCard, type DeckListing } from "../game/decks";
 import { DISCORD_INVITE_URL, GITHUB_REPO_URL } from "../community";
 import { ReleaseNotesButton } from "./ReleaseNotes";
+import { BetaBanner } from "../design/BetaBanner";
 import { useTranslation } from "../i18n";
 import "./home.css";
 
@@ -262,6 +263,8 @@ export function MainMenu({
           <strong>{t("legal.title")}.</strong> {t("legal.body")}
         </p>
       </footer>
+
+      <BetaBanner />
     </main>
   );
 }
