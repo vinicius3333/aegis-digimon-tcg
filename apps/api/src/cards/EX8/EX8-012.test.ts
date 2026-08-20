@@ -7,4 +7,9 @@ describe("EX8-012", () => {
   const source = { instanceId: "source", cardId: "EX8-012", ownerSeat: 0, definition: {}, permanent: () => undefined, isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true } as never;
   it("registers the draw/trash digivolving effect", () => expect(getEffectModule("EX8-012")!.effectsForTiming(EffectTiming.WhenDigivolving, source)).toHaveLength(1));
   it("registers the once-per-turn inherited opponent-deletion memory effect", () => expect(getEffectModule("EX8-012")!.effectsForTiming(EffectTiming.OnDestroyedAnyone, source)[0]?.maxPerTurn).toBe(1));
+  it("keeps the conditional Guilmon recovery branch attached to digivolution", () => {
+    const effect = getEffectModule("EX8-012")!.effectsForTiming(EffectTiming.WhenDigivolving, source)[0]!;
+    expect(effect.description).toContain("Draw 1");
+    expect(effect.resolve).toBeTypeOf("function");
+  });
 });
