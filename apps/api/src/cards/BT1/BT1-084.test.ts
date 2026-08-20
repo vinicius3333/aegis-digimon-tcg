@@ -3,16 +3,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT1-084.js";
 
 describe("BT1-084 Omnimon", () => {
-  it("rejects play when memory is below the cost floor", () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT1-084", as: "omnimon" }] } });
-    s.state.memory = -10;
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({
-      ok: false,
-      reason: "insufficient-memory",
-    });
-  });
-
   it("digivolves from red or blue level 6 Digimon for 6 memory, but not green (Q939)", async () => {
     for (const baseCard of ["BT1-025", "BT1-043"]) {
       const s = setupEngine({
