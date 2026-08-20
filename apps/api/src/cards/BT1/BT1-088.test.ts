@@ -5,6 +5,16 @@ import { advance } from "../../engine/testkit/advance.js";
 import "./BT1-088.js";
 
 describe("BT1-088 Izzy Izumi", () => {
+  it("rejects play when memory is below the cost floor", () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT1-088", as: "izzy" }] } });
+    s.state.memory = -10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("izzy").instanceId })).toEqual({
+      ok: false,
+      reason: "insufficient-memory",
+    });
+  });
+
   it("suspends to add a revealed Digimon to hand when a level 5 green Digimon is in play", async () => {
     const s = setupEngine(
       {
