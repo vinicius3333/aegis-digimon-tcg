@@ -71,7 +71,8 @@ import { SubTriggerRegistry, type SubTriggerSubscription } from "./effects/subtr
 import { consultLeavePrevention } from "./effects/leavePrevention.js";
 import { consultDigivolutionTrashRedirect } from "./effects/digivolutionTrashRedirect.js";
 import { createGameAccess, createCardStateLookup, createEffectContext } from "./effects/context.js";
-import { createCardSource } from "./cards/CardSource.js";
+import { ArraySchema } from "@colyseus/schema";
+import { createCardSource, type CardStateLookup } from "./cards/CardSource.js";
 import { digisorptionAmountFor, isDigisorptionRedirector } from "./cards/digisorptionDigivolve.js";
 import { tamerOntoDigivolveLevel } from "./cards/tamerOntoDigivolve.js";
 import { UseTracker, canActivate, canTrigger } from "./effects/kernel.js";
@@ -93,6 +94,7 @@ import type { CardSource } from "./effects/CardSource.js";
 import type { Effect } from "./effects/Effect.js";
 import type {
   EffectContext,
+  GameAccess,
   Primitives,
   DecisionApi,
   TriggerInfo,
@@ -119,6 +121,7 @@ import {
   applyDigivolve,
   memoryDepsFromGauge,
   validatePlayCard,
+  type PlayCardCheck,
   applyPlayCard,
   validateAttack,
   applyAttack,
@@ -207,6 +210,27 @@ export function securityStrikeCount(saGrants: ReadonlyArray<{ amount?: number }>
     return acc + (invert ? -amount : amount);
   }, 0);
   return Math.max(0, 1 + sum);
+}
+
+const NO_DIGIVOLVE_TARGETS: readonly string[] = [];
+
+/** A hand card reads as playable when it validates, or when only memory is short of a material-cost route. */
+function playableFromHand(check: PlayCardCheck, cardId: string): boolean {
+  return check.ok || (check.reason === "insufficient-memory" && hasMaterialCostRoute(cardId));
+}
+
+/**
+ * Overwrite a synchronized string list only when its contents actually changed.
+ *
+ * The keyword and affordance projections run for every permanent and every hand card on every
+ * continuous recompute — several times per player action — and a clear-and-refill marks the list
+ * dirty even when the contents come back identical, costing the encoder a re-serialization each
+ * pass. Same result, written only on a real change.
+ */
+function replaceIfChanged(target: ArraySchema<string>, values: readonly string[]): void {
+  if (target.length === values.length && values.every((value, index) => target[index] === value)) return;
+  target.splice(0, target.length);
+  for (const value of values) target.push(value);
 }
 
 /**
@@ -618,44 +642,95 @@ export class GameEngine {
    * fireTiming share). Binds the source's CardSource, the trigger payload, read-only
    * game access, the effect primitives (fx), and the decision API (ask).
    */
+  /**
+   * The board-query facade handed to every effect.
+   *
+   * Every closure it binds reads `this`, and `this.state` is readonly for the engine's life, so
+   * one facade serves the whole match. It used to be rebuilt for each effect of each continuous
+   * recompute — eight closures and an object per effect, several times per player action, all of
+   * it immediately garbage.
+   */
+  private gameAccess: GameAccess | undefined;
+
+  /**
+   * The primitive verbs handed to an effect, one cached object per owning seat.
+   *
+   * Only `gainMemory` varies with the source's owner, and a seat is 0 or 1, so the spread of the
+   * whole primitives object — previously redone on every context build — collapses to two.
+   */
+  private readonly primitivesBySeat: (Primitives | undefined)[] = [];
+
+  private effectAccess(): GameAccess {
+    this.gameAccess ??= createGameAccess(
+      this.state,
+      (id) => this.continuous.linkMaxDelta(id),
+      (id, traits) => this.continuous.linkCostReduction(id, traits),
+      (id, keyword) => {
+        const permanent = this.access.permanentById(id);
+        return (
+          (permanent !== undefined && resolveKeywords(permanent, this.continuous).includes(keyword)) ||
+          (keyword.toLowerCase() === "piercing" && this.modifiers.hasPierce(id))
+        );
+      },
+      (seat) => this.tracker.count(`seat:${seat}`, "digivolvedThisTurn") > 0,
+      (permanentId, timing) =>
+        this.continuous.isTimingEffectDisabled(permanentId, timing) &&
+        !this.continuous.hasRestriction(permanentId, "beAffected"),
+      (permanent) => this.effectiveColorsOf(permanent),
+      (instanceId) => this.continuous.hasColorWaiver(instanceId),
+    );
+    return this.gameAccess;
+  }
+
+  private effectPrimitives(ownerSeat: Seat): Primitives {
+    // `gainMemory` is written from the resolving card's perspective ("gain N memory").
+    // Most windows belong to the turn player, but Security and opponent-turn effects may
+    // resolve for the non-turn player. Bind the convenience verb to the source owner here;
+    // explicit cross-seat effects continue to use `gainMemoryForSeat` directly.
+    this.primitivesBySeat[ownerSeat] ??= {
+      ...this.primitives,
+      gainMemory: (amount: number) => this.primitives.gainMemoryForSeat(ownerSeat, amount),
+    };
+    return this.primitivesBySeat[ownerSeat];
+  }
+
   private buildEffectContext(source: CardSource, trigger: TriggerInfo, askOverride?: DecisionApi): EffectContext {
     return createEffectContext({
       source,
       trigger,
-      game: createGameAccess(
-        this.state,
-        (id) => this.continuous.linkMaxDelta(id),
-        (id, traits) => this.continuous.linkCostReduction(id, traits),
-        (id, keyword) => {
-          const permanent = this.access.permanentById(id);
-          return (
-            (permanent !== undefined && resolveKeywords(permanent, this.continuous).includes(keyword)) ||
-            (keyword.toLowerCase() === "piercing" && this.modifiers.hasPierce(id))
-          );
-        },
-        (seat) => this.tracker.count(`seat:${seat}`, "digivolvedThisTurn") > 0,
-        (permanentId, timing) =>
-          this.continuous.isTimingEffectDisabled(permanentId, timing) &&
-          !this.continuous.hasRestriction(permanentId, "beAffected"),
-        (permanent) => this.effectiveColorsOf(permanent),
-        (instanceId) => this.continuous.hasColorWaiver(instanceId),
-      ),
-      // `gainMemory` is written from the resolving card's perspective ("gain N memory").
-      // Most windows belong to the turn player, but Security and opponent-turn effects may
-      // resolve for the non-turn player. Bind the convenience verb to the source owner here;
-      // explicit cross-seat effects continue to use `gainMemoryForSeat` directly.
-      fx: {
-        ...this.primitives,
-        gainMemory: (amount) => this.primitives.gainMemoryForSeat(source.ownerSeat, amount),
-      },
+      game: this.effectAccess(),
+      fx: this.effectPrimitives(source.ownerSeat),
       ask: askOverride ?? this.decisionApi,
       usage: this.tracker,
     });
   }
 
+  /**
+   * The state lookup a CardSource delegates its placement/turn questions to.
+   *
+   * Built once per state rather than once per call: it closes over nothing but `this.state`,
+   * and `cardSourceOf` runs for every candidate instance on every continuous recompute — several
+   * times per player action — so rebuilding its closure set was pure allocation churn.
+   */
+  private cardStateLookup: CardStateLookup | undefined;
+
+  /**
+   * CardSource is a value object over an instance's immutable identity (instanceId, cardId,
+   * ownerSeat) whose placement queries are lazy closures, so one per instance stays correct for
+   * the instance's whole life. Keyed weakly on the instance itself: an instance that leaves the
+   * match takes its entry with it. `cardId`/`ownerSeat` are only ever assigned while building a
+   * fresh instance (setup.ts, primitives' token creation), never re-assigned on a live one.
+   */
+  private readonly cardSourceByInstance = new WeakMap<CardInstance, CardSource>();
+
   /** Resolve the CardSource for a CardInstance against live state (placement/turn lookup). */
   private cardSourceOf(instance: CardInstance): CardSource {
-    return createCardSource(instance, createCardStateLookup(this.state));
+    const cached = this.cardSourceByInstance.get(instance);
+    if (cached !== undefined) return cached;
+    this.cardStateLookup ??= createCardStateLookup(this.state);
+    const source = createCardSource(instance, this.cardStateLookup);
+    this.cardSourceByInstance.set(instance, source);
+    return source;
   }
 
   /** Guards against re-entry when a prevention cost itself deletes a permanent. */
@@ -1921,14 +1996,9 @@ export class GameEngine {
       resolved.push("Piercing");
       granted.add("Piercing");
     }
-    perm.keywords.splice(0, perm.keywords.length);
-    for (const keyword of resolved) perm.keywords.push(keyword);
-    perm.grantedKeywords.splice(0, perm.grantedKeywords.length);
-    for (const keyword of granted) perm.grantedKeywords.push(keyword);
-    perm.digiXrosNames.splice(0, perm.digiXrosNames.length);
-    for (const name of this.continuous.grantedDigiXrosNames(perm.permanentId)) {
-      perm.digiXrosNames.push(name);
-    }
+    replaceIfChanged(perm.keywords, resolved);
+    replaceIfChanged(perm.grantedKeywords, [...granted]);
+    replaceIfChanged(perm.digiXrosNames, this.continuous.grantedDigiXrosNames(perm.permanentId));
   }
 
   /**
@@ -1999,50 +2069,58 @@ export class GameEngine {
    * cost reduction is applied from the declaration. Every other rejection still hides it.
    */
   private syncHandAffordances(): void {
+    const seat = this.state.turnSeat;
+    const turnPlayer = this.state.phase === Phase.Main ? this.state.players[seat] : undefined;
+    const active =
+      turnPlayer === undefined
+        ? undefined
+        : {
+            player: turnPlayer,
+            playDeps: this.playCardDeps(),
+            digivolveDeps: this.digivolveDeps(),
+            bases: [...turnPlayer.battleArea, ...(turnPlayer.breeding ? [turnPlayer.breeding] : [])],
+          };
+
+    // One pass that writes each card's final affordance, rather than clearing every hand and
+    // refilling the turn player's: an ArraySchema splice is a wire-level change even when the
+    // contents come back identical, and this projection runs on every continuous recompute.
     for (const player of this.state.players) {
       for (const instance of player.hand) {
-        instance.playableFromHand = false;
-        instance.digivolveTargetPermanentIds.splice(0, instance.digivolveTargetPermanentIds.length);
-      }
-    }
-    if (this.state.phase !== Phase.Main) return;
+        const definition =
+          active !== undefined && player === active.player ? lookupDefinition(instance.cardId) : undefined;
+        if (active === undefined || definition === undefined) {
+          instance.playableFromHand = false;
+          replaceIfChanged(instance.digivolveTargetPermanentIds, NO_DIGIVOLVE_TARGETS);
+          continue;
+        }
 
-    const seat = this.state.turnSeat;
-    const player = this.state.players[seat];
-    if (!player) return;
+        instance.playableFromHand = definition.kinds.includes(CardKind.DigiEgg)
+          ? false
+          : playableFromHand(
+              validatePlayCard(
+                this.state,
+                seat,
+                { type: "playCard", instanceId: instance.instanceId },
+                active.playDeps,
+              ),
+              instance.cardId,
+            );
 
-    const playDeps = this.playCardDeps();
-    const digivolveDeps = this.digivolveDeps();
-    const bases = [...player.battleArea, ...(player.breeding ? [player.breeding] : [])];
-
-    for (const instance of player.hand) {
-      const definition = lookupDefinition(instance.cardId);
-      if (!definition) continue;
-
-      if (!definition.kinds.includes(CardKind.DigiEgg)) {
-        const check = validatePlayCard(
-          this.state,
-          seat,
-          { type: "playCard", instanceId: instance.instanceId },
-          playDeps,
-        );
-        instance.playableFromHand =
-          check.ok || (check.reason === "insufficient-memory" && hasMaterialCostRoute(instance.cardId));
-      }
-
-      if (!definition.kinds.includes(CardKind.Digimon)) continue;
-      for (const base of bases) {
-        const check = validateDigivolve(
-          this.state,
-          seat,
-          {
-            type: "digivolve",
-            permanentId: base.permanentId,
-            instanceId: instance.instanceId,
-          },
-          digivolveDeps,
-        );
-        if (check.ok) instance.digivolveTargetPermanentIds.push(base.permanentId);
+        if (!definition.kinds.includes(CardKind.Digimon)) {
+          replaceIfChanged(instance.digivolveTargetPermanentIds, NO_DIGIVOLVE_TARGETS);
+          continue;
+        }
+        const targets: string[] = [];
+        for (const base of active.bases) {
+          const check = validateDigivolve(
+            this.state,
+            seat,
+            { type: "digivolve", permanentId: base.permanentId, instanceId: instance.instanceId },
+            active.digivolveDeps,
+          );
+          if (check.ok) targets.push(base.permanentId);
+        }
+        replaceIfChanged(instance.digivolveTargetPermanentIds, targets);
       }
     }
   }
@@ -2896,8 +2974,8 @@ export class GameEngine {
       if (player === undefined) continue;
       for (const permanent of player.battleArea) this.collectPermanentInstances(permanent, out);
       if (player.breeding !== undefined) this.collectPermanentInstances(player.breeding, out);
-      out.push(...player.hand);
-      out.push(...player.trash);
+      for (const card of player.hand) out.push(card);
+      for (const card of player.trash) out.push(card);
       for (const card of player.security) if (card.faceUp) out.push(card);
       // §9-1-4: a used Option between activation and resolution of its 1st [Main]
       // effect is in NO zone, so it isn't in player.trash above — but its own
@@ -2911,8 +2989,8 @@ export class GameEngine {
   /** Push a permanent's top card, digivolution-stack cards, and linked cards. */
   private collectPermanentInstances(permanent: Permanent, out: CardInstance[]): void {
     if (permanent.topCard !== undefined) out.push(permanent.topCard);
-    out.push(...permanent.stack);
-    out.push(...permanent.linked);
+    for (const card of permanent.stack) out.push(card);
+    for (const card of permanent.linked) out.push(card);
   }
 
   /** Resolve a set of instance ids to live CardInstances anywhere on the board. */
