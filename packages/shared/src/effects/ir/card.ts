@@ -19,6 +19,8 @@ export interface CardEffect {
   description?: string;
   /** From the inheritedEffectText field (ESS). */
   isInherited?: boolean;
+  /** From a printed link effect; active only while this card is linked to a Digimon. */
+  isLinked?: boolean;
   /** From the securityEffectText field. */
   isSecurity?: boolean;
   /**

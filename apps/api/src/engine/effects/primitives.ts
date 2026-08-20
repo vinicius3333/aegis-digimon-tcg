@@ -2039,12 +2039,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // place this card in the battle area). Only apply the normal post-resolution trash rule
     // while the exact instance is still loose; otherwise trashing by instance id would undo
     // the Option's own observable destination.
-    const isPermanentTop = state.players.some(
-      (owner) =>
-        owner.battleArea.some(({ topCard }) => topCard.instanceId === usedInstanceId) ||
-        owner.breeding?.topCard.instanceId === usedInstanceId,
-    );
-    const moved = isPermanentTop ? [] : await trash([usedInstanceId]);
+    const isPlacedOnPermanent = state.players.some((owner) => {
+      const contains = (permanent: Permanent): boolean =>
+        permanent.topCard.instanceId === usedInstanceId ||
+        permanent.stack.some(({ instanceId }) => instanceId === usedInstanceId) ||
+        permanent.linked.some(({ instanceId }) => instanceId === usedInstanceId);
+      return owner.battleArea.some(contains) || (owner.breeding !== undefined && contains(owner.breeding));
+    });
+    const moved = isPlacedOnPermanent ? [] : await trash([usedInstanceId]);
     await fireOptionUsed(usedInstanceId, usedOptionCost);
     return moved;
   };
@@ -2517,11 +2519,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // per permanent in whatever order this array happens to be in — see
     // `deletePermanentsBatched`'s own doc for why per-permanent application can cross the
     // turn-player/non-turn-player boundary the wrong way and change the clamped result.
-    const tokenDeletionIds = toDelete
-      .flatMap((permanentId) => {
-        const top = access.permanentById(permanentId)?.topCard;
-        return top !== undefined && requireCardDefinition(top.cardId).isToken === true ? [top.instanceId] : [];
-      });
+    const tokenDeletionIds = toDelete.flatMap((permanentId) => {
+      const top = access.permanentById(permanentId)?.topCard;
+      return top !== undefined && requireCardDefinition(top.cardId).isToken === true ? [top.instanceId] : [];
+    });
     if (tokenDeletionIds.length > 0 && engine.fireTiming) {
       await engine.fireTiming(EffectTiming.OnDestroyedAnyone, {
         deletedInstanceIds: tokenDeletionIds,

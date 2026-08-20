@@ -349,8 +349,7 @@ describe("A3 CanLinkToTargetPermanent — dynamic recipient eligibility (documen
   // The recipient filter is "1 of your Digimon"; matchesFilter here returns true for any
   // Digimon-kind top card (the structured condition), so the predicate's added gates
   // (token / breeding / non-Digimon) are what discriminate.
-  const matchesAnyDigimon = (p: Permanent, _f: Filter): boolean =>
-    p.topCard !== undefined; // the harness supplies only Digimon defs below
+  const matchesAnyDigimon = (p: Permanent, _f: Filter): boolean => p.topCard !== undefined; // the harness supplies only Digimon defs below
 
   function recipientWith(def: CardDefinition, opts?: { inBreeding?: boolean }): Permanent {
     const p = permanent("rec-1", 0);
@@ -370,22 +369,22 @@ describe("A3 CanLinkToTargetPermanent — dynamic recipient eligibility (documen
    */
   it("offers an eligible Digimon recipient and REJECTS a token / non-Digimon / breeding recipient", () => {
     const eligible = digimonDef();
-    expect(
-      canLinkToTargetPermanent(recipientWith(eligible), recipientFilter, matchesAnyDigimon, defOf(eligible)),
-    ).toBe(true);
+    expect(canLinkToTargetPermanent(recipientWith(eligible), recipientFilter, matchesAnyDigimon, defOf(eligible))).toBe(
+      true,
+    );
 
     // A token Digimon would match the "mine Digimon" filter but the predicate excludes it
     // (documented behavior `!targetPermanent.TopCard.IsToken`).
     const token = digimonDef({ isToken: true });
-    expect(
-      canLinkToTargetPermanent(recipientWith(token), recipientFilter, matchesAnyDigimon, defOf(token)),
-    ).toBe(false);
+    expect(canLinkToTargetPermanent(recipientWith(token), recipientFilter, matchesAnyDigimon, defOf(token))).toBe(
+      false,
+    );
 
     // A non-Digimon (Tamer) recipient is excluded.
     const tamer = digimonDef({ kinds: [CardKind.Tamer] });
-    expect(
-      canLinkToTargetPermanent(recipientWith(tamer), recipientFilter, matchesAnyDigimon, defOf(tamer)),
-    ).toBe(false);
+    expect(canLinkToTargetPermanent(recipientWith(tamer), recipientFilter, matchesAnyDigimon, defOf(tamer))).toBe(
+      false,
+    );
 
     // A Digimon in the breeding area is not a valid link recipient
     // (documented behavior `!...GetBreedingAreaPermanents().Contains(targetPermanent)`).
@@ -400,6 +399,13 @@ describe("A3 CanLinkToTargetPermanent — dynamic recipient eligibility (documen
     ).toBe(false);
   });
 
+  it("allows breeding only through an explicit card-effect override", () => {
+    const breeding = digimonDef();
+    const recipient = recipientWith(breeding, { inBreeding: true });
+    expect(canLinkToTargetPermanent(recipient, recipientFilter, matchesAnyDigimon, defOf(breeding), true)).toBe(true);
+    expect(canLinkToTargetPermanent(recipient, recipientFilter, matchesAnyDigimon, defOf(breeding))).toBe(false);
+  });
+
   /**
    * The structured per-card target condition is re-evaluated against current state: when the
    * link card's recipient requires a trait the candidate lacks, matchesFilter returns false and
@@ -408,9 +414,7 @@ describe("A3 CanLinkToTargetPermanent — dynamic recipient eligibility (documen
   it("rejects a recipient that fails the link card's structured target condition", () => {
     const def = digimonDef();
     const failsCondition = (_p: Permanent, _f: Filter): boolean => false;
-    expect(
-      canLinkToTargetPermanent(recipientWith(def), recipientFilter, failsCondition, defOf(def)),
-    ).toBe(false);
+    expect(canLinkToTargetPermanent(recipientWith(def), recipientFilter, failsCondition, defOf(def))).toBe(false);
   });
 });
 

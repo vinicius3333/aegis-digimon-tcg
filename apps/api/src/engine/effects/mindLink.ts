@@ -54,11 +54,12 @@ export function canLinkToTargetPermanent(
   filter: Filter,
   matchesFilter: (permanent: Permanent, filter: Filter) => boolean,
   definitionOf: (card: CardInstance) => CardDefinition,
+  allowBreedingRecipient = false,
 ): boolean {
   const def = recipient.topCard ? definitionOf(recipient.topCard) : undefined;
   if (def === undefined || !def.kinds.includes(CardKind.Digimon)) return false;
   if (def.isToken) return false;
-  if (recipient.inBreeding) return false;
+  if (recipient.inBreeding && !allowBreedingRecipient) return false;
   return matchesFilter(recipient, filter);
 }
 
