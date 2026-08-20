@@ -227,6 +227,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
           description: describeEffect(effect),
           optional: effect.optional ?? false,
           isInherited: effect.isInherited ?? false,
+          isLinked: effect.isLinked ?? false,
           isFromTrash: effect.isFromTrash,
           isFromHand: effect.isFromHand,
           continuousPriority: readsSelfKeyword(effect) ? 1 : 0,

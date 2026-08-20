@@ -1623,6 +1623,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         from: "various",
         to: Zone.BattleArea,
       });
+      // The linked card's own [When Linking] listener only becomes a live continuous
+      // source after the move. Re-derive linked effects before publishing `whenLinked`
+      // so that listener can observe the very event that brought its card into the host.
+      await engine.recomputeContinuousEffects?.();
       // SubTrigger bus: "when this Digimon gets linked" / "when a card is linked to this
       // Digimon" watchers. The recipient permanent (which gained the link) is the subject.
       await engine.fireSubTrigger?.("whenLinked", { subjectPermanentId: targetPermanentId });
@@ -2517,11 +2521,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // per permanent in whatever order this array happens to be in — see
     // `deletePermanentsBatched`'s own doc for why per-permanent application can cross the
     // turn-player/non-turn-player boundary the wrong way and change the clamped result.
-    const tokenDeletionIds = toDelete
-      .flatMap((permanentId) => {
-        const top = access.permanentById(permanentId)?.topCard;
-        return top !== undefined && requireCardDefinition(top.cardId).isToken === true ? [top.instanceId] : [];
-      });
+    const tokenDeletionIds = toDelete.flatMap((permanentId) => {
+      const top = access.permanentById(permanentId)?.topCard;
+      return top !== undefined && requireCardDefinition(top.cardId).isToken === true ? [top.instanceId] : [];
+    });
     if (tokenDeletionIds.length > 0 && engine.fireTiming) {
       await engine.fireTiming(EffectTiming.OnDestroyedAnyone, {
         deletedInstanceIds: tokenDeletionIds,
