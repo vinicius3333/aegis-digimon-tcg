@@ -138,6 +138,10 @@ database (`src/assets/cardlists/DigimonCards.json`, MIT License, © Christian
 Bayer). `tools/import-taka-cards.mjs` maps those records into this project's
 `CardDefinition` shape. Thanks to its maintainers and contributors.
 
+Player portraits come from the PlayStation *Digimon World* card sheets ripped by
+**metaldodomon** and published on The Spriters Resource. `tools/extract-dw-card-avatars.py`
+slices those sheets into the files under `apps/web/public/avatars/digimon-world-1/`.
+
 ## License
 
 [MIT](./LICENSE) © Vinícius Luiz.

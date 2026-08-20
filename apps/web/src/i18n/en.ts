@@ -910,6 +910,7 @@ export const en = {
   "account.result.draw": "Draw",
   "account.avatar.title": "Digimon World avatar",
   "account.avatar.copy": "Choose one of the 65 original portraits from the PlayStation game.",
+  "account.avatar.credit": "Portraits ripped by metaldodomon (The Spriters Resource).",
   "account.avatar.search": "Search Digimon",
   "account.avatar.searchPlaceholder": "E.g.: Tyrannomon",
   "account.avatar.gridAria": "Available avatars",

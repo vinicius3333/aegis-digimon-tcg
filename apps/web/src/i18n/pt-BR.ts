@@ -919,6 +919,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "account.result.draw": "Empate",
   "account.avatar.title": "Avatar de Digimon World",
   "account.avatar.copy": "Escolha um dos 65 retratos originais do jogo de PlayStation.",
+  "account.avatar.credit": "Retratos extraídos por metaldodomon (The Spriters Resource).",
   "account.avatar.search": "Buscar Digimon",
   "account.avatar.searchPlaceholder": "Ex.: Tyrannomon",
   "account.avatar.gridAria": "Avatares disponíveis",
