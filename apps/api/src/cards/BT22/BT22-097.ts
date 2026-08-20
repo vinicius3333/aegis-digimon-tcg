@@ -63,40 +63,28 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "GainKeyword",
-              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-              keyword: { keyword: "Delay", raw: "＜Delay＞" },
-              duration: "permanent",
+              kind: "Link",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+                  hasLinkRequirement: true,
+                },
+                count: 1,
+              },
+              recipient: {
+                filter: { controller: "mine", kind: ["Digimon"] },
+                count: 1,
+              },
+              from: ["hand"],
+              payCost: false,
+              optional: true,
             },
           ],
         },
       ],
       keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
-    },
-    {
-      trigger: "Main",
-      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
-      actions: [
-        {
-          kind: "Link",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
-              hasLinkRequirement: true,
-            },
-            count: 1,
-          },
-          recipient: {
-            filter: { controller: "mine", kind: ["Digimon"] },
-            count: 1,
-          },
-          from: ["hand"],
-          payCost: false,
-          optional: true,
-        },
-      ],
     },
     {
       trigger: "Security",

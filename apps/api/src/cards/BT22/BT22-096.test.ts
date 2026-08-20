@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-096.js";
 
 describe("BT22-096 Unique Emblem: Poseidia Lagoon", () => {
@@ -28,5 +29,29 @@ describe("BT22-096 Unique Emblem: Poseidia Lagoon", () => {
   it("activates its Main effects from Security", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "Security");
     expect(effect).toMatchObject({ isSecurity: true, actions: [{ kind: "ActivateMain" }] });
+  });
+
+  it("plays Sangomon and then places the used Option through a public play intent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT22-096", as: "lagoon" },
+            { card: "BT22-018", as: "sangomon" },
+          ],
+          battleArea: ["BT22-023"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const lagoonId = s.inst("lagoon").instanceId;
+    const sangomonId = s.inst("sangomon").instanceId;
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: lagoonId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === lagoonId));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === sangomonId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === lagoonId)).toBe(true);
   });
 });

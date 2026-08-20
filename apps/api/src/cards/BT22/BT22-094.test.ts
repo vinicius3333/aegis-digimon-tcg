@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-094.js";
 
 describe("BT22-094 Yuugo Kamishiro", () => {
@@ -57,5 +58,21 @@ describe("BT22-094 Yuugo Kamishiro", () => {
       payCost: false,
       target: { filter: { isSelfRef: true }, isSelf: true, count: 1 },
     });
+  });
+
+  it("reveals a mixed deck and adds only the CS card through a public play intent", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT22-094", as: "yuugo" }], deck: ["BT1-001", "BT1-002", "BT22-054"] } },
+      { autoSelectCards: true },
+    );
+    const yuugoId = s.inst("yuugo").instanceId;
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: yuugoId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT22-054"));
+
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT22-054")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-002")).toBe(false);
   });
 });
