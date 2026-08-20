@@ -41,11 +41,10 @@ const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+              "kind": ["Digimon"],
+              "dp": { "op": "lte", "value": 10000 }
             },
-            "count": 10000,
+            "count": 1,
             "upTo": true
           }
         },
