@@ -1,9 +1,13 @@
+/* The stage clips its children, so this page owns the scroll. It needs a fixed
+   height for that, and safe centering so a tall card does not lose its top edge. */
 .onboarding-page {
   position: relative;
   display: grid;
-  min-height: 100%;
+  height: 100%;
   overflow-y: auto;
-  place-items: center;
+  justify-items: center;
+  align-content: center;
+  align-content: safe center;
   padding: var(--ds-space-8) var(--ds-gutter-phone) var(--ds-space-12);
   background: var(--ds-bg);
 }
@@ -17,7 +21,30 @@
 }
 
 .onboarding-card--paths {
-  width: min(100%, 860px);
+  width: min(100%, 760px);
+}
+
+.onboarding-card--profile {
+  width: min(100%, 1040px);
+}
+
+/* Wide screens keep the form and the entry action in view while the portrait
+   grid scrolls the page beside them. */
+.onboarding-profile {
+  display: grid;
+  gap: var(--ds-space-8);
+}
+
+@media (width >= 900px) {
+  .onboarding-profile {
+    grid-template-columns: 320px 1fr;
+    align-items: start;
+  }
+
+  .onboarding-profile__form {
+    position: sticky;
+    top: var(--ds-space-6);
+  }
 }
 
 .onboarding-head {
@@ -89,7 +116,7 @@
 .onboarding-path {
   display: grid;
   grid-template-columns: auto 1fr auto;
-  align-items: start;
+  align-items: center;
   gap: var(--ds-space-4);
   padding: var(--ds-space-6);
   border: 1px solid var(--ds-border-strong);
@@ -111,11 +138,6 @@
   outline-offset: 2px;
 }
 
-.onboarding-path--discord {
-  border-color: var(--ds-accent);
-  background: var(--ds-accent-surface);
-}
-
 .onboarding-path__icon {
   display: grid;
   place-items: center;
@@ -124,11 +146,6 @@
   border-radius: var(--ds-radius-md);
   background: var(--ds-surface-muted);
   color: var(--ds-fg);
-}
-
-.onboarding-path--discord .onboarding-path__icon {
-  background: var(--ds-accent);
-  color: var(--ds-accent-on);
 }
 
 .onboarding-path__copy {
@@ -145,28 +162,6 @@
 .onboarding-path__copy small {
   color: var(--ds-fg-muted);
   font-size: var(--ds-text-sm);
-}
-
-.onboarding-path__perks {
-  display: grid;
-  gap: 6px;
-  margin: var(--ds-space-3) 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.onboarding-path__perks li {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-items: start;
-  gap: var(--ds-space-2);
-  color: var(--ds-fg-secondary);
-  font-size: var(--ds-text-sm);
-}
-
-.onboarding-path__perks svg {
-  margin-top: 2px;
-  color: var(--ds-fg-muted);
 }
 
 .onboarding-path__go {
@@ -331,14 +326,14 @@
   font: 500 var(--ds-text-sm) / 1 var(--ds-font-body);
 }
 
+/* One scroll region only: the grid grows and the page scrolls, so the pointer
+   never lands in a nested scroller that swallows the wheel. */
 .onboarding-avatars {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   gap: var(--ds-space-2);
-  max-height: 320px;
   margin-bottom: var(--ds-space-6);
   padding: var(--ds-space-2);
-  overflow-y: auto;
   border: 1px solid var(--ds-border);
   border-radius: var(--ds-radius-md);
   background: var(--ds-bg);
@@ -349,6 +344,8 @@
   display: grid;
   justify-items: center;
   gap: 4px;
+  min-width: 0;
+  overflow-wrap: anywhere;
   padding: var(--ds-space-2);
   border: 1px solid transparent;
   border-radius: var(--ds-radius-sm);
@@ -421,7 +418,6 @@
 
   .onboarding-avatars {
     grid-template-columns: repeat(auto-fill, minmax(84px, 1fr));
-    max-height: 260px;
   }
 }
 

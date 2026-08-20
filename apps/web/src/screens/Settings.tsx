@@ -7,12 +7,14 @@ import { BattlefieldPicker } from "../design/battlefieldPicker";
 import { CardSleevePicker } from "../design/sleevePicker";
 import { LOCALES, LOCALE_LABELS, useTranslation } from "../i18n";
 import { AccountPanel } from "../account/AccountPanel";
+import { DigimonAvatarPicker } from "../account/DigimonAvatarPicker";
+import type { DigimonWorldAvatarId } from "../account/avatars";
 import type { RemoteAccount } from "../account/client";
 import { SuccessToast } from "../design/SuccessToast";
 import "./settings.css";
 
 
-export function Settings({ player, account, dark, onToggleDark, onRename, onAccountChange }: { player: PlayerIdentity; account: RemoteAccount | null | undefined; dark: boolean; onToggleDark: (v: boolean) => void; onRename?: (name: string) => void; onAccountChange?: (account: RemoteAccount) => void }) {
+export function Settings({ player, account, dark, onToggleDark, onRename, onAccountChange, onSelectAvatar }: { player: PlayerIdentity; account: RemoteAccount | null | undefined; dark: boolean; onToggleDark: (v: boolean) => void; onRename?: (name: string) => void; onAccountChange?: (account: RemoteAccount) => void; onSelectAvatar?: (avatarId: DigimonWorldAvatarId) => void }) {
   const { t, locale, setLocale } = useTranslation();
   const [nameInput, setNameInput] = useState(player.name);
   const [renameToastKey, setRenameToastKey] = useState<number>();
@@ -50,6 +52,14 @@ export function Settings({ player, account, dark, onToggleDark, onRename, onAcco
                 <Button variant="primary" size="sm" onClick={confirmRename}>{t("common.confirm")}</Button>
               </div>
           </Panel> : null}
+          {account === null ? (
+            <Panel className="settings-feature-panel">
+              <DigimonAvatarPicker
+                selectedAvatarId={player.guestAvatarId ?? null}
+                onSelect={async (avatarId) => onSelectAvatar?.(avatarId)}
+              />
+            </Panel>
+          ) : null}
           <Panel className="settings-row">
             <span className="settings-row__icon"><Icons.Sun size={24} /></span>
             <div className="settings-row__copy">

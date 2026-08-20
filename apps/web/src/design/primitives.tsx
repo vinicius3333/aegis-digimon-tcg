@@ -240,9 +240,9 @@ export function Avatar({ name, color = "Blue", size = 40, ring, avatarId, avatar
   const [imageState, setImageState] = useState({ sourceKey, index: 0 });
   const imageIndex = imageState.sourceKey === sourceKey ? imageState.index : 0;
   const imageUrl = imageSources[imageIndex];
-  // Digimon World portraits are card scans, with the frame border and a pixel
-  // ornament baked into the image. They get a tighter radius so the mask does not
-  // slice through the printed frame, and are shown whole rather than cropped.
+  // Digimon World portraits are card scans that already carry a printed frame,
+  // so they show whole on a plain tile: no identity gradient behind them, and a
+  // radius loose enough that the mask never cuts into the frame.
   const isCardPortrait = Boolean(avatarId) && imageIndex === 0;
   return (
     <div
@@ -252,7 +252,7 @@ export function Avatar({ name, color = "Blue", size = 40, ring, avatarId, avatar
         borderRadius: isCardPortrait ? "18%" : "30%",
         flexShrink: 0,
         overflow: "hidden",
-        background: `linear-gradient(150deg, ${c.base}, ${c.edge})`,
+        background: isCardPortrait ? "transparent" : `linear-gradient(150deg, ${c.base}, ${c.edge})`,
         color: "#ffffff",
         display: "grid",
         placeItems: "center",
@@ -372,7 +372,7 @@ export function TopNav({ screen, onNav, player }: { screen: Screen; onNav: (s: S
         <div className="aegis-player-chip">
           <span>{player.name}</span>
           <button className="aegis-profile-avatar-button" onClick={() => navTo("settings")} aria-label={t("menu.settings")} aria-current={screen === "settings" ? "page" : undefined}>
-            <Avatar name={player.name} color={player.color} avatarId={player.avatarId} avatarUrl={player.avatarUrl} size={48} />
+            <Avatar name={player.name} color={player.color} avatarId={player.avatarId} avatarUrl={player.avatarUrl} size={40} />
           </button>
         </div>
       </div>
@@ -382,7 +382,7 @@ export function TopNav({ screen, onNav, player }: { screen: Screen; onNav: (s: S
       <div className="aegis-player-chip aegis-player-chip--mobile">
         <span>{player.name}</span>
         <button className="aegis-profile-avatar-button" onClick={() => navTo("settings")} aria-label={t("menu.settings")} aria-current={screen === "settings" ? "page" : undefined}>
-          <Avatar name={player.name} color={player.color} avatarId={player.avatarId} avatarUrl={player.avatarUrl} size={40} />
+          <Avatar name={player.name} color={player.color} avatarId={player.avatarId} avatarUrl={player.avatarUrl} size={36} />
         </button>
       </div>
     </header>

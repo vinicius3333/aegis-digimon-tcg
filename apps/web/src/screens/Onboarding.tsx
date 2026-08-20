@@ -69,26 +69,19 @@ export function Onboarding({ initialColor = "Blue", onEnter }: { initialColor?: 
         <section className="onboarding-card onboarding-card--paths">
           <header className="onboarding-head">
             <Logo size={50} />
-            <div className="onboarding-eyebrow">{t("onboarding.eyebrow")}</div>
             <h1>{t("onboarding.welcomeTitle")}</h1>
-            <p className="onboarding-lede">{t("onboarding.welcomeSubtitle")}</p>
           </header>
 
           <div className="onboarding-paths">
             <button
               type="button"
-              className="onboarding-path onboarding-path--discord"
+              className="onboarding-path"
               onClick={() => { location.href = `${accountApi.base}/auth/discord`; }}
             >
               <span className="onboarding-path__icon"><Icons.Discord size={24} /></span>
               <span className="onboarding-path__copy">
                 <strong>{t("onboarding.discordTitle")}</strong>
                 <small>{t("onboarding.discordCopy")}</small>
-                <ul className="onboarding-path__perks">
-                  <li><Icons.Check size={13} />{t("onboarding.discordPerkSync")}</li>
-                  <li><Icons.Check size={13} />{t("onboarding.discordPerkRanked")}</li>
-                  <li><Icons.Check size={13} />{t("onboarding.discordPerkName")}</li>
-                </ul>
               </span>
               <Icons.ArrowRight className="onboarding-path__go" size={18} />
             </button>
@@ -98,11 +91,6 @@ export function Onboarding({ initialColor = "Blue", onEnter }: { initialColor?: 
               <span className="onboarding-path__copy">
                 <strong>{t("onboarding.guestTitle")}</strong>
                 <small>{t("onboarding.guestCopy")}</small>
-                <ul className="onboarding-path__perks">
-                  <li><Icons.Check size={13} />{t("onboarding.guestPerkInstant")}</li>
-                  <li><Icons.Check size={13} />{t("onboarding.guestPerkLocal")}</li>
-                  <li><Icons.CircleAlert size={13} />{t("onboarding.guestPerkLimit")}</li>
-                </ul>
               </span>
               <Icons.ArrowRight className="onboarding-path__go" size={18} />
             </button>
@@ -118,88 +106,92 @@ export function Onboarding({ initialColor = "Blue", onEnter }: { initialColor?: 
 
   return (
     <main className="onboarding-page">
-      <section className="onboarding-card">
+      <section className="onboarding-card onboarding-card--profile">
         <header className="onboarding-head onboarding-head--compact">
           <button type="button" className="onboarding-back" onClick={() => setStep("path")}>
             <Icons.ArrowLeft size={15} />{t("onboarding.back")}
           </button>
-          <div className="onboarding-eyebrow">{t("onboarding.guestBadge")}</div>
           <h1>{t("onboarding.title")}</h1>
-          <p className="onboarding-lede">{t("onboarding.subtitle")}</p>
         </header>
 
-        <div className="onboarding-preview">
-          <span className="onboarding-preview__portrait">
-            {avatarId ? <img src={digimonAvatarUrl(avatarId)} alt="" width={96} height={96} decoding="async" /> : <Icons.User size={30} />}
-          </span>
-          <span className="onboarding-preview__copy">
-            <strong>{trimmed || t("onboarding.previewNamePlaceholder")}</strong>
-            <small>{selectedAvatar?.name ?? t("onboarding.previewAvatarPlaceholder")}</small>
-          </span>
-        </div>
+        <div className="onboarding-profile">
+          <div className="onboarding-profile__form">
+            <div className="onboarding-preview">
+              <span className="onboarding-preview__portrait">
+                {avatarId ? <img src={digimonAvatarUrl(avatarId)} alt="" width={96} height={96} decoding="async" /> : <Icons.User size={30} />}
+              </span>
+              <span className="onboarding-preview__copy">
+                <strong>{trimmed || t("onboarding.previewNamePlaceholder")}</strong>
+                <small>{selectedAvatar?.name ?? t("onboarding.previewAvatarPlaceholder")}</small>
+              </span>
+            </div>
 
-        <label className="onboarding-label" htmlFor="onboarding-name">{t("onboarding.nickname")}</label>
-        <div className="onboarding-name">
-          <input
-            id="onboarding-name"
-            name="displayName"
-            autoComplete="nickname"
-            ref={inputRef}
-            value={name}
-            maxLength={16}
-            aria-invalid={Boolean(trimmed) && !valid}
-            onChange={(event) => setName(event.target.value)}
-            onKeyDown={(event) => { if (event.key === "Enter") submit(); }}
-            placeholder={t("onboarding.namePlaceholder")}
-            data-invalid={Boolean(trimmed) && !valid ? true : undefined}
-          />
-          <button type="button" className="onboarding-shuffle" onClick={() => setName(randomName())} title={t("onboarding.surpriseMe")}>
-            <Icons.Dices size={14} />{t("onboarding.random")}
-          </button>
-        </div>
-        <div className="onboarding-name-meta">
-          <span data-invalid={trimmed && !valid ? true : undefined}>{trimmed && !valid ? t("onboarding.nameInvalid") : t("onboarding.nameHint")}</span>
-          <span className="onboarding-counter">{name.length}/16</span>
-        </div>
-
-        <div className="onboarding-avatars-head">
-          <label className="onboarding-label" htmlFor="onboarding-avatar-search">{t("onboarding.avatarLabel")}</label>
-          <div className="onboarding-avatars-tools">
-            <input
-              id="onboarding-avatar-search"
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder={t("onboarding.avatarSearch")}
-            />
-            <button type="button" className="onboarding-shuffle" onClick={() => setAvatarId(randomAvatarId())}>
-              <Icons.Dices size={14} />{t("onboarding.random")}
-            </button>
-          </div>
-        </div>
-
-        {visibleAvatars.length ? (
-          <div className="onboarding-avatars" role="group" aria-label={t("onboarding.avatarGridAria")}>
-            {visibleAvatars.map((avatar) => (
-              <button
-                key={avatar.id}
-                type="button"
-                className="onboarding-avatar"
-                aria-pressed={avatar.id === avatarId}
-                aria-label={avatar.name}
-                onClick={() => setAvatarId(avatar.id)}
-              >
-                <img src={digimonAvatarUrl(avatar.id)} alt="" width={72} height={72} loading="lazy" decoding="async" />
-                <span>{avatar.name}</span>
-                {avatar.id === avatarId ? <Icons.Check className="onboarding-avatar__check" size={14} /> : null}
+            <label className="onboarding-label" htmlFor="onboarding-name">{t("onboarding.nickname")}</label>
+            <div className="onboarding-name">
+              <input
+                id="onboarding-name"
+                name="displayName"
+                autoComplete="nickname"
+                ref={inputRef}
+                value={name}
+                maxLength={16}
+                aria-invalid={Boolean(trimmed) && !valid}
+                onChange={(event) => setName(event.target.value)}
+                onKeyDown={(event) => { if (event.key === "Enter") submit(); }}
+                placeholder={t("onboarding.namePlaceholder")}
+                data-invalid={Boolean(trimmed) && !valid ? true : undefined}
+              />
+              <button type="button" className="onboarding-shuffle" onClick={() => setName(randomName())} title={t("onboarding.surpriseMe")}>
+                <Icons.Dices size={14} />{t("onboarding.random")}
               </button>
-            ))}
-          </div>
-        ) : (
-          <p className="onboarding-avatars-empty" role="status">{t("onboarding.avatarEmpty")}</p>
-        )}
+            </div>
+            <div className="onboarding-name-meta">
+              <span data-invalid={trimmed && !valid ? true : undefined}>{trimmed && !valid ? t("onboarding.nameInvalid") : t("onboarding.nameHint")}</span>
+              <span className="onboarding-counter">{name.length}/16</span>
+            </div>
 
-        <Button size="lg" full icon={Icons.ArrowRight} disabled={!valid} onClick={submit}>{t("onboarding.enter")}</Button>
+            <Button size="lg" full icon={Icons.ArrowRight} disabled={!valid} onClick={submit}>{t("onboarding.enter")}</Button>
+          </div>
+
+          <div className="onboarding-profile__portraits">
+            <div className="onboarding-avatars-head">
+              <label className="onboarding-label" htmlFor="onboarding-avatar-search">{t("onboarding.avatarLabel")}</label>
+              <div className="onboarding-avatars-tools">
+                <input
+                  id="onboarding-avatar-search"
+                  type="search"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder={t("onboarding.avatarSearch")}
+                />
+                <button type="button" className="onboarding-shuffle" onClick={() => setAvatarId(randomAvatarId())}>
+                  <Icons.Dices size={14} />{t("onboarding.random")}
+                </button>
+              </div>
+            </div>
+
+            {visibleAvatars.length ? (
+              <div className="onboarding-avatars" role="group" aria-label={t("onboarding.avatarGridAria")}>
+                {visibleAvatars.map((avatar) => (
+                  <button
+                    key={avatar.id}
+                    type="button"
+                    className="onboarding-avatar"
+                    aria-pressed={avatar.id === avatarId}
+                    aria-label={avatar.name}
+                    onClick={() => setAvatarId(avatar.id)}
+                  >
+                    <img src={digimonAvatarUrl(avatar.id)} alt="" width={72} height={72} loading="lazy" decoding="async" />
+                    <span>{avatar.name}</span>
+                    {avatar.id === avatarId ? <Icons.Check className="onboarding-avatar__check" size={14} /> : null}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="onboarding-avatars-empty" role="status">{t("onboarding.avatarEmpty")}</p>
+            )}
+          </div>
+        </div>
       </section>
 
       <div className="onboarding-version">v{APP_VERSION}</div>

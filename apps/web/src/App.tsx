@@ -306,6 +306,7 @@ export function AegisClient({
               dark={dark}
               onToggleDark={setDark}
               onRename={(name) => setPlayer((p) => ({ ...p, name }))}
+              onSelectAvatar={(avatarId) => setPlayer((p) => ({ ...p, guestAvatarId: avatarId }))}
               onAccountChange={(updated) => setAccount?.(updated)}
             />
           )}

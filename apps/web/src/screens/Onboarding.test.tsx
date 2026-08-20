@@ -22,14 +22,14 @@ describe("onboarding", () => {
     renderOnboarding();
 
     expect(screen.getByRole("button", { name: /Continue with Discord/ })).toBeTruthy();
-    expect(screen.getByRole("button", { name: /Play without an account/ })).toBeTruthy();
+    expect(screen.getByRole("button", { name: /Play as guest/ })).toBeTruthy();
     expect(screen.queryByLabelText("Nickname")).toBeNull();
   });
 
   it("carries a handle and a Digimon portrait out of the guest path", () => {
     const onEnter = renderOnboarding();
 
-    fireEvent.click(screen.getByRole("button", { name: /Play without an account/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Play as guest/ }));
     fireEvent.change(screen.getByLabelText("Nickname"), { target: { value: "VesperKnell" } });
     fireEvent.click(screen.getByRole("button", { name: "Greymon" }));
     fireEvent.click(screen.getByRole("button", { name: "Enter Aegis" }));
@@ -44,18 +44,18 @@ describe("onboarding", () => {
   it("keeps the entry action disabled until the handle is long enough", () => {
     renderOnboarding();
 
-    fireEvent.click(screen.getByRole("button", { name: /Play without an account/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Play as guest/ }));
     fireEvent.change(screen.getByLabelText("Nickname"), { target: { value: "V" } });
 
     expect(screen.getByRole("button", { name: "Enter Aegis" }).hasAttribute("disabled")).toBe(true);
-    expect(screen.getByText("Use 2–16 characters")).toBeTruthy();
+    expect(screen.getByText("Use 2 to 16 characters")).toBeTruthy();
   });
 
   it("filters the portrait grid by name", () => {
     renderOnboarding();
 
-    fireEvent.click(screen.getByRole("button", { name: /Play without an account/ }));
-    fireEvent.change(screen.getByLabelText("Partner portrait"), { target: { value: "megasea" } });
+    fireEvent.click(screen.getByRole("button", { name: /Play as guest/ }));
+    fireEvent.change(screen.getByLabelText("Portrait"), { target: { value: "megasea" } });
 
     expect(screen.getByRole("button", { name: "MegaSeadramon" })).toBeTruthy();
     expect(screen.queryByRole("button", { name: "Greymon" })).toBeNull();
