@@ -8,7 +8,7 @@ import { CoverThumb, Sigil } from "../design/cards";
 import { COLORS } from "../design/theme";
 import { Icons, type IconComponent } from "../design/icons";
 import { deckBlurbLabel, displayCoverCard, type DeckListing } from "../game/decks";
-import { DISCORD_INVITE_URL } from "../community";
+import { DISCORD_INVITE_URL, GITHUB_REPO_URL } from "../community";
 import { ReleaseNotesButton } from "./ReleaseNotes";
 import { useTranslation } from "../i18n";
 import "./home.css";
@@ -232,6 +232,23 @@ export function MainMenu({
           <div>
             <strong>{t("mobile.home.discord")}</strong>
             <small>{t("mobile.home.discordDesc")}</small>
+          </div>
+          <Icons.ChevronRight size={20} />
+        </a>
+
+        <a
+          className="home-community"
+          href={GITHUB_REPO_URL}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={t("menu.githubAria")}
+        >
+          <span>
+            <Icons.Github size={24} />
+          </span>
+          <div>
+            <strong>{t("mobile.home.github")}</strong>
+            <small>{t("mobile.home.githubDesc")}</small>
           </div>
           <Icons.ChevronRight size={20} />
         </a>

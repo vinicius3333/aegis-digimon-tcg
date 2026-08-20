@@ -57,6 +57,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "menu.settings": "Ajustes",
   "menu.settingsDesc": "Preferências e conta",
   "menu.discordAria": "Entrar no Discord do Aegis",
+  "menu.githubAria": "Abrir o código-fonte do Aegis no GitHub",
 
   "lobby.eyebrow": "Buscar partida",
   "lobby.title": "Escolha como quer jogar",
@@ -570,6 +571,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "mobile.home.buildFirst": "Montar seu primeiro deck",
   "mobile.home.discord": "Entrar no Discord do Aegis",
   "mobile.home.discordDesc": "Novidades, partidas e papo de deck",
+  "mobile.home.github": "Aegis no GitHub",
+  "mobile.home.githubDesc": "Código aberto. Leia o código, relate um bug",
   "release.open": "Abrir novidades da versão {version}",
   "release.eyebrow": "Notas da versão",
   "release.title": "Novidades",

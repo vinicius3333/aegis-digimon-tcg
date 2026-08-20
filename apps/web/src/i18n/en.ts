@@ -54,6 +54,7 @@ export const en = {
   "menu.settings": "Settings",
   "menu.settingsDesc": "Preferences & account",
   "menu.discordAria": "Join the Aegis Discord",
+  "menu.githubAria": "Open the Aegis source code on GitHub",
 
   "lobby.eyebrow": "Find a match",
   "lobby.title": "Choose how you want to play",
@@ -564,6 +565,8 @@ export const en = {
   "mobile.home.buildFirst": "Build your first deck",
   "mobile.home.discord": "Join the Aegis Discord",
   "mobile.home.discordDesc": "News, matchmaking and deck talk",
+  "mobile.home.github": "Aegis on GitHub",
+  "mobile.home.githubDesc": "Open source. Read the code, report a bug",
   "release.open": "Open release notes for version {version}",
   "release.eyebrow": "Release notes",
   "release.title": "What's new",
