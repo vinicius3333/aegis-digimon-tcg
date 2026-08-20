@@ -8,6 +8,16 @@ import "./BT1-101.js";
 import "../index.js"; // the full catalog is registered in a real match
 
 describe("BT1-085 Tai Kamiya", () => {
+  it("rejects play when memory is below the cost floor", () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT1-085", as: "tai" }] } });
+    s.state.memory = -10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tai").instanceId })).toEqual({
+      ok: false,
+      reason: "insufficient-memory",
+    });
+  });
+
   it("sets memory to 3 and grants Security Attack +1 to a red Digimon with 4 sources", async () => {
     const s = setupEngine({
       0: {
