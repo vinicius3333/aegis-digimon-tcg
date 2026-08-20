@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-064.js";
 
 describe("BT22-064 Diaboromon", () => {
@@ -49,5 +50,27 @@ describe("BT22-064 Diaboromon", () => {
       { names: ["Infermon"], cost: 3, isAlternate: true },
       { level: 5, traits: ["CS"], cost: 3, isAlternate: true },
     ]);
+  });
+
+  it("plays a token, then deletes the unique lowest-cost opponent through public evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-059", as: "infermon" }],
+          hand: [{ card: "BT22-064", as: "diaboromon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "low" }, { card: "BT22-071", as: "high" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const lowId = s.perm("low").permanentId;
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("infermon").permanentId, instanceId: s.inst("diaboromon").instanceId })).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowId));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId.startsWith("TOKEN-"))).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-071")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
   });
 });

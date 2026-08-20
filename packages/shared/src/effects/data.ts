@@ -140,6 +140,27 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
       names: ["MoonMillenniummon"],
     },
   ],
+  // BT22-063/067 may evolve from their named CS Tamers only while their owner has at most
+  // three security cards. The historical aggregate retained the name and cost but dropped
+  // the live security gate, which made these paths available at four or five security.
+  "BT22-063": [
+    { level: 5, traits: ["CS"], cost: 3, isAlternate: true },
+    {
+      names: ["Kyoko Kuremi"],
+      cost: 5,
+      whileCondition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3 },
+      isAlternate: true,
+    },
+  ],
+  "BT22-067": [
+    { level: 5, traits: ["CS"], cost: 3, isAlternate: true },
+    {
+      names: ["Rie Kishibe"],
+      cost: 5,
+      whileCondition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3 },
+      isAlternate: true,
+    },
+  ],
   // BT21-063/066/072 (Gumdramon line): "[Digivolve] Lv.N w/＜Save＞ in text or w/[Hero] trait: Cost C".
   // The ＜Save＞ keyword's full-width angle brackets and the "in text" phrasing defeat the text
   // parser, so it emits a gateless entry. The "or" is a DISJUNCTION (＜Save＞-in-text OR [Hero]

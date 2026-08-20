@@ -1199,7 +1199,10 @@ export class CombatController {
     // whenDeletesInBattle (the WINNER's reaction, fired below).
     for (const permanentId of postCardPreventionDeletedIds) {
       if (this.access.permanentById(permanentId)?.topCard === undefined) continue;
-      await this.hooks.fireSubTrigger?.("onDeletionOf", { deletedPermanentId: permanentId });
+      await this.hooks.fireSubTrigger?.("onDeletionOf", {
+        deletedPermanentId: permanentId,
+        deletedPermanentIds: postCardPreventionDeletedIds,
+      });
       // whenLeavesPlay is the delete∪bounce superset; fire it here too so a watcher reacts to
       // a battle deletion, matching the effect-path primitive (otherwise a card works when
       // deleted by an effect but silently not when deleted in combat).

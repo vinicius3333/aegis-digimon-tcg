@@ -156,6 +156,13 @@ export async function runSubTrigger(
   // The filter is evaluated against the freshly bound context's payload subject via the
   // canonical `permanentMatchesFilter` / `definitionMatches` — never a hand-rolled matcher.
   const sourceFilter = action.sourceFilter;
+  // Some deletion reactions explicitly require their host to survive the same deletion batch
+  // (BT22-065 Q4923; BT22-068 Q4928; BT22-070 Q4929). Deletion seams publish the complete
+  // simultaneous permanent set, so reject the activation when it contains this watcher anchor.
+  const notSimultaneousGate =
+    action.notSimultaneous === true && anchorPermanentId !== undefined
+      ? (subCtx: EffectContext): boolean => !(subCtx.trigger.deletedPermanentIds ?? []).includes(anchorPermanentId)
+      : undefined;
   // Security-removal events carry no subject permanent — their payload names the seat whose
   // security lost a card. Interpret sourceFilter.controller as the watched stack direction:
   // most cards watch "your" stack, while BT9-016 watches the opponent's stack.
@@ -586,6 +593,7 @@ export async function runSubTrigger(
     addedDigivolutionCardGate,
     inheritedHostNameGate,
     deleteCauseGate,
+    notSimultaneousGate,
     trashedDigivolutionTopGate,
   ].filter((g): g is (subCtx: EffectContext) => boolean => g !== undefined);
   const matches = gates.length === 0 ? undefined : (subCtx: EffectContext): boolean => gates.every((g) => g(subCtx));
