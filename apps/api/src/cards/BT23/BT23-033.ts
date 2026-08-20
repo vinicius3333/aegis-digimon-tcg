@@ -26,6 +26,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
+              hasLinkRequirement: true,
               levelComparison: {
                 op: "lte",
                 value: 4,
@@ -48,6 +49,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
+              hasLinkRequirement: true,
               levelComparison: {
                 op: "lte",
                 value: 4,
@@ -86,29 +88,55 @@ export const compiled: CompiledCard = {
                 raw: "you have 5 or fewer security cards",
               },
             },
+            {
+              kind: "ModifyDP",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              amount: -1000,
+              duration: "untilOpponentTurnEnd",
+              scaling: {
+                per: 1,
+                filter: {
+                  controller: "mine",
+                },
+                unit: "security",
+              },
+            },
           ],
-        },
-        {
-          kind: "ModifyDP",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
-          amount: -1000,
-          duration: "untilOpponentTurnEnd",
-          scaling: {
-            per: 1,
-            filter: {
-              controller: "mine",
-            },
-            unit: "security",
-          },
         },
       ],
       frequency: "OncePerTurn",
+    },
+    {
+      trigger: "AllTurns",
+      isLinked: true,
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "Restrict",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              restriction: "cannotReturnToHandOrDeck",
+              duration: "untilOpponentTurnEnd",
+            },
+            {
+              kind: "GrantStatic",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              grant: "protection",
+              tokens: ["beDeDigivolved"],
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
+      ],
     },
   ],
   coverage: "full",
@@ -119,6 +147,7 @@ export const compiled: CompiledCard = {
       cost: 0,
     },
   ],
+  linkRequirement: [{ cost: 3, traits: ["Appmon"] }],
 };
 
 registerIrCard("BT23-033", compiled);

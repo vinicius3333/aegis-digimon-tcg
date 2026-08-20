@@ -33,7 +33,7 @@ export const compiled: CompiledCard = {
             kind: "suspend",
             target: {
               filter: {
-                controller: "mine",
+                controller: "any",
                 kind: ["Digimon", "Tamer"],
               },
               count: 1,
@@ -63,7 +63,7 @@ export const compiled: CompiledCard = {
             kind: "suspend",
             target: {
               filter: {
-                controller: "mine",
+                controller: "any",
                 kind: ["Digimon", "Tamer"],
               },
               count: 1,

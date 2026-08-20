@@ -175,6 +175,33 @@ describe("new typed RAW-elimination conditions", () => {
     expect(evaluateCondition(ctx, { kind: "lastTargetDpAtMostSelf" })).toBe(false);
   });
 
+  it("includes the current Digimon when checking for same-level stacked cards", () => {
+    const { ctx, sourcePermanent } = conditionContext({
+      definitionOf: (id) =>
+        makeFakeDefinition({
+          cardId: id,
+          level: id === "OTHER-LEVEL" ? 4 : 5,
+          kinds: [CardKind.Digimon],
+        }),
+    });
+    sourcePermanent.topCard = {
+      instanceId: "source-top",
+      cardId: "SOURCE",
+      ownerSeat: 0,
+      faceUp: true,
+    } as never;
+    sourcePermanent.stack = [
+      { instanceId: "same-level-under", cardId: "SOURCE-UNDER", ownerSeat: 0, faceUp: true },
+    ] as never;
+
+    expect(evaluateCondition(ctx, { kind: "selfDigivolutionStackHasSameLevelPair" })).toBe(true);
+
+    sourcePermanent.stack = [
+      { instanceId: "other-level-under", cardId: "OTHER-LEVEL", ownerSeat: 0, faceUp: true },
+    ] as never;
+    expect(evaluateCondition(ctx, { kind: "selfDigivolutionStackHasSameLevelPair" })).toBe(false);
+  });
+
   it("recognizes a source card in the current reveal window", () => {
     const { ctx } = conditionContext({ revealed: [{ instanceId: "revealed", cardId: "SOURCE" }] });
     expect(evaluateCondition(ctx, { kind: "triggerRevealedFromDeck" })).toBe(true);

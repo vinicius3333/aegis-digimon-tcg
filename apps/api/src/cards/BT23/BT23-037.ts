@@ -39,6 +39,51 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              playCostLte: 5,
+              nameOrTrait: [
+                {
+                  tokens: ["Hudie"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+          abortOnDecline: true,
+          bindResultAs: "playedHudie",
+        },
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              boundRef: "playedHudie",
+              kind: ["Digimon"],
+            },
+            count: "all",
+          },
+          restriction: "digivolve",
+          duration: "permanent",
+        },
+        {
+          kind: "DelayedDelete",
+          timing: "endOfOpponentTurn",
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
   coverage: "full",
   residual: [],
@@ -47,6 +92,7 @@ export const compiled: CompiledCard = {
       level: 2,
       traits: ["CS"],
       cost: 0,
+      isAlternate: true,
     },
   ],
 };

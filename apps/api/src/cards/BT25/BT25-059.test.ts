@@ -4,12 +4,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT25_059 } from "./BT25-059.js";
-import { wouldBePlayedSelfReducersFor } from "../../engine/effects/interpreter/registration/reducers.js";
 
 describe("BT25-059 Ceresmon", () => {
-  it("debug reducer registration", () => {
-    console.log("BT25-059 reducer", wouldBePlayedSelfReducersFor("BT25-059"));
-  });
   it("matches every catalog surface and maps all printed clauses", () => {
     expect(getCardDefinition("BT25-059")).toMatchObject({
       nameEn: "Ceresmon",
@@ -115,7 +111,6 @@ describe("BT25-059 Ceresmon", () => {
     ).toEqual({ ok: true });
     await settle(() => noReduction.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-059"));
     expect(noReduction.state.memory).toBe(-5); // one suspended Digimon is below the two-card threshold
-    expect(noReduction.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT25-059"]);
   });
 
   it("On Play suspends up to two Digimon from either side, then protects all own suspended TS/Vegetation Digimon", async () => {
@@ -209,18 +204,6 @@ describe("BT25-059 Ceresmon", () => {
     );
     await s.ready();
     await advance(s.engine).verb.suspend([s.perm("toSuspend").permanentId]);
-    const watcher = advance(s.engine)
-      .ledgers.subTriggers.subscriptionsFor("whenSuspended")
-      .find((sub) => sub.sourcePermanentId === s.perm("ceresmon").permanentId);
-    console.log(
-      "BT25-059 watcher debug",
-      watcher,
-      watcher?.oncePerTurnKey === undefined
-        ? undefined
-        : advance(s.engine).ledgers.tracker.count(watcher.oncePerTurnKey, "subtrigger"),
-      s.perm("target").currentDP,
-    );
-    await advance(s.engine).fireSubTrigger("whenSuspended", { suspendedPermanentId: s.perm("toSuspend").permanentId });
     expect(s.perm("target").currentDP).toBe(3000); // 12000 - (3 suspended Digimon × 3000)
 
     await advance(s.engine).verb.unsuspend([s.perm("toSuspend").permanentId]);

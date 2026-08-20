@@ -1,7 +1,39 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../index.js";
 import { compiled } from "./BT23-030.js";
 
 describe("BT23-030 Etemon", () => {
+  it("pays exactly 1, plays only an eligible card free and grants both keywords to one Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-030", as: "etemon" }],
+          hand: [
+            { card: "BT23-049", as: "eligible" },
+            { card: "BT23-055", as: "tooExpensive" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    const eligibleId = s.inst("eligible").instanceId;
+
+    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("etemon"));
+
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[0]!.battleArea.some((card) => card.topCard?.instanceId === eligibleId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT23-055")).toBe(true);
+    const recipients = s.state.players[0]!.battleArea.filter(
+      (card) => observe(s.engine).hasKeyword(card, "Reboot") && observe(s.engine).hasKeyword(card, "Blocker"),
+    );
+    expect(recipients).toHaveLength(1);
+  });
+
   it("declares Alliance", () => {
     const staticEffect = compiled.effects.find((entry) => entry.trigger === "Static") as any;
     expect(staticEffect.keywords).toEqual([{ keyword: "Alliance", raw: "＜Alliance＞" }]);
@@ -22,6 +54,7 @@ describe("BT23-030 Etemon", () => {
           ],
         },
         count: 1,
+        upTo: true,
       },
       from: ["hand"],
       payCost: false,
@@ -40,6 +73,13 @@ describe("BT23-030 Etemon", () => {
       target: { count: 1, sameTarget: true },
       duration: "untilOpponentTurnEnd",
     });
-    expect(compiled.effects.filter((entry) => entry.isInherited)).toHaveLength(0);
+  });
+
+  it("declares inherited Alliance", () => {
+    expect(compiled.effects.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "Static",
+      isInherited: true,
+      keywords: [{ keyword: "Alliance" }],
+    });
   });
 });

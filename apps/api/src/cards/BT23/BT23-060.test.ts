@@ -1,7 +1,34 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT23-060.js";
 
 describe("BT23-060 Machinedramon", () => {
+  it("de-digivolves first, then deletes the resulting 8000-DP-or-lower Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-060", as: "machinedramon" }] },
+        1: {
+          battleArea: [
+            { card: "BT23-068", under: ["BT23-063"], as: "stacked" },
+            { card: "BT23-071", as: "large" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const stackedId = s.perm("stacked").permanentId;
+    const largeId = s.perm("large").permanentId;
+    await (
+      s.engine as unknown as {
+        fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
+      }
+    ).fireTiming(EffectTiming.OnPlay, { subjectPermanentId: s.perm("machinedramon").permanentId });
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === stackedId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === largeId)).toBe(true);
+  });
+
   it("has Security Attack +1 and Reboot", () => {
     const keywords = compiled.effects
       .filter((entry) => entry.trigger === "Static")

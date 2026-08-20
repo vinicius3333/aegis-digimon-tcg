@@ -3,8 +3,20 @@ import type { CardDefinition } from "./types.js";
 
 /** Synthetic token definitions (not in the printed card corpus). */
 export const tokenDefinitions: readonly CardDefinition[] = [
-  tok("Diaboromon", { level: 6, dp: 3000, playCost: 14, colors: [CardColor.White], types: ["Unknown", "Unidentified"] }),
-  tok("Diaboromon Token", { level: 6, dp: 3000, playCost: 14, colors: [CardColor.White], types: ["Unknown", "Unidentified"] }),
+  tok("Diaboromon", {
+    level: 6,
+    dp: 3000,
+    playCost: 14,
+    colors: [CardColor.White],
+    types: ["Unknown", "Unidentified"],
+  }),
+  tok("Diaboromon Token", {
+    level: 6,
+    dp: 3000,
+    playCost: 14,
+    colors: [CardColor.White],
+    types: ["Unknown", "Unidentified"],
+  }),
   tok("Familiar Token", { level: 3, dp: 3000, playCost: 0, colors: [CardColor.Yellow] }),
   tok("SelfDeleteFamiliar Token", { level: 3, dp: 1000, playCost: 0, colors: [CardColor.Purple] }),
   tok("Amon Token", { level: 6, dp: 11000, playCost: 11, colors: [CardColor.Purple] }),
@@ -15,7 +27,7 @@ export const tokenDefinitions: readonly CardDefinition[] = [
   tok("Rapidmon Token", { level: 5, dp: 5000, playCost: 5, colors: [CardColor.Yellow] }),
   tok("AthoRenePor Token", { level: 6, dp: 6000, playCost: 6, colors: [CardColor.White] }),
   tok("Petrification Token", { level: 2, dp: 2000, playCost: 2, colors: [CardColor.Black] }),
-  tok("Hinukamuy Token", { level: 5, dp: 5000, playCost: 5, colors: [CardColor.Red] }),
+  tok("Hinukamuy Token", { dp: 6000, playCost: -1, colors: [CardColor.White] }),
   tok("Fujitsumon Token", { level: 4, dp: 4000, playCost: 4, colors: [CardColor.Blue] }),
   tok("Uka no Mitama", { level: 4, dp: 4000, playCost: 4, colors: [CardColor.Yellow] }),
   tok("Gyuukimon Token", { level: 4, dp: 4000, playCost: 4, colors: [CardColor.Purple] }),
@@ -24,7 +36,7 @@ export const tokenDefinitions: readonly CardDefinition[] = [
 
 function tok(
   nameEn: string,
-  stats: { level: number; dp: number; playCost: number; colors: CardColor[]; types?: string[] },
+  stats: { level?: number; dp: number; playCost: number; colors: CardColor[]; types?: string[] },
 ): CardDefinition {
   const slug = nameEn.replace(/\s+/g, "-");
   return {

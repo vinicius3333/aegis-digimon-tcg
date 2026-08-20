@@ -538,7 +538,11 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     case "selfDigivolutionStackHasSameLevelPair": {
       const self = ctx.source.permanent();
       if (self === undefined) return false;
-      const levels = self.stack
+      // "This Digimon's stack" means every stacked card, including the current
+      // top card (BT22-031 Q4879).  Looking only under the top incorrectly misses
+      // the explicit ruling example of a level 5 Digimon over a level 5 card.
+      const stackedCards = self.topCard === undefined ? self.stack : [...self.stack, self.topCard];
+      const levels = stackedCards
         .map((card) => ctx.game.definitionOf(card).level)
         .filter((level): level is number => level !== undefined && level > 0);
       return new Set(levels).size < levels.length;

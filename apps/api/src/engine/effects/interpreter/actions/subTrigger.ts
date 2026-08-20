@@ -267,6 +267,14 @@ export async function runSubTrigger(
     event === "whenAttackTargetSwitched" && sourceFilter?.isSelfRef === true && anchorPermanentId !== undefined
       ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === anchorPermanentId
       : undefined;
+  // A deferred [Security] payload belongs to the exact checked card whose security battle
+  // is ending. The watcher is installed while that card is face-up in security and follows
+  // its source instance into trash; identity must therefore use the event's security card id,
+  // not a battle-area permanent anchor.
+  const securityBattleEndedGate =
+    event === "whenSecurityBattleEnded"
+      ? (subCtx: EffectContext): boolean => subCtx.trigger.securityInstanceId === ctx.source.instanceId
+      : undefined;
   // `whenEffectSuspends` without an explicit sourceFilter is the printed self-scoped form:
   // "when an effect suspends THIS Digimon" (EX3-038 and its family). The bus broadcasts every
   // effect-suspension, including the opponent Digimon suspended by the watcher's own body, so
@@ -588,6 +596,7 @@ export async function runSubTrigger(
     digivolutionReturnGate,
     handTrashedGate,
     attackTargetSwitchedGate,
+    securityBattleEndedGate,
     effectSuspendsSelfGate,
     whenSuspendedSelfGate,
     whenOpponentDrawsGate,

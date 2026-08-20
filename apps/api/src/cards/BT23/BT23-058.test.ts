@@ -1,7 +1,29 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT23-058.js";
 
 describe("BT23-058 Craniamon", () => {
+  it("deletes all tied lowest-play-cost opponents when Craniamon suspends", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT23-058", as: "craniamon" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "low1" },
+          { card: "BT1-009", as: "low2" },
+          { card: "BT23-068", as: "high" },
+        ],
+      },
+    });
+    const highId = s.perm("high").permanentId;
+    await advance(s.engine).fireSubTrigger("whenSuspended", {
+      subjectPermanentId: s.perm("craniamon").permanentId,
+    });
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]?.permanentId).toBe(highId);
+  });
+
   it("declares Reboot and Blocker", () => {
     expect(
       compiled.effects

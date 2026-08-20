@@ -1,7 +1,5 @@
 // @ts-nocheck
 // Hand-authored: KB Q5363 — compound cost (suspend + return Hudie to hand).
-// Both actions are mandatory once the effect is activated; the Suspend action carries
-// the optional gate. Encoded as an explicit Suspend → Return → PlayWithoutCost sequence.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
@@ -24,29 +22,6 @@ export const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
-          kind: "Suspend",
-          target: {
-            filter: { isSelfRef: true },
-            count: 1,
-            isSelf: true,
-          },
-          optional: true,
-          abortOnDecline: true,
-        },
-        {
-          kind: "Return",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Hudie"], match: "trait" }],
-            },
-            count: 1,
-          },
-          to: "hand",
-          abortOnDecline: true,
-        },
-        {
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -59,6 +34,29 @@ export const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           optional: true,
+          abortOnDecline: true,
+          cost: {
+            kind: "compound",
+            costs: [
+              {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              },
+              {
+                kind: "return",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    nameOrTrait: [{ tokens: ["Hudie"], match: "trait" }],
+                  },
+                  count: 1,
+                },
+                to: "hand",
+              },
+            ],
+            raw: "By suspending this Tamer and returning 1 of your [Hudie] trait Digimon to the hand",
+          },
         },
       ],
     },

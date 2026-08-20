@@ -69,6 +69,62 @@ export const compiled: CompiledCard = {
       ],
       frequency: "OncePerTurn",
     },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              {
+                tokens: ["Royal Base"],
+                match: "trait",
+              },
+            ],
+          },
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Royal Base"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          leaveCause: "otherThanYourEffect",
+          actions: [
+            {
+              kind: "Prevent",
+              mode: "leavePlay",
+              cost: {
+                kind: "flipSecurity",
+                target: {
+                  filter: {
+                    zone: "security",
+                    controller: "mine",
+                    position: "top",
+                    faceUp: true,
+                  },
+                  count: 1,
+                },
+                raw: "by flipping your top face-up security card face down",
+              },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
   coverage: "full",
   residual: [],

@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { Seat } from "@aegis/shared";
+import { EffectTiming, type Seat } from "@aegis/shared";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 // Boot side-effect: self-register every compiled-IR card module (so BT23-083's real IR loads).
@@ -28,11 +28,32 @@ function primitivesOf(s: EngineSetup): Primitives {
   return (s.engine as unknown as { primitives: Primitives }).primitives;
 }
 
+function fireStartMain(s: EngineSetup): Promise<void> {
+  return (s.engine as unknown as { fireTiming(timing: EffectTiming): Promise<void> }).fireTiming(
+    EffectTiming.OnStartMainPhase,
+  );
+}
+
 const ZAXON = "BT23-015"; // a real [Zaxon]-trait Digimon
 const PLAIN = "AD1-001"; // neither [Zaxon] nor [Royal Base]
 const FEI = "BT23-083";
 
 describe("A3 BT23-083 — whenAddSecurity consumer: suspend Fei to gain 1 memory on a [Zaxon] add", () => {
+  it("gains start-main memory only during Fei's controller's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: FEI }, { card: ZAXON }] },
+    });
+
+    const beforeOwnTurn = s.state.memory;
+    await fireStartMain(s);
+    expect(s.state.memory).toBe(beforeOwnTurn + 1);
+
+    s.state.turnSeat = 1;
+    const beforeOpponentTurn = s.state.memory;
+    await fireStartMain(s);
+    expect(s.state.memory).toBe(beforeOpponentTurn);
+  });
+
   it("a [Zaxon] card added face up to YOUR security suspends Fei and gains 1 memory", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: FEI, dp: 4000, as: "fei" }], hand: [{ card: ZAXON, as: "zaxon" }] } },

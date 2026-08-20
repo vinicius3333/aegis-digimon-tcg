@@ -1,7 +1,34 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT23-064.js";
 
 describe("BT23-064 Bakemon", () => {
+  it("deletes one own Digimon as cost before deleting an opposing level 4", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-064", as: "bakemon" },
+            { card: "BT23-061", as: "cost" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT23-063", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const targetId = s.perm("target").permanentId;
+    await (
+      s.engine as unknown as {
+        fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
+      }
+    ).fireTiming(EffectTiming.OnPlay, { subjectPermanentId: s.perm("bakemon").permanentId });
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.trash).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
+  });
+
   it("requires deleting one of your Digimon to delete one opposing level 4 or lower Digimon", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const action = (compiled.effects.find((entry) => entry.trigger === trigger) as any).actions[0];

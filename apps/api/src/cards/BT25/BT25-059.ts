@@ -131,6 +131,15 @@ export const compiled: CompiledCard = {
               },
               amount: -3000,
               duration: "untilOpponentTurnEnd",
+              scaling: {
+                per: 1,
+                filter: {
+                  controllerDefault: "any",
+                  suspended: true,
+                  kind: ["Digimon"],
+                },
+                unit: "cards",
+              },
             },
           ],
           scaling: {

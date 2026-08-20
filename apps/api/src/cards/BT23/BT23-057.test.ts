@@ -1,7 +1,36 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT23-057.js";
 
 describe("BT23-057 Gankoomon", () => {
+  it("plays Hinukamuy first and counts another own Digimon toward the deletion ceiling", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-057", as: "gankoomon" },
+            { card: "BT23-061", as: "other" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT23-067", as: "cost7" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const targetId = s.perm("cost7").permanentId;
+    await (
+      s.engine as unknown as {
+        fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
+      }
+    ).fireTiming(EffectTiming.OnPlay, { subjectPermanentId: s.perm("gankoomon").permanentId });
+    const token = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "TOKEN-Hinukamuy-Token");
+    expect(token).toBeDefined();
+    expect(token?.currentDP).toBe(6000);
+    expect(Array.from(token?.grantedKeywords ?? [])).toEqual(expect.arrayContaining(["Alliance", "Reboot", "Blocker"]));
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
+  });
+
   it("reduces its play cost by 5 by returning exactly three matching cards from trash to the top or bottom of the deck", () => {
     const replacement = (compiled.effects.find((entry) => entry.trigger === "Static") as any).actions[0];
     expect(replacement).toMatchObject({
@@ -31,21 +60,26 @@ describe("BT23-057 Gankoomon", () => {
       const actions = (compiled.effects.find((entry) => entry.trigger === trigger) as any).actions;
       expect(actions[0]).toMatchObject({
         kind: "PlayToken",
-        tokens: ["Hinukamuy"],
+        tokens: [
+          {
+            name: "Hinukamuy Token",
+            keywords: [{ keyword: "Alliance" }, { keyword: "Reboot" }, { keyword: "Blocker" }],
+          },
+        ],
         count: 1,
         optional: true,
         payCost: false,
       });
       expect(actions[1]).toMatchObject({
-        kind: "CostModifier",
-        mode: "raiseCeiling",
-        costType: "playcost",
-        amount: 3,
-        scaling: { per: 1, unit: "cards", filter: { excludeSelf: true, kind: ["Digimon"] } },
-      });
-      expect(actions[2]).toMatchObject({
         kind: "Delete",
         target: { filter: { controller: "opponent", playCostLte: 6 }, count: 1 },
+        playCostCeiling: {
+          base: 6,
+          raise: 3,
+          per: 1,
+          unit: "cards",
+          filter: { excludeSelf: true, kind: ["Digimon"] },
+        },
         optional: false,
       });
     }

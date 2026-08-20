@@ -29,10 +29,13 @@ export const compiled: CompiledCard = {
             ],
           },
           from: ["hand", "trash"],
+          payCost: true,
+          useAlternateCost: true,
           reduceCost: 2,
           optional: true,
           cost: {
             kind: "place",
+            targetIsPermanent: true,
             target: {
               filter: {
                 controller: "mine",
@@ -53,6 +56,30 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
         },
       ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Hudie"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: "all",
+          },
+          amount: 1000,
+          duration: "permanent",
+        },
+      ],
+      isInherited: true,
     },
   ],
   coverage: "full",

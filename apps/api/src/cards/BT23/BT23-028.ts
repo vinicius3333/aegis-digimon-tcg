@@ -12,15 +12,17 @@ export const compiled: CompiledCard = {
       timing: "endOfBattle",
       actions: [
         {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              isSelfRef: true,
+          kind: "SubTrigger",
+          event: "whenSecurityBattleEnded",
+          once: true,
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              from: ["trash"],
+              payCost: false,
             },
-            count: 1,
-            isSelf: true,
-          },
-          payCost: false,
+          ],
         },
       ],
     },
@@ -58,9 +60,29 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "AllTurns",
+      isLinked: true,
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "Restrict",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+              restriction: "cannotActivateWhenDigivolving",
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ cost: 2, traits: ["Appmon"] }],
 };
 
 registerIrCard("BT23-028", compiled);

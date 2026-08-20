@@ -1,7 +1,46 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT23-086.js";
 
+function fireTiming(s: EngineSetup, timing: EffectTiming, subjectPermanentId: string): Promise<void> {
+  return (
+    s.engine as unknown as {
+      fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
+    }
+  ).fireTiming(timing, { subjectPermanentId });
+}
+
 describe("BT23-086 Yuugo", () => {
+  it("pays the security cost and places only a Zaxon Digimon from hand face up at security bottom", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-086", as: "yuugo" }],
+          hand: [
+            { card: "BT23-015", as: "zaxon" },
+            { card: "BT1-009", as: "plain" },
+          ],
+          security: [{ card: "BT1-010", as: "securityTop" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const zaxonId = s.inst("zaxon").instanceId;
+    const plainId = s.inst("plain").instanceId;
+    const paidSecurityId = s.inst("securityTop").instanceId;
+
+    await fireTiming(s, EffectTiming.OnPlay, s.perm("yuugo").permanentId);
+
+    const player = s.state.players[0]!;
+    expect(player.hand.some((card) => card.instanceId === paidSecurityId)).toBe(true);
+    expect(player.hand.some((card) => card.instanceId === plainId)).toBe(true);
+    expect(player.hand.some((card) => card.instanceId === zaxonId)).toBe(false);
+    expect(player.security).toHaveLength(1);
+    expect(player.security[0]).toMatchObject({ instanceId: zaxonId, faceUp: true });
+  });
+
   it("sets memory to 3 when the controller has 2 or less", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "StartOfYourTurn") as any;
     expect(effect.actions[0]).toMatchObject({

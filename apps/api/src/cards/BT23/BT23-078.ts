@@ -40,7 +40,7 @@ export const module: EffectModule = {
           source,
           effectKey: `${cardId}/start-main-phase`,
           description: "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.",
-          when: (ctx) => ctx.source.isOnBattleArea(),
+          when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn(),
           canActivate: (ctx) => {
             const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
             for (const p of opponent.battleArea) {
@@ -49,9 +49,6 @@ export const module: EffectModule = {
             return false;
           },
           resolve: async (ctx) => {
-            // `when` only gates isOnBattleArea(), not isOwnersTurn(), so this clause is
-            // also a candidate at the OPPONENT's Start-of-Main-Phase firing; credit this
-            // owner explicitly rather than the turn player.
             ctx.fx.gainMemoryForSeat(source.ownerSeat, 1);
           },
         }),

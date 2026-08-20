@@ -12,10 +12,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // clause-level cost (cost is per-action), and the prose compiler distributes the cost onto
 // every split action — which would trash one card PER payload (two trashes). Modeled here
 // with the single trash cost on the Draw and the GainMemory uncosted, so exactly one card is
-// trashed. (A future engine clause-cost/abort-propagation would let the memory gain be gated
-// too; today an empty-hand player still gains 1 memory — an acceptably minor over-grant on a
-// beneficial optional ability.) The inherited [All Turns] +1000 DP and the alt-digivolution
-// requirement compiled correctly and are carried through unchanged.
+// trashed. `abortOnDecline` makes an unavailable payment stop the remaining clause, so an
+// empty matching hand neither draws nor gains memory. The inherited [All Turns] +1000 DP and
+// the alt-digivolution requirement compiled correctly and are carried through unchanged.
 export const compiled: CompiledCard = {
   effects: [
     {

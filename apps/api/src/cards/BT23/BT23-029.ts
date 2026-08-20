@@ -54,6 +54,30 @@ export const compiled: CompiledCard = {
       ],
       frequency: "OncePerTurn",
     },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            excludeSelf: true,
+          },
+          actions: [
+            {
+              kind: "ModifyDP",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+              amount: -4000,
+              duration: "forTheTurn",
+            },
+          ],
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
   coverage: "full",
   residual: [],

@@ -50,7 +50,6 @@ export const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               zone: "breeding",
-              kind: ["Digimon"],
               nameOrTrait: [
                 {
                   tokens: ["Mother Eater"],
@@ -87,7 +86,6 @@ export const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               zone: "breeding",
-              kind: ["Digimon"],
               nameOrTrait: [
                 {
                   tokens: ["Mother Eater"],
