@@ -38,4 +38,29 @@ describe("BT1-065 Mushroomon", () => {
     expect(s.perm("base")).toMatchObject({ baseDP: 4000, currentDP: 4000 });
     expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
   });
+
+  it("rejects play when memory is below the cost floor", () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT1-065", as: "mushroomon" }] } });
+    s.state.memory = -10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mushroomon").instanceId })).toEqual({
+      ok: false,
+      reason: "insufficient-memory",
+    });
+  });
+
+  it("rejects evolution from a red level 2", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-001", as: "base" }], hand: [{ card: "BT1-065", as: "mushroomon" }] },
+    });
+    s.state.memory = 1;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("mushroomon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
 });
