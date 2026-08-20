@@ -10,4 +10,7 @@ describe("EX8-063", () => {
     expect(module.effectsForTiming(EffectTiming.WhenDigivolving, source)[0]?.maxPerTurn).toBe(1);
     expect(module.effectsForTiming(EffectTiming.OnAllyAttack, source)[0]?.maxPerTurn).toBe(1);
   });
+  it("registers the once-per-turn opponent-hand-trash security watcher", () => {
+    expect(module.effectsForTiming(EffectTiming.None, source)[0]?.maxPerTurn).toBe(1);
+  });
 });

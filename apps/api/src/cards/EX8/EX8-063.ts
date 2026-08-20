@@ -4,7 +4,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { whenDigivolving, whenAttacking } from "../../engine/effects/builders.js";
+import { staticModifier, whenDigivolving, whenAttacking } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**
@@ -15,10 +15,9 @@ import { registerCard } from "../../engine/effects/registry.js";
  *   1 [Fallen Angel] trait Digimon with play cost ≤7 from your trash without
  *   paying the cost.
  *
- * [All Turns] (Once Per Turn) — RESIDUAL:
- *   When cards are trashed from your opponent's hand, if [Barbamon] or [X Antibody]
- *   is in this Digimon's digivolution cards, trash their top security card.
- *   → SubTrigger bus has ZERO engine callers for `whenHandTrashed` (see memory note).
+ * [All Turns] (Once Per Turn): when cards are trashed from your opponent's hand,
+ *   if [Barbamon] or [X Antibody] is in this Digimon's digivolution cards, trash
+ *   their top security card.
  *
  * KB Q4739: even if neither player chooses to discard/play, the once-per-turn
  * counter is still consumed.
@@ -134,10 +133,38 @@ const module: EffectModule = {
       ];
     }
 
-    // [All Turns] (Once Per Turn) — RESIDUAL: whenHandTrashed SubTrigger bus has
-    // ZERO engine callers. The effect cannot fire until the bus is wired.
-    // When cards are trashed from your opponent's hand, if [Barbamon] or [X Antibody]
-    // is in this Digimon's digivolution cards, trash their top security card.
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/opponent-hand-trashed-security`,
+          description:
+            "[All Turns] [Once Per Turn] When cards are trashed from your opponent's hand, " +
+            "if [Barbamon] or [X Antibody] is in this Digimon's digivolution cards, trash " +
+            "their top security card.",
+          maxPerTurn: 1,
+          resolve: async (ctx) => {
+            const host = ctx.source.permanent();
+            if (host === undefined) return;
+            ctx.fx.subscribeSubTrigger({
+              event: "whenHandTrashed",
+              sourcePermanentId: host.permanentId,
+              once: false,
+              oncePerTurnKey: `${cardId}/opponent-hand-trashed-security`,
+              description: `${cardId}: opponent hand trash -> trash opponent top security.`,
+              matches: (subCtx) => subCtx.trigger?.handTrashedSeat === subCtx.game.opponentOf(source.ownerSeat) &&
+                host.stack.some((card) => {
+                  const def = subCtx.game.definitionOf(card);
+                  return def.nameEn.includes("Barbamon") || (def.types ?? []).includes("X Antibody");
+                }),
+              run: async (subCtx) => {
+                await subCtx.fx.trashFromSecurity(subCtx.game.opponentOf(source.ownerSeat), 1, { fromTop: true });
+              },
+            });
+          },
+        }),
+      ];
+    }
 
     return [];
   },
