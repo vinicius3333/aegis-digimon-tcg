@@ -38,4 +38,29 @@ describe("BT1-042 LoaderLeomon", () => {
     expect(s.perm("base")).toMatchObject({ baseDP: 10000, currentDP: 10000 });
     expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
   });
+
+  it("rejects play when memory is below the cost floor", () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT1-042", as: "loaderLeomon" }] } });
+    s.state.memory = -10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("loaderLeomon").instanceId })).toEqual({
+      ok: false,
+      reason: "insufficient-memory",
+    });
+  });
+
+  it("rejects evolution from a red level 4", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-014", as: "base" }], hand: [{ card: "BT1-042", as: "loaderLeomon" }] },
+    });
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("loaderLeomon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
 });
