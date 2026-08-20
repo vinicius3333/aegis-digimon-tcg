@@ -22,16 +22,15 @@ const compiled: CompiledCard = {
       "trigger": "OnPlay",
       "actions": [
         {
-          "kind": "DeleteByDpBudget",
+          "kind": "Delete",
           "target": {
             "filter": {
               "controller": "opponent",
               "kind": ["Digimon"]
             },
-            "count": "any",
-            "minCount": 1
+            "count": "all",
+            "totalDpCap": 14000
           },
-          "dpBudget": "selfDP"
         }
       ]
     },
@@ -39,16 +38,15 @@ const compiled: CompiledCard = {
       "trigger": "WhenDigivolving",
       "actions": [
         {
-          "kind": "DeleteByDpBudget",
+          "kind": "Delete",
           "target": {
             "filter": {
               "controller": "opponent",
               "kind": ["Digimon"]
             },
-            "count": "any",
-            "minCount": 1
+            "count": "all",
+            "totalDpCap": 14000
           },
-          "dpBudget": "selfDP"
         }
       ]
     },
