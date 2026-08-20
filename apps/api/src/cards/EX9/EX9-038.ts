@@ -35,6 +35,7 @@ export const compiled: CompiledCard = {
           },
           "cost": {
             "kind": "place",
+            "faceDown": true,
             "target": {
               "filter": {
                 "controller": "mine",
@@ -75,6 +76,7 @@ export const compiled: CompiledCard = {
           },
           "cost": {
             "kind": "place",
+            "faceDown": true,
             "target": {
               "filter": {
                 "controller": "mine",
