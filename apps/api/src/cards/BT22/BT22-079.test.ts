@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-079.js";
 
 describe("BT22-079 Eater (Species Form)", () => {
@@ -38,5 +39,23 @@ describe("BT22-079 Eater (Species Form)", () => {
         },
       ],
     });
+  });
+
+  it("draws on public play and its breeding source reduces a later Eater play exactly once", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT1-009", under: ["BT22-079"] },
+          hand: [{ card: "BT22-079", as: "eater" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    const eaterId = s.inst("eater").instanceId;
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: eaterId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
+    expect(s.state.memory).toBe(1);
   });
 });
