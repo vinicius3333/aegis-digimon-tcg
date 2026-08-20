@@ -142,7 +142,7 @@ export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef):
 export function candidateLooseInstances(ctx: EffectContext, target: Target, zones: ZoneRef[]): LooseCandidate[] {
   // `orFilters`: a card qualifies if it matches the primary filter OR any alternative
   // ("play 1 [X] or 1 [Y]", BT17-074). Union the controller scope across all alternatives.
-  const allFilters = [target.filter, ...(target.orFilters ?? [])];
+  const allFilters = [target.filter, ...(target.orFilters ?? []), ...(target.filter.orFilters ?? [])];
   const seatSet = new Set<Seat>();
   for (const f of allFilters) for (const s of seatsForController(ctx, f)) seatSet.add(s);
   const seats = [...seatSet];
