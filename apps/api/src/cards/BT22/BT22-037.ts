@@ -85,7 +85,11 @@ const module: EffectModule = {
 
             await ctx.fx.trashFromSecurity(source.ownerSeat, 1, { fromTop: true });
             await ctx.fx.digivolveFromInstance(permanent.permanentId, sourceInstanceId, {
-              payCost: false,
+              // The effect selects by name/trait rather than by a printed evolution
+              // requirement, so it ignores that requirement but still pays the
+              // destination's printed evolution cost reduced by 2.
+              payCost: true,
+              costDelta: -2,
               ignoreRequirements: true,
             });
           },

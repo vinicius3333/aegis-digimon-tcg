@@ -41,9 +41,9 @@ import { registerCard } from "../../engine/effects/registry.js";
 //     (both sides); the +6000/immunity reward is gated on a YOUR-side Digimon having
 //     the engine's `beAffected` restriction ("unaffected by your opponent's effects",
 //     EffectContext.ts Restriction). Modeled as restrict(self, "beAffected", ...).
-//     `new IBattle(self, target, null, true)` forced-battle path) — a rule that
-//     compares DP, NOT an attack declaration. It does not open a block window, does
-//     not suspend the attacker, and is not a security check (see BLOCKED note below).
+//     `forceBattle(self, target)` forced-battle path) — a rule that compares DP, NOT
+//     an attack declaration. It does not open a block window, suspend the attacker,
+//     or perform a security check.
 const cardId = "EX11-074";
 
 /** Suspend candidates (Q5948): any battle-area Digimon, either side, that this effect
@@ -86,7 +86,7 @@ const suspendThenSelfBuff = async (ctx: EffectContext): Promise<void> => {
   const chosenId = chosen[0];
   if (chosenId === undefined) return; // declined to suspend -> no reward
 
-  ctx.fx.suspend([chosenId]);
+  await ctx.fx.suspend([chosenId]);
 
   // "If this effect suspended YOUR Digimon" — the reward applies to THIS Digimon only
   // when the card we just suspended is the controller's own and is now suspended
@@ -184,25 +184,8 @@ const module: EffectModule = {
     //   optionally unsuspends THIS permanent, then optionally runs a forced direct battle
     //   `new IBattle(self, selectedOpponentDigimon, null, true).Battle()`.
     //
-    // PARTIALLY BLOCKED (represented, not faked — mirrors EX10-013's blocked breeding
-    // move and EX11-062's documented residuals):
-    //   1. The "may battle 1 of your opponent's Digimon" sub-clause is a DIRECT forced
-    //      battle (Q5955-Q5959: a DP-comparison battle, not an attack — no block window,
-    //      no attacker suspend, separate <Piercing>). There is NO direct-battle verb on
-    //      the effect primitives surface (ctx.fx.*): the combat verbs exposed are
-    //      forceAttack/redirectAttack only, and forceAttack is a full ATTACK
-    //      (suspends the attacker, opens a block window, hands off to the security check,
-    //      and can only target the player or a SUSPENDED enemy Digimon) — semantically
-    //      wrong for "battle 1 of your opponent's Digimon". `resolvePermanentBattle`
-    //      (combat/resolve.ts) is the right pure resolver but is an engine internal, not
-    //      reachable from a card file. Left unimplemented until a direct-battle primitive
-    //      (e.g. ctx.fx.battle(attackerId, defenderId)) exists.
-    //   2. Trigger seam: the engine does not yet fire OnTappedAnyone / a "when suspended"
-    //      window (GameEngine.fireTiming fires WhenDigivolving and the combat timings;
-    //      suspend fires no timing). So this effect's window is currently never reached.
-    //      Registered at the correct timing so it activates the moment that seam is wired;
-    //      the unsuspend half below is then fully executable, and only the battle remains
-    //      gated on the missing direct-battle primitive.
+    // The engine's OnTappedAnyone suspension seam and forceBattle primitive model the
+    // complete timing and direct-battle rules, including no block window or security check.
     if (timing === EffectTiming.OnTappedAnyone) {
       return [
         turnTiming({
@@ -222,7 +205,22 @@ const module: EffectModule = {
               if (unsuspend) ctx.fx.unsuspend([self.permanentId]);
             }
             // "Then, this Digimon may battle 1 of your opponent's Digimon."
-            // BLOCKED: no direct-battle primitive on ctx.fx (see header note above).
+            const opponentSeat = ctx.game.opponentOf(ctx.source.ownerSeat);
+            const targets = ctx.game
+              .player(opponentSeat)
+              .battleArea.filter(
+                (permanent) =>
+                  permanent.topCard !== undefined &&
+                  isDigimon(ctx.game.definitionOf(permanent.topCard)),
+              );
+            if (self === undefined || targets.length === 0) return;
+            const chosen = await ctx.ask.chooseTargets(ctx, {
+              candidates: targets.map((permanent) => permanent.permanentId),
+              min: 0,
+              max: 1,
+            });
+            const target = chosen[0];
+            if (target !== undefined) await ctx.fx.forceBattle?.(self.permanentId, target);
           },
         }),
       ];

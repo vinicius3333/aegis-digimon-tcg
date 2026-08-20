@@ -163,7 +163,8 @@ const compiled: CompiledCard = {
             },
             "to": "deckTop",
             "raw": "by returning 2 non-Digi-Egg cards from your trash to the top of the deck"
-          }
+          },
+          "abortOnDecline": true
         }
       ]
     },
@@ -204,7 +205,8 @@ const compiled: CompiledCard = {
             },
             "to": "deckTop",
             "raw": "by returning 2 non-Digi-Egg cards from your trash to the top of the deck"
-          }
+          },
+          "abortOnDecline": true
         }
       ]
     }

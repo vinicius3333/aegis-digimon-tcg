@@ -78,6 +78,7 @@ const module: EffectModule = {
                 if (subjectId === undefined) return false;
                 const subject = subCtx.game.permanentById(subjectId);
                 if (subject === undefined) return false;
+                if (!Array.from(subCtx.game.player(source.ownerSeat).battleArea).some((p) => p.permanentId === subjectId)) return false;
                 return subject.controllerSeat === source.ownerSeat;
               },
               run: async (subCtx) => {
@@ -104,7 +105,11 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             for (const p of owner.battleArea) {
-              if (p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard))) {
+              if (
+                p.topCard !== undefined &&
+                isDigimon(ctx.game.definitionOf(p.topCard)) &&
+                Array.from(p.stack).some((card) => card.faceUp !== true)
+              ) {
                 ctx.fx.grantKeyword(p.permanentId, "Reboot", EffectDuration.UntilOpponentTurnEnd);
               }
             }

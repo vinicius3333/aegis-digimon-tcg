@@ -11,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     "with the same color as the card this effect returned". This is a new engine
 //     capability; see historical migration ledger CAP-LB-02.
 // (5) Delete target already has playCostLte:5 ✓.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "StartOfYourMainPhase",

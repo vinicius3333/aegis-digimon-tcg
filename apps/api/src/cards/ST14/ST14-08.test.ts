@@ -20,4 +20,19 @@ describe("ST14-08 Beelzemon", () => {
     expect(s.state.memory).toBe(1);
     expect(observe(s.engine).keywordAmount(s.perm("beel"), "SecurityAttack")).toBe(1);
   });
+
+  it("uses its All Turns once-per-turn memory trigger only once", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST14-08", as: "beel" }], trash: Array.from({ length: 10 }, () => "BT1-009") },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("onDiscardLibrary", {
+      addedToHand: { instanceIds: ["mill-1"], byEffect: { ownerSeat: 0, isDigimonEffect: false } },
+    });
+    await advance(s.engine).fireSubTrigger("onDiscardLibrary", {
+      addedToHand: { instanceIds: ["mill-2"], byEffect: { ownerSeat: 0, isDigimonEffect: false } },
+    });
+    expect(s.state.memory).toBe(1);
+  });
 });

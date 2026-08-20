@@ -11,6 +11,12 @@ const compiled: CompiledCard = {
       "trigger": "Main",
       "actions": [
         {
+          "kind": "Modal",
+          "choose": 1,
+          "labels": ["Play a matching card", "Use a matching Option"],
+          "options": [
+            [
+              {
           "kind": "PlayWithoutCost",
           "target": {
             "filter": {
@@ -38,8 +44,10 @@ const compiled: CompiledCard = {
           "payCost": true,
           "reduceCostBy": 2,
           "optional": true
-        },
-        {
+              }
+            ],
+            [
+              {
           "kind": "UseOptionWithoutCost",
           "filter": {
             "controller": "mine",
@@ -67,6 +75,9 @@ const compiled: CompiledCard = {
           "payCost": true,
           "reduceCostBy": 2,
           "optional": true
+              }
+            ]
+          ]
         }
       ],
       "frequency": "OncePerTurn"
@@ -112,3 +123,5 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("EX12-050", compiled);
+
+export { compiled };

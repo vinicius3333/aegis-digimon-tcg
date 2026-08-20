@@ -11,6 +11,12 @@ const compiled: CompiledCard = {
       "trigger": "Main",
       "actions": [
         {
+          "kind": "Modal",
+          "choose": 1,
+          "labels": ["Play a matching card", "Use a matching Option"],
+          "options": [
+            [
+              {
           "kind": "PlayWithoutCost",
           "target": {
             "filter": {
@@ -38,6 +44,26 @@ const compiled: CompiledCard = {
           "payCost": true,
           "reduceCostBy": 2,
           "optional": true
+              }
+            ],
+            [
+              {
+                "kind": "UseOptionWithoutCost",
+                "filter": {
+                  "controller": "mine",
+                  "kind": ["Option"],
+                  "nameOrTrait": [
+                    { "tokens": ["Gammamon"], "match": "text" },
+                    { "tokens": ["VB"], "match": "trait" }
+                  ]
+                },
+                "from": ["hand"],
+                "payCost": true,
+                "reduceCostBy": 2,
+                "optional": true
+              }
+            ]
+          ]
         }
       ],
       "frequency": "OncePerTurn"

@@ -147,6 +147,10 @@ export type RemovalCause = "byEffect" | "byBattle" | "byRule";
  * sections 2 and 10).
  */
 export interface TriggerInfo {
+  /** Seat whose turn was active when the event occurred (preserved across deferred rule triggers). */
+  turnSeat?: Seat;
+  /** Controller of a deleted permanent, captured before deferred rule processing removes it. */
+  deletedControllerSeat?: Seat;
   /** Card id being played during the pay-time cost window. */
   wouldBePlayedCardId?: string;
   /** Whether the pay-time declaration is using the card as an Option rather than playing a permanent. */

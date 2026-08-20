@@ -13,4 +13,14 @@ describe("ST13-16 Legend-Arms Alliance", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "ST13-16"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "ST13-16")).toBe(true);
   });
+
+  it("places itself even when the optional Digimon play is declined", async () => {
+    const s = setupEngine({
+      0: { battleArea: ["ST13-12"], hand: [{ card: "ST13-16", as: "alliance" }] },
+    }, { autoAcceptOptional: false });
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("alliance").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "ST13-16"));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "ST13-16")).toBe(true);
+  });
 });

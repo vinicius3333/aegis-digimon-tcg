@@ -41,12 +41,16 @@ const module: EffectModule = {
                 if (!subCtx.source.isOnBattleArea() || !subCtx.source.isOwnersTurn()) return false;
                 const subjectId = subCtx.trigger?.subjectPermanentId;
                 if (subjectId === undefined || subjectId !== self.permanentId) return false;
-                // The card that was placed: check via the permanent's updated stack.
-                // The placed card's definition must have the [Legend-Arms] trait
+                // Only the cards placed by this event count. An existing Legend-Arms
+                // card elsewhere in the stack must not make a later non-Legend-Arms
+                // placement satisfy the trigger.
+                const addedIds = subCtx.trigger?.addedDigivolutionCardInstanceIds ?? [];
                 const perm = subCtx.game.permanentById(subjectId);
                 if (perm === undefined) return false;
-                return perm.stack.some((c) => {
-                  const def = subCtx.game.definitionOf(c);
+                return addedIds.some((instanceId) => {
+                  const added = perm.stack.find((c) => c.instanceId === instanceId);
+                  if (added === undefined) return false;
+                  const def = subCtx.game.definitionOf(added);
                   return (def.types ?? []).includes("Legend-Arms");
                 });
               },

@@ -23,7 +23,7 @@ const module: EffectModule = {
             const candidates = ctx.game
               .player(source.ownerSeat)
               .trash.filter((card) =>
-                matchNameOrTrait(ctx.game.definitionOf(card), { tokens: ["Beelzemon"], match: "name" }),
+                ctx.game.definitionOf(card).nameEn === "Beelzemon",
               )
               .map(({ instanceId }) => instanceId);
             if (!candidates.length) return;

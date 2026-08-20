@@ -38,4 +38,16 @@ describe("ST14-02 Impmon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
+
+  it("does not allow Blast Mode as the Beelzemon name target", async () => {
+    const trash = [...Array.from({ length: 20 }, () => "BT1-009"), { card: "ST14-10", as: "blast" }];
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "ST14-02", as: "imp" }], trash } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await advance(s.engine).fire(EffectTiming.OnAllyAttack, s.perm("imp"));
+    expect(s.perm("imp").topCard.cardId).toBe("ST14-02");
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "ST14-10")).toBe(true);
+  });
 });

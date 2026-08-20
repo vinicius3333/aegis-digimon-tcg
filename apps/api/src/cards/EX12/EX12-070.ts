@@ -31,6 +31,17 @@ function hasTBInPlay(ctx: EffectContext, source: CardSource): boolean {
   return false;
 }
 
+async function executeMain(ctx: EffectContext, source: CardSource): Promise<void> {
+  const owner = ctx.game.player(source.ownerSeat);
+  const tbCards = Array.from(owner.hand).filter((c) => hasTB(ctx.game.definitionOf(c)));
+  if (tbCards.length === 0) return;
+  const chosen = await ctx.ask.selectCards(ctx, { candidates: tbCards.map((c) => c.instanceId), min: 0, max: 1 });
+  if (chosen.length === 0) return;
+  await ctx.fx.trash(chosen);
+  ctx.fx.draw(source.ownerSeat, 2);
+  if (ctx.fx.placeOptionAsPermanent) await ctx.fx.placeOptionAsPermanent(source.instanceId);
+}
+
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
@@ -42,22 +53,7 @@ const module: EffectModule = {
           description:
             "[Main] By trashing 1 [TB] trait card from your hand, <Draw 2>. Then, place this " +
             "card in your battle area.",
-          resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-            const tbCards = Array.from(owner.hand).filter((c) => hasTB(ctx.game.definitionOf(c)));
-            if (tbCards.length === 0) return;
-            const chosen = await ctx.ask.selectCards(ctx, {
-              candidates: tbCards.map((c) => c.instanceId),
-              min: 0,
-              max: 1,
-            });
-            if (chosen.length === 0) return;
-            await ctx.fx.trash(chosen);
-            ctx.fx.draw(source.ownerSeat, 2);
-            if (ctx.fx.placeOptionAsPermanent) {
-              await ctx.fx.placeOptionAsPermanent(source.instanceId);
-            }
-          },
+          resolve: async (ctx) => executeMain(ctx, source),
         }),
       ];
     }
@@ -68,9 +64,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/security`,
           description: "[Security] Activate this card's [Main] effect.",
-          resolve: async (_ctx) => {
-            // ActivateMain — delegates to the OnUseOption handler above
-          },
+          resolve: async (ctx) => executeMain(ctx, source),
         }),
       ];
     }

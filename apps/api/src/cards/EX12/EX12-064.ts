@@ -20,10 +20,6 @@ import { registerCard } from "../../engine/effects/registry.js";
  *   [Inherited][End of Attack][Once Per Turn] By unsuspending this Digimon, delete
  *     1 of your Digimon with the lowest play cost.
  *
- * Residuals:
- *   - [All Turns] Machine/Cyborg/ME played → activate own [When Digivolving]: no engine
- *     primitive for re-firing a [When Digivolving] effect outside a digivolve window.
- *     Watcher is installed; re-activation body is a no-op.
  */
 const cardId = "EX12-064";
 
@@ -135,7 +131,6 @@ const module: EffectModule = {
 
     // [All Turns][Once Per Turn] When any of your [Machine], [Cyborg] or [ME] trait Digimon
     // are played, you may activate 1 of this Digimon's [When Digivolving] effects.
-    // Residual: no engine primitive to re-fire a [When Digivolving] effect outside its window.
     if (timing === EffectTiming.OnEnterFieldAnyone) {
       return [
         turnTiming({
@@ -155,8 +150,14 @@ const module: EffectModule = {
             return hasMatchingTrait(ctx.game.definitionOf(subject.topCard));
           },
           canActivate: (ctx) => ctx.source.isOnBattleArea(),
-          resolve: async (_ctx) => {
-            // Residual: reactivateWhenDigivolving primitive not yet implemented.
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self === undefined) return;
+            await ctx.fx.reactivateOnPlay?.(self.permanentId, {
+              timings: [EffectTiming.WhenDigivolving],
+              chooseOne: true,
+              outsideTriggerWindow: true,
+            });
           },
         }),
       ];

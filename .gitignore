@@ -32,3 +32,8 @@ pnpm-debug.log*
 coverage/
 .nyc_output/
 aegis-accounts.sqlite*
+
+# Generated card-audit reports
+docs/audits/
+internal-docs/audits/
+internal-docs/card-audits/

@@ -104,7 +104,7 @@ export const compiled: CompiledCard = {
           "scaling": {
             "per": 1,
             "filter": {
-              "controllerDefault": "mine",
+              "controllerDefault": "both",
               "excludeSelf": true,
               "suspended": true,
               "kind": [
@@ -123,7 +123,7 @@ export const compiled: CompiledCard = {
           "kind": "SubTrigger",
           "event": "whenPlayed",
           "sourceFilter": {
-            "controllerDefault": "mine",
+            "controllerDefault": "both",
             "kind": [
               "Digimon"
             ]
@@ -133,12 +133,10 @@ export const compiled: CompiledCard = {
               "kind": "ActivateEffect",
               "target": {
                 "filter": {
-                  "controllerDefault": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
+                  "isSelfRef": true
                 },
-                "count": 1
+                "count": 1,
+                "isSelf": true
               },
               "effectType": "WhenDigivolving",
               "optional": true

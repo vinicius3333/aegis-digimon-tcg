@@ -12,6 +12,50 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - Delete.target.filter.colorMatchesAnyDigivolutionCard:true
 //   - DeletePerColor (per-color mandatory delete using divo card colors)
 export const compiled: CompiledCard = {
+  "digivolutionRequirement": [
+    {
+      "level": 4,
+      "color": "Red",
+      "cost": 5,
+      "isAlternate": true
+    },
+    {
+      "level": 4,
+      "color": "Blue",
+      "cost": 5,
+      "isAlternate": true
+    },
+    {
+      "level": 4,
+      "color": "Yellow",
+      "cost": 5,
+      "isAlternate": true
+    },
+    {
+      "level": 4,
+      "color": "Green",
+      "cost": 5,
+      "isAlternate": true
+    },
+    {
+      "level": 4,
+      "color": "Black",
+      "cost": 5,
+      "isAlternate": true
+    },
+    {
+      "level": 4,
+      "color": "Purple",
+      "cost": 5,
+      "isAlternate": true
+    },
+    {
+      "level": 4,
+      "color": "White",
+      "cost": 5,
+      "isAlternate": true
+    }
+  ],
   "effects": [
     {
       "trigger": "Static",

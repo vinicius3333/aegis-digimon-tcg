@@ -34,7 +34,12 @@ describe("ST3-01 Tokomon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.perm("attacker").currentDP === attackerBase + 1000 &&
+        s.perm("otherHost").currentDP === otherBase + 1000,
+    );
     expect(s.perm("attacker").currentDP).toBe(attackerBase + 1000);
     expect(s.perm("otherHost").currentDP).toBe(otherBase + 1000);
   });

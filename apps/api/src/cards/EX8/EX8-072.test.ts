@@ -10,4 +10,7 @@ describe("EX8-072", () => {
     expect(module.effectsForTiming(EffectTiming.OnUseOption, source)).toHaveLength(1);
     expect(module.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
   });
+  it("registers the [Trash][Your Turn] Barbamon (X Antibody) watcher", () => {
+    expect(module.effectsForTiming(EffectTiming.None, { ...source, isOnBattleArea: () => false })).toHaveLength(1);
+  });
 });

@@ -3,7 +3,7 @@ import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
-import { onPlay, whenDigivolving, turnTiming, staticModifier } from "../../engine/effects/builders.js";
+import { onPlay, whenDigivolving, turnTiming, beforePayCost } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 import { requireOpponentAsk } from "../../engine/decisions/decisionApi.js";
 
@@ -22,17 +22,18 @@ const module: EffectModule = {
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     if (timing === EffectTiming.None) {
       return [
-        staticModifier({
+        beforePayCost({
           source,
           effectKey: `${cardId}/cost-reduction`,
           description:
             "If your opponent has 10 or more cards in their hand or trash, reduce this card's " +
             "play cost by 5.",
-          when: (ctx) => {
-            const _opponent = ctx.game.opponentOf(source.ownerSeat);
-            return true;
+          resolve: async (ctx) => {
+            const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
+            if (opponent.hand.length >= 10 || opponent.trash.length >= 10) {
+              ctx.playCostDelta = (ctx.playCostDelta ?? 0) + 5;
+            }
           },
-          resolve: async () => {},
         }),
       ];
     }
@@ -50,16 +51,22 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const opponent = ctx.game.opponentOf(source.ownerSeat);
             const opp = ctx.game.player(opponent);
+            let trashedFromHand = false;
             if (opp.hand.length > 6) {
-              // ENGINE-GAP: handSizeReduction primitive not available;
-              // opponent should be prompted to trash down to 6 cards.
+              const chosen = await requireOpponentAsk(ctx).selectCards(ctx, {
+                candidates: Array.from(opp.hand).map((c) => c.instanceId),
+                min: opp.hand.length - 6,
+                max: opp.hand.length - 6,
+              });
+              const moved = chosen.length > 0 ? await ctx.fx.trash(chosen, { byEffectSeat: source.ownerSeat }) : [];
+              trashedFromHand = moved.length > 0;
             }
             const owner = ctx.game.player(source.ownerSeat);
             const candidates = Array.from(owner.trash).filter((c) => {
               const def = ctx.game.definitionOf(c);
               return isDigimon(def) && hasFallenAngel(def) && (def.level ?? 99) <= 5;
             });
-            if (candidates.length > 0) {
+            if (!trashedFromHand && candidates.length > 0) {
               const chosen = await ctx.ask.selectCards(ctx, {
                 candidates: candidates.map((c) => c.instanceId),
                 min: 0,
@@ -87,16 +94,22 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const opponent = ctx.game.opponentOf(source.ownerSeat);
             const opp = ctx.game.player(opponent);
+            let trashedFromHand = false;
             if (opp.hand.length > 6) {
-              // ENGINE-GAP: handSizeReduction primitive not available;
-              // opponent should be prompted to trash down to 6 cards.
+              const chosen = await requireOpponentAsk(ctx).selectCards(ctx, {
+                candidates: Array.from(opp.hand).map((c) => c.instanceId),
+                min: opp.hand.length - 6,
+                max: opp.hand.length - 6,
+              });
+              const moved = chosen.length > 0 ? await ctx.fx.trash(chosen, { byEffectSeat: source.ownerSeat }) : [];
+              trashedFromHand = moved.length > 0;
             }
             const owner = ctx.game.player(source.ownerSeat);
             const candidates = Array.from(owner.trash).filter((c) => {
               const def = ctx.game.definitionOf(c);
               return isDigimon(def) && hasFallenAngel(def) && (def.level ?? 99) <= 5;
             });
-            if (candidates.length > 0) {
+            if (!trashedFromHand && candidates.length > 0) {
               const chosen = await ctx.ask.selectCards(ctx, {
                 candidates: candidates.map((c) => c.instanceId),
                 min: 0,
@@ -136,7 +149,8 @@ const module: EffectModule = {
               if (chosen.length > 0) {
                 ctx.fx.trash(chosen);
               }
-            } else {
+            }
+            if (opp.hand.length <= 5) {
               const digimon = Array.from(opp.battleArea)
                 .filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)));
               let lowest: string | undefined;

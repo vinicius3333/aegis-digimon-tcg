@@ -39,8 +39,6 @@ const compiled: CompiledCard = {
             },
             "raw": "By trashing 1 card with [Greymon] in its name or the [VB] trait from your hand"
           },
-          "optional": true,
-          "abortOnDecline": true
         }
       ]
     },

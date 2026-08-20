@@ -1,4 +1,4 @@
-import { EffectTiming, EffectDuration } from "@aegis/shared";
+import { EffectTiming, EffectDuration, isDigimon } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -49,7 +49,9 @@ const module: EffectModule = {
                 if (subjectId === undefined) return false;
                 const subject = subCtx.game.permanentById(subjectId);
                 if (subject === undefined || subject.controllerSeat !== source.ownerSeat) return false;
-                return true;
+                const definition = subCtx.game.definitionOf(subject.topCard);
+                return isDigimon(definition) &&
+                  (definition.isToken === true || definition.types?.includes("Puppet") === true);
               },
               run: async (subCtx) => {
                 const selfPerm = subCtx.source.permanent();
