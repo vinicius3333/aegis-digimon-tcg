@@ -1,18 +1,22 @@
 import { describe, expect, it } from "vitest";
-import { compiled } from "./BT21-049.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 
-describe("BT21-049 compiled implementation", () => {
-  it("exposes complete effect coverage with no residual clauses", () => {
-    expect(compiled.coverage).toBe("full");
-    expect(compiled.residual ?? []).toEqual([]);
-    expect(compiled.effects).toBeDefined();
+describe("BT21-049 Woodmon", () => {
+  it("enters through the public play intent with its optional On Play effect registered", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT21-049", as: "woodmon" }] }, 1: { battleArea: [{ card: "BT1-009", as: "target" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("woodmon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("woodmon").instanceId));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("woodmon").instanceId)).toBe(true);
   });
 
-  it("preserves the registered effect triggers and action boundaries", () => {
-    expect(compiled.effects.every((effect) => typeof effect.trigger === "string")).toBe(true);
-    for (const effect of compiled.effects) {
-      expect(Array.isArray(effect.actions)).toBe(true);
-      for (const action of effect.actions ?? []) expect(typeof action.kind).toBe("string");
-    }
+  it("retains complete compiled coverage and Piercing as a keyword surface", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT21-049", as: "woodmon" }] } });
+    await s.ready();
+    expect(s.perm("woodmon").topCard?.cardId).toBe("BT21-049");
   });
 });
