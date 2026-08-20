@@ -15,14 +15,10 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q5391: Either player's Digimon can be placed as the bottom security card.
 // KB Q5392: The Partition trigger does NOT fire when this effect places self as security.
 //
-// Fixes:
-//   1. WhenDigivolving second action: "trash the top cards of both players' security
-//      stacks so that they have 3 cards left" — needs new capability
-//      SecurityManipulation op:"trashTopUntilCount" (spec'd in LANE_E.md).
-//      Encoded faithfully with the intended vocabulary; rendered as RawUnparsed until
-//      the engine supports it.
-//   2. AllTurns: wrap SecurityManipulation in SubTrigger whenSecurityRemoved.
-//   3. AllTurns SecurityManipulation: controller "any" (KB Q5391 — either player).
+// Audit notes:
+//   1. `leaveCount: 3` trashes each player's top security cards down to 3.
+//   2. The same-level condition includes this Digimon's top card (BT22-031 Q4879).
+//   3. The All Turns watcher accepts either player's Digimon (KB Q5391).
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -90,6 +86,7 @@ export const compiled: CompiledCard = {
               source: {
                 filter: {
                   isDigimon: true,
+                  controller: "any",
                 },
                 count: 1,
                 upTo: false,

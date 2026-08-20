@@ -145,6 +145,33 @@ describe("new typed RAW-elimination conditions", () => {
     expect(evaluateCondition(ctx, { kind: "lastTargetDpAtMostSelf" })).toBe(false);
   });
 
+  it("includes the current Digimon when checking for same-level stacked cards", () => {
+    const { ctx, sourcePermanent } = conditionContext({
+      definitionOf: (id) =>
+        makeFakeDefinition({
+          cardId: id,
+          level: id === "OTHER-LEVEL" ? 4 : 5,
+          kinds: [CardKind.Digimon],
+        }),
+    });
+    sourcePermanent.topCard = {
+      instanceId: "source-top",
+      cardId: "SOURCE",
+      ownerSeat: 0,
+      faceUp: true,
+    } as never;
+    sourcePermanent.stack = [
+      { instanceId: "same-level-under", cardId: "SOURCE-UNDER", ownerSeat: 0, faceUp: true },
+    ] as never;
+
+    expect(evaluateCondition(ctx, { kind: "selfDigivolutionStackHasSameLevelPair" })).toBe(true);
+
+    sourcePermanent.stack = [
+      { instanceId: "other-level-under", cardId: "OTHER-LEVEL", ownerSeat: 0, faceUp: true },
+    ] as never;
+    expect(evaluateCondition(ctx, { kind: "selfDigivolutionStackHasSameLevelPair" })).toBe(false);
+  });
+
   it("recognizes a source card in the current reveal window", () => {
     const { ctx } = conditionContext({ revealed: [{ instanceId: "revealed", cardId: "SOURCE" }] });
     expect(evaluateCondition(ctx, { kind: "triggerRevealedFromDeck" })).toBe(true);
@@ -163,18 +190,26 @@ describe("new typed RAW-elimination conditions", () => {
       ownBattleArea: [tamer],
       definitionOf: (id) => {
         if (id === "YELLOW") return makeFakeDefinition({ cardId: id, colors: ["Yellow"] as never });
-        if (id === "TAMER") return makeFakeDefinition({ cardId: id, kinds: [CardKind.Tamer], colors: ["Red"] as never, types: ["ADVENTURE"] });
+        if (id === "TAMER")
+          return makeFakeDefinition({
+            cardId: id,
+            kinds: [CardKind.Tamer],
+            colors: ["Red"] as never,
+            types: ["ADVENTURE"],
+          });
         return makeFakeDefinition({ cardId: id, kinds: [CardKind.Digimon] });
       },
     });
     expect(evaluateCondition(ctx, { kind: "triggerRevealedMatchesFilter", filter: { colors: ["Yellow"] } })).toBe(true);
-    expect(evaluateCondition(ctx, {
-      kind: "zoneColorCount",
-      cardType: "Tamer",
-      filter: { nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }] },
-      op: "gte",
-      value: 1,
-    })).toBe(true);
+    expect(
+      evaluateCondition(ctx, {
+        kind: "zoneColorCount",
+        cardType: "Tamer",
+        filter: { nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }] },
+        op: "gte",
+        value: 1,
+      }),
+    ).toBe(true);
   });
 
   it("checks named attack procedures and the empty breeding slot", () => {
@@ -263,19 +298,24 @@ describe("new typed RAW-elimination conditions", () => {
       trigger: { subjectPermanentId: "SUBJECT" },
       definitionOf: (id) => {
         if (id === "TAMER") return makeFakeDefinition({ cardId: id, kinds: [CardKind.Tamer] });
-        if (id === "ADVENTURE") return makeFakeDefinition({ cardId: id, kinds: [CardKind.Digimon], types: ["ADVENTURE"] });
+        if (id === "ADVENTURE")
+          return makeFakeDefinition({ cardId: id, kinds: [CardKind.Digimon], types: ["ADVENTURE"] });
         return makeFakeDefinition({ cardId: id, kinds: [CardKind.Digimon] });
       },
     });
     ctx.source.permanent = () => sourcePermanent;
-    expect(evaluateCondition(ctx, {
-      kind: "triggerSubjectMatchesFilter",
-      filter: { nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }] },
-    })).toBe(true);
-    expect(evaluateCondition(ctx, {
-      kind: "selfDigivolutionStackMatchesFilter",
-      filter: { kind: ["Tamer"] },
-    })).toBe(true);
+    expect(
+      evaluateCondition(ctx, {
+        kind: "triggerSubjectMatchesFilter",
+        filter: { nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }] },
+      }),
+    ).toBe(true);
+    expect(
+      evaluateCondition(ctx, {
+        kind: "selfDigivolutionStackMatchesFilter",
+        filter: { kind: ["Tamer"] },
+      }),
+    ).toBe(true);
   });
 });
 
@@ -414,7 +454,14 @@ function makeContext(opts: {
       deck: [],
       trash: [],
     },
-    { seat: 1, battleArea: opponent, security: opts.opponentSecurity ?? [], hand: opts.opponentHand ?? [], deck: [], trash: [] },
+    {
+      seat: 1,
+      battleArea: opponent,
+      security: opts.opponentSecurity ?? [],
+      hand: opts.opponentHand ?? [],
+      deck: [],
+      trash: [],
+    },
   ];
 
   const game: GameAccess = {
@@ -3106,13 +3153,18 @@ describe("v3 IR actions (round-3 fixes) dispatch to real primitives", () => {
       effects: [
         {
           trigger: "WhenDigivolving",
-          actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "any", bothPlayers: true, leaveCount: 3 }],
+          actions: [
+            { kind: "SecurityManipulation", op: "trashTop", controller: "any", bothPlayers: true, leaveCount: 3 },
+          ],
         },
       ],
     });
     for (const e of module.effectsForTiming(EffectTiming.WhenDigivolving, source)) await e.resolve(ctx);
     const trashed = recorder.calls.filter((c) => c.verb === "trashFromSecurity");
-    expect(trashed.map((c) => c.args.slice(0, 2))).toEqual([[0, 2], [1, 1]]);
+    expect(trashed.map((c) => c.args.slice(0, 2))).toEqual([
+      [0, 2],
+      [1, 1],
+    ]);
   });
 
   it("placeAsSecurity from hand selects a loose card and adds it to security", async () => {
