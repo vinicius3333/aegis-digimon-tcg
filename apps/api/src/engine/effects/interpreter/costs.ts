@@ -1130,7 +1130,7 @@ export async function payCost(
         hostId = self.permanentId;
       }
       if (hostId === undefined) return false;
-      await ctx.fx.placeUnder(hostId, chosen, { belowTop: false });
+      await ctx.fx.placeUnder(hostId, chosen, { belowTop: false, faceUp: cost.faceDown !== true });
       if (cost.storeAs !== undefined && chosen.length > 0) {
         const pickedCard = candidates.find((c) => c.instanceId === chosen[0]);
         const level = pickedCard !== undefined ? ctx.game.definitionOf(pickedCard as never).level : undefined;
