@@ -9,12 +9,14 @@ describe("EX9-023", () => {
   it("inherits Barrier", () => expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({ keyword: "Barrier", raw: "＜Barrier＞" }));
 
   it("adds a revealed DM card and places a Ver.3 card face down under a DM Digimon", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine({
       0: {
         battleArea: [{ card: "EX9-022", as: "host" }, { card: "EX9-023", as: "source" }],
         deck: ["EX9-022", "EX9-023", "BT1-009"],
       },
-    }, { autoSelectCards: true, autoOrderTriggers: true });
+    }, { autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds });
+    preferInstanceIds.push(s.perm("host").permanentId);
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
 
