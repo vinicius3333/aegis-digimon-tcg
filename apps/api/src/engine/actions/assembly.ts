@@ -232,9 +232,10 @@ function materialMatchesAssemblySlot(def: CardDefinition, slot: AssemblyMaterial
   if (slot.nameOrTrait && slot.nameOrTrait.length > 0) {
     if (!slot.nameOrTrait.some((ref) => matchNameOrTrait(def, ref))) return false;
   }
-  if (slot.level !== undefined && def.level !== slot.level) return false;
-  if (slot.levelMin !== undefined && (def.level === undefined || def.level < slot.levelMin)) return false;
-  if (slot.levelMax !== undefined && (def.level === undefined || def.level > slot.levelMax)) return false;
+  const assemblyLevel = def.cardId === "EX9-062" ? 4 : def.level;
+  if (slot.level !== undefined && assemblyLevel !== slot.level) return false;
+  if (slot.levelMin !== undefined && (assemblyLevel === undefined || assemblyLevel < slot.levelMin)) return false;
+  if (slot.levelMax !== undefined && (assemblyLevel === undefined || assemblyLevel > slot.levelMax)) return false;
   return true;
 }
 

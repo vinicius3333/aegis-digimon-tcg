@@ -7,7 +7,7 @@ import { activated, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**
- * BT13-008 — Marsmon (BT13, Red Lv.6 Digimon).
+ * BT13-008 — Agumon (BT13, Red/Yellow Lv.3 Digimon).
  *
  * Hand-written override: the declarative effect record could not express the
  * BecomeDigimonThatCantDigivolve effect because the engine lacked a
@@ -20,8 +20,8 @@ import { registerCard } from "../../engine/effects/registry.js";
  *      [Marcus Damon]-name Tamers: grant Digimon kind + set base DP to 3000
  *      + restrict digivolve (all UntilEachTurnEnd). BecomeDigimonThatCantDigivolve.
  *   3. EffectTiming.None, isInherited — [Your Turn][Once Per Turn][Inherited]
- *      when a red or yellow Tamer suspends, delete opponent Digimon with
- *      3000 DP or less.
+ *      when a red or yellow Tamer suspends, you may delete opponent Digimon
+ *      with 3000 DP or less.
  */
 
 const cardId = "BT13-008";
@@ -90,6 +90,7 @@ const module: EffectModule = {
                   })
                   .map((p) => p.permanentId);
                 if (targets.length === 0) return;
+                if (!(await subCtx.ask.optional(subCtx, "Delete 1 of your opponent's Digimon with 3000 DP or less?"))) return;
                 const chosen = await subCtx.ask.chooseTargets(subCtx, {
                   candidates: targets,
                   min: 1,

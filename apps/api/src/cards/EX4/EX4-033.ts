@@ -21,7 +21,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   your Digimon. bySourceKeyword:"Alliance" + sourceFilter: controller:"mine" Digimon.
 //   Then this Digimon digivolves into a 2-color green from hand, cost reduced by 2.
 //   (CAP-C-17 bySourceKeyword gate — faithfully encoded, engine build needed.)
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",

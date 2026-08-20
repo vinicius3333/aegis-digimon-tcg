@@ -1,5 +1,5 @@
 import type { PlayerIdentity } from "./design/primitives";
-import { filterDeckToActivePool, type DeckListing } from "./game/decks";
+import { filterDeckToKnownCards, type DeckListing } from "./game/decks";
 
 const STORAGE_KEY = "aegis:player";
 
@@ -35,7 +35,7 @@ const ACTIVE_DECK_KEY = "aegis:activeDeckId";
 export function loadDecks(): DeckListing[] {
   try {
     const raw = localStorage.getItem(DECKS_KEY);
-    if (raw) return (JSON.parse(raw) as DeckListing[]).map(filterDeckToActivePool);
+    if (raw) return (JSON.parse(raw) as DeckListing[]).map(filterDeckToKnownCards);
   } catch {
     // ignore malformed storage
   }

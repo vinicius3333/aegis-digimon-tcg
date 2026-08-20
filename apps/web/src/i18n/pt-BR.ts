@@ -48,11 +48,6 @@ export const ptBR: Record<keyof typeof en, string> = {
 
   "menu.greeting": "Que bom te ver,",
   "menu.tagline": "A mesa está pronta. Escolha sua batalha.",
-  "pool.title": "Pool de cartas: até {set}.",
-  "pool.note": "Liberamos uma coleção por vez, depois de testar cada carta com suporte completo às regras.",
-  "pool.blocks": "Blocos liberados ({count}): {blocks}",
-  "pool.promos": "Promos ({count} cartas): {ranges}",
-  "pool.locked": "Ainda bloqueados: {blocks} e tudo depois deles.",
   "menu.quickMatch": "Partida rápida",
   "menu.quickMatchDesc": "Ache um oponente ao vivo",
   "menu.deckBuilder": "Construtor de decks",

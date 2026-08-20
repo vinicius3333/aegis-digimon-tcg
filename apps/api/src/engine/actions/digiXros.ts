@@ -18,7 +18,7 @@ import {
 import { cardHasTrait, definitionOf, dpOf, isDigimon } from "../cards/cardData.js";
 import { extractCardAt, placePermanent as appendPermanent } from "../state/access.js";
 import { digiXrosZoneExpanderFor } from "../digiXros/zoneExpanders.js";
-import { allowsDigiXrosMaterialsFromTrash, matchNameOrTrait } from "../effects/interpreter.js";
+import { allowsDigiXrosMaterialsFromTrash, allowsExtraDigiXrosMaterials, matchNameOrTrait } from "../effects/interpreter.js";
 
 /**
  * cost block ~670-700).
@@ -166,8 +166,9 @@ export function validateDigiXros(
   //
   // AllowDigiXrosMaterialsFromTrash (CAP-C-14, BT21-030): the played card's own IR declares that
   // trash is a valid material source, so trash is unrestricted regardless of expander Tamers.
-  let underTamerMax = 0;
+  let underTamerMax = allowsExtraDigiXrosMaterials(instance.cardId) ? 1 : 0;
   let trashMax = allowsDigiXrosMaterialsFromTrash(instance.cardId) ? Infinity : 0;
+  if (allowsExtraDigiXrosMaterials(instance.cardId)) trashMax = 1;
   const expanderPermanentIds = intent.digiXros.expanderPermanentIds ?? [];
   for (const permanentId of expanderPermanentIds) {
     const perm = player.battleArea.find((p) => p.permanentId === permanentId);

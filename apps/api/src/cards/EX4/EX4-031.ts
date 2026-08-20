@@ -6,7 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // "multicolored including green" (at least 2 colors). The exact 2-color constraint needs
 // colorCount:2 — see LANE_A.md CAP-A2.
 // text in the printed effectText is the rules reminder for Alliance, not a separate effect).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",

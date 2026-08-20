@@ -5,6 +5,7 @@ import {
   type AttackTarget,
   type ServerEvent,
   type CardColor,
+  getCardDefinition,
 } from "@aegis/shared";
 import type { GameStateAccess } from "../state/access.js";
 import type { RemovalCause, SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
@@ -95,6 +96,7 @@ export interface CombatTrigger {
   deletedInstanceIds?: string[];
   /** Subset of deletedInstanceIds that were stack cards (for inherited-effect gating). */
   deletedWasStackInstanceIds?: string[];
+  battleOpponentPermanentIdByInstanceId?: Record<string, string>;
 }
 
 /**
@@ -1209,7 +1211,18 @@ export class CombatController {
     const deleted: string[] = [];
     const deletedInstanceIds: string[] = [];
     const deletedWasStackInstanceIds: string[] = [];
+    const battleOpponentPermanentIdByInstanceId: Record<string, string> = {};
     const deletedEffectiveColorsByInstanceId: Record<string, CardColor[]> = {};
+    const tokenDeletionIds = postCardPreventionDeletedIds.flatMap((permanentId) => {
+      const top = this.access.permanentById(permanentId)?.topCard;
+      return top !== undefined && getCardDefinition(top.cardId)?.isToken === true ? [top.instanceId] : [];
+    });
+    if (tokenDeletionIds.length > 0) {
+      await this.hooks.fireTiming(EffectTiming.OnDestroyedAnyone, {
+        deletedInstanceIds: tokenDeletionIds,
+        removalCause: "byBattle",
+      });
+    }
     for (const permanentId of postCardPreventionDeletedIds) {
       // ＜Material Save＞ (§16-21): a plain "when deleted" reaction (no cause restriction), so
       // it applies to a battle death exactly like an effect deletion. Must run BEFORE the
@@ -1224,6 +1237,8 @@ export class CombatController {
       const stackIds = this.access.permanentById(permanentId)?.stack.map((c) => c.instanceId) ?? [];
       const effectiveColors = this.hooks.effectiveColorsOf?.(permanentId) ?? [];
       const moved = this.access.deletePermanent(permanentId);
+      const battleOpponentId = permanentId === attacker.permanentId ? defender.permanentId : attacker.permanentId;
+      for (const instanceId of moved) battleOpponentPermanentIdByInstanceId[instanceId] = battleOpponentId;
       for (const instanceId of moved) deletedEffectiveColorsByInstanceId[instanceId] = effectiveColors;
       deletedInstanceIds.push(...moved);
       deletedWasStackInstanceIds.push(...stackIds);
@@ -1269,6 +1284,7 @@ export class CombatController {
         deletedInstanceIds,
         deletedWasStackInstanceIds,
         deletedEffectiveColorsByInstanceId,
+        battleOpponentPermanentIdByInstanceId,
         removalCause: "byBattle",
       });
     }

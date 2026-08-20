@@ -6,7 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // NEITHER the DP reduction NOR the placement activates. The cost gates the whole effect.
 // Encoded as a CostGatedBlock: all actions inside share the same cost — paying it once
 // enables both the ModifyDP and the SecurityManipulation.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",
@@ -183,7 +183,7 @@ const compiled: CompiledCard = {
       "isInherited": true
     }
   ],
-  "coverage": "partial",
+  "coverage": "full",
   "residual": []
 };
 

@@ -12,6 +12,7 @@ import {
   resolveExceptSurvivors,
   resolvePermanentTargets,
   resolveTotalDpCapTargets,
+  resolveTotalPlayCostBudgetTargets,
   topInstanceIds,
 } from "../targeting/permanents.js";
 import type { Action, Target } from "@aegis/shared";
@@ -86,6 +87,28 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         ...ctx.lastDeletedByThisEffectIds.filter((id) => !(ctx.deletedThisEffectIds ?? []).includes(id)),
       ];
       ctx.lastEffectActed = ctx.lastDeletedByThisEffectIds.length > 0;
+      return false;
+    }
+    case "DeletePerColor": {
+      const source = ctx.source.permanent();
+      if (source === undefined || action.source !== "digivolutionCards") return false;
+      const colors = [...new Set(source.stack.flatMap((card) => ctx.game.definitionOf(card).colors))];
+      const selected: string[] = [];
+      for (const color of colors) {
+        const candidates = candidatePermanents(ctx, action.target).filter((permanent) => {
+          if (selected.includes(permanent.permanentId)) return false;
+          const def = permanent.topCard === undefined ? undefined : ctx.game.definitionOf(permanent.topCard);
+          return def?.colors.includes(color) === true;
+        });
+        if (candidates.length === 0) continue;
+        const chosen =
+          candidates.length === 1
+            ? candidates[0]!.permanentId
+            : (await ctx.ask.chooseTargets(ctx, { candidates: candidates.map((p) => p.permanentId), min: 1, max: 1 }))[0];
+        if (chosen !== undefined) selected.push(chosen);
+      }
+      if (selected.length > 0) await ctx.fx.deletePermanent(selected);
+      ctx.lastEffectActed = selected.length > 0;
       return false;
     }
     case "DeleteUntilCount": {
@@ -401,6 +424,13 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       if (returnTarget.isSelf || returnTarget.filter.isSelfRef) {
         if (action.to === "hand") await ctx.fx.returnToHand([ctx.source.instanceId]);
         else await ctx.fx.returnToDeck([ctx.source.instanceId], { toTop: action.to === "deckTop" });
+        return false;
+      }
+      if (returnTarget.totalPlayCostBudget !== undefined) {
+        const ids = topInstanceIds(ctx, await resolveTotalPlayCostBudgetTargets(ctx, returnTarget));
+        if (ids.length === 0) return false;
+        if (action.to === "hand") await ctx.fx.returnToHand(ids);
+        else await ctx.fx.returnToDeck(ids, { toTop: action.to === "deckTop" });
         return false;
       }
       // A non-battle-area zone target ("return 1 [X] from your trash/hand/security/... to

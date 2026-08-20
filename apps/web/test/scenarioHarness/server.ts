@@ -19,25 +19,14 @@ export interface TestServer {
   close: () => Promise<void>;
 }
 
-// UI scenarios exercise implemented mechanics from across the verified catalogue. The
-// production room remains constrained by the public BT10 pool; only this isolated
-// in-process room admits cards released through the latest verified product.
-const SCENARIO_CARD_POOL_CUTOFF_DATE = "2026-07-03" as const; // EX12
-
-class ScenarioAegisRoom extends AegisRoom {
-  protected override cardPoolCutoffDate() {
-    return SCENARIO_CARD_POOL_CUTOFF_DATE;
-  }
-}
-
 /** Starts a fresh AegisRoom-hosting Colyseus server on an ephemeral port. */
 export async function startTestServer(): Promise<TestServer> {
   const httpServer: HttpServer = createServer();
   const gameServer = new ColyseusServer({
     transport: new WebSocketTransport({ server: httpServer }),
   });
-  gameServer.define(ROOM_TYPE, ScenarioAegisRoom);
-  gameServer.define(ROOM_TYPE_PRIVATE, ScenarioAegisRoom);
+  gameServer.define(ROOM_TYPE, AegisRoom);
+  gameServer.define(ROOM_TYPE_PRIVATE, AegisRoom);
 
   await gameServer.listen(0);
   const address = httpServer.address();

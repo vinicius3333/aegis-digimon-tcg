@@ -94,6 +94,7 @@ const compiled: CompiledCard = {
         {
           "kind": "Replacement",
           "event": "wouldLeavePlay",
+          "leaveCause": "otherThanYourEffect",
           "sourceFilter": {
             "isSelfRef": true
           },
@@ -143,3 +144,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT18-022", compiled);
+export { compiled };

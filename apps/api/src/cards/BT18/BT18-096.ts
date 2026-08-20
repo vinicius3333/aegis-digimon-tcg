@@ -115,10 +115,8 @@ const compiled: CompiledCard = {
           "abortOnDecline": true,
           "scaling": {
             "per": 1,
-            "filter": {
-              "controllerDefault": "mine"
-            },
-            "unit": "cards"
+            "unit": "cards",
+            "usePaidCount": true
           }
         }
       ]
@@ -157,3 +155,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT18-096", compiled);
+export { compiled };

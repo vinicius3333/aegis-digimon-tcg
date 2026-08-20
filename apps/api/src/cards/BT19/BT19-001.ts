@@ -19,6 +19,7 @@ const compiled: CompiledCard = {
             "target": {
               "filter": {
                 "controller": "mine",
+                "zone": "hand",
                 "kind": [
                   "Digimon"
                 ],

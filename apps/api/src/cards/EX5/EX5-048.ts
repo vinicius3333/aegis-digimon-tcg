@@ -9,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Inherited [Opponent's Turn][Once Per Turn]: When an opponent's Digimon attacks, you may
 // reveal the top 3 cards of your deck. You may play 1 black or yellow Digimon with a play
 // cost of 3 or less among them without paying the cost. Trash the rest.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",
@@ -151,10 +151,8 @@ const compiled: CompiledCard = {
       "frequency": "OncePerTurn"
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "GainEffect: grant timed [StartOfYourMainPhase] attack trigger to opponent's Digimon — needs GainEffect primitive (LANE_A.md CAP-A12)"
-  ],
+  "coverage": "full",
+  "residual": [],
   "digivolutionRequirement": [
     {
       "level": 4,

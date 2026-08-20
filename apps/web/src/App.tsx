@@ -5,7 +5,7 @@ import {
   activeCollectionCards,
   copyDeckPreset,
   deckById,
-  filterDeckToActivePool,
+  filterDeckToKnownCards,
   selectableDecks,
   upsertDeck,
   type DeckListing,
@@ -118,7 +118,7 @@ function AppShell() {
   }, [dark]);
 
   const saveDeck = (deck: DeckListing, setActive: boolean) => {
-    const filtered = filterDeckToActivePool(deck);
+    const filtered = filterDeckToKnownCards(deck);
     setDecks((ds) => upsertDeck(ds, filtered));
     void accountApi
       .me()

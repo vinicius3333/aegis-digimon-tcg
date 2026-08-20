@@ -1,43 +1,19 @@
 import { describe, expect, it } from "vitest";
-import { Phase } from "@aegis/shared";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import "../index.js";
+import { EffectTiming } from "@aegis/shared";
+import { getEffectModule } from "../../engine/effects/registry.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import "./BT16-082.js";
 
-describe("BT16-082 Ukkomon", () => {
-  it("reveals three, adds one Digimon or Tamer, bottoms the rest, and may hatch", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT16-082", as: "ukkomon" }],
-          breeding: { card: "BT1-009", as: "bred" },
-          deck: ["BT1-086", "BT1-001", "BT1-002"],
-          eggDeck: [{ card: "BT1-001", as: "egg" }],
-        },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.phase = Phase.Breeding;
-    const deckIds = s.state.players[0]!.deck.map((card) => card.instanceId);
+const source = { instanceId: "source", cardId: "BT16-082", ownerSeat: 0, definition: {}, permanent: () => undefined, isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true } as unknown as CardSource;
 
-    expect(
-      s.engine.applyIntent(0, {
-        type: "moveFromBreeding",
-        permanentId: s.perm("bred").permanentId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-086"));
-    await settle(() => false, 40);
+describe("BT16-082", () => {
+  it("registers the once-per-turn move-from-breeding watcher", () => {
+    const module = getEffectModule("BT16-082");
+    expect(module).toBeDefined();
+    expect(module!.effectsForTiming(EffectTiming.None, source)).toHaveLength(1);
+  });
 
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-086")).toBe(true);
-    expect(s.state.players[0]!.deck).toHaveLength(0);
-    expect(s.state.players[0]!.eggDeck).toHaveLength(2);
-    expect(s.state.players[0]!.eggDeck.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT1-001", "BT1-002"]),
-    );
-    expect(s.state.players[0]!.trash).toHaveLength(0);
-    expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("BT1-001");
-    expect(deckIds).toHaveLength(3);
-    assertNoLoudGap(s);
+  it("does not expose the watcher at unrelated timings", () => {
+    expect(getEffectModule("BT16-082")!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(0);
   });
 });

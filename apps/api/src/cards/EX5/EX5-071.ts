@@ -4,10 +4,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // [Main]: player picks 1 card with [Deva]/[Four Sovereigns] trait from revealed 3 and
 // places it as the bottom digivolution card of 1 of their Digimon OR adds it to hand.
-// Encoded as a RevealAdd with add entries using orDestinations, but the engine
-// currently only supports a single `to` destination per add slot; the placeUnder
-// option is in residual until a `toOptions` or branch-destination feature is added.
-const compiled: CompiledCard = {
+// Encoded as a RevealAdd slot with an alternate disposition; the interpreter
+// prompts for place-under versus hand after the card is selected.
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
@@ -92,9 +91,7 @@ const compiled: CompiledCard = {
       "isSecurity": true
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "RevealAdd add slot should allow player to choose between to:placeUnder (bottom digivolution card) or to:hand — engine needs toOptions:[\"placeUnder\",\"hand\"] on add entries (LANE_B: CAP-B-02)"
-  ]
+  "coverage": "full",
+  "residual": []
 };
 registerIrCard("EX5-071", compiled);

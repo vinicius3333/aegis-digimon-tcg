@@ -11,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Q3892: "1 or more memory" = memory gauge at 1 or further left on your side.
 // Q3893: Blitz attacks also blocked since the Digimon cannot suspend at all.
 // [Rule] Trait: Has the [Aquatic] type.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Counter",

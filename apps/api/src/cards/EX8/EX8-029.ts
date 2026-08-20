@@ -9,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // — restriction:"activateOnPlay", targets ALL opponent Digimon (count:"all"),
 // while condition: memoryAtMost:1 per KB Q3899.
 // GrantStatic: immuneToOpponentDigimonEffects is already correct per KB.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "WhenDigivolving",
@@ -120,11 +120,8 @@ const compiled: CompiledCard = {
       ]
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "Return.totalPlayCostBudget:14 not yet executed by interpreter (see LANE_E.md)",
-    "Aura.restriction:activateOnPlay not yet executed by interpreter (see LANE_E.md)"
-  ]
+  "coverage": "full",
+  "residual": []
 };
 
 registerIrCard("EX8-029", compiled);

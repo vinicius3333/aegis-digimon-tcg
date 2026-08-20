@@ -40,7 +40,7 @@ const compiled: CompiledCard = {
     {
       // Triggered: when this card is trashed from the battle area by an effect,
       // until the end of your opponent's turn 1 of their Digimon or Tamers can't suspend.
-      "trigger": "WhenTrashedFromBattleArea",
+      "trigger": "whenTrashedFromBattleArea",
       "actions": [
         {
           "kind": "Restrict",
@@ -101,9 +101,7 @@ const compiled: CompiledCard = {
     }
   ],
   "coverage": "full",
-  "residual": [
-    "WhenTrashedFromBattleArea trigger requires engine support (LANE_E: WhenTrashedFromBattleAreaTrigger)"
-  ]
+  "residual": []
 };
 
 registerIrCard("P-161", compiled);

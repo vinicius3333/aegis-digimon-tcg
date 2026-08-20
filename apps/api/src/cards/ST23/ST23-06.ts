@@ -15,10 +15,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q6172: only the owner can look at face-down cards under a Tamer.
 // KB Q6173: a face-down card trashed from under a Tamer is placed face-up in the trash.
 //
-// Residual: The second add slot uses to:"placeUnder" targeting a [Glowing Dawn] Tamer.
-// The RevealAdd engine path (runRevealAdd) hardcodes p.kind==="Digimon" for placeUnder
-// hosts — Tamer hosts are not yet supported. Until the engine is extended, the
-// place-under-Tamer slot is inert. See LANE_F.md capability spec.
+// The second add slot uses the dedicated underTamer disposition so the selected
+// face-down card is placed beneath a matching [Glowing Dawn] Tamer.
 const compiled: CompiledCard = {
   "effects": [
     {
@@ -56,7 +54,8 @@ const compiled: CompiledCard = {
                 ]
               },
               "count": 1,
-              "to": "placeUnder",
+              "to": "underTamer",
+              "faceDown": true,
               "underFilter": {
                 "controllerDefault": "mine",
                 "kind": [
@@ -112,7 +111,8 @@ const compiled: CompiledCard = {
                 ]
               },
               "count": 1,
-              "to": "placeUnder",
+              "to": "underTamer",
+              "faceDown": true,
               "underFilter": {
                 "controllerDefault": "mine",
                 "kind": [
@@ -145,10 +145,8 @@ const compiled: CompiledCard = {
       ]
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "RevealAdd placeUnder to Tamer host not yet supported by engine — place-under-[Glowing Dawn]-Tamer slot is inert until RevealAdd is extended to allow Tamer hosts (see LANE_F.md)"
-  ],
+  "coverage": "full",
+  "residual": [],
   "digivolutionRequirement": [
     {
       "level": 2,

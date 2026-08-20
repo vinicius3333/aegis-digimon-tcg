@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q5511-Q5515: triggers when you USE an Option card with use cost 2+; does not
 // trigger for Security activations or Delay activations. Cost reduction to the paid
 // amount doesn't affect whether it triggers — original use cost is checked.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",

@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [End of Your Turn] cost: place exactly 3 [Ver.5] trait Digimon from trash face down
 // as this Digimon's bottom digivolution cards. KB Q4806: cannot meet cost with only 2 cards.
 // faceDown:true, position:"bottom", host:"self" encode the face-down bottom placement.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "EndOfYourTurn",

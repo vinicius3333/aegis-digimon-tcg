@@ -7,7 +7,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // cards would digivolve into a [Ver.3] trait Digimon card, reduce the digivolution cost by 1.
 // Q4743: Cost reduced by 3 when combined with EX9-070 Delay (which adds 2 face-down cards);
 // confirms this card's -1 stacks with other reductions.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "YourTurn",

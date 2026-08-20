@@ -344,11 +344,17 @@ export async function runPlayPerLevel(
     if (playCandidates.length === 0) continue;
     const pick = await pickLoose(ctx, { filter: levelFilter, count: 1 }, playCandidates);
     if (pick.length === 0) continue;
-    await ctx.fx.playInstances(pick, {
+    const played = await ctx.fx.playInstances(pick, {
       payCost: action.payCost,
       ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
     });
-    playedIds.push(...pick);
+    if (played === undefined) {
+      // Lightweight interpreter harnesses may stub the primitive without returning
+      // permanents; production primitives always return the created permanents.
+      playedIds.push(...pick);
+    } else {
+      playedIds.push(...played.map((permanent) => permanent.permanentId));
+    }
   }
 
   // Bind the played permanentIds under `bindResultAs` for downstream filter.boundRef consumers.

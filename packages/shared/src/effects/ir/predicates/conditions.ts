@@ -36,6 +36,7 @@ export interface Condition {
     | "allYoursMatchFilter" // every permanent you control in the battle area matches `filter`
     | "breedingAreaEmpty"
     | "digivolutionCountCompare" // a selected Digimon's stack size vs the source/target stack
+    | "digivolutionCardCount" // matching cards in the SOURCE Digimon's stack (EX11-046)
     | "triggerPlayCostAtMostStackCount" // the triggered card's play cost <= a matching stack count
     | "selfDigivolutionStackHasTrait" // `filter.nameOrTrait` vs each stack card's Form ∪ Attribute ∪ Type (BT7-024)
     | "selfDigivolutionStackDistinctNameCount" // distinct names in the SOURCE stack (EX6-006)

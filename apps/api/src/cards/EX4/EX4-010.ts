@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "WhenDigivolving",
@@ -27,19 +27,12 @@ const compiled: CompiledCard = {
             "count": 0,
             "upTo": true,
             "totalDpCap": 3000
-          }
-        },
-        {
-          "kind": "CostModifier",
-          "mode": "raiseCeiling",
-          "costType": "dpDeletion",
-          "amount": 2000,
-          "scaling": {
+          },
+          "dpCeiling": 3000,
+          "dpCeilingScaling": {
             "per": 10,
-            "filter": {
-              "zone": "trash",
-              "controllerDefault": "both"
-            },
+            "amount": 2000,
+            "filter": { "zone": "trash", "controllerDefault": "both" },
             "unit": "cards"
           }
         }

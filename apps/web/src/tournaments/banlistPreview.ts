@@ -6,7 +6,7 @@
    what the event actually carries. */
 
 import {
-  activeProductLabels,
+  allProductLabels,
   banlistAsOf,
   getCardDefinition,
   pairPartners,
@@ -22,7 +22,7 @@ export type BanlistPreview =
 
 /** The set ids offered for an `as_of_set` policy, newest release first. */
 export function banlistSetOptions(): string[] {
-  return [...activeProductLabels()].reverse();
+  return [...allProductLabels()].reverse();
 }
 
 function normalizeSetId(setId: string): string {

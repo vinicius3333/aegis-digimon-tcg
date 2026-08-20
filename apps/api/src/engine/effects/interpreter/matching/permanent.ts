@@ -220,6 +220,14 @@ export function permanentMatchesFilter(
   }
   const def = ctx.game.definitionOf(permanent.topCard);
 
+  if (filter.colorMatchesAnyDigivolutionCard === true) {
+    const sourceStack = source.permanent()?.stack ?? [];
+    const sourceColors = new Set(sourceStack.flatMap((card) => ctx.game.definitionOf(card).colors));
+    if (!def.colors.some((color) => sourceColors.has(color))) return false;
+    const { colorMatchesAnyDigivolutionCard: _colorMatch, ...rest } = filter;
+    filter = rest;
+  }
+
   // `placedInBattleAreaByEffect`: an Option only becomes a battle-area permanent when a
   // "place this card in the battle area" effect put it there (normal Option use trashes it), so
   // a battle-area Option permanent always satisfies this — a non-Option never does (Cap-E-006).

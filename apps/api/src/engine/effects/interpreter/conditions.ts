@@ -116,6 +116,17 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const sourceCount = source.stack.length - 1;
       return compareNumber(targetCount, cond.op, sourceCount);
     }
+    case "digivolutionCardCount": {
+      // EX11-046: count matching cards in this Digimon's digivolution stack. The
+      // permanent stack stores only digivolution cards, so the count is not
+      // polluted by the live top card.
+      const source = ctx.source.permanent();
+      if (source === undefined || cond.nameOrTrait === undefined) return false;
+      const count = source.stack.filter((card) =>
+        definitionMatches({ nameOrTrait: cond.nameOrTrait }, ctx.game.definitionOf(card)),
+      ).length;
+      return compareNumber(count, cond.op, cond.value ?? 0);
+    }
     case "triggerPlayCostAtMostStackCount": {
       const source = ctx.source.permanent();
       const playCost = ctx.trigger.playedPlayCost;

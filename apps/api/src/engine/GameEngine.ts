@@ -102,7 +102,7 @@ import type {
 import { TurnStateMachine, type TurnFlowHooks, type DurationBoundary as TurnBoundary } from "./TurnStateMachine.js";
 import { log, logError } from "../logger.js";
 import { runSetup, finalizeSecurity, mulliganRedraw, type Rng, type Decklist } from "./setup.js";
-import { validateDecklist, type CardPoolCutoffDate } from "./deckValidation.js";
+import { validateDecklist } from "./deckValidation.js";
 import { MulliganCoordinator } from "./mulligan.js";
 import {
   applyHatchEgg,
@@ -176,11 +176,6 @@ export interface GameEngineHooks {
   onBothReady?: () => void;
   /** Notifies in-process actors only after an asynchronous action has fully settled. */
   onActionSettled?: (seat: Seat, intentType: Intent["type"]) => void;
-}
-
-/** Match configuration owned by the room, never supplied by joining clients. */
-export interface GameEngineOptions {
-  cardPoolCutoffDate?: CardPoolCutoffDate;
 }
 
 /**
@@ -388,7 +383,6 @@ export class GameEngine {
   constructor(
     private readonly state: GameState,
     private readonly hooks: GameEngineHooks,
-    private readonly options: GameEngineOptions = {},
   ) {
     // TODO(effect-framework): import "../cards" is done at boot for side-effect
     //   registration; wire the registry into the resolution path here.
@@ -447,6 +441,7 @@ export class GameEngine {
               deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
               deletedInstanceIds: trigger.deletedInstanceIds,
               deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
+              battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
             });
             return;
           }
@@ -461,6 +456,7 @@ export class GameEngine {
           deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
           deletedInstanceIds: trigger.deletedInstanceIds,
           deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
+          battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
         });
       },
       fireSubTrigger: async (event, payload) => this.fireSubTrigger(event, payload),
@@ -3359,9 +3355,7 @@ export class GameEngine {
   seatPlayer(seat: Seat, sessionId: string, options: SeatJoinOptions): void {
     const deckIsEmpty = options.deck.mainDeck.length === 0 && options.deck.eggDeck.length === 0;
     if (!deckIsEmpty) {
-      const verdict = validateDecklist(options.deck, {
-        cardPoolCutoffDate: this.options.cardPoolCutoffDate,
-      });
+      const verdict = validateDecklist(options.deck);
       if (!verdict.ok) throw new Error(`illegal deck: ${verdict.reason}`);
     }
     const player = new PlayerState();

@@ -59,10 +59,8 @@ const compiled: CompiledCard = {
       "isSecurity": true
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "boardCount condition: 'if there are 3 or more Digimon' counts both players' total Digimon — no structured Condition kind for cross-player board count; encoded as raw (KB Q863)"
-  ]
+  "coverage": "full",
+  "residual": []
 };
 
 registerIrCard("ST19-15", compiled);

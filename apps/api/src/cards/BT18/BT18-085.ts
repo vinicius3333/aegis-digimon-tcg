@@ -19,6 +19,11 @@ const compiled: CompiledCard = {
               "Digimon"
             ]
           },
+          "into": {
+            "controllerDefault": "mine",
+            "kind": ["Digimon"],
+            "nameOrTrait": [{"tokens": ["Zanbamon"], "match": "nameExact"}]
+          },
           "actions": [
             {
               "kind": "Replacement",
@@ -74,3 +79,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT18-085", compiled);
+export { compiled };

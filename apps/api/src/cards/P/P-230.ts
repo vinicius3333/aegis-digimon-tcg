@@ -19,8 +19,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // - <Delay>: the digivolve body belongs in a separate Main+Delay effect, not
 //   inline in the YourTurn SubTrigger. The SubTrigger body only grants <Delay>
 //   to self; the digivolve is the Delay-activated effect.
-// - RevealAdd: two add entries may select the same card if it matches both
-//   filters — documented as residual (no distinct-cards flag in current IR).
+// - RevealAdd tracks taken revealed instances between add slots, so the two
+//   entries select distinct cards even when their filters overlap.
 //
 // Residual: RevealAdd with two add entries has no 'must be distinct cards'
 // enforcement — a card matching both [Royal Base] in text and [LIBERATOR] trait
@@ -162,10 +162,8 @@ const compiled: CompiledCard = {
       "isSecurity": true
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "RevealAdd two add entries lack 'must be distinct cards' enforcement — a card matching both [Royal Base] in text and [LIBERATOR] trait could fill both slots"
-  ]
+  "coverage": "full",
+  "residual": []
 };
 
 registerIrCard("P-230", compiled);

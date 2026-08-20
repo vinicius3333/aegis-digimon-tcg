@@ -9,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     chosen destination Digimon matching level 3 OR the [Legend-Arms] trait (underFilter +
 //     underOrFilters). Unlike EX6-007/EX6-009, the Draw doesn't reference the destination
 //     Digimon, so no bindHostAs/fromSelectionRef is needed.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Main",

@@ -2512,6 +2512,17 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // per permanent in whatever order this array happens to be in — see
     // `deletePermanentsBatched`'s own doc for why per-permanent application can cross the
     // turn-player/non-turn-player boundary the wrong way and change the clamped result.
+    const tokenDeletionIds = toDelete
+      .flatMap((permanentId) => {
+        const top = access.permanentById(permanentId)?.topCard;
+        return top !== undefined && requireCardDefinition(top.cardId).isToken === true ? [top.instanceId] : [];
+      });
+    if (tokenDeletionIds.length > 0 && engine.fireTiming) {
+      await engine.fireTiming(EffectTiming.OnDestroyedAnyone, {
+        deletedInstanceIds: tokenDeletionIds,
+        removalCause: cause,
+      });
+    }
     const movedByPermanent = access.deletePermanentsBatched(toDelete);
     const deletedEffectiveColorsByInstanceId: Record<string, CardColor[]> = {};
     for (let i = 0; i < toDelete.length; i++) {

@@ -190,10 +190,8 @@ const compiled: CompiledCard = {
       "frequency": "OncePerTurn"
     }
   ],
-  "coverage": "partial",
-  "residual": [
-    "AllTurns SubTrigger cost: placing opponent's battle-area Digimon (a permanent) as their bottom security is not yet supported by the 'place' cost system — cost encoded as kind:raw; the trash action (SecurityManipulation trashTop) is correctly encoded and fires after the raw cost is paid (engine executes the trash, not the placement)"
-  ],
+  "coverage": "full",
+  "residual": [],
   "digivolutionRequirement": [
     {
       "names": [

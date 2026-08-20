@@ -1,5 +1,4 @@
-import { CARD_POOL_CUTOFF_DATE, VALIDATED_FAMOUS_DECKS, releaseDateForCard } from "@aegis/shared";
-import type { CardPoolCutoffDate } from "../../engine/deckValidation.js";
+import { VALIDATED_FAMOUS_DECKS, releaseDateForCard } from "@aegis/shared";
 import type { BlockLabel, MetaDeck } from "./types.js";
 
 /**
@@ -14,8 +13,8 @@ import type { BlockLabel, MetaDeck } from "./types.js";
  *
  * ## What every shipped deck guarantees
  *
- * 1. **Card pool** — every card exists in `cards.json` and was released on or
- *    before its block's release date.
+ * 1. **Block era** — every card exists in `cards.json` and was released on or
+ *    before its block's release date, so a list stays faithful to its format window.
  * 2. **Implemented effects** — every card that prints an effect has a registered
  *    effect module (`apps/api/src/cards/<SET>/<ID>.ts`). A bot never plays a card
  *    the engine does not implement.
@@ -28,7 +27,7 @@ import type { BlockLabel, MetaDeck } from "./types.js";
  *    historical ones.
  *
  * `metaDecks.test.ts` re-checks all four for every shipped deck, so a KB refresh
- * or card-pool change fails CI instead of shipping an illegal bot deck.
+ * fails CI instead of shipping an illegal bot deck.
  *
  * ## Sources and substitution policy
  *
@@ -40,7 +39,7 @@ import type { BlockLabel, MetaDeck } from "./types.js";
  * - **Banlist trim** — a card the era ran at 4 is capped at 1 (or 0) by the
  *   current banlist; the freed slots go to the nearest functional analogue already
  *   in the list's colors.
- * - **Card-pool trim** — a reference list printed after the block's release date is
+ * - **Block-era trim** — a reference list printed after the block's release date is
  *   replaced by the closest card available at that date.
  *
  * ## Known limitation: what the current bot can actually play
@@ -69,7 +68,7 @@ export const ALL_META_DECKS: readonly MetaDeck[] = VALIDATED_FAMOUS_DECKS;
  * product table, so any id in the set resolves it — the id itself only matters for
  * promos, which are never block labels.
  */
-export function blockReleaseDate(block: BlockLabel): CardPoolCutoffDate | undefined {
+export function blockReleaseDate(block: BlockLabel): string | undefined {
   return releaseDateForCard({ cardId: `${block}-001`, set: block });
 }
 
@@ -86,23 +85,14 @@ export const COVERED_BLOCKS: readonly BlockLabel[] = Object.freeze(
   [...decksByBlock.keys()].sort((a, b) => (blockReleaseDate(a) ?? "").localeCompare(blockReleaseDate(b) ?? "")),
 );
 
-export interface MetaDeckLookupOptions {
-  /**
-   * The card-pool boundary the server will validate against. Defaults to the
-   * operational pool, so a block published ahead of the pool still yields decks the
-   * server accepts rather than decks it rejects at deal time.
-   */
-  cardPoolCutoffDate?: CardPoolCutoffDate;
-}
-
 /**
  * The bot decks to play in a tournament of this block.
  *
- * Exact block match wins. Otherwise — an unknown label, a block with no deck of its
- * own, or a block published ahead of the card pool — the newest covered block that
- * still fits the pool ceiling is used, because an older deck is legal in a newer
- * format while the reverse is not. Returns an empty list only when no covered block
- * fits at all (a block older than the oldest covered one).
+ * Exact block match wins. Otherwise — an unknown label, or a block with no deck of
+ * its own — the newest covered block released on or before it is used, because an
+ * older deck is legal in a newer format while the reverse is not. Returns an empty
+ * list only when no covered block fits at all (a block older than the oldest covered
+ * one). An unrecognized label has no era to bound it, so it takes the newest block.
  *
  * Two consequences the tournament wiring has to handle:
  *
@@ -115,20 +105,16 @@ export interface MetaDeckLookupOptions {
  *
  * The returned array is frozen and shared; copy it before sorting or filtering in place.
  */
-export function metaDecksForBlock(
-  block: BlockLabel,
-  { cardPoolCutoffDate = CARD_POOL_CUTOFF_DATE }: MetaDeckLookupOptions = {},
-): readonly MetaDeck[] {
+export function metaDecksForBlock(block: BlockLabel): readonly MetaDeck[] {
   const requested = blockReleaseDate(block);
-  const ceiling = requested === undefined || requested > cardPoolCutoffDate ? cardPoolCutoffDate : requested;
-
-  const exact = requested !== undefined && requested <= ceiling ? decksByBlock.get(block) : undefined;
+  const exact = requested !== undefined ? decksByBlock.get(block) : undefined;
   if (exact !== undefined && exact.length > 0) return exact;
 
   for (let index = COVERED_BLOCKS.length - 1; index >= 0; index -= 1) {
     const candidate = COVERED_BLOCKS[index]!;
     const date = blockReleaseDate(candidate);
-    if (date !== undefined && date <= ceiling) return decksByBlock.get(candidate)!;
+    if (date === undefined) continue;
+    if (requested === undefined || date <= requested) return decksByBlock.get(candidate)!;
   }
   return [];
 }

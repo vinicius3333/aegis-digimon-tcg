@@ -11,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // sourceFilter kind:["Tamer"] (only a suspended Tamer arms it) + bySourceController:"mine"
 // (only YOUR effect's suspend counts, per interpreter.ts effectSuspendsGate) + self-ref
 // ModifyDP target (the buff applies to THIS Digimon, not an arbitrary mine Digimon/Tamer).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "YourTurn",

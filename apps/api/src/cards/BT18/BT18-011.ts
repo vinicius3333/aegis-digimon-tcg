@@ -14,19 +14,16 @@ const compiled: CompiledCard = {
           "kind": "Return",
           "target": {
             "filter": {
-              "hasInheritedEffects": true,
               "zone": "trash",
               "controller": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
+              "or": [
                 {
-                  "tokens": [
-                    "Hybrid",
-                    "Ten Warriors"
-                  ],
-                  "match": "trait"
+                  "kind": ["Digimon"],
+                  "nameOrTrait": [{"tokens": ["Hybrid", "Ten Warriors"], "match": "trait"}]
+                },
+                {
+                  "kind": ["Tamer"],
+                  "hasInheritedEffects": true
                 }
               ]
             },
@@ -77,3 +74,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT18-011", compiled);
+export { compiled };

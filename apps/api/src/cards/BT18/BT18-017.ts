@@ -54,25 +54,45 @@ const compiled: CompiledCard = {
           },
           "actions": [
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "levelComparison": {
-                    "op": "lte",
-                    "value": 4
-                  },
-                  "colors": [
-                    "Red"
-                  ],
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
-              "fromOwnDigivolutionStack": true,
-              "payCost": false,
-              "optional": true
+              "kind": "Modal",
+              "choose": 1,
+              "optional": true,
+              "options": [
+                [
+                  {
+                    "kind": "Return",
+                    "target": {
+                      "filter": {
+                        "controller": "mine",
+                        "zone": "digivolutionCards",
+                        "hostFilter": {"isSelfRef": true},
+                        "kind": ["Digimon"],
+                        "levelComparison": {"op": "lte", "value": 4},
+                        "colors": ["Red"]
+                      },
+                      "count": 1
+                    },
+                    "to": "hand",
+                    "optional": true
+                  }
+                ],
+                [
+                  {
+                    "kind": "PlayWithoutCost",
+                    "target": {
+                      "filter": {
+                        "levelComparison": {"op": "lte", "value": 4},
+                        "colors": ["Red"],
+                        "kind": ["Digimon"]
+                      },
+                      "count": 1
+                    },
+                    "fromOwnDigivolutionStack": true,
+                    "payCost": false,
+                    "optional": true
+                  }
+                ]
+              ]
             }
           ]
         }
@@ -96,3 +116,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT18-017", compiled);
+export { compiled };

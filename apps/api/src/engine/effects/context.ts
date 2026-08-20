@@ -438,6 +438,9 @@ function applyTimingEffectDisable(
     ) {
       return false;
     }
+    if (timing === EffectTiming.OnPlay && env.continuous.hasRestriction(permanent.permanentId, "activateOnPlay")) {
+      return false;
+    }
     if (!env.continuous.isTimingEffectDisabled(permanent.permanentId, mask)) return true;
     // Effect-immunity bypass: an immune source's timing effect still fires.
     // Unqualified call (no sourceKind): we are checking the SOURCE permanent's own

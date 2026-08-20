@@ -92,9 +92,7 @@ const compiled: CompiledCard = {
               "kind": [
                 "Digimon"
               ],
-              "colors": [
-                "White"
-              ],
+              "excludeColors": ["White"],
               "nameOrTrait": [
                 {
                   "tokens": [
@@ -115,3 +113,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT18-086", compiled);
+export { compiled };

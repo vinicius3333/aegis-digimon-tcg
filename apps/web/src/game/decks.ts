@@ -7,7 +7,6 @@ import {
   allCards,
   famousDeckGroups,
   getCardDefinition,
-  isCardInActivePool,
   effectiveCopyLimit as banlistLimit,
   type CardDefinition,
   type FamousDeck,
@@ -136,20 +135,17 @@ export function isDeckable(def: CardDefinition): boolean {
   return !def.isToken && def.maxCountInDeck > 0;
 }
 
-/** The cards a player can actually browse and build with today. */
+/** The cards a player can actually browse and build with. */
 export function activeCollectionCards(): CardDefinition[] {
-  return allCards().filter((card) => isDeckable(card) && isCardInActivePool(card));
+  return allCards().filter(isDeckable);
 }
 
-/** Removes cards that are unavailable in the current release pool from a saved deck. */
-export function filterDeckToActivePool(deck: DeckListing): DeckListing {
-  const isActive = (cardId: string): boolean => {
-    const definition = getCardDefinition(cardId);
-    return !!definition && isCardInActivePool(definition);
-  };
-  const mainDeck = deck.mainDeck.filter(isActive);
-  const eggDeck = deck.eggDeck.filter(isActive);
-  const coverCardId = deck.coverCardId && isActive(deck.coverCardId) ? deck.coverCardId : undefined;
+/** Drops ids the card registry no longer knows, so stale storage cannot break a deck. */
+export function filterDeckToKnownCards(deck: DeckListing): DeckListing {
+  const isKnown = (cardId: string): boolean => getCardDefinition(cardId) !== undefined;
+  const mainDeck = deck.mainDeck.filter(isKnown);
+  const eggDeck = deck.eggDeck.filter(isKnown);
+  const coverCardId = deck.coverCardId && isKnown(deck.coverCardId) ? deck.coverCardId : undefined;
   return { ...deck, mainDeck, eggDeck, coverCardId };
 }
 
@@ -247,7 +243,11 @@ export function upsertDeck(decks: readonly DeckListing[], deck: DeckListing): De
 }
 
 /** A fresh, empty deck with an id unique among `existing`. */
-export function createBlankDeck(existing: readonly DeckListing[], color: ColorName = "Blue", name = "Novo deck"): DeckListing {
+export function createBlankDeck(
+  existing: readonly DeckListing[],
+  color: ColorName = "Blue",
+  name = "Novo deck",
+): DeckListing {
   let n = existing.length + 1;
   while (existing.some((d) => d.id === `custom-${n}`)) n += 1;
   return {
@@ -314,7 +314,6 @@ export function parseDeckList(text: string): DeckParseResult {
       skipped += 1;
       continue;
     }
-    if (!isCardInActivePool(def)) continue;
     const cap = Math.min(def.maxCountInDeck, banlistLimit(cardId));
     const copies = Math.min(count, cap);
     const isEgg = kindOf(def) === "DigiEgg";

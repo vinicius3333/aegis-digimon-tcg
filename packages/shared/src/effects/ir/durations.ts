@@ -8,6 +8,7 @@ export type EffectDurationRef =
   | "untilOpponentTurnEnd" // UntilOpponentTurnEnd
   | "untilEndOfAttack"
   | "untilEndOfBattle"
+  | "untilOpponentNextUnsuspendPhase"
   | "nextDigivolveThisTurn"
   | "endOfOpponentTurn" // until the end of the opponent's turn
   | "permanent"; // maps to the never-clearing EffectDuration.Permanent (WR-03 / ENG-02)

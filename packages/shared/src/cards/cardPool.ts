@@ -1,12 +1,5 @@
 import type { CardDefinition } from "./types.js";
 
-/**
- * The only operational switch for the playable card pool. Advance this date when
- * a verified release block is ready to be enabled. Dates are English release
- * dates from the official Digimon Card Game product catalogue.
- */
-export const CARD_POOL_CUTOFF_DATE = "2025-02-28" as const; // BT19/BT20: Special Booster Ver.2.5
-
 type ReleaseDate = `${number}-${number}-${number}`;
 type CardReference = Readonly<Pick<CardDefinition, "cardId" | "set">>;
 
@@ -39,8 +32,7 @@ interface ProductRelease {
  *   of BT19; Ver.2.5 (2025-02-28) shipped the rest of BT19 and all of BT20. BT19 therefore
  *   carries the later date, at which the set is complete.
  *
- * Ordering matters in one place: `cardPoolLabel` returns the first product matching a date,
- * so within a shared release date the booster that names the format is listed first.
+ * Within a shared release date the booster that names the format is listed first.
  */
 const PRODUCT_RELEASES: Readonly<Record<string, ProductRelease>> = {
   ST1: { date: "2021-01-29", label: "ST1" },
@@ -121,8 +113,8 @@ const PRODUCT_RELEASES: Readonly<Record<string, ProductRelease>> = {
  * Unverified, unlike {@link PRODUCT_RELEASES} above: these dates have not been checked
  * against a primary source. Several groups tied to a booster (the BT6 Dash Pack, the BT7
  * and BT8 packs) still carry that booster's pre-correction date and now sit slightly
- * before the product they shipped with. Every one of them is inside the current cutoff,
- * so nothing resolves differently today, but a promo audit is still owed.
+ * before the product they shipped with. Nothing resolves differently today because these
+ * dates only order and label products, but a promo audit is still owed.
  */
 const PROMO_PRODUCTS: ReadonlyArray<Readonly<{ date: ReleaseDate; cardIds: string }>> = [
   { date: "2020-11-16", cardIds: "001 002 003 004 005 006" }, // Promotion Pack Ver. 0.0
@@ -170,9 +162,7 @@ const PROMO_PRODUCTS: ReadonlyArray<Readonly<{ date: ReleaseDate; cardIds: strin
 
 const PROMO_RELEASE_DATES: Readonly<Record<string, ReleaseDate>> = Object.freeze(
   Object.fromEntries(
-    PROMO_PRODUCTS.flatMap(({ date, cardIds }) =>
-      cardIds.split(" ").map((number) => [`P-${number}`, date]),
-    ),
+    PROMO_PRODUCTS.flatMap(({ date, cardIds }) => cardIds.split(" ").map((number) => [`P-${number}`, date])),
   ),
 );
 
@@ -192,76 +182,20 @@ export function releaseDateForCard(card: CardReference): ReleaseDate | undefined
   return PRODUCT_RELEASES[card.set]?.date;
 }
 
-/** Cards with no reviewed release date remain unavailable until metadata is added. */
-export function isCardInActivePool(
-  card: CardReference,
-  cutoffDate: ReleaseDate = CARD_POOL_CUTOFF_DATE,
-): boolean {
-  const releaseDate = releaseDateForCard(card);
-  return releaseDate !== undefined && releaseDate <= cutoffDate;
-}
-
-/** Every non-promo product in the pool, oldest release first. */
-export function activeProductLabels(
-  cutoffDate: ReleaseDate = CARD_POOL_CUTOFF_DATE,
-): string[] {
+/** Every non-promo product, oldest release first. */
+export function allProductLabels(): string[] {
   return Object.values(PRODUCT_RELEASES)
-    .filter((release) => release.date <= cutoffDate)
+    .slice()
     .sort((a, b) => (a.date === b.date ? a.label.localeCompare(b.label) : a.date.localeCompare(b.date)))
-    .map((release) => release.label);
-}
-
-/** The next products queued behind the cutoff, oldest release first. */
-export function upcomingProductLabels(
-  count = 3,
-  cutoffDate: ReleaseDate = CARD_POOL_CUTOFF_DATE,
-): string[] {
-  return Object.values(PRODUCT_RELEASES)
-    .filter((release) => release.date > cutoffDate)
-    .sort((a, b) => (a.date === b.date ? a.label.localeCompare(b.label) : a.date.localeCompare(b.date)))
-    .slice(0, count)
     .map((release) => release.label);
 }
 
 /**
- * Promo cards in the pool, collapsed into contiguous number ranges
- * (e.g. `["P-001–P-065", "P-072–P-078"]`). Promo numbering is not chronological,
- * so a flat list of every id is unreadable; ranges are what a player can check.
+ * The newest product already in stores, which is what a tournament block defaults to.
+ * A product with a future release date is excluded so the default never names a set
+ * players cannot buy yet.
  */
-export function activePromoRanges(
-  cutoffDate: ReleaseDate = CARD_POOL_CUTOFF_DATE,
-): string[] {
-  const numbers = Object.entries(PROMO_RELEASE_DATES)
-    .filter(([, date]) => date <= cutoffDate)
-    .map(([cardId]) => Number(cardId.slice(2)))
-    .sort((a, b) => a - b);
-
-  const ranges: string[] = [];
-  const format = (n: number) => `P-${String(n).padStart(3, "0")}`;
-  let start: number | undefined;
-  let previous: number | undefined;
-  for (const number of numbers) {
-    if (start === undefined || previous === undefined) {
-      start = number;
-    } else if (number !== previous + 1) {
-      ranges.push(start === previous ? format(start) : `${format(start)}–${format(previous)}`);
-      start = number;
-    }
-    previous = number;
-  }
-  if (start !== undefined && previous !== undefined) {
-    ranges.push(start === previous ? format(start) : `${format(start)}–${format(previous)}`);
-  }
-  return ranges;
-}
-
-/** How many promo cards the pool currently includes. */
-export function activePromoCount(cutoffDate: ReleaseDate = CARD_POOL_CUTOFF_DATE): number {
-  return Object.values(PROMO_RELEASE_DATES).filter((date) => date <= cutoffDate).length;
-}
-
-/** Human-readable release label for notices and validation errors. */
-export function cardPoolLabel(cutoffDate: ReleaseDate = CARD_POOL_CUTOFF_DATE): string {
-  const product = Object.values(PRODUCT_RELEASES).find((release) => release.date === cutoffDate);
-  return product?.label ?? cutoffDate;
+export function latestReleasedProductLabel(asOf: string = new Date().toISOString().slice(0, 10)): string {
+  const released = allProductLabels().filter((label) => (releaseDateForSet(label) ?? "") <= asOf);
+  return released[released.length - 1]!;
 }

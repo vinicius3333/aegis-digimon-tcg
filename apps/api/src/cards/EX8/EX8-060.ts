@@ -6,7 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // DNA digivolve triggers, then that DNA'd Digimon may attack (not a new attack declaration
 // during an existing attack — KB Q3943). [When Attacking] + [When Digivolving] trigger
 // simultaneously when DNA'd Digimon attacks (KB Q3944).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "WhenAttacking",

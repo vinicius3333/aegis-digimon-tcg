@@ -26,13 +26,14 @@ const playFromTrashOrBreeding = () => [
         ]
       },
       "count": 1,
-      "upTo": true
+      "upTo": true,
+      "optional": true
     },
     "from": ["trash", "digivolutionCards"],
     "payCost": false
   }
 ];
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",

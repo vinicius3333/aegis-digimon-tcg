@@ -87,7 +87,9 @@ const module: EffectModule = {
 
               if (dBase.length > 0) {
                 const belId = belpheTrash[0].instanceId;
-                await ctx.fx.digivolveFromInstance(dBase[0], belId, { payCost: false, ignoreRequirements: true });
+                // The printed effect waives the cost, not the digivolution requirements
+                // (KB Q2363); the engine must validate the normal/special requirement.
+                await ctx.fx.digivolveFromInstance(dBase[0], belId, { payCost: false });
               }
             }
           },

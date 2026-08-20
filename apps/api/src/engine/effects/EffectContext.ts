@@ -48,7 +48,8 @@ export type EnforcedRestriction =
   | "dpImmune"
   | "beAffected"
   | "cantBeDeDigivolved"
-  | "cannotActivateWhenDigivolving"; // "can't activate [When Digivolving] effects" (BT19-038 KB Q5541–Q5545)
+  | "cannotActivateWhenDigivolving" // "can't activate [When Digivolving] effects" (BT19-038 KB Q5541–Q5545)
+  | "activateOnPlay"; // "can't activate [On Play] effects" (EX8-029)
 
 /**
  * Kinds the ledger still stores but nothing honors. `restrict()` rejects them, so a card
@@ -173,6 +174,8 @@ export interface TriggerInfo {
    * permanent is gone.
    */
   deletedWasStackInstanceIds?: string[];
+  /** Battle opponent for each card instance deleted in a battle. */
+  battleOpponentPermanentIdByInstanceId?: Record<string, string>;
   /** Why the cards in this deletion window left play. */
   removalCause?: RemovalCause;
   /** True when this simultaneous deletion batch is the rule check for Digimon at exactly 0 DP. */

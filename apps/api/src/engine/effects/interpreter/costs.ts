@@ -335,12 +335,40 @@ export async function payCost(
       const trashStackZone = cost.target.filter.zone;
       const trashesStackCards =
         trashStackZone === "digivolutionCards" ||
+        cost.target.from?.includes("digivolutionCards") === true ||
         trashStackZone === "underMyTamers" ||
         trashStackZone === "underTamers" ||
         trashStackZone === "underTamer" ||
         trashStackZone === "underThisTamer" ||
         trashStackZone === "digivolutionCardsUnderTamers";
       if (trashesStackCards) {
+        const boundHostRef = (cost.target.filter as Filter & { boundTo?: string }).boundTo;
+        if (boundHostRef !== undefined) {
+          const hostId = ctx.selections?.get(boundHostRef);
+          const host = hostId === undefined ? undefined : ctx.game.permanentById(hostId);
+          if (host === undefined) return false;
+          const { zone: _zone, boundTo: _boundTo, ...cardFilter } = cost.target.filter as Filter & { boundTo?: string };
+          const candidates = host.stack
+            .filter((card) => definitionMatches(cardFilter, ctx.game.definitionOf(card)))
+            .filter((card) => ctx.fx.canTrashDigivolutionCard?.(card.instanceId) !== false)
+            .map((card) => ({
+              instanceId: card.instanceId,
+              cardId: card.cardId,
+              ownerSeat: card.ownerSeat,
+              hostPermanentId: host.permanentId,
+            }));
+          const n = cost.target.count === "all" ? candidates.length : cost.target.count;
+          if (n <= 0 || candidates.length < n) return false;
+          const chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
+          if (chosen.length < n) return false;
+          const moved = await ctx.fx.trashDigivolutionCards(host.permanentId, chosen, {
+            byEffectSeat: ctx.source.ownerSeat,
+            byEffectCardId: ctx.source.cardId,
+          });
+          if (moved.length !== n) return false;
+          if (out) out.paidCount = moved.length;
+          return true;
+        }
         if (cost.target.filter.isSelfRef === true) {
           const self = ctx.source.permanent();
           if (self === undefined) return false;
@@ -772,6 +800,21 @@ export async function payCost(
       await ctx.fx.addSecurity(ctx.source.ownerSeat, instanceIds, { toTop, faceUp });
       return true;
     }
+    case "placeOwnTopAtStackBottom": {
+      if (!cost.target) return false;
+      const candidates = (await resolvePermanentTargets(ctx, cost.target)).filter((id) => {
+        const permanent = ctx.game.permanentById(id);
+        return permanent !== undefined && permanent.stack.length > 0;
+      });
+      if (candidates.length === 0) return false;
+      const selected =
+        candidates.length === 1
+          ? candidates[0]
+          : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
+      if (selected === undefined || !ctx.fx.placeOwnTopAtStackBottom(selected)) return false;
+      if (out) out.paidCount = 1;
+      return true;
+    }
     case "playFromDigivolutionCards": {
       // BT19-102: choose a Digimon, then choose a matching card from that Digimon's
       // digivolution cards and play it for free. The host selection is explicit rather
@@ -824,6 +867,18 @@ export async function payCost(
         if (cost.targetIsPermanent === true) {
           const sourceIds = await resolvePermanentTargets(ctx, cost.target);
           if (sourceIds.length === 0) return false;
+          if (cost.destination === "security") {
+            for (const sourcePermanentId of sourceIds) {
+              const permanent = ctx.game.permanentById(sourcePermanentId);
+              if (permanent?.topCard === undefined) return false;
+              await ctx.fx.addSecurity(permanent.controllerSeat, [permanent.topCard.instanceId], {
+                toTop: cost.position !== "bottom",
+                detachPermanentTop: true,
+              });
+            }
+            if (out) out.paidCount = sourceIds.length;
+            return true;
+          }
           let hostPermId: string | undefined;
           if (cost.host !== null && typeof cost.host === "object") {
             const destIds = await resolvePermanentTargets(ctx, { filter: cost.host.filter, count: cost.host.count });

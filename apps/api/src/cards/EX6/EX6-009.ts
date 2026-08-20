@@ -16,7 +16,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - target: fromSelectionRef "placementTarget" — the GainKeyword applies to the SAME
 //     Digimon the card was just placed under, not an independently chosen/unrestricted one.
 // All other clauses are the unchanged declarative effect record.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Main",

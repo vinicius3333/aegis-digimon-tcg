@@ -13,7 +13,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Fixes:
 //   - Add the missing WhenAttacking inherited AddDPFromSuspendedCost effect (main finding)
 //   - Preserve the existing EndOfAttack inherited effect (it was correct)
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "WhenAttacking",

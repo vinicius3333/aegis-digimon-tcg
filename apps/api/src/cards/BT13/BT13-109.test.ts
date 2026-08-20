@@ -82,7 +82,7 @@ describe("BT13-109 [Main] digivolve into [Belphemon: Sleep Mode] from trash", ()
       {
         0: {
           battleArea: [
-            { card: "AD1-001", dp: 2000, as: "base" }, // owner's Digimon to digivolve
+            { card: "BT13-091", dp: 12000, as: "base" }, // legal [Belphemon: Rage Mode] base
             { card: "BT10-079", dp: 3000 }, // §4-21 color-requirement source (Purple)
           ],
           trash: [{ card: "BT13-088", as: "belpheInTrash" }], // nameEn "Belphemon: Sleep Mode"

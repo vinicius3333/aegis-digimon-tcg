@@ -5,7 +5,7 @@ import type { CardDefinition } from "./types.js";
 export const tokenDefinitions: readonly CardDefinition[] = [
   tok("Diaboromon", { level: 6, dp: 3000, playCost: 14, colors: [CardColor.White], types: ["Unknown", "Unidentified"] }),
   tok("Diaboromon Token", { level: 6, dp: 3000, playCost: 14, colors: [CardColor.White], types: ["Unknown", "Unidentified"] }),
-  tok("Familiar Token", { level: 3, dp: 1000, playCost: 0, colors: [CardColor.Purple] }),
+  tok("Familiar Token", { level: 3, dp: 3000, playCost: 0, colors: [CardColor.Yellow] }),
   tok("SelfDeleteFamiliar Token", { level: 3, dp: 1000, playCost: 0, colors: [CardColor.Purple] }),
   tok("Amon Token", { level: 6, dp: 11000, playCost: 11, colors: [CardColor.Purple] }),
   tok("Umon Token", { level: 6, dp: 11000, playCost: 11, colors: [CardColor.Purple] }),
@@ -48,6 +48,7 @@ export function resolveTokenCardId(tokenName: string): string | undefined {
   const slug = tokenName.replace(/\s+/g, "-");
   const direct = `TOKEN-${slug}`;
   if (tokenDefinitions.some((t) => t.cardId === direct)) return direct;
+  if (tokenName.toLowerCase() === "familiar") return "TOKEN-Familiar-Token";
   return tokenDefinitions.find((t) => t.nameEn.toLowerCase() === tokenName.toLowerCase())?.cardId;
 }
 

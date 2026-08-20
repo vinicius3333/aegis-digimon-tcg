@@ -21,6 +21,7 @@ const compiled: CompiledCard = {
             "target": {
               "filter": {
                 "controller": "mine",
+                "zone": "hand",
                 "kind": [
                   "Digimon"
                 ],
@@ -52,3 +53,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT18-004", compiled);
+export { compiled };

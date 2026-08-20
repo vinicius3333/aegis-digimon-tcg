@@ -21,7 +21,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 2. The trash target must restrict to kind:['Option'] cards in opponent's hand.
 // 3. GainMemory must be scoped: if opponent did not trash, you gain 2 memory. Encoded as a
 //    conditional action via ifThisEffectDidNotAct (reads the prior Trash's lastEffectActed).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",

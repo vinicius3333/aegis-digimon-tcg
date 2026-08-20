@@ -1,4 +1,4 @@
-import { isCardInActivePool, requireCardDefinition, CardKind, type CardColor } from "@aegis/shared";
+import { requireCardDefinition, CardKind, type CardColor } from "@aegis/shared";
 
 /**
  * Two legal-shaped, color-coherent test decks so a match can actually be dealt and
@@ -185,36 +185,180 @@ export const TEST_DECKS: readonly Decklist[] = [RED_DECK, BLUE_DECK];
 // egg deck. Each list is exactly 50 main + 4 eggs and validated at module load.
 
 const BOT_DECK_1: Decklist = fromFlat([
-  "BT15-006","BT15-006","BT15-006","BT15-006","BT3-077","BT3-077","EX10-040","EX10-040","EX10-040","EX10-040","EX9-058","BT16-082","BT16-082","BT19-069","BT19-069","BT18-013","BT19-070","BT19-070","BT19-070","BT18-015","BT18-015","BT18-015","BT18-073","BT18-073","BT18-073","BT19-065","BT19-065","BT19-065","BT19-075","BT19-075","BT19-075","BT18-019","BT18-019","BT18-019","BT18-019","P-220","P-220","P-220","P-220","BT19-101","EX11-055","EX11-055","EX11-055","EX11-055","EX1-066","EX1-066","EX1-066","EX1-066","P-193","P-193","P-193","P-193","P-205","P-205",
+  "BT15-006",
+  "BT15-006",
+  "BT15-006",
+  "BT15-006",
+  "BT3-077",
+  "BT3-077",
+  "EX10-040",
+  "EX10-040",
+  "EX10-040",
+  "EX10-040",
+  "EX9-058",
+  "BT16-082",
+  "BT16-082",
+  "BT19-069",
+  "BT19-069",
+  "BT18-013",
+  "BT19-070",
+  "BT19-070",
+  "BT19-070",
+  "BT18-015",
+  "BT18-015",
+  "BT18-015",
+  "BT18-073",
+  "BT18-073",
+  "BT18-073",
+  "BT19-065",
+  "BT19-065",
+  "BT19-065",
+  "BT19-075",
+  "BT19-075",
+  "BT19-075",
+  "BT18-019",
+  "BT18-019",
+  "BT18-019",
+  "BT18-019",
+  "P-220",
+  "P-220",
+  "P-220",
+  "P-220",
+  "BT19-101",
+  "EX11-055",
+  "EX11-055",
+  "EX11-055",
+  "EX11-055",
+  "EX1-066",
+  "EX1-066",
+  "EX1-066",
+  "EX1-066",
+  "P-193",
+  "P-193",
+  "P-193",
+  "P-193",
+  "P-205",
+  "P-205",
 ]);
 
 const BOT_DECK_2: Decklist = fromFlat([
-  "BT21-001","BT21-001","BT21-001","BT21-001","BT21-008","BT21-008","BT21-008","BT21-008","BT24-008","BT24-008","BT24-008","EX11-008","EX11-008","EX11-008","BT21-017","BT21-017","BT21-017","BT21-017","BT24-011","BT24-011","P-189","P-189","P-189","BT21-024","BT21-025","BT24-016","BT24-016","BT24-016","BT24-016","BT24-017","EX11-012","EX11-012","EX11-012","EX11-012","BT24-018","BT24-018","BT24-018","BT21-081","BT21-081","BT24-082","BT24-082","EX11-054","LM-055","BT21-093","BT21-093","BT8-097","BT8-097","LM-027","LM-027","P-035","P-035","P-103","P-103","P-103",
+  "BT21-001",
+  "BT21-001",
+  "BT21-001",
+  "BT21-001",
+  "BT21-008",
+  "BT21-008",
+  "BT21-008",
+  "BT21-008",
+  "BT24-008",
+  "BT24-008",
+  "BT24-008",
+  "EX11-008",
+  "EX11-008",
+  "EX11-008",
+  "BT21-017",
+  "BT21-017",
+  "BT21-017",
+  "BT21-017",
+  "BT24-011",
+  "BT24-011",
+  "P-189",
+  "P-189",
+  "P-189",
+  "BT21-024",
+  "BT21-025",
+  "BT24-016",
+  "BT24-016",
+  "BT24-016",
+  "BT24-016",
+  "BT24-017",
+  "EX11-012",
+  "EX11-012",
+  "EX11-012",
+  "EX11-012",
+  "BT24-018",
+  "BT24-018",
+  "BT24-018",
+  "BT21-081",
+  "BT21-081",
+  "BT24-082",
+  "BT24-082",
+  "EX11-054",
+  "LM-055",
+  "BT21-093",
+  "BT21-093",
+  "BT8-097",
+  "BT8-097",
+  "LM-027",
+  "LM-027",
+  "P-035",
+  "P-035",
+  "P-103",
+  "P-103",
+  "P-103",
 ]);
 
 const BOT_DECK_3: Decklist = fromFlat([
-  "BT10-003","BT10-003","BT10-003","BT10-003","BT19-057","BT19-057","BT19-057","BT19-057","BT19-008","BT19-008","BT19-008","BT19-008","BT10-029","BT10-029","BT19-061","BT19-061","BT19-061","BT19-061","BT19-035","BT19-035","BT19-051","BT19-051","BT19-051","BT21-021","BT21-021","BT21-021","BT21-021","BT19-038","BT19-038","BT19-038","AD1-013","AD1-013","AD1-013","AD1-006","AD1-006","AD1-006","AD1-006","BT19-014","BT19-014","P-224","P-224","P-224","BT10-087","BT10-087","BT10-087","BT10-087","BT19-079","BT11-095","BT21-083","BT21-083","BT21-083","BT21-083","BT8-095","BT8-095",
+  "BT10-003",
+  "BT10-003",
+  "BT10-003",
+  "BT10-003",
+  "BT19-057",
+  "BT19-057",
+  "BT19-057",
+  "BT19-057",
+  "BT19-008",
+  "BT19-008",
+  "BT19-008",
+  "BT19-008",
+  "BT10-029",
+  "BT10-029",
+  "BT19-061",
+  "BT19-061",
+  "BT19-061",
+  "BT19-061",
+  "BT19-035",
+  "BT19-035",
+  "BT19-051",
+  "BT19-051",
+  "BT19-051",
+  "BT21-021",
+  "BT21-021",
+  "BT21-021",
+  "BT21-021",
+  "BT19-038",
+  "BT19-038",
+  "BT19-038",
+  "AD1-013",
+  "AD1-013",
+  "AD1-013",
+  "AD1-006",
+  "AD1-006",
+  "AD1-006",
+  "AD1-006",
+  "BT19-014",
+  "BT19-014",
+  "P-224",
+  "P-224",
+  "P-224",
+  "BT10-087",
+  "BT10-087",
+  "BT10-087",
+  "BT10-087",
+  "BT19-079",
+  "BT11-095",
+  "BT21-083",
+  "BT21-083",
+  "BT21-083",
+  "BT21-083",
+  "BT8-095",
+  "BT8-095",
 ]);
 
-/** The curated bot lists, before the active card pool is applied. */
-const CURATED_BOT_DECKS: readonly Decklist[] = [BOT_DECK_1, BOT_DECK_2, BOT_DECK_3];
+/** Decks the bot draws from at random when it joins a match. */
+export const BOT_DECKS: readonly Decklist[] = [BOT_DECK_1, BOT_DECK_2, BOT_DECK_3];
 
-for (const deck of CURATED_BOT_DECKS) assertLegalDeck(deck);
-
-const isInActivePool = (deck: Decklist): boolean =>
-  [...deck.mainDeck, ...deck.eggDeck].every((cardId) => isCardInActivePool(requireCardDefinition(cardId)));
-
-/**
- * Decks the bot draws from at random when it joins a match.
- *
- * The curated lists above are modern and every one of them currently sits past the active
- * card-pool cutoff, so the bot would deal itself a deck the server then rejects. Filtering
- * here keeps the bot inside the same pool a human is held to, and the lists come back on
- * their own as the cutoff advances — no second place to edit.
- */
-export const BOT_DECKS: readonly Decklist[] = CURATED_BOT_DECKS.some(isInActivePool)
-  ? CURATED_BOT_DECKS.filter(isInActivePool)
-  : TEST_DECKS;
+for (const deck of BOT_DECKS) assertLegalDeck(deck);
 
 /** Pick one of the {@link BOT_DECKS} at random for the bot to play. */
 export function randomBotDeck(): Decklist {

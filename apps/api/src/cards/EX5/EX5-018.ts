@@ -9,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 2. [AllTurns] Replacement cost target: excludeKind:["DigiEgg"] (non-Digi-Egg cards), to: "deckBottom".
 // 3. Replacement outcome: "preventDeletion" (the actions[] field is replaced by outcome).
 // Q&A Q3562: cannot pay the cost and then allow deletion — must prevent if cost is paid.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "WhenDigivolving",

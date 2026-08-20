@@ -27,6 +27,7 @@ const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "whenSecurityRemoved",
+          "fireCondition": {"kind": "triggerRemovedSecuritySeat", "seat": "opponent"},
           "actions": [
             {
               "kind": "Delete",
@@ -84,3 +85,4 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT18-087", compiled);
+export { compiled };

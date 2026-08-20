@@ -429,13 +429,14 @@
     },
     {
       "id": "ex3-dgo-2022-12-10-1-security-control",
-      "revision": 1,
+      "revision": 2,
       "name": "EX3 Security Control",
       "archetype": "Security Control",
       "collection": "EX3",
       "formatBlock": "EX3",
       "colors": ["Yellow", "Purple"],
       "sourceType": "community_tournament_deck",
+      "approximation": "Adapted to the current banlist: Matt Ishida BT2-090 to 0; the freed copies reinforce BushiAgumon BT4-038 to 4.",
       "tournament": {
         "name": "2022 Regionals",
         "date": "2022-12-10",
@@ -453,7 +454,7 @@
         {
           "cardId": "BT4-038",
           "name": "BushiAgumon",
-          "qty": 3,
+          "qty": 4,
           "type": "Digimon"
         },
         {
@@ -473,12 +474,6 @@
           "name": "DeathXmon",
           "qty": 2,
           "type": "Digimon"
-        },
-        {
-          "cardId": "BT2-090",
-          "name": "Matt Ishida",
-          "qty": 1,
-          "type": "Tamer"
         },
         {
           "cardId": "BT3-096",

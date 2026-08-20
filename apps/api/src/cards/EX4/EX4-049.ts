@@ -74,6 +74,8 @@ const module: EffectModule = {
                 });
                 if (pick.length === 0) break;
                 chosen.push(pick[0]!);
+                const pickedIndex = avail.findIndex((candidate) => candidate.id === pick[0]);
+                if (pickedIndex >= 0) avail.splice(pickedIndex, 1);
               }
               if (chosen.length > 0) {
                 await ctx.fx.returnToDeck(chosen, { toTop: false });
