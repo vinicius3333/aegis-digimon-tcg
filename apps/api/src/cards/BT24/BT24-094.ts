@@ -4,7 +4,7 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { activated, colorWaiverStatic, securityStatic } from "../../engine/effects/builders.js";
+import { activated, colorWaiverStatic, security, securityStatic } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "BT24-094";
@@ -30,6 +30,14 @@ function eligibleTargets(ctx: EffectContext, source: CardSource): Permanent[] {
 
 function eligibleHand(ctx: EffectContext, source: CardSource): CardInstance[] {
   return ctx.game.player(source.ownerSeat).hand.filter((card) => hasTsColor(ctx.game.definitionOf(card)));
+}
+
+function eligibleSecurityPlay(ctx: EffectContext, source: CardSource): CardInstance[] {
+  const owner = ctx.game.player(source.ownerSeat);
+  return [...owner.hand, ...owner.trash].filter((card) => {
+    const def = ctx.game.definitionOf(card);
+    return hasTsColor(def) && (def.level ?? Number.POSITIVE_INFINITY) <= 4;
+  });
 }
 
 function hasNamedDigimon(ctx: EffectContext, source: CardSource): boolean {
@@ -91,6 +99,28 @@ const module: EffectModule = {
               max: 1,
             });
             if (selected.length > 0) await ctx.fx.playInstances(selected, { payCost: true, costDelta: 3 });
+          },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.SecuritySkill) {
+      return [
+        security({
+          source,
+          effectKey: `${cardId}/security-play-level-4-ts`,
+          description:
+            "[Security] You may play 1 level 4 or lower green or yellow [TS] Digimon from hand or trash free.",
+          optional: false,
+          resolve: async (ctx) => {
+            const candidates = eligibleSecurityPlay(ctx, source);
+            if (candidates.length === 0) return;
+            const selected = await ctx.ask.selectCards(ctx, {
+              candidates: candidates.map((card) => card.instanceId),
+              min: 0,
+              max: 1,
+            });
+            if (selected.length > 0) await ctx.fx.playInstances(selected, { payCost: false });
           },
         }),
       ];
