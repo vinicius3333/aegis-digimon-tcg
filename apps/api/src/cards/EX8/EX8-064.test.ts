@@ -9,6 +9,6 @@ describe("EX8-064", () => {
   });
   it("plays NSo cards from trash up to total play cost 10 during DNA digivolving and inherits security trash after another Digimon is deleted", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions[2]).toMatchObject({ kind: "PlayWithoutCost", from: ["trash"], target: { totalPlayCost: 10 }, condition: { kind: "isDnaDigivolving" } });
-    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "onDeletionOf", actions: [{ kind: "Trash" }] }] });
+    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "onDeletionOf", sourceFilter: { controllerDefault: "both", excludeSelf: true }, actions: [{ kind: "Trash" }] }] });
   });
 });

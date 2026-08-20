@@ -22,7 +22,8 @@ export const compiled: CompiledCard = {
           "condition": {
             "kind": "youHaveNone",
             "filter": {
-              "controllerDefault": "mine"
+              "controllerDefault": "mine",
+              "faceUp": true
             },
             "raw": "you have no face-up security cards"
           }
