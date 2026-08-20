@@ -10,7 +10,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // keyword is on the triggered sub-effect (arms a next-main-phase Link).
 // The Link action targets 1 [Appmon] from trash onto the Digimon whose link card was trashed
 // (sourceRef — the Digimon that triggered the event).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
