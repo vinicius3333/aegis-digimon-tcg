@@ -1,9 +1,40 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT23-081.js";
 
+function fireOnPlay(s: ReturnType<typeof setupEngine>): Promise<void> {
+  return (
+    s.engine as unknown as {
+      fireTiming(timing: EffectTiming, trigger: Record<string, unknown>): Promise<void>;
+    }
+  ).fireTiming(EffectTiming.OnPlay, { subjectPermanentId: s.perm("chitose").permanentId });
+}
+
 describe("BT23-081 Chitose Imai", () => {
+  it("plays exactly a cost-5-or-lower Hudie Digimon from a mixed hand without paying", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-081", as: "chitose" }],
+          hand: [
+            { card: "BT23-017", as: "hudie" },
+            { card: "BT1-009", as: "plain" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const hudieId = s.inst("hudie").instanceId;
+    const plainId = s.inst("plain").instanceId;
+
+    await fireOnPlay(s);
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === hudieId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === plainId)).toBe(true);
+  });
+
   it("plays a Hudie Digimon with play cost 5 or less on play", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "OnPlay") as any;
     expect(effect.actions[0]).toMatchObject({
