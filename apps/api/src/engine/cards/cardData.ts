@@ -55,6 +55,7 @@ export function intrinsicDigivolutionCostReduction(
     evolving.cardId,
     base.stack.map((card) => card.cardId),
     base.topCard?.cardId,
+    base.stack.filter((card) => !card.faceUp).length,
   );
 }
 

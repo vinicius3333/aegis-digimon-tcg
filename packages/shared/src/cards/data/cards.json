@@ -53953,7 +53953,8 @@
     "maxCountInDeck": 4,
     "imageId": "BT22-058",
     "linkDp": 3000,
-    "linkEffect": "[When Linking] ＜De-Digivolve 1＞ 1 of your opponent's Digimon."
+    "linkEffect": "[When Linking] ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
+    "linkRequirement": "[Link] [Appmon] trait: Cost 2"
   },
   {
     "cardId": "BT22-059",

@@ -29,7 +29,11 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action): 
         }
         return false;
       }
-      const restriction = action.restriction as Restriction;
+      // Card IR spells this immunity using the printed-action vocabulary, while the engine's
+      // legality layer consumes the normalized `beReturned` restriction for both hand and deck.
+      const restriction = (action.restriction === "returnToHandOrDeck"
+        ? "beReturned"
+        : action.restriction) as Restriction;
       // A deprecated kind has no consumer, so recording it would be a silent no-op. Drop it
       // here instead: `restrict()` no longer accepts one, and the ~32 IR records still
       // carrying `activateEffects` are superseded by the disableSecurityEffect /

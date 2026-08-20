@@ -77,7 +77,19 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const n = cost.target.count === "all" ? available : cost.target.count;
     return n > 0 && available >= n;
   }
-  if (cost.kind === "trash" && cost.target?.filter.zone === "digivolutionCards") {
+  if (
+    cost.kind === "trash" &&
+    (cost.target?.filter.zone === "digivolutionCards" ||
+      (cost.target?.filter.isSelfRef === true &&
+        (cost.target.filter.faceDown !== undefined || cost.target.filter.position !== undefined)))
+  ) {
+    if (cost.target.filter.isSelfRef === true) {
+      const self = ctx.source.permanent();
+      if (self === undefined) return false;
+      const candidates = self.stack.filter((card) => cost.target!.filter.faceDown !== true || !card.faceUp);
+      const required = cost.target.count === "all" ? candidates.length : cost.target.count;
+      return required > 0 && candidates.length >= required;
+    }
     const candidates = candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
     const required = cost.target.count === "all" ? candidates.length : cost.target.count;
     if (required <= 0) return false;
@@ -347,6 +359,8 @@ export async function payCost(
       const trashStackZone = cost.target.filter.zone;
       const trashesStackCards =
         trashStackZone === "digivolutionCards" ||
+        (cost.target.filter.isSelfRef === true &&
+          (cost.target.filter.faceDown !== undefined || cost.target.filter.position !== undefined)) ||
         cost.target.from?.includes("digivolutionCards") === true ||
         trashStackZone === "underMyTamers" ||
         trashStackZone === "underTamers" ||
@@ -421,6 +435,7 @@ export async function payCost(
           const n = cost.target.count === "all" ? host.stack.length : cost.target.count;
           if (n <= 0) return false;
           let eligible: LooseCandidate[] = Array.from(host.stack)
+            .filter((card) => cost.target!.filter.faceDown !== true || !card.faceUp)
             .filter((card) => definitionMatches(cost.target!.filter, ctx.game.definitionOf(card)))
             .filter((card) => ctx.fx.canTrashDigivolutionCard?.(card.instanceId) !== false)
             .map((card) => ({

@@ -583,6 +583,14 @@ export class GameEngine {
       fireTiming: (timing, trigger) => this.fireTiming(timing, trigger),
       fireSubTrigger: (event, payload) => this.fireSubTrigger(event, payload),
       recomputeContinuousEffects: () => this.recomputeContinuousEffects(),
+      fireWhenLinking: async (instanceIds, targetPermanentId) => {
+        for (const instanceId of instanceIds) {
+          await this.fireTimingForInstance(EffectTiming.OnLinking, instanceId, {
+            subjectPermanentId: targetPermanentId,
+            linkedInstanceIds: instanceIds,
+          });
+        }
+      },
       resolveSelfWhenTrashedFromDeck: async (instanceId) => {
         const instance = this.findLooseInstance(instanceId);
         if (instance === undefined) return;

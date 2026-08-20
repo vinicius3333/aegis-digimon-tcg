@@ -138,6 +138,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
             description: describeEffect(effect),
             optional: true,
             isInherited: effect.isInherited ?? false,
+            isLinked: effect.isLinked ?? false,
             isFromTrash: effect.isFromTrash,
             isFromHand: effect.isFromHand,
             maxPerTurn: effect.frequency === "OncePerTurn" ? 1 : -1,
@@ -191,6 +192,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
             description: describeEffect(effect),
             optional: effect.optional ?? false,
             isInherited: effect.isInherited ?? false,
+            isLinked: effect.isLinked ?? false,
             isFromTrash: effect.isFromTrash,
             isFromHand: effect.isFromHand,
             maxPerTurn: effect.frequency === "OncePerTurn" ? 1 : effect.frequency === "TwicePerTurn" ? 2 : -1,
@@ -227,13 +229,16 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
           description: describeEffect(effect),
           optional: effect.optional ?? false,
           isInherited: effect.isInherited ?? false,
+          isLinked: effect.isLinked ?? false,
           isFromTrash: effect.isFromTrash,
           isFromHand: effect.isFromHand,
           continuousPriority: readsSelfKeyword(effect) ? 1 : 0,
           // isSecurity is set by the `security` builder itself, not via options.
           maxPerTurn: effect.frequency === "OncePerTurn" ? 1 : effect.frequency === "TwicePerTurn" ? 2 : -1,
           when: turnOwnerGuard(effect.trigger),
-          canActivate: (ctx) => canActivateEffect(ctx, effect),
+          canActivate: (ctx) =>
+            (effect.trigger !== "WhenLinking" || ctx.trigger.linkedInstanceIds?.includes(source.instanceId) === true) &&
+            canActivateEffect(ctx, effect),
           resolve: async (ctx) => {
             await runEffect(ctx, resolvedEffect);
           },

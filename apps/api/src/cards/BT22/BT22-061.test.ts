@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-061.js";
 
 describe("BT22-061 Vademon", () => {
@@ -31,5 +32,63 @@ describe("BT22-061 Vademon", () => {
         },
       });
     }
+  });
+
+  it("redirects an opponent's attack to its host once per turn", () => {
+    expect(compiled.effects.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "OpponentsTurn",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
+            {
+              kind: "RedirectAttack",
+              optional: true,
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  it("stacks face-down reductions, then De-Digivolves, pays the bottom source, and returns", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT22-049",
+              as: "vegiemon",
+              under: [
+                { card: "BT1-001", faceUp: false },
+                { card: "BT1-002", faceUp: false },
+              ],
+            },
+          ],
+          hand: [{ card: "BT22-061", as: "vademon" }],
+        },
+        1: { battleArea: [{ card: "BT22-071", as: "target", under: ["BT1-009"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const targetTopId = s.perm("target").topCard!.instanceId;
+    s.state.memory = 1;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("vegiemon").permanentId,
+        instanceId: s.inst("vademon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.cardId === "BT1-009"));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetTopId)).toBe(true);
+    expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
+    expect(s.state.players[0]!.trash.filter((card) => card.cardId.startsWith("BT1-00"))).toHaveLength(1);
   });
 });

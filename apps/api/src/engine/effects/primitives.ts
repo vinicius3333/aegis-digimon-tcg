@@ -132,6 +132,8 @@ export interface PrimitivesEngine {
   ) => Promise<void>;
   /** Reinstall continuous effects after a permanent enters play, before its entry timing. */
   recomputeContinuousEffects?: () => Promise<void>;
+  /** Resolve each newly linked physical card's own [When Linking] window. */
+  fireWhenLinking?: (instanceIds: string[], targetPermanentId: string) => Promise<void>;
   /** Resolve the trashed card's own deck-trash trigger without requiring a field watcher. */
   resolveSelfWhenTrashedFromDeck?: (instanceId: string) => Promise<void>;
   /** Memory rewards printed on materials that successfully participate in a DNA digivolution. */
@@ -1623,6 +1625,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         from: "various",
         to: Zone.BattleArea,
       });
+      // Linked-card effects belong to the physical cards that just became links, not to every
+      // card already linked to the recipient. Publish their exact instance ids as the gate.
+      await engine.fireWhenLinking?.(
+        linked.map((card) => card.instanceId),
+        targetPermanentId,
+      );
       // SubTrigger bus: "when this Digimon gets linked" / "when a card is linked to this
       // Digimon" watchers. The recipient permanent (which gained the link) is the subject.
       await engine.fireSubTrigger?.("whenLinked", { subjectPermanentId: targetPermanentId });

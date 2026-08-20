@@ -16,6 +16,9 @@ export interface BoardPredicates {
   /** Position within the zone stack; only meaningful for `zone: "security"`, where `"top"` is
    * the card checked next (index 0). Without it, any security card qualifies (BT19-029, BT20-080). */
   position?: "top" | "bottom";
+  /** Loose stacked/security card must currently be face up/down. */
+  faceUp?: boolean;
+  faceDown?: boolean;
   /**
    * Digivolution-stack loose candidates within the BOTTOM N positions (EX9-073), rather than
    * the single card `position: "bottom"` selects.

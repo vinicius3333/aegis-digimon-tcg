@@ -19,6 +19,8 @@ export interface CardEffect {
   description?: string;
   /** From the inheritedEffectText field (ESS). */
   isInherited?: boolean;
+  /** From the linked card's lower link-effect box. */
+  isLinked?: boolean;
   /** From the securityEffectText field. */
   isSecurity?: boolean;
   /**

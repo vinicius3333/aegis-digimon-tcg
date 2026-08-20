@@ -124,6 +124,8 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
       // moved." — the engine's own OnMove window (GameEngine fires it exactly at the
       // breeding <-> battle move point), not the continuous/static bucket.
       return EffectTiming.OnMove;
+    case "WhenLinking":
+      return EffectTiming.OnLinking;
     case "AllTurns":
     case "YourTurn":
     case "OpponentsTurn":
