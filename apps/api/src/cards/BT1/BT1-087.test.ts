@@ -6,6 +6,16 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT1-087.js";
 
 describe("BT1-087 T.K. Takaishi", () => {
+  it("rejects play when memory is below the cost floor", () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT1-087", as: "takeru" }] } });
+    s.state.memory = -10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("takeru").instanceId })).toEqual({
+      ok: false,
+      reason: "insufficient-memory",
+    });
+  });
+
   it("sets memory to 3 at the start of its owner's turn when memory is 2 or less", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT1-087", as: "takeru" }] } });
     s.state.memory = 2;
