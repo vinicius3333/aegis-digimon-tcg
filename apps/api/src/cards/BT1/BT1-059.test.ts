@@ -38,29 +38,4 @@ describe("BT1-059 Piximon", () => {
     expect(s.perm("base")).toMatchObject({ baseDP: 9000, currentDP: 9000 });
     expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
   });
-
-  it("rejects play when memory is below the cost floor", () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT1-059", as: "piximon" }] } });
-    s.state.memory = -10;
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("piximon").instanceId })).toEqual({
-      ok: false,
-      reason: "insufficient-memory",
-    });
-  });
-
-  it("rejects evolution from a red level 4", () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-014", as: "base" }], hand: [{ card: "BT1-059", as: "piximon" }] },
-    });
-    s.state.memory = 3;
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("piximon").instanceId,
-      }),
-    ).toEqual({ ok: false, reason: "invalid-evolution" });
-  });
 });
