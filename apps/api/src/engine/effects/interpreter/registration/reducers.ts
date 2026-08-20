@@ -74,6 +74,8 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT9-112", // scaling: -3 per opponent Digimon/Tamer in play (KB Q1928)
   "BT10-098", // condition: opponent has 2+ Digimon -> Option use cost -2
   "BT10-103", // condition: you have 2+ suspended green Digimon -> Option use cost -2
+  "BT23-034", // condition: you have a Zaxon Tamer -> self play cost -5
+  "BT23-036", // condition: opponent has a 10000+ DP Digimon -> self play cost -5
   "BT8-097", // scaling: Option use cost -1 per opposing Digimon (floor applied by play path)
 ]);
 
