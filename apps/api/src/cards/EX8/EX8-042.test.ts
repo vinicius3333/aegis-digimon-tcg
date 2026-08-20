@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { requireCardDefinition, PlayerState } from "@aegis/shared";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import "../index.js";
 import { compiled } from "./EX8-042.js";
 
 describe("EX8-042", () => {
@@ -7,4 +11,11 @@ describe("EX8-042", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns" && !entry.isInherited)?.actions[0]).toMatchObject({ kind: "Aura", effect: { kind: "modifyDP", amount: 3000 }, while: { kind: "selfIsSuspended" } });
   });
   it("inherits once-per-turn security trash after deleting in battle", () => expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenDeletesInBattle", actions: [{ kind: "SecurityManipulation", op: "trashTop", amount: 1 }] }] }));
+
+  it("applies the suspended +3000 DP aura in a live game", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX8-042", as: "mega", suspended: true }] } });
+    const player = s.state.players[0] as PlayerState;
+    await advance(s.engine).recompute();
+    expect(player.battleArea[0]!.currentDP).toBe(requireCardDefinition("EX8-042").dp! + 3000);
+  });
 });
