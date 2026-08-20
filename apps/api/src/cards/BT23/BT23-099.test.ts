@@ -9,13 +9,20 @@ describe("BT23-099 Sistermon Sisters Training Gym", () => {
     expect(main.actions).toMatchObject([{ kind: "Draw", amount: 1 }, { kind: "PlaceInBattleAreaSelf" }]);
   });
 
-  it("arms Delay on Huckmon/Jesmon digivolution and has the printed Sistermon play payload", () => {
+  it("activates Delay on Huckmon/Jesmon digivolution with the printed Sistermon play payload", () => {
     const arm = compiled.effects.find((effect) => effect.trigger === "YourTurn") as any;
     expect(arm.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenOneOfYoursDigivolves" });
-    expect(arm.actions[0].actions[0]).toMatchObject({ kind: "GainKeyword", keyword: { keyword: "Delay" } });
-    const delay = compiled.effects.find((effect) =>
-      effect.keywords?.some((keyword) => keyword.keyword === "Delay"),
-    ) as any;
-    expect(delay.actions[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["hand", "trash"], optional: true });
+    expect(arm.keywords).toEqual([{ keyword: "Delay", raw: "＜Delay＞" }]);
+    expect(arm.actions[0].actions[0]).toMatchObject({
+      kind: "PlayWithoutCost",
+      from: ["hand", "trash"],
+      optional: true,
+    });
+  });
+
+  it("keeps the Security play optional but places the option in battle mandatorily", () => {
+    const security = compiled.effects.find((effect) => effect.trigger === "Security") as any;
+    expect(security.actions[0]).toMatchObject({ kind: "PlayWithoutCost", optional: true });
+    expect(security.actions[1]).toEqual({ kind: "PlaceInBattleAreaSelf" });
   });
 });

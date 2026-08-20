@@ -47,56 +47,31 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "GainKeyword",
+              kind: "Digivolve",
               target: {
                 filter: {
-                  isSelfRef: true,
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Ghost"], match: "trait" }],
                 },
                 count: 1,
-                isSelf: true,
               },
-              keyword: {
-                keyword: "Delay",
-                raw: "＜Delay＞",
-                option: {
-                  kind: "Digivolve",
-                  target: {
-                    filter: {
-                      controller: "mine",
-                      kind: ["Digimon"],
-                      nameOrTrait: [
-                        {
-                          tokens: ["Ghost"],
-                          match: "trait",
-                        },
-                      ],
-                    },
-                    count: 1,
-                  },
-                  into: {
-                    controllerDefault: "mine",
-                    kind: ["Digimon"],
-                    allNameOrTraits: [
-                      {
-                        tokens: ["Ghost"],
-                        match: "trait",
-                      },
-                      {
-                        tokens: ["LIBERATOR"],
-                        match: "trait",
-                      },
-                    ],
-                  },
-                  from: ["hand"],
-                  reduceCost: 3,
-                  optional: true,
-                },
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                allNameOrTraits: [
+                  { tokens: ["Ghost"], match: "trait" },
+                  { tokens: ["LIBERATOR"], match: "trait" },
+                ],
               },
-              duration: "untilUsed",
+              from: ["hand"],
+              reduceCost: 3,
+              optional: true,
             },
           ],
         },
       ],
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
     },
     {
       trigger: "Security",

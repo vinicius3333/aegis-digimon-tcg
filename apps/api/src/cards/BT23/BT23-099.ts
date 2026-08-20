@@ -7,8 +7,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // breeding area per KB Q5387), ignore this card's color requirements.
 // [Main] <Draw 1> then place this card in the battle area.
 // [Your Turn] When any of your Digimon digivolve into a Digimon with [Huckmon] or
-// [Jesmon] in its name, this card gains <Delay>. The delay payload: play 1 [Sistermon]
-// card from hand or trash without cost.
+// [Jesmon] in its name, activate <Delay> to play 1 [Sistermon] card from hand or
+// trash without cost.
 // [Security] play 1 [Sistermon] from hand or trash without cost; you may place this
 // card in the battle area.
 export const compiled: CompiledCard = {
@@ -65,47 +65,23 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
-              kind: "GainKeyword",
+              kind: "PlayWithoutCost",
               target: {
-                filter: { isSelfRef: true },
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [{ tokens: ["Sistermon"], match: "name" }],
+                },
                 count: 1,
-                isSelf: true,
               },
-              keyword: {
-                keyword: "Delay",
-                raw: "＜Delay＞",
-              },
-              duration: "permanent",
+              from: ["hand", "trash"],
+              payCost: false,
+              optional: true,
             },
           ],
-          raw: "When any of your Digimon digivolve into a Digimon with [Huckmon] or [Jesmon] in its name, this card gains ＜Delay＞",
+          raw: "When any of your Digimon digivolve into a Digimon with [Huckmon] or [Jesmon] in its name, ＜Delay＞",
         },
       ],
-    },
-    {
-      // <Delay> payload: can be activated (trashing this card) on a subsequent turn.
-      trigger: "Main",
-      actions: [
-        {
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              nameOrTrait: [{ tokens: ["Sistermon"], match: "name" }],
-            },
-            count: 1,
-          },
-          from: ["hand", "trash"],
-          payCost: false,
-          optional: true,
-        },
-      ],
-      keywords: [
-        {
-          keyword: "Delay",
-          raw: "＜Delay＞",
-        },
-      ],
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
     },
     {
       trigger: "Security",

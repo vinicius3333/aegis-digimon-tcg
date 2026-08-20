@@ -6,9 +6,15 @@ describe("BT23-097 Seventh Penetration", () => {
     const trigger = compiled.effects.find((effect) => effect.trigger === "YourTurn") as any;
     const action = trigger.actions[0].actions[0];
     expect(action).toMatchObject({ kind: "ActivateMain", optional: true, cost: { kind: "return", to: "deckBottom" } });
+    expect(trigger.isFromTrash).toBe(true);
     expect(trigger.actions[0].sourceFilter.nameOrTrait).toEqual([
       { tokens: ["Belphemon (X Antibody)"], match: "name" },
     ]);
+  });
+
+  it("routes Security through Main without changing its dynamic hand-size boundary", () => {
+    const security = compiled.effects.find((effect) => effect.trigger === "Security") as any;
+    expect(security.actions).toEqual([{ kind: "ActivateMain" }]);
   });
 
   it("scales the opponent level floor from the number of cards in hand", () => {
