@@ -328,4 +328,25 @@ describe("PermanentView activatable effects", () => {
 
     expect(onActivateEffect).toHaveBeenCalledWith("hercules-kabuterimon-top", "ST4-13/ir-27-0");
   });
+
+  it("keeps a touch on the effect button away from the permanent's own drag and tap", () => {
+    const onPointerDown = vi.fn<(event: React.PointerEvent) => void>();
+    render(
+      <I18nProvider>
+        <PermanentView
+          perm={memoryBoostWithDelay({ available: true })}
+          onActivateEffect={vi.fn<(instanceId: string, effectKey: string) => void>()}
+          onPointerDown={onPointerDown}
+        />
+      </I18nProvider>,
+    );
+
+    const effectButton = screen.getByRole("button", {
+      name: "Activate effect: [Main] <Delay> Gain 2 memory.",
+    });
+    fireEvent.pointerDown(effectButton, { pointerType: "touch", bubbles: true });
+    fireEvent.pointerUp(effectButton, { pointerType: "touch", bubbles: true });
+
+    expect(onPointerDown).not.toHaveBeenCalled();
+  });
 });

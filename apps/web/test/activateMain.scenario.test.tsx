@@ -116,9 +116,29 @@ scenario("activate-main", () => {
       fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
       await vi.waitFor(() => expect(opponent.room.state.players[0]!.battleArea.length).toBe(1), { timeout: 10_000 });
 
-      // Activate Meramon's [Main] ability: the "⚡ Main" affordance button the board
-      // renders on a permanent with an activatable effect (boardPieces.tsx).
-      fireEvent.click(await screen.findByRole("button", { name: /main/i }, { timeout: 10_000 }));
+      // Pass the turn so Meramon is attack-capable on the way back: only then does
+      // the board wire the permanent for a drag (attack) rather than a click, which
+      // is the arrangement the [Main] button has to survive on touch.
+      fireEvent.click(await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 }));
+      const thirdBreedingHeading = await screen.findByRole(
+        "heading",
+        { name: /breeding area/i },
+        { timeout: 10_000 },
+      );
+      fireEvent.click(within(thirdBreedingHeading.parentElement!).getByRole("button", { name: /^end phase$/i }));
+
+      // Activate Meramon's [Main] ability through the full touch sequence, on the
+      // "⚡ Main" affordance the board renders on a permanent with an activatable
+      // effect (boardPieces.tsx). An unsuspended Digimon starts an attack drag on
+      // pointerdown, and the matching pointerup taps it open: unless the button
+      // keeps the gesture to itself, the card menu swallows the activation and the
+      // button is dead on a phone.
+      const mainButton = await screen.findByRole("button", { name: /main/i }, { timeout: 10_000 });
+      fireEvent.pointerDown(mainButton, { pointerType: "touch", clientX: 100, clientY: 100 });
+      fireEvent.pointerUp(window, { clientX: 100, clientY: 100 });
+      // No card action menu: the tap never reached the permanent underneath.
+      expect(screen.queryByRole("button", { name: /view stack/i })).toBeNull();
+      fireEvent.click(mainButton);
 
       // The activation pays its "2 cost" and deletes the sole legal opponent Digimon
       // target: proven on the protagonist's own rendered DOM by the opponent's
