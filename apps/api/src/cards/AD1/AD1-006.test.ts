@@ -9,16 +9,22 @@ describe("AD1-006 Shoutmon X7", () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "AD1-006", as: "x7" }] },
-        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 13000 }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "target", dp: 13000 },
+            { card: "BT1-010", as: "over-ceiling", dp: 13001 },
+          ],
+        },
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 13;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("x7").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT1-010");
+    expect(s.state.players[1]!.battleArea[0]?.permanentId).toBe(s.perm("over-ceiling").permanentId);
   });
 
   it("rejects play when memory is below the printed cost", () => {
