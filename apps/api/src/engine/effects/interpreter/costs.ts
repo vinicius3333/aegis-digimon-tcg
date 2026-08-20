@@ -116,6 +116,10 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     return n <= memoryForSeat - MEMORY_MIN;
   }
   if (cost.kind === "place" && cost.target !== undefined) {
+    if (cost.destination === "digivolutionStack" && cost.target.from?.includes("deck")) {
+      const source = (ctx.trigger.attackerPermanentId !== undefined ? ctx.game.permanentById(ctx.trigger.attackerPermanentId) : undefined) ?? ctx.source.permanent() ?? ctx.game.player(ctx.source.ownerSeat).battleArea.find((p) => p.topCard?.instanceId === ctx.source.instanceId || p.permanentId === ctx.source.instanceId);
+      return ctx.game.player(ctx.source.ownerSeat).deck.length > 0 && source !== undefined;
+    }
     // Self-restack costs operate on the source permanent's own evolution stack,
     // not on loose cards from hand. Keep this in sync with payCost's dedicated
     // placeOwnTopAtStackBottom route below so an available cost is actually
@@ -177,6 +181,15 @@ export async function payCost(
   out?: { paidCount: number },
   opts?: { deferSuspendTriggers?: boolean },
 ): Promise<boolean> {
+  if (cost.kind === "place" && cost.destination === "digivolutionStack" && cost.target?.from?.includes("deck")) {
+    const host = ctx.trigger.attackerPermanentId !== undefined
+      ? ctx.game.permanentById(ctx.trigger.attackerPermanentId)
+      : ctx.source.permanent();
+    if (host === undefined || ctx.game.player(ctx.source.ownerSeat).deck.length === 0) return false;
+    const placed = await ctx.fx.placeUnderFromDeck(host.permanentId, ctx.source.ownerSeat);
+    if (placed !== undefined && out) out.paidCount = 1;
+    return placed !== undefined;
+  }
   switch (cost.kind) {
     case "moveToBattleArea": {
       const self = ctx.source.permanent();

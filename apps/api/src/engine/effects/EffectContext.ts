@@ -649,6 +649,8 @@ export interface Primitives {
     instanceIds: string[],
     opts?: { belowTop?: boolean; faceUp?: boolean },
   ): Promise<CardInstance[]>;
+  /** Place the controller's deck top face-down under a battle-area permanent. */
+  placeUnderFromDeck(targetPermanentId: string, seat: Seat): Promise<CardInstance | undefined>;
   /**
    * "Place this Digimon's top card as its bottom digivolution card" (BT22-043/044): rotate the
    * permanent's own top card to the bottom of its digivolution stack, promoting the topmost
