@@ -21,6 +21,25 @@ describe("BT1-058 Chirinmon", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("gains 3 memory from a low memory position without changing the printed amount", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-058", as: "attacker" }] },
+      1: { security: ["BT1-010"] },
+    });
+    s.state.memory = 1;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 4);
+
+    expect(s.state.memory).toBe(4);
+  });
+
   it("pays the delayed 3 after Chirinmon is deleted, in addition to passing at 3 memory (Q917/Q918)", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-058", as: "attacker" }] },
