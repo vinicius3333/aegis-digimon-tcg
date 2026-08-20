@@ -4,6 +4,16 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT1-082.js";
 
 describe("BT1-082 Rosemon", () => {
+  it("rejects play when memory is below the cost floor", () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT1-082", as: "rosemon" }] } });
+    s.state.memory = -10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rosemon").instanceId })).toEqual({
+      ok: false,
+      reason: "insufficient-memory",
+    });
+  });
+
   it("suspends an opposing Digimon when another opposing Digimon attacks the player while Rosemon is suspended", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
