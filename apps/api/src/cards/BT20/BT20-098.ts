@@ -3,7 +3,7 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // BT20-098 — Apparition Legion / Phantomon
-// [Main] By returning up to 9 levels' total worth of Digimon cards from your opponent's
+// [Main] By returning 9 levels' total worth of Digimon cards from your opponent's
 // trash to the bottom of the deck, play 1 [Ghost] Digimon card of each returned card's
 // level from your trash without paying the costs. Then, 1 of the Digimon played by this
 // effect gains Rush and Blocker until the end of your opponent's turn.
@@ -23,7 +23,7 @@ const compiled: CompiledCard = {
               upTo: false,
             },
             to: "deckBottom",
-            raw: "By returning up to 9 levels' total worth of Digimon cards from your opponent's trash to the bottom of the deck",
+            raw: "By returning 9 levels' total worth of Digimon cards from your opponent's trash to the bottom of the deck",
           },
           playFilter: {
             zone: "trash",
@@ -40,21 +40,19 @@ const compiled: CompiledCard = {
           kind: "GainKeyword",
           target: {
             filter: { boundRef: "playedByThisEffect", kind: ["Digimon"] },
-            count: 1,
+            count: "all",
           },
           keyword: { keyword: "Rush", raw: "＜Rush＞" },
           duration: "untilOpponentTurnEnd",
-          optional: true,
         },
         {
           kind: "GainKeyword",
           target: {
             filter: { boundRef: "playedByThisEffect", kind: ["Digimon"] },
-            count: 1,
+            count: "all",
           },
           keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
           duration: "untilOpponentTurnEnd",
-          optional: true,
         },
       ],
     },
