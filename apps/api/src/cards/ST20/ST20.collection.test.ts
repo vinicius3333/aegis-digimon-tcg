@@ -112,7 +112,7 @@ describe("ST20 collection audit proof", () => {
       kind: "Digivolve",
       costOverride: 4,
       ignoreRequirements: true,
-      condition: { kind: "orCondition" },
+      condition: { kind: "orConditions" },
     });
   });
 
