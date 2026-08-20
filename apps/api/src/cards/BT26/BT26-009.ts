@@ -53,7 +53,7 @@ const module: EffectModule = {
             "[Start of Your Main Phase] By trashing 1 card with [Chronomon] in its text or " +
             "the [Shaman] trait from your hand, ＜Draw 1＞ and gain 1 memory.",
           optional: false,
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             const candidates = Array.from(owner.hand).filter((c) =>

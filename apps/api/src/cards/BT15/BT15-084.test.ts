@@ -296,7 +296,7 @@ describe("BT15-084 static sub-trigger install", () => {
 
   it("installs a whenEffectRemovesFromSecurity subscription on resolve", async () => {
     const source = makeSource();
-    const recorder = makeRecorder();
+    const _recorder = makeRecorder();
 
     const installedSubs: SubTriggerInstall[] = [];
     const ctx: EffectContext = {
@@ -324,7 +324,7 @@ describe("BT15-084 static sub-trigger install", () => {
   it("subscription is anchored to the Tamer's permanentId", async () => {
     const permId = fakePermanentId();
     const source = makeSource({ permanentId: permId });
-    const recorder = makeRecorder();
+    const _recorder = makeRecorder();
 
     let capturedSub: SubTriggerInstall | undefined;
     const ctx: EffectContext = {

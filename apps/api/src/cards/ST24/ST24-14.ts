@@ -19,8 +19,8 @@ const module: EffectModule = {
             "[Start of Your Main Phase] You may place the top card of your deck face down under " +
             "this Tamer. Then, if your opponent has a Digimon, gain 1 memory.",
           optional: true,
-          when: (ctx) => source.isOnBattleArea(),
-          canActivate: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
+          canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             if (owner.deck.length > 0) {
@@ -83,7 +83,7 @@ const module: EffectModule = {
           description:
             "[All Turns] When effects trash cards from under this Tamer, by suspending this Tamer, " +
             "suspend 1 of your opponent's Digimon.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

@@ -51,7 +51,7 @@ const module: EffectModule = {
             "in this Digimon's digivolution cards, delete 1 of your opponent's Digimon with " +
             "5000 DP or less.",
           optional: true,
-          canActivate: (ctx) => source.isOnBattleArea(),
+          canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

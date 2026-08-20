@@ -83,7 +83,7 @@ const module: EffectModule = {
             "paying the cost. If it's your opponent's turn, trash the top card of their " +
             "security stack.",
           maxPerTurn: 1,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

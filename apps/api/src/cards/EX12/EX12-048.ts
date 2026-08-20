@@ -147,7 +147,7 @@ const module: EffectModule = {
             "[All Turns] When this Digimon would leave the battle area other than by your effects, " +
             "you may play 2 level 5 cards with [Gokuumon] in their texts or [SW] from its " +
             "digivolution cards without paying the costs.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

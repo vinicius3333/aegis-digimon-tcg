@@ -1,9 +1,9 @@
 // @ts-nocheck
-import { CardColor, EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
+import { CardColor, EffectTiming } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
-import { turnTiming, security, staticModifier } from "../../engine/effects/builders.js";
+import { security, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**

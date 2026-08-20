@@ -48,7 +48,7 @@ const module: EffectModule = {
             "[Start of Your Main Phase] By trashing 1 [Mineral] or [Rock] trait card from " +
             "your hand or your Digimon's digivolution cards, gain 1 memory.",
           optional: true,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             const mineralCards = Array.from(owner.hand).filter((c) => hasMineralOrRock(ctx.game.definitionOf(c)));
@@ -80,7 +80,7 @@ const module: EffectModule = {
             "[All Turns] When your Digimon is played, by suspending this Tamer, you may place " +
             "1 [Mineral]/[Rock] trait card from your hand or trash as the bottom digivolution " +
             "card of that Digimon.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
@@ -110,7 +110,7 @@ const module: EffectModule = {
             "[All Turns] When your Digimon digivolves, by suspending this Tamer, you may place " +
             "1 [Mineral]/[Rock] trait card from your hand or trash as the bottom digivolution " +
             "card of that Digimon.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

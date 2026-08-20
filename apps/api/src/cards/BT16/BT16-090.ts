@@ -44,7 +44,7 @@ const module: EffectModule = {
           effectKey: `${cardId}/start-turn-memory-floor`,
           description: "[Start of Your Turn] If you have 2 or less memory, set it to 3.",
           optional: false,
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           canActivate: (ctx) => ctx.game.state.memory <= 2,
           resolve: async (ctx) => {
             if (ctx.game.state.memory <= 2) ctx.fx.setMemory(3);

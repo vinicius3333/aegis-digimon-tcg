@@ -19,7 +19,7 @@ const module: EffectModule = {
             "[Your Turn] [Inherited] While your opponent has no Digimon with digivolution " +
             "cards, this Digimon can also attack your opponent's unsuspended Digimon.",
           isInherited: true,
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

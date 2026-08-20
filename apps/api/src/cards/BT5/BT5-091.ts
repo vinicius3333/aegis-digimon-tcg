@@ -1,9 +1,7 @@
 import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { activated, security, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
@@ -39,7 +37,7 @@ const module: EffectModule = {
             if (subject.topCard === undefined) return false;
             return isDigimon(ctx.game.definitionOf(subject.topCard));
           },
-          canActivate: (ctx) => {
+          canActivate: (_ctx) => {
             const self = source.permanent();
             return self !== undefined && !self.isSuspended;
           },

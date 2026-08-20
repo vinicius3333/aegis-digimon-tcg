@@ -116,7 +116,7 @@ function tamerSecurity(source: CardSource, cardId: string): Effect {
   });
 }
 
-function addSelfSecurity(source: CardSource, cardId: string): Effect {
+function _addSelfSecurity(source: CardSource, cardId: string): Effect {
   return security({
     source,
     effectKey: `${cardId}/security-hand`,
@@ -215,7 +215,7 @@ function saveTamerDigivolveReducer(cardId: string, source: CardSource): Effect {
   });
 }
 
-function optionMainInSecurity(
+function _optionMainInSecurity(
   cardId: string,
   source: CardSource,
   resolve: (ctx: EffectContext) => Promise<void>,
@@ -228,7 +228,7 @@ function optionMainInSecurity(
   });
 }
 
-function deleteByDp(cardId: string, source: CardSource, limit: number, isSecurity = false): Effect {
+function _deleteByDp(cardId: string, source: CardSource, limit: number, isSecurity = false): Effect {
   const make = isSecurity ? security : activated;
   return make({
     source,

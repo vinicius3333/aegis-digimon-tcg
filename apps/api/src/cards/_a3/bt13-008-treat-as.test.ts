@@ -16,7 +16,6 @@ import {
   CardKind,
   EffectDuration,
   GameState,
-  PlayerState,
   Permanent,
   CardInstance,
   type Seat,
@@ -27,7 +26,7 @@ import { canAttackerDeclare, type ContinuousLegalityReader } from "../../engine/
 import { ContinuousEffectLedger } from "../../engine/effects/continuous.js";
 
 /** Minimal CardDefinition for a Marcus Damon Tamer. */
-function marcusDamonDef(): CardDefinition {
+function _marcusDamonDef(): CardDefinition {
   return {
     cardId: "BT12-092",
     set: "BT12",

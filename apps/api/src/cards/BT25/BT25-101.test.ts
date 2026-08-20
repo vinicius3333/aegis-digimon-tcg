@@ -46,12 +46,12 @@ describe("BT25-101 Final Crest", () => {
       { seat: 0, battleArea: [host], hand: [tsHand], trash: [], security: [], deck: [] },
       { seat: 1, battleArea: [], hand: [], trash: [], security: [], deck: [] },
     ];
-    const trash = vi.fn(async (ids: string[]) => {
+    const trash = vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
       players[0]!.hand = players[0]!.hand.filter((card) => !ids.includes(card.instanceId));
       players[0]!.trash.push(tsHand);
     });
-    const draw = vi.fn(async () => []);
-    const link = vi.fn();
+    const draw = vi.fn<(...args: any[]) => any>(async () => []);
+    const link = vi.fn<(...args: any[]) => any>();
     const game: GameAccess = {
       state: { memory: 0, turnSeat: 0, players } as never,
       player: (seat) => players[seat] as never,

@@ -18,8 +18,8 @@ describe("BT26-023 Mojyamon", () => {
       permanent: () => self,
       isOnBattleArea: () => true,
     } as unknown as CardSource;
-    const placeUnder = vi.fn(async () => []);
-    const returnToDeck = vi.fn(async () => []);
+    const placeUnder = vi.fn<(...args: any[]) => any>(async () => []);
+    const returnToDeck = vi.fn<(...args: any[]) => any>(async () => []);
     const ctx = {
       source,
       game: {
@@ -32,7 +32,7 @@ describe("BT26-023 Mojyamon", () => {
         }),
         permanentById: (id: string) => (id === "opponent" ? opponent : undefined),
       },
-      ask: { selectCards: vi.fn(async () => ["hand-card"]) },
+      ask: { selectCards: vi.fn<(...args: any[]) => any>(async () => ["hand-card"]) },
       fx: { placeUnder, returnToDeck },
     } as unknown as EffectContext;
 

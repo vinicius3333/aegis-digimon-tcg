@@ -70,19 +70,19 @@ describe("BT26-079 [On Play]/[When Digivolving]/[When Attacking]: trash-cost del
     const trashed: string[][] = [];
     const deleted: string[][] = [];
     const fx = {
-      trash: vi.fn(async (ids: string[]) => {
+      trash: vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
         trashed.push(ids);
         return ids;
       }),
-      deletePermanent: vi.fn(async (ids: string[]) => {
+      deletePermanent: vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
         deleted.push(ids);
         return ids.length;
       }),
     } as unknown as Primitives;
 
     const ask = {
-      selectCards: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!]),
-      chooseTargets: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!]),
+      selectCards: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!]),
+      chooseTargets: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!]),
     } as unknown as EffectContext["ask"];
 
     const source = makeSource();
@@ -115,10 +115,10 @@ describe("BT26-079 [On Play]/[When Digivolving]/[When Attacking]: trash-cost del
 
     const deleted: unknown[] = [];
     const fx = {
-      trash: vi.fn(async () => []),
-      deletePermanent: vi.fn(async () => deleted.push(1)),
+      trash: vi.fn<(...args: any[]) => any>(async () => []),
+      deletePermanent: vi.fn<(...args: any[]) => any>(async () => deleted.push(1)),
     } as unknown as Primitives;
-    const ask = { selectCards: vi.fn(async () => []) } as unknown as EffectContext["ask"];
+    const ask = { selectCards: vi.fn<(...args: any[]) => any>(async () => []) } as unknown as EffectContext["ask"];
 
     const source = makeSource();
     const ctx = { source, trigger: {}, game, fx, ask } as unknown as EffectContext;
@@ -163,7 +163,7 @@ describe("BT26-079 [Trash][Main]: play this card from the trash with the cost re
 
     const played: Array<[string[], unknown]> = [];
     const fx = {
-      playInstances: vi.fn(async (ids: string[], opts: unknown) => {
+      playInstances: vi.fn<(...args: any[]) => any>(async (ids: string[], opts: unknown) => {
         played.push([ids, opts]);
         return [];
       }),
@@ -197,7 +197,7 @@ describe("BT26-079 [All Turns] once-per-turn hand trash trigger", () => {
       source,
       game: { player: () => ({ battleArea: [] }) },
       fx: {
-        subscribeSubTrigger: vi.fn((options: { event: string; oncePerTurnKey?: string }) =>
+        subscribeSubTrigger: vi.fn<(...args: any[]) => any>((options: { event: string; oncePerTurnKey?: string }) =>
           subscriptions.push(options),
         ),
       },

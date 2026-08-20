@@ -1,5 +1,4 @@
-import { EffectTiming, EffectDuration, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -32,8 +31,8 @@ const module: EffectModule = {
             "as its bottom digivolution card, ＜Draw 1＞ and trash 1 card in your hand.",
           isInherited: true,
           maxPerTurn: 1,
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
-          canActivate: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          canActivate: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

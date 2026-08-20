@@ -42,8 +42,8 @@ const module: EffectModule = {
           "[Your Turn][Once Per Turn] When a Tamer card is placed in this Digimon's digivolution cards, reveal the top 3 cards and return them to the top or bottom of the deck.",
         isInherited: true,
         maxPerTurn: 1,
-        when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
-        canActivate: (ctx) => source.isOnBattleArea(),
+        when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+        canActivate: (_ctx) => source.isOnBattleArea(),
         resolve: async (ctx) => {
           const host = source.permanent();
           if (host === undefined) return;

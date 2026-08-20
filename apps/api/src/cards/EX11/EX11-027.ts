@@ -1,5 +1,4 @@
 import { EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -62,7 +61,7 @@ const module: EffectModule = {
 
             const selfPerm = source.permanent();
             if (selfPerm === undefined) return;
-            const ownerSeat = source.ownerSeat;
+            const _ownerSeat = source.ownerSeat;
             const otherDigimon = Array.from(owner.battleArea)
               .filter(
                 (p) =>

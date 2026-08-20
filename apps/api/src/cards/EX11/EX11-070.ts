@@ -22,7 +22,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/start-turn-set-memory`,
           description: "[Start of Your Turn] If you have 2 or less memory, set your memory to 3.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           canActivate: (ctx) => ctx.game.state.memory <= 2,
           resolve: async (ctx) => {
             ctx.fx.setMemory(3);
@@ -42,7 +42,7 @@ const module: EffectModule = {
             "to 1 of your Digimon with [Maquinamon] in its text.",
           maxPerTurn: 1,
           optional: true,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             const exMaquinamon = Array.from(owner.hand).find((c) => {
@@ -91,7 +91,7 @@ const module: EffectModule = {
             "with [Maquinamon] in its text, that Digimon can't have less than 1000 DP, and " +
             "your opponent's effects can't trash its digivolution cards.",
           isInherited: true,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
@@ -119,7 +119,7 @@ const module: EffectModule = {
             "[End of All Turns] [Inherited] You may play 1 [Unchained] from this Digimon's " +
             "digivolution cards without paying the cost.",
           isInherited: true,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (_ctx) => {
             // "End of All Turns" is a timing not currently in the engine's EffectTiming enum
             // This inherited effect would fire when both players' turns end

@@ -108,14 +108,14 @@ function makeHarness(options: {
   const placements: { target: string; ids: string[] }[] = [];
   const replacements: ReplacementInstall[] = [];
   const fx = {
-    restrict: vi.fn((permanentId: string, restriction: string, duration: EffectDuration, opts?: unknown) => {
+    restrict: vi.fn<(...args: any[]) => any>((permanentId: string, restriction: string, duration: EffectDuration, opts?: unknown) => {
       restricts.push({ permanentId, restriction, duration, opts });
     }),
-    placeUnder: vi.fn(async (target: string, ids: string[]) => {
+    placeUnder: vi.fn<(...args: any[]) => any>(async (target: string, ids: string[]) => {
       placements.push({ target, ids });
       return ids.map((instanceId) => ({ instanceId }));
     }),
-    subscribeReplacement: vi.fn((sub: ReplacementInstall) => {
+    subscribeReplacement: vi.fn<(...args: any[]) => any>((sub: ReplacementInstall) => {
       replacements.push(sub);
       return replacements.length;
     }),
@@ -123,8 +123,8 @@ function makeHarness(options: {
 
   const offered: string[][] = [];
   const ask = {
-    optional: vi.fn(async () => options.accept ?? true),
-    chooseTargets: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => {
+    optional: vi.fn<(...args: any[]) => any>(async () => options.accept ?? true),
+    chooseTargets: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => {
       offered.push(opts.candidates);
       return options.pick ? options.pick(opts.candidates) : [opts.candidates[0]!];
     }),

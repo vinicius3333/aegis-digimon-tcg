@@ -48,7 +48,7 @@ const module: EffectModule = {
             "[When Digivolving] Unsuspend this Digimon. Then, it can attack your " +
             "opponent's Digimon. This effect allows you to attack unsuspended Digimon as well.",
           optional: false,
-          canActivate: (ctx) => {
+          canActivate: (_ctx) => {
             return source.isOnBattleArea();
           },
           resolve: async (ctx) => {

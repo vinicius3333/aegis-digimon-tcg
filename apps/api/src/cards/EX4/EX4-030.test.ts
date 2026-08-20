@@ -22,7 +22,7 @@ const OPTION_3_ID = "BT1-OPTION-3";
 const OPTION_7_ID = "BT1-OPTION-7";
 const TAOMON_ID = "EX4-028";
 const LV4_YELLOW_ID = "BT3-LV4-YELLOW";
-const OTHER_DIGIMON_ID = "BT1-OTHER";
+const _OTHER_DIGIMON_ID = "BT1-OTHER";
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];

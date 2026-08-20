@@ -1,4 +1,4 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -19,7 +19,7 @@ const module: EffectModule = {
             "[Your Turn] [Once Per Turn] When one of your Digimon leaves the breeding area, " +
             "you may hatch in your breeding area. Then, gain 1 memory.",
           maxPerTurn: 1,
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

@@ -26,7 +26,7 @@ import { registerCard } from "../../engine/effects/registry.js";
  */
 const cardId = "BT7-055";
 
-function opponentDigimonFilter(ctx: EffectContext, source: CardSource) {
+function _opponentDigimonFilter(ctx: EffectContext, source: CardSource) {
   const opponent = ctx.game.opponentOf(source.ownerSeat);
   const opp = ctx.game.player(opponent);
   return opp.battleArea.filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)));
@@ -95,7 +95,7 @@ const module: EffectModule = {
             "[Opponent's Turn] All opponent Digimon gain '[Your Turn] You must trash " +
             "1 card in your hand to unsuspend this Digimon.'",
           optional: false,
-          when: (ctx) => source.isOnBattleArea() && !source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && !source.isOwnersTurn(),
           resolve: async (ctx) => {
             const oppSeat = ctx.game.opponentOf(source.ownerSeat);
             const opp = ctx.game.player(oppSeat);

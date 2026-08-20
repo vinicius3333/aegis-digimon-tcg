@@ -19,7 +19,7 @@ describe("BT25-019 UltimateBrachiomon", () => {
   });
 
   it("limits both immunities to effects sourced by the opponent", async () => {
-    const restrict = vi.fn();
+    const restrict = vi.fn<(...args: any[]) => any>();
     const permanent = { permanentId: "brachio", topCard: { instanceId: "top", cardId: "BT25-019" } };
     const source = {
       cardId: "BT25-019",

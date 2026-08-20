@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import type { PlayerState, Seat } from "@aegis/shared";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 // A3 for P-242 (Rei Katsura) — [Start of Your Main Phase] by trashing 1 System/Life/

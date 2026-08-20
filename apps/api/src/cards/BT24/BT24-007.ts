@@ -39,8 +39,8 @@ const module: EffectModule = {
             "with the play cost reduced by 2.",
           isInherited: true,
           maxPerTurn: 1,
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
-          canActivate: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

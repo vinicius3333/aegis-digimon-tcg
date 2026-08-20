@@ -1,4 +1,4 @@
-import { EffectTiming, EffectDuration, isDigimon } from "@aegis/shared";
+import { EffectTiming, isDigimon } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -16,7 +16,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/start-turn-set-memory`,
           description: "[Start of Your Turn] If you have 2 or less memory, set your memory to 3.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           canActivate: (ctx) => ctx.game.state.memory <= 2,
           resolve: async (ctx) => {
             ctx.fx.setMemory(3);
@@ -33,7 +33,7 @@ const module: EffectModule = {
           description:
             "[Your Turn] When one of your Digimon attacks, by suspending this Tamer, you may " +
             "redirect that attack to 1 of your opponent's Digimon.",
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

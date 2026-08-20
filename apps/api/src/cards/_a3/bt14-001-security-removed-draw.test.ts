@@ -56,7 +56,7 @@ describe("A3 BT14-001 — inherited draw on opponent security removal", () => {
     );
 
     // The battle still happened and still killed the attacker...
-    expect(() => s.perm("attacker")).toThrow();
+    expect(() => s.perm("attacker")).toThrow('permanent "attacker"');
     // ...and the inherited ＜Draw 1＞ still resolved, because the card left the security
     // stack (and the watcher fired) before that battle.
     expect(p0.hand.length).toBe(handBefore + 1);

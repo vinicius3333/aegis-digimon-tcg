@@ -146,7 +146,7 @@ const module: EffectModule = {
             // Collect [Dex]/[DeathX] Digimon from trash
             const trashCandidates = Array.from(owner.trash)
               .filter((c) => isDexOrDeathX(ctx.game.definitionOf(c)))
-              .filter((c) => {
+              .filter((_c) => {
                 // KB Q2873: must satisfy digivolution requirements (no ignore).
                 // We check using digivolveFromInstance with payCost:false (checks reqs).
                 // checks digivolve requirements but not cost.

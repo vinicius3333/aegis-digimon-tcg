@@ -25,7 +25,7 @@ describe("EX12-052 Option side [Main] unsuspend own Digimon, suspend + lock 2 op
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const p0 = s.state.players[0]!;
+    const _p0 = s.state.players[0]!;
 
     const optionCard = s.inst("option");
     // `useAs: "option"` (CR §4-5-2 DUAL-card side declaration) is read by

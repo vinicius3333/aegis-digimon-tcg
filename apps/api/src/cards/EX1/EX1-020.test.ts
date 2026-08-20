@@ -217,7 +217,7 @@ describe("EX1-020 Plesiomon", () => {
   it("[Your Turn] the installed SubTrigger calls draw 2 when it fires", async () => {
     // FAILS-WHEN-REVERTED: no draw call in IR
     const source = makeSource(true, true);
-    const { ctx, recorder, capturedSubTrigger: subRef } = makeCtx(source);
+    const { ctx, recorder, capturedSubTrigger: _subRef } = makeCtx(source);
     const effects = module!.effectsForTiming(EffectTiming.OnStartTurn, source);
     await effects[0]!.resolve(ctx);
 

@@ -88,12 +88,12 @@ function makeHarness(options: {
 
   const calls: string[] = [];
   const fx = {
-    setMemory: vi.fn((n: number) => calls.push(`setMemory:${n}`)),
-    returnToDeck: vi.fn(async (ids: string[], opts?: { toTop?: boolean }) => {
+    setMemory: vi.fn<(...args: any[]) => any>((n: number) => calls.push(`setMemory:${n}`)),
+    returnToDeck: vi.fn<(...args: any[]) => any>(async (ids: string[], opts?: { toTop?: boolean }) => {
       calls.push(`returnToDeck:${ids.join(",")}:${opts?.toTop === true}`);
       return [];
     }),
-    playInstances: vi.fn(async (ids: string[], opts?: { payCost?: boolean; costDelta?: number }) => {
+    playInstances: vi.fn<(...args: any[]) => any>(async (ids: string[], opts?: { payCost?: boolean; costDelta?: number }) => {
       calls.push(`playInstances:${ids.join(",")}:${opts?.payCost === true}:${opts?.costDelta}`);
       return [];
     }),
@@ -101,7 +101,7 @@ function makeHarness(options: {
 
   const offered: string[][] = [];
   const ask = {
-    selectCards: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => {
+    selectCards: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => {
       offered.push(opts.candidates);
       return options.pick ? options.pick(opts.candidates) : [opts.candidates[0]!];
     }),

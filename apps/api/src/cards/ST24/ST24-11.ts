@@ -8,11 +8,11 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "ST24-11";
 
-function isLilamon(def: CardDefinition): boolean {
+function _isLilamon(def: CardDefinition): boolean {
   return def.nameEn === "Lilamon" || def.nameEn.includes("Lilamon");
 }
 
-function hasDataSquad(def: CardDefinition): boolean {
+function _hasDataSquad(def: CardDefinition): boolean {
   return (def.types ?? []).some((t) => t === "DATA SQUAD");
 }
 
@@ -132,7 +132,7 @@ const module: EffectModule = {
             "[All Turns] [Once Per Turn] When one of your opponent's Digimon or Tamers is " +
             "suspended, trash the top card of your opponent's security.",
           maxPerTurn: 1,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

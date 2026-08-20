@@ -66,7 +66,7 @@ const module: EffectModule = {
           effectKey: `${cardId}/piercing-aura`,
           description:
             "While this Digimon has the [Insectoid] trait, it gains ＜Piercing＞.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined || self.topCard === undefined) return;

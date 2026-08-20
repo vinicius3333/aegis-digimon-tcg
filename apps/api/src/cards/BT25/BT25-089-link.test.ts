@@ -4,7 +4,6 @@ import {
   PlayerState,
   Permanent,
   CardInstance,
-  EffectTiming,
   type Seat,
   type ServerEvent,
 } from "@aegis/shared";
@@ -14,7 +13,7 @@ import { ModifierLedger } from "../../engine/effects/modifiers.js";
 import { createPrimitives, type PrimitivesEngine, type SelectionPort } from "../../engine/effects/primitives.js";
 import { createCardSource, type CardStateLookup } from "../../engine/cards/CardSource.js";
 import { createGameAccess, createEffectContext } from "../../engine/effects/context.js";
-import { irCardModule, candidateLooseInstances } from "../../engine/effects/interpreter.js";
+import { candidateLooseInstances } from "../../engine/effects/interpreter.js";
 // The REAL authored IR (the hand-override exports it so the A3 asserts against the on-disk source).
 import { compiled as BT25_089 } from "./BT25-089.js";
 // Boot side-effect: self-register every compiled-IR card module.

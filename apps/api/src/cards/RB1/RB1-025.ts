@@ -21,7 +21,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/blocker`,
           description: "＜Blocker＞ (when digivolving/attacking)",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {
@@ -105,8 +105,8 @@ const module: EffectModule = {
             "[End of Your Turn] You may attack 1 of your opponent's Digimon with 1 of your " +
             "[Angoramon] in name Digimon.",
           optional: true,
-          when: (ctx) => source.isOnBattleArea(),
-          canActivate: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea(),
+          canActivate: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             const attackers = Array.from(owner.battleArea)

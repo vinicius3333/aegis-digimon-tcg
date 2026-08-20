@@ -12,7 +12,7 @@ function hasIceOrMineralOrRock(def: CardDefinition): boolean {
   return (def.types ?? []).some((t) => t === "Ice-Snow" || t === "Mineral" || t === "Rock");
 }
 
-const UNDER_TRAITS = ["Ice-Snow", "Mineral", "Rock"];
+const _UNDER_TRAITS = ["Ice-Snow", "Mineral", "Rock"];
 
 async function placeAndProtect(
   ctx: Parameters<NonNullable<Parameters<typeof onPlay>[0]["resolve"]>>[0],
@@ -98,7 +98,7 @@ const module: EffectModule = {
           effectKey: `${cardId}/blocker`,
           description: "＜Blocker＞",
           isInherited: true,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {
@@ -113,7 +113,7 @@ const module: EffectModule = {
             "[When Moving] By placing 1 level 4 or lower [Ice-Snow]/[Mineral]/[Rock] trait " +
             "card from your hand or trash under this Digimon, 1 of your [Ice-Snow]...trait " +
             "Digimon can't be returned until opponent's turn end.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (/*ctx*/) => {
             // ENGINE-GAP: SubTrigger event "whenMoving" (When Moving) not available
             // as a SubTrigger; the place-and-protect pattern requires a move event

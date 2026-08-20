@@ -16,7 +16,7 @@ const cardId = "EX12-048";
 
 let seq = 0;
 
-function inst(cId: string, seat = 0, level?: number): CardInstance {
+function inst(cId: string, seat = 0, _level?: number): CardInstance {
   seq++;
   return { instanceId: `i${seq}`, cardId: cId, ownerSeat: seat, faceUp: true } as unknown as CardInstance;
 }

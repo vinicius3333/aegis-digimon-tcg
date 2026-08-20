@@ -186,10 +186,10 @@ describe("AD1-021 Marcus Damon & Agumon", () => {
       const agumonDef = fakeYellowAgumonDefinition();
 
       // Battle area: Marcus Damon (Tamer) + a yellow Agumon (Digimon, satisfies the gate).
-      const marcusPermanent = makePermanent("PERM#marcus", marcusDamonDef);
-      const agumonPermanent = makePermanent("PERM#agumon", agumonDef, 2000);
+      const _marcusPermanent = makePermanent("PERM#marcus", marcusDamonDef);
+      const _agumonPermanent = makePermanent("PERM#agumon", agumonDef, 2000);
 
-      const defMap = new Map<string, CardDefinition>([
+      const _defMap = new Map<string, CardDefinition>([
         [marcusDamonDef.cardId, marcusDamonDef],
         [agumonDef.cardId, agumonDef],
       ]);

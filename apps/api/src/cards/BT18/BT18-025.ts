@@ -80,7 +80,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/jamming`,
           description: "＜Jamming＞",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {
@@ -95,7 +95,7 @@ const module: EffectModule = {
           effectKey: `${cardId}/jamming-ess`,
           description: "＜Jamming＞ (inherited)",
           isInherited: true,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {

@@ -180,7 +180,7 @@ describe("EX12-028 redirect attack watcher install", () => {
         },
         opponentOf: (s: number) => (s === 0 ? 1 : 0),
         permanentById: () => undefined,
-        definitionOf: (c: CardInstance) => {
+        definitionOf: (_c: CardInstance) => {
           // Simulate DS trait
           return { types: ["DS"], kinds: ["Digimon"] } as never;
         },

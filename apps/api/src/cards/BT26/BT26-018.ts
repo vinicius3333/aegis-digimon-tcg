@@ -144,7 +144,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/rule-aquatic-trait`,
           description: "[Rule] Trait: Has [Aquatic] Type.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {

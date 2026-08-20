@@ -35,7 +35,7 @@ function ownerDigimonIds(ctx: EffectContext, source: CardSource): string[] {
 }
 
 /** Opponent battle-area Digimon permanent ids. */
-function opponentDigimonIds(ctx: EffectContext, source: CardSource): string[] {
+function _opponentDigimonIds(ctx: EffectContext, source: CardSource): string[] {
   const opponentSeat = ctx.game.opponentOf(source.ownerSeat);
   const opponent = ctx.game.player(opponentSeat);
   const ids: string[] = [];
@@ -153,7 +153,7 @@ const module: EffectModule = {
             if (!def.kinds.includes(CardKind.Digimon)) return false;
             return ctx.game.state.turnSeat === source.ownerSeat;
           },
-          canActivate: (ctx) => {
+          canActivate: (_ctx) => {
             const self = source.permanent();
             if (self === undefined) return false;
             return true; // documented behavior: CanAttack check
@@ -293,7 +293,7 @@ const module: EffectModule = {
   },
 };
 
-function canLinkTo(permanent: { permanentId: string }, ctx: EffectContext): boolean {
+function canLinkTo(_permanent: { permanentId: string }, _ctx: EffectContext): boolean {
   // Simple check: the permanent is eligible for linking
   return true;
 }

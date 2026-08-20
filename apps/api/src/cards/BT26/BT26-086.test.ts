@@ -103,25 +103,25 @@ function makeHarness(options: {
   const grants: unknown[] = [];
   const installs: SubTriggerInstall[] = [];
   const fx = {
-    link: vi.fn(async (target: string, ids: string[]) => {
+    link: vi.fn<(...args: any[]) => any>(async (target: string, ids: string[]) => {
       calls.push(`link:${target}:${ids.join(",")}`);
       return [];
     }),
-    forceAttack: vi.fn(async (id: string, opts?: { withoutSuspending?: boolean }) => {
+    forceAttack: vi.fn<(...args: any[]) => any>(async (id: string, opts?: { withoutSuspending?: boolean }) => {
       calls.push(`forceAttack:${id}:${opts?.withoutSuspending === true}`);
     }),
-    deletePermanent: vi.fn(async (ids: string[]) => {
+    deletePermanent: vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
       calls.push(`delete:${ids.join(",")}`);
       return ids.length;
     }),
-    returnToDeck: vi.fn(async (ids: string[], opts?: { toTop?: boolean }) => {
+    returnToDeck: vi.fn<(...args: any[]) => any>(async (ids: string[], opts?: { toTop?: boolean }) => {
       calls.push(`returnToDeck:${ids.join(",")}:${opts?.toTop === true}`);
       return [];
     }),
-    grantLinkMax: vi.fn((permanentId: string, delta: number, duration: EffectDuration) => {
+    grantLinkMax: vi.fn<(...args: any[]) => any>((permanentId: string, delta: number, duration: EffectDuration) => {
       grants.push({ permanentId, delta, duration });
     }),
-    subscribeSubTrigger: vi.fn((sub: SubTriggerInstall) => {
+    subscribeSubTrigger: vi.fn<(...args: any[]) => any>((sub: SubTriggerInstall) => {
       installs.push(sub);
       return installs.length;
     }),
@@ -129,12 +129,12 @@ function makeHarness(options: {
 
   const offered: string[][] = [];
   const ask = {
-    optional: vi.fn(async () => options.accept ?? true),
-    selectCards: vi.fn(async (_ctx: unknown, opts: { candidates: string[]; max: number }) => {
+    optional: vi.fn<(...args: any[]) => any>(async () => options.accept ?? true),
+    selectCards: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[]; max: number }) => {
       offered.push(opts.candidates);
       return options.pick ? options.pick(opts.candidates) : opts.candidates.slice(0, opts.max);
     }),
-    chooseTargets: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => {
+    chooseTargets: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => {
       offered.push(opts.candidates);
       return options.pick ? options.pick(opts.candidates) : [opts.candidates[0]!];
     }),

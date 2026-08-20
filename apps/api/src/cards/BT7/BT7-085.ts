@@ -1,4 +1,4 @@
-import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
+import { EffectDuration, EffectTiming } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -157,7 +157,7 @@ const module: EffectModule = {
           description: "[Your Turn] This Digimon gets +2000 DP.",
           optional: false,
           isInherited: true,
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const me = source.permanent();
             if (me !== undefined) {
@@ -171,7 +171,7 @@ const module: EffectModule = {
           description: "[Your Turn] While this Digimon has 10000 DP or more, it gains ＜Security Attack +1＞.",
           optional: false,
           isInherited: true,
-          when: (ctx) => {
+          when: (_ctx) => {
             if (!source.isOnBattleArea() || !source.isOwnersTurn()) return false;
             const me = source.permanent();
             return me !== undefined && me.currentDP >= 10000;

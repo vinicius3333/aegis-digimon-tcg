@@ -47,7 +47,7 @@ const module: EffectModule = {
             "card with [Avian] or [Bird] in any of its traits or the [Vortex Warriors] trait " +
             "among them to the hand. Return the rest to the bottom of the deck.",
           optional: true,
-          canActivate: (ctx: any) => true,
+          canActivate: (_ctx: any) => true,
           resolve: async (ctx: any) => {
             const allDigi = [
               ...ctx.game.player(source.ownerSeat).battleArea,
@@ -118,7 +118,7 @@ const module: EffectModule = {
           optional: false,
           isInherited: true,
           maxPerTurn: 1,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => ctx.fx.gainMemoryForSeat(source.ownerSeat, 1),
         }),
       ];

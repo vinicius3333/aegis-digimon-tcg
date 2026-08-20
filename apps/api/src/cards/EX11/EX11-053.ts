@@ -111,7 +111,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/rule-x-antibody`,
           description: "[Rule] This card is also treated as having [X Antibody] in its name.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {

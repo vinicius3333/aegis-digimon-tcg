@@ -1,4 +1,4 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -45,7 +45,7 @@ const module: EffectModule = {
             "[On Play] You may place 1 [SkullKnightmon] and 1 [DeadlyAxemon] from " +
             "your hand and/or trash in this Digimon's digivolution cards in any order.",
           optional: true,
-          canActivate: (ctx) => source.isOnBattleArea(),
+          canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
@@ -144,7 +144,7 @@ const module: EffectModule = {
               isSkullKnightmonOrDeadlyAxemon(ctx.game.definitionOf(c)),
             );
           },
-          canActivate: (ctx) => source.isOnBattleArea(),
+          canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
