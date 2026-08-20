@@ -59,16 +59,15 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "ModifyDP",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
             },
             count: 1,
+            bindAs: "monzaemonTarget",
           },
-          amount: -4000,
-          duration: "untilOpponentTurnEnd",
           cost: {
             kind: "trash",
             target: {
@@ -82,23 +81,20 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing this Digimon's bottom face-down digivolution card",
           },
-          also: [
-            {
-              kind: "Restrict",
-              target: {
-                filter: {
-                  controller: "opponent",
-                  kind: ["Digimon"],
-                },
-                count: 1,
-                sameTarget: true,
-              },
-              restriction: "cantActivateWhenDigivolving",
-              duration: "untilOpponentTurnEnd",
-            },
-          ],
           optional: true,
           abortOnDecline: true,
+        },
+        {
+          kind: "ModifyDP",
+          target: { filter: {}, count: 1, fromSelectionRef: "monzaemonTarget" },
+          amount: -4000,
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "DisableTimingEffect",
+          target: { filter: {}, count: 1, fromSelectionRef: "monzaemonTarget" },
+          timings: ["whenDigivolving"],
+          duration: "untilOpponentTurnEnd",
         },
       ],
       frequency: "OncePerTurn",
@@ -108,16 +104,15 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
-          kind: "ModifyDP",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
             },
             count: 1,
+            bindAs: "monzaemonTarget",
           },
-          amount: -4000,
-          duration: "untilOpponentTurnEnd",
           cost: {
             kind: "trash",
             target: {
@@ -131,23 +126,20 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing this Digimon's bottom face-down digivolution card",
           },
-          also: [
-            {
-              kind: "Restrict",
-              target: {
-                filter: {
-                  controller: "opponent",
-                  kind: ["Digimon"],
-                },
-                count: 1,
-                sameTarget: true,
-              },
-              restriction: "cantActivateWhenDigivolving",
-              duration: "untilOpponentTurnEnd",
-            },
-          ],
           optional: true,
           abortOnDecline: true,
+        },
+        {
+          kind: "ModifyDP",
+          target: { filter: {}, count: 1, fromSelectionRef: "monzaemonTarget" },
+          amount: -4000,
+          duration: "untilOpponentTurnEnd",
+        },
+        {
+          kind: "DisableTimingEffect",
+          target: { filter: {}, count: 1, fromSelectionRef: "monzaemonTarget" },
+          timings: ["whenDigivolving"],
+          duration: "untilOpponentTurnEnd",
         },
       ],
       frequency: "OncePerTurn",

@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-041.js";
+import "../index.js";
 
 describe("BT22-041 Kentaurosmon", () => {
   it("gates the play-cost reduction on total security, places a yellow hand card on top, and trashes top security to unsuspend", () => {
@@ -42,5 +45,54 @@ describe("BT22-041 Kentaurosmon", () => {
         },
       ],
     });
+  });
+
+  it("digivolves for 3 and places a yellow hand card on top of security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+          battleArea: [{ card: "BT22-037", as: "chirinmon" }],
+          hand: [
+            { card: "BT22-041", as: "kentaurosmon" },
+            { card: "BT22-029", as: "yellow" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("chirinmon").permanentId,
+      instanceId: s.inst("kentaurosmon").instanceId,
+      useAlternateCost: true,
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "BT22-029"));
+    await settle();
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-041")).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(4);
+  });
+
+  it("trashes one top security to unsuspend, but only on the first suspension each turn", async () => {
+    const s = setupEngine({
+      0: {
+        security: ["BT1-001", "BT1-002"],
+        battleArea: [{ card: "BT22-041", as: "kentaurosmon" }],
+      },
+    });
+    await s.ready();
+
+    await advance(s.engine).verb.suspend([s.perm("kentaurosmon").permanentId]);
+    await settle(() => s.perm("kentaurosmon").isSuspended === false);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+
+    await advance(s.engine).verb.suspend([s.perm("kentaurosmon").permanentId]);
+    await settle();
+    expect(s.perm("kentaurosmon").isSuspended).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(1);
   });
 });

@@ -7,7 +7,7 @@ import { runAction } from "../dispatch.js";
 import { scaleFactor } from "../scaling.js";
 import { candidateLooseInstances } from "../targeting/loose.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
-import type { Action, CardEffect, Condition, Cost, Scaling, ZoneRef } from "@aegis/shared";
+import type { Action, CardEffect, Condition, Cost, Permanent, Scaling, ZoneRef } from "@aegis/shared";
 
 /**
  * A self-targeted "when THIS card would be played, [gate], reduce the play cost by N" reducer.
@@ -75,6 +75,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT10-098", // condition: opponent has 2+ Digimon -> Option use cost -2
   "BT10-103", // condition: you have 2+ suspended green Digimon -> Option use cost -2
   "BT8-097", // scaling: Option use cost -1 per opposing Digimon (floor applied by play path)
+  "BT22-041", // condition: total cards in both security stacks <= 6 -> self play cost -6
 ]);
 
 /**
@@ -227,7 +228,8 @@ export function wouldBePlayedSelfReducersFor(cardId: string): WouldBePlayedSelfR
 }
 
 export interface WouldDigivolveSelfReducer {
-  cost: Cost;
+  cost?: Cost;
+  scaling?: Scaling;
   amount: number;
   raw: string;
 }
@@ -236,6 +238,7 @@ const WOULD_DIGIVOLVE_SELF_REDUCERS = new Map<string, WouldDigivolveSelfReducer[
 
 const VERIFIED_DIGIVOLVE_SELF_REDUCER_CARDS = new Set([
   "EX3-054", // return up to 5 [D-Brigade] cards from trash to deck top -> -1 each (KB Q3423)
+  "BT22-038", // -1 for each face-down digivolution card on the Ver.1 base (KB Q4884/Q5196)
 ]);
 
 export function collectWouldDigivolveSelfReducers(cardId: string, effects: readonly CardEffect[]): void {
@@ -249,13 +252,14 @@ export function collectWouldDigivolveSelfReducers(cardId: string, effects: reado
           action.kind === "Replacement" &&
           action.event === "wouldDigivolve" &&
           action.mode === "reduceCost" &&
-          action.cost !== undefined &&
+          (action.cost !== undefined || action.scaling !== undefined) &&
           typeof action.amount === "number"
         ) {
           reducers.push({
-            cost: action.cost,
+            ...(action.cost !== undefined ? { cost: action.cost } : {}),
+            ...(action.scaling !== undefined ? { scaling: action.scaling } : {}),
             amount: action.amount,
-            raw: action.cost.raw ?? action.raw ?? "Reduce the digivolution cost.",
+            raw: action.cost?.raw ?? action.raw ?? "Reduce the digivolution cost.",
           });
         }
       }
@@ -268,9 +272,23 @@ export function wouldDigivolveSelfReducersFor(cardId: string): WouldDigivolveSel
   return WOULD_DIGIVOLVE_SELF_REDUCERS.get(cardId) ?? [];
 }
 
-export function potentialWouldDigivolveSelfReduction(ctx: EffectContext, reducer: WouldDigivolveSelfReducer): number {
+function digivolveReducerScale(ctx: EffectContext, reducer: WouldDigivolveSelfReducer, target?: Permanent): number {
+  if (reducer.scaling === undefined) return 1;
+  if (target !== undefined && reducer.scaling.unit === "digivolutionCards") {
+    const filter = reducer.scaling.filter ?? {};
+    const count = target.stack.filter((card) =>
+      (filter.faceDown !== true || card.faceUp !== true) && (filter.faceUp !== true || card.faceUp === true),
+    ).length;
+    return Math.floor(count / Math.max(1, reducer.scaling.per));
+  }
+  return scaleFactor(ctx, reducer.scaling);
+}
+
+export function potentialWouldDigivolveSelfReduction(ctx: EffectContext, reducer: WouldDigivolveSelfReducer, target?: Permanent): number {
+  const scale = digivolveReducerScale(ctx, reducer, target);
+  if (reducer.cost === undefined) return Math.max(0, reducer.amount * scale);
   if (reducer.cost.target?.upTo !== true || typeof reducer.cost.target.count !== "number") {
-    return reducer.amount;
+    return reducer.amount * scale;
   }
   const zones: ZoneRef[] = reducer.cost.target.filter.zone === "trash" ? ["trash"] : [];
   if (zones.length === 0) return 0;
@@ -281,8 +299,10 @@ export function potentialWouldDigivolveSelfReduction(ctx: EffectContext, reducer
 export async function applyWouldDigivolveSelfReducer(
   ctx: EffectContext,
   reducer: WouldDigivolveSelfReducer,
+  target?: Permanent,
 ): Promise<number> {
-  if (potentialWouldDigivolveSelfReduction(ctx, reducer) === 0) return 0;
+  if (potentialWouldDigivolveSelfReduction(ctx, reducer, target) === 0) return 0;
+  if (reducer.cost === undefined) return potentialWouldDigivolveSelfReduction(ctx, reducer, target);
   if (!(await ctx.ask.optional(ctx, reducer.raw))) return 0;
   const receipt = { paidCount: 0 };
   if (!(await payCost(ctx, reducer.cost, receipt))) return 0;
