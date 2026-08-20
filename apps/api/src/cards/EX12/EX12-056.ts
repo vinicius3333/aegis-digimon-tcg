@@ -75,6 +75,14 @@ const compiled: CompiledCard = {
             "raw": "＜Alliance＞"
           },
           "duration": "forTheTurn"
+        },
+        {
+          "kind": "Attack",
+          "target": {
+            "count": 1,
+            "sameTarget": true
+          },
+          "optional": false
         }
       ]
     },
@@ -119,6 +127,14 @@ const compiled: CompiledCard = {
             "raw": "＜Alliance＞"
           },
           "duration": "forTheTurn"
+        },
+        {
+          "kind": "Attack",
+          "target": {
+            "count": 1,
+            "sameTarget": true
+          },
+          "optional": false
         }
       ]
     },

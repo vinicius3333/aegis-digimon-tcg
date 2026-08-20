@@ -15,7 +15,7 @@ const compiled: CompiledCard = {
           "materials": {
             "filter": {
               "controller": "mine",
-              "excludeSelf": true,
+              "includesSelf": true,
               "kind": [
                 "Digimon"
               ],
@@ -28,7 +28,7 @@ const compiled: CompiledCard = {
                 }
               ]
             },
-            "count": 1
+            "count": 2
           },
           "into": {
             "controllerDefault": "mine",
@@ -45,17 +45,20 @@ const compiled: CompiledCard = {
             ]
           },
           "payCost": true,
-          "optional": true
+          "optional": true,
+          "bindResultAs": "dnaResult",
+          "condition": {
+            "kind": "selfHasTrait",
+            "filter": {
+              "nameOrTrait": [{ "tokens": ["VB"], "match": "trait" }]
+            }
+          }
         },
         {
           "kind": "Attack",
           "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
+            "fromSelectionRef": "dnaResult",
+            "filter": {},
             "count": 1
           },
           "withoutSuspending": false,

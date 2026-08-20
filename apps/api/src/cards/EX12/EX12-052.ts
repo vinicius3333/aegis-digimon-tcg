@@ -14,6 +14,7 @@ import {
 import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "EX12-052";
+const sharedDpBattleEffectKey = `${cardId}/once-per-turn-dp-battle`;
 
 function hasNSp(def: CardDefinition): boolean {
   return (def.types ?? []).includes("NSp");
@@ -147,7 +148,7 @@ const module: EffectModule = {
         }),
         whenDigivolving({
           source,
-          effectKey: `${cardId}/when-digivolving-dp-battle`,
+          effectKey: sharedDpBattleEffectKey,
           description:
             "[When Digivolving] [Once Per Turn] 1 of your Digimon gets +3000 DP until your " +
             "opponent's turn ends. Then, you may battle 1 opponent Digimon with that Digimon.",
@@ -164,7 +165,7 @@ const module: EffectModule = {
       return [
         whenAttacking({
           source,
-          effectKey: `${cardId}/when-attacking-dp-battle`,
+          effectKey: sharedDpBattleEffectKey,
           description:
             "[When Attacking] [Once Per Turn] 1 of your Digimon gets +3000 DP until your " +
             "opponent's turn ends. Then, you may battle 1 opponent Digimon with that Digimon.",
@@ -187,7 +188,7 @@ const module: EffectModule = {
       return [
         activated({
           source,
-          effectKey: `${cardId}/counter-dp-battle`,
+          effectKey: sharedDpBattleEffectKey,
           description:
             "[Counter] [Once Per Turn] 1 of your Digimon gets +3000 DP until your " +
             "opponent's turn ends. Then, you may battle 1 opponent Digimon with that Digimon.",

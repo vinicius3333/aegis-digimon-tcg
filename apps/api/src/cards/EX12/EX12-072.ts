@@ -9,8 +9,12 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "EX12-072";
 
-function hasME(def: CardDefinition): boolean {
-  return isDigimon(def) && (def.types ?? []).includes("ME");
+function hasMETrait(def: CardDefinition): boolean {
+  return (def.types ?? []).includes("ME");
+}
+
+function hasMEDigimon(def: CardDefinition): boolean {
+  return isDigimon(def) && hasMETrait(def);
 }
 
 /**
@@ -22,7 +26,7 @@ function hasMEInPlay(ctx: EffectContext, source: CardSource): boolean {
   const owner = ctx.game.player(source.ownerSeat);
   for (const permanent of owner.battleArea) {
     if (permanent.topCard == null) continue;
-    if (hasME(ctx.game.definitionOf(permanent.topCard))) return true;
+    if (hasMETrait(ctx.game.definitionOf(permanent.topCard))) return true;
   }
   return false;
 }
@@ -66,11 +70,11 @@ const module: EffectModule = {
             const owner = ctx.game.player(source.ownerSeat);
             const fromHand = Array.from(owner.hand).filter((c) => {
               const def = ctx.game.definitionOf(c);
-              return hasME(def) && (def.playCost ?? 99) <= 5;
+              return hasMETrait(def) && (def.playCost ?? 99) <= 5;
             });
             const fromTrash = Array.from(owner.trash).filter((c) => {
               const def = ctx.game.definitionOf(c);
-              return hasME(def) && (def.playCost ?? 99) <= 5;
+              return hasMETrait(def) && (def.playCost ?? 99) <= 5;
             });
             const allCandidates = [...fromHand, ...fromTrash];
             if (allCandidates.length === 0) return;
@@ -111,7 +115,7 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             for (const p of owner.battleArea) {
-              if (p.topCard !== undefined && hasME(ctx.game.definitionOf(p.topCard))) {
+              if (p.topCard !== undefined && hasMEDigimon(ctx.game.definitionOf(p.topCard))) {
                 ctx.fx.grantKeyword(p.permanentId, "Guard", EffectDuration.UntilEachTurnEnd);
               }
             }

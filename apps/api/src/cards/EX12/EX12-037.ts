@@ -98,7 +98,8 @@ const compiled: CompiledCard = {
           ]
         }
       ],
-      "frequency": "OncePerTurn"
+      "frequency": "OncePerTurn",
+      "sharedUseKey": "ir-shared-0"
     },
     {
       "trigger": "WhenAttacking",
@@ -160,7 +161,8 @@ const compiled: CompiledCard = {
           ]
         }
       ],
-      "frequency": "OncePerTurn"
+      "frequency": "OncePerTurn",
+      "sharedUseKey": "ir-shared-0"
     }
   ],
   "coverage": "full",

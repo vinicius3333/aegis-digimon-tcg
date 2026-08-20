@@ -34,8 +34,6 @@ const compiled: CompiledCard = {
             },
             "raw": "By trashing 1 card with the [Mutant] or [ME] trait from your hand"
           },
-          "optional": true,
-          "abortOnDecline": true
         }
       ]
     },

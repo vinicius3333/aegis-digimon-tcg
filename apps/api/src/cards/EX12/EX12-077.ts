@@ -175,7 +175,8 @@ const compiled: CompiledCard = {
           "optional": true
         }
       ],
-      "frequency": "OncePerTurn"
+      "frequency": "OncePerTurn",
+      "sharedUseKey": "ir-shared-0"
     },
     {
       "trigger": "WhenDigivolving",
@@ -210,7 +211,8 @@ const compiled: CompiledCard = {
           "optional": true
         }
       ],
-      "frequency": "OncePerTurn"
+      "frequency": "OncePerTurn",
+      "sharedUseKey": "ir-shared-0"
     },
     {
       "trigger": "WhenAttacking",
@@ -245,7 +247,8 @@ const compiled: CompiledCard = {
           "optional": true
         }
       ],
-      "frequency": "OncePerTurn"
+      "frequency": "OncePerTurn",
+      "sharedUseKey": "ir-shared-0"
     },
     {
       "trigger": "Counter",
@@ -280,11 +283,42 @@ const compiled: CompiledCard = {
           "optional": true
         }
       ],
-      "frequency": "OncePerTurn"
+      "frequency": "OncePerTurn",
+      "sharedUseKey": "ir-shared-0"
     }
   ],
   "coverage": "full",
-  "residual": []
+  "residual": [],
+  "dnaDigivolveRequirement": [
+    {
+      "cost": 0,
+      "materials": [
+        {
+          "color": "Red",
+          "level": 6
+        },
+        {
+          "color": "Blue",
+          "level": 6
+        }
+      ]
+    },
+    {
+      "cost": 0,
+      "materials": [
+        {
+          "color": "Black",
+          "level": 6
+        },
+        {
+          "color": "Purple",
+          "level": 6
+        }
+      ]
+    }
+  ]
 };
 
 registerIrCard("EX12-077", compiled);
+
+export { compiled };

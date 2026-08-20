@@ -43,8 +43,6 @@ const compiled: CompiledCard = {
             },
             "raw": "By trashing 1 card with the [SW] trait from your hand"
           },
-          "optional": true,
-          "abortOnDecline": true
         }
       ]
     },
@@ -74,8 +72,6 @@ const compiled: CompiledCard = {
             },
             "raw": "By trashing 1 card with the [SW] trait from your hand"
           },
-          "optional": true,
-          "abortOnDecline": true
         }
       ]
     },

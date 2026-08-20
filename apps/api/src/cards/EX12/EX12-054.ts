@@ -45,8 +45,6 @@ const compiled: CompiledCard = {
             },
             "raw": "By trashing 1 card with the [Machine], [Cyborg] or [ME] trait from your hand"
           },
-          "optional": true,
-          "abortOnDecline": true
         }
       ]
     },
@@ -78,8 +76,6 @@ const compiled: CompiledCard = {
             },
             "raw": "By trashing 1 card with the [Machine], [Cyborg] or [ME] trait from your hand"
           },
-          "optional": true,
-          "abortOnDecline": true
         }
       ]
     },
@@ -110,3 +106,5 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("EX12-054", compiled);
+
+export { compiled };

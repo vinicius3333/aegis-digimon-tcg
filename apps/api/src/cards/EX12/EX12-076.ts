@@ -114,12 +114,28 @@ const compiled: CompiledCard = {
           "toTop": true
         },
         {
-          "kind": "Trash",
+          "kind": "SecurityManipulation",
+          "op": "trashTop",
+          "controller": "opponent",
+          "amount": 1,
+          "condition": {
+            "kind": "selfDigivolutionStackDistinctColorCount", "op": "gte", "value": 4,
+            "raw": "this Digimon has 4 or more colors in its digivolution cards"
+          }
+        },
+        {
+          "kind": "GainKeyword",
           "target": {
             "filter": {
-              "controllerDefault": "mine"
+              "isSelfRef": true
             },
-            "count": 1
+            "count": 1,
+            "isSelf": true
+          },
+          "keyword": {
+            "keyword": "Recovery",
+            "amount": 1,
+            "raw": "＜Recovery +1＞"
           },
           "condition": {
             "kind": "selfDigivolutionStackDistinctColorCount", "op": "gte", "value": 4,
@@ -181,3 +197,5 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("EX12-076", compiled);
+
+export { compiled };

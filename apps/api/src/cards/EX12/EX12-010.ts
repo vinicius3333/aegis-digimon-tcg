@@ -24,6 +24,7 @@ const compiled: CompiledCard = {
           "kind": "Return",
           "target": {
             "filter": {
+              "zone": "trash",
               "controller": "mine",
               "kind": [
                 "Digimon"
@@ -58,6 +59,7 @@ const compiled: CompiledCard = {
           "kind": "Return",
           "target": {
             "filter": {
+              "zone": "trash",
               "controller": "mine",
               "kind": [
                 "Digimon"

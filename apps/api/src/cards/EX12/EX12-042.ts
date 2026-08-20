@@ -44,7 +44,8 @@ const compiled: CompiledCard = {
           "duration": "permanent"
         }
       ],
-      "frequency": "OncePerTurn"
+      "frequency": "OncePerTurn",
+      "sharedUseKey": "ir-shared-0"
     },
     {
       "trigger": "WhenAttacking",
@@ -73,7 +74,8 @@ const compiled: CompiledCard = {
           "duration": "permanent"
         }
       ],
-      "frequency": "OncePerTurn"
+      "frequency": "OncePerTurn",
+      "sharedUseKey": "ir-shared-0"
     },
     {
       "trigger": "Static",

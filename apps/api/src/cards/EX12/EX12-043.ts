@@ -11,6 +11,12 @@ const compiled: CompiledCard = {
       "trigger": "Main",
       "actions": [
         {
+          "kind": "Modal",
+          "choose": 1,
+          "labels": ["Play a matching card", "Use a matching Option"],
+          "options": [
+            [
+              {
           "kind": "PlayWithoutCost",
           "target": {
             "filter": {
@@ -18,7 +24,6 @@ const compiled: CompiledCard = {
               "kind": [
                 "Digimon",
                 "Tamer",
-                "Option"
               ],
               "nameOrTrait": [
                 {
@@ -37,6 +42,23 @@ const compiled: CompiledCard = {
           "payCost": true,
           "reduceCostBy": 2,
           "optional": true
+              }
+            ],
+            [
+              {
+                "kind": "UseOptionWithoutCost",
+                "filter": {
+                  "controller": "mine",
+                  "kind": ["Option"],
+                  "nameOrTrait": [{ "tokens": ["SW"], "match": "trait" }]
+                },
+                "from": ["hand"],
+                "payCost": true,
+                "reduceCostBy": 2,
+                "optional": true
+              }
+            ]
+          ]
         }
       ],
       "frequency": "OncePerTurn"
