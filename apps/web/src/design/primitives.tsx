@@ -240,10 +240,12 @@ export function Avatar({ name, color = "Blue", size = 40, ring, avatarId, avatar
   const [imageState, setImageState] = useState({ sourceKey, index: 0 });
   const imageIndex = imageState.sourceKey === sourceKey ? imageState.index : 0;
   const imageUrl = imageSources[imageIndex];
-  // Digimon World portraits are card scans that already carry a printed frame,
-  // so they show whole on a plain tile: no identity gradient behind them, and a
-  // radius loose enough that the mask never cuts into the frame.
+  // Digimon World portraits are card scans: printed frame, background scenery
+  // and a pixel ornament around a small subject. Large tiles show the whole
+  // card; small ones zoom past the frame onto the character, biased upward
+  // where the head sits, or it reads as a smudge.
   const isCardPortrait = Boolean(avatarId) && imageIndex === 0;
+  const cropsToSubject = isCardPortrait && size <= 96;
   return (
     <div
       style={{
@@ -274,8 +276,10 @@ export function Avatar({ name, color = "Blue", size = 40, ring, avatarId, avatar
             width: "100%",
             height: "100%",
             borderRadius: "inherit",
-            objectFit: isCardPortrait ? "contain" : "cover",
-            imageRendering: isCardPortrait ? "pixelated" : "auto",
+            objectFit: isCardPortrait && !cropsToSubject ? "contain" : "cover",
+            transform: cropsToSubject ? "scale(1.38)" : undefined,
+            transformOrigin: "50% 38%",
+            imageRendering: isCardPortrait && size > 150 ? "pixelated" : "auto",
           }}
         />
       ) : initials}
