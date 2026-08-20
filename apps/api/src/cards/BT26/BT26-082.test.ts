@@ -73,16 +73,16 @@ describe("BT26-082 alternate cost", () => {
     const selected: string[][] = [];
     const trashed: string[][] = [];
     const fx = {
-      trashDigivolutionCards: vi.fn(async (_host: string, ids: string[]) => {
+      trashDigivolutionCards: vi.fn<(...args: any[]) => any>(async (_host: string, ids: string[]) => {
         trashed.push(ids);
         return ids;
       }),
-      deletePermanent: vi.fn(async () => 0),
+      deletePermanent: vi.fn<(...args: any[]) => any>(async () => 0),
     } as unknown as Primitives;
     const ask = {
-      optional: vi.fn(async () => true),
-      chooseOption: vi.fn(async () => 1),
-      selectCards: vi.fn(async (_ctx: unknown, options: { candidates: string[] }) => {
+      optional: vi.fn<(...args: any[]) => any>(async () => true),
+      chooseOption: vi.fn<(...args: any[]) => any>(async () => 1),
+      selectCards: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, options: { candidates: string[] }) => {
         selected.push(options.candidates);
         return options.candidates;
       }),

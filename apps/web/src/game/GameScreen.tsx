@@ -1753,7 +1753,9 @@ export function GameScreen({
                 justifyContent: "safe center",
                 alignItems: "center",
                 minHeight: 110,
-                padding: "12px 18px",
+                // Bottom room for the activate-effect pill, which hangs below its
+                // permanent inside a row that clips vertical overflow.
+                padding: "12px 18px 26px",
               }}
             >
               {opp.battleArea.length === 0 ? (
@@ -1805,7 +1807,9 @@ export function GameScreen({
                 justifyContent: "safe center",
                 alignItems: "center",
                 minHeight: 110,
-                padding: "12px 18px",
+                // Bottom room for the activate-effect pill, which hangs below its
+                // permanent inside a row that clips vertical overflow.
+                padding: "12px 18px 26px",
                 borderRadius: 14,
                 transition: "background 150ms, box-shadow 150ms",
                 background: dragIsPlay ? "var(--ds-primary-light)" : "transparent",

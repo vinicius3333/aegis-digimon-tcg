@@ -59,8 +59,8 @@ describe("BT26-081 [All Turns]: group-grant Alliance/Reboot/Blocker/+2000 DP to 
     const grants: Array<[string, string]> = [];
     const dpChanges: Array<[string, number]> = [];
     const fx = {
-      grantKeyword: vi.fn((permanentId: string, keyword: string) => grants.push([permanentId, keyword])),
-      modifyDP: vi.fn((permanentId: string, delta: number) => dpChanges.push([permanentId, delta])),
+      grantKeyword: vi.fn<(...args: any[]) => any>((permanentId: string, keyword: string) => grants.push([permanentId, keyword])),
+      modifyDP: vi.fn<(...args: any[]) => any>((permanentId: string, delta: number) => dpChanges.push([permanentId, delta])),
     } as unknown as Primitives;
 
     const source = makeSource();

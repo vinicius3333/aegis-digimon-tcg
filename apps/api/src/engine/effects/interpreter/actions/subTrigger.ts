@@ -40,6 +40,7 @@ export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefine
   whenOpponentMovedFromBreeding: "whenOpponentMovedFromBreeding",
   onDeletionOf: "onDeletionOf",
   whenSecurityRemoved: "whenSecurityRemoved",
+  whenSecurityBattleEnded: "whenSecurityBattleEnded",
   // Alias used by the ST15 hand-authored module; both spellings share the
   // same security-removal payload and fire sites.
   whenSecurityCardRemoved: "whenSecurityRemoved",
@@ -552,6 +553,10 @@ export async function runSubTrigger(
     event === "onDeletionOf" && sourceDeleteCause === "dpReachedZero"
       ? (subCtx: EffectContext): boolean => subCtx.trigger.removalCause === "byRule"
       : undefined;
+  const trashedDigivolutionTopGate =
+    event === "whenDigivolutionTrashed" && action.requireTrashedDigivolutionCardWasTop === true
+      ? (subCtx: EffectContext): boolean => subCtx.trigger.trashedDigivolutionCardWasTop === true
+      : undefined;
   const gates = [
     filterMatch,
     ownerMainPhaseGate,
@@ -581,6 +586,7 @@ export async function runSubTrigger(
     addedDigivolutionCardGate,
     inheritedHostNameGate,
     deleteCauseGate,
+    trashedDigivolutionTopGate,
   ].filter((g): g is (subCtx: EffectContext) => boolean => g !== undefined);
   const matches = gates.length === 0 ? undefined : (subCtx: EffectContext): boolean => gates.every((g) => g(subCtx));
   ctx.fx.subscribeSubTrigger({

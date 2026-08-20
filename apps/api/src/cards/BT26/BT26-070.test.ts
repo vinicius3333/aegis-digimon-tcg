@@ -65,16 +65,16 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
     } as unknown as GameAccess;
     const firstSelection: string[][] = [];
     const fx = {
-      trashDigivolutionCards: vi.fn(async (_host: string, ids: string[]) => {
+      trashDigivolutionCards: vi.fn<(...args: any[]) => any>(async (_host: string, ids: string[]) => {
         firstSelection.push(ids);
         return ids.map((instanceId) => ({ instanceId, cardId: "UNDER" }));
       }),
-      gainMemory: vi.fn(),
-      useOptionFromHand: vi.fn(async () => undefined),
+      gainMemory: vi.fn<(...args: any[]) => any>(),
+      useOptionFromHand: vi.fn<(...args: any[]) => any>(async () => undefined),
     } as unknown as Primitives;
     const ask = {
-      optional: vi.fn(async () => true),
-      selectCards: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => opts.candidates.slice(0, 2)),
+      optional: vi.fn<(...args: any[]) => any>(async () => true),
+      selectCards: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => opts.candidates.slice(0, 2)),
     } as unknown as EffectContext["ask"];
     const cardSource = source();
     const ctx = { source: cardSource, trigger: {}, game, fx, ask } as unknown as EffectContext;

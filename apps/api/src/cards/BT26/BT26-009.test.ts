@@ -29,10 +29,10 @@ describe("BT26-009 Hyokomon", () => {
     } as unknown as CardSource;
     const inheritedMatch = { instanceId: "inherited-match", cardId: "TEST-002" };
     const unrelated = { instanceId: "unrelated", cardId: "TEST-003" };
-    const selectCards = vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!]);
-    const trash = vi.fn(async () => undefined);
-    const draw = vi.fn(async () => undefined);
-    const gainMemory = vi.fn();
+    const selectCards = vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!]);
+    const trash = vi.fn<(...args: any[]) => any>(async () => undefined);
+    const draw = vi.fn<(...args: any[]) => any>(async () => undefined);
+    const gainMemory = vi.fn<(...args: any[]) => any>();
     const ctx = {
       source,
       game: {

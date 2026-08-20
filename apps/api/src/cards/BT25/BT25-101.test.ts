@@ -35,22 +35,30 @@ describe("BT25-101 Final Crest", () => {
       isSuspended: false,
     } as unknown as Permanent;
     const tsHand = { instanceId: "ts-hand", cardId: "BT25-020", ownerSeat: 0 };
-    const players: Array<{ seat: number; battleArea: Permanent[]; hand: typeof tsHand[]; trash: typeof tsHand[]; security: never[]; deck: never[] }> = [
+    const players: Array<{
+      seat: number;
+      battleArea: Permanent[];
+      hand: (typeof tsHand)[];
+      trash: (typeof tsHand)[];
+      security: never[];
+      deck: never[];
+    }> = [
       { seat: 0, battleArea: [host], hand: [tsHand], trash: [], security: [], deck: [] },
       { seat: 1, battleArea: [], hand: [], trash: [], security: [], deck: [] },
     ];
-    const trash = vi.fn(async (ids: string[]) => {
+    const trash = vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
       players[0]!.hand = players[0]!.hand.filter((card) => !ids.includes(card.instanceId));
       players[0]!.trash.push(tsHand);
     });
-    const draw = vi.fn(async () => []);
-    const link = vi.fn();
+    const draw = vi.fn<(...args: any[]) => any>(async () => []);
+    const link = vi.fn<(...args: any[]) => any>();
     const game: GameAccess = {
       state: { memory: 0, turnSeat: 0, players } as never,
       player: (seat) => players[seat] as never,
       opponentOf: (seat) => (seat === 0 ? 1 : 0),
       permanentById: () => host,
-      definitionOf: (card) => definition(card.cardId, card.cardId === "BT25-020" ? { kinds: ["Digimon"] as never } : {}),
+      definitionOf: (card) =>
+        definition(card.cardId, card.cardId === "BT25-020" ? { kinds: ["Digimon"] as never } : {}),
     };
     const source: CardSource = {
       cardId: CARD_ID,
@@ -69,7 +77,8 @@ describe("BT25-101 Final Crest", () => {
       fx: { trash, draw, link } as unknown as Primitives,
       ask: {
         selectCards: async (_ctx: EffectContext, options: { candidates: string[] }) => options.candidates.slice(0, 1),
-        optional: async () => false,
+        chooseOption: async () => 0,
+        optional: async () => true,
       } as unknown as DecisionApi,
     } as unknown as EffectContext;
 
@@ -78,6 +87,6 @@ describe("BT25-101 Final Crest", () => {
 
     expect(trash).toHaveBeenCalledWith(["ts-hand"]);
     expect(draw).toHaveBeenCalledWith(0, 2);
-    expect(link).not.toHaveBeenCalled();
+    expect(link).toHaveBeenCalledWith("host", ["option-instance"]);
   });
 });

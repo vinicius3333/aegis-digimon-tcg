@@ -39,8 +39,8 @@ const module: EffectModule = {
             "with the play cost reduced by 2.",
           isInherited: true,
           maxPerTurn: 1,
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
-          canActivate: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
@@ -60,9 +60,7 @@ const module: EffectModule = {
               },
               run: async (subCtx) => {
                 const owner = subCtx.game.player(source.ownerSeat);
-                const eligible = owner.trash.filter((c) =>
-                  cardCondition(subCtx.game.definitionOf(c)),
-                );
+                const eligible = owner.trash.filter((c) => cardCondition(subCtx.game.definitionOf(c)));
                 if (eligible.length === 0) return;
 
                 const chosen = await subCtx.ask.selectCards(subCtx, {
@@ -73,6 +71,7 @@ const module: EffectModule = {
                 if (chosen.length === 0) return;
 
                 await subCtx.fx.playInstances(chosen, {
+                  payCost: true,
                   costDelta: 2,
                 });
               },

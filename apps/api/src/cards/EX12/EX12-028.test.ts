@@ -180,7 +180,7 @@ describe("EX12-028 redirect attack watcher install", () => {
         },
         opponentOf: (s: number) => (s === 0 ? 1 : 0),
         permanentById: () => undefined,
-        definitionOf: (c: CardInstance) => {
+        definitionOf: (_c: CardInstance) => {
           // Simulate DS trait
           return { types: ["DS"], kinds: ["Digimon"] } as never;
         },
@@ -236,13 +236,12 @@ describe("EX12-028 redirect attack watcher install", () => {
   });
 });
 
-// ── RESIDUAL: AllTurns sub-trigger ────────────────────────────────────────────
+// ── AllTurns ally-attack timing ───────────────────────────────────────────────
 
-describe("EX12-028 [All Turns] RESIDUAL", () => {
-  it("does not emit effects for OnAllyAttack timing (RESIDUAL — no onAllyAttack event)", () => {
-    // The AllTurns "when any of your Digimon attacks" is a residual because the engine
-    // lacks an onAllyAttack SubTriggerEventName. No effects emitted for this timing.
+describe("EX12-028 [All Turns] ally attack", () => {
+  it("installs the ally-attack effect", () => {
     const effects = requireMod().effectsForTiming(EffectTiming.OnAllyAttack, makeSource(makePerm()));
-    expect(effects).toHaveLength(0);
+    expect(effects).toHaveLength(1);
+    expect(effects[0]).toMatchObject({ maxPerTurn: 1 });
   });
 });

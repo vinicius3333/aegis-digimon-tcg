@@ -80,7 +80,7 @@ const module: EffectModule = {
             "deleted, ＜Delay＞. • Search your security stack. You may play 1 Digimon card " +
             "with the [Three Great Angels] trait among it without paying the cost. Shuffle " +
             "your security stack.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

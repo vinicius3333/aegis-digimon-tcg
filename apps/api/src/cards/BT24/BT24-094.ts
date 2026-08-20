@@ -58,7 +58,7 @@ const module: EffectModule = {
           effectKey: `${cardId}/security-all-turns-ts-boost`,
           description: "[Security][All Turns] Your green or yellow [TS] Digimon get +2000 DP and may gain Alliance.",
           optional: false,
-          when: (ctx) => source.isInSecurity?.() === true,
+          when: (_ctx) => source.isInSecurity?.() === true,
           resolve: async (ctx) => {
             const targets = eligibleTargets(ctx, source);
             for (const permanent of targets) {

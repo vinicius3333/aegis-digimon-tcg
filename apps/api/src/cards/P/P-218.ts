@@ -71,7 +71,7 @@ const module: EffectModule = {
           description:
             "[Your Turn] When any of your Digimon get linked to a [Entertainment]/[Tool]/[Navi] " +
             "trait card, by suspending this Tamer, gain 1 memory.",
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

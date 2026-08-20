@@ -1,4 +1,4 @@
-import { EffectTiming, isDigimon, CardColor } from "@aegis/shared";
+import { EffectTiming, CardColor } from "@aegis/shared";
 import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -28,7 +28,7 @@ const module: EffectModule = {
             "[Your Turn] When one of your Digimon digivolves into a green [Beast], [Animal] or " +
             "[Sovereign] trait Digimon (except [Sea Animal]), by suspending this Tamer, reduce " +
             "the digivolution cost by 1.",
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
@@ -74,8 +74,8 @@ const module: EffectModule = {
             "[Angoramon] in its text.",
           optional: true,
           maxPerTurn: 1,
-          when: (ctx) => source.isOnBattleArea(),
-          canActivate: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea(),
+          canActivate: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             const targets = Array.from(owner.battleArea)

@@ -48,8 +48,8 @@ function source(): CardSource {
 
 describe("BT24-007 Tsunomon", () => {
   it("subscribes the inherited hand-trash trigger and plays one eligible card at -2 cost", async () => {
-    const subscribeSubTrigger = vi.fn();
-    const playInstances = vi.fn(async () => []);
+    const subscribeSubTrigger = vi.fn<(...args: any[]) => any>();
+    const playInstances = vi.fn<(...args: any[]) => any>(async () => []);
     const card = { instanceId: "demon-instance", cardId: "BT24-017", ownerSeat: 0 };
     const players = [
       { seat: 0, battleArea: [], hand: [], trash: [card], security: [], deck: [] },
@@ -79,9 +79,9 @@ describe("BT24-007 Tsunomon", () => {
     expect(subscribeSubTrigger).toHaveBeenCalledWith(
       expect.objectContaining({ event: "whenHandTrashed", oncePerTurnKey: `${CARD_ID}/trash-hand-play-demon-titan` }),
     );
-    const install = subscribeSubTrigger.mock.calls[0]![0];
+    const install = subscribeSubTrigger.mock.calls[0]![0] as { run: (context: EffectContext) => Promise<void> };
     await install.run({ ...ctx, source: source(), trigger: { handTrashedSeat: 0 } });
 
-    expect(playInstances).toHaveBeenCalledWith(["demon-instance"], { costDelta: 2 });
+    expect(playInstances).toHaveBeenCalledWith(["demon-instance"], { payCost: true, costDelta: 2 });
   });
 });

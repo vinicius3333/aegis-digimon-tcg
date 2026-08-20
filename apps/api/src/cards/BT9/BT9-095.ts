@@ -1,5 +1,5 @@
-import { CardColor, EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition, Permanent } from "@aegis/shared";
+import { EffectTiming, isDigimon } from "@aegis/shared";
+import type { Permanent } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -22,8 +22,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "BT9-095";
 
-function ownerBattleAreaDigimons(source: CardSource): Permanent[] {
-  const owner = source.ownerSeat;
+function _ownerBattleAreaDigimons(source: CardSource): Permanent[] {
+  const _owner = source.ownerSeat;
   return []; // resolved inside resolve using ctx.game
 }
 

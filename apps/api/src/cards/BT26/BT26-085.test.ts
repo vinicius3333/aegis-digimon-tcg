@@ -84,21 +84,21 @@ function makeHarness(options: {
   const digivolves: { target: string; instance: string; opts: unknown }[] = [];
   const replacements: ReplacementInstall[] = [];
   const fx = {
-    restrict: vi.fn((permanentId: string, restriction: string, duration: EffectDuration, opts?: unknown) => {
+    restrict: vi.fn<(...args: any[]) => any>((permanentId: string, restriction: string, duration: EffectDuration, opts?: unknown) => {
       restricts.push({ permanentId, restriction, duration, opts });
     }),
     ...(options.withStackTrashLock === false
       ? {}
       : {
-          stackTrashLock: vi.fn((permanentId: string, duration: EffectDuration) => {
+          stackTrashLock: vi.fn<(...args: any[]) => any>((permanentId: string, duration: EffectDuration) => {
             locks.push({ permanentId, duration });
           }),
         }),
-    digivolveFromInstance: vi.fn(async (target: string, instance: string, opts: unknown) => {
+    digivolveFromInstance: vi.fn<(...args: any[]) => any>(async (target: string, instance: string, opts: unknown) => {
       digivolves.push({ target, instance, opts });
       return options.digivolveSucceeds === false ? undefined : ({ permanentId: target } as never);
     }),
-    subscribeReplacement: vi.fn((sub: ReplacementInstall) => {
+    subscribeReplacement: vi.fn<(...args: any[]) => any>((sub: ReplacementInstall) => {
       replacements.push(sub);
       return replacements.length;
     }),
@@ -106,8 +106,8 @@ function makeHarness(options: {
 
   const offered: string[][] = [];
   const ask = {
-    optional: vi.fn(async () => options.accept ?? true),
-    selectCards: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => {
+    optional: vi.fn<(...args: any[]) => any>(async () => options.accept ?? true),
+    selectCards: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => {
       offered.push(opts.candidates);
       return [opts.candidates[0]!];
     }),

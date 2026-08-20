@@ -66,7 +66,7 @@ function machineDef(id: string): CardDefinition {
 }
 
 /** Minimal card definition for a Lv.6 Digimon (out-of-range for cost). */
-function lv6Def(id: string): CardDefinition {
+function _lv6Def(id: string): CardDefinition {
   return {
     cardId: id,
     set: "T",

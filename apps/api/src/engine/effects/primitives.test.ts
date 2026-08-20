@@ -1516,6 +1516,7 @@ describe("primitives: redirectAttack (chooser / optional)", () => {
     const events: ServerEvent[] = [];
     const memory = new MemoryGauge(state, (e) => events.push(e));
     const redirects: { permanentId: string }[] = [];
+    let redirectedToPlayer = false;
     const resolvedAttacks: string[] = [];
     const prompts: { seat: Seat; min: number; max: number }[] = [];
     /** The scripted answer to the redirect prompt; unset = take the candidates. */
@@ -1534,6 +1535,7 @@ describe("primitives: redirectAttack (chooser / optional)", () => {
       },
       redirectTarget: (t: { kind: string; permanentId?: string }) => {
         if (t.kind === "permanent" && t.permanentId) redirects.push({ permanentId: t.permanentId });
+        if (t.kind === "player") redirectedToPlayer = true;
         return true;
       },
       endAttack: () => true,
@@ -1559,6 +1561,7 @@ describe("primitives: redirectAttack (chooser / optional)", () => {
       state,
       fx: createPrimitives(engine),
       redirects,
+      get redirectedToPlayer() { return redirectedToPlayer; },
       resolvedAttacks,
       prompts,
       fires,
@@ -1601,6 +1604,13 @@ describe("primitives: redirectAttack (chooser / optional)", () => {
     h.setPick([]); // empty pick = decline
     await h.fx.redirectAttack([h.s.perm("DEF1").permanentId], { chooserSeat: 1 as Seat, optional: true });
     expect(h.redirects).toHaveLength(0); // no target switch
+  });
+
+  it("accepts the reserved player candidate and redirects the attack to the opponent", async () => {
+    const h = combatHarness({ isAttacking: true, board: { 1: { battleArea: [] } } });
+    h.setPick(["player"]);
+    await h.fx.redirectAttack(["player"], { chooserSeat: 1 as Seat });
+    expect(h.redirectedToPlayer).toBe(true);
   });
 
   it("defaults to the controller seat and is mandatory when no opts are given", async () => {

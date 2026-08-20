@@ -43,7 +43,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/start-turn-set-memory`,
           description: "[Start of Your Turn] If you have 2 or less memory, set your memory to 3.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           canActivate: (ctx) => ctx.game.state.memory <= 2,
           resolve: async (ctx) => {
             ctx.fx.setMemory(3);
@@ -60,7 +60,7 @@ const module: EffectModule = {
           description:
             "[All Turns] When a [Reptile]/[Dragonkin] trait Digimon is played, by suspending " +
             "this Tamer, <Draw 1> and 1 Progress Digimon gets +3000 DP.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
@@ -88,7 +88,7 @@ const module: EffectModule = {
           description:
             "[All Turns] When a [Reptile]/[Dragonkin] trait Digimon digivolves, by suspending " +
             "this Tamer, <Draw 1> and 1 Progress Digimon gets +3000 DP.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

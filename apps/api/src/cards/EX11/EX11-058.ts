@@ -25,7 +25,7 @@ const module: EffectModule = {
             "[Sea Animal] trait from your hand as the bottom digivolution card of any of your " +
             "[Aqua]/[Sea Animal] Digimon, gain 1 memory.",
           optional: true,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           canActivate: (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             return Array.from(owner.hand).some((c) => {
@@ -74,7 +74,7 @@ const module: EffectModule = {
           description:
             "[All Turns] When your Digimon with [Aqua]/[Sea Animal] is played, by suspending " +
             "this Tamer, <Draw 1>.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
@@ -108,7 +108,7 @@ const module: EffectModule = {
           description:
             "[All Turns] When your Digimon with [Aqua]/[Sea Animal] digivolves, by suspending " +
             "this Tamer, <Draw 1>.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

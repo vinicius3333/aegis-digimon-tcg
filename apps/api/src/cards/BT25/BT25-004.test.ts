@@ -4,7 +4,6 @@ import {
   PlayerState,
   Permanent,
   CardInstance,
-  EffectDuration,
   EffectTiming,
   type Seat,
   type ServerEvent,
@@ -48,7 +47,7 @@ import "../index.js";
  */
 
 const LINKABLE = "BT21-009"; // [Social] (attribute) [Appmon] trait, printed "[Link] [Appmon] trait: Cost 1"
-const NON_TRAIT_LINKABLE = "BT25-045"; // [Appmon]-trait link card WITHOUT Social/Tool/Game — the grant must NOT apply
+const _NON_TRAIT_LINKABLE = "BT25-045"; // [Appmon]-trait link card WITHOUT Social/Tool/Game — the grant must NOT apply
 
 let seq = 0;
 function card(cardId: string, seat: Seat): CardInstance {

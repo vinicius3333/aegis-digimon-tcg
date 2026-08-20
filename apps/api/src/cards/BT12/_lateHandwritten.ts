@@ -116,7 +116,7 @@ function tamerSecurity(source: CardSource, cardId: string): Effect {
   });
 }
 
-function addSelfSecurity(source: CardSource, cardId: string): Effect {
+function _addSelfSecurity(source: CardSource, cardId: string): Effect {
   return security({
     source,
     effectKey: `${cardId}/security-hand`,
@@ -215,7 +215,7 @@ function saveTamerDigivolveReducer(cardId: string, source: CardSource): Effect {
   });
 }
 
-function optionMainInSecurity(
+function _optionMainInSecurity(
   cardId: string,
   source: CardSource,
   resolve: (ctx: EffectContext) => Promise<void>,
@@ -228,7 +228,7 @@ function optionMainInSecurity(
   });
 }
 
-function deleteByDp(cardId: string, source: CardSource, limit: number, isSecurity = false): Effect {
+function _deleteByDp(cardId: string, source: CardSource, limit: number, isSecurity = false): Effect {
   const make = isSecurity ? security : activated;
   return make({
     source,
@@ -1271,12 +1271,15 @@ export function lateBt12Module(cardId: string): EffectModule {
                     byEffectSeat: source.ownerSeat,
                   });
                   if (moved.length !== 5) return;
-                  const tamers = ctx.game.state.players.flatMap((player) =>
-                    player.battleArea.filter(
-                      (permanent) =>
-                        permanent.topCard !== undefined && isTamer(ctx.game.definitionOf(permanent.topCard)),
-                    ),
-                  );
+                  // `players` is an ArraySchema, which throws on flatMap: iterate and collect.
+                  const tamers = [];
+                  for (const player of ctx.game.state.players) {
+                    for (const permanent of player.battleArea) {
+                      if (permanent.topCard !== undefined && isTamer(ctx.game.definitionOf(permanent.topCard))) {
+                        tamers.push(permanent);
+                      }
+                    }
+                  }
                   const tops = tamers.flatMap((permanent) => (permanent.topCard ? [permanent.topCard.instanceId] : []));
                   if (tops.length) await ctx.fx.returnToHand(tops);
                 },

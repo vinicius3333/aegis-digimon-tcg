@@ -85,7 +85,7 @@ const module: EffectModule = {
             "[Transmutation (App Name)] trait card from your trash to 1 of your Digimon " +
             "with the cost reduced by 1. (Residual: link placement has no engine primitive.)",
           optional: true,
-          when: (ctx) => {
+          when: (_ctx) => {
             if (!source.isOnBattleArea()) return false;
             if (!source.isOwnersTurn()) return false;
             const self = source.permanent?.();

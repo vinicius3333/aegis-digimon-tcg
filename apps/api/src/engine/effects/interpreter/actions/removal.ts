@@ -3,6 +3,7 @@
 import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
 import type { ActionScope } from "../dispatch.js";
 import type { EffectContext } from "../../EffectContext.js";
+import type { CardColor } from "@aegis/shared";
 import { seatsForController } from "../matching/permanent.js";
 import { countMatching, scaleFactor } from "../scaling.js";
 import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
@@ -92,7 +93,12 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
     case "DeletePerColor": {
       const source = ctx.source.permanent();
       if (source === undefined || action.source !== "digivolutionCards") return false;
-      const colors = [...new Set(source.stack.flatMap((card) => ctx.game.definitionOf(card).colors))];
+      // `stack` is an ArraySchema, which throws on flatMap: iterate and collect.
+      const colorSet = new Set<CardColor>();
+      for (const card of source.stack) {
+        for (const color of ctx.game.definitionOf(card).colors) colorSet.add(color);
+      }
+      const colors = [...colorSet];
       const selected: string[] = [];
       for (const color of colors) {
         const candidates = candidatePermanents(ctx, action.target).filter((permanent) => {
@@ -104,7 +110,9 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         const chosen =
           candidates.length === 1
             ? candidates[0]!.permanentId
-            : (await ctx.ask.chooseTargets(ctx, { candidates: candidates.map((p) => p.permanentId), min: 1, max: 1 }))[0];
+            : (
+                await ctx.ask.chooseTargets(ctx, { candidates: candidates.map((p) => p.permanentId), min: 1, max: 1 })
+              )[0];
         if (chosen !== undefined) selected.push(chosen);
       }
       if (selected.length > 0) await ctx.fx.deletePermanent(selected);

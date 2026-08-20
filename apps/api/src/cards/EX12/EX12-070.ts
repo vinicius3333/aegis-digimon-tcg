@@ -97,7 +97,7 @@ const module: EffectModule = {
             "[All Turns] ＜Delay＞ When one of your Lv.5 or higher [TB] trait Digimon would " +
             "leave the battle area, you may play 1 [Sanmyojin] trait Digimon from your hand " +
             "without paying the cost.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

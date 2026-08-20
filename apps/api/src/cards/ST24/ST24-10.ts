@@ -164,7 +164,7 @@ const module: EffectModule = {
             "by trashing the bottom face-down card from under any of your Tamers, it doesn't leave.",
           isInherited: true,
           maxPerTurn: 1,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const host = source.permanent();
             if (host === undefined) return;

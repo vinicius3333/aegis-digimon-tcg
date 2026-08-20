@@ -1,8 +1,8 @@
-import { CardKind, EffectDuration, EffectTiming, type Seat } from "@aegis/shared";
+import { EffectDuration, EffectTiming, type Seat } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectContext, GameAccess } from "../../engine/effects/EffectContext.js";
+import type { GameAccess } from "../../engine/effects/EffectContext.js";
 import { whenAttacking, beforePayCost, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 

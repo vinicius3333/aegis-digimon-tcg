@@ -1,4 +1,4 @@
-import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
+import { CardKind, EffectTiming } from "@aegis/shared";
 import type { CardDefinition, CardInstance } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";

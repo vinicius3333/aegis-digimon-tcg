@@ -42,7 +42,7 @@ const module: EffectModule = {
             if (suspended.controllerSeat !== source.ownerSeat) return false;
             return isDigimon(ctx.game.definitionOf(suspended.topCard));
           },
-          canActivate: (ctx) => source.isOnBattleArea(),
+          canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             await ctx.fx.draw(source.ownerSeat, 1);
           },

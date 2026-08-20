@@ -1,8 +1,10 @@
 import { EffectDuration, EffectTiming } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
+import { CardKind } from "@aegis/shared";
+import type { CardDefinition, Permanent } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
+import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { turnTiming, security, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
@@ -26,6 +28,10 @@ function hasSocOrSeekersTrait(def: CardDefinition): boolean {
 
 function meetsPulsemonCondition(def: CardDefinition): boolean {
   return hasPulsemonText(def) || hasSocOrSeekersTrait(def);
+}
+
+function hasTamerInStack(ctx: EffectContext, permanent: Permanent): boolean {
+  return permanent.stack.some((card) => ctx.game.definitionOf(card).kinds?.includes(CardKind.Tamer));
 }
 
 function isEijiNagasumiCard(def: CardDefinition): boolean {
@@ -101,6 +107,48 @@ const module: EffectModule = {
             if (perm === undefined || perm.topCard === undefined) return;
             if (!meetsPulsemonCondition(ctx.game.definitionOf(perm.topCard))) return;
             ctx.fx.grantKeyword(perm.permanentId, "Barrier", EffectDuration.UntilEachTurnEnd);
+          },
+        }),
+        staticModifier({
+          source,
+          effectKey: `${cardId}/mind-link-on-play-or-digivolve`,
+          description:
+            "[All Turns] When any of your Digimon are played or digivolve, you may Mind Link to 1 of your Digimon with [Pulsemon] in its text or the [SoC]/[SEEKERS] trait.",
+          when: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const tamer = ctx.source.permanent();
+            if (tamer === undefined) return;
+            const react = async (subCtx: EffectContext) => {
+              const subjectId = subCtx.trigger.subjectPermanentId;
+              const subject = subjectId === undefined ? undefined : subCtx.game.permanentById(subjectId);
+              if (subject?.controllerSeat !== source.ownerSeat || subject.topCard === undefined) return;
+              const candidates = subCtx.game
+                .player(source.ownerSeat)
+                .battleArea.filter((perm) => {
+                  if (perm.inBreeding || perm.topCard === undefined || hasTamerInStack(subCtx, perm)) return false;
+                  return meetsPulsemonCondition(subCtx.game.definitionOf(perm.topCard));
+                })
+                .map((perm) => perm.permanentId);
+              if (candidates.length === 0) return;
+              if (!(await subCtx.ask.optional(subCtx, "Mind Link this Tamer to 1 of your qualifying Digimon?"))) return;
+              const chosen =
+                candidates.length === 1
+                  ? candidates
+                  : await subCtx.ask.chooseTargets(subCtx, { candidates, min: 1, max: 1 });
+              if (chosen.length > 0 && subCtx.source.permanent() !== undefined) {
+                await subCtx.fx.relocatePermanent(chosen[0]!, subCtx.source.permanent()!.permanentId);
+              }
+            };
+            for (const event of ["whenPlayed", "whenOneOfYoursDigivolves"] as const) {
+              ctx.fx.subscribeSubTrigger({
+                event,
+                sourcePermanentId: tamer.permanentId,
+                once: false,
+                description: `${cardId}: Mind Link after your Digimon is played or digivolves`,
+                matches: (subCtx) => subCtx.trigger.subjectPermanentId !== undefined,
+                run: react,
+              });
+            }
           },
         }),
       ];

@@ -43,7 +43,7 @@ const module: EffectModule = {
               );
             });
             const maxCount = Math.min(1, qualifying.length);
-            let played = false;
+            let _played = false;
             if (maxCount > 0) {
               const chosen = await ctx.ask.selectCards(ctx, {
                 candidates: qualifying.map((c) => c.instanceId),
@@ -89,7 +89,7 @@ const module: EffectModule = {
             "[All Turns] When one of your Digimon with [Angel]/[Archangel]/[Three Great Angels] " +
             "trait would leave the battle area other than in battle (and not by your own effects), " +
             "by trashing the top card of your security stack, prevent it from leaving.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

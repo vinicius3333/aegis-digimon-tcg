@@ -99,7 +99,7 @@ const module: EffectModule = {
           effectKey: `${cardId}/your-turn-sa-boost`,
           description:
             "[Your Turn] This Digimon gets ＜Security Attack +1＞ for every 3 digivolution cards it has.",
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const perm = source.permanent();
             if (!perm) return;

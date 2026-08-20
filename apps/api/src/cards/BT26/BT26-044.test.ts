@@ -18,7 +18,7 @@ describe("BT26-044 Lilamon", () => {
       permanent: () => ({ permanentId: "lilamon" }),
       isOnBattleArea: () => true,
     } as unknown as CardSource;
-    const restrict = vi.fn();
+    const restrict = vi.fn<(...args: any[]) => any>();
     const ctx = {
       source,
       game: {
@@ -27,8 +27,8 @@ describe("BT26-044 Lilamon", () => {
         definitionOf: () => ({ kinds: [CardKind.Digimon] }),
       },
       ask: {
-        optional: vi.fn(async () => false),
-        chooseTargets: vi.fn(async () => [opponent.permanentId]),
+        optional: vi.fn<(...args: any[]) => any>(async () => false),
+        chooseTargets: vi.fn<(...args: any[]) => any>(async () => [opponent.permanentId]),
       },
       fx: { restrict },
     } as unknown as EffectContext;

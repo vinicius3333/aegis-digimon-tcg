@@ -84,30 +84,30 @@ function makeHarness(options: {
 
   const calls: string[] = [];
   const fx = {
-    returnToDeck: vi.fn(async (ids: string[], opts?: { toTop?: boolean }) => {
+    returnToDeck: vi.fn<(...args: any[]) => any>(async (ids: string[], opts?: { toTop?: boolean }) => {
       calls.push(`returnToDeck:${ids.join(",")}:${opts?.toTop === true}`);
       return [];
     }),
-    returnToHand: vi.fn(async (ids: string[]) => {
+    returnToHand: vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
       calls.push(`returnToHand:${ids.join(",")}`);
       return [];
     }),
-    trash: vi.fn(async (ids: string[]) => {
+    trash: vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
       calls.push(`trash:${ids.join(",")}`);
       return [];
     }),
-    draw: vi.fn(async (seat: Seat, n: number) => {
+    draw: vi.fn<(...args: any[]) => any>(async (seat: Seat, n: number) => {
       calls.push(`draw:${seat}:${n}`);
       return [];
     }),
-    gainMemory: vi.fn((n: number) => {
+    gainMemory: vi.fn<(...args: any[]) => any>((n: number) => {
       calls.push(`gainMemory:${n}`);
     }),
   } as unknown as Primitives;
 
   const offered: string[][] = [];
   const ask = {
-    selectCards: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => {
+    selectCards: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => {
       offered.push(opts.candidates);
       return options.pick ? options.pick(opts.candidates, offered.length) : [opts.candidates[0]!];
     }),

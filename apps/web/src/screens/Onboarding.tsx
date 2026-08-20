@@ -1,15 +1,20 @@
-/* Entry screen: pick a handle + identity color before the menu. */
+/* Entry flow: choose how to play (Discord account or guest), then pick a handle
+   and a Digimon World portrait before the menu. */
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Button, Logo } from "../design/primitives";
-import { Sigil } from "../design/cards";
-import { COLORS, COLOR_KEYS, type ColorName } from "../design/theme";
+import { COLOR_KEYS, type ColorName } from "../design/theme";
 import { Icons } from "../design/icons";
+import { accountApi } from "../account/client";
+import { DIGIMON_WORLD_AVATARS, digimonAvatarUrl, type DigimonWorldAvatarId } from "../account/avatars";
+import { APP_VERSION } from "../release";
 import { useTranslation } from "../i18n";
 import "./onboarding.css";
 
 const ADJ = ["Ashen", "Verdant", "Cobalt", "Gilded", "Umbral", "Tidal", "Ember", "Storm", "Hollow", "Crimson", "Pale", "Iron", "Lunar", "Vesper", "Onyx", "Dawn"];
 const NOUN = ["Warden", "Tamer", "Herald", "Drake", "Sentinel", "Augur", "Knell", "Mourner", "Vow", "Cinder", "Reverie", "Oathkeeper", "Wisp", "Sable", "Quill", "Vane"];
+
+export type OnboardingResult = { name: string; color: ColorName; avatarId: DigimonWorldAvatarId | null };
 
 function randomName(): string {
   const a = ADJ[Math.floor(Math.random() * ADJ.length)] ?? "Vesper";
@@ -17,80 +22,179 @@ function randomName(): string {
   return `${a}${n}`;
 }
 
-export function Onboarding({ initialColor = "Blue", onEnter }: { initialColor?: ColorName; onEnter: (id: { name: string; color: ColorName }) => void }) {
+function randomAvatarId(): DigimonWorldAvatarId {
+  const avatar = DIGIMON_WORLD_AVATARS[Math.floor(Math.random() * DIGIMON_WORLD_AVATARS.length)];
+  return (avatar ?? DIGIMON_WORLD_AVATARS[0]!).id;
+}
+
+/** The portrait replaces the old color swatches, so the identity accent that the
+    board still needs is derived from the chosen avatar instead of being picked. */
+export function accentForAvatar(avatarId: DigimonWorldAvatarId | null, fallback: ColorName): ColorName {
+  if (!avatarId) return fallback;
+  let hash = 0;
+  for (const char of avatarId) hash = (hash * 31 + char.charCodeAt(0)) % 100_000;
+  return COLOR_KEYS[hash % COLOR_KEYS.length] ?? fallback;
+}
+
+export function Onboarding({ initialColor = "Blue", onEnter }: { initialColor?: ColorName; onEnter: (identity: OnboardingResult) => void }) {
   const { t } = useTranslation();
+  const [step, setStep] = useState<"path" | "profile">("path");
   const [name, setName] = useState("");
-  const [color, setColor] = useState<ColorName>(initialColor);
-  const ac = COLORS[color];
+  const [avatarId, setAvatarId] = useState<DigimonWorldAvatarId | null>(null);
+  const [query, setQuery] = useState("");
   const trimmed = name.trim();
   const valid = trimmed.length >= 2 && trimmed.length <= 16;
   const inputRef = useRef<HTMLInputElement | null>(null);
 
-  useEffect(() => { inputRef.current?.focus(); }, []);
-  const submit = () => { if (valid) onEnter({ name: trimmed, color }); };
+  useEffect(() => { if (step === "profile") inputRef.current?.focus(); }, [step]);
+
+  const visibleAvatars = useMemo(() => {
+    const normalized = query.trim().toLocaleLowerCase();
+    if (!normalized) return DIGIMON_WORLD_AVATARS;
+    return DIGIMON_WORLD_AVATARS.filter(({ name: avatarName }) => avatarName.toLocaleLowerCase().includes(normalized));
+  }, [query]);
+
+  const selectedAvatar = DIGIMON_WORLD_AVATARS.find(({ id }) => id === avatarId);
+  const submit = () => { if (valid) onEnter({ name: trimmed, color: accentForAvatar(avatarId, initialColor), avatarId }); };
+
+  const startGuest = () => {
+    if (!name) setName(randomName());
+    if (!avatarId) setAvatarId(randomAvatarId());
+    setStep("profile");
+  };
+
+  if (step === "path") {
+    return (
+      <main className="onboarding-page">
+        <section className="onboarding-card onboarding-card--paths">
+          <header className="onboarding-head">
+            <Logo size={50} />
+            <h1>{t("onboarding.welcomeTitle")}</h1>
+          </header>
+
+          <div className="onboarding-paths">
+            <button
+              type="button"
+              className="onboarding-path"
+              onClick={() => { location.href = `${accountApi.base}/auth/discord`; }}
+            >
+              <span className="onboarding-path__icon"><Icons.Discord size={24} /></span>
+              <span className="onboarding-path__copy">
+                <strong>{t("onboarding.discordTitle")}</strong>
+                <small>{t("onboarding.discordCopy")}</small>
+              </span>
+              <Icons.ArrowRight className="onboarding-path__go" size={18} />
+            </button>
+
+            <button type="button" className="onboarding-path" onClick={startGuest}>
+              <span className="onboarding-path__icon"><Icons.Swords size={24} /></span>
+              <span className="onboarding-path__copy">
+                <strong>{t("onboarding.guestTitle")}</strong>
+                <small>{t("onboarding.guestCopy")}</small>
+              </span>
+              <Icons.ArrowRight className="onboarding-path__go" size={18} />
+            </button>
+          </div>
+
+          <p className="onboarding-foot">{t("onboarding.linkLater")}</p>
+        </section>
+
+        <div className="onboarding-version">v{APP_VERSION}</div>
+      </main>
+    );
+  }
 
   return (
-    <main className="onboarding-page" style={{ background: `radial-gradient(80% 70% at 50% 0%, ${ac.soft}, rgba(11,13,20,0) 60%), var(--ds-background)` }}>
-      <div className="onboarding-sigil onboarding-sigil--large" style={{ position: "absolute", right: -160, bottom: -120, opacity: 0.5, pointerEvents: "none" }}>
-        <Sigil emblem="ward" color={color} size={620} faded />
-      </div>
-      <div className="onboarding-sigil" style={{ position: "absolute", left: -150, top: -110, opacity: 0.35, pointerEvents: "none" }}>
-        <Sigil emblem="orb" color={color} size={420} faded />
-      </div>
-
-      <section className="onboarding-card" style={{ position: "relative", width: 460, background: "var(--ds-surface)", borderRadius: 28, border: "1px solid var(--ds-border)", boxShadow: "var(--ds-shadow-summary)", padding: 36, animation: "aegis-pop 360ms ease-out both" }}>
-        <div style={{ display: "flex", justifyContent: "center", marginBottom: 24 }}>
-          <Logo size={50} />
-        </div>
-
-        <div style={{ textAlign: "center", marginBottom: 22 }}>
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.18em", textTransform: "uppercase", color: "var(--ds-primary)", marginBottom: 8 }}>{t("onboarding.eyebrow")}</div>
-          <h1 style={{ fontFamily: "var(--ds-font-display)", fontWeight: 800, fontSize: 28, margin: 0, color: "var(--ds-foreground)", letterSpacing: "-0.01em" }}>{t("onboarding.title")}</h1>
-          <p style={{ fontSize: 13.5, color: "var(--ds-foreground-muted)", margin: "8px 0 0" }}>{t("onboarding.subtitle")}</p>
-        </div>
-
-        <label htmlFor="onboarding-name" style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ds-foreground-muted)", marginBottom: 8 }}>{t("onboarding.nickname")}</label>
-        <div style={{ position: "relative", marginBottom: 6 }}>
-          <input
-            id="onboarding-name"
-            name="displayName"
-            autoComplete="nickname"
-            ref={inputRef}
-            value={name}
-            maxLength={16}
-            onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") submit(); }}
-            placeholder={t("onboarding.namePlaceholder")}
-            style={{ width: "100%", padding: "13px 84px 13px 14px", borderRadius: 13, border: `1.5px solid ${trimmed && !valid ? "var(--ds-danger)" : "var(--ds-border-strong)"}`, background: "var(--ds-background)", color: "var(--ds-foreground)", fontSize: 16, fontWeight: 600, fontFamily: "var(--ds-font-sans)", outline: "none" }}
-          />
-          <button onClick={() => setName(randomName())} title={t("onboarding.surpriseMe")} style={{ position: "absolute", right: 8, top: "50%", transform: "translateY(-50%)", display: "flex", alignItems: "center", gap: 5, padding: "7px 11px", borderRadius: 9, border: "1px solid var(--ds-border)", background: "var(--ds-surface-muted)", color: "var(--ds-foreground-secondary)", cursor: "pointer", fontSize: 12, fontWeight: 600 }}>
-            <Icons.Dices size={14} />{t("onboarding.random")}
+    <main className="onboarding-page">
+      <section className="onboarding-card onboarding-card--profile">
+        <header className="onboarding-head onboarding-head--compact">
+          <button type="button" className="onboarding-back" onClick={() => setStep("path")}>
+            <Icons.ArrowLeft size={15} />{t("onboarding.back")}
           </button>
-        </div>
-        <div style={{ display: "flex", justifyContent: "space-between", minHeight: 18, marginBottom: 20 }}>
-          <span style={{ fontSize: 11.5, color: trimmed && !valid ? "var(--ds-danger)" : "var(--ds-foreground-muted)" }}>{trimmed && !valid ? t("onboarding.nameInvalid") : t("onboarding.nameHint")}</span>
-          <span style={{ fontFamily: "var(--ds-font-mono)", fontSize: 11.5, color: "var(--ds-foreground-muted)" }}>{name.length}/16</span>
-        </div>
+          <h1>{t("onboarding.title")}</h1>
+        </header>
 
-        <label style={{ display: "block", fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", textTransform: "uppercase", color: "var(--ds-foreground-muted)", marginBottom: 10 }}>{t("onboarding.identityColor")}</label>
-        <div className="onboarding-colors" style={{ display: "flex", gap: 9, marginBottom: 26 }}>
-          {COLOR_KEYS.map((k) => {
-            const c = COLORS[k];
-            const on = color === k;
-            return (
-              <button key={k} onClick={() => setColor(k)} title={k} style={{ flex: 1, height: 38, borderRadius: 11, cursor: "pointer", background: c.base, border: on ? "3px solid var(--ds-foreground)" : "3px solid transparent", boxShadow: on ? "var(--ds-shadow-sm)" : "none", display: "grid", placeItems: "center", transition: "transform 120ms", transform: on ? "translateY(-2px)" : "none" }}>
-                <Sigil emblem="crest" color={k} size={22} />
-                <span className="onboarding-color-label">{k}</span>
-                {on ? <Icons.Check className="onboarding-color-check" size={14} style={{ color: c.on }} /> : null}
+        <div className="onboarding-profile">
+          <div className="onboarding-profile__form">
+            <div className="onboarding-preview">
+              <span className="onboarding-preview__portrait">
+                {avatarId ? <img src={digimonAvatarUrl(avatarId)} alt="" width={96} height={96} decoding="async" /> : <Icons.User size={30} />}
+              </span>
+              <span className="onboarding-preview__copy">
+                <strong>{trimmed || t("onboarding.previewNamePlaceholder")}</strong>
+                <small>{selectedAvatar?.name ?? t("onboarding.previewAvatarPlaceholder")}</small>
+              </span>
+            </div>
+
+            <label className="onboarding-label" htmlFor="onboarding-name">{t("onboarding.nickname")}</label>
+            <div className="onboarding-name">
+              <input
+                id="onboarding-name"
+                name="displayName"
+                autoComplete="nickname"
+                ref={inputRef}
+                value={name}
+                maxLength={16}
+                aria-invalid={Boolean(trimmed) && !valid}
+                onChange={(event) => setName(event.target.value)}
+                onKeyDown={(event) => { if (event.key === "Enter") submit(); }}
+                placeholder={t("onboarding.namePlaceholder")}
+                data-invalid={Boolean(trimmed) && !valid ? true : undefined}
+              />
+              <button type="button" className="onboarding-shuffle" onClick={() => setName(randomName())} title={t("onboarding.surpriseMe")}>
+                <Icons.Dices size={14} />{t("onboarding.random")}
               </button>
-            );
-          })}
-        </div>
+            </div>
+            <div className="onboarding-name-meta">
+              <span data-invalid={trimmed && !valid ? true : undefined}>{trimmed && !valid ? t("onboarding.nameInvalid") : t("onboarding.nameHint")}</span>
+              <span className="onboarding-counter">{name.length}/16</span>
+            </div>
 
-        <Button size="lg" full icon={Icons.ArrowRight} disabled={!valid} onClick={submit}>{t("onboarding.enter")}</Button>
+            <Button size="lg" full icon={Icons.ArrowRight} disabled={!valid} onClick={submit}>{t("onboarding.enter")}</Button>
+          </div>
+
+          <div className="onboarding-profile__portraits">
+            <div className="onboarding-avatars-head">
+              <label className="onboarding-label" htmlFor="onboarding-avatar-search">{t("onboarding.avatarLabel")}</label>
+              <div className="onboarding-avatars-tools">
+                <input
+                  id="onboarding-avatar-search"
+                  type="search"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                  placeholder={t("onboarding.avatarSearch")}
+                />
+                <button type="button" className="onboarding-shuffle" onClick={() => setAvatarId(randomAvatarId())}>
+                  <Icons.Dices size={14} />{t("onboarding.random")}
+                </button>
+              </div>
+            </div>
+
+            {visibleAvatars.length ? (
+              <div className="onboarding-avatars" role="group" aria-label={t("onboarding.avatarGridAria")}>
+                {visibleAvatars.map((avatar) => (
+                  <button
+                    key={avatar.id}
+                    type="button"
+                    className="onboarding-avatar"
+                    aria-pressed={avatar.id === avatarId}
+                    aria-label={avatar.name}
+                    onClick={() => setAvatarId(avatar.id)}
+                  >
+                    <img src={digimonAvatarUrl(avatar.id)} alt="" width={72} height={72} loading="lazy" decoding="async" />
+                    <span>{avatar.name}</span>
+                    {avatar.id === avatarId ? <Icons.Check className="onboarding-avatar__check" size={14} /> : null}
+                  </button>
+                ))}
+              </div>
+            ) : (
+              <p className="onboarding-avatars-empty" role="status">{t("onboarding.avatarEmpty")}</p>
+            )}
+          </div>
+        </div>
       </section>
 
-      <div style={{ position: "absolute", bottom: 22, fontSize: 12, color: "var(--ds-foreground-muted)", fontFamily: "var(--ds-font-mono)" }}>v1.4.0</div>
+      <div className="onboarding-version">v{APP_VERSION}</div>
     </main>
   );
 }

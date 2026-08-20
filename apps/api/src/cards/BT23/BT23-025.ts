@@ -60,7 +60,7 @@ const module: EffectModule = {
             return false;
           },
           resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
+            const _owner = ctx.game.player(source.ownerSeat);
             const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
 
             const oppDigimons = Array.from(opponent.battleArea).filter((p) => {

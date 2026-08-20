@@ -20,7 +20,7 @@ const module: EffectModule = {
           effectKey: `${cardId}/set-memory`,
           description: "[Start of Your Turn] If you have 2 or fewer memory, set your memory to 3.",
           optional: false,
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           canActivate: (ctx) => {
             const state = ctx.game.state;
             // Memory <= 2 means the gauge is on the source owner's opponent side

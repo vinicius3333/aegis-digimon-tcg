@@ -19,6 +19,7 @@ import {
   evaluateCondition,
   payCost,
 } from "./interpreter.js";
+import { canPayCost } from "./interpreter/costs.js";
 import { getEffectModule, registerCard, unregisterCard } from "./registry.js";
 import "../../cards/BT16/BT16-048.js";
 import bt17065 from "../../cards/BT17/BT17-065.js";
@@ -377,6 +378,7 @@ function makeContext(opts: {
   opponentSecurity?: unknown[];
   ownHand?: unknown[];
   opponentHand?: unknown[];
+  canDeclareAttack?: (permanent: Permanent) => boolean;
   definitionOf?: (id: string) => CardDefinition;
   optionalAnswer?: boolean;
   onOptional?: () => void;
@@ -426,6 +428,7 @@ function makeContext(opts: {
     definitionOf: (card) =>
       opts.definitionOf ? opts.definitionOf(card.cardId) : makeFakeDefinition({ cardId: card.cardId }),
     linkMax: () => 1,
+    canDeclareAttack: opts.canDeclareAttack,
   };
 
   const fx: Primitives = {
@@ -706,6 +709,39 @@ function makeSource(over: Partial<CardSource> = {}): CardSource {
     ...over,
   };
 }
+
+describe("attack cost feasibility", () => {
+  it("offers only the copy that can legally attack, including a same-turn Rush Digimon", () => {
+    const suspended = makeFakePermanent({
+      permanentId: "ad1-020-suspended",
+      controllerSeat: 0 as Seat,
+      isSuspended: true,
+    });
+    const rushDigimon = makeFakePermanent({
+      permanentId: "ad1-020-rush",
+      controllerSeat: 0 as Seat,
+    });
+    const legal = new Set([rushDigimon.permanentId]);
+    const canDeclareAttack = (permanent: Permanent): boolean => legal.has(permanent.permanentId);
+    const cost = { kind: "attack" as const, raw: "By attacking with this Digimon" };
+
+    const suspendedCtx = makeContext({
+      source: makeSource({ permanent: () => suspended }),
+      recorder: { calls: [] },
+      ownBattleArea: [suspended],
+      canDeclareAttack,
+    });
+    const rushCtx = makeContext({
+      source: makeSource({ permanent: () => rushDigimon }),
+      recorder: { calls: [] },
+      ownBattleArea: [rushDigimon],
+      canDeclareAttack,
+    });
+
+    expect(canPayCost(suspendedCtx, cost)).toBe(false);
+    expect(canPayCost(rushCtx, cost)).toBe(true);
+  });
+});
 
 // --- Tests -----------------------------------------------------------------
 

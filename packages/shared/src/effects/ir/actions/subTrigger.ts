@@ -101,6 +101,8 @@ export interface SubTriggerAction extends ActionBase {
    * it fails, so the body's mandatory tail never runs on an off-gate event.
    */
   fireCondition?: Condition;
+  /** For whenDigivolutionTrashed, require that the trashed card was the stack's top card. */
+  requireTrashedDigivolutionCardWasTop?: boolean;
   /**
    * Controller scope of the EFFECT that drove the event, for events carrying an acting-effect
    * seat (currently whenEffectSuspends). Absent lets ANY effect's suspension fire it.

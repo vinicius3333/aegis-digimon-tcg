@@ -150,7 +150,7 @@ function makeOnDeletionCtx(
   deletedInstanceId: string,
   recoveryCalls: string[],
 ): unknown {
-  const p0 = state.players[0] as PlayerState;
+  const _p0 = state.players[0] as PlayerState;
   return {
     source,
     trigger: { deletedInstanceIds: [deletedInstanceId] },

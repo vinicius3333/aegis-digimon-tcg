@@ -345,7 +345,7 @@ describe("EX10-023 Astamon", () => {
 
   it("[When Digivolving] delete effect does NOT fire when no suspended opponent Digimon", async () => {
     const source = makeSource();
-    const { ctx, recorder } = makeCtx(source, {
+    const { ctx, recorder: _recorder } = makeCtx(source, {
       oppSuspendedDigimon: false,
       oppUnsuspendedDigimon: true,
     });

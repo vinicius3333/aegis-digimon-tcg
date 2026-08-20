@@ -15,8 +15,8 @@ describe("BT26-059 Plutomon", () => {
       isOnBattleArea: () => true,
       isOwnersTurn: () => false,
     } as unknown as CardSource;
-    const trash = vi.fn(async () => []);
-    const playInstances = vi.fn(async () => []);
+    const trash = vi.fn<(...args: any[]) => any>(async () => []);
+    const playInstances = vi.fn<(...args: any[]) => any>(async () => []);
     const ctx = {
       source,
       game: {
@@ -26,7 +26,7 @@ describe("BT26-059 Plutomon", () => {
             ? { kinds: [CardKind.Digimon], types: ["Titan"], level: 4 }
             : { kinds: [CardKind.Option] },
       },
-      ask: { selectCards: vi.fn(async (input: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!]) },
+      ask: { selectCards: vi.fn<(...args: any[]) => any>(async (input: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!]) },
       fx: { trash, playInstances },
     } as unknown as EffectContext;
 

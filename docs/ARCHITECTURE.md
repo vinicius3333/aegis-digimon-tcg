@@ -67,6 +67,32 @@ than stored as permanent mutations.
 Database schema upgrades live in `apps/api/src/db/migrations`; they are active
 runtime migrations and must remain sequential.
 
+## Processes
+
+A Colyseus process is single-threaded, so one process uses one CPU core no matter how
+many the host has. The API therefore runs as several processes that share their
+matchmaking state, and each one advertises the public path where clients reach it.
+
+| Variable | Meaning |
+| --- | --- |
+| `AEGIS_REDIS_URL` | Shared matchmaking state. Unset means single-process: local presence, local driver, no public address. |
+| `AEGIS_PROCESS_PATH` | This process's unique path segment (`p1`, `p2`, …). Required whenever `AEGIS_REDIS_URL` is set. |
+| `AEGIS_PUBLIC_HOST` | Host clients connect to; falls back to `AEGIS_API_URL`. Combined with the path into the address Colyseus returns with each seat reservation. |
+| `AEGIS_LOG_MAX_BYTES` / `AEGIS_LOG_FILES` | Size and generation count for the rotating `apps/api/logs/api.log`. |
+
+Two consequences follow from rooms living on one process each:
+
+- The edge proxy must route each `/pN` path to that process and nowhere else. A seat
+  reservation is worthless on a sibling. `docker/Caddyfile` does this.
+- State the HTTP endpoints read cannot be process-local. Private room codes live in the
+  shared presence, `/bot/join` reaches the owning process through `remoteRoomCall`, and a
+  drain is published to every process of the slot.
+
+Each slot runs its own Redis, which is what keeps a draining slot and the active one from
+seeing each other's rooms: Colyseus's own matchmaking keys are fixed names, so a shared Redis
+would merge the two slots' room listings. `AEGIS_REDIS_URL` therefore points at the slot's own
+instance, and the slot-scoped prefix applies only to the keys Aegis writes itself.
+
 ## Verification
 
 ```bash

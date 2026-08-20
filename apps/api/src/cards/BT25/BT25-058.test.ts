@@ -46,8 +46,8 @@ describe("BT25-058 Callismon", () => {
       { seat: 0, battleArea: [self], hand: [], trash: [], security: [], deck: [] },
       { seat: 1, battleArea: [opponent], hand: [], trash: [], security: [], deck: [] },
     ];
-    const deDigivolve = vi.fn();
-    const forceBattle = vi.fn(async () => undefined);
+    const deDigivolve = vi.fn<(...args: any[]) => any>();
+    const forceBattle = vi.fn<(...args: any[]) => any>(async () => undefined);
     const game: GameAccess = {
       state: { memory: 0, turnSeat: 0, players } as never,
       player: (seat) => players[seat] as never,

@@ -17,6 +17,10 @@ function isKingDrasil(def: CardDefinition): boolean {
   return def.nameEn === "King Drasil_7D6";
 }
 
+function isOmnimonXAntibody(def: CardDefinition): boolean {
+  return isDigimon(def) && def.nameEn.includes("Omnimon") && (def.types ?? []).includes("X Antibody");
+}
+
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
@@ -70,10 +74,19 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             if (owner.security.length > 1) return;
-            const omnimonCards = Array.from(owner.hand).filter((c) => {
-              const def = ctx.game.definitionOf(c);
-              return def.nameEn.includes("Omnimon") && (def.types ?? []).includes("X Antibody");
-            });
+            const omnimonCards = Array.from(owner.hand)
+              .filter((card) => isOmnimonXAntibody(ctx.game.definitionOf(card)))
+              .map((card) => ({ instanceId: card.instanceId }));
+            const kingDrasilHosts = Array.from(owner.battleArea).filter(
+              (permanent) => permanent.topCard !== undefined && isKingDrasil(ctx.game.definitionOf(permanent.topCard)),
+            );
+            for (const host of kingDrasilHosts) {
+              for (const card of host.stack) {
+                if (isOmnimonXAntibody(ctx.game.definitionOf(card))) {
+                  omnimonCards.push({ instanceId: card.instanceId });
+                }
+              }
+            }
             if (omnimonCards.length > 0) {
               const chosen = await ctx.ask.selectCards(ctx, {
                 candidates: omnimonCards.map((c) => c.instanceId),
@@ -98,7 +111,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/rule-x-antibody`,
           description: "[Rule] This card is also treated as having [X Antibody] in its name.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {

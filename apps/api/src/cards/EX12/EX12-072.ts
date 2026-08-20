@@ -107,7 +107,7 @@ const module: EffectModule = {
           effectKey: `${cardId}/guard-all-turns`,
           description:
             "[All Turns] All of your [ME] trait Digimon gain ＜Guard＞.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             for (const p of owner.battleArea) {

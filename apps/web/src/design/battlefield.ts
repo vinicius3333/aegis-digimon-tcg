@@ -8,6 +8,7 @@
 import { useSyncExternalStore, type CSSProperties } from "react";
 
 const STORAGE_KEY = "aegis.battlefield";
+const CUSTOM_IMAGE_KEY = "aegis.battlefield.custom";
 
 /** The board surface used before any art shipped; still the default. */
 const CLASSIC_SURFACE = "radial-gradient(120% 80% at 50% 50%, var(--ds-surface), var(--ds-background))";
@@ -15,7 +16,6 @@ const CLASSIC_SURFACE = "radial-gradient(120% 80% at 50% 50%, var(--ds-surface),
 export interface Battlefield {
   id: string;
   label: string;
-  description: string;
   /** Undefined for the plain-gradient option, which paints no art. */
   src?: string;
   /** CSS gradient layered over `src` to hold the board's contrast budget. */
@@ -26,7 +26,6 @@ export interface Battlefield {
 export const CLASSIC_BATTLEFIELD: Battlefield = {
   id: "classic",
   label: "Classic",
-  description: "The plain themed gradient. No artwork.",
 };
 
 export const BATTLEFIELDS: readonly Battlefield[] = [
@@ -34,42 +33,36 @@ export const BATTLEFIELDS: readonly Battlefield[] = [
   {
     id: "sanctum",
     label: "Sanctum",
-    description: "Gothic hall, polished granite and stained-glass light.",
     src: "/battlefield/aegis-arena-sanctum.webp",
     scrim: "radial-gradient(120% 80% at 50% 50%, rgba(12,14,24,0.30), rgba(12,14,24,0.68))",
   },
   {
     id: "skyfall",
     label: "Skyfall",
-    description: "Marble arena adrift above the clouds at golden hour.",
     src: "/battlefield/aegis-arena-skyfall.webp",
     scrim: "radial-gradient(120% 80% at 50% 50%, rgba(248,246,242,0.62), rgba(248,246,242,0.40))",
   },
   {
     id: "nexus",
     label: "Nexus",
-    description: "Still water under an aurora, circuitry beneath the surface.",
     src: "/battlefield/aegis-arena-nexus.webp",
     scrim: "radial-gradient(120% 80% at 50% 50%, rgba(8,16,26,0.42), rgba(8,16,26,0.72))",
   },
   {
     id: "stone",
     label: "Stone",
-    description: "Pale engraved arena floor. Quiet and neutral.",
     src: "/battlefield/aegis-arena-stone.webp",
     scrim: "radial-gradient(120% 80% at 50% 50%, rgba(250,249,247,0.55), rgba(250,249,247,0.30))",
   },
   {
     id: "void",
     label: "Void",
-    description: "Dark slate floor with a dim glyph ring.",
     src: "/battlefield/aegis-arena-void.webp",
     scrim: "radial-gradient(120% 80% at 50% 50%, rgba(10,12,20,0.30), rgba(10,12,20,0.60))",
   },
   {
     id: "cloth",
     label: "Playmat",
-    description: "Woven linen mat with a heraldic emblem in the weave.",
     src: "/battlefield/aegis-arena-cloth.webp",
     scrim: "radial-gradient(120% 80% at 50% 50%, rgba(250,249,247,0.52), rgba(250,249,247,0.28))",
   },
@@ -77,12 +70,36 @@ export const BATTLEFIELDS: readonly Battlefield[] = [
 
 const DEFAULT_ID = CLASSIC_BATTLEFIELD.id;
 
+/** The image the player uploaded, kept as a data URL on this device only. */
+export const CUSTOM_BATTLEFIELD_ID = "custom";
+
+const CUSTOM_SCRIM = "radial-gradient(120% 80% at 50% 50%, rgba(12,14,24,0.28), rgba(12,14,24,0.62))";
+
 const listeners = new Set<() => void>();
+
+function readCustomSrc(): string | undefined {
+  try {
+    return localStorage.getItem(CUSTOM_IMAGE_KEY) ?? undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+let customSrc = readCustomSrc();
+
+export function getCustomBattlefieldSrc(): string | undefined {
+  return customSrc;
+}
+
+function knownId(id: string | null): boolean {
+  if (id === CUSTOM_BATTLEFIELD_ID) return Boolean(customSrc);
+  return BATTLEFIELDS.some((b) => b.id === id);
+}
 
 function readId(): string {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    return BATTLEFIELDS.some((b) => b.id === raw) ? (raw as string) : DEFAULT_ID;
+    return knownId(raw) ? (raw as string) : DEFAULT_ID;
   } catch {
     return DEFAULT_ID;
   }
@@ -95,7 +112,7 @@ export function getBattlefieldId(): string {
 }
 
 export function setBattlefieldId(id: string): void {
-  if (!BATTLEFIELDS.some((b) => b.id === id)) return;
+  if (!knownId(id)) return;
   currentId = id;
   try {
     localStorage.setItem(STORAGE_KEY, id);
@@ -105,12 +122,39 @@ export function setBattlefieldId(id: string): void {
   for (const listener of listeners) listener();
 }
 
+/** Stores the uploaded image and selects it. Throws when storage rejects it. */
+export function setCustomBattlefield(dataUrl: string): void {
+  localStorage.setItem(CUSTOM_IMAGE_KEY, dataUrl);
+  customSrc = dataUrl;
+  currentId = CUSTOM_BATTLEFIELD_ID;
+  try {
+    localStorage.setItem(STORAGE_KEY, CUSTOM_BATTLEFIELD_ID);
+  } catch {
+    // Preference is cosmetic; a blocked storage still applies for this session.
+  }
+  for (const listener of listeners) listener();
+}
+
+export function clearCustomBattlefield(): void {
+  try {
+    localStorage.removeItem(CUSTOM_IMAGE_KEY);
+  } catch {
+    // Nothing to clean up when storage is blocked.
+  }
+  customSrc = undefined;
+  if (currentId === CUSTOM_BATTLEFIELD_ID) setBattlefieldId(DEFAULT_ID);
+  else for (const listener of listeners) listener();
+}
+
 export function subscribeBattlefield(listener: () => void): () => void {
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
 
 export function battlefieldById(id: string): Battlefield {
+  if (id === CUSTOM_BATTLEFIELD_ID && customSrc) {
+    return { id, label: "Custom", src: customSrc, scrim: CUSTOM_SCRIM };
+  }
   return BATTLEFIELDS.find((b) => b.id === id) ?? CLASSIC_BATTLEFIELD;
 }
 

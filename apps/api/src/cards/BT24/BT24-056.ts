@@ -41,8 +41,8 @@ const module: EffectModule = {
           description:
             "[On Play] Until your opponent's turn ends, their effects can't return 1 of " +
             "your Digimon with [System]/[Life]/[Transmutation] to hands or decks.",
-          when: (ctx) => source.isOnBattleArea(),
-          canActivate: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
+          canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             const candidates = owner.battleArea
@@ -77,7 +77,7 @@ const module: EffectModule = {
           description:
             "[When Digivolving] Until your opponent's turn ends, their effects can't return 1 of " +
             "your Digimon with [System]/[Life]/[Transmutation] to hands or decks.",
-          canActivate: (ctx) => source.isOnBattleArea(),
+          canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             const candidates = owner.battleArea

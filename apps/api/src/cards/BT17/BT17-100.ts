@@ -32,7 +32,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 const cardId = "BT17-100";
 
 const isDoomsDay = (c: CardInstance): boolean => c.cardId === cardId;
-const isDiaboromon = (c: CardInstance): boolean =>
+const _isDiaboromon = (c: CardInstance): boolean =>
   // Diaboromon named card (all sets) or Diaboromon Token
   c.cardId === "BT17-059" ||
   c.cardId === "BT2-082" ||

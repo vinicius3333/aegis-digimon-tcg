@@ -107,7 +107,7 @@ const module: EffectModule = {
             // Install a replacement that prevents a Renamon-line Digimon from leaving
             // at a cost of trashing this card.
             const self = source.permanent();
-            const selfId = self?.permanentId ?? source.instanceId;
+            const _selfId = self?.permanentId ?? source.instanceId;
 
             ctx.fx.subscribeReplacement({
               event: "wouldLeavePlay",

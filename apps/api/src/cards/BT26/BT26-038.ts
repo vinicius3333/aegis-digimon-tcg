@@ -4,7 +4,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, whenDigivolving, turnTiming } from "../../engine/effects/builders.js";
+import { onPlay, staticModifier, whenDigivolving, turnTiming } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // BT26-038 — Kuwagamon (BT26, Green Lv.4 Digimon).
@@ -23,12 +23,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 // Inherited: [Your Turn] [Once Per Turn] When this Digimon wins a battle, 1 of your
 //   [Insectoid] or [Titan] trait Digimon may digivolve into an [Insectoid] or [Titan]
 //   trait Digimon card in the hand with the cost reduced by 1.
-//   RESIDUAL: this clause needs the `whenBattleWon` SubTrigger event, which has ZERO
-//   engine callers — no code path ever calls `fireSubTrigger("whenBattleWon", ...)`, so
-//   a watcher subscribed to it can never fire (confirmed dead in
-//   apps/api/src/cards/EX12/EX12-051.ts, which documents and omits the same clause
-//   rather than installing a dead-letter watcher). Omitted here for the same reason;
-//   port once the engine gains a battle-resolution caller for this event.
+//   The engine fires `whenBattleWon` from combat resolution, so this inherited clause is
+//   implemented below as a live watcher.
 
 const cardId = "BT26-038";
 
@@ -155,7 +151,58 @@ const module: EffectModule = {
       ];
     }
 
-    // Inherited "wins a battle" clause omitted — see RESIDUAL note above.
+    // [Your Turn][Once Per Turn] inherited: when this Digimon wins a battle, one of your
+    // Insectoid/Titan Digimon may digivolve into a matching card from hand for 1 less.
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/inherited-battle-won-digivolve`,
+          description:
+            "[Your Turn][Once Per Turn] When this Digimon wins a battle, one of your " +
+            "[Insectoid]/[Titan] Digimon may digivolve into a matching card from your hand " +
+            "with the digivolution cost reduced by 1.",
+          isInherited: true,
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self === undefined) return;
+            ctx.fx.subscribeSubTrigger({
+              event: "whenBattleWon",
+              sourcePermanentId: self.permanentId,
+              once: false,
+              oncePerTurnKey: `${cardId}/inherited-battle-won-digivolve`,
+              description: `${cardId}: when this Digimon wins a battle, may digivolve a trait Digimon from hand`,
+              matches: (subCtx) =>
+                subCtx.source.isOwnersTurn() && subCtx.trigger?.subjectPermanentId === self.permanentId,
+              run: async (subCtx) => {
+                const owner = subCtx.game.player(source.ownerSeat);
+                const handCandidates = owner.hand.filter((card) => {
+                  const def = subCtx.game.definitionOf(card);
+                  return isDigimon(def) && hasInsectoidOrTitan(def);
+                });
+                const hosts = Array.from(owner.battleArea).filter(
+                  (p) => p.topCard !== undefined && isDigimon(subCtx.game.definitionOf(p.topCard)) &&
+                    hasInsectoidOrTitan(subCtx.game.definitionOf(p.topCard)),
+                );
+                if (handCandidates.length === 0 || hosts.length === 0) return;
+                const hostIds = await subCtx.ask.chooseTargets(subCtx, {
+                  candidates: hosts.map((p) => p.permanentId), min: 1, max: 1,
+                });
+                if (hostIds.length === 0) return;
+                const chosen = await subCtx.ask.selectCards(subCtx, {
+                  candidates: handCandidates.map((card) => card.instanceId), min: 1, max: 1,
+                });
+                if (chosen.length === 0) return;
+                await subCtx.fx.digivolveFromInstance(hostIds[0]!, chosen[0]!, {
+                  payCost: true,
+                  costDelta: -1,
+                });
+              },
+            });
+          },
+        }),
+      ];
+    }
 
     return [];
   },
