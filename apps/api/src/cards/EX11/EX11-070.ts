@@ -78,6 +78,26 @@ const module: EffectModule = {
             }
           },
         }),
+        turnTiming({
+          source,
+          effectKey: `${cardId}/inherited-end-all-turns-play-unchained`,
+          description: "[End of All Turns] [Inherited] You may play 1 [Unchained] from this Digimon's digivolution cards without paying the cost.",
+          optional: true,
+          isInherited: true,
+          when: (_ctx) => source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const host = ctx.source.permanent();
+            if (host === undefined) return;
+            const candidates = host.stack.filter((card) => ctx.game.definitionOf(card).nameEn === "Unchained");
+            if (candidates.length === 0) return;
+            const chosen = await ctx.ask.selectCards(ctx, {
+              candidates: candidates.map((card) => card.instanceId),
+              min: 0,
+              max: 1,
+            });
+            if (chosen.length > 0) await ctx.fx.playInstances(chosen, { payCost: false });
+          },
+        }),
       ];
     }
 
@@ -110,19 +130,6 @@ const module: EffectModule = {
                 }
               }
             }
-          },
-        }),
-        staticModifier({
-          source,
-          effectKey: `${cardId}/end-all-turns-play-unchained`,
-          description:
-            "[End of All Turns] [Inherited] You may play 1 [Unchained] from this Digimon's " +
-            "digivolution cards without paying the cost.",
-          isInherited: true,
-          when: (_ctx) => source.isOnBattleArea(),
-          resolve: async (_ctx) => {
-            // "End of All Turns" is a timing not currently in the engine's EffectTiming enum
-            // This inherited effect would fire when both players' turns end
           },
         }),
       ];

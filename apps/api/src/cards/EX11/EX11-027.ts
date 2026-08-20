@@ -1,11 +1,16 @@
 import { EffectTiming, isDigimon } from "@aegis/shared";
+import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { onPlay } from "../../engine/effects/builders.js";
+import { matchNameOrTrait } from "../../engine/effects/interpreter/matching/definition.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "EX11-027";
+
+const hasMaquinamonInText = (def: CardDefinition): boolean =>
+  matchNameOrTrait(def, { tokens: ["Maquinamon"], match: "text" });
 
 const module: EffectModule = {
   cardId,
@@ -29,7 +34,7 @@ const module: EffectModule = {
             const maquinamonName = deckCards.filter((c) => ctx.game.definitionOf(c).nameEn === "Maquinamon");
             const maquinamonText = deckCards.filter((c) => {
               const def = ctx.game.definitionOf(c);
-              return def.nameEn !== "Maquinamon" && def.nameEn.includes("Maquinamon");
+              return def.nameEn !== "Maquinamon" && hasMaquinamonInText(def);
             });
             const added: string[] = [];
             if (maquinamonName.length > 0) {

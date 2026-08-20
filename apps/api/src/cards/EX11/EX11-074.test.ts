@@ -4,16 +4,19 @@ import type { CardInstance, Permanent, Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { definitionOf } from "../../engine/cards/cardData.js";
 import "./EX11-074.js";
+import "../index.js";
 
 // EX11-074 Vortexdramon (Green Lv.7):
 //   - Static: ＜Piercing＞ ＜Vortex＞ ＜Blocker＞ (continuous keyword grants).
 //   - [When Digivolving] / [When Attacking]: may suspend 1 Digimon (either side, Q5948);
 //     if a YOUR-side Digimon was suspended, this Digimon gains "opponent's effects don't
 //     affect it" (beAffected) + +6000 DP until the opponent's turn ends.
-//   - [All Turns][OPT]: when any Digimon suspend, may unsuspend self; the "may battle"
-//     half is blocked (no direct-battle primitive).
+//   - [All Turns][OPT]: when any Digimon suspend, may unsuspend self, then may directly
+//     battle one opponent Digimon through the production forceBattle seam.
 
 const cardId = "EX11-074";
 
@@ -70,6 +73,7 @@ interface Calls {
   unsuspend: string[][];
   restrict: { permanentId: string; restriction: string; duration: EffectDuration }[];
   modifyDP: { permanentId: string; amount: number; duration: EffectDuration }[];
+  forceBattle: { attackerId: string; defenderId: string }[];
 }
 
 /**
@@ -92,6 +96,7 @@ function makeCtx(args: {
     unsuspend: [],
     restrict: [],
     modifyDP: [],
+    forceBattle: [],
   };
   const mine = args.mineBattle ?? [];
   const opp = args.oppBattle ?? [];
@@ -131,6 +136,9 @@ function makeCtx(args: {
         calls.restrict.push({ permanentId, restriction, duration }),
       modifyDP: (permanentId: string, amount: number, duration: EffectDuration) =>
         calls.modifyDP.push({ permanentId, amount, duration }),
+      forceBattle: async (attackerId: string, defenderId: string) => {
+        calls.forceBattle.push({ attackerId, defenderId });
+      },
     },
     ask: {
       optional: async () => args.optionalAnswer ?? true,
@@ -156,6 +164,31 @@ function onlyEffect(timing: EffectTiming, source: CardSource) {
 }
 
 describe("EX11-074 Vortexdramon", () => {
+  it("production seam: another Digimon suspending triggers unsuspend-then-direct-battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "vortexdramon", dp: 14000 },
+            { card: "AD1-001", as: "ally", dp: 3000 },
+          ],
+        },
+        1: { battleArea: [{ card: "AD1-001", as: "opponent", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const vortexdramon = s.perm("vortexdramon");
+    const ally = s.perm("ally");
+    const opponent = s.perm("opponent");
+
+    await advance(s.engine).verb.suspend([ally.permanentId], 0);
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === opponent.permanentId), 500);
+
+    expect(vortexdramon.isSuspended).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === opponent.permanentId)).toBe(false);
+    expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
+  });
+
   it("registers a hand-written module (not the inert IR stub)", () => {
     expect(requireModule().cardId).toBe(cardId);
   });
@@ -246,16 +279,57 @@ describe("EX11-074 Vortexdramon", () => {
     expect(calls.modifyDP).toHaveLength(0);
   });
 
-  it("[All Turns] is Once Per Turn and may unsuspend this Digimon; the battle half is inert (blocked)", async () => {
+  it("[All Turns] is Once Per Turn, may unsuspend, then may directly battle a chosen opponent Digimon", async () => {
     const self = selfPermanent({ isSuspended: true });
+    const opponent = digimon("p-opp", 1);
     const source = makeSource(self);
     const eff = onlyEffect(EffectTiming.OnTappedAnyone, source);
     expect(eff.maxPerTurn).toBe(1);
 
-    const { ctx, calls } = makeCtx({ source, mineBattle: [self], optionalAnswer: true });
+    const { ctx, calls } = makeCtx({
+      source,
+      mineBattle: [self],
+      oppBattle: [opponent],
+      chooseAnswer: ["p-opp"],
+      optionalAnswer: true,
+    });
     await expect(eff.resolve(ctx)).resolves.toBeUndefined();
-    // The executable half unsuspends self; the "may battle" half is blocked (no fx call).
     expect(calls.unsuspend).toEqual([["p-self"]]);
+    expect(calls.forceBattle).toEqual([{ attackerId: "p-self", defenderId: "p-opp" }]);
+  });
+
+  it("declining the optional battle performs no direct battle", async () => {
+    const self = selfPermanent();
+    const source = makeSource(self);
+    const eff = onlyEffect(EffectTiming.OnTappedAnyone, source);
+    const { ctx, calls } = makeCtx({
+      source,
+      mineBattle: [self],
+      oppBattle: [digimon("p-opp", 1)],
+      chooseAnswer: [],
+    });
+    await eff.resolve(ctx);
+    expect(calls.forceBattle).toHaveLength(0);
+  });
+
+  it("offers only opponent Digimon as direct-battle targets", async () => {
+    const self = selfPermanent();
+    const source = makeSource(self);
+    const eff = onlyEffect(EffectTiming.OnTappedAnyone, source);
+    let offered: string[] = [];
+    const { ctx, calls } = makeCtx({
+      source,
+      mineBattle: [self, digimon("p-mine", 0)],
+      oppBattle: [digimon("p-opp", 1)],
+      chooseAnswer: ["p-opp"],
+    });
+    ctx.ask.chooseTargets = async (_ctx, options) => {
+      offered = options.candidates;
+      return ["p-opp"];
+    };
+    await eff.resolve(ctx);
+    expect(offered).toEqual(["p-opp"]);
+    expect(calls.forceBattle).toEqual([{ attackerId: "p-self", defenderId: "p-opp" }]);
   });
 
   it("[All Turns] does not unsuspend when this Digimon is already unsuspended", async () => {

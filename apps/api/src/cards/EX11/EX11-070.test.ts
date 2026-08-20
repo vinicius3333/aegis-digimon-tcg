@@ -1,9 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { EffectDuration } from "@aegis/shared";
+import { EffectDuration, EffectTiming } from "@aegis/shared";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 import type { ModifierLedger } from "../../engine/effects/modifiers.js";
 import type { ContinuousEffectLedger } from "../../engine/effects/continuous.js";
 import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import { getEffectModule } from "../../engine/effects/registry.js";
 // Self-register every compiled-IR / hand-written card module so EX11-070's real IR resolves.
 import "../index.js";
 
@@ -136,5 +137,33 @@ describe("EX11-070 stacked-trash-lock — opponent effects can't trash the host'
     const moved = primitivesOf(s).deDigivolve(host.permanentId, 1, { byEffectSeat: 1 });
     expect(moved.length).toBe(0);
     expect(host.stack.length).toBe(stackSizeBefore);
+  });
+});
+
+describe("EX11-070 inherited End of All Turns play", () => {
+  it("offers an Unchained in the host's stack as a free play", async () => {
+    const host = setupEngine({
+      0: { battleArea: [{ card: HOST_MAQUINAMON_TEXT, as: "host", under: [ESS_SOURCE] }] },
+    }).perm("host");
+    const source = {
+      instanceId: host.stack[0]!.instanceId,
+      cardId: ESS_SOURCE,
+      ownerSeat: 0,
+      definition: undefined,
+      permanent: () => host,
+      isOnBattleArea: () => true,
+      isOwnersTurn: () => false,
+      hasColor: () => true,
+    } as never;
+    const effect = getEffectModule(ESS_SOURCE)!.effectsForTiming(EffectTiming.OnEndTurn, source)[1]!;
+    const played: string[][] = [];
+    await effect.resolve({
+      source,
+      trigger: {},
+      game: { definitionOf: (card: { cardId: string }) => ({ nameEn: card.cardId === ESS_SOURCE ? "Unchained" : "Turbomon" }) },
+      fx: { playInstances: async (ids: string[]) => { played.push(ids); return []; } },
+      ask: { selectCards: async (_ctx: unknown, options: { candidates: string[] }) => options.candidates.slice(0, 1) },
+    } as never);
+    expect(played).toEqual([[host.stack[0]!.instanceId]]);
   });
 });
