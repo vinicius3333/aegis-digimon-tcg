@@ -6,7 +6,7 @@ import "./index.js";
 
 const st15Cards = allCards()
   .filter((card) => /^ST15-\d{2}$/.test(card.cardId))
-  .sort((a, b) => Number(a.cardId.slice(4)) - Number(b.cardId.slice(4)));
+  .sort((a, b) => Number(b.cardId.slice(4)) - Number(a.cardId.slice(4)));
 
 describe("ST15 collection audit ledger guards", () => {
   it("covers every committed ST15 catalog entry from ST15-16 through ST15-01", () => {
@@ -23,7 +23,8 @@ describe("ST15 collection audit ledger guards", () => {
   });
 
   it("keeps the direct-module exception explicit", () => {
-    expect(runtimeCompiledCard("ST15-13")).toBeUndefined();
+    expect(runtimeCompiledCard("ST15-13")).toBeDefined();
+    expect(getCompiledCard("ST15-13")?.residual?.length).toBeGreaterThan(0);
     for (const card of st15Cards.filter((card) => card.cardId !== "ST15-13")) {
       expect(runtimeCompiledCard(card.cardId), card.cardId).toBeDefined();
     }
