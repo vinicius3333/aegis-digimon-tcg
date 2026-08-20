@@ -137,4 +137,27 @@ describe("BT11-087 Lilithmon [Opponent's Turn] — real engine: breeding move gr
     expect(memoryFor(0)).toBe(3);
     assertNoLoudGap(s);
   });
+
+  it("does not react when Lilithmon's controller moves their own Digimon from breeding", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-087", dp: 12000, as: "lilithmon", under: ["AD1-001"] }],
+          breeding: { card: "BT1-009", dp: 3000, as: "mover" },
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    s.state.phase = Phase.Breeding;
+    s.state.turnSeat = 0;
+
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
+      ok: true,
+    });
+
+    await settle(() => s.perm("lilithmon").stack.length === 1, 200);
+    expect(s.perm("lilithmon").stack).toHaveLength(1);
+    assertNoLoudGap(s);
+  });
 });
