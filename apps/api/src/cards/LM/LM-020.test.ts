@@ -4,6 +4,7 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./LM-020.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 // LM-020 (Quantumon) — two clauses with dense official Q&A:
 //
@@ -147,6 +148,29 @@ function makeContext(opts: ContextOpts): EffectContext {
 }
 
 describe("LM-020 Quantumon", () => {
+  it("publicly digivolves Quantumon and places an owned Digimon into security", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT17-036", as: "base" }, { card: "LM-016", as: "fodder" }], hand: [{ card: "LM-020", as: "quantumon" }] },
+      1: { security: ["BT1-001", "BT1-085"] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("quantumon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "LM-020"));
+    expect(s.state.players[0]!.security.some((card) => card.cardId === "LM-020")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "LM-020")).toBe(false);
+  });
+
+  it("still places the chosen Digimon when the opponent has no security cards", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT17-036", as: "base" }], hand: [{ card: "LM-020", as: "quantumon" }] },
+      1: { security: [] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("quantumon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "LM-020"));
+    expect(s.state.players[0]!.security.filter((card) => card.cardId === "LM-020")).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
   const module = getEffectModule("LM-020");
 
   it("is registered", () => {
