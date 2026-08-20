@@ -35,7 +35,7 @@ const module: EffectModule = {
                 return subCtx.source.isOnBattleArea() && subCtx.source.isOwnersTurn();
               },
               run: async (subCtx) => {
-                subCtx.fx.draw(source.ownerSeat, 1);
+                await subCtx.fx.draw(source.ownerSeat, 1);
               },
             });
           },

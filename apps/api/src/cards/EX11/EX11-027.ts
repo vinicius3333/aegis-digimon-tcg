@@ -54,21 +54,52 @@ const module: EffectModule = {
             }
             const rest = deckCards.filter((c) => !added.includes(c.instanceId));
             if (rest.length > 0) {
-              await ctx.fx.returnToDeck(rest.map((c) => c.instanceId), { toTop: false });
+              await ctx.fx.returnToDeck(
+                rest.map((c) => c.instanceId),
+                { toTop: false },
+              );
             }
 
             const selfPerm = source.permanent();
             if (selfPerm === undefined) return;
             const ownerSeat = source.ownerSeat;
             const otherDigimon = Array.from(owner.battleArea)
-              .filter((p) => p.permanentId !== selfPerm.permanentId && p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)))
+              .filter(
+                (p) =>
+                  p.permanentId !== selfPerm.permanentId &&
+                  p.topCard !== undefined &&
+                  isDigimon(ctx.game.definitionOf(p.topCard)),
+              )
               .map((p) => p.permanentId);
             if (otherDigimon.length > 0) {
-              const willLink = await ctx.ask.optional(ctx, "Link this Digimon to 1 of your other Digimon?");
+              const maquinamonInHand = Array.from(owner.hand).filter(
+                (card) => ctx.game.definitionOf(card).nameEn === "Maquinamon",
+              );
+              const willLink = await ctx.ask.optional(
+                ctx,
+                "Link this Digimon or a Maquinamon from your hand to 1 of your other Digimon?",
+              );
               if (willLink) {
-                const linkTo = await ctx.ask.chooseTargets(ctx, { candidates: otherDigimon, min: 1, max: 1 });
+                let linkSource = source.instanceId;
+                if (maquinamonInHand.length > 0) {
+                  const choice = await ctx.ask.chooseOption(ctx, ["This Digimon", "Maquinamon from hand"]);
+                  if (choice === 1) {
+                    const picked = await ctx.ask.selectCards(ctx, {
+                      candidates: maquinamonInHand.map((card) => card.instanceId),
+                      min: 1,
+                      max: 1,
+                    });
+                    if (picked.length === 0) return;
+                    linkSource = picked[0]!;
+                  }
+                }
+                const linkTo = await ctx.ask.chooseTargets(ctx, {
+                  candidates: otherDigimon,
+                  min: 1,
+                  max: 1,
+                });
                 if (linkTo.length > 0) {
-                  await ctx.fx.link(linkTo[0]!, [source.instanceId]);
+                  await ctx.fx.link(linkTo[0]!, [linkSource]);
                 }
               }
             }

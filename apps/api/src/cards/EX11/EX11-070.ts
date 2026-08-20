@@ -8,6 +8,11 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "EX11-070";
 
+function hasMaquinamonInText(def: CardDefinition): boolean {
+  const hay = `${def.nameEn} ${def.effectText ?? ""} ${def.inheritedEffectText ?? ""}`;
+  return hay.toLowerCase().includes("maquinamon");
+}
+
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
@@ -56,7 +61,12 @@ const module: EffectModule = {
               }
             }
             const maquinamonDigimon = Array.from(owner.battleArea)
-              .filter((p) => p.topCard !== undefined) // Mind link
+              .filter(
+                (p) =>
+                  p.topCard !== undefined &&
+                  isDigimon(ctx.game.definitionOf(p.topCard)) &&
+                  hasMaquinamonInText(ctx.game.definitionOf(p.topCard)),
+              )
               .map((p) => p.permanentId);
             if (maquinamonDigimon.length > 0) {
               const chosen = await ctx.ask.chooseTargets(ctx, { candidates: maquinamonDigimon, min: 0, max: 1 });

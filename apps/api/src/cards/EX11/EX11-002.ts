@@ -28,7 +28,7 @@ const module: EffectModule = {
               (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && p.stack.length > 0,
             );
             if (!hasStacked) {
-              ctx.fx.restrict(self.permanentId, "cantBeBlocked", EffectDuration.UntilEachTurnEnd);
+              ctx.fx.grantCanAttackUnsuspended(self.permanentId, EffectDuration.UntilEachTurnEnd);
             }
           },
         }),
