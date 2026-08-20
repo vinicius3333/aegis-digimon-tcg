@@ -1,5 +1,4 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { BetaBanner } from "./design/BetaBanner";
 import { Stage, TopNav, type PlayerIdentity, type Screen } from "./design/primitives";
 import { colorKey, type ColorName } from "./design/theme";
 import {
@@ -237,7 +236,6 @@ export function AegisClient({
   return (
     <Stage>
       {showNav ? <TopNav screen={screen} onNav={navigateScreen} player={effectivePlayer} /> : null}
-      {screen === "game" ? null : <BetaBanner belowNav={showNav} />}
 
       <div id="aegis-main" className={`aegis-screen-region${showNav ? " aegis-screen-region--nav" : ""}`} tabIndex={-1}>
         <Suspense fallback={<ScreenFallback />}>

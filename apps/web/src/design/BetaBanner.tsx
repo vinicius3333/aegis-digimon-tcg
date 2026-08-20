@@ -21,14 +21,14 @@ function rememberDismissal(): void {
   }
 }
 
-export function BetaBanner({ belowNav }: { belowNav: boolean }) {
+export function BetaBanner() {
   const { t } = useTranslation();
   const [dismissed, setDismissed] = useState(wasDismissed);
 
   if (dismissed) return null;
 
   return (
-    <div className={`aegis-beta-banner${belowNav ? " aegis-beta-banner--below-nav" : ""}`} role="status">
+    <div className="aegis-beta-banner" role="status">
       <Icons.CircleAlert size={18} />
       <p className="aegis-beta-banner__text">
         <strong>{t("beta.tag")}</strong>

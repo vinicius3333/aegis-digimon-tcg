@@ -8,7 +8,7 @@ import { BetaBanner } from "./BetaBanner";
 function renderBanner() {
   return render(
     <I18nProvider>
-      <BetaBanner belowNav />
+      <BetaBanner />
     </I18nProvider>,
   );
 }
