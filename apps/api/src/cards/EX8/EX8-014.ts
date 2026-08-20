@@ -50,8 +50,12 @@ export const compiled: CompiledCard = {
                     "value": 8000
                   }
                 },
-                "count": 1
-              }
+              "count": 1
+                },
+                "condition": {
+                  "kind": "selfIsSuspended",
+                  "raw": "if this Digimon is suspended"
+                }
             }
           ]
         }
@@ -90,8 +94,12 @@ export const compiled: CompiledCard = {
                     "value": 8000
                   }
                 },
-                "count": 1
-              }
+              "count": 1
+                },
+                "condition": {
+                  "kind": "selfIsSuspended",
+                  "raw": "if this Digimon is suspended"
+                }
             }
           ]
         }
