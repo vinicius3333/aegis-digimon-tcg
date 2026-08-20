@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type Seat } from "@aegis/shared";
-import type { GameEngine } from "../../engine/GameEngine.js";
 import { setupEngine, type BoardSpec, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
 

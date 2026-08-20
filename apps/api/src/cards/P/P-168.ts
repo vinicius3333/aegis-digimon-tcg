@@ -21,8 +21,8 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/start-main`,
           description: "[Start of Your Main Phase] If your opponent has a Digimon, gain 1 memory.",
-          when: (ctx) => source.isOnBattleArea(),
-          canActivate: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
+          canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const opponent = ctx.game.opponentOf(source.ownerSeat);
             const opp = ctx.game.player(opponent);
@@ -47,7 +47,7 @@ const module: EffectModule = {
             "[Aqua]/[Sea Animal] in any of its traits, by suspending this Tamer, that Digimon " +
             "may digivolve into a Digimon card with [Aqua]/[Sea Animal] in its traits from your " +
             "hand with the digivolution cost reduced by 1.",
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

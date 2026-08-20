@@ -17,7 +17,7 @@ describe("BT26-056 Inferno Divide", () => {
       permanent: () => ({ permanentId: "cerberus" }),
       isOnBattleArea: () => true,
     } as unknown as CardSource;
-    const deDigivolve = vi.fn();
+    const deDigivolve = vi.fn<(...args: any[]) => any>();
     const ctx = {
       source,
       game: {
@@ -25,8 +25,8 @@ describe("BT26-056 Inferno Divide", () => {
         player: (seat: number) => (seat === 0 ? { hand: [] } : { battleArea: [opponent] }),
         definitionOf: () => ({ kinds: [CardKind.Digimon] }),
       },
-      ask: { chooseTargets: vi.fn(async () => [opponent.permanentId]) },
-      fx: { deDigivolve, trash: vi.fn() },
+      ask: { chooseTargets: vi.fn<(...args: any[]) => any>(async () => [opponent.permanentId]) },
+      fx: { deDigivolve, trash: vi.fn<(...args: any[]) => any>() },
     } as unknown as EffectContext;
 
     const effect = module.effectsForTiming(EffectTiming.OnUseOption, source)[0]!;

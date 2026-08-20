@@ -225,7 +225,7 @@ describe("BT9-109 [Security] — real engine: credits its OWNER, not the attacki
       1: { battleArea: [{ card: "AD1-001", dp: 5000, as: "attacker" }] },
     });
     const p0 = s.state.players[0] as PlayerState;
-    const p1 = s.state.players[1] as PlayerState;
+    const _p1 = s.state.players[1] as PlayerState;
 
     // It is seat 1's turn; seat 1 attacks seat 0's security, which holds BT9-109.
     s.state.turnSeat = 1;

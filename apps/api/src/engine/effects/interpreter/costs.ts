@@ -28,7 +28,11 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const self = ctx.source.permanent();
     return self !== undefined && self.inBreeding && ctx.game.player(ctx.source.ownerSeat).battleArea.length === 0;
   }
-  if (cost.kind === "attack" || cost.kind === "digivolveSelf") return ctx.source.permanent() !== undefined;
+  if (cost.kind === "attack") {
+    const self = ctx.source.permanent();
+    return self !== undefined && (ctx.game.canDeclareAttack?.(self) ?? true);
+  }
+  if (cost.kind === "digivolveSelf") return ctx.source.permanent() !== undefined;
   if (cost.kind === "reveal") {
     if (cost.target === undefined) return false;
     const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);

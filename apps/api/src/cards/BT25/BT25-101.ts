@@ -7,7 +7,6 @@ import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { activated, colorWaiverStatic, security, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
-
 const cardId = "BT25-101";
 const linkHostName = "Vulcanusmon";
 
@@ -48,7 +47,7 @@ function linkedHost(source: CardSource): ReturnType<CardSource["permanent"]> {
 function ownerDigimonPermanentIds(ctx: EffectContext, source: CardSource): string[] {
   const owner = ctx.game.player(source.ownerSeat);
   const ids: string[] = [];
-  for (const permanent of [...owner.battleArea, ...(owner.breeding === undefined ? [] : [owner.breeding])]) {
+  for (const permanent of owner.battleArea) {
     if (permanent.topCard == null) continue;
     if (isDigimon(ctx.game.definitionOf(permanent.topCard))) ids.push(permanent.permanentId);
   }
@@ -110,7 +109,7 @@ async function resolveMain(ctx: EffectContext, source: CardSource): Promise<void
   const chosenHost =
     hostIds.length === 1 ? hostIds : await ctx.ask.chooseTargets(ctx, { candidates: hostIds, min: 1, max: 1 });
   if (chosenHost.length === 0) return;
-  ctx.fx.link(chosenHost[0]!, [linkSourceInstanceId]);
+  await ctx.fx.link(chosenHost[0]!, [linkSourceInstanceId]);
 }
 
 const module: EffectModule = {

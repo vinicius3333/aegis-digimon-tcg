@@ -60,14 +60,14 @@ describe("BT26-014 [On Play]/[When Digivolving]: delete 1 opponent Digimon with 
     } as unknown as GameAccess;
 
     const fx = {
-      deletePermanent: vi.fn(async (ids: string[]) => {
+      deletePermanent: vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
         deleted.push(ids);
         return ids.length;
       }),
     } as unknown as Primitives;
 
     const ask = {
-      chooseTargets: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!]),
+      chooseTargets: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!]),
     } as unknown as EffectContext["ask"];
 
     const source = makeSource();

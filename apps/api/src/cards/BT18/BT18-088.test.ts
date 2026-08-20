@@ -96,7 +96,7 @@ function makeCtx(opts: {
     optional: async () => true,
     chooseTargets: async (_ctx, opts) => opts.candidates.slice(0, opts.max),
     selectPermanents: async (_ctx, opts) => opts.candidates.slice(0, opts.max),
-    selectCards: async (_ctx, opts) => [],
+    selectCards: async (_ctx, _opts) => [],
     chooseOption: async () => 0,
   };
 

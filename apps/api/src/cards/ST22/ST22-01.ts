@@ -47,7 +47,7 @@ const module: EffectModule = {
           "with the digivolution cost reduced by 3.",
         isInherited: true,
         maxPerTurn: 1,
-        when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+        when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
         resolve: async (ctx) => {
           const host = source.permanent();
           if (host === undefined) return;

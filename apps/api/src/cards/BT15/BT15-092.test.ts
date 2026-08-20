@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import {
   GameState,
   PlayerState,
-  Permanent,
   CardInstance,
   EffectTiming,
   type Seat,

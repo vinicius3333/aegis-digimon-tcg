@@ -1,5 +1,4 @@
 // @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Rei Katsura. Start of Main: gain memory if the opponent has a Digimon. When

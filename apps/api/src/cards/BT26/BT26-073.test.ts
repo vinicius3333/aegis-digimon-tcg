@@ -63,7 +63,7 @@ describe("BT26-073 [On Play]/[When Digivolving]: cost then delete a level<=5 opp
 
     const deleted: string[][] = [];
     const fx = {
-      deletePermanent: vi.fn(async (ids: string[]) => {
+      deletePermanent: vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
         deleted.push(ids);
         return ids.length;
       }),

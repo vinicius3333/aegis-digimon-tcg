@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, CardKind, CardColor, EffectDuration, type CardDefinition, type GameState, type Seat } from "@aegis/shared";
+import { EffectTiming, CardKind, CardColor, type CardDefinition, type GameState, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";

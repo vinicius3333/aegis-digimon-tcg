@@ -81,7 +81,7 @@ const module: EffectModule = {
             "with ＜Digi-Burst＞, you may suspend this Tamer to reduce the digivolution cost by 1.",
           optional: false,
           // Gate: this Tamer is on the battle area, it's the owner's turn, and the INTO card has Digi-Burst.
-          canActivate: (ctx) => {
+          canActivate: (_ctx) => {
             const me = source.permanent();
             return source.isOnBattleArea() && source.isOwnersTurn() && me !== undefined && !me.isSuspended;
           },

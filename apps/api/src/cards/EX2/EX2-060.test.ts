@@ -18,7 +18,7 @@ import "./EX2-060.js";
 // body — no suspend call and no useOptionFromHand call are produced.
 
 const PLUG_IN_ID = "ST9-016"; // A Plug-In Option card
-const OTHER_ID = "BT1-OTHER";
+const _OTHER_ID = "BT1-OTHER";
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];

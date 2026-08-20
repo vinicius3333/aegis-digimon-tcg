@@ -1,5 +1,5 @@
 // @ts-nocheck
-import { EffectTiming, isDigimon } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -39,7 +39,7 @@ const module: EffectModule = {
             "[Tyrannomon] in its name, or the [Dinosaur] or [Ceratopsian] trait, reduce the " +
             "digivolution cost by 1.",
           optional: false,
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             // Record a digivolve-cost reduction for this turn.
             ctx.fx.changeEvoCost(

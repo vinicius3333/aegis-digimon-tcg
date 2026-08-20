@@ -68,7 +68,7 @@ function makeHarness(options: {
   } as unknown as GameAccess;
 
   const memory: number[] = [];
-  const fx = { gainMemory: vi.fn((n: number) => memory.push(n)) } as unknown as Primitives;
+  const fx = { gainMemory: vi.fn<(...args: any[]) => any>((n: number) => memory.push(n)) } as unknown as Primitives;
 
   const source = options.source ?? makeSource();
   const ctx = { source, trigger: {}, game, fx, ask: {} } as unknown as EffectContext;

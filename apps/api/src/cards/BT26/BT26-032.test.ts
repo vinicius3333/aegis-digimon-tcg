@@ -21,9 +21,9 @@ describe("BT26-032 Ceresmon", () => {
       isOnBattleArea: () => true,
       isOwnersTurn: () => true,
     } as unknown as CardSource;
-    const suspend = vi.fn(async () => undefined);
-    const gainMemory = vi.fn();
-    const useOptionFromHand = vi.fn(async () => []);
+    const suspend = vi.fn<(...args: any[]) => any>(async () => undefined);
+    const gainMemory = vi.fn<(...args: any[]) => any>();
+    const useOptionFromHand = vi.fn<(...args: any[]) => any>(async () => []);
     const ctx = {
       source,
       game: {
@@ -35,8 +35,8 @@ describe("BT26-032 Ceresmon", () => {
             : { kinds: [CardKind.Digimon] },
       },
       ask: {
-        chooseTargets: vi.fn(async () => [opponent.permanentId]),
-        selectCards: vi.fn(async () => [option.instanceId]),
+        chooseTargets: vi.fn<(...args: any[]) => any>(async () => [opponent.permanentId]),
+        selectCards: vi.fn<(...args: any[]) => any>(async () => [option.instanceId]),
       },
       fx: { suspend, gainMemory, useOptionFromHand },
     } as unknown as EffectContext;

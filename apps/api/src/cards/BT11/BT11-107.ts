@@ -1,4 +1,4 @@
-import { CardColor, EffectTiming, isDigimon, isTamer } from "@aegis/shared";
+import { EffectTiming, isDigimon, isTamer } from "@aegis/shared";
 import type { CardDefinition, Permanent } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";

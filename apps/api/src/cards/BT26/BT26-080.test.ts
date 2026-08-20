@@ -84,17 +84,17 @@ function makeHarness(options: {
   const calls: string[] = [];
   const deleted: string[][] = [];
   const fx = {
-    suspend: vi.fn(async (ids: string[]) => {
+    suspend: vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
       calls.push(`suspend:${ids.join(",")}`);
       return ids;
     }),
-    unsuspend: vi.fn(async (ids: string[]) => {
+    unsuspend: vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
       calls.push(`unsuspend:${ids.join(",")}`);
     }),
-    forceAttack: vi.fn(async (id: string, opts?: { withoutSuspending?: boolean }) => {
+    forceAttack: vi.fn<(...args: any[]) => any>(async (id: string, opts?: { withoutSuspending?: boolean }) => {
       calls.push(`forceAttack:${id}:${opts?.withoutSuspending === true}`);
     }),
-    deletePermanent: vi.fn(async (ids: string[]) => {
+    deletePermanent: vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
       calls.push(`delete:${ids.join(",")}`);
       deleted.push(ids);
       return ids.length;
@@ -103,7 +103,7 @@ function makeHarness(options: {
 
   const offered: string[][] = [];
   const ask = {
-    chooseTargets: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => {
+    chooseTargets: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => {
       offered.push(opts.candidates);
       return options.pick ? options.pick(opts.candidates) : [opts.candidates[0]!];
     }),

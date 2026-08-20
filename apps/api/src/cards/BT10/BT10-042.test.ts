@@ -48,7 +48,7 @@ function makePermanent(
   permanentId: string,
   seat: Seat,
   cardId: string,
-  effectText?: string,
+  _effectText?: string,
 ): Permanent {
   return {
     permanentId,

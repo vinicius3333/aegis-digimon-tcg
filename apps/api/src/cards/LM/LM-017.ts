@@ -1,4 +1,4 @@
-import { EffectTiming, EffectDuration, isDigimon, isTamer } from "@aegis/shared";
+import { EffectTiming, isDigimon, isTamer } from "@aegis/shared";
 import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -127,7 +127,7 @@ const module: EffectModule = {
             "by deleting 1 level 4 or lower Digimon you have in play, you may play 1 level 4 or " +
             "lower Digimon from your trash without paying the cost.",
           maxPerTurn: 1,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

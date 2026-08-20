@@ -276,6 +276,8 @@ export interface TriggerInfo {
   byEffectSeat?: Seat;
   /** Printed card ID of the effect that produced the event, when known. */
   byEffectCardId?: string;
+  /** Whether the trashed digivolution card was the top card of its stack. */
+  trashedDigivolutionCardWasTop?: boolean;
   /** True only when a digivolution card was trashed to pay a ＜Digi-Burst＞ cost. */
   isDigiBurstTrash?: boolean;
   /**
@@ -446,6 +448,8 @@ export interface GameAccess {
   colorRequirementWaived?(instanceId: string): boolean;
   /** Server-authoritative live keyword/mechanic lookup for the source permanent. */
   hasKeyword?(permanentId: string, keyword: string): boolean;
+  /** Whether the permanent can currently declare an ordinary (tapping) attack. */
+  canDeclareAttack?(permanent: Permanent): boolean;
   /** Whether `seat` completed a digivolution since the current turn began. */
   digivolvedThisTurn?(seat: Seat): boolean;
   /** Whether the permanent is currently prevented from activating this timing. */

@@ -28,6 +28,7 @@ import { MemoryGauge } from "./MemoryGauge.js";
 import { buildStateView, refreshStateView as refreshStateViewInto, syncPublicCounts } from "./state/visibility.js";
 import { GameStateAccess, insertCard, takeTop } from "./state/access.js";
 import { CombatController } from "./combat/controller.js";
+import { canAttackerDeclare } from "./combat/legality.js";
 import { rollTurnActivity } from "./turnActivity.js";
 import { resolveKeywords } from "./combat/keywords.js";
 import { WinCheck, runSecurityCheck, type SecurityCheckDeps } from "./security/index.js";
@@ -674,6 +675,7 @@ export class GameEngine {
         !this.continuous.hasRestriction(permanentId, "beAffected"),
       (permanent) => this.effectiveColorsOf(permanent),
       (instanceId) => this.continuous.hasColorWaiver(instanceId),
+      (permanent) => canAttackerDeclare(this.access, permanent.controllerSeat, permanent, this.continuous) === null,
     );
     return this.gameAccess;
   }
@@ -2547,6 +2549,8 @@ export class GameEngine {
       digivolvedThisTurn: (seat) => this.tracker.count(`seat:${seat}`, "digivolvedThisTurn") > 0,
       effectiveColors: (permanent) => this.effectiveColorsOf(permanent),
       colorRequirementWaived: (instanceId) => this.continuous.hasColorWaiver(instanceId),
+      canDeclareAttack: (permanent) =>
+        canAttackerDeclare(this.access, permanent.controllerSeat, permanent, this.continuous) === null,
       triggerInfo: trigger,
     };
   }

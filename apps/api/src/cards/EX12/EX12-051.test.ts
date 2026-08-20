@@ -162,7 +162,7 @@ describe("EX12-051 On Play: suspend 1 opponent Digimon/Tamer + de-digivolve 1 op
         },
         opponentOf: (s: number) => (s === 0 ? 1 : 0),
         permanentById: () => undefined,
-        definitionOf: (c: CardInstance) => {
+        definitionOf: (_c: CardInstance) => {
           return { kinds: ["Digimon"], level: 5 } as never;
         },
       } as never,

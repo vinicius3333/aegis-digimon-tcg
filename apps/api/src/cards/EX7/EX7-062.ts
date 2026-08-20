@@ -78,8 +78,8 @@ const module: EffectModule = {
             "your trash without paying the cost. For each card in your hand, reduce the " +
             "maximum play cost by 1.",
           maxPerTurn: 1,
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
-          canActivate: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             const handSize = owner.hand.length;

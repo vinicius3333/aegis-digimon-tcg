@@ -24,7 +24,7 @@ const module: EffectModule = {
             "[Start of Your Main Phase] By trashing 1 card with [Vemmon] in its text from " +
             "your hand, <Draw 1>. Then, gain 1 memory.",
           optional: true,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             const vemmonCards = Array.from(owner.hand).filter((c) => hasVemmonInText(ctx.game.definitionOf(c)));
@@ -91,7 +91,7 @@ const module: EffectModule = {
             "[All Turns] When your Digimon with [Vemmon] in its text is played, by suspending " +
             "this Tamer, reveal top 2 of deck. Place all [Vemmon] cards among them as the " +
             "bottom digivolution cards of that Digimon. Trash the rest.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
@@ -139,7 +139,7 @@ const module: EffectModule = {
             "[All Turns] When your Digimon with [Vemmon] in its text digivolves, by suspending " +
             "this Tamer, reveal top 2 of deck. Place all [Vemmon] cards among them as the " +
             "bottom digivolution cards of that Digimon. Trash the rest.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

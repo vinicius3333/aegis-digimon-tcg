@@ -45,7 +45,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/blocker`,
           description: "＜Blocker＞",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {
@@ -72,7 +72,7 @@ const module: EffectModule = {
             "[All Turns] When one of your [Apocalymon] or Digimon with the [Dark Masters] " +
             "trait would leave the battle area other than by one of your effects, by deleting " +
             "this Digimon, prevent 1 of those Digimon from leaving.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

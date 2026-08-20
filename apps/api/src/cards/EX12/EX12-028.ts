@@ -1,8 +1,8 @@
-import { EffectDuration, EffectTiming } from "@aegis/shared";
+import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
-import { staticModifier } from "../../engine/effects/builders.js";
+import { staticModifier, whenAttacking } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**
@@ -16,13 +16,6 @@ import { registerCard } from "../../engine/effects/registry.js";
  *   After, if you have 0 or less memory, gain 1 memory.
  * [Opponent's Turn] (inherited):
  *   When your opponent attacks, redirect the attack to 1 of your [DS] trait Digimon (optional).
- *
- * RESIDUAL: The [All Turns] subscribeSubTrigger for "when ANY of your Digimon attacks" needs a
- *   cross-permanent `whenAttacking` event filtered by controller; the engine's `whenAttacking`
- *   sub-trigger fires only for the ATTACHED permanent's attack, not any ally's attack (there is no
- *   "onAllyAttack" SubTriggerEventName). Mark as residual.
- *   The "After, if you have 0 or less memory, gain 1 memory" postcondition within the AllTurns
- *   sub-trigger body is also residual as a consequence.
  *
  * The [Opponent's Turn] inherited redirect IS implementable via subscribeSubTrigger
  * for `whenOpponentAttacks`.
@@ -98,9 +91,51 @@ const module: EffectModule = {
       ];
     }
 
-    // [All Turns][Once Per Turn] sub-trigger: when ANY of your Digimon attacks.
-    // RESIDUAL: the engine does not have an "onAllyAttack" SubTriggerEventName that fires
-    // for any allied Digimon's attack. The "whenAttacking" event is self-only. Omitted.
+    // [All Turns][Once Per Turn] when any of your Digimon attacks.
+    if (timing === EffectTiming.OnAllyAttack) {
+      return [
+        whenAttacking({
+          source,
+          attackScope: "ally",
+          effectKey: `${cardId}/ally-attack-ds-material-dedigivolve`,
+          description:
+            "[All Turns][Once Per Turn] When any of your Digimon attacks, place 1 [DS] " +
+            "trait Digimon card from your hand under this Digimon, then de-digivolve 1 " +
+            "opponent Digimon by 1. If you have 0 or less memory, gain 1 memory.",
+          maxPerTurn: 1,
+          canActivate: (ctx) => ctx.source.permanent() !== undefined && ctx.game.player(source.ownerSeat).hand.some((card) => {
+            const def = ctx.game.definitionOf(card);
+            return isDigimon(def) && (def.types ?? []).includes("DS");
+          }),
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self === undefined) return;
+            const handCards = ctx.game.player(source.ownerSeat).hand.filter((card) => {
+              const def = ctx.game.definitionOf(card);
+              return isDigimon(def) && (def.types ?? []).includes("DS");
+            });
+            if (handCards.length === 0) return;
+            const chosenMaterial = await ctx.ask.selectCards(ctx, {
+              candidates: handCards.map((card) => card.instanceId), min: 1, max: 1,
+            });
+            if (chosenMaterial.length === 0) return;
+            const placed = await ctx.fx.placeUnder(self.permanentId, chosenMaterial);
+            if (placed.length === 0) return;
+            const opponentSeat = ctx.game.opponentOf(source.ownerSeat);
+            const opponentDigimon = Array.from(ctx.game.player(opponentSeat).battleArea).filter(
+              (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
+            );
+            if (opponentDigimon.length > 0) {
+              const chosenTarget = await ctx.ask.chooseTargets(ctx, {
+                candidates: opponentDigimon.map((p) => p.permanentId), min: 1, max: 1,
+              });
+              if (chosenTarget.length > 0) ctx.fx.deDigivolve(chosenTarget[0]!, 1);
+            }
+            if (ctx.game.state.memory <= 0) ctx.fx.gainMemory(1);
+          },
+        }),
+      ];
+    }
 
     return [];
   },

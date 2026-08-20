@@ -54,7 +54,7 @@ const module: EffectModule = {
           description:
             "[Start of Your Main Phase] By trashing 1 card with the [Ghost] or [NSo] " +
             "trait from your hand, ＜Draw 1＞ and gain 1 memory.",
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           canActivate: (ctx) => ghostOrNsoHandCandidates(ctx, source.ownerSeat).length > 0,
           resolve: async (ctx) => {
             const candidates = ghostOrNsoHandCandidates(ctx, source.ownerSeat);
@@ -89,7 +89,7 @@ const module: EffectModule = {
           effectKey: `${cardId}/your-turn-dp-plus-2000`,
           description: "[Your Turn] This Digimon gets +2000 DP.",
           isInherited: true,
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {

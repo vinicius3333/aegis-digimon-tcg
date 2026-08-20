@@ -72,7 +72,7 @@ const compiled: CompiledCard = {
             "kind": "selfDigivolutionStackCountAtLeast",
             "count": 4,
             "filter": { "nameOrTrait": [{ "tokens": ["Hybrid"], "match": "trait" }] },
-            "raw": "there are 4 or more [Hybrid] trait cards under this Tamer"
+            "raw": "if there are 4 or more [Hybrid] trait cards under this Tamer, gain 2 memory"
           }
         }
       ]
@@ -126,7 +126,7 @@ const compiled: CompiledCard = {
             "kind": "selfDigivolutionStackCountAtLeast",
             "count": 4,
             "filter": { "nameOrTrait": [{ "tokens": ["Hybrid"], "match": "trait" }] },
-            "raw": "there are 4 or more [Hybrid] trait cards under this Tamer"
+            "raw": "if there are 4 or more [Hybrid] trait cards under this Tamer, gain 2 memory"
           }
         }
       ]

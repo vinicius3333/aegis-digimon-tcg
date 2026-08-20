@@ -1,5 +1,5 @@
-import { CardKind, EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition, Permanent, Seat } from "@aegis/shared";
+import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
+import type { CardDefinition, Seat } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";

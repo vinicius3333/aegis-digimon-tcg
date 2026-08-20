@@ -1,4 +1,4 @@
-import { EffectTiming, EffectDuration, isDigimon } from "@aegis/shared";
+import { EffectTiming, isDigimon } from "@aegis/shared";
 import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -9,7 +9,7 @@ import { requireOpponentAsk } from "../../engine/decisions/decisionApi.js";
 
 const cardId = "ST22-14";
 
-function hasFallenAngelOrCS(def: CardDefinition): boolean {
+function _hasFallenAngelOrCS(def: CardDefinition): boolean {
   return (def.types ?? []).some((t) => t === "Fallen Angel" || t === "CS");
 }
 
@@ -29,7 +29,7 @@ const module: EffectModule = {
             "If your opponent has 10 or more cards in their hand or trash, reduce this card's " +
             "play cost by 5.",
           when: (ctx) => {
-            const opponent = ctx.game.opponentOf(source.ownerSeat);
+            const _opponent = ctx.game.opponentOf(source.ownerSeat);
             return true;
           },
           resolve: async () => {},
@@ -119,8 +119,8 @@ const module: EffectModule = {
           description:
             "[End of Your Turn] [Once Per Turn] If your opponent has 6 or more cards in their " +
             "hand, they trash 1. Otherwise, delete their lowest level Digimon.",
-          when: (ctx) => source.isOnBattleArea(),
-          canActivate: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea(),
+          canActivate: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           optional: false,
           maxPerTurn: 1,
           resolve: async (ctx) => {

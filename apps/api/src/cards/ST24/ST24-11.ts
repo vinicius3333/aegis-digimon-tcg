@@ -8,11 +8,11 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "ST24-11";
 
-function isLilamon(def: CardDefinition): boolean {
+function _isLilamon(def: CardDefinition): boolean {
   return def.nameEn === "Lilamon" || def.nameEn.includes("Lilamon");
 }
 
-function hasDataSquad(def: CardDefinition): boolean {
+function _hasDataSquad(def: CardDefinition): boolean {
   return (def.types ?? []).some((t) => t === "DATA SQUAD");
 }
 
@@ -132,7 +132,7 @@ const module: EffectModule = {
             "[All Turns] [Once Per Turn] When one of your opponent's Digimon or Tamers is " +
             "suspended, trash the top card of your opponent's security.",
           maxPerTurn: 1,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
@@ -141,6 +141,7 @@ const module: EffectModule = {
               sourcePermanentId: self.permanentId,
               once: false,
               oncePerTiming: true,
+              oncePerTurnKey: `${cardId}/on-suspend-or-trash-security`,
               description: `${cardId}: When opponent Digimon/Tamer suspended, trash top security.`,
               matches: (subCtx) => {
                 if (!subCtx.source.isOnBattleArea()) return false;
@@ -163,6 +164,25 @@ const module: EffectModule = {
                     subCtx.fx.trash([top.instanceId]);
                   }
                 }
+              },
+            });
+            ctx.fx.subscribeSubTrigger({
+              event: "whenDigivolutionTrashed",
+              sourcePermanentId: self.permanentId,
+              once: false,
+              oncePerTurnKey: `${cardId}/on-suspend-or-trash-security`,
+              description: `${cardId}: when an effect trashes cards under a Tamer, trash top security.`,
+              matches: (subCtx) => {
+                const subjectId = subCtx.trigger?.subjectPermanentId;
+                if (subjectId === undefined) return false;
+                const subject = subCtx.game.permanentById(subjectId);
+                if (subject === undefined || subject.controllerSeat !== source.ownerSeat || subject.topCard === undefined) return false;
+                return isTamer(subCtx.game.definitionOf(subject.topCard));
+              },
+              run: async (subCtx) => {
+                const opponent = subCtx.game.opponentOf(source.ownerSeat);
+                const security = subCtx.game.player(opponent).security;
+                if (security.length > 0) subCtx.fx.trash([security[0]!.instanceId]);
               },
             });
           },

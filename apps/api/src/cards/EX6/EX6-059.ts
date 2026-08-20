@@ -72,7 +72,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/scapegoat`,
           description: "＜Scapegoat＞",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {
@@ -89,7 +89,7 @@ const module: EffectModule = {
             "without paying the cost. For each card in your opponent's hand, reduce this " +
             "effect's play cost maximum by 1.",
           maxPerTurn: 1,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

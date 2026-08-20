@@ -111,7 +111,7 @@ function makeHarness(options: {
   const calls: string[] = [];
   const costFilters: ((facts: { def: CardDefinition; controllerSeat: Seat }) => boolean)[] = [];
   const fx = {
-    changePlayCost: vi.fn(
+    changePlayCost: vi.fn<(...args: any[]) => any>(
       (filter: (facts: { def: CardDefinition; controllerSeat: Seat }) => boolean, delta: number) => {
         costFilters.push(filter);
         calls.push(`changePlayCost:${delta}`);
@@ -120,16 +120,16 @@ function makeHarness(options: {
     ...(options.withRelocate === false
       ? {}
       : {
-          relocatePermanentByEffect: vi.fn(async (dest: string, src: string, opts?: { belowTop?: boolean }) => {
+          relocatePermanentByEffect: vi.fn<(...args: any[]) => any>(async (dest: string, src: string, opts?: { belowTop?: boolean }) => {
             calls.push(`relocate:${dest}:${src}:${opts?.belowTop === true}`);
             return options.relocateSucceeds !== false;
           }),
         }),
-    digivolveFromInstance: vi.fn(async (target: string, instance: string, opts?: unknown) => {
+    digivolveFromInstance: vi.fn<(...args: any[]) => any>(async (target: string, instance: string, opts?: unknown) => {
       calls.push(`digivolve:${target}:${instance}:${JSON.stringify(opts)}`);
       return undefined;
     }),
-    placeUnder: vi.fn(async (target: string, ids: string[], opts?: { belowTop?: boolean }) => {
+    placeUnder: vi.fn<(...args: any[]) => any>(async (target: string, ids: string[], opts?: { belowTop?: boolean }) => {
       calls.push(`placeUnder:${target}:${ids.join(",")}:${opts?.belowTop === true}`);
       return [];
     }),
@@ -137,11 +137,11 @@ function makeHarness(options: {
 
   const offered: string[][] = [];
   const ask = {
-    chooseTargets: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => {
+    chooseTargets: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => {
       offered.push(opts.candidates);
       return options.pick ? options.pick(opts.candidates) : [opts.candidates[0]!];
     }),
-    selectCards: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => {
+    selectCards: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => {
       offered.push(opts.candidates);
       return options.pick ? options.pick(opts.candidates) : [opts.candidates[0]!];
     }),

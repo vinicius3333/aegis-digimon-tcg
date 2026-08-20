@@ -82,18 +82,18 @@ function makeHarness(options: {
   const suspended: string[][] = [];
   const grants: unknown[] = [];
   const fx = {
-    suspend: vi.fn(async (ids: string[]) => {
+    suspend: vi.fn<(...args: any[]) => any>(async (ids: string[]) => {
       suspended.push(ids);
       return ids;
     }),
-    grantKeyword: vi.fn((permanentId: string, keyword: string, duration: EffectDuration, amount?: number) => {
+    grantKeyword: vi.fn<(...args: any[]) => any>((permanentId: string, keyword: string, duration: EffectDuration, amount?: number) => {
       grants.push({ permanentId, keyword, duration, amount });
     }),
   } as unknown as Primitives;
 
   const asked: string[][] = [];
   const ask = {
-    chooseTargets: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => {
+    chooseTargets: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => {
       asked.push(opts.candidates);
       if (asked.length === 1) return options.costPick ? options.costPick(opts.candidates) : [opts.candidates[0]!];
       return [opts.candidates[0]!];

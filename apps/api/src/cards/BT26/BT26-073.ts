@@ -182,7 +182,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/rule-wizard-trait`,
           description: "[Rule] Trait: Has [Wizard] Type.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) ctx.fx.grantNameTrait(self.permanentId, "trait", ["Wizard"], EffectDuration.Permanent);

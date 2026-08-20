@@ -12,7 +12,7 @@ function hasVemmonOrZenith(def: CardDefinition): boolean {
   return def.nameEn.includes("Vemmon") || def.nameEn.includes("Zenith");
 }
 
-function hasVemmonText(def: CardDefinition): boolean {
+function _hasVemmonText(def: CardDefinition): boolean {
   return def.nameEn.includes("Vemmon");
 }
 
@@ -59,7 +59,7 @@ const module: EffectModule = {
             "＜Delay＞ [All Turns] When effects place [Vemmon] as any of your Digimon's " +
             "digivolution cards, you may digivolve 1 of your Digimon with [Vemmon] in its " +
             "text into a [Vemmon] text card from your hand or trash with cost reduced by 3.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

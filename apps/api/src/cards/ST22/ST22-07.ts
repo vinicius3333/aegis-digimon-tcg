@@ -1,4 +1,4 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -29,8 +29,8 @@ const module: EffectModule = {
             "[Start of Your Main Phase] By placing 1 Option card with the [Onmyōjutsu] or " +
             "[Plug-In] trait from your hand under this Tamer, ＜Draw 1＞ and gain 1 memory.",
           optional: true,
-          when: (ctx) => source.isOnBattleArea(),
-          canActivate: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
+          canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             const candidates = Array.from(owner.hand).filter((c) =>
@@ -98,7 +98,7 @@ const module: EffectModule = {
             "[Your Turn] When one of your Digimon with [Renamon], [Kyubimon], [Taomon] or " +
             "[Sakuyamon] in its name attacks, by suspending this Tamer, you may use 1 " +
             "[Onmyōjutsu] or [Plug-In] trait Option card from under this Tamer without paying the cost.",
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
@@ -121,9 +121,13 @@ const module: EffectModule = {
                 if (selfPerm === undefined || selfPerm.isSuspended) return;
                 const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
                 if (!paid) return;
-                const optionCards = selfPerm.stack.filter((c) =>
-                  hasOnmyoOrPlugin(subCtx.game.definitionOf(c)),
-                );
+                const attackerId = subCtx.trigger?.attackerPermanentId;
+                const attacker = attackerId === undefined ? undefined : subCtx.game.permanentById(attackerId);
+                const attackerLevel = attacker?.topCard === undefined ? 0 : (subCtx.game.definitionOf(attacker.topCard).level ?? 0);
+                const optionCards = selfPerm.stack.filter((c) => {
+                  const def = subCtx.game.definitionOf(c);
+                  return hasOnmyoOrPlugin(def) && (def.playCost ?? 99) <= attackerLevel;
+                });
                 if (optionCards.length > 0) {
                   const chosen = await subCtx.ask.selectCards(subCtx, {
                     candidates: optionCards.map((c) => c.instanceId),
@@ -131,7 +135,10 @@ const module: EffectModule = {
                     max: 1,
                   });
                   if (chosen.length > 0) {
-                    await subCtx.fx.useOptionFromHand(subCtx, chosen[0]!, 0);
+                    const optionCost = subCtx.game.definitionOf(
+                      selfPerm.stack.find((card) => card.instanceId === chosen[0]!)!,
+                    ).playCost;
+                    await subCtx.fx.useOptionFromHand(subCtx, chosen[0]!, optionCost);
                   }
                 }
               },

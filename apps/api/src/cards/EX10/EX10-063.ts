@@ -26,8 +26,8 @@ const module: EffectModule = {
             "don't have a Digimon, you may play 1 [Sunarizamon] from your trash without " +
             "paying the cost.",
           optional: true,
-          when: (ctx) => source.isOnBattleArea(),
-          canActivate: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
+          canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             const closeCard = Array.from(owner.hand).find((c) => {
@@ -75,7 +75,7 @@ const module: EffectModule = {
           description:
             "[All Turns] When effects trash any of your [Mineral] or [Rock] trait Digimon's " +
             "digivolution cards, by suspending this Tamer, gain 1 memory.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

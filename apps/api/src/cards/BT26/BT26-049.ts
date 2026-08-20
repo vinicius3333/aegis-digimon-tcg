@@ -1,4 +1,4 @@
-import { CardKind, EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
+import { CardKind, EffectTiming, isDigimon } from "@aegis/shared";
 import type { CardDefinition, CardInstance, Permanent, Seat } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -202,7 +202,7 @@ const module: EffectModule = {
             "without paying the cost. For each suspended Digimon or Tamer, add 1 to the " +
             "cost maximum.",
           maxPerTurn: 1,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

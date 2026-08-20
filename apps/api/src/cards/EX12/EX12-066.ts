@@ -21,7 +21,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/start-turn-set-memory`,
           description: "[Start of Your Turn] If you have 2 or less memory, set your memory to 3.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           canActivate: (ctx) => ctx.game.state.memory <= 2,
           resolve: async (ctx) => {
             ctx.fx.setMemory(3);
@@ -39,7 +39,7 @@ const module: EffectModule = {
             "[Your Turn] When one of your [Gammamon]/[VB] Digimon attacks, by suspending this " +
             "Tamer, digivolve that Digimon into a Lv.6 or lower [Gammamon]/[VB] card from your " +
             "hand with cost -1. Or, use 1 [Gammamon]/[VB] Option from your hand with cost -2.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
@@ -92,7 +92,7 @@ const module: EffectModule = {
                     max: 1,
                   });
                   if (chosen.length > 0 && subCtx.fx.useOptionFromHand) {
-                    await subCtx.fx.useOptionFromHand(subCtx, chosen[0]!);
+                    await subCtx.fx.useOptionFromHand(subCtx, chosen[0]!, 2);
                   }
                 }
               },

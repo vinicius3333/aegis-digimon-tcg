@@ -18,8 +18,8 @@ describe("BT26-098 Queen of Thorns", () => {
       permanent: () => ({ permanentId: "option" }),
       isOnBattleArea: () => true,
     } as unknown as CardSource;
-    const placeUnder = vi.fn(async () => []);
-    const digivolveFromInstance = vi.fn(async () => undefined);
+    const placeUnder = vi.fn<(...args: any[]) => any>(async () => []);
+    const digivolveFromInstance = vi.fn<(...args: any[]) => any>(async () => undefined);
     const cards = {
       sunflowmon: { instanceId: "sunflowmon", cardId: "BT26-050" },
       lilamon: { instanceId: "lilamon", cardId: "BT26-051" },
@@ -49,8 +49,8 @@ describe("BT26-098 Queen of Thorns", () => {
         permanentById: (id: string) => (id === "lalamon" ? lalamon : undefined),
       },
       ask: {
-        chooseTargets: vi.fn(async ({ candidates }: { candidates: string[] }) => candidates.slice(0, 1)),
-        selectCards: vi.fn(async (_ctx: unknown, { candidates }: { candidates: string[] }) => candidates.slice(0, 1)),
+        chooseTargets: vi.fn<(...args: any[]) => any>(async ({ candidates }: { candidates: string[] }) => candidates.slice(0, 1)),
+        selectCards: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, { candidates }: { candidates: string[] }) => candidates.slice(0, 1)),
       },
       fx: { placeUnder, digivolveFromInstance },
     } as unknown as EffectContext;

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { CardKind, EffectTiming } from "@aegis/shared";
-import type { EffectContext, Primitives } from "../../engine/effects/EffectContext.js";
+import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import module from "./BT26-004.js";
 import "../index.js";
@@ -17,8 +17,8 @@ describe("BT26-004 Pagumon", () => {
       inBreeding: false,
       topCard: { cardId: "BT26-010" },
     };
-    const placed = vi.fn(async () => []);
-    const draw = vi.fn(async () => undefined);
+    const placed = vi.fn<(...args: any[]) => any>(async () => []);
+    const draw = vi.fn<(...args: any[]) => any>(async () => undefined);
     const ctx = {
       source,
       trigger: { attackerPermanentId: "pagumon" },
@@ -29,7 +29,7 @@ describe("BT26-004 Pagumon", () => {
           card.cardId === "BT26-010" ? { kinds: [CardKind.Tamer], types: ["Glowing Dawn"] } : {},
       },
       ask: {
-        selectCards: vi.fn(async () => ["hand-card"]),
+        selectCards: vi.fn<(...args: any[]) => any>(async () => ["hand-card"]),
       },
       fx: { placeUnder: placed, draw },
     } as unknown as EffectContext;

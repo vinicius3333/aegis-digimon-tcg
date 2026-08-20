@@ -1,5 +1,4 @@
 import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -78,7 +77,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/collision`,
           description: "＜Collision＞",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {
@@ -90,7 +89,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/fragment`,
           description: "＜Fragment (3)＞",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {
@@ -102,7 +101,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/blocker`,
           description: "＜Blocker＞",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {
@@ -118,7 +117,7 @@ const module: EffectModule = {
             "Digimon's digivolution cards, this Digimon gains ＜Security A. +1＞ and +3000 DP " +
             "until your turn ends.",
           maxPerTurn: 1,
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;

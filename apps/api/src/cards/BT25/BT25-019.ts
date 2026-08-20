@@ -18,10 +18,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "BT25-019";
 
-function oppHighestDpDigimons(
-  ctx: EffectContext,
-  source: CardSource,
-): Permanent[] {
+function oppHighestDpDigimons(ctx: EffectContext, source: CardSource): Permanent[] {
   const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
   const digimons = Array.from(opponent.battleArea).filter((p) => {
     if (p.topCard == null || !isDigimon(ctx.game.definitionOf(p.topCard))) return false;
@@ -130,10 +127,16 @@ const module: EffectModule = {
             const oppMemory = source.ownerSeat === 0 ? -m : m;
 
             if (oppMemory >= 5) {
-              ctx.fx.restrict(perm.permanentId, "beAffected", EffectDuration.UntilOpponentTurnEnd, { fromSourceKind: ["Digimon"] });
+              ctx.fx.restrict(perm.permanentId, "beAffected", EffectDuration.UntilOpponentTurnEnd, {
+                fromSourceKind: ["Digimon"],
+                byOpponentEffectsOnly: true,
+              });
             }
             if (oppMemory <= 5) {
-              ctx.fx.restrict(perm.permanentId, "beAffected", EffectDuration.UntilOpponentTurnEnd, { fromSourceKind: ["Option"] });
+              ctx.fx.restrict(perm.permanentId, "beAffected", EffectDuration.UntilOpponentTurnEnd, {
+                fromSourceKind: ["Option"],
+                byOpponentEffectsOnly: true,
+              });
             }
           },
         }),

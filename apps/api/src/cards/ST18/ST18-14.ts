@@ -1,4 +1,4 @@
-import { EffectTiming, EffectDuration, isDigimon } from "@aegis/shared";
+import { EffectTiming, isDigimon } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -16,7 +16,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/start-turn-set-memory`,
           description: "[Start of Your Turn] If you have 2 or less memory, set your memory to 3.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           canActivate: (ctx) => ctx.game.state.memory <= 2,
           resolve: async (ctx) => {
             ctx.fx.setMemory(3);
@@ -33,7 +33,7 @@ const module: EffectModule = {
           description:
             "[Your Turn] When one of your Digimon attacks, by suspending this Tamer, you may " +
             "redirect that attack to 1 of your opponent's Digimon.",
-          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
+          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
@@ -55,9 +55,9 @@ const module: EffectModule = {
                 if (selfPerm === undefined || selfPerm.isSuspended) return;
                 const opponent = subCtx.game.opponentOf(source.ownerSeat);
                 const oppDigimon = Array.from(subCtx.game.player(opponent).battleArea)
-                  .filter((p) => p.topCard !== undefined && isDigimon(subCtx.game.definitionOf(p.topCard)))
+                  .filter((p) => p.topCard !== undefined && isDigimon(subCtx.game.definitionOf(p.topCard)) && p.permanentId !== subCtx.trigger?.defenderPermanentId)
                   .map((p) => p.permanentId);
-                if (oppDigimon.length === 0) return;
+                oppDigimon.push("player");
                 const willRedirect = await subCtx.ask.optional(subCtx, "Suspend this Tamer to redirect attack?");
                 if (!willRedirect) return;
                 const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");

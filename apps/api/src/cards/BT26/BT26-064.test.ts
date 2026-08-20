@@ -57,12 +57,12 @@ describe("BT26-064 [On Play] reveal and add", () => {
         }),
     } as unknown as GameAccess;
     const fx = {
-      reveal: vi.fn(async () => revealed),
-      returnToHand: vi.fn(async (ids: string[]) => returnedToHand.push(ids)),
-      returnToDeck: vi.fn(async (ids: string[]) => returnedToDeck.push(ids)),
+      reveal: vi.fn<(...args: any[]) => any>(async () => revealed),
+      returnToHand: vi.fn<(...args: any[]) => any>(async (ids: string[]) => returnedToHand.push(ids)),
+      returnToDeck: vi.fn<(...args: any[]) => any>(async (ids: string[]) => returnedToDeck.push(ids)),
     } as unknown as Primitives;
     const ask = {
-      selectCards: vi.fn(async (_ctx: unknown, opts: { candidates: string[]; min: number }) => {
+      selectCards: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[]; min: number }) => {
         selectedMins.push(opts.min);
         return [opts.candidates[0]!];
       }),

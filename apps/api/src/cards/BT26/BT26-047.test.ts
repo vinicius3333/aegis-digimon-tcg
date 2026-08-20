@@ -59,14 +59,14 @@ describe("BT26-047 [On Play]/[When Digivolving]: may battle 1 opponent Digimon",
 
     const battles: [string, string][] = [];
     const fx = {
-      forceBattle: vi.fn(async (attackerId: string, defenderId: string) => {
+      forceBattle: vi.fn<(...args: any[]) => any>(async (attackerId: string, defenderId: string) => {
         battles.push([attackerId, defenderId]);
       }),
     } as unknown as Primitives;
 
     const ask = {
-      optional: vi.fn(async () => true),
-      chooseTargets: vi.fn(async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!]),
+      optional: vi.fn<(...args: any[]) => any>(async () => true),
+      chooseTargets: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!]),
     } as unknown as EffectContext["ask"];
 
     const source = makeSource();
@@ -97,8 +97,8 @@ describe("BT26-047 [On Play]/[When Digivolving]: may battle 1 opponent Digimon",
     } as unknown as GameAccess;
 
     const battles: unknown[] = [];
-    const fx = { forceBattle: vi.fn(async () => battles.push(1)) } as unknown as Primitives;
-    const ask = { optional: vi.fn(async () => false) } as unknown as EffectContext["ask"];
+    const fx = { forceBattle: vi.fn<(...args: any[]) => any>(async () => battles.push(1)) } as unknown as Primitives;
+    const ask = { optional: vi.fn<(...args: any[]) => any>(async () => false) } as unknown as EffectContext["ask"];
 
     const source = makeSource();
     const ctx = { source, trigger: {}, game, fx, ask } as unknown as EffectContext;
@@ -134,13 +134,13 @@ describe("BT26-047 suspend-cost clause", () => {
     } as unknown as GameAccess;
     const suspended: string[][] = [];
     const fx = {
-      suspend: vi.fn(async (ids: string[]) => suspended.push(ids)),
-      restrict: vi.fn(),
-      modifyDP: vi.fn(),
+      suspend: vi.fn<(...args: any[]) => any>(async (ids: string[]) => suspended.push(ids)),
+      restrict: vi.fn<(...args: any[]) => any>(),
+      modifyDP: vi.fn<(...args: any[]) => any>(),
     } as unknown as Primitives;
     const ask = {
-      optional: vi.fn(async () => true),
-      chooseTargets: vi.fn(async () => [opponent.permanentId]),
+      optional: vi.fn<(...args: any[]) => any>(async () => true),
+      chooseTargets: vi.fn<(...args: any[]) => any>(async () => [opponent.permanentId]),
     } as unknown as EffectContext["ask"];
     const source = makeSource();
     const ctx = { source, trigger: {}, game, fx, ask } as unknown as EffectContext;

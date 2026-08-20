@@ -137,7 +137,7 @@ describe("BT14-046 BeforePayCost A3 (HARD-03/HARD-04)", () => {
           set: "BT14",
           evoCosts: [],
           maxCountInDeck: 4,
-        } as GameAccess["definitionOf"] extends (c: infer C) => infer R ? R : never;
+        } as GameAccess["definitionOf"] extends (c: infer _C) => infer R ? R : never;
       },
     } as GameAccess;
 

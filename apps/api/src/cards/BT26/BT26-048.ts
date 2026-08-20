@@ -170,7 +170,7 @@ const module: EffectModule = {
           description:
             "[All Turns] When effects trash face-down digivolution cards from your " +
             "Digimon, 1 of your opponent's Digimon gets -6000 DP for the turn.",
-          when: (ctx) => source.isOnBattleArea(),
+          when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
