@@ -76,6 +76,9 @@
   .home-deck-card { grid-template-columns: minmax(200px, 30%) 1fr; grid-template-rows: auto auto; min-height: 360px; }
   .home-deck-art { grid-column: 1; grid-row: 1; }
   .home-deck-copy { grid-column: 2; grid-row: 1; }
+  /* No cover art to sit beside: the copy takes the whole row instead of the narrow text column. */
+  .home-deck-card--empty { grid-template-columns: minmax(0, 1fr); }
+  .home-deck-card--empty .home-deck-copy { grid-column: 1; }
   .home-deck-card > button { grid-column: 1 / -1; }
   .home-deck-art { min-height: 300px; }
   .home-deck-art img { width: 100% !important; max-width: 210px; height: 286px !important; }
@@ -91,6 +94,8 @@
   .home-greeting, .home-tagline { display: none; }
   .home-player-name { display: block; color: var(--ds-fg); font-weight: 700; }
   .home-deck-card { grid-template-columns: 108px minmax(0, 1fr); gap: var(--ds-space-4); min-height: 220px; padding: var(--ds-space-4); }
+  .home-deck-card--empty { grid-template-columns: minmax(0, 1fr); }
+  .home-deck-card--empty .home-deck-copy { grid-column: 1; }
   .home-deck-art { min-height: 170px; overflow: hidden; }
   .home-deck-art > * { transform: scale(.65); }
   .home-deck-art img { width: 100% !important; max-width: 100%; height: 170px !important; object-fit: cover !important; transform: none; }
