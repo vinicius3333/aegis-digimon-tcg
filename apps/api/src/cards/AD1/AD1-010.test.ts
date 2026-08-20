@@ -87,7 +87,7 @@ describe("AD1-010 Inherited Effect <Jamming> — survives a losing Security Digi
     ).toEqual({ ok: true });
 
     await settle(() => p1.security.length === 0);
-    await settle(() => false, 60); // flush the battle resolution
+    await settle(() => p0.battleArea.some((p) => p.permanentId === attacker.permanentId));
 
     expect(p0.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(true); // still alive
     expect(p0.trash.some((c) => c.instanceId === attacker.topCard?.instanceId)).toBe(false);
@@ -111,7 +111,6 @@ describe("AD1-010 Inherited Effect <Jamming> — survives a losing Security Digi
     ).toEqual({ ok: true });
 
     await settle(() => !p0.battleArea.some((p) => p.permanentId === attacker.permanentId));
-    await settle(() => false, 40);
 
     expect(p0.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(false); // deleted
     assertNoLoudGap(s);

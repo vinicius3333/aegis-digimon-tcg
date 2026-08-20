@@ -21,7 +21,7 @@ describe("AD1-020 Tommy, Takuya, & Zoe", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
     const tamer = () => s.state.players[0]!.battleArea.find((perm) => perm.topCard.cardId === "AD1-020");
     await settle(() => (tamer()?.stack.length ?? 0) === 2);
-    await settle(() => false, 60);
+    await settle(() => s.state.players[0]!.hand.length === 1);
     expect(tamer()?.stack).toHaveLength(2);
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });

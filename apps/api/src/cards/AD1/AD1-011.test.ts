@@ -26,9 +26,9 @@ describe("AD1-011 Paildramon", () => {
 
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("paildramon").instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "AD1-011");
-    await settle(() => false, 40);
 
     const continuous = (s.engine as unknown as { continuous: { hasRestriction(id: string, restriction: string): boolean } }).continuous;
+    await settle(() => continuous.hasRestriction(s.perm("base").permanentId, "beDeletedInBattle"));
     expect(continuous.hasRestriction(s.perm("base").permanentId, "beDeletedInBattle")).toBe(true);
   });
 });

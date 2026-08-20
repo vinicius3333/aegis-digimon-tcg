@@ -23,8 +23,7 @@ describe("AD1-022 Izzy Izumi & Tai Kamiya", () => {
     }, { autoSelectCards: true, autoAcceptOptional: true });
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trigger").instanceId })).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "AD1-001");
-    await settle(() => false, 60);
+    await settle(() => s.perm("base").topCard.cardId === "AD1-001" && s.perm("tamer").isSuspended);
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.perm("base").topCard.cardId).toBe("AD1-001");
   });
