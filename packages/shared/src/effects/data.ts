@@ -244,6 +244,36 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
       ],
     },
   ],
+  "EX12-044": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 4 },
+        { color: "Green", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 4 },
+        { color: "Black", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 4 },
+        { color: "Green", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 4 },
+        { color: "Black", level: 4 },
+      ],
+    },
+  ],
   "BT17-078": [
     {
       cost: 0,
