@@ -3,6 +3,7 @@ import type { GameEngine } from "../../engine/GameEngine.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 // Self-register every card module so the engine drives the REGISTERED BT20-065 IR.
 import "../index.js";
+import { compiled } from "./BT20-065.js";
 
 /**
  * A3 — Q1f: BT20-065 (Purple Digimon) "[On Play] By trashing 1 card in your hand, give 1 of
@@ -19,6 +20,10 @@ import "../index.js";
  */
 
 describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () => {
+  it("retains inherited Retaliation", () => {
+    expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({ trigger: "Static", keywords: [{ keyword: "Retaliation" }] });
+  });
+
   it("POSITIVE: paying the trash cost grants the effect; deleting the recipient costs 1 memory", async () => {
     const s = setupEngine(
       {
