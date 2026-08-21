@@ -117,17 +117,19 @@ const module: EffectModule = {
                 max: 1,
               });
               if (intoId.length === 0) return;
-              const mine = ctx.game.player(source.ownerSeat).battleArea
-                .filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && p.permanentId !== self.permanentId)
+              const mine = ctx.game
+                .player(source.ownerSeat)
+                .battleArea.filter(
+                  (p) =>
+                    p.topCard !== undefined &&
+                    isDigimon(ctx.game.definitionOf(p.topCard)) &&
+                    p.permanentId !== self.permanentId,
+                )
                 .map((p) => p.permanentId);
               if (mine.length === 0) return;
               const secondMaterial = await ctx.ask.chooseTargets(ctx, { candidates: mine, min: 1, max: 1 });
               if (secondMaterial.length === 0) return;
-              await ctx.fx.dnaDigivolveInto(
-                [self.permanentId, secondMaterial[0]!],
-                intoId[0]!,
-                { payCost: true },
-              );
+              await ctx.fx.dnaDigivolveInto([self.permanentId, secondMaterial[0]!], intoId[0]!, { payCost: true });
             }
           },
         }),
