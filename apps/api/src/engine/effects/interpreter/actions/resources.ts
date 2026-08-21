@@ -5,6 +5,7 @@ import { type ActionScope, runAction } from "../dispatch.js";
 import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { countMatching } from "../scaling.js";
+import { evaluateCondition } from "../conditions.js";
 import { candidateLooseInstances, pickLoose } from "../targeting/loose.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardKind, isTamer } from "@aegis/shared";
@@ -115,6 +116,24 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
       // it is computed from what the engine actually trashed/deleted (T-08-26).
       const payment = action.payment;
       if (!payment) return false;
+      if (payment.kind === "automatic") {
+        if (!evaluateCondition(ctx, payment.condition)) return false;
+        const delta = action.amount.kind === "fixed" ? action.amount.value : 0;
+        ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, delta);
+        return false;
+      }
+      if (payment.kind === "returnFromTrashToDeckTop") {
+        const candidates = candidateLooseInstances(ctx, payment.target, ["trash"]);
+        const count = payment.target.count === "all" ? candidates.length : payment.target.count;
+        if (candidates.length < count) return false;
+        if (!(await ctx.ask.optional(ctx, `Return ${count} cards to reduce the play cost`))) return false;
+        const chosen = await pickLoose(ctx, payment.target, candidates);
+        if (chosen.length !== count) return false;
+        await ctx.fx.returnToDeck(chosen, { toTop: true });
+        const delta = action.amount.kind === "fixed" ? action.amount.value : 0;
+        ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, delta);
+        return false;
+      }
       if (payment.kind === "trashFromHand") {
         // "By trashing 1 [Cyborg]/[Ver.5] card from your hand" — an optional hand discard. The card
         // being played is itself still in hand at this BeforePayCost window; exclude it so it cannot
