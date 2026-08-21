@@ -338,7 +338,10 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           const candidates = candidateLooseInstances(ctx, action.target, ["hand"]);
           chosen = await pickLoose(ctx, action.target, candidates, undefined, asker);
         }
-        const moved = chosen.length > 0 ? await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat }) : [];
+        const movedResult = chosen.length > 0 ? await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat }) : [];
+        // Some lightweight effect harnesses model trash as an in-place operation and
+        // return void. The selected ids still represent the cards moved for count/binding.
+        const moved = movedResult ?? chosen.map((instanceId) => ({ instanceId }));
         // Bind the branch-acted result so an "if you did" tail (BT16-094 OR-modal) can gate.
         ctx.lastEffectActed = moved.length > 0;
         // Store actual trash count under the named key for downstream scaling. (CAP-E12/E13)
