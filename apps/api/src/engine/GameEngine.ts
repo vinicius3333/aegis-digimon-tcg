@@ -1840,7 +1840,11 @@ export class GameEngine {
             // installed the watcher. Once that source card leaves the stack, resolve the
             // loose instance first so isSelfRef and inherited effects still refer to the
             // card that was actually trashed (BT7-031, BT8-081, P-032).
-            if (sub.sourceInstanceId !== undefined) {
+            const trashedSource =
+              sub.sourceInstanceId !== undefined &&
+              (payload.trashedDigivolutionInstanceId === sub.sourceInstanceId ||
+                payload.trashedDigivolutionInstanceIds?.includes(sub.sourceInstanceId) === true);
+            if (trashedSource) {
               const loose = this.findLooseInstance(sub.sourceInstanceId);
               if (loose !== undefined) return this.buildEffectContext(this.cardSourceOf(loose), payload);
             }
@@ -1889,7 +1893,11 @@ export class GameEngine {
   }
 
   private buildSubTriggerContext(sub: SubTriggerSubscription, payload: TriggerInfo): EffectContext | undefined {
-    if (sub.sourceInstanceId !== undefined) {
+    const trashedSource =
+      sub.sourceInstanceId !== undefined &&
+      (payload.trashedDigivolutionInstanceId === sub.sourceInstanceId ||
+        payload.trashedDigivolutionInstanceIds?.includes(sub.sourceInstanceId) === true);
+    if (trashedSource) {
       const loose = this.findLooseInstance(sub.sourceInstanceId);
       if (loose !== undefined) return this.buildEffectContext(this.cardSourceOf(loose), payload);
     }
