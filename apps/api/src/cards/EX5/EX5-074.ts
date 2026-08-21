@@ -11,11 +11,7 @@ const cardId = "EX5-074";
 
 function isDevaOrFourSovereigns(def: CardDefinition): boolean {
   const types = def.types ?? [];
-  return (
-    types.includes("Deva") ||
-    types.includes("Four Sovereigns") ||
-    types.includes("FourSovereigns")
-  );
+  return types.includes("Deva") || types.includes("Four Sovereigns") || types.includes("FourSovereigns");
 }
 
 function isFourSovereignsDigimon(def: CardDefinition): boolean {
@@ -77,9 +73,7 @@ const module: EffectModule = {
           canActivate: (ctx) => {
             if (!ctx.source.isOnBattleArea()) return false;
             const player = ctx.game.player(source.ownerSeat);
-            return Array.from(player.trash).some((c) =>
-              isDevaOrFourSovereigns(ctx.game.definitionOf(c)),
-            );
+            return Array.from(player.trash).some((c) => isDevaOrFourSovereigns(ctx.game.definitionOf(c)));
           },
           resolve: async (ctx) => {
             await returnTrashAndReduceDP(ctx, source);
@@ -102,9 +96,7 @@ const module: EffectModule = {
           canActivate: (ctx) => {
             if (!ctx.source.isOnBattleArea()) return false;
             const player = ctx.game.player(source.ownerSeat);
-            return Array.from(player.trash).some((c) =>
-              isDevaOrFourSovereigns(ctx.game.definitionOf(c)),
-            );
+            return Array.from(player.trash).some((c) => isDevaOrFourSovereigns(ctx.game.definitionOf(c)));
           },
           resolve: async (ctx) => {
             await returnTrashAndReduceDP(ctx, source);
@@ -150,8 +142,7 @@ const module: EffectModule = {
         staticModifier({
           source,
           effectKey: `${cardId}/all-turns-immune-opponent-digimon-effects`,
-          description:
-            "[All Turns] This Digimon isn't affected by the effects of your opponent's Digimon.",
+          description: "[All Turns] This Digimon isn't affected by the effects of your opponent's Digimon.",
           when: (ctx) => ctx.source.isOnBattleArea(),
           resolve: async (ctx) => {
             const perm = ctx.source.permanent();
@@ -159,6 +150,7 @@ const module: EffectModule = {
             // Only scoped to opponent's Digimon effects (fromSourceKind: ["Digimon"]).
             ctx.fx.restrict(perm.permanentId, "beAffected", EffectDuration.UntilEachTurnEnd, {
               fromSourceKind: ["Digimon"],
+              byOpponentEffectsOnly: true,
             });
           },
         }),

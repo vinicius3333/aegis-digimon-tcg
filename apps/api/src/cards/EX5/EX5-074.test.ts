@@ -3,22 +3,8 @@ import { type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
-// A3 for EX5-074 (Fanglongmon) — Yellow Lv.7 Digimon.
-//
-// Three observable effects tested:
-//
-// 1. [When Attacking] For each of your Digimon with the [Four Sovereigns] trait,
-//    trash the top card of your opponent's security stack.
-//    FAILS-WHEN-REVERTED: drop `trashFromSecurity` call → opponent security count stays.
-//
-// 2. [On Play] By returning up to 4 [Deva]/[Four Sovereigns] from trash to deck bottom,
-//    all opponent's Digimon get -4000 DP for each card returned.
-//    FAILS-WHEN-REVERTED: drop `returnToDeck` + `modifyDP` → opponent Digimon DP unchanged.
-//
-// Four Sovereigns card used: BT6-029 (Azulongmon), a known [Four Sovereigns] Digimon.
-// Deva card used: BT10-079 (Sandiramon).
-// A vanilla Lv.3 for filler: BT1-009 (Monodramon).
-// Vanilla opp Digimon: BT1-024 (Agumon — we need a known Digimon with explicit DP).
+// EX5-074 (Fanglongmon) behavioral evidence: security trash scaling, trash recovery with
+// per-card DP reduction, and the Digimon-effect immunity scope.
 
 const FANGLONGMON = "EX5-074";
 const FOUR_SOVS = "BT6-029"; // Azulongmon — [Four Sovereigns] Digimon
@@ -64,7 +50,10 @@ describe("EX5-074 [On Play] returns Deva/FourSovereigns from trash to deck, -400
     const s = setupEngine(
       {
         0: {
-          trash: [{ card: DEVA, as: "trashDeva" }, { card: FOUR_SOVS, as: "trashFourSovs" }],
+          trash: [
+            { card: DEVA, as: "trashDeva" },
+            { card: FOUR_SOVS, as: "trashFourSovs" },
+          ],
           hand: [{ card: FANGLONGMON, as: "fanglongmon" }],
         },
         1: { battleArea: [{ card: OPP_DIGIMON, dp: 10000, as: "oppDigimon" }] },
@@ -74,9 +63,9 @@ describe("EX5-074 [On Play] returns Deva/FourSovereigns from trash to deck, -400
     const p0 = s.state.players[0] as PlayerState;
     s.state.memory = 15; // Fanglongmon play cost
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fanglongmon").instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fanglongmon").instanceId })).toEqual({
+      ok: true,
+    });
 
     // Both trash cards returned → DP drops by 8000.
     await settle(() => s.perm("oppDigimon").currentDP <= 10000 - 8000);
