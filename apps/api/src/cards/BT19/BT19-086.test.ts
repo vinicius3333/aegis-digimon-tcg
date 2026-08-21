@@ -10,26 +10,28 @@ describe("BT19-086 Ryo Akiyama", () => {
     expect(card?.effects).toMatchObject([
       {
         trigger: "StartOfYourMainPhase",
-        actions: [{
-          kind: "Draw",
-          controller: "mine",
-          amount: 1,
-          cost: {
-            kind: "place",
-            target: {
-              filter: {
-                zone: "battleArea",
-                controller: "mine",
-                kind: ["Option"],
-                nameOrTrait: [{ tokens: ["Device"], match: "trait" }],
+        actions: [
+          {
+            kind: "Draw",
+            controller: "mine",
+            amount: 1,
+            cost: {
+              kind: "place",
+              target: {
+                filter: {
+                  zone: "battleArea",
+                  controller: "mine",
+                  kind: ["Option"],
+                  nameOrTrait: [{ tokens: ["Device"], match: "trait" }],
+                },
+                count: 1,
+                from: ["hand"],
               },
-              count: 1,
-              from: ["hand"],
             },
+            optional: true,
+            abortOnDecline: true,
           },
-          optional: true,
-          abortOnDecline: true,
-        }],
+        ],
       },
       {
         trigger: "Main",
@@ -65,11 +67,13 @@ describe("BT19-086 Ryo Akiyama", () => {
       {
         trigger: "Security",
         isSecurity: true,
-        actions: [{
-          kind: "PlayWithoutCost",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          payCost: false,
-        }],
+        actions: [
+          {
+            kind: "PlayWithoutCost",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            payCost: false,
+          },
+        ],
       },
     ]);
   });
