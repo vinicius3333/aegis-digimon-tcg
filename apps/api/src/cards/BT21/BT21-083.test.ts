@@ -1,8 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import { EffectTiming } from "@aegis/shared";
+import { compiled } from "./BT21-083.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 // A3 for BT21-083 (Taiki Kudo) â€” [Start of Your Main Phase]:
@@ -98,30 +97,42 @@ describe("BT21-083 [Start of Main Phase] place Xros Heart Digimon under Tamer â†
 
 describe("BT21-083 module registration", () => {
   it("registers the played/digivolved attack watcher and security skill", () => {
-    const module = getEffectModule(TAIKI);
-    expect(module).toBeDefined();
-    const definition: CardDefinition = {
-      cardId: TAIKI,
-      set: "BT21",
-      nameEn: "Taiki Kudo",
-      kinds: ["Tamer"] as never,
-      colors: ["Red", "Yellow"] as never,
-      playCost: 4,
-      dp: 0,
-      evoCosts: [],
-      maxCountInDeck: 4,
-    };
-    const source: CardSource = {
-      instanceId: "INST#TAIKI",
-      cardId: TAIKI,
-      ownerSeat: 0 as Seat,
-      definition,
-      permanent: () => undefined,
-      isOnBattleArea: () => true,
-      isOwnersTurn: () => true,
-      hasColor: () => false,
-    };
-    expect(module!.effectsForTiming(EffectTiming.OnEnterFieldAnyone, source)).toHaveLength(1);
-    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)[0]?.isSecurity).toBe(true);
+    const watcher = compiled.effects.find((effect) => effect.trigger === "YourTurn");
+    expect(watcher?.actions).toHaveLength(2);
+    expect(watcher?.actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "SubTrigger", event: "whenPlayed" }),
+        expect.objectContaining({ kind: "SubTrigger", event: "whenOneOfYoursDigivolves" }),
+      ]),
+    );
+    expect(compiled.effects.find((effect) => effect.trigger === "Security")?.isSecurity).toBe(true);
+  });
+
+  it("suspends Taiki and makes the newly played qualifying Digimon attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: TAIKI, as: "taiki" }],
+          hand: [{ card: XROS_HEART_DIGIMON, as: "shoutmon" }],
+        },
+        1: { security: [PLAIN_DIGIMON] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("shoutmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    const shoutmonId = s.inst("shoutmon").instanceId;
+    const playedShoutmon = () =>
+      s.state.players[0]?.battleArea.find((permanent) => permanent.topCard?.instanceId === shoutmonId);
+    await settle(() => s.perm("taiki").isSuspended && playedShoutmon()?.isSuspended === true);
+
+    expect(s.perm("taiki").isSuspended).toBe(true);
+    expect(playedShoutmon()?.isSuspended).toBe(true);
   });
 });
