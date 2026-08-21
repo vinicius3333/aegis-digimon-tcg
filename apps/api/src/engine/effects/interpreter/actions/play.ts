@@ -406,7 +406,10 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           // than the registry alias. Resolve the printed descriptor to the shared token
           // registry while preserving the card's authored stats for future token metadata.
           const tokenName = typeof tokenRef === "string" ? tokenRef : tokenRef.name;
-          const registryName = tokenName === "Atho, René & Por" ? "AthoRenePor Token" : tokenName;
+          const registryName =
+            tokenName === "Atho, René & Por" ? "AthoRenePor Token" :
+            tokenName === "Amon of Crimson Flame" ? "Amon Token" :
+            tokenName === "Umon of Blue Thunder" ? "Umon Token" : tokenName;
           await ctx.fx.playToken(placementSeat, registryName, {
             payCost: action.payCost ?? false,
             suspended: action.suspended ?? false,
