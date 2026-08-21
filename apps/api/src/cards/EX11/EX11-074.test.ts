@@ -115,8 +115,7 @@ function makeCtx(args: {
     fx: {
       grantKeyword: (permanentId: string, keyword: string, duration: EffectDuration) =>
         calls.grantKeyword.push({ permanentId, keyword, duration }),
-      grantPierce: (permanentId: string, duration: EffectDuration) =>
-        calls.grantPierce.push({ permanentId, duration }),
+      grantPierce: (permanentId: string, duration: EffectDuration) => calls.grantPierce.push({ permanentId, duration }),
       suspend: async (ids: string[]) => {
         calls.suspend.push(ids);
         for (const id of ids) {
@@ -206,13 +205,11 @@ describe("EX11-074 Vortexdramon", () => {
     }
     expect(calls.grantKeyword).toEqual(
       expect.arrayContaining([
-        { permanentId: "p-self", keyword: "Blocker", duration: EffectDuration.UntilEachTurnEnd },
-        { permanentId: "p-self", keyword: "Vortex", duration: EffectDuration.UntilEachTurnEnd },
+        { permanentId: "p-self", keyword: "Blocker", duration: EffectDuration.Permanent },
+        { permanentId: "p-self", keyword: "Vortex", duration: EffectDuration.Permanent },
       ]),
     );
-    expect(calls.grantPierce).toEqual([
-      { permanentId: "p-self", duration: EffectDuration.UntilEachTurnEnd },
-    ]);
+    expect(calls.grantPierce).toEqual([{ permanentId: "p-self", duration: EffectDuration.Permanent }]);
   });
 
   it("[When Digivolving] and [When Attacking] are both optional and present", () => {

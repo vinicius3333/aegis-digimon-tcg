@@ -110,11 +110,9 @@ const module: EffectModule = {
     //   - ＜Blocker＞: grantKeyword -> continuous-effect ledger; the attack/block subsystem
     //     reads it (combat/legality.ts hasBlocker: printed OR granted).
     //   - ＜Piercing＞: grantPierce -> ModifierLedger's dedicated pierce store (hasPierce).
-    //   - ＜Vortex＞: grantKeyword recorded as real server state. The Vortex BEHAVIOR
-    //     (take another turn after deleting an opponent's Digimon in battle, and the
-    //     attack-players permission) has no runtime subsystem yet — an engine-wide gap
-    //     shared by every ＜Vortex＞ card (EX7-036 / ST18-12 / EX11-062). Recorded, not
-    //     faked; it activates once a Vortex subsystem reads the grant.
+    //   - ＜Vortex＞: grantKeyword recorded as real server state and consumed by the
+    //     combat legality and resolution subsystems (including same-turn attacks and
+    //     the optional player-target relaxation grant used by EX11-062).
     if (timing === EffectTiming.None) {
       const keyword = (
         key: string,
@@ -132,15 +130,9 @@ const module: EffectModule = {
           },
         });
       return [
-        keyword("blocker", "＜Blocker＞", (ctx, id) =>
-          ctx.fx.grantKeyword(id, "Blocker", EffectDuration.UntilEachTurnEnd),
-        ),
-        keyword("piercing", "＜Piercing＞", (ctx, id) =>
-          ctx.fx.grantPierce(id, EffectDuration.UntilEachTurnEnd),
-        ),
-        keyword("vortex", "＜Vortex＞", (ctx, id) =>
-          ctx.fx.grantKeyword(id, "Vortex", EffectDuration.UntilEachTurnEnd),
-        ),
+        keyword("blocker", "＜Blocker＞", (ctx, id) => ctx.fx.grantKeyword(id, "Blocker", EffectDuration.Permanent)),
+        keyword("piercing", "＜Piercing＞", (ctx, id) => ctx.fx.grantPierce(id, EffectDuration.Permanent)),
+        keyword("vortex", "＜Vortex＞", (ctx, id) => ctx.fx.grantKeyword(id, "Vortex", EffectDuration.Permanent)),
       ];
     }
 
@@ -209,9 +201,7 @@ const module: EffectModule = {
             const targets = ctx.game
               .player(opponentSeat)
               .battleArea.filter(
-                (permanent) =>
-                  permanent.topCard !== undefined &&
-                  isDigimon(ctx.game.definitionOf(permanent.topCard)),
+                (permanent) => permanent.topCard !== undefined && isDigimon(ctx.game.definitionOf(permanent.topCard)),
               );
             if (self === undefined || targets.length === 0) return;
             const chosen = await ctx.ask.chooseTargets(ctx, {
