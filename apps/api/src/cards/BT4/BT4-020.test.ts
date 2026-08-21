@@ -6,7 +6,15 @@ import "./BT4-020.js";
 
 describe("BT4-020 ShineGreymon", () => {
   it("gains Security Attack +1 separately for each red or yellow Tamer suspended", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-020", as: "shine" }, { card: "BT1-085", as: "red" }, { card: "BT1-087", as: "yellow" }] } });
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT4-020", as: "shine" },
+          { card: "BT1-085", as: "red" },
+          { card: "BT1-087", as: "yellow" },
+        ],
+      },
+    });
     await s.engine.recomputeContinuousEffects();
     const fx = (s.engine as any).primitives as Primitives;
     await fx.suspend([s.perm("red").permanentId], { byEffectSeat: 0 });
