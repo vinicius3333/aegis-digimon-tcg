@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX8-069.js";
 import "../index.js";
 
@@ -32,5 +33,13 @@ describe("EX8-069", () => {
     expect((s.state.players[1] as PlayerState).battleArea.some((permanent) => permanent.topCard.instanceId === instanceId)).toBe(true);
     expect((s.state.players[1] as PlayerState).hand.some((card) => card.instanceId === instanceId)).toBe(false);
     expect(s.state.memory).toBe(memoryBeforeSecurityEffect);
+  });
+  it("grants Alliance to a live NSp Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-069", as: "source" }, { card: "EX7-015", as: "nsp" }] },
+    });
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("nsp"), "Alliance")).toBe(true);
   });
 });
