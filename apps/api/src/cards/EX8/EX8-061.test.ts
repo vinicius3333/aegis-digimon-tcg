@@ -20,5 +20,9 @@ describe("EX8-061", () => {
       ],
     });
   });
-  it("contains only the printed effects", () => expect(compiled.effects).toHaveLength(2));
+  it("inherits an optional On Deletion play from trash with the same level and trait limits", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "OnDeletion",
+      actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true, target: { filter: { levelComparison: { op: "lte", value: 4 } } } }],
+    }));
 });
