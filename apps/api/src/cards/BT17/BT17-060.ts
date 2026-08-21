@@ -40,7 +40,8 @@ export const compiled: CompiledCard = {
                         "tokens": [
                           "Diaboromon"
                         ],
-                        "match": "text"
+                        "match": "text",
+                        "orPrevious": true
                       }
                     ]
                   },

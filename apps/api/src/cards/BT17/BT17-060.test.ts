@@ -10,6 +10,8 @@ describe("BT17-060 Armageddemon", () => {
       scaling: { per: 1, unit: "cards" },
       actions: [{ kind: "Replacement", mode: "reduceCost", amount: 1, cost: { kind: "place", target: { count: 13, upTo: true, from: ["trash"] } } }],
     });
+    const trashFilter = replacement.actions?.[0]?.cost?.target?.filter;
+    expect(trashFilter?.nameOrTrait?.[1]).toMatchObject({ tokens: ["Diaboromon"], match: "text", orPrevious: true });
   });
 
   it("has Rush, Blocker, Reboot, budget-15 deletion, and unsuspended attack permission", () => {
