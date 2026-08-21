@@ -75,6 +75,10 @@ describe("BT21-094 Delay watcher", () => {
       optional: true,
       into: { nameOrTrait: [{ tokens: ["Armor Form"], match: "trait" }] },
     });
-    expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "Security", isSecurity: true }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({ trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] }),
+    );
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });
