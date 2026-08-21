@@ -99,9 +99,7 @@ const module: EffectModule = {
                 const isApocalymon = def.nameEn === "Apocalymon";
                 // Traits in CardDefinition live in `types` (card-module contract note F3; currently
                 // empty for all cards in the DB, but structurally correct for when data lands).
-                const hasDarkMasters = (def.types ?? []).some(
-                  (t) => t === "Dark Masters" || t === "DarkMasters",
-                );
+                const hasDarkMasters = (def.types ?? []).some((t) => t === "Dark Masters" || t === "DarkMasters");
                 return isApocalymon || hasDarkMasters;
               },
               preventCheck: async (subCtx) => {
