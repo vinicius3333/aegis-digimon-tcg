@@ -6,77 +6,72 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Sukamon"
-                    ],
-                    "match": "name"
-                  }
-                ]
+                    tokens: ["Sukamon"],
+                    match: "name",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "play",
-              "optional": true
-            }
+              count: 1,
+              to: "play",
+              optional: true,
+            },
           ],
-          "rest": "trash",
-          "condition": {
-            "kind": "isOpponentsTurn",
-            "raw": "it's your opponent's turn"
-          }
-        }
-      ]
+          rest: "trash",
+          condition: {
+            kind: "isOpponentsTurn",
+            raw: "it's your opponent's turn",
+          },
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Chuumon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Chuumon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "condition": {
-            "kind": "selfHasNameContaining", "names": ["Sukamon","Etemon"],
-            "raw": "this Digimon had [Sukamon]/[Etemon] in its name"
+          from: ["trash"],
+          payCost: false,
+          suspended: true,
+          condition: {
+            kind: "selfHasNameContaining",
+            names: ["Sukamon", "Etemon"],
+            raw: "this Digimon had [Sukamon]/[Etemon] in its name",
           },
-          "optional": true
-        }
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX5-045", compiled);
