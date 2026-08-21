@@ -1,20 +1,5 @@
-import { EffectTiming } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { turnTiming } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "BT11-047";
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing, source) {
-    if (timing !== EffectTiming.OnStartTurn) return [];
-    return [turnTiming({
-      source,
-      effectKey: `${cardId}/start-turn-draw`,
-      description: "[Start of Your Turn] Draw 1.",
-      resolve: async (ctx) => { await ctx.fx.draw(source.ownerSeat, 1); },
-    })];
-  },
-};
-registerCard(module);
-export default module;
+const compiled: CompiledCard = { effects: [{ trigger: "StartOfYourTurn", actions: [{ kind: "Draw", controller: "mine", amount: 1 }] }], coverage: "full", residual: [] };
+registerIrCard("BT11-047", compiled);
