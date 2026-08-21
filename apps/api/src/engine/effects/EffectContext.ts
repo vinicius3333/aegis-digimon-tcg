@@ -892,7 +892,7 @@ export interface Primitives {
   changeEvoCost(
     filter: (m: EvoCostMatch) => boolean,
     delta: number,
-    opts?: { setFixed?: boolean; once?: boolean; onConsume?: (match: EvoCostMatch) => void },
+    opts?: { setFixed?: boolean; once?: boolean; continuous?: boolean; onConsume?: (match: EvoCostMatch) => void },
   ): void;
   /**
    * Record a continuous play/use-cost modification ("reduce the play cost of your

@@ -309,6 +309,15 @@ export const staticModifier = (opts: BuilderOptions): Effect => {
             ? { oncePerTurnKey: sub.oncePerTurnKey ?? autoKey }
             : {}),
         }),
+      changeEvoCost: (
+        filter: Parameters<EffectContext["fx"]["changeEvoCost"]>[0],
+        delta: number,
+        changeOpts: Parameters<EffectContext["fx"]["changeEvoCost"]>[2],
+      ) =>
+        ctx.fx.changeEvoCost(filter, delta, {
+          ...changeOpts,
+          continuous: true,
+        }),
       subscribeReplacement: (replacement: Parameters<EffectContext["fx"]["subscribeReplacement"]>[0]) =>
         ctx.fx.subscribeReplacement({
           ...replacement,
