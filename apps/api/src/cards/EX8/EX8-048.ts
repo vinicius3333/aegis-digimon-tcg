@@ -31,6 +31,7 @@ export const compiled: CompiledCard = {
             filter: {
               controllerDefault: "mine",
               kind: ["Tamer"],
+              countMax: 1,
             },
             raw: "you have 1 or fewer Tamers",
           },
