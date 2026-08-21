@@ -28,6 +28,7 @@ const compiled: CompiledCard = {
             },
             "count": "any"
           },
+          "scope": "acrossDigimon",
           "amount": 4,
           "fromTop": false,
           "distributed": true
