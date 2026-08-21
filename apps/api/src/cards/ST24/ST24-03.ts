@@ -29,6 +29,7 @@ const compiled: CompiledCard = {
         },
         {
           "kind": "PlaceUnder",
+          "fromDeckTop": true,
           "target": {
             "filter": {
               "controller": "mine"
@@ -75,6 +76,7 @@ const compiled: CompiledCard = {
         },
         {
           "kind": "PlaceUnder",
+          "fromDeckTop": true,
           "target": {
             "filter": {
               "controller": "mine"

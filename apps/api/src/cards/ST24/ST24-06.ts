@@ -63,12 +63,13 @@ const compiled: CompiledCard = {
               "filter": {
                 "controller": "mine",
                 "zone": "digivolutionCards",
+                "faceDown": true,
                 "hostFilter": {
                   "kind": [
                     "Tamer"
                   ]
                 },
-                "digivolutionPosition": "bottom"
+                "position": "bottom"
               },
               "count": 2
             },
@@ -125,12 +126,13 @@ const compiled: CompiledCard = {
               "filter": {
                 "controller": "mine",
                 "zone": "digivolutionCards",
+                "faceDown": true,
                 "hostFilter": {
                   "kind": [
                     "Tamer"
                   ]
                 },
-                "digivolutionPosition": "bottom"
+                "position": "bottom"
               },
               "count": 2
             },
@@ -187,12 +189,13 @@ const compiled: CompiledCard = {
               "filter": {
                 "controller": "mine",
                 "zone": "digivolutionCards",
+                "faceDown": true,
                 "hostFilter": {
                   "kind": [
                     "Tamer"
                   ]
                 },
-                "digivolutionPosition": "bottom"
+                "position": "bottom"
               },
               "count": 2
             },
@@ -241,12 +244,13 @@ const compiled: CompiledCard = {
               "filter": {
                 "controller": "mine",
                 "zone": "digivolutionCards",
+                "faceDown": true,
                 "hostFilter": {
                   "kind": [
                     "Tamer"
                   ]
                 },
-                "digivolutionPosition": "bottom"
+                "position": "bottom"
               },
               "count": 1
             },
