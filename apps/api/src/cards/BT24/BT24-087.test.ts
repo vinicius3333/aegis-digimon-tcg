@@ -1,20 +1,9 @@
 import { describe, it, expect } from "vitest";
-import {
-  GameState,
-  PlayerState,
-  Permanent,
-  CardInstance,
-  type Seat,
-  type ServerEvent,
-} from "@aegis/shared";
+import { GameState, PlayerState, Permanent, CardInstance, type Seat, type ServerEvent } from "@aegis/shared";
 import { MemoryGauge } from "../../engine/MemoryGauge.js";
 import { ModifierLedger } from "../../engine/effects/modifiers.js";
 import { SubTriggerRegistry } from "../../engine/effects/subtriggers.js";
-import {
-  createPrimitives,
-  type PrimitivesEngine,
-  type SelectionPort,
-} from "../../engine/effects/primitives.js";
+import { createPrimitives, type PrimitivesEngine, type SelectionPort } from "../../engine/effects/primitives.js";
 // Self-register the compiled-IR cards so getCompiledCard can resolve the fusion target's
 // appFusionRequirement at runtime (the engine reads it inside appFuseInto).
 import "../index.js";
