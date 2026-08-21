@@ -46,7 +46,7 @@ const module: EffectModule = {
               max: 1,
             });
             if (chosenCard.length === 0) return;
-            const hostDigimon = Array.from(owner.battleArea).filter(
+            const hostDigimon = [...Array.from(owner.battleArea), ...(owner.breeding ? [owner.breeding] : [])].filter(
               (p) => p.topCard !== undefined && hasAquaOrSeaAnimal(ctx.game.definitionOf(p.topCard)),
             );
             if (hostDigimon.length === 0) return;
@@ -97,7 +97,7 @@ const module: EffectModule = {
                 if (selfPerm === undefined || selfPerm.isSuspended) return;
                 const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
                 if (!paid) return;
-                subCtx.fx.draw(source.ownerSeat, 1);
+                await subCtx.fx.draw(source.ownerSeat, 1);
               },
             });
           },
@@ -131,7 +131,7 @@ const module: EffectModule = {
                 if (selfPerm === undefined || selfPerm.isSuspended) return;
                 const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
                 if (!paid) return;
-                subCtx.fx.draw(source.ownerSeat, 1);
+                await subCtx.fx.draw(source.ownerSeat, 1);
               },
             });
           },
