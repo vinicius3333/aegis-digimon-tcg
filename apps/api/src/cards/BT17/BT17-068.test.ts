@@ -3,6 +3,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { revealedDefinition } from "../../engine/effects/interpreter/actions/reveal.js";
 import { getCardDefinition } from "@aegis/shared";
+import { compiled } from "./BT17-068.js";
 import "../index.js";
 
 // A3 for BT17-068 (Mephistomon):
