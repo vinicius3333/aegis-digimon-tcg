@@ -883,7 +883,12 @@ export async function payCost(
       // than inferred from the card filter because the subsequent Delete target is a
       // separate choice and may include a different permanent.
       if (!cost.target || !cost.hostTarget) return false;
-      const hostCandidates = await resolvePermanentTargets(ctx, cost.hostTarget);
+      const hostCandidates = candidatePermanents(ctx, cost.hostTarget).map((host) => host.permanentId).filter((hostId) => {
+        const host = ctx.game.permanentById(hostId);
+        return host?.stack.some((card) =>
+          definitionMatches(cost.target!.filter, ctx.game.definitionOf({ cardId: card.cardId } as never)),
+        );
+      });
       if (hostCandidates.length === 0) return false;
       const hostId =
         hostCandidates.length === 1
@@ -907,6 +912,7 @@ export async function payCost(
       if (chosen.length !== 1) return false;
       const played = await ctx.fx.playInstances(chosen, { payCost: false });
       if (played.length === 0) return false;
+      ctx.lastResolvedPermanentIds = [hostId];
       if (out) out.paidCount = played.length;
       return true;
     }

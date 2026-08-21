@@ -298,7 +298,20 @@ export interface DigivolveOutcome {
 }
 
 /** Evaluate live gates attached to alternate digivolution requirements. */
-function alternateRequirementAvailable(state: GameState, seat: Seat, requirement: DigivolutionRequirement): boolean {
+function alternateRequirementAvailable(
+  state: GameState,
+  seat: Seat,
+  permanent: Permanent,
+  requirement: DigivolutionRequirement,
+): boolean {
+  if (requirement.minNameStackCount !== undefined) {
+    const requiredNames = requirement.minNameStackNames ?? [];
+    const matching = permanent.stack.filter((card) => {
+      const name = definitionOf(card.cardId).nameEn;
+      return requiredNames.some((required) => name === required);
+    }).length;
+    if (matching < requirement.minNameStackCount) return false;
+  }
   const condition = requirement.whileCondition;
   if (condition === undefined) return true;
   if (condition.kind !== "zoneCount" || condition.value === undefined) return false;
@@ -403,7 +416,8 @@ export function validateDigivolve(
     intent.alternateRequirementIndex === undefined ? undefined : { requirementIndex: intent.alternateRequirementIndex },
   );
   const altRequirement =
-    matchedAlternateRequirement !== undefined && alternateRequirementAvailable(state, seat, matchedAlternateRequirement)
+    matchedAlternateRequirement !== undefined &&
+    alternateRequirementAvailable(state, seat, permanent, matchedAlternateRequirement)
       ? matchedAlternateRequirement
       : undefined;
   // An explicit path is a declaration, not a preference. Never silently fall back to a
