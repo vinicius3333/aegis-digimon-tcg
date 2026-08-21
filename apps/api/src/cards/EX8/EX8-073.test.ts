@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX8-073.js";
 
 describe("EX8-073", () => {
@@ -26,5 +28,16 @@ describe("EX8-073", () => {
       grant: "immuneToOpponentDigimonEffects",
       condition: { kind: "memoryAtMost", value: 0 },
     });
+  });
+
+  it("publicly grants the printed opponent-Digimon immunity at exactly 0 memory", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX8-073", as: "gallantmon-x" }] } });
+    s.state.memory = 0;
+    await (s.engine as unknown as { recomputeContinuousEffects(): Promise<void> }).recomputeContinuousEffects();
+    expect(observe(s.engine).hasRestriction(s.perm("gallantmon-x"), "beAffected", "Digimon")).toBe(true);
+
+    s.state.memory = 1;
+    await (s.engine as unknown as { recomputeContinuousEffects(): Promise<void> }).recomputeContinuousEffects();
+    expect(observe(s.engine).hasRestriction(s.perm("gallantmon-x"), "beAffected", "Digimon")).toBe(false);
   });
 });
