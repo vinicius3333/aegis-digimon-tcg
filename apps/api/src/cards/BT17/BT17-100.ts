@@ -120,8 +120,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/start-of-your-turn-win`,
           description:
-            "[Start of Your Turn] If 4 [Doomsday Clock]s are placed in your battle area, " +
-            "you win the game.",
+            "[Start of Your Turn] If 4 [Doomsday Clock]s are placed in your battle area, " + "you win the game.",
           when: (ctx) => ctx.source.isOwnersTurn(),
           canActivate: (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);

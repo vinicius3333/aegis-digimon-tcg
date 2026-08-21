@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
 // A3 for BT17-100 (Doomsday Clock, Black Option):
@@ -13,7 +14,6 @@ import "../index.js";
 //   [Inherited][End of Opponent's Turn] Place 1 [Doomsday Clock] from this Digimon's
 //     digivolution cards in the battle area.
 //
-// FAILS-WHEN-REVERTED: the declarative effect record had all clauses as RawUnparsed no-ops.
 // Test 1: [Security] adds this card to hand (not trashed, not played).
 // Test 2: [Start of Your Turn] win condition fires when 4 Doomsday Clocks are in battle.
 
@@ -70,13 +70,22 @@ describe("BT17-100 Doomsday Clock — [Main] plays Diaboromon Token", () => {
     expect(res.ok).toBe(true);
 
     // Wait for the Diaboromon Token to appear in p0's battle area.
-    await settle(
-      () => p0?.battleArea.some((p) => p.topCard?.cardId.startsWith("TOKEN-")) ?? false,
-      600,
-    );
+    await settle(() => p0?.battleArea.some((p) => p.topCard?.cardId.startsWith("TOKEN-")) ?? false, 600);
 
     // A Diaboromon Token should have been played.
     const hasToken = p0?.battleArea.some((p) => p.topCard?.cardId.startsWith("TOKEN-"));
     expect(hasToken).toBe(true);
+  });
+});
+
+describe("BT17-100 Doomsday Clock — compiled coverage", () => {
+  it("compiles the inherited end-of-opponent-turn placement clause", () => {
+    const compiled = runtimeCompiledCard(DOOMSDAY_CLOCK)!;
+    const endOfTurn = compiled.effects.find((effect) => effect.trigger === "EndOfOpponentsTurn");
+    expect(endOfTurn?.actions[0]).toMatchObject({ kind: "RawUnparsed" });
+    expect(compiled.coverage).toBe("partial");
+    expect(compiled.residual).toEqual([
+      "missing-primitive(unaudited): Place 1 [Doomsday Clock] from this Digimon's digivolution cards in the battle area",
+    ]);
   });
 });
