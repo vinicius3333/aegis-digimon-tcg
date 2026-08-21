@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./EX8-065.js";
 
 describe("EX8-065", () => {
@@ -20,4 +23,12 @@ describe("EX8-065", () => {
       isSecurity: true,
       actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
     }));
+  it("plays the exact face-up security card into the battle area without cost", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-010", as: "attacker" }] }, 1: { security: [{ card: "EX8-065", as: "securityCard" }] } });
+    const instanceId = s.inst("securityCard").instanceId;
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX8-065"));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX8-065")).toBe(true);
+    expect(s.state.players[1]!.security.some((card) => card.instanceId === instanceId)).toBe(false);
+  });
 });
