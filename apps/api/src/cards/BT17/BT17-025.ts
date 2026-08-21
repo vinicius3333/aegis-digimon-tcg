@@ -33,7 +33,8 @@ const compiled: CompiledCard = {
             "digivolutionCards"
           ],
           "payCost": false,
-          "optional": true
+          "optional": true,
+          "bindResultAs": "playedLevel3"
         },
         {
           "kind": "SubTrigger",
@@ -42,9 +43,7 @@ const compiled: CompiledCard = {
             {
               "kind": "Return",
               "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
+                "filter": { "boundRef": "playedLevel3" },
                 "count": 1,
                 "isSelf": true
               },
