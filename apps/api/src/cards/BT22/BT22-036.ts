@@ -147,8 +147,8 @@ export const compiled: CompiledCard = {
       frequency: "OncePerTurn",
     },
   ],
-  coverage: "full",
-  residual: [],
+  coverage: "partial",
+  residual: ["DigivolveViaPlacement runtime execution is unsupported"],
 };
 
 registerIrCard("BT22-036", compiled);

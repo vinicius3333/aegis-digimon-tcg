@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./EX10-032.js";
 
 describe("EX10-032 Proganomon", () => {
-  it("proves hand digivolution, shared buffs, inherited De-Digivolve, and full coverage", () => {
-    expect(compiled.coverage).toBe("full");
-    expect(compiled.residual).toEqual([]);
+  it("proves hand digivolution, shared buffs, inherited De-Digivolve, and the runtime residual", () => {
+    expect(compiled.coverage).toBe("partial");
+    expect(compiled.residual).toEqual(["DigivolveViaPlacement runtime execution is unsupported"]);
     expect(compiled.effects?.find((effect) => effect.trigger === "Main")).toMatchObject({
       isFromHand: true,
       condition: { kind: "youHave" },
@@ -22,7 +22,9 @@ describe("EX10-032 Proganomon", () => {
     }
 
     expect(compiled.effects?.find((effect) => effect.isInherited)).toMatchObject({
-      actions: [{ kind: "SubTrigger", event: "onDigivolutionCardDiscarded", actions: [{ kind: "DeDigivolve", amount: 1 }] }],
+      actions: [
+        { kind: "SubTrigger", event: "onDigivolutionCardDiscarded", actions: [{ kind: "DeDigivolve", amount: 1 }] },
+      ],
     });
   });
 });
