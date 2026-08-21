@@ -47,8 +47,7 @@ const module: EffectModule = {
             sourcePermanentId: host.permanentId,
             once: false,
             matches: (subCtx) =>
-              subCtx.trigger.subjectPermanentId === host.permanentId &&
-              addedCardIsTamer(subCtx, host.permanentId),
+              subCtx.trigger.subjectPermanentId === host.permanentId && addedCardIsTamer(subCtx, host.permanentId),
             run: async (subCtx) => {
               subCtx.fx.gainMemory(1);
             },
