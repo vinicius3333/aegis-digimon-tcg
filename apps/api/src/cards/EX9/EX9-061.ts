@@ -56,7 +56,8 @@ export const compiled: CompiledCard = {
               "filter": {
                 "controller": "mine"
               },
-              "count": 1
+              "count": 1,
+              "from": ["deck"]
             },
             "raw": "By placing your deck's top card face down as this Digimon's bottom digivolution card",
             "destination": "digivolutionStack",
