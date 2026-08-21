@@ -7,25 +7,37 @@ import "./BT6-100.js";
 
 describe("BT6-100 Reinforcing Memory Boost!", () => {
   it("Delay trashes the placed Option and gains 3 memory on a later turn", async () => {
-    const s = setupEngine({ 0: {
-      battleArea: ["BT6-031"],
-      hand: [{ card: "BT6-100", as: "option" }],
-      deck: ["BT6-032", "BT6-033"],
-    } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT6-031"],
+          hand: [{ card: "BT6-100", as: "option" }],
+          deck: ["BT6-032", "BT6-033"],
+        },
+      },
+      { autoSelectCards: true },
+    );
     const optionId = s.inst("option").instanceId;
     s.state.memory = 8;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId));
-    const optionPermanent = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === optionId)!;
+    const optionPermanent = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === optionId,
+    )!;
     s.state.turnCount += 1;
     s.state.memory = 2;
     await s.ready();
-    const effects = observe(s.engine).activatableEffects(optionPermanent) as Array<{ effectKey: string }>;
+    const effects = observe(s.engine).activatableEffects(optionPermanent) as Array<{
+      effectKey: string;
+      description: string;
+    }>;
     const delay = effects.find((effect) => effect.description.includes("Delay"));
     expect(delay).toBeDefined();
 
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: optionId, effectKey: delay!.effectKey })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: optionId, effectKey: delay!.effectKey }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.memory === 5);
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
@@ -40,11 +52,19 @@ describe("BT6-100 Reinforcing Memory Boost!", () => {
   });
 
   it("places one revealed card face down on security, adds the other to hand, then places itself", async () => {
-    const s = setupEngine({ 0: {
-      battleArea: ["BT6-031"],
-      hand: [{ card: "BT6-100", as: "option" }],
-      deck: [{ card: "BT6-032", as: "secured" }, { card: "BT6-033", as: "added" }],
-    } }, { autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT6-031"],
+          hand: [{ card: "BT6-100", as: "option" }],
+          deck: [
+            { card: "BT6-032", as: "secured" },
+            { card: "BT6-033", as: "added" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
     const player = s.state.players[0]!;
     s.state.memory = 8;
     const optionInstanceId = s.inst("option").instanceId;
