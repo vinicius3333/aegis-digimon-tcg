@@ -20,12 +20,13 @@ const compiled: CompiledCard = {
           "kind": "Replacement",
           "event": "wouldDigivolve",
           "sourceFilter": {
+            "isSelfRef": true
+          },
+          "into": {
             "controllerDefault": "mine",
             "kind": [
               "Digimon"
-            ]
-          },
-          "into": {
+            ],
             "traits": [
               "TB"
             ]
