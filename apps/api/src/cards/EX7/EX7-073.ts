@@ -75,7 +75,11 @@ export const compiled: CompiledCard = {
           "op": "trash",
           "controller": "opponent",
           "amount": 1,
-          "toTop": true
+          "toTop": true,
+          "condition": {
+            "kind": "ifThisEffectActed",
+            "raw": "this effect trashed the cost"
+          }
         }
       ]
     },
@@ -120,7 +124,11 @@ export const compiled: CompiledCard = {
           "op": "trash",
           "controller": "opponent",
           "amount": 1,
-          "toTop": true
+          "toTop": true,
+          "condition": {
+            "kind": "ifThisEffectActed",
+            "raw": "this effect trashed the cost"
+          }
         }
       ]
     }
