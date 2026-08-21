@@ -12,12 +12,7 @@ const cardId = "BT20-089";
 const EIJI_NAGASUMI = "Eiji Nagasumi";
 
 function hasPulsemonText(def: CardDefinition): boolean {
-  const hay = [
-    def.nameEn ?? "",
-    def.effectText ?? "",
-    def.inheritedEffectText ?? "",
-    ...(def.types ?? []),
-  ].join(" ");
+  const hay = [def.nameEn ?? "", def.effectText ?? "", def.inheritedEffectText ?? "", ...(def.types ?? [])].join(" ");
   return hay.toLowerCase().includes("pulsemon");
 }
 
@@ -52,7 +47,12 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const perm = ctx.source.permanent();
             if (perm === undefined) return;
-            ctx.fx.grantNameTrait(perm.permanentId, "name", ["Eiji Nagasumi", "Leon Alexander"], EffectDuration.Permanent);
+            ctx.fx.grantNameTrait(
+              perm.permanentId,
+              "name",
+              ["Eiji Nagasumi", "Leon Alexander"],
+              EffectDuration.Permanent,
+            );
           },
         }),
         staticModifier({
@@ -243,8 +243,6 @@ const module: EffectModule = {
         }),
       ];
     }
-
-    // [All Turns] MindLink reaction — RESIDUAL: MindLink not available as fx primitive.
 
     return [];
   },

@@ -9,11 +9,9 @@ import { compiled } from "./BT20-065.js";
  * A3 — Q1f: BT20-065 (Purple Digimon) "[On Play] By trashing 1 card in your hand, give 1 of
  * your opponent's Digimon '[On Deletion] Lose 1 memory.' until the end of their turn."
  *
- * Same Q1f malformed-shape gap and the SAME shared "[On Deletion] Lose 1 memory." library entry
- * as BT15-068/BT9-014 (see BT6-102's header for the full writeup). This card additionally
- * exercises the generic cost-paying wrapper (`action.cost`/`optional`/`abortOnDecline`, handled
- * uniformly by `runAction` for every action kind) atop the new malformed-shape route: the grant
- * must depend on the trash cost actually being payable.
+ * This card exercises the shared "[On Deletion] Lose 1 memory." library entry and the generic
+ * cost-paying wrapper (`action.cost`/`optional`/`abortOnDecline`): the grant must depend on the
+ * trash cost actually being payable.
  *
  * FAILS-WHEN-REVERTED: reverting the interpreter's routing branch or the library entry makes
  * the grant either throw when the recipient is deleted, or silently install nothing.
@@ -21,14 +19,20 @@ import { compiled } from "./BT20-065.js";
 
 describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () => {
   it("retains inherited Retaliation", () => {
-    expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({ trigger: "Static", keywords: [{ keyword: "Retaliation" }] });
+    expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({
+      trigger: "Static",
+      keywords: [{ keyword: "Retaliation" }],
+    });
   });
 
   it("POSITIVE: paying the trash cost grants the effect; deleting the recipient costs 1 memory", async () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT20-065", as: "wormmon" }, { card: "BT1-085", as: "fodder" }],
+          hand: [
+            { card: "BT20-065", as: "wormmon" },
+            { card: "BT1-085", as: "fodder" },
+          ],
         },
         1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "recipient" }] },
       },
@@ -55,8 +59,7 @@ describe("A3 BT20-065 — granted '[On Deletion] Lose 1 memory.' (costed)", () =
     expect(
       grants.some(
         (g: { instanceId: string; token: string }) =>
-          g.instanceId === recipient.topCard!.instanceId &&
-          g.token === "[On Deletion] Lose 1 memory.",
+          g.instanceId === recipient.topCard!.instanceId && g.token === "[On Deletion] Lose 1 memory.",
       ),
     ).toBe(true);
 

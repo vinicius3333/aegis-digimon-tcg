@@ -1,17 +1,22 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type CardDefinition, type Permanent, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { DecisionApi, EffectContext, GameAccess, Primitives, ReplacementInstall } from "../../engine/effects/EffectContext.js";
+import type {
+  DecisionApi,
+  EffectContext,
+  GameAccess,
+  Primitives,
+  ReplacementInstall,
+} from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import "./BT20-027.js";
 
 // A3 for BT20-027 (Slayerdramon — Blue Lv.6 Digimon). Covers all hand-written clauses:
 //   ＜Piercing＞ / [On Play] / [When Digivolving] trash-3-then-delete /
 //   [All Turns] unsuspend on opponent security removal /
-//   (Inherited) suspend-to-prevent-leave (the RawUnparsed residual).
+//   (Inherited) suspend-to-prevent-leave.
 //
-// FAILS-WHEN-REVERTED: the declarative effect never installs the inherited leave-prevention
-// (it carried a RawUnparsed residual), so no wouldLeavePlay replacement is subscribed.
+// The inherited leave-prevention installs a wouldLeavePlay replacement.
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
@@ -183,7 +188,7 @@ describe("BT20-027 Slayerdramon", () => {
 
     const del = recorder.calls.filter((c) => c.verb === "deletePermanent");
     expect(del).toHaveLength(1);
-    expect((del[0]!.args[0] as string[])).toContain("OPP-BARE");
+    expect(del[0]!.args[0] as string[]).toContain("OPP-BARE");
   });
 
   it("[When Digivolving] uses the same body", async () => {
@@ -225,7 +230,7 @@ describe("BT20-027 Slayerdramon", () => {
 
     const uns = recorder.calls.filter((c) => c.verb === "unsuspend");
     expect(uns).toHaveLength(1);
-    expect((uns[0]!.args[0] as string[])).toContain("MY-DRACO");
+    expect(uns[0]!.args[0] as string[]).toContain("MY-DRACO");
   });
 
   it("[All Turns] does NOT trigger when the opponent's attacker removed MY security", () => {

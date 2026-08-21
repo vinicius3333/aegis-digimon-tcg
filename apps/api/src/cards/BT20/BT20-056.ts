@@ -27,7 +27,6 @@ async function recoveryAndBreedingDigivolve(ctx: Parameters<Effect["resolve"]>[0
 
   // Then, if there is a Digimon in our breeding area and a Chronicle Lv.<=6 card in hand/trash,
   // optionally digivolve it.
-  // Note: "if during an attack" guard is a residual.
   const owner = ctx.game.player(seat);
   const breedingPermanent = owner.breeding;
   if (breedingPermanent === undefined) return;
@@ -124,7 +123,7 @@ const module: EffectModule = {
           description:
             "[On Play] ＜Recovery +1 (Deck)＞. Then, 1 of your Digimon in the breeding area " +
             "may digivolve into a level 6 or lower [Chronicle] trait Digimon in hand or trash " +
-            "without paying the cost. (Note: 'if during an attack' guard is a residual.)",
+            "without paying the cost.",
           optional: false,
           resolve: recoveryAndBreedingDigivolve,
         }),
@@ -140,7 +139,7 @@ const module: EffectModule = {
           description:
             "[When Digivolving] ＜Recovery +1 (Deck)＞. Then, 1 of your Digimon in the breeding " +
             "area may digivolve into a level 6 or lower [Chronicle] trait Digimon in hand or trash " +
-            "without paying the cost. (Note: 'if during an attack' guard is a residual.)",
+            "without paying the cost.",
           optional: false,
           resolve: recoveryAndBreedingDigivolve,
         }),
