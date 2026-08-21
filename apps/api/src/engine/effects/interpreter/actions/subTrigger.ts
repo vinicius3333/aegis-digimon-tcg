@@ -156,7 +156,7 @@ export async function runSubTrigger(
   // "Model gap" / Pitfall 2: BT10-044 would draw on every play, not just a green Tamer).
   // The filter is evaluated against the freshly bound context's payload subject via the
   // canonical `permanentMatchesFilter` / `definitionMatches` — never a hand-rolled matcher.
-  const sourceFilter = action.sourceFilter;
+  const sourceFilter = (action as typeof action & { sourceFilter?: Filter }).sourceFilter;
   const hostFilter = (action as Action & { hostFilter?: Filter }).hostFilter;
   // Some deletion reactions explicitly require their host to survive the same deletion batch
   // (BT22-065 Q4923; BT22-068 Q4928; BT22-070 Q4929). Deletion seams publish the complete
@@ -784,6 +784,7 @@ export async function runGainTriggeredEffect(
   const grantingSeat = ctx.source.ownerSeat;
   const grantingKinds = ctx.source.definition.kinds.filter((kind) => kind === "Digimon" || kind === "Option");
   for (const targetPermanentId of targetIds) {
+    const anchorPermanentId = targetPermanentId;
     const grantedPerm = ctx.game.permanentById(targetPermanentId);
     if (grantedPerm === undefined) continue;
     let expiresOnTurnEndOf: typeof ctx.source.ownerSeat | undefined;
