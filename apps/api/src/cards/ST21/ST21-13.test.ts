@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 describe("ST21-13", () => {
   it("reduces ADVENTURE Digimon hand play cost by suspending this Tamer", () => {
@@ -23,5 +24,19 @@ describe("ST21-13", () => {
     expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("mattTk").instanceId));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("mattTk").instanceId)).toBe(true);
+  });
+
+  it("grants Rush only to level 5 or higher Adventure Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [
+        { card: "ST21-13", as: "mattTk" },
+        { card: "ST21-11", as: "level5Adventure" },
+        { card: "ST21-08", as: "level4Adventure" },
+      ] },
+    });
+    await s.ready();
+    await settle(() => observe(s.engine).hasKeyword(s.perm("level5Adventure"), "Rush"));
+    expect(observe(s.engine).hasKeyword(s.perm("level5Adventure"), "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("level4Adventure"), "Rush")).toBe(false);
   });
 });
