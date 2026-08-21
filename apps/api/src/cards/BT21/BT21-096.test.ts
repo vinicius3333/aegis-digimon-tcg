@@ -35,6 +35,9 @@ describe("BT21-096 The Champion Ultimate Fighter!", () => {
     const module = getEffectModule("BT21-096");
     expect(module).toBeDefined();
     expect(module!.effectsForTiming(EffectTiming.OnUseOption, {} as never)).toHaveLength(1);
+    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, {} as never)[0]?.description).toContain(
+      "add this card to your hand",
+    );
     expect(CardKind.Digimon).toBeDefined();
   });
 });
