@@ -7,7 +7,6 @@ import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { activated, onPlay, whenAttacking } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
-
 const cardId = "BT19-078";
 const motherDReaper = "Mother D-Reaper";
 const adr01Jeri = "ADR-01 Jeri";
@@ -34,20 +33,13 @@ function opponentDigimon(ctx: EffectContext, source: CardSource): Permanent[] {
 
 /** [ADR-01 Jeri] instances in this permanent's digivolution stack. */
 function jeriInStack(ctx: EffectContext, permanent: Permanent): CardInstance[] {
-  return Array.from(permanent.stack).filter(
-    (card) => ctx.game.definitionOf(card).nameEn === adr01Jeri,
-  );
+  return Array.from(permanent.stack).filter((card) => ctx.game.definitionOf(card).nameEn === adr01Jeri);
 }
 
-async function chooseOnePermanent(
-  ctx: EffectContext,
-  permanents: Permanent[],
-): Promise<Permanent | undefined> {
+async function chooseOnePermanent(ctx: EffectContext, permanents: Permanent[]): Promise<Permanent | undefined> {
   if (permanents.length === 0) return undefined;
   if (permanents.length === 1) return permanents[0];
-  const byTopId = new Map<string, Permanent>(
-    permanents.map((permanent) => [permanent.topCard!.instanceId, permanent]),
-  );
+  const byTopId = new Map<string, Permanent>(permanents.map((permanent) => [permanent.topCard!.instanceId, permanent]));
   const chosen = await ctx.ask.chooseTargets(ctx, {
     candidates: Array.from(byTopId.keys()),
     min: 1,
@@ -105,9 +97,7 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
             if (self === undefined) return;
-            const eligible = ownerMothers(ctx, source).filter(
-              (mother) => jeriInStack(ctx, mother).length < 1,
-            );
+            const eligible = ownerMothers(ctx, source).filter((mother) => jeriInStack(ctx, mother).length < 1);
             const chosenMother = await chooseOnePermanent(ctx, eligible);
             if (chosenMother === undefined) return;
 
