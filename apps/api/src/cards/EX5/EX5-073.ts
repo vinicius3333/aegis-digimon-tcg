@@ -6,93 +6,97 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "digivolutionCards": "hasAny"
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              digivolutionCards: "hasAny",
             },
-            "count": "any"
+            count: "any",
           },
-          "amount": 8,
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "DNA digivolving"
-          }
+          amount: 8,
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
+          },
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "digivolutionCardsCompareToSource": "lte",
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              digivolutionCardsCompareToSource: "lte",
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "digivolutionCardsCompareToSource": "lte",
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "isSelfRef": true
+            count: 1,
           },
-          "actions": [
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              digivolutionCardsCompareToSource: "lte",
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "byOpponentEffect",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
             {
-              "kind": "Prevent",
-              "cost": {
-                "kind": "trash",
-                "target": {
-                  "filter": {
-                    "zone": "digivolutionCards"
+              kind: "Prevent",
+              cost: {
+                kind: "trash",
+                target: {
+                  filter: {
+                    zone: "digivolutionCards",
+                    sameLevelPair: true,
                   },
-                  "count": 2
+                  count: 2,
                 },
-                "raw": "by trashing 2 same-level cards in this Digimon's digivolution cards"
+                raw: "by trashing 2 same-level cards in this Digimon's digivolution cards",
               },
-              "optional": true,
-              "abortOnDecline": true
-            }
-          ]
-        }
-      ]
-    }
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX5-073", compiled);
