@@ -622,7 +622,8 @@ export async function payCost(
           const cap = Math.min(max, candidates.length);
           if (cap < 1) return false;
           const candidateIds = candidates.map((c) => c.instanceId);
-          const chosen = await ctx.ask.selectCards(ctx, { candidates: candidateIds, min: 1, max: cap });
+          const allowZero = (cost.target as Target & { allowZero?: boolean }).allowZero === true;
+          const chosen = await ctx.ask.selectCards(ctx, { candidates: candidateIds, min: allowZero ? 0 : 1, max: cap });
           if (chosen.length < 1) return false;
           await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
           if (out) out.paidCount = chosen.length;
