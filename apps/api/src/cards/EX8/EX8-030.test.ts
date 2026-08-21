@@ -12,6 +12,7 @@ describe("EX8-030", () => {
 
     expect(observe(s.engine).canGainMemoryFromEffect(1, ["Digimon"])).toBe(false);
     expect(observe(s.engine).canGainMemoryFromEffect(1, ["Tamer"])).toBe(true);
+    expect(observe(s.engine).canGainMemoryFromEffect(1, ["Digimon", "Tamer"])).toBe(true);
     expect(observe(s.engine).canGainMemoryFromEffect(0, ["Digimon"])).toBe(true);
   });
 });
