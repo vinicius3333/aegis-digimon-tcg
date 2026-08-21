@@ -6,120 +6,84 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "DS"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1,
-            "from": [
-              "trash"
-            ]
-          },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Digimon"
+                  tokens: ["DS"],
+                  match: "trait",
+                },
               ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "DS"
-                  ],
-                  "match": "trait"
-                }
-              ]
             },
-            "count": 1,
-            "from": [
-              "trash"
-            ]
+            count: 1,
+            from: ["trash"],
           },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "EndOfAttack",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "playCostLte": 5,
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "DS"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "digivolutionCards"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["DS"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            from: ["trash"],
           },
-          "restriction": "attackTargetChange",
-          "duration": "permanent"
-        }
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "EndOfAttack",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              playCostLte: 5,
+              nameOrTrait: [
+                {
+                  tokens: ["DS"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX8-025", compiled);
