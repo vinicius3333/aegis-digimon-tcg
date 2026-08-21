@@ -15,4 +15,25 @@ describe("BT21-006 compiled implementation", () => {
       for (const action of effect.actions ?? []) expect(typeof action.kind).toBe("string");
     }
   });
+
+  it("grants +3000 DP only with at least four Vemmon digivolution cards", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "AllTurns",
+        isInherited: true,
+        actions: [
+          expect.objectContaining({
+            kind: "ModifyDP",
+            amount: 3000,
+            duration: "permanent",
+            condition: {
+              kind: "selfDigivolutionStackCountAtLeast",
+              count: 4,
+              filter: { nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
+            },
+          }),
+        ],
+      }),
+    ]);
+  });
 });

@@ -6,28 +6,33 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 3000,
-          "duration": "permanent"
-        }
+          amount: 3000,
+          duration: "permanent",
+          condition: {
+            kind: "selfDigivolutionStackCountAtLeast",
+            count: 4,
+            filter: { nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT21-006", compiled);
