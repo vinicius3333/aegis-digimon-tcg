@@ -2,8 +2,19 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./BT21-052.js";
 
 describe("BT21-052 Examon (X Antibody)", () => {
+  it("preserves the Examon alternate Digivolution requirement", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Examon"], cost: 2, isAlternate: true }]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual ?? []).toEqual([]);
+  });
+
   it("models the printed keywords and When Digivolving sequence", () => {
     expect(compiled.effects.filter((effect) => effect.keywords?.length)).toHaveLength(3);
+    expect(compiled.effects.flatMap((effect) => effect.keywords ?? []).map((keyword) => keyword.keyword)).toEqual([
+      "Piercing",
+      "Blocker",
+      "Evade",
+    ]);
     const effect = compiled.effects.find((entry) => entry.trigger === "WhenDigivolving");
 
     expect(effect?.actions).toEqual([
@@ -38,6 +49,10 @@ describe("BT21-052 Examon (X Antibody)", () => {
       controller: "opponent",
       count: 1,
       condition: { kind: "selfDigivolutionStackHasTrait" },
+    });
+    expect(watcherActions?.[0]).toEqual({
+      kind: "Unsuspend",
+      target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
     });
   });
 });
