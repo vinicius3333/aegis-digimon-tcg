@@ -27,4 +27,21 @@ describe("ST21-15", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("rookie").instanceId));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("rookie").instanceId)).toBe(true);
   });
+
+  it("adds the bottom security card to hand and replaces it with Gennai's House face up", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: ["BT10-093", "BT10-012", "BT10-085"],
+        hand: [{ card: "ST21-15", as: "house" }],
+        security: [{ card: "BT1-001", as: "bottom" }, { card: "BT1-002", as: "top" }],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("house").instanceId })).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-002")).toBe(true);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-001", "ST21-15"]);
+    const house = s.state.players[0]!.security.find((card) => card.cardId === "ST21-15");
+    expect(house?.faceUp).toBe(true);
+  });
 });
