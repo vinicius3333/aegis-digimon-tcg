@@ -34,7 +34,10 @@ describe("BT21-086 Marcus Damon", () => {
     expect(onPlay).toHaveLength(1);
     expect(onPlay[0]?.effectKey).toBe("BT21-086/on-play");
     expect(module!.effectsForTiming(EffectTiming.OnStartMainPhase, source)).toHaveLength(1);
-    expect(module!.effectsForTiming(EffectTiming.OnTappedAnyone, source)).toHaveLength(1);
+    const onSuspend = module!.effectsForTiming(EffectTiming.OnTappedAnyone, source);
+    expect(onSuspend).toHaveLength(1);
+    expect(onSuspend[0]?.maxPerTurn).toBe(1);
+    expect(onSuspend[0]?.description).toContain("Piercing");
     expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)[0]?.isSecurity).toBe(true);
   });
 
