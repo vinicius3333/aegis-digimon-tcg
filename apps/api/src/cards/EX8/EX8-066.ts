@@ -2,7 +2,7 @@ import { EffectTiming, isDigimon } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
-import { staticModifier, turnTiming, security } from "../../engine/effects/builders.js";
+import { staticModifier, turnTiming } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // Suzune Kazuki — EX8-066 (Blue Tamer).
@@ -14,8 +14,6 @@ import { registerCard } from "../../engine/effects/registry.js";
 //   have the [Ice-Snow] trait, by suspending this Tamer, trash any 1 digivolution card from
 //   your opponent's Digimon.
 //
-// Clause 3 — [Security] Play this card without paying the cost (self-play).
-//   Fully implemented: security builder + ctx.fx.playFromSecurity.
 const cardId = "EX8-066";
 
 const module: EffectModule = {
@@ -30,9 +28,11 @@ const module: EffectModule = {
           when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn(),
           canActivate: (ctx) => {
             const opp = ctx.game.opponentOf(source.ownerSeat);
-            return ctx.game.player(opp).battleArea.some(
-              (p) => !p.inBreeding && p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
-            );
+            return ctx.game
+              .player(opp)
+              .battleArea.some(
+                (p) => !p.inBreeding && p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
+              );
           },
           resolve: async (ctx) => {
             ctx.fx.gainMemory(1);
@@ -65,7 +65,8 @@ const module: EffectModule = {
                   const subjectId = subCtx.trigger?.subjectPermanentId;
                   if (subjectId === undefined) return false;
                   const subject = subCtx.game.permanentById(subjectId);
-                  if (subject === undefined || subject.controllerSeat !== ownerSeat || subject.topCard === undefined) return false;
+                  if (subject === undefined || subject.controllerSeat !== ownerSeat || subject.topCard === undefined)
+                    return false;
                   return (subCtx.game.definitionOf(subject.topCard).types ?? []).includes("Ice-Snow");
                 },
                 run: async (subCtx) => {
@@ -84,26 +85,15 @@ const module: EffectModule = {
                   const selected = candidates.find((entry) => entry.instanceId === chosen[0]);
                   if (selected === undefined) return;
                   await subCtx.fx.suspend([currentHost.permanentId], { byEffectSeat: ownerSeat });
-                  await subCtx.fx.trashDigivolutionCards(selected.hostPermanentId, [selected.instanceId], { byEffectSeat: ownerSeat, byEffectCardId: cardId });
+                  await subCtx.fx.trashDigivolutionCards(selected.hostPermanentId, [selected.instanceId], {
+                    byEffectSeat: ownerSeat,
+                    byEffectCardId: cardId,
+                  });
                 },
               });
             };
             install("whenPlayed");
             install("whenOneOfYoursDigivolves");
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/play-from-security`,
-          description: "[Security] Play this card without paying the cost.",
-          optional: false,
-          resolve: async (ctx) => {
-            await ctx.fx.playFromSecurity(source.instanceId, { payCost: false });
           },
         }),
       ];
