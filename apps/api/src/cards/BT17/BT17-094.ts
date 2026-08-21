@@ -23,18 +23,9 @@ export const compiled: CompiledCard = {
             "kind": "youHave",
             "filter": {
               "controllerDefault": "mine",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Hybrid"
-                  ],
-                  "match": "trait"
-                }
-              ]
+              "kind": ["Digimon"],
+              "nameOrTrait": [{ "tokens": ["Hybrid"], "match": "trait" }],
+              "orFilters": [{ "controllerDefault": "mine", "kind": ["Tamer"] }]
             },
             "raw": "you have a Tamer or a Digimon with the [Hybrid] trait"
           }
