@@ -39,6 +39,7 @@ describe("ST17-12 Giant Missile", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT1-010");
+    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT1-009");
     expect(observe(s.engine).isRestricted(s.perm("restricted"), "unsuspend")).toBe(true);
   });
 
