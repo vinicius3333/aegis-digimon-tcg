@@ -36,9 +36,10 @@ const compiled: CompiledCard = {
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": [
-                  "Tamer"
-                ]
+                "zone": "digivolutionCards",
+                "faceDown": true,
+                "position": "bottom",
+                "hostFilter": { "kind": ["Tamer"], "controller": "mine" }
               },
               "count": 1
             },
