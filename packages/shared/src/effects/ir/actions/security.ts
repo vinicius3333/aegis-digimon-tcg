@@ -155,6 +155,8 @@ export interface RecoverByTrashingMostSecurityAction extends ActionBase {
 export interface RecoverAction extends ActionBase {
   kind: "Recover";
   amount?: number;
+  /** Repeat recovery until this many security cards exist or the deck is empty. */
+  untilSecurityCount?: number;
 }
 
 /**
