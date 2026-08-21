@@ -7,6 +7,7 @@ describe("BT17-089 Rhythm", () => {
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "YourTurn", actions: [{ kind: "SubTrigger", event: "whenEffectSuspends" }] });
     expect(compiled.effects?.[1]).toMatchObject({ trigger: "YourTurn" });
     expect(compiled.effects?.[1]?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenSuspended", sourceFilter: { isSelfRef: true } });
+    expect(compiled.effects?.[1]?.actions[1]).toMatchObject({ kind: "Draw", condition: { kind: "youHave", filter: { orFilters: [{ colors: ["Yellow"] }] } } });
   });
 
   it("provides the Security play effect", () => {
