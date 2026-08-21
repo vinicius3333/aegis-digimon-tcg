@@ -8,6 +8,10 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // "When effects add to this Digimon's digivolution cards" as a trigger condition, so
 // the generator drops it and the Delete fires on every All Turns trigger instead.
 const compiled: CompiledCard = {
+  "digivolutionRequirement": [
+    { "level": 5, "cost": 4, "isAlternate": true },
+    { "level": 5, "texts": ["Maquinamon"], "cost": 3, "isAlternate": true }
+  ],
   "effects": [
     {
       "trigger": "Static",
@@ -207,16 +211,6 @@ const compiled: CompiledCard = {
   ],
   "coverage": "full",
   "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 5,
-      "texts": [
-        "Maquinamon"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
 };
 
 registerIrCard("EX11-045", compiled);
