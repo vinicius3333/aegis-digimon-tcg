@@ -1,10 +1,18 @@
 import { describe, expect, it } from "vitest";
+import type { Primitives } from "../../engine/effects/EffectContext.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./EX8-051.js";
 
 describe("EX8-051", () => {
+  function primitivesOf(s: EngineSetup): Primitives { return (s.engine as unknown as { primitives: Primitives }).primitives; }
+
+  it("inherits De-Digivolve 1 when trashed from a Mineral/Rock host", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "Static",
+      actions: [{ kind: "SubTrigger", event: "onDigivolutionCardsDiscardedBatch", actions: [{ kind: "DeDigivolve", amount: 1 }] }],
+    }));
   it("has Collision, Piercing, and Fragment (3)", () =>
     expect(
       compiled.effects?.filter((entry) => entry.trigger === "Static").flatMap((entry) => entry.keywords ?? []),
@@ -43,5 +51,16 @@ describe("EX8-051", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("proganomon").permanentId)).toBe(true);
     expect(s.perm("proganomon").stack).toHaveLength(0);
     expect(s.state.players[0]!.trash.filter((card) => ["EX8-050", "EX8-049", "EX8-048"].includes(card.cardId))).toHaveLength(3);
+  });
+
+  it("de-digivolves an opposing Digimon when trashed from a qualifying host", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-048", as: "host", under: [{ card: "EX8-051", as: "discarded" }] }] },
+      1: { battleArea: [{ card: "BT1-016", as: "target", under: ["BT1-009", "BT1-010"] }] },
+    });
+    await s.ready();
+    await primitivesOf(s).trashDigivolutionCards(s.perm("host").permanentId, [s.inst("discarded").instanceId], { byEffectSeat: 0 });
+    await settle(() => s.perm("target").stack.length === 1);
+    expect(s.perm("target").stack).toHaveLength(1);
   });
 });
