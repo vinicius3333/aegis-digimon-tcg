@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q4368 (binding): the [All Turns] effect triggers when EITHER player's Digimon suspends.
 // The whenSuspended SubTrigger must have no controller restriction on sourceFilter — it applies
 // to all Digimon, not just the controller's.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Counter",
@@ -97,7 +97,8 @@ const compiled: CompiledCard = {
               "kind": "Unsuspend",
               "target": {
                 "filter": {
-                  "isSelfRef": true
+                  "isSelfRef": true,
+                  "zone": "battleArea"
                 },
                 "count": 1,
                 "isSelf": true
