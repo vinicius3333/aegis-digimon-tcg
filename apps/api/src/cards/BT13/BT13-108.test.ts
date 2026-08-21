@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT13-108.js";
 
 // A3 for BT13-108 Waltz's End (Black Option).
@@ -72,5 +74,29 @@ describe("BT13-108 Waltz's End — [Main] grant suspension-delete + Option immun
     expect(effects).toHaveLength(1);
     expect(effects[0]!.isSecurity).toBe(true);
     expect(effects[0]!.effectKey).toBe("BT13-108/security-delete-lowest");
+  });
+
+  it("[Security] deletes one of the opponent's Digimon with the lowest play cost", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT13-108", as: "waltz", faceUp: true }] },
+        1: {
+          battleArea: [
+            { card: "AD1-001", as: "cheap" },
+            { card: "AD1-004", as: "expensive" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+
+    const cheapId = s.perm("cheap").permanentId;
+    const expensiveId = s.perm("expensive").permanentId;
+    s.state.turnSeat = 1;
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("waltz"));
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === cheapId));
+
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === cheapId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === expensiveId)).toBe(true);
   });
 });

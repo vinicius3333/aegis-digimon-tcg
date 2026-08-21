@@ -2,6 +2,8 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT13-092.js";
 
 // A3 for BT13-092 Ravemon: Burst Mode.
@@ -73,5 +75,34 @@ describe("BT13-092 Ravemon: Burst Mode — [When Attacking] delete same-named Di
     expect(effects).toHaveLength(1);
     expect(effects[0]!.effectKey).toBe("BT13-092/when-digivolving");
     expect(effects[0]!.optional).toBe(false);
+  });
+
+  it("trashes an opponent hand card, then adds security when the post-trash hand has 7 or fewer cards", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-092", as: "ravemon" }] },
+        1: {
+          hand: [
+            { card: "BT13-001" },
+            { card: "BT13-002" },
+            { card: "BT13-003" },
+            { card: "BT13-004" },
+            { card: "BT13-005" },
+            { card: "BT13-006" },
+            { card: "BT13-007" },
+            { card: "BT13-008" },
+          ],
+          security: [{ card: "BT13-009" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ravemon"));
+    await settle(() => s.state.players[1]!.hand.length === 8);
+
+    expect(s.state.players[1]!.hand).toHaveLength(8);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash).toHaveLength(1);
   });
 });

@@ -2368,6 +2368,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // whether it was checked or removed by an effect. Security checks already fire this
       // event at their own movement seam; effect-driven trash must reach the same bus too.
       await engine.fireSubTrigger?.("whenSecurityRemoved", { removedFromSecuritySeat: seat });
+      await engine.fireSubTrigger?.("whenCardTrashedFromSecurity", {
+        removedFromSecuritySeat: seat,
+        trashedFromSecurityInstanceIds: moved.map((c) => c.instanceId),
+      });
       // Each trashed security card's own OnDiscardSecurity clause (ST22-10) fires now that it is in trash.
       await engine.fireDiscardedFromSecurity?.(moved.map((c) => c.instanceId));
     }
@@ -3202,6 +3206,17 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
             });
           }
         }
+        const returnedDigimon = movedToHand.filter((card) =>
+          requireCardDefinition(card.cardId).kinds.includes(CardKind.Digimon),
+        );
+        for (const seat of new Set(returnedDigimon.map((card) => card.ownerSeat))) {
+          await engine.fireSubTrigger?.("whenDigimonReturnsToHand", {
+            returnedDigimonToHandSeat: seat,
+            returnedDigimonToHandInstanceIds: returnedDigimon
+              .filter((card) => card.ownerSeat === seat)
+              .map((card) => card.instanceId),
+          });
+        }
       }
     }
     return moved;
@@ -3756,6 +3771,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     continuous.addNameTraitGrant(permanentId, kind, tokens, durationForTarget(permanentId, duration), {
       ...continuousOpt(),
       ...opts,
+    });
+  };
+
+  const grantDynamicNames = (permanentId: string, names: () => string[], duration: EffectDuration): void => {
+    continuous.addNameTraitGrant(permanentId, "name", [], durationForTarget(permanentId, duration), {
+      ...continuousOpt(),
+      dynamicTokens: names,
     });
   };
 
@@ -4420,6 +4442,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     restrictPlayer,
     restrictAttackTarget,
     grantNameTrait,
+    grantDynamicNames,
     setOriginalCardInfo,
     grantKeyword,
     grantDnaLevel,

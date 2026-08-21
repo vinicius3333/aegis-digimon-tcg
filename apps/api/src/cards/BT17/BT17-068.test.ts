@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { revealedDefinition } from "../../engine/effects/interpreter/actions/reveal.js";
+import { getCardDefinition } from "@aegis/shared";
 import "../index.js";
 
 // A3 for BT17-068 (Mephistomon):
@@ -43,5 +45,14 @@ describe("BT17-068 Mephistomon — [On Deletion] play Gulfmon from hand", () => 
     // Mephistomon was deleted in battle; [On Deletion] fired and played Gulfmon.
     const gulfInBattle = p0?.battleArea.some((p) => p.topCard?.instanceId === gulfId);
     expect(gulfInBattle).toBe(true);
+  });
+});
+
+describe("BT17-068 Mephistomon — revealed level", () => {
+  it("is treated as level 6 by revealed-card filters while retaining level 5", () => {
+    const card = { cardId: "BT17-068", instanceId: "meph", ownerSeat: 0 } as any;
+    const def = revealedDefinition({ game: { definitionOf: () => getCardDefinition("BT17-068")! } } as any, card);
+
+    expect(def.level).toBe(6);
   });
 });

@@ -90,31 +90,6 @@ export const module: EffectModule = {
     // not when any other security card is trashed. The SubTrigger bus for
     // whenCardTrashedFromSecurity is inert (no engine callers). We implement here what the
     // engine CAN deliver; the rest is residual.
-    if (timing === EffectTiming.OnDiscardSecurity) {
-      return [
-        {
-          effectKey: `${cardId}/security-trashed-recovery`,
-          description:
-            "[All Turns][Once Per Turn] When a card is trashed from your security stack, if " +
-            "[Leon Alexander] is in this Digimon's digivolution cards, ＜Recovery +1＞.",
-          optional: false,
-          isInherited: false,
-          isSecurity: false,
-          isLinked: false,
-          maxPerTurn: 1,
-          canTrigger: (ctx) => {
-            if (!ctx.source.isOnBattleArea()) return false;
-            return true;
-          },
-          canActivate: (ctx) => hasLeonAlexanderInStack(ctx, source),
-          resolve: async (ctx) => {
-            if (!hasLeonAlexanderInStack(ctx, source)) return;
-            await ctx.fx.recoverToSecurity(source.ownerSeat, 1);
-          },
-        },
-      ];
-    }
-
     // [Inherited] This Digimon gets +1000 DP while its top card has [Pulsemon] in its text.
     // Condition: TopCard.HasPulsemonText (i.e. contains "Pulsemon").
     if (timing === EffectTiming.None) {
@@ -135,6 +110,32 @@ export const module: EffectModule = {
             if (self === undefined || self.topCard === undefined) return;
             if (!ctx.game.definitionOf(self.topCard).nameEn.includes("Pulsemon")) return;
             ctx.fx.modifyDP(self.permanentId, 1000, EffectDuration.Permanent);
+          },
+        }),
+        staticModifier({
+          source,
+          effectKey: `${cardId}/security-trashed-recovery`,
+          description:
+            "[All Turns][Once Per Turn] When a card is trashed from your security stack, if " +
+            "[Leon Alexander] is in this Digimon's digivolution cards, ＜Recovery +1＞.",
+          maxPerTurn: 1,
+          resolve: async (ctx) => {
+            const self = source.permanent();
+            if (self === undefined) return;
+            ctx.fx.subscribeSubTrigger({
+              event: "whenCardTrashedFromSecurity",
+              sourcePermanentId: self.permanentId,
+              once: false,
+              oncePerTurnKey: `${cardId}/security-trashed-recovery/${self.permanentId}`,
+              matches: (subCtx) =>
+                subCtx.trigger.removedFromSecuritySeat === source.ownerSeat &&
+                (subCtx.trigger.trashedFromSecurityInstanceIds?.length ?? 0) > 0 &&
+                hasLeonAlexanderInStack(subCtx, source),
+              run: async (subCtx) => {
+                await subCtx.fx.recoverToSecurity(source.ownerSeat, 1);
+              },
+              description: `${cardId}: recover when any of your security cards is trashed`,
+            });
           },
         }),
       ];

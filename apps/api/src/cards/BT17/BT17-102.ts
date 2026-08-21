@@ -6,6 +6,8 @@ import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { onDeletion, whenDigivolving } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
+import { staticModifier } from "../../engine/effects/builders.js";
+import { effectiveStaticNames } from "@aegis/shared";
 
 /**
  * BT17-102 — Greymon (BT17, White Lv.4 Digimon).
@@ -119,6 +121,33 @@ export const module: EffectModule = {
             if (chosen.length > 0) {
               await ctx.fx.deletePermanent(chosen);
             }
+          },
+        }),
+      ];
+    }
+
+    // [All Turns] This Digimon has all names of level 3 or lower cards in its
+    // digivolution cards. The provider is evaluated on every effective-name read,
+    // so stack changes and Rule-name aliases remain live (KB Q2901-Q2903).
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/dynamic-stack-name-aliases`,
+          description: "[All Turns] This Digimon has all the names of level 3 and lower cards in its digivolution cards.",
+          isInherited: false,
+          resolve: async (ctx) => {
+            const host = source.permanent();
+            if (host === undefined || ctx.fx.grantDynamicNames === undefined) return;
+            ctx.fx.grantDynamicNames(host.permanentId, () => {
+              const current = source.permanent();
+              if (current === undefined) return [];
+              const names = Array.from(current.stack).flatMap((card) => {
+                const def = ctx.game.definitionOf(card);
+                return def.level !== undefined && def.level <= 3 ? effectiveStaticNames(def) : [];
+              });
+              return [...new Set(names)];
+            }, EffectDuration.Permanent);
           },
         }),
       ];

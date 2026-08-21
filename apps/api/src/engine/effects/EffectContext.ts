@@ -83,6 +83,7 @@ export type SubTriggerEventName =
   | "whenOpponentMovedFromBreeding"
   | "onDeletionOf"
   | "whenSecurityRemoved"
+  | "whenCardTrashedFromSecurity"
   | "whenEffectRemovesFromSecurity"
   | "whenAddSecurity"
   | "whenFaceUpCardsAddedToOpponentSecurity"
@@ -105,6 +106,7 @@ export type SubTriggerEventName =
   | "whenEffectAddsToHand"
   | "whenEffectAddsToOpponentHand"
   | "whenCardReturnsFromTrashToHand"
+  | "whenDigimonReturnsToHand"
   | "whenCardReturnsFromTrashToDeck"
   | "whenEffectSuspends"
   | "whenOpponentDraws"
@@ -279,6 +281,8 @@ export interface TriggerInfo {
    * its own controller's stack rather than the opponent's.
    */
   removedFromSecuritySeat?: Seat;
+  /** Card instances just trashed from a security stack. */
+  trashedFromSecurityInstanceIds?: string[];
   /**
    * The seat whose EFFECT drove the digivolution-card trash (whenDigivolutionTrashed). A
    * watcher gated on "when YOU trash a digivolution card" (KB P-004) reads this to require
@@ -425,6 +429,9 @@ export interface TriggerInfo {
    * the returned cards' colors/traits (BT15-082: "a Red Digimon returns from your trash").
    */
   returnedFromTrashCardIds?: string[];
+  /** Digimon card instances that just returned to their owner's hand from any zone. */
+  returnedDigimonToHandSeat?: Seat;
+  returnedDigimonToHandInstanceIds?: string[];
   // TODO(effect-framework): add fields as more timings are implemented.
 }
 
@@ -1007,6 +1014,8 @@ export interface Primitives {
     duration: EffectDuration,
     opts?: { digiXrosOnly?: boolean },
   ): void;
+  /** Grant names whose current values are recomputed from live game state. */
+  grantDynamicNames?(permanentId: string, names: () => string[], duration: EffectDuration): void;
   /** Replace printed/original info while effect-granted aliases and colors stay additive. */
   setOriginalCardInfo(
     permanentId: string,
