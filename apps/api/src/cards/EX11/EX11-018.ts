@@ -181,18 +181,27 @@ const compiled: CompiledCard = {
       "trigger": "AllTurns",
       "actions": [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "digivolutionCardsCompareToSource": "lte",
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
+          "kind": "SubTrigger",
+          "event": "onAddDigivolutionCards",
+          "sourceFilter": {
+            "isSelfRef": true
           },
-          "to": "deckBottom"
+          "actions": [
+            {
+              "kind": "Return",
+              "target": {
+                "filter": {
+                  "digivolutionCardsCompareToSource": "lte",
+                  "controller": "opponent",
+                  "kind": [
+                    "Digimon"
+                  ]
+                },
+                "count": 1
+              },
+              "to": "deckBottom"
+            }
+          ]
         }
       ],
       "frequency": "OncePerTurn"
