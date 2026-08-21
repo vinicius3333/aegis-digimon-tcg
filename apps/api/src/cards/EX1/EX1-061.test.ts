@@ -44,6 +44,26 @@ describe("EX1-061 Myotismon", () => {
     expect(s.state.memory).toBe(2);
   });
 
+  it("does not reduce a matching Myotismon evolution from the breeding area", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "EX1-061", as: "breedingBase" },
+        hand: [{ card: "EX1-063", as: "evo" }],
+        deck: ["BT1-009"],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("breedingBase").permanentId,
+      instanceId: s.inst("evo").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("breedingBase").topCard.cardId === "EX1-063");
+    expect(s.state.memory).toBe(1);
+  });
+
   it("lets Retaliation Digimon attack only unsuspended level 4 or lower Digimon", async () => {
     const s = setupEngine({
       0: {
