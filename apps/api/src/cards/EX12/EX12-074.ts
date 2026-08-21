@@ -13,8 +13,8 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   into a single effect matching the sibling P-181 pattern: trigger "YourTurn" (so
 //   turnOwnerGuard ANDs in the your-turn gate) + isSecurity:true (routes timing/builder
 //   through the security window regardless of trigger name — see timingForTrigger /
-//   builderForTrigger in interpreter.ts). Digivolve target corrected: the card
-//   digivolves itself (isSelf) into a [Shambala] trait Digimon from the hand, with cost
+//   builderForTrigger in interpreter.ts). Digivolve target corrected: the attacking Digimon
+//   (the trigger subject) digivolves into a [Shambala] trait Digimon from the hand, with cost
 //   reduced by 1.
 // [Main] play action: the separate Replacement action was wrong; fold the cost
 //   reduction into the PlayWithoutCost directly via reduceCostBy:3 + payCost:true.
@@ -22,160 +22,133 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [Security] PlayWithoutCost: added playCost ≤ 5 restriction (text: "play cost 5
 //   or lower").
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-          "condition": {
-            "kind": "youHave",
-            "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Shambala"], "match": "trait" }] },
-            "raw": "you have a card w/[Shambala] trait"
-          }
-        }
-      ]
+          kind: "WaiveColorRequirement",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          condition: {
+            kind: "youHave",
+            filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Shambala"], match: "trait" }] },
+            raw: "you have a card w/[Shambala] trait",
+          },
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "isSecurity": true,
-      "actions": [
+      trigger: "YourTurn",
+      isSecurity: true,
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenAttacking",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Shambala"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Shambala"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  sourceRef: "triggerSubject",
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
               },
-              "into": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Shambala"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Shambala"],
+                    match: "trait",
+                  },
+                ],
               },
-              "from": [
-                "hand"
-              ],
-              "payCost": true,
-              "reduceCost": 1,
-              "optional": true
-            }
-          ]
-        }
+              from: ["hand"],
+              payCost: true,
+              reduceCost: 1,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "toHand",
-          "controller": "mine",
-          "amount": 1,
-          "toTop": false
+          kind: "SecurityManipulation",
+          op: "toHand",
+          controller: "mine",
+          amount: 1,
+          toTop: false,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "toTop": false,
-          "faceUp": true
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          toTop: false,
+          faceUp: true,
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Shambala"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Shambala"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": true,
-          "reduceCostBy": 3,
-          "optional": true
-        }
-      ]
+          from: ["hand"],
+          payCost: true,
+          reduceCostBy: 3,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Shambala"
-                  ],
-                  "match": "trait"
-                }
+                  tokens: ["Shambala"],
+                  match: "trait",
+                },
               ],
-              "playCostLte": 5
+              playCostLte: 5,
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX12-074", compiled);
