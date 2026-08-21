@@ -32,7 +32,7 @@ export const compiled: CompiledCard = {
           "scaling": {
             "per": 1,
             "filter": {
-              "controllerDefault": "mine",
+              "zone": "revealed",
               "kind": [
                 "Digimon"
               ]
@@ -67,7 +67,7 @@ export const compiled: CompiledCard = {
           "scaling": {
             "per": 1,
             "filter": {
-              "controllerDefault": "mine",
+              "zone": "revealed",
               "kind": [
                 "Digimon"
               ]
