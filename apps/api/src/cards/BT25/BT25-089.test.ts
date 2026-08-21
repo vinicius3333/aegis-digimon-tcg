@@ -52,7 +52,7 @@ describe("BT25-089 Kazuki & Itsuki", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("tamer"));
+    expect(s.perm("tamer").activatableEffectsJson).toBe("");
     expect(s.perm("tamer").isSuspended).toBe(false);
     expect(s.perm("host").linked).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("noLink").instanceId);
