@@ -20,23 +20,13 @@ const compiled: CompiledCard = {
     {
       "trigger": "OnPlay",
       "actions": [
-        {
-          "kind": "Reveal",
-          "count": 5,
-          "controller": "any",
-          "zone": "deck"
-        }
+        {"kind": "RevealAdd", "revealCount": 5, "add": [], "rest": "deckTopOrBottom"}
       ]
     },
     {
       "trigger": "WhenDigivolving",
       "actions": [
-        {
-          "kind": "Reveal",
-          "count": 5,
-          "controller": "any",
-          "zone": "deck"
-        }
+        {"kind": "RevealAdd", "revealCount": 5, "add": [], "rest": "deckTopOrBottom"}
       ]
     }
   ],
