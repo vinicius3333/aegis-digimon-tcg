@@ -6,69 +6,66 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine"
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "security",
+                position: "top",
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing the top card of your security stack"
+            raw: "By trashing the top card of your security stack",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: false,
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "controllerDefault": "mine",
-              "colors": [
-                "Yellow"
-              ]
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          source: {
+            filter: {
+              controllerDefault: "mine",
+              colors: ["Yellow"],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "toTop": true,
-          "condition": {
-            "kind": "totalSecurityCount",
-            "op": "lte",
-            "value": 6,
-            "raw": "there're 6 or fewer total cards in both players' security stacks"
+          from: ["hand"],
+          toTop: true,
+          condition: {
+            kind: "totalSecurityCount",
+            op: "lte",
+            value: 6,
+            raw: "there're 6 or fewer total cards in both players' security stacks",
           },
-          "optional": true
-        }
+          optional: true,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX5-031", compiled);
