@@ -796,6 +796,10 @@ export async function runGainTriggeredEffect(
     const grantedPermanentBattleDeleteGate =
       event === "whenDeletesInBattle"
         ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === targetPermanentId
+      : undefined;
+    const whenDeletesInBattleSelfGate =
+      event === "whenDeletesInBattle" && sourceFilter?.isSelfRef === true && anchorPermanentId !== undefined
+        ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === anchorPermanentId
         : undefined;
     const immunityAtTriggerGate = (subCtx: EffectContext): boolean => {
       const current = subCtx.game.permanentById(targetPermanentId);
@@ -807,6 +811,7 @@ export async function runGainTriggeredEffect(
       ownerMainPhaseGate,
       grantedPermanentDeletionGate,
       grantedPermanentBattleDeleteGate,
+      whenDeletesInBattleSelfGate,
       immunityAtTriggerGate,
     ].filter((g): g is (subCtx: EffectContext) => boolean => g !== undefined);
     const matches = gates.length === 0 ? undefined : (subCtx: EffectContext): boolean => gates.every((g) => g(subCtx));

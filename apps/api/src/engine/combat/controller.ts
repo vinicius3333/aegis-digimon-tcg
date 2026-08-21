@@ -1382,6 +1382,7 @@ export class CombatController {
       });
 
       await this.hooks.fireSubTrigger?.("whenDeletesInBattle", {
+        subjectPermanentId: attacker.permanentId,
         attackerPermanentId: attacker.permanentId,
         deletedPermanentId: defender.permanentId,
         ...(defenderTopCardId !== undefined ? { deletedTopCardId: defenderTopCardId } : {}),
@@ -1416,6 +1417,7 @@ export class CombatController {
       });
 
       await this.hooks.fireSubTrigger?.("whenDeletesInBattle", {
+        subjectPermanentId: defender.permanentId,
         attackerPermanentId: defender.permanentId,
         deletedPermanentId: attacker.permanentId,
         ...(attackerTopCardId !== undefined ? { deletedTopCardId: attackerTopCardId } : {}),
