@@ -31,8 +31,7 @@ function cardHasTrait(def: CardDefinition, trait: string): boolean {
   );
 }
 
-const hasAnyTrait = (def: CardDefinition, traits: string[]): boolean =>
-  traits.some((t) => cardHasTrait(def, t));
+const hasAnyTrait = (def: CardDefinition, traits: string[]): boolean => traits.some((t) => cardHasTrait(def, t));
 
 export const DIGIXROS_ZONE_EXPANDERS: Record<string, DigiXrosZoneExpander> = {
   // BT10-087 (Taiki Kudo): "[Your Turn] When you would play 1 Digimon card with DigiXros
@@ -80,6 +79,14 @@ export const DIGIXROS_ZONE_EXPANDERS: Record<string, DigiXrosZoneExpander> = {
   // trash max 1 (documented behavior).
   "EX4-062": {
     appliesTo: (def) => hasAnyTrait(def, ["Blue Flare", "BlueFlare", "Twilight"]),
+    underTamerMax: 1,
+    trashMax: 1,
+  },
+  // EX10-064 (Yuu Amano & Nene Amano): "1 card under your Tamers and 1 card in your trash
+  // can also be placed" for each qualifying DigiXros play. The IR keyword registry exposes
+  // the capability, while this expander entry supplies the live Tamer activation cost/path.
+  "EX10-064": {
+    appliesTo: () => true,
     underTamerMax: 1,
     trashMax: 1,
   },
