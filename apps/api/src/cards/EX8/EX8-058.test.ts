@@ -7,5 +7,10 @@ describe("EX8-058", () => {
       kind: "GainMemory",
       amount: 1,
     }));
-  it("contains only the printed deletion effect", () => expect(compiled.effects).toHaveLength(1));
+  it("inherits once-per-turn deletion of an opposing level 3 Digimon when attacking", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "WhenAttacking",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "Delete", target: { filter: { controller: "opponent", levels: [3] } } }],
+    }));
 });
