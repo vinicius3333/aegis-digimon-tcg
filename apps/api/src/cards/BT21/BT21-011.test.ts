@@ -19,11 +19,6 @@ describe("BT21-011 compiled implementation", () => {
   it("reduces Xros Heart/Hero digivolution costs and grants Rush only while this Digimon has Xros Heart", () => {
     expect(compiled.effects).toEqual([
       expect.objectContaining({
-        trigger: "OnDeletion",
-        actions: [],
-        keywords: [{ keyword: "Save", raw: "＜Save＞" }],
-      }),
-      expect.objectContaining({
         trigger: "YourTurn",
         actions: [
           {
@@ -46,6 +41,11 @@ describe("BT21-011 compiled implementation", () => {
             ],
           },
         ],
+      }),
+      expect.objectContaining({
+        trigger: "OnDeletion",
+        actions: [],
+        keywords: [{ keyword: "Save", raw: "＜Save＞" }],
       }),
       expect.objectContaining({
         trigger: "YourTurn",
