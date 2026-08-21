@@ -65,9 +65,7 @@ const module: EffectModule = {
           maxPerTurn: -1,
           isInherited: true,
           when: (ctx) =>
-            ctx.source.isOnBattleArea() &&
-            ctx.source.isOwnersTurn() &&
-            topCardHasShoutmonName(ctx, source),
+            ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn() && topCardHasShoutmonName(ctx, source),
           resolve: async (ctx) => {
             const perm = ctx.source.permanent?.();
             if (perm === undefined) return;
@@ -105,11 +103,7 @@ const module: EffectModule = {
 
             const self = ctx.source.permanent?.();
             if (self !== undefined) {
-              ctx.fx.grantKeyword(
-                self.permanentId,
-                "DigiXrosSubstitute",
-                EffectDuration.UntilOwnerTurnEnd,
-              );
+              ctx.fx.grantKeyword(self.permanentId, "DigiXrosSubstitute", EffectDuration.UntilOwnerTurnEnd);
             }
           },
         }),
