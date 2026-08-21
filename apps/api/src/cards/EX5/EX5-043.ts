@@ -26,7 +26,9 @@ function reducePlayCost(source: CardSource, ctx: EffectContext): number {
     const hasLeopardOrX = self.stack.some((c) => {
       const def = ctx.game.definitionOf(c);
       const n = def.nameEn;
-      return n.includes("Leopardmon") || n === "X Antibody" || n === "XAntibody";
+      return (
+        n.includes("Leopardmon") || (def.types ?? []).some((type) => type === "X Antibody" || type === "XAntibody")
+      );
     });
     if (hasLeopardOrX) reduction += 3;
   }
@@ -55,16 +57,13 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const hand = ctx.game.player(source.ownerSeat).hand;
             const reduction = reducePlayCost(source, ctx);
-            const candidates = hand
-              .filter((c) => isGreenDigimon(ctx.game.definitionOf(c)))
-              .map((c) => c.instanceId);
+            const candidates = hand.filter((c) => isGreenDigimon(ctx.game.definitionOf(c))).map((c) => c.instanceId);
             if (candidates.length === 0) return;
             const chosen = await ctx.ask.selectCards(ctx, { candidates, min: 0, max: 1, visible: candidates });
             if (chosen.length === 0) return;
-            ctx.fx.changePlayCost(
-              (facts) => facts.def.cardId === chosen[0]!,
-              -reduction,
-            );
+            const chosenCard = hand.find((card) => card.instanceId === chosen[0]);
+            if (chosenCard === undefined) return;
+            ctx.fx.changePlayCost((facts) => facts.def.cardId === ctx.game.definitionOf(chosenCard).cardId, -reduction);
             await ctx.fx.playInstances(chosen, { payCost: true });
           },
         }),
@@ -88,16 +87,13 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const hand = ctx.game.player(source.ownerSeat).hand;
             const reduction = reducePlayCost(source, ctx);
-            const candidates = hand
-              .filter((c) => isGreenDigimon(ctx.game.definitionOf(c)))
-              .map((c) => c.instanceId);
+            const candidates = hand.filter((c) => isGreenDigimon(ctx.game.definitionOf(c))).map((c) => c.instanceId);
             if (candidates.length === 0) return;
             const chosen = await ctx.ask.selectCards(ctx, { candidates, min: 0, max: 1, visible: candidates });
             if (chosen.length === 0) return;
-            ctx.fx.changePlayCost(
-              (facts) => facts.def.cardId === chosen[0]!,
-              -reduction,
-            );
+            const chosenCard = hand.find((card) => card.instanceId === chosen[0]);
+            if (chosenCard === undefined) return;
+            ctx.fx.changePlayCost((facts) => facts.def.cardId === ctx.game.definitionOf(chosenCard).cardId, -reduction);
             await ctx.fx.playInstances(chosen, { payCost: true });
           },
         }),
