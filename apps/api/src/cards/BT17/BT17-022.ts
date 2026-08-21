@@ -96,7 +96,7 @@ const compiled: CompiledCard = {
           }
         },
         {
-          "kind": "Delete",
+          "kind": "DelayedDelete",
           "target": {
             "filter": {
               "isSelfRef": true
