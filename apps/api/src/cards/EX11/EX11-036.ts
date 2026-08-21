@@ -8,6 +8,10 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [EndOfYourTurn] Digivolve action: "from:['hand']" already restricts source zone to hand;
 //   the "into" filter describes card characteristics only (no zone redundancy needed).
 const compiled: CompiledCard = {
+  "digivolutionRequirement": [
+    { "level": 5, "cost": 4, "isAlternate": true },
+    { "level": 5, "texts": ["Maquinamon"], "cost": 3, "isAlternate": true }
+  ],
   "effects": [
     {
       "trigger": "Static",
@@ -183,20 +187,14 @@ const compiled: CompiledCard = {
                 },
                 "count": 1
               }
+            },
+            {
+              "kind": "Attack",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "withoutSuspending": false,
+              "optional": true
             }
           ]
-        },
-        {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "withoutSuspending": false,
-          "optional": true
         }
       ],
       "isInherited": true,
@@ -205,16 +203,6 @@ const compiled: CompiledCard = {
   ],
   "coverage": "full",
   "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 5,
-      "texts": [
-        "Maquinamon"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
 };
 
 registerIrCard("EX11-036", compiled);
