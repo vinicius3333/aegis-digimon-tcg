@@ -1327,6 +1327,8 @@ export interface SubTriggerInstall {
   /** Retained live context for a seat-scoped timed watcher with no permanent/card anchor. */
   activationContext?: EffectContext;
   once: boolean;
+  /** Marks a watcher installed by a persistent static effect for recompute teardown. */
+  continuous?: boolean;
   run: (ctx: EffectContext) => Promise<void>;
   /**
    * Per-install gate on the fired event's payload (the captured `sourceFilter`).
