@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { PlayerState } from "@aegis/shared";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./EX8-049.js";
 
 describe("EX8-049", () => {
@@ -13,5 +16,22 @@ describe("EX8-049", () => {
       amount: 1,
       target: { count: 1 },
     });
+  });
+  it("removes one evolution card when played", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX8-049", as: "source" }] },
+        1: { battleArea: [{ card: "EX8-048", as: "opponent", under: ["BT1-009", "BT1-009"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => player.battleArea.some((permanent) => permanent.topCard?.cardId === "EX8-049"));
+    await settle(() => s.state.players[1]!.battleArea[0]!.stack.length === 1);
+    expect(s.state.players[1]!.battleArea[0]!.stack).toHaveLength(1);
   });
 });
