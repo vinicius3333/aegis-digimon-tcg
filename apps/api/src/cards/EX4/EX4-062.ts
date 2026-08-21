@@ -1,4 +1,4 @@
-import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming, type CompiledCard } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -183,5 +183,18 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard(cardId, compiledEffects[cardId]!, module);
+const compiled = JSON.parse(JSON.stringify(compiledEffects[cardId]!)) as CompiledCard;
+const staticEffect = compiled.effects.find((effect) => effect.trigger === "Static");
+const rawAction = staticEffect?.actions[0];
+if (rawAction?.kind === "RawUnparsed") {
+  staticEffect.actions[0] = {
+    kind: "GrantStatic",
+    target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+    grant: "name",
+    tokens: ["Kiriha Aonuma", "Nene Amano"],
+  };
+}
+compiled.coverage = "full";
+compiled.residual = [];
+registerIrCard(cardId, compiled);
 export default module;
