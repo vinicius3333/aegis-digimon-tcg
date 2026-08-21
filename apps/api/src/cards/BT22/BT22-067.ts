@@ -7,46 +7,6 @@ import type { Effect } from "../../engine/effects/Effect.js";
 import { onPlay, staticModifier, turnTiming, whenDigivolving } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
-// LordKnightmon — BT22-067 (Black Lv.6 Digimon).
-//
-// Hand-written override of the declarative effect record (card-module contract — omitting the
-// WRONG on three of the four behavioral clauses:
-//   - [On Play] / [When Digivolving]: the IR's `Attack` action targeted
-//     `{ controller: "opponent" }` permanents — i.e. it would have made the OPPONENT's
-//     canAttackPlayerCondition: () => true, defenderCondition: () => false → players only).
-//   - [All Turns]: the IR filed it under the static window (interpreter timingForTrigger
-//     maps "AllTurns" → EffectTiming.None) with two RawUnparsed residual actions, so the
-//     EffectTiming.OnAllyAttack (line 249), once per turn, gated on attacking a PLAYER.
-// The two continuous keywords (＜Raid＞, ＜Reboot＞) the IR carried ARE correct and are
-// preserved here as continuous keyword grants (the canonical EX11-074 pattern).
-//
-// KB (`node tools/kb/query.mjs card BT22-067`) — no errata; bound Q&A consulted:
-//   - Q4925: a LordKnightmon that digivolved from a [Rie Kishibe] played THIS turn still
-//     cannot attack this turn (a general digivolve-this-turn rule the engine enforces;
-//     no card-level handling needed).
-//   - Q4926 / Q4927: when this attacks a player, ＜Raid＞'s target-change and the
-//     [All Turns] effect may both be used, in either order — confirming the [All Turns]
-//     clause is a When-your-Digimon-attacks-a-player triggered ability (the OnAllyAttack
-//
-// Printed (effectText, authoritative — no errata):
-//   [Digivolve] from a Lv.5 Digimon with the [CS] trait: Cost 3
-//   [Digivolve] from [Rie Kishibe]: Cost 5  (while you have 3 or fewer security cards)
-//   ＜Raid＞ ＜Reboot＞
-//   [On Play] [When Digivolving] 1 of your Digimon gets +3000 DP until your opponent's
-//     turn ends. Then, 1 of your Digimon may attack a player.
-//   [All Turns] [Once Per Turn] When Digimon attack players, reveal the top 3 cards of
-//     your deck. You may play 1 play cost 4 or lower black or red card among them without
-//     paying the cost. Trash the rest.
-//
-// NOT modeled here (deliberate, with justification):
-//   - The two alternate-digivolution requirements (documented behavior AddSelfDigivolutionRequirement-
-//     StaticEffect, lines 26 / 51) are play-LEGALITY metadata, not runtime effects. No
-//     engine code consumes `digivolutionRequirement` (only card-data tooling uses); the
-//     digivolve costs the engine actually charges come from cards.json `evoCosts`. The
-//     Rie-Kishibe path's `card.Owner.SecurityCards.Count <= 3` condition (line 48) is not
-//     expressible in the IR's DigivolutionRequirement shape (it has no condition field)
-//     and is, like the requirements themselves, runtime-inert. Converting to a hand-
-//     authored module therefore loses no executable behavior on this front.
 const cardId = "BT22-067";
 const RAID_COST_GAIN_DP = 3000;
 const ALL_TURNS_REVEAL = 3;
