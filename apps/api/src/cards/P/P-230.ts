@@ -21,149 +21,133 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   to self; the digivolve is the Delay-activated effect.
 // - RevealAdd tracks taken revealed instances between add slots, so the two
 //   entries select distinct cards even when their filters overlap.
-//
-// Residual: RevealAdd with two add entries has no 'must be distinct cards'
-// enforcement — a card matching both [Royal Base] in text and [LIBERATOR] trait
-// could be selected for both slots.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Royal Base"
-                    ],
-                    "match": "text"
-                  }
-                ]
+                    tokens: ["Royal Base"],
+                    match: "text",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "LIBERATOR"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["LIBERATOR"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
+          rest: "deckBottom",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Winr"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Winr"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "keyword": {
-                "keyword": "Delay",
-                "raw": "＜Delay＞"
+              keyword: {
+                keyword: "Delay",
+                raw: "＜Delay＞",
               },
-              "duration": "permanent"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "keywords": [
-        {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ],
-      "actions": [
-        {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+              duration: "permanent",
             },
-            "count": 1
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "levelComparison": {
-              "op": "lte",
-              "value": 6
-            },
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "LIBERATOR"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "from": [
-            "hand"
           ],
-          "reduceCost": 3,
-          "optional": true
-        }
-      ]
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Main",
+      keywords: [
         {
-          "kind": "ActivateMain"
-        }
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
       ],
-      "isSecurity": true
-    }
+      actions: [
+        {
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          into: {
+            controllerDefault: "mine",
+            levelComparison: {
+              op: "lte",
+              value: 6,
+            },
+            nameOrTrait: [
+              {
+                tokens: ["LIBERATOR"],
+                match: "trait",
+              },
+            ],
+          },
+          from: ["hand"],
+          reduceCost: 3,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "ActivateMain",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-230", compiled);
