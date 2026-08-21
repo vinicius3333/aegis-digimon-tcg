@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, isDigimon } from "@aegis/shared";
 import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -106,7 +106,12 @@ const module: EffectModule = {
             if (selected === undefined) return;
             const hosts = ctx.game
               .player(source.ownerSeat)
-              .battleArea.filter((permanent) => permanent.topCard !== undefined && !permanent.inBreeding);
+              .battleArea.filter(
+                (permanent) =>
+                  permanent.topCard !== undefined &&
+                  !permanent.inBreeding &&
+                  isDigimon(ctx.game.definitionOf(permanent.topCard)),
+              );
             const target = await ctx.ask.chooseTargets(ctx, {
               candidates: hosts.map((host) => host.permanentId),
               min: 1,
