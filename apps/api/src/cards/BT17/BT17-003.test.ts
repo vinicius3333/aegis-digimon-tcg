@@ -1,60 +1,71 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import "./BT17-003.js";
 
 describe("BT17-003 Bibimon", () => {
-  it("gains 1 memory when an effect places a Tamer in this Digimon's stack", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT6-030", as: "host", under: ["BT17-003", { card: "BT17-079", as: "tamer" }] }],
-      },
-    });
-    await s.ready();
-    const host = s.perm("host");
-    const tamer = host.stack.find((card) => card.cardId === "BT17-079")!;
-    s.state.memory = 0;
-
-    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
-      subjectPermanentId: host.permanentId,
-      addedDigivolutionCardInstanceIds: [tamer.instanceId],
-    });
-    await settle(() => s.state.memory === 1);
-
-    expect(s.state.memory).toBe(1);
-  });
-
-  it("does not trigger for a non-Tamer card and triggers only once per turn", async () => {
+  it("Q2703: gains memory only when an effect places a Tamer in this inherited host", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          {
-            card: "BT6-030",
-            as: "host",
-            under: ["BT17-003", { card: "BT1-009", as: "digimon" }, { card: "BT17-079", as: "tamer" }],
-          },
+          { card: "BT6-030", under: ["BT17-003"], as: "host" },
+          { card: "BT1-021", as: "otherHost" },
+        ],
+        hand: [
+          { card: "BT1-010", as: "digimon" },
+          { card: "BT1-085", as: "wrongHostTamer" },
+          { card: "BT1-085", as: "hostTamer" },
         ],
       },
     });
+    s.state.memory = 0;
     await s.ready();
-    const host = s.perm("host");
-    const digimon = host.stack.find((card) => card.cardId === "BT1-009")!;
-    const tamer = host.stack.find((card) => card.cardId === "BT17-079")!;
 
-    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
-      subjectPermanentId: host.permanentId,
-      addedDigivolutionCardInstanceIds: [digimon.instanceId],
+    await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("digimon").instanceId]);
+    expect(s.state.memory).toBe(0);
+
+    await advance(s.engine).verb.placeUnder(s.perm("otherHost").permanentId, [s.inst("wrongHostTamer").instanceId]);
+    expect(s.state.memory).toBe(0);
+
+    await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("hostTamer").instanceId]);
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("host").stack.some((card) => card.cardId === "BT1-085")).toBe(true);
+  });
+
+  it("gains memory only once per turn across separate Tamer placements", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT6-030", under: ["BT17-003"], as: "host" }],
+        hand: [
+          { card: "BT1-085", as: "firstTamer" },
+          { card: "BT1-085", as: "secondTamer" },
+        ],
+      },
     });
-    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
-      subjectPermanentId: host.permanentId,
-      addedDigivolutionCardInstanceIds: [tamer.instanceId],
-    });
-    await settle(() => s.state.memory === 1);
-    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
-      subjectPermanentId: host.permanentId,
-      addedDigivolutionCardInstanceIds: [tamer.instanceId],
-    });
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("firstTamer").instanceId]);
+    await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("secondTamer").instanceId]);
 
     expect(s.state.memory).toBe(1);
+    expect(s.perm("host").stack.filter((card) => card.cardId === "BT1-085")).toHaveLength(2);
+  });
+
+  it("does not gain memory on the opponent's turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT6-030", under: ["BT17-003"], as: "host" }],
+        hand: [{ card: "BT1-085", as: "tamer" }],
+      },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).verb.placeUnder(s.perm("host").permanentId, [s.inst("tamer").instanceId]);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("host").stack.some((card) => card.cardId === "BT1-085")).toBe(true);
   });
 });
