@@ -52,4 +52,20 @@ describe("EX9-021", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-009"]);
     expect(observe(s.engine).hasRestriction(s.perm("alterS"), "beAffected", "Digimon")).toBe(false);
   });
+
+  it("at End of Attack plays one Greymon and one Garurumon from its stack, then becomes top security", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX9-021", as: "alterS", under: ["AD1-001", "AD1-010"] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const alterS = s.perm("alterS");
+    await advance(s.engine).fireForPermanent(EffectTiming.OnEndAttack, alterS, {
+      attackerPermanentId: alterS.permanentId,
+    });
+
+    expect(s.state.players[0]!.security[0]!.cardId).toBe("EX9-021");
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
+      expect.arrayContaining(["AD1-001", "AD1-010"]),
+    );
+  });
 });
