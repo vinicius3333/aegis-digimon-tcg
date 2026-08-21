@@ -67,10 +67,15 @@ const compiled: CompiledCard = {
                 "filter": {
                   "isSelfRef": true
                 },
-                "count": 1,
-                "isSelf": true
+              "count": 1,
+              "isSelf": true
               },
-              "optional": true
+              "optional": true,
+              "condition": {
+                "kind": "selfHasNameContaining",
+                "names": ["Gallantmon"],
+                "raw": "this Digimon has [Gallantmon] in its name"
+              }
             }
           ]
         }

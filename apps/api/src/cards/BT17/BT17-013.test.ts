@@ -8,6 +8,6 @@ describe("BT17-013", () => {
   });
 
   it("unsuspends once per turn when an opposing Digimon is deleted", () => {
-    expect(compiled.effects?.[1]).toMatchObject({ trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "onDeletionOf", actions: [{ kind: "Unsuspend", optional: true }] }] });
+    expect(compiled.effects?.[1]).toMatchObject({ trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "onDeletionOf", actions: [{ kind: "Unsuspend", optional: true, condition: { kind: "selfHasNameContaining", names: ["Gallantmon"] } }] }] });
   });
 });
