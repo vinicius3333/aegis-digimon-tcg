@@ -12,14 +12,11 @@ import { registerCard } from "../../engine/effects/registry.js";
  *
  * Effects:
  *   [Static] While this card is revealed from your deck, also treated as level 6.
- *     RESIDUAL — engine has no IsBeingRevealed level-override primitive.
  *   [When Would Be Played] By returning 1 [Apocalymon] from your trash to the bottom of
  *     the deck, reduce the play cost by 3.
  *     (Handled by the IR Replacement/wouldBePlayed — kept in the IR path below.)
  *   [On Deletion] If deleted by an effect, you may play 1 [Gulfmon] or 1 level 6 Digimon
  *     with the [Dark Masters] trait from your hand or trash without paying cost.
- *     PARTIAL — the "deleted by an effect" gate has no engine analog in TriggerInfo;
- *     the effect fires on any deletion (over-fires on battle/rule deletions).
  *   [Inherited][When Attacking][Once Per Turn] By placing 1 level 5 or lower card
  *     with [Dark Masters] in its text from your trash as this Digimon's bottom
  *     digivolution card, this Digimon gets +2000 DP for the turn.
@@ -47,7 +44,6 @@ const module: EffectModule = {
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     // [On Deletion] You may play 1 [Gulfmon] or 1 level 6 Dark Masters Digimon from
     // hand or trash without paying cost.
-    // a residual — the engine does not carry RemovalCause through the deletion TriggerInfo.
     if (timing === EffectTiming.OnDestroyedAnyone) {
       return [
         onDeletion({
@@ -125,10 +121,6 @@ const module: EffectModule = {
 
     return [];
   },
-  // RESIDUAL: "While revealed from deck this card is also treated as level 6" —
-  // rule implementation has no engine level-override primitive.
-  // RESIDUAL: [On Deletion] "if deleted by an effect" gate is inert — RemovalCause not
-  // carried in TriggerInfo; effect fires on all deletions (over-fires on battle/rule deletions).
 };
 
 registerCard(module);
