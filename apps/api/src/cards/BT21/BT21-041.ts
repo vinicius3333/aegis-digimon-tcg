@@ -6,36 +6,58 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "YourTurn",
+      isLinked: true,
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              zone: "security",
             },
-            "count": 1,
-            "isSelf": true
           },
-          "payCost": false
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 2,
-      "traits": [
-        "Appmon"
+          amount: -3000,
+          duration: "permanent",
+        },
       ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          payCost: false,
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  linkRequirement: [
+    {
+      traits: ["Appmon"],
+      cost: 1,
+    },
+  ],
+  digivolutionRequirement: [
+    {
+      level: 2,
+      traits: ["Appmon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT21-041", compiled);
