@@ -10,97 +10,87 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 3. Replacement outcome: "preventDeletion" (the actions[] field is replaced by outcome).
 // Q&A Q3562: cannot pay the cost and then allow deletion — must prevent if cost is paid.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 2
+          kind: "Draw",
+          controller: "mine",
+          amount: 2,
         },
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
             },
-            "count": 2
-          }
+            count: 2,
+          },
         },
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Garurumon"
-                  ],
-                  "match": "name"
+                  tokens: ["Garurumon"],
+                  match: "name",
                 },
                 {
-                  "tokens": [
-                    "X Antibody"
-                  ],
-                  "match": "name",
-                  "orPrevious": true
-                }
-              ]
+                  tokens: ["X Antibody"],
+                  match: "name",
+                  orPrevious: true,
+                },
+              ],
             },
-            "raw": "[Garurumon] or [X Antibody] is in this Digimon's digivolution cards"
-          }
-        }
-      ]
+            raw: "[Garurumon] or [X Antibody] is in this Digimon's digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBeDeleted",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          kind: "Replacement",
+          event: "wouldBeDeleted",
+          leaveCause: "byBattle",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Garurumon",
-                  "Omnimon"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "cost": {
-            "kind": "return",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "mine",
-                "excludeKind": [
-                  "DigiEgg"
-                ]
+                tokens: ["Garurumon", "Omnimon"],
+                match: "name",
               },
-              "count": 2,
-              "to": "deckBottom"
-            },
-            "raw": "by returning 2 non-Digi-Egg cards from your trash to the bottom of the deck"
+            ],
           },
-          "outcome": "preventDeletion"
-        }
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "mine",
+                excludeKind: ["DigiEgg"],
+              },
+              count: 2,
+              to: "deckBottom",
+            },
+            raw: "by returning 2 non-Digi-Egg cards from your trash to the bottom of the deck",
+          },
+          outcome: "preventDeletion",
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX5-018", compiled);
