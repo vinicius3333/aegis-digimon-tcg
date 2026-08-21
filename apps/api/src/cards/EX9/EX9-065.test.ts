@@ -29,4 +29,13 @@ describe("EX9-065", () => {
     expect(observe(s.engine).hasKeyword(s.perm("ver4"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("ver4"), "Retaliation")).toBe(true);
   });
+  it("plays the same qualifying DM Digimon from trash when digivolving", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX9-065", as: "source" }], trash: ["EX9-037"] } }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX9-037"));
+
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX9-037")).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX9-037")).toBe(true);
+  });
 });
