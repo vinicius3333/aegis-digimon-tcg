@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT14-075.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
 
 describe("BT14-075", () => {
   it("trashes three from deck on play or attack and gains +1000 DP per three trash cards", () => {
@@ -7,4 +9,11 @@ describe("BT14-075", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions[0]).toMatchObject({ kind: "ModifyDP", amount: 1000, scaling: { per: 3, unit: "trash" } });
   });
   it("trashes one card from the opponent's hand on deletion", () => expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions[0]).toMatchObject({ kind: "Trash", target: { filter: { controller: "opponent", zone: "hand" } } }));
+  it("trashes three cards from the deck when played", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT14-075", as: "ogre" }], deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"] } }, { autoSelectCards: true, autoAcceptOptional: true });
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ogre").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.length >= 3);
+    expect(s.state.players[0]!.trash.slice(-3).map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002", "BT1-003"]);
+  });
 });
