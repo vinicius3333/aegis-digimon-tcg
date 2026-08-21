@@ -41,7 +41,9 @@ describe("BT19-075 MoonMillenniummon", () => {
       definitionOf: (c: CardInstance) => defs.get(c.cardId)!,
     } as unknown as GameAccess;
     const fx = {
-      trash: async () => [],
+      // Return the moved instances so the interpreter can bind the actual count
+      // used by the per-two-cards scaling clause.
+      trash: async (ids: string[]) => ids,
       deletePermanent: async (ids: string[]) => { deleted.push(ids); return ids; },
     } as unknown as Primitives;
     const ask: DecisionApi = {
