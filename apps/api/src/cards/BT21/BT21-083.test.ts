@@ -122,6 +122,9 @@ describe("BT21-083 module registration", () => {
       hasColor: () => false,
     };
     expect(module!.effectsForTiming(EffectTiming.OnEnterFieldAnyone, source)).toHaveLength(1);
+    const attackEffect = module!.effectsForTiming(EffectTiming.OnEnterFieldAnyone, source)[0];
+    expect(attackEffect?.description).toContain("[Xros Heart]/[Hero]");
     expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)[0]?.isSecurity).toBe(true);
+    expect(module!.effectsForTiming(EffectTiming.OnStartMainPhase, source)).toHaveLength(1);
   });
 });
