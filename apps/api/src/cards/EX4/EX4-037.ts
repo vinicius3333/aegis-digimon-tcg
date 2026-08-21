@@ -1,10 +1,9 @@
-import { EffectTiming, EffectDuration, isDigimon, CardColor } from "@aegis/shared";
+import { EffectTiming, EffectDuration, isDigimon, CardColor, type CompiledCard } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { turnTiming } from "../../engine/effects/builders.js";
-import { compiledEffects } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
@@ -105,5 +104,21 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard(cardId, compiledEffects[cardId]!, module);
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "EndOfYourTurn",
+      actions: [{ kind: "GainKeyword", target: { filter: { controller: "mine", kind: ["Digimon"], colors: ["Green", "Black"] }, count: 2 }, keywords: [{ keyword: "Blocker" }, { keyword: "Reboot" }], keyword: { keyword: "Blocker" }, duration: "untilOpponentTurnEnd" }],
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "AllTurns",
+      actions: [{ kind: "SubTrigger", event: "whenSuspended", sourceFilter: { controller: "mine", kind: ["Digimon"], excludeSelf: true }, actions: [{ kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } }], frequency: "OncePerTurn" }],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard(cardId, compiled);
 export default module;
