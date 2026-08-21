@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { PlayerState } from "@aegis/shared";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./EX8-070.js";
 
@@ -34,5 +35,26 @@ describe("EX8-070", () => {
 
     expect((s.state.players[0] as PlayerState).trash.some((card) => card.instanceId === lowestInstanceId)).toBe(true);
     expect((s.state.players[0] as PlayerState).battleArea.some((permanent) => permanent.topCard?.instanceId === s.perm("higher").topCard?.instanceId)).toBe(true);
+  });
+  it("applies all five Main grants to the selected Mineral host after paying the stack cost", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX8-047", as: "mineral", under: ["EX8-048"] }],
+        hand: [{ card: "EX8-070", as: "option" }],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+    s.state.memory = 10;
+    const baseDP = s.perm("mineral").currentDP;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("mineral").stack.length === 0 && s.perm("mineral").currentDP === baseDP + 3000);
+
+    expect(s.perm("mineral").stack).toHaveLength(0);
+    expect(observe(s.engine).hasKeyword(s.perm("mineral"), "Collision")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("mineral"))).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("mineral"), "Reboot")).toBe(true);
+    expect(s.perm("mineral").currentDP).toBe(baseDP + 3000);
+    expect(observe(s.engine).hasRestriction(s.perm("mineral"), "beReturned")).toBe(true);
   });
 });

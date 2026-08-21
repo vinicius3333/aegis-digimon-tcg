@@ -35,7 +35,7 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action): 
       }
       // Card IR spells this immunity using the printed-action vocabulary, while the engine's
       // legality layer consumes the normalized `beReturned` restriction for both hand and deck.
-      const restriction = (action.restriction === "returnToHandOrDeck"
+      const restriction = (action.restriction === "returnToHandOrDeck" || action.restriction === "cannotReturnToHandOrDeck"
         ? "beReturned"
         : action.restriction) as Restriction;
       // A deprecated kind has no consumer, so recording it would be a silent no-op. Drop it
