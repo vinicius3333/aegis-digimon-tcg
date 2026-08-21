@@ -21,7 +21,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // singleColor for UseOptionWithoutCost). The orFilter for name/color is modelled with
 // orFilters field on the UseOptionWithoutCost.
 // The "with cost reduced by 2" is payCost:true + reduceCostBy:2.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
@@ -120,4 +120,3 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT17-035", compiled);
-export { compiled };
