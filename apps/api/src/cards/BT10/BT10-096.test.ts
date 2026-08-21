@@ -27,7 +27,9 @@ describe("BT10-096 Burning Star Crusher", () => {
     preferred.push(s.perm("shoutmon").permanentId, eligibleId);
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === eligibleId));
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === tooLargeId)).toBe(true);
@@ -43,10 +45,14 @@ describe("BT10-096 Burning Star Crusher", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
 
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId)).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId),
+    ).toBe(true);
   });
 
   it("Security adds the Xros Heart Digimon and plays Taiki together", async () => {
@@ -65,12 +71,12 @@ describe("BT10-096 Burning Star Crusher", () => {
     );
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
-    await settle(() =>
-      s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("rest").instanceId),
-    );
+    await settle(() => s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("rest").instanceId));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("added").instanceId)).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("taiki").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("taiki").instanceId),
+    ).toBe(true);
     expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("rest").instanceId)).toBe(true);
   });
 
