@@ -21,6 +21,7 @@ export interface Cost {
     | "payMemory"
     | "flipSecurity" // flip your top face-up security card face down (BT23-043, EX11-031)
     | "trashSecurityTop" // ST23-05
+    | "trashBothSecurityTop" // BT19-043: trash both players' top security cards atomically
     | "trashBottomFaceDownUnderTamer"
     | "securityToHand"
     | "placeAsSecurity" // move a permanent to the security stack (BT19-048)

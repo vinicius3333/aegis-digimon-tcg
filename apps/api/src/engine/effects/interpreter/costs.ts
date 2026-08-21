@@ -845,6 +845,13 @@ export async function payCost(
       await ctx.fx.trashFromSecurity(seat, 1, { fromTop: true });
       return true;
     }
+    case "trashBothSecurityTop": {
+      const opponent = ctx.game.opponentOf(ctx.source.ownerSeat);
+      if (ctx.game.player(ctx.source.ownerSeat).security.length === 0 || ctx.game.player(opponent).security.length === 0) return false;
+      await ctx.fx.trashFromSecurity(ctx.source.ownerSeat, 1, { fromTop: true });
+      await ctx.fx.trashFromSecurity(opponent, 1, { fromTop: true });
+      return true;
+    }
     case "securityToHand": {
       // "By adding your top security card to the hand" — all-or-nothing cost.
       const seat = ctx.source.ownerSeat;
