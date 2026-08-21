@@ -1517,6 +1517,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         source = extractPermanentAt(owner, idx);
         break;
       }
+      if (owner.breeding?.permanentId === sourcePermanentId) {
+        source = owner.breeding;
+        owner.breeding = undefined;
+        break;
+      }
     }
     if (source === undefined || source.topCard === undefined) return false;
 
