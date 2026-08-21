@@ -58,6 +58,7 @@ describe("BT5 ChaosGallantmon historical deck gauntlet", () => {
       ) &&
       s.state.pendingDecision === undefined
     );
+    await settle();
 
     // ChaosGallantmon paid 4, then Guilmon's effect-deletion returned 1 memory.
     expect(s.state.memory).toBe(1);
