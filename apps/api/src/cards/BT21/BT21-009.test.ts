@@ -15,4 +15,36 @@ describe("BT21-009 compiled implementation", () => {
       for (const action of effect.actions ?? []) expect(typeof action.kind).toBe("string");
     }
   });
+
+  it("once per turn may play Haru Shinkai from hand when linked and at most one Tamer is present", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "YourTurn",
+        frequency: "OncePerTurn",
+        actions: [
+          {
+            kind: "SubTrigger",
+            event: "whenLinked",
+            actions: [
+              {
+                kind: "PlayWithoutCost",
+                target: {
+                  filter: { controller: "mine", nameOrTrait: [{ tokens: ["Haru Shinkai"], match: "name" }] },
+                  count: 1,
+                },
+                from: ["hand"],
+                payCost: false,
+                condition: {
+                  kind: "youHave",
+                  filter: { controllerDefault: "mine", kind: ["Tamer"] },
+                  raw: "you have 1 or fewer Tamers",
+                },
+                optional: true,
+              },
+            ],
+          },
+        ],
+      }),
+    ]);
+  });
 });
