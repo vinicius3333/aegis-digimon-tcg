@@ -17,6 +17,14 @@ describe("BT21-055 Sunarizamon", () => {
         kind: "SubTrigger",
         event: "onDigivolutionCardDiscarded",
         sourceFilter: { isSelfRef: true },
+        hostFilter: {
+          controller: "mine",
+          kind: ["Digimon"],
+          nameOrTrait: [
+            { tokens: ["Mineral"], match: "trait" },
+            { tokens: ["Rock"], match: "trait", orPrevious: true },
+          ],
+        },
         actions: [
           {
             kind: "Delete",
