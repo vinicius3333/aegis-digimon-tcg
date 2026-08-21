@@ -22,7 +22,7 @@ describe("ST18-01 Fluffymon", () => {
       attackerPermanentId: s.perm("host").permanentId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
-    await settle(() => s.perm("eligible").isSuspended || s.events.some((event) => event.kind === "attackResolved"));
+    await settle(() => s.perm("eligible").isSuspended);
 
     expect(s.perm("eligible").isSuspended).toBe(true);
     expect(s.perm("tooLarge").isSuspended).toBe(false);

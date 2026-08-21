@@ -17,7 +17,7 @@ describe("ST18-03 Falcomon", () => {
       attackerPermanentId: s.perm("attacker").permanentId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
-    await settle(() => s.perm("victim").isSuspended || s.events.some((event) => event.kind === "attackResolved"));
+    await settle(() => s.perm("victim").isSuspended);
 
     expect(s.perm("victim").isSuspended).toBe(true);
   });
