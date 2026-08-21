@@ -7,6 +7,7 @@ import { runAction } from "../dispatch.js";
 import { unsupported } from "../errors.js";
 import { definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
+import { scaleFactor } from "../scaling.js";
 import { getCardDefinition } from "@aegis/shared";
 import type { Action, Condition, Cost, Filter, Permanent } from "@aegis/shared";
 
@@ -61,7 +62,7 @@ export async function runReplacement(
   // on the outer action itself (BT22-079's [Breeding] resident reducer). Hoist the nested mode +
   // amount the same way nestedPrevent is normalized above, so the installed subscription is a real
   // reduceCost entry `costReductionFor` can sum — not a mode-less dead store.
-  const nestedCostModifier = (
+  const nestedCostModifiers = (
     action.actions as
       | {
           kind?: string;
@@ -71,12 +72,15 @@ export async function runReplacement(
           condition?: Condition;
           cost?: Cost;
           sourceFilter?: Filter;
+          optional?: boolean;
+          scaling?: Extract<Action, { kind: "Replacement" }>["scaling"];
         }[]
       | undefined
-  )?.find(
+  )?.filter(
     (a) =>
       a.kind === "Replacement" && a.event === action.event && (a.mode === "reduceCost" || a.mode === "increaseCost"),
   );
+  const nestedCostModifier = nestedCostModifiers?.[0];
   // When the prose compiler emits a Replacement with a cost but no explicit
   // mode (e.g. BT18-082 "by trashing the bottom card of your security stack,
   // it doesn't leave"), interpret it as "prevent" — a cost with empty actions
@@ -90,7 +94,12 @@ export async function runReplacement(
         : action.cost
           ? "prevent"
           : "instead");
-  let amount = action.amount ?? nestedCostModifier?.amount;
+  let amount =
+    action.amount ??
+    nestedCostModifiers?.reduce(
+      (total, modifier) => total + (modifier.amount ?? 0) * (modifier.scaling ? scaleFactor(ctx, modifier.scaling) : 1),
+      0,
+    );
   // Mutually-exclusive amount alternatives (EX6-006 "reduce by 3 ... reduce by 4 instead"):
   // only ONE eligible entry ever installs — never both — because `costReductionFor` SUMS every
   // active reduceCost subscription anchored to this permanent, so two simultaneously-installed
@@ -234,6 +243,7 @@ export async function runReplacement(
     // when hoisting that inner reducer; otherwise the reducer is installed as a free reduction
     // and the printed payment (for example, suspending ST20-12) is silently lost.
     const interactiveCost = action.cost ?? nestedCostModifier?.cost;
+    const interactiveOptional = action.optional === true || nestedCostModifiers?.some((modifier) => modifier.optional) === true;
     const ownerSeat = ctx.source.ownerSeat;
     ctx.fx.subscribeReplacement({
       ...replacementBudget,
@@ -263,7 +273,7 @@ export async function runReplacement(
                 permanentMatchesFilter(ctx, target, replacementSourceFilter, ctx.source),
             }
         : {}),
-      ...(interactiveCost !== undefined
+      ...(interactiveCost !== undefined || interactiveOptional
         ? {
             controllerSeat: ownerSeat,
             appliesTo: (target: Permanent) =>
@@ -273,13 +283,14 @@ export async function runReplacement(
                 ? definitionMatches(replacementSourceFilter ?? {}, ctx.game.definitionOf(target.topCard))
                 : permanentMatchesFilter(ctx, target, replacementSourceFilter ?? {}, ctx.source)),
             activate: async (runtimeCtx: EffectContext) => {
-              if (action.optional !== false) {
+              if (interactiveOptional || action.optional !== false) {
                 const accepted = await runtimeCtx.ask.optional(
                   runtimeCtx,
                   action.raw ?? "Pay the cost to reduce the digivolution cost?",
                 );
                 if (!accepted) return false;
               }
+              if (interactiveCost === undefined) return true;
               if (
                 interactiveCost.kind === "suspend" &&
                 (interactiveCost.target?.isSelf === true || interactiveCost.target?.filter.isSelfRef === true)
