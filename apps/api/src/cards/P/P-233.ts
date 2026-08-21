@@ -56,7 +56,10 @@ const module: EffectModule = {
             }
             const rest = deckCards.filter((c) => !added.includes(c.instanceId));
             if (rest.length > 0) {
-              await ctx.fx.returnToDeck(rest.map((c) => c.instanceId), { toTop: false });
+              await ctx.fx.returnToDeck(
+                rest.map((c) => c.instanceId),
+                { toTop: false },
+              );
             }
           },
         }),
@@ -82,8 +85,6 @@ const module: EffectModule = {
               description: `${cardId}: When linked, suspend to gain memory.`,
               matches: (subCtx) => {
                 if (!subCtx.source.isOnBattleArea() || !subCtx.source.isOwnersTurn()) return false;
-                // ENGINE-GAP: linkCardInstanceId not available on TriggerInfo;
-                // check the subject permanent's linked cards for matching traits instead.
                 const subjectId = subCtx.trigger?.subjectPermanentId;
                 if (subjectId === undefined) return false;
                 const host = subCtx.game.permanentById(subjectId);
