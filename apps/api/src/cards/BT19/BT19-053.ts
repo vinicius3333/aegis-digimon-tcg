@@ -15,107 +15,107 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 4. AllTurns Replacement: SecurityManipulation adds faceUp:true (text: "face-up").
 // 5. AllTurns: KB Q3108 says all affected Digimon can be placed; count:"all" on source.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Alliance",
-          "raw": "＜Alliance＞"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "zone": "security",
-              "faceUp": true,
-              "nameOrTrait": [
-                {
-                  "tokens": ["Royal Base"],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": ["security"],
-          "payCost": true,
-          "reduceCostBy": 8,
-          "optional": true
-        }
+          keyword: "Alliance",
+          raw: "＜Alliance＞",
+        },
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "leaveCause": "otherThanBattle",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": ["Digimon"],
-            "nameOrTrait": [
-              {
-                "tokens": ["Royal Base"],
-                "match": "trait"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "SecurityManipulation",
-              "op": "placeAsSecurity",
-              "controller": "mine",
-              "source": {
-                "filter": {
-                  "useTriggerSource": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              zone: "security",
+              faceUp: true,
+              nameOrTrait: [
+                {
+                  tokens: ["Royal Base"],
+                  match: "trait",
                 },
-                "count": "all"
-              },
-              "toTop": false,
-              "faceUp": true,
-              "optional": true
-            }
-          ]
-        }
-      ]
+              ],
+            },
+            count: 1,
+          },
+          from: ["security"],
+          payCost: true,
+          reduceCostBy: 8,
+          optional: true,
+        },
+      ],
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "Rule",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": { "isSelfRef": true },
-            "count": 1,
-            "isSelf": true
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanBattle",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              {
+                tokens: ["Royal Base"],
+                match: "trait",
+              },
+            ],
           },
-          "grant": "trait",
-          "tokens": ["Insectoid"]
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              op: "placeAsSecurity",
+              controller: "mine",
+              source: {
+                filter: {
+                  useTriggerSource: true,
+                },
+                count: "all",
+              },
+              toTop: false,
+              faceUp: true,
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
     {
-      "level": 5,
-      "traits": ["Royal Base"],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      trigger: "Rule",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
+          },
+          grant: "trait",
+          tokens: ["Insectoid"],
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 5,
+      traits: ["Royal Base"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT19-053", compiled);
