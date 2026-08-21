@@ -9,197 +9,170 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   ("[Puppet] or [TB] trait Digimon") — not a bug, TB is the trait abbreviation.
 // [On Deletion] superlative:lowestLevel is already correct.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Fortitude",
-          "raw": "＜Fortitude＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "playCostLte": 5,
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Puppet",
-                    "Shambala"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+          keyword: "Fortitude",
+          raw: "＜Fortitude＞",
+        },
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "playCostLte": 5,
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              playCostLte: 5,
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Puppet",
-                    "Shambala"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ],
-      "frequency": "OncePerTurn"
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "playCostLte": 5,
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Puppet",
-                    "Shambala"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ],
-      "frequency": "OncePerTurn"
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
+                  tokens: ["Puppet", "Shambala"],
+                  match: "trait",
+                },
               ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Puppet",
-                    "TB"
-                  ],
-                  "match": "trait"
-                }
-              ]
             },
-            "count": "all"
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              playCostLte: 5,
+              nameOrTrait: [
+                {
+                  tokens: ["Puppet", "Shambala"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
           },
-          "duration": "permanent"
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              playCostLte: 5,
+              nameOrTrait: [
+                {
+                  tokens: ["Puppet", "Shambala"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Puppet", "TB"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: "all",
+          },
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
+          },
+          duration: "permanent",
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Puppet",
-                    "TB"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Puppet", "TB"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": "all"
+            count: "all",
           },
-          "keyword": {
-            "keyword": "Retaliation",
-            "raw": "＜Retaliation＞"
+          keyword: {
+            keyword: "Retaliation",
+            raw: "＜Retaliation＞",
           },
-          "duration": "permanent"
-        }
-      ]
+          duration: "permanent",
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestLevel"
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestLevel",
             },
-            "count": 1
+            count: 1,
           },
-          "to": "deckBottom"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 5,
-      "traits": [
-        "Puppet",
-        "Shambala"
+          to: "deckBottom",
+        },
       ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 5,
+      traits: ["Puppet", "Shambala"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX12-065", compiled);
