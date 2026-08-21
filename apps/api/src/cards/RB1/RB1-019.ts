@@ -95,7 +95,7 @@ const module: EffectModule = {
               if (chosen.length > 0) {
                 const perm = ctx.game.permanentById(chosen[0]!);
                 if (perm !== undefined && perm.topCard !== undefined) {
-                  await ctx.fx.addSecurity(opponent, [perm.topCard.instanceId], { toTop: false });
+                  await ctx.fx.addSecurity(opponent, [perm.topCard.instanceId], { toTop: false, faceUp: false });
                 }
               }
             }

@@ -12,6 +12,17 @@ describe("alternate-digivolution gate lock (regression: BT21-021 onto Lv.2)", ()
     });
   });
 
+  it("RB1-009 exposes the Gammamon base and stack-name gates", () => {
+    const req = matchingAlternateDigivolutionRequirement("RB1-009", "RB1-005");
+    expect(req).toMatchObject({
+      cost: 3,
+      namesExact: ["Gammamon"],
+      minNameStackCount: 1,
+      minNameStackNames: ["Gammamon"],
+      battleAreaOnly: true,
+    });
+  });
+
   it("BT21-021 (OmniShoutmon) does NOT match a Lv.2 non-Shoutmon base", () => {
     // Koromon (BT11-003 etc.) is a Lv.2 with no Shoutmon name / Xros Heart-Hero traits.
     expect(matchingAlternateDigivolutionRequirement("BT21-021", "BT1-001")).toBeUndefined();

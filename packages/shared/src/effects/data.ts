@@ -103,6 +103,18 @@ export function dnaDigivolutionRequirementsFor(cardId: string): DnaDigivolveRequ
  * the CLIENT (digivolve-target highlighting + cost labels) read ONE source of truth.
  */
 export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequirement[]> = {
+  // RB1-009: a Gammamon with a Gammamon-named digivolution card may evolve into this
+  // card from hand for 3, ignoring the ordinary level/color requirement.
+  "RB1-009": [
+    {
+      cost: 3,
+      isAlternate: true,
+      namesExact: ["Gammamon"],
+      minNameStackCount: 1,
+      minNameStackNames: ["Gammamon"],
+      battleAreaOnly: true,
+    },
+  ],
   // BT26-074 Cerberusmon: [Digivolve] Lv.4 w/[TS] trait: Cost 3.
   "BT26-074": [{ cost: 3, isAlternate: true, level: 4, traits: ["TS"] }],
   // BT26-082 Ravemon: [Digivolve] [Crowmon] OR Lv.5 w/[DATA SQUAD] trait: Cost 3.

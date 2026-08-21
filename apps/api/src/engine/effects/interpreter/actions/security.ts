@@ -275,7 +275,11 @@ export async function runSecurityManipulation(
       // the card flips face up IN PLACE (revealed to both players; it stays in security).
       // The same effects later place it back face down — the `source:"revealed"` add in
       // runSecurityAdd flips it back.
+      const security = ctx.game.player(seat).security;
+      const revealed = action.op === "revealTop" ? security[0] : security[security.length - 1];
+      if (revealed === undefined) return;
       ctx.fx.flipSecurityFaceUp(seat, { fromTop: action.op === "revealTop" });
+      ctx.lastRevealedCards = [{ instanceId: revealed.instanceId, cardId: revealed.cardId, ownerSeat: seat }];
       return;
     }
     case "flipUp": {
@@ -320,13 +324,18 @@ async function runSecurityAdd(
       : action.op === "addBottom"
         ? false
         : (await ctx.ask.chooseOption(ctx, ["Top of security", "Bottom of security"])) === 0;
-  const opts = { toTop, faceUp: action.faceUp };
+  const opts = { toTop, faceUp: action.faceDown === true ? false : action.faceUp };
   const baseCount = action.amount ?? 1;
   const count = action.scaling === undefined ? baseCount : baseCount * scaleFactor(ctx, action.scaling);
   const ownController = action.controller === "opponent" ? ("opponent" as const) : ("mine" as const);
 
   if (source === "revealed") {
-    ctx.fx.flipTopSecurity(seat);
+    const revealedInstanceId = ctx.lastRevealedCards?.at(-1)?.instanceId;
+    const restored = ctx.game.state.players[seat]?.security.find((card) => card.instanceId === revealedInstanceId);
+    if (restored !== undefined) {
+      restored.faceUp = false;
+      ctx.fx.flipTopSecurity(seat);
+    }
     return;
   }
   if (source === "rest") {

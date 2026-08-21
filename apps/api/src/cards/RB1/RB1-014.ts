@@ -11,42 +11,22 @@ const compiled: CompiledCard = {
       "trigger": "WhenDigivolving",
       "actions": [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "zone": "hand",
-              "controller": "mine",
-              "colors": [
-                "Blue"
-              ]
-            },
-            "count": 2,
-            "upTo": true
-          },
-          "optional": true
+          "kind": "TrashDigivolution",
+          "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"], "digivolutionCards": "hasAny" }, "count": 1 },
+          "amount": 1,
+          "choose": true,
+          "cost": { "kind": "trash", "target": { "filter": { "zone": "hand", "controller": "mine", "colors": ["Blue"] }, "count": 1 }, "raw": "by trashing 1 blue card in your hand" },
+          "optional": true,
+          "abortOnDecline": false
         },
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "hasDigivolutionCards": true
-            },
-            "count": 1,
-            "upTo": true
-          },
+          "kind": "TrashDigivolution",
+          "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"], "digivolutionCards": "hasAny" }, "count": 1 },
+          "amount": 1,
+          "choose": true,
+          "cost": { "kind": "trash", "target": { "filter": { "zone": "hand", "controller": "mine", "colors": ["Blue"] }, "count": 1 }, "raw": "by trashing a second blue card in your hand" },
           "optional": true,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "mine"
-            },
-            "unit": "cards"
-          }
+          "abortOnDecline": false
         },
         {
           "kind": "Restrict",
