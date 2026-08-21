@@ -10,6 +10,22 @@ export const compiledEffects: CompiledEffects = effectsJson as unknown as Compil
 
 /** BT26 is hand-authored while generated effect records are absent. */
 export const ASSEMBLY_REQUIREMENT_OVERRIDES: Record<string, AssemblyRequirement[]> = {
+  // EX12-031: one Lv.4-or-lower card with [Aqua]/[Sea Animal] in any trait OR [TB].
+  "EX12-031": [
+    {
+      reduceCost: 2,
+      materials: [
+        {
+          count: 1,
+          nameOrTrait: [
+            { tokens: ["Aqua", "Sea Animal"], match: "trait" },
+            { tokens: ["TB"], match: "trait" },
+          ],
+          levelMax: 4,
+        },
+      ],
+    },
+  ],
   "BT26-014": [{ reduceCost: 2, materials: [{ traits: ["TB"], levelMax: 4, count: 1 }] }],
   "BT26-017": [{ reduceCost: 4, materials: [{ traits: ["Shambala"], levelMax: 5, count: 2, differentLevels: true }] }],
   "BT26-028": [{ reduceCost: 2, materials: [{ traits: ["Life", "System", "Seven Code"], level: 3, count: 1 }] }],
