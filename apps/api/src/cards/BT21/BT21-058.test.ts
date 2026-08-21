@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 
 // A3 for BT21-058 (Snatchmon) — [On Play] / [When Digivolving]:
@@ -20,14 +21,12 @@ const VEMMON_CARD = "BT21-056"; // BT21 Vemmon — nameEn: "Vemmon"
 const VEMMON_IN_EFFECT_TEXT = "BT11-065"; // Snatchmon — mentions [Vemmon], but name/types do not.
 const PLAIN_CARD = "BT1-009"; // Agumon-like — no "Vemmon" in text
 
-function fireTiming(
-  s: EngineSetup,
-  timing: EffectTiming,
-  trigger: Record<string, unknown> = {},
-): Promise<void> {
-  return (s.engine as unknown as {
-    fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
-  }).fireTiming(timing, trigger);
+function fireTiming(s: EngineSetup, timing: EffectTiming, trigger: Record<string, unknown> = {}): Promise<void> {
+  return (
+    s.engine as unknown as {
+      fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
+    }
+  ).fireTiming(timing, trigger);
 }
 
 describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () => {
@@ -59,11 +58,7 @@ describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () =>
     await fireTiming(s, EffectTiming.OnPlay, {
       subjectPermanentId: snatchmonId,
     });
-    for (
-      let i = 0;
-      i < 400 && !((p0?.hand.length ?? 0) > handBefore || (p0?.trash.length ?? 0) > trashBefore);
-      i++
-    )
+    for (let i = 0; i < 400 && !((p0?.hand.length ?? 0) > handBefore || (p0?.trash.length ?? 0) > trashBefore); i++)
       await Promise.resolve();
 
     // The Vemmon card should be in hand (added from revealed 3).
@@ -107,11 +102,7 @@ describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () =>
       {
         0: {
           battleArea: [{ card: SNATCHMON, dp: 7000, as: "snatchmon" }],
-          deck: [
-            { card: VEMMON_IN_EFFECT_TEXT, as: "vemmonInText" },
-            PLAIN_CARD,
-            PLAIN_CARD,
-          ],
+          deck: [{ card: VEMMON_IN_EFFECT_TEXT, as: "vemmonInText" }, PLAIN_CARD, PLAIN_CARD],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -126,5 +117,41 @@ describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () =>
     }
 
     expect(p0?.hand.some((c) => c.instanceId === qualifyingId)).toBe(true);
+  });
+
+  it("deletes only an opposing play-cost-4-or-less Digimon when this stack returns Vemmon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT1-009",
+              as: "host",
+              under: [{ card: SNATCHMON }, { card: VEMMON_CARD, as: "stackedVemmon" }],
+            },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: PLAIN_CARD, as: "eligible" },
+            { card: "BT1-010", as: "tooExpensive" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const eligibleId = s.perm("eligible").permanentId;
+    const tooExpensiveId = s.perm("tooExpensive").permanentId;
+
+    await fireTiming(s, EffectTiming.OnEnterFieldAnyone, {
+      subjectPermanentId: s.perm("host").permanentId,
+    });
+    await advance(s.engine).verb.returnToDeck([s.inst("stackedVemmon").instanceId], {
+      toTop: false,
+    });
+    await new Promise((resolve) => setTimeout(resolve, 20));
+
+    expect(s.state.players[1]?.battleArea.some((p) => p.permanentId === eligibleId)).toBe(false);
+    expect(s.state.players[1]?.battleArea.some((p) => p.permanentId === tooExpensiveId)).toBe(true);
   });
 });
