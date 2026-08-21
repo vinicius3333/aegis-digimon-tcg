@@ -35,28 +35,21 @@ import { registerCard } from "../../engine/effects/registry.js";
 //     OPPONENT'S OWN effect — the recipient's controller chooses which of their Digimon
 //     to delete, and a recipient unaffected by this card's effects is still deleted (it
 //     is the recipient's own effect by then). So the grant re-homes the triggered
-//     ability's controller to the recipient. [shapes the blocked clause]
+//     ability's controller to the recipient.
 //   - Q5157: the [All Turns] "by trashing any 2 of this Digimon's digivolution cards"
 //     cost is ALL-OR-NOTHING — trashing only 1 does not satisfy the "by" condition.
-//     [shapes the blocked clause]
 //   - Q5160: a [Damemon] (EX10-044) trashed from the digivolution cards by the [All
 //     Turns] cost then played from trash by the same effect cannot activate its
 //     inherited effect (it leaves the trash before the pending activation resolves).
-//     [shapes the blocked clause]
 //   - Q5168: the [All Turns] trigger DOES fire off this card's own [On Play]/[When
 //     Digivolving] deleting an opponent's Digimon (a deletion the source itself causes
-//     still counts as "an opponent's Digimon deleted"). [shapes the blocked clause]
+//     still counts as "an opponent's Digimon deleted").
 const cardId = "EX10-058";
 
 // Opponent battle-area Digimon OR Tamer — the candidate set for the [On Play]/[When
 // Digivolving] grant (source PermanentCondition: IsPermanentExistsOnOpponentBattleArea
-// Digimon || ...Tamer). Retained as the documented selection model for the blocked
-// clause so it is ready once a grant-triggered-ability primitive lands.
-const isOpponentDigimonOrTamer = (
-  ctx: EffectContext,
-  source: CardSource,
-  permanent: Permanent,
-): boolean => {
+// Digimon || ...Tamer).
+const isOpponentDigimonOrTamer = (ctx: EffectContext, source: CardSource, permanent: Permanent): boolean => {
   const opponent = ctx.game.opponentOf(source.ownerSeat);
   if (permanent.controllerSeat !== opponent || permanent.topCard === undefined) return false;
   const def = ctx.game.definitionOf(permanent.topCard);
@@ -64,30 +57,91 @@ const isOpponentDigimonOrTamer = (
 };
 
 const opponentDigimonsOrTamers = (ctx: EffectContext, source: CardSource): Permanent[] =>
-  Array.from(ctx.game.player(ctx.game.opponentOf(source.ownerSeat)).battleArea).filter(
-    (permanent) => isOpponentDigimonOrTamer(ctx, source, permanent),
+  Array.from(ctx.game.player(ctx.game.opponentOf(source.ownerSeat)).battleArea).filter((permanent) =>
+    isOpponentDigimonOrTamer(ctx, source, permanent),
   );
 
-// The count of the OPPONENT's Digimon whose top card actually left the field in this
-// deletion window (mirrors EX5-063's `opponentDeletedDigimonCount`). `deletedInstanceIds`
-// carries every card instance that left the field this window, including digivolution-
-// stack cards; `deletedWasStackInstanceIds` marks which of those were stack cards, so
-// subtracting it isolates one entry per deleted PERMANENT. Ownership is read from the
-// opponent's trash, where each deleted top card now lives.
+async function resolveAllTurnsEffect(ctx: EffectContext, source: CardSource): Promise<void> {
+  const self = ctx.source.permanent();
+  if (self === undefined || self.stack.length < 2) return;
+  const chosen = await ctx.ask.selectCards(ctx, {
+    candidates: self.stack.map((c) => c.instanceId),
+    min: 2,
+    max: 2,
+  });
+  if (chosen.length !== 2) return;
+  await ctx.fx.trash(chosen);
+  const eligible = ctx.game.player(source.ownerSeat).trash.filter((c) => {
+    const def = ctx.game.definitionOf(c);
+    return isDigimon(def) && def.colors.includes(CardColor.Purple) && def.level !== undefined && def.level <= 4;
+  });
+  if (eligible.length === 0) return;
+  const picked = await ctx.ask.selectCards(ctx, {
+    candidates: eligible.map((c) => c.instanceId),
+    min: 0,
+    max: 1,
+  });
+  if (picked.length > 0) await ctx.fx.playInstances(picked, { payCost: false });
+}
+
 const opponentDeletedDigimonCount = (ctx: EffectContext, source: CardSource): number => {
-  const deletedIds = ctx.trigger?.deletedInstanceIds;
-  if (deletedIds === undefined || deletedIds.length === 0) return 0;
+  const deletedIds = ctx.trigger?.deletedInstanceIds ?? [];
   const stackIds = new Set(ctx.trigger?.deletedWasStackInstanceIds ?? []);
-  const opponentSeat = ctx.game.opponentOf(source.ownerSeat);
-  const opponentTrash = ctx.game.player(opponentSeat).trash;
-  let count = 0;
-  for (const instanceId of deletedIds) {
-    if (stackIds.has(instanceId)) continue; // only top cards count as "1 Digimon deleted"
-    const card = opponentTrash.find((c) => c.instanceId === instanceId);
-    if (card !== undefined && isDigimon(ctx.game.definitionOf(card))) count += 1;
-  }
-  return count;
+  const opponentTrash = ctx.game.player(ctx.game.opponentOf(source.ownerSeat)).trash;
+  return deletedIds
+    .filter((id) => !stackIds.has(id))
+    .filter((id) => {
+      const card = opponentTrash.find((c) => c.instanceId === id);
+      return card !== undefined && isDigimon(ctx.game.definitionOf(card));
+    }).length;
 };
+
+function installAllTurnsWatcher(ctx: EffectContext, source: CardSource): void {
+  const self = source.permanent();
+  if (self === undefined) return;
+  const opponent = ctx.game.opponentOf(source.ownerSeat);
+  const oncePerTurnKey = `${cardId}/all-turns-trash-2-play-purple`;
+  ctx.fx.subscribeSubTrigger({
+    event: "whenPlayed",
+    sourcePermanentId: self.permanentId,
+    once: false,
+    oncePerTurnKey,
+    description: `${cardId}: opponent Digimon played`,
+    matches: (subCtx) => {
+      const id = subCtx.trigger?.subjectPermanentId;
+      const permanent = id === undefined ? undefined : subCtx.game.permanentById(id);
+      return (
+        permanent !== undefined &&
+        permanent.controllerSeat === opponent &&
+        permanent.topCard !== undefined &&
+        isDigimon(subCtx.game.definitionOf(permanent.topCard))
+      );
+    },
+    run: async (subCtx) => {
+      await resolveAllTurnsEffect(subCtx, source);
+    },
+  });
+  ctx.fx.subscribeSubTrigger({
+    event: "onDeletionOf",
+    sourcePermanentId: self.permanentId,
+    once: false,
+    oncePerTurnKey,
+    description: `${cardId}: opponent Digimon deleted`,
+    matches: (subCtx) => {
+      const id = subCtx.trigger?.deletedPermanentId;
+      const permanent = id === undefined ? undefined : subCtx.game.permanentById(id);
+      return (
+        permanent !== undefined &&
+        permanent.controllerSeat === opponent &&
+        permanent.topCard !== undefined &&
+        isDigimon(subCtx.game.definitionOf(permanent.topCard))
+      );
+    },
+    run: async (subCtx) => {
+      await resolveAllTurnsEffect(subCtx, source);
+    },
+  });
+}
 
 const grantDescription = (window: "On Play" | "When Digivolving"): string =>
   `[${window}] Until your opponent's turn ends, give 1 of their Digimon or Tamers ` +
@@ -147,19 +201,6 @@ const module: EffectModule = {
     //   permanent's `UntilOwnerTurnEndEffects` that, at OnEndTurn, deletes 1 of THAT
     //   permanent's controller's Digimon. CreateDebuffEffect is applied for the UI.
     //
-    // WAS reported BLOCKED on two claims that a repo-wide check shows are no longer true:
-    //   1. "No grant-a-triggered-ability verb." `ctx.fx.subscribeSubTrigger` (EffectContext.ts)
-    //      IS that verb: `sourcePermanentId` anchors a watcher to ANY permanent, not just the
-    //      installer's own — GameEngine.fireSubTrigger builds the fired context from the
-    //      watcher's `sourcePermanentId`, not the installer, so a subscription anchored on the
-    //      RECIPIENT runs with the recipient as `ctx.source` (Q5159's "activates as the
-    //      opponent's own effect"). EX10-035's `ctx.fx.delayedDeletePlayed` (primitives.ts) is
-    //      the shipped precedent for exactly this "[End of Your Turn] delete ..." shape, just
-    //      anchored to its own played permanent instead of a granted recipient.
-    //   2. "No end-of-turn delayed sub-trigger." `"endOfTurn"` IS a `SubTriggerEventName`
-    //      (EffectContext.ts) and GameEngine.fireTiming fires it at EffectTiming.OnEndTurn
-    //      (GameEngine.ts, "GRANTED '[End of Your Turn]' timed triggers... fire at the
-    //      OnEndTurn window"), with `expiresOnTurnEndOf` sweeping the one-shot watcher after.
     // Implemented below: select 1 opponent Digimon/Tamer, then install an `endOfTurn` watcher
     // anchored on the CHOSEN permanent (not this Lilithmon) so it fires with the recipient as
     // `ctx.source` and prompts the recipient's OWN controller to pick which of their Digimon
@@ -176,6 +217,7 @@ const module: EffectModule = {
           optional: false,
           canActivate: (ctx) => opponentDigimonsOrTamers(ctx, source).length > 0,
           resolve: async (ctx) => {
+            installAllTurnsWatcher(ctx, source);
             await grantEndOfTurnSelfDelete(ctx, source);
           },
         }),
@@ -194,6 +236,7 @@ const module: EffectModule = {
           optional: false,
           canActivate: (ctx) => opponentDigimonsOrTamers(ctx, source).length > 0,
           resolve: async (ctx) => {
+            installAllTurnsWatcher(ctx, source);
             await grantEndOfTurnSelfDelete(ctx, source);
           },
         }),
@@ -208,84 +251,21 @@ const module: EffectModule = {
     //   cards to trash (all-or-nothing, Q5157), and on success optionally plays 1 purple
     //   level<=4 Digimon from trash without paying the cost.
     //
-    // WAS reported BLOCKED on three "the trigger never fires" claims that a repo-wide
-    // check shows are no longer true for the DELETED half:
-    //   1/2. Both EffectTiming.OnEnterFieldAnyone (GameEngine.ts, fired from playCard /
-    //      digivolve / DigiXros) and EffectTiming.OnDestroyedAnyone (GameEngine.ts /
-    //      primitives.ts deletePermanent) DO fire today — this was true as of an earlier
-    //      snapshot of the engine but the effect-stack-resolution TODOs it cited have
-    //      since landed.
-    //   3. OnDestroyedAnyone's TriggerInfo DOES carry the deleted set today
-    //      (`deletedInstanceIds` / `deletedWasStackInstanceIds`, populated by
-    //      `deletePermanent`) — see EX5-063's `opponentDeletedDigimonCount`, the shipped
-    //      precedent this clause's DELETED half mirrors below.
-    // The DELETED half is implemented below (a direct EffectTiming.OnDestroyedAnyone
-    // effect, framework `maxPerTurn: 1`, exactly EX5-063's pattern; Q5168 "even from
-    // this card's own On Play deletion" holds for free since the window is board-wide).
-    //
-    // The PLAYED half remains genuinely gated off. Unlike the digivolve path
-    // (fireWhenDigivolving passes `subjectPermanentId`), the OnEnterFieldAnyone fire from
-    // a PLAY (GameEngine.ts playCardDeps.fireTiming / digiXrosDeps.fireTiming) carries NO
-    // payload, so a board-wide watcher on a DIFFERENT permanent (this Lilithmon) cannot
-    // identify WHICH permanent was played — it cannot tell "an opponent played a Digimon"
-    // from "I played one". The SubTrigger bus's "whenPlayed" event DOES carry
-    // `subjectPermanentId` (EX5-062 is the shipped precedent for filtering it to a board-
-    // wide opponent), but combining it with the DELETED half under ONE shared
-    // "Once Per Turn" cap has no primitive: `subscribeSubTrigger` exposes no per-turn-fire
-    // counter and no unsubscribe-by-id a played-branch install could use to retire the
-    // sibling deleted-branch watcher (or vice versa) once either fires. Inventing that
-    // bookkeeping is out of scope for this per-card fan-out (card-module contract);
-    // implementing a HALF-firing "when played OR deleted" clause under the framework's
-    // per-effect maxPerTurn would misrepresent the played branch as covered when it is
-    // silently inert, so it is left off entirely rather than half-faked.
     if (timing === EffectTiming.OnDestroyedAnyone) {
       return [
         turnTiming({
           source,
-          effectKey: `${cardId}/all-turns-trash-2-play-purple-on-delete`,
+          effectKey: `${cardId}/all-turns-trash-2-play-purple`,
           description:
-            "[All Turns] [Once Per Turn] When any of your opponent's Digimon are deleted, " +
+            "[All Turns] [Once Per Turn] When any of your opponent's Digimon are played or deleted, " +
             "by trashing any 2 of this Digimon's digivolution cards, you may play 1 level " +
             "4 or lower purple Digimon card from your trash without paying the cost.",
           maxPerTurn: 1,
           optional: true,
           when: (ctx) => ctx.source.isOnBattleArea() && opponentDeletedDigimonCount(ctx, source) > 0,
-          canActivate: (ctx) => {
-            const self = ctx.source.permanent();
-            return self !== undefined && self.stack.length >= 2;
-          },
+          canActivate: (ctx) => (ctx.source.permanent()?.stack.length ?? 0) >= 2,
           resolve: async (ctx) => {
-            const self = ctx.source.permanent();
-            if (self === undefined || self.stack.length < 2) return;
-            // "by trashing any 2 of this Digimon's digivolution cards" — all-or-nothing
-            // cost (Q5157): exactly 2 or the clause does not activate.
-            const chosen = await ctx.ask.selectCards(ctx, {
-              candidates: self.stack.map((c) => c.instanceId),
-              min: 2,
-              max: 2,
-            });
-            if (chosen.length !== 2) return;
-            await ctx.fx.trash(chosen);
-
-            // "you may play 1 level 4 or lower purple Digimon card from your trash
-            // without paying the cost."
-            const owner = ctx.game.player(source.ownerSeat);
-            const eligible = owner.trash.filter((c) => {
-              const def = ctx.game.definitionOf(c);
-              return (
-                isDigimon(def) &&
-                def.colors.includes(CardColor.Purple) &&
-                def.level !== undefined &&
-                def.level <= 4
-              );
-            });
-            if (eligible.length === 0) return;
-            const picked = await ctx.ask.selectCards(ctx, {
-              candidates: eligible.map((c) => c.instanceId),
-              min: 0,
-              max: 1,
-            });
-            if (picked.length > 0) await ctx.fx.playInstances(picked, { payCost: false });
+            await resolveAllTurnsEffect(ctx, source);
           },
         }),
       ];

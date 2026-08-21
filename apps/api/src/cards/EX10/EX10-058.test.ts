@@ -20,21 +20,14 @@ import "../index.js";
 
 // A3 for EX10-058 (Lilithmon).
 //
-// Two clauses were previously reported BLOCKED on stale claims (adjudicated, see the
-// card file's header comments for the file:line proof each claim is now false):
-//
 //   1. [On Play]/[When Digivolving] "give 1 of their Digimon or Tamers '[End of Your
 //      Turn] Delete 1 of your Digimon'" — proven end to end below by driving the REAL
 //      turn loop: the grant fires on the RECIPIENT's OWN turn end (Q5159), not the
 //      granter's, and not immediately.
-//   2. [All Turns] "when any of your opponent's Digimon are ... deleted, by trashing 2
-//      digivolution cards, play 1 purple Lv.4-or-less Digimon from trash" (deleted half
-//      only — the played half remains genuinely gated off, see the card file).
+//   2. [All Turns] "when any of your opponent's Digimon are played or deleted, by
+//      trashing 2 digivolution cards, play 1 purple Lv.4-or-less Digimon from trash".
 //
-// FAILS-WHEN-REVERTED: reverting the grant clause to `canActivate: () => false` makes
-// the recipient's Digimon survive test 1's second turn end (RED). Reverting the All
-// Turns clause to its prior inert marker leaves p0's trash/battle-area untouched after
-// the combat deletion in test 2 (RED).
+// FAILS-WHEN-REVERTED: disabling either clause makes its corresponding behavioral test fail.
 
 let seq = 0;
 
@@ -133,9 +126,7 @@ describe("EX10-058 [On Play] grant '[End of Your Turn] Delete 1 of your Digimon'
     p1.battleArea.push(recipient);
 
     await driveTurn(h, 0, async () => {
-      expect(
-        h.engine.applyIntent(0, { type: "playCard", instanceId: lilithmon.instanceId }),
-      ).toEqual({ ok: true });
+      expect(h.engine.applyIntent(0, { type: "playCard", instanceId: lilithmon.instanceId })).toEqual({ ok: true });
       await settle(() => p0.battleArea.some((perm) => perm.topCard?.cardId === "EX10-058"));
       await settle(() => false, 60); // flush the recipient-selection prompt
     });
@@ -143,7 +134,6 @@ describe("EX10-058 [On Play] grant '[End of Your Turn] Delete 1 of your Digimon'
     // NEGATIVE CONTROL: the granter's (seat 0) OWN turn just ended — the grant must NOT
     // fire on the granter's turn end, only the recipient's (Q5159).
     expect(p1.battleArea.some((p) => p.permanentId === recipient.permanentId)).toBe(true);
-
 
     // Hand the turn to the recipient's controller (seat 1), mirroring passTurn().
     h.state.turnSeat = 1;
@@ -189,9 +179,7 @@ describe("EX10-058 [All Turns] trash 2 digivolution cards -> play a purple Lv.4-
 
     // Cost paid: both digivolution cards trashed (all-or-nothing, Q5157).
     expect(lilithmon.stack.length).toBe(0);
-    expect(p0.trash.some((c) => c.cardId === "BT1-009" && c.instanceId !== victim.topCard?.instanceId)).toBe(
-      true,
-    );
+    expect(p0.trash.some((c) => c.cardId === "BT1-009" && c.instanceId !== victim.topCard?.instanceId)).toBe(true);
 
     // Payoff: the purple Lv.3 Digimon was played from trash without paying its cost.
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT10-071")).toBe(true);
@@ -302,8 +290,6 @@ describe("EX10-058 [DigiXros -2] 2 Digimon cards w/[Bagra Army] trait", () => {
     // reached the decision channel (a `chooseTargets` or `selectCards` prompt), and
     // autoSelectCards resolved it by picking the only candidate (oppTarget) — so the
     // opponent's sole Digimon now carries the granted end-of-turn deletion sub-trigger.
-    expect(
-      s.decisions.some((d) => d.req.kind === "selectCards" || d.req.kind === "chooseTargets"),
-    ).toBe(true);
+    expect(s.decisions.some((d) => d.req.kind === "selectCards" || d.req.kind === "chooseTargets")).toBe(true);
   });
 });
