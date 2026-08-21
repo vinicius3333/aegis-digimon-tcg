@@ -169,6 +169,8 @@ export interface TrashDigivolutionAction extends ActionBase {
    * of a deterministic `fromTop`/bottom slice.
    */
   choose?: boolean;
+  /** Store the number actually trashed for a following RepeatPerCount or condition. */
+  trackCount?: string;
 }
 
 /**

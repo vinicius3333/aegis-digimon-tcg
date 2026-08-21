@@ -18,6 +18,62 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
  */
 const cardId = "EX4-073";
 
+const compiled = {
+  ...compiledEffects[cardId]!,
+  effects: [
+    {
+      trigger: "WhenDigivolving" as const,
+      actions: [
+        {
+          kind: "DeDigivolve" as const,
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          amount: 3,
+        },
+        {
+          kind: "DeleteBudget" as const,
+          filter: { controller: "opponent", kind: ["Digimon"] },
+          budget: 6,
+          upTo: true,
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking" as const,
+      optional: true,
+      actions: [
+        {
+          kind: "TrashDigivolution" as const,
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          amount: 3,
+          choose: true,
+          optional: true,
+          trackCount: "ex4-073-trashed",
+        },
+        {
+          kind: "RepeatPerCount" as const,
+          countSource: "ex4-073-trashed",
+          action: {
+            kind: "Delete" as const,
+            target: {
+              filter: { controller: "opponent", kind: ["Digimon", "Tamer"], superlative: "lowestPlayCost" },
+              count: 1,
+            },
+          },
+        },
+        {
+          kind: "SecurityManipulation" as const,
+          op: "trashTop" as const,
+          controller: "opponent" as const,
+          amount: 2,
+          condition: { kind: "namedCountAtLeast" as const, countSource: "ex4-073-trashed", count: 3 },
+        },
+      ],
+    },
+  ],
+  coverage: "full" as const,
+  residual: [],
+};
+
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
@@ -161,5 +217,5 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard(cardId, compiledEffects[cardId]!, module);
+registerIrCard(cardId, compiled);
 export default module;
