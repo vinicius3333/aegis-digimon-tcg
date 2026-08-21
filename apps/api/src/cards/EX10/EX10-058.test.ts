@@ -9,6 +9,7 @@ import {
   type ServerEvent,
   type DecisionRequest,
 } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import { GameEngine, type GameEngineHooks } from "../../engine/GameEngine.js";
 import {
   makeInstance as instance,
@@ -17,6 +18,7 @@ import {
   settle,
 } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { advance } from "../../engine/testkit/advance.js";
 
 // A3 for EX10-058 (Lilithmon).
 //
@@ -161,6 +163,14 @@ describe("EX10-058 [All Turns] trash 2 digivolution cards -> play a purple Lv.4-
     const victim = digimon(1, 2000, "AD1-001");
     victim.isSuspended = true; // attack targets must be suspended
     p1.battleArea.push(victim);
+    await advance(s.engine).fire(EffectTiming.OnPlay, lilithmon);
+    await settle(() => false, 30); // arm both All Turns watchers
+    const watchers = advance(s.engine).ledgers.subTriggers;
+    const played = watchers.subscriptionsFor("whenPlayed", lilithmon.permanentId);
+    const deleted = watchers.subscriptionsFor("onDeletionOf", lilithmon.permanentId);
+    expect(played).toHaveLength(1);
+    expect(deleted).toHaveLength(1);
+    expect(played[0]!.oncePerTurnKey).toBe(deleted[0]!.oncePerTurnKey);
     for (let i = 0; i < 3; i++) p1.security.push(instance("BT1-009", 1, false));
 
     expect(
@@ -199,6 +209,8 @@ describe("EX10-058 [All Turns] trash 2 digivolution cards -> play a purple Lv.4-
     const victim = digimon(1, 2000, "AD1-001");
     victim.isSuspended = true;
     p1.battleArea.push(victim);
+    await advance(s.engine).fire(EffectTiming.OnPlay, lilithmon);
+    await settle(() => false, 30);
     for (let i = 0; i < 3; i++) p1.security.push(instance("BT1-009", 1, false));
 
     expect(

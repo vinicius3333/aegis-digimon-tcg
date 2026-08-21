@@ -4,7 +4,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import type { Effect } from "../../engine/effects/Effect.js";
-import { onPlay, turnTiming, whenDigivolving } from "../../engine/effects/builders.js";
+import { onPlay, whenDigivolving } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // Lilithmon — EX10-058 (Purple Lv.6 Digimon).
@@ -83,18 +83,6 @@ async function resolveAllTurnsEffect(ctx: EffectContext, source: CardSource): Pr
   });
   if (picked.length > 0) await ctx.fx.playInstances(picked, { payCost: false });
 }
-
-const opponentDeletedDigimonCount = (ctx: EffectContext, source: CardSource): number => {
-  const deletedIds = ctx.trigger?.deletedInstanceIds ?? [];
-  const stackIds = new Set(ctx.trigger?.deletedWasStackInstanceIds ?? []);
-  const opponentTrash = ctx.game.player(ctx.game.opponentOf(source.ownerSeat)).trash;
-  return deletedIds
-    .filter((id) => !stackIds.has(id))
-    .filter((id) => {
-      const card = opponentTrash.find((c) => c.instanceId === id);
-      return card !== undefined && isDigimon(ctx.game.definitionOf(card));
-    }).length;
-};
 
 function installAllTurnsWatcher(ctx: EffectContext, source: CardSource): void {
   const self = source.permanent();
@@ -251,26 +239,6 @@ const module: EffectModule = {
     //   cards to trash (all-or-nothing, Q5157), and on success optionally plays 1 purple
     //   level<=4 Digimon from trash without paying the cost.
     //
-    if (timing === EffectTiming.OnDestroyedAnyone) {
-      return [
-        turnTiming({
-          source,
-          effectKey: `${cardId}/all-turns-trash-2-play-purple`,
-          description:
-            "[All Turns] [Once Per Turn] When any of your opponent's Digimon are played or deleted, " +
-            "by trashing any 2 of this Digimon's digivolution cards, you may play 1 level " +
-            "4 or lower purple Digimon card from your trash without paying the cost.",
-          maxPerTurn: 1,
-          optional: true,
-          when: (ctx) => ctx.source.isOnBattleArea() && opponentDeletedDigimonCount(ctx, source) > 0,
-          canActivate: (ctx) => (ctx.source.permanent()?.stack.length ?? 0) >= 2,
-          resolve: async (ctx) => {
-            await resolveAllTurnsEffect(ctx, source);
-          },
-        }),
-      ];
-    }
-
     // [DigiXros -2] 2 Digimon cards w/[Bagra Army] trait.
     //
     // No effect is returned for this clause because none is needed: a DigiXros is a
