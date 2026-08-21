@@ -1,6 +1,5 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./ST19-06.js";
@@ -8,11 +7,11 @@ import "./ST19-06.js";
 describe("ST19-06 Doggymon", () => {
   it("gives one opposing Digimon Security Attack -1 on play", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "ST19-06", as: "doggy" }] },
+      0: { hand: [{ card: "ST19-06", as: "doggy" }] },
       1: { battleArea: [{ card: "BT1-010", as: "targetA" }, { card: "BT1-011", as: "targetB" }] },
     }, { autoSelectCards: true });
-    s.state.turnSeat = 1;
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("doggy"));
+    s.state.memory = 20;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("doggy").instanceId })).toEqual({ ok: true });
     await settle(() => observe(s.engine).keywordAmount(s.perm("targetA"), "SecurityAttack") === -1);
     expect(observe(s.engine).keywordAmount(s.perm("targetA"), "SecurityAttack")).toBe(-1);
     expect(observe(s.engine).keywordAmount(s.perm("targetB"), "SecurityAttack")).toBe(0);
