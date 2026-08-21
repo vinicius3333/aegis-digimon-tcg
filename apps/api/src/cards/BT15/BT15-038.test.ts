@@ -10,8 +10,6 @@ import "../index.js";
 // Primary observable: playing BT15-038 with security available causes the target
 // opponent Digimon to have -6000 DP applied.
 //
-// FAILS-WHEN-REVERTED: remove the resolve body → opp Digimon DP stays unchanged.
-
 const ANGEWOMON = "BT15-038";
 const OPP_DIGIMON = "BT1-009"; // Monodramon Lv.3, 2000 DP
 const SECURITY_CARD = "BT1-001"; // any card for security stack

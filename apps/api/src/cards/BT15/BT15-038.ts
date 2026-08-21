@@ -16,12 +16,6 @@ import { registerCard } from "../../engine/effects/registry.js";
  *   [All Turns] [Once Per Turn] When a card is removed from your security stack, if you have
  *     3 or fewer security cards, (place the top card of your deck on top of your security stack).
  *
- * Residuals:
- *   [All Turns] whenSecurityRemoved SubTrigger event is declared in EffectContext.ts:67 and
- *   mapped in interpreter.ts:3362 but has no fire seam in primitives.ts — trashFromSecurity /
- *   securityToHand / security checks do not fire it. Recovery portion will activate once the
- *   seam is added.
- *
  *   [Hand] [Counter] is a Digimon keyword handled by the digivolve path (GameEngine), not a
  *   timed effect; no card module action is needed.
  */
@@ -44,8 +38,9 @@ async function resolveModifyDP(ctx: EffectContext, ownerSeat: 0 | 1): Promise<vo
   if (trashed.length === 0) return;
 
   const oppSeat = ctx.game.opponentOf(ownerSeat);
-  const oppDigimon = ctx.game.player(oppSeat).battleArea
-    .filter((p) => {
+  const oppDigimon = ctx.game
+    .player(oppSeat)
+    .battleArea.filter((p) => {
       if (p.inBreeding || p.topCard === undefined) return false;
       return isDigimon(ctx.game.definitionOf(p.topCard));
     })
@@ -93,9 +88,6 @@ const module: EffectModule = {
         }),
       ];
     }
-
-    // [All Turns][Once Per Turn] whenSecurityRemoved → Recovery +1:
-    // residual — whenSecurityRemoved has no fire seam in primitives.ts.
 
     return [];
   },
