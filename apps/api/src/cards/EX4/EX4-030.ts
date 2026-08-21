@@ -30,6 +30,24 @@ import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
  */
 const cardId = "EX4-030";
 
+const compiled = {
+  ...compiledEffects[cardId]!,
+  effects: compiledEffects[cardId]!.effects.map((effect) => {
+    if (effect.trigger === "Static") {
+      return { ...effect, actions: effect.actions.map((action) => action.kind === "GrantStatic" ? { ...action, duration: "forTheTurn" as const } : action) };
+    }
+    if (effect.trigger === "WhenDigivolving") {
+      return {
+        ...effect,
+        actions: [{ kind: "UseOptionWithoutCost" as const, filter: { controllerDefault: "mine", kind: ["Option"], playCostLte: 5 }, from: ["hand"], payCost: false, optional: true }],
+      };
+    }
+    return effect;
+  }),
+  coverage: "full" as const,
+  residual: [],
+};
+
 function isOptionCostAtMost5(def: CardDefinition): boolean {
   if (!(def.kinds as string[]).includes(CardKind.Option as string)) return false;
   return def.playCost !== undefined && def.playCost <= 5;
@@ -162,5 +180,5 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard(cardId, compiledEffects[cardId]!, module);
+registerIrCard(cardId, compiled);
 export default module;
