@@ -67,7 +67,9 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     }
     case "lastTargetDpGreaterThanSelf": {
       const source = ctx.source.permanent();
-      const ids = ctx.lastResolvedPermanentIds ?? [];
+      const ids = (ctx.lastResolvedPermanentIds?.length ?? 0) > 0
+        ? ctx.lastResolvedPermanentIds!
+        : [ctx.trigger.targetPermanentId ?? ctx.trigger.defenderPermanentId].filter((id): id is string => id !== undefined);
       return (
         source !== undefined &&
         ids.length > 0 &&
