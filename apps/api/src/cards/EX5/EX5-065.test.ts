@@ -15,4 +15,7 @@ describe("EX5-065 Sayo & Koh", () => {
     const module = getEffectModule("EX5-065")!;
     expect(module.effectsForTiming(EffectTiming.SecuritySkill, source)[0]?.optional).toBe(false);
   });
+  it("documents the end-of-turn return for the Digimon played from digivolution cards", () => {
+    expect(module.effectsForTiming(EffectTiming.OnStartTurn, source)[0]?.description).toContain("return the Digimon played");
+  });
 });

@@ -119,7 +119,23 @@ const module: EffectModule = {
             const toPlay = await ctx.ask.selectCards(ctx, { candidates: stackCandidates, min: 1, max: 1 });
             if (toPlay.length === 0) return;
             const playedInstances = toPlay;
-            await ctx.fx.playInstances(playedInstances, { payCost: false });
+            const played = await ctx.fx.playInstances(playedInstances, { payCost: false });
+            const playedPermanent = played[0];
+            if (playedPermanent !== undefined) {
+              ctx.fx.subscribeSubTrigger({
+                event: "endOfTurn",
+                sourcePermanentId: playedPermanent.permanentId,
+                once: true,
+                description: `${cardId} returns the Digimon played from digivolution cards to hand`,
+                matches: (subCtx) => subCtx.source.isOnBattleArea() && subCtx.source.isOwnersTurn(),
+                run: async (subCtx) => {
+                  const current = subCtx.game.permanentById(playedPermanent.permanentId);
+                  if (current?.topCard !== undefined) {
+                    await subCtx.fx.returnToHand([current.topCard.instanceId]);
+                  }
+                },
+              });
+            }
 
             // DNA digivolve
             const handDigi = ctx.game.player(source.ownerSeat).hand.filter((c) =>
