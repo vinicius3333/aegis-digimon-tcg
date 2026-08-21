@@ -9,12 +9,29 @@ export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",
-      "actions": []
+      "actions": [
+        {
+          "kind": "GrantStatic",
+          "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+          "grant": "keyword",
+          "keyword": { "keyword": "Blocker" },
+          "duration": "untilOpponentTurnEnd"
+        }
+      ]
     },
     {
       "trigger": "WhenDigivolving",
-      "actions": []
+      "actions": [
+        {
+          "kind": "GrantStatic",
+          "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+          "grant": "keyword",
+          "keyword": { "keyword": "Blocker" },
+          "duration": "untilOpponentTurnEnd"
+        }
+      ]
     },
+    { "trigger": "Static", "actions": [{ "kind": "GrantStatic", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true }, "grant": "name", "tokens": ["Kyubimon"] }] },
     {
       "trigger": "YourTurn",
       "actions": [
