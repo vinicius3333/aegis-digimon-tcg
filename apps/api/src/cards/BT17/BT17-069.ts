@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "WhenDigivolving",
@@ -45,7 +45,8 @@ const compiled: CompiledCard = {
             },
             "raw": "[Eiji Nagasumi] is in this Digimon's digivolution cards"
           },
-          "optional": true
+          "optional": true,
+          "bindResultAs": "playedFenriloogamon"
         },
         {
           "kind": "DelayedEffect",
@@ -53,7 +54,7 @@ const compiled: CompiledCard = {
             "kind": "Return",
             "target": {
               "filter": {
-                "isSelfRef": true
+                "boundRef": "playedFenriloogamon"
               },
               "count": 1,
               "isSelf": true
