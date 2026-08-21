@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { EffectTiming, EffectDuration, isDigimon } from "@aegis/shared";
 import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";

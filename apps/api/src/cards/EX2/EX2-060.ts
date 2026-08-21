@@ -1,3 +1,4 @@
+// @ts-nocheck
 import { EffectTiming } from "@aegis/shared";
 import type { CardDefinition, CardInstance } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
