@@ -128,12 +128,15 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
       const amount = scale === undefined ? action.amount : action.amount * scale;
+      const continuousTiming = ["Static", "AllTurns", "YourTurn", "OpponentsTurn"].includes(ctx.activeTiming ?? "");
       for (const id of ids) {
         ctx.fx.modifyDP(
           id,
           amount,
           duration,
-          action.continuous === undefined ? undefined : { continuous: action.continuous },
+          action.continuous === undefined && continuousTiming === false
+            ? undefined
+            : { continuous: action.continuous ?? continuousTiming },
         );
       }
       if (ids.length > 0 && action.target.bindAs !== undefined) {
