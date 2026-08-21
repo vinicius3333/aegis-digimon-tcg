@@ -29,4 +29,31 @@ describe("EX8-067", () => {
     expect((s.state.players[1] as PlayerState).security.some((card) => card.instanceId === instanceId)).toBe(false);
     expect(s.state.memory).toBe(memoryBeforeSecurityEffect);
   });
+  it("suspends to place up to two Mineral cards under the Digimon that digivolves", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-047", as: "base" }, { card: "EX8-067", as: "tamer" }],
+          hand: [{ card: "EX8-048", as: "evolving" }],
+          trash: ["EX8-049", "EX8-050"],
+        },
+        1: { battleArea: [{ card: "AD1-001", as: "opponent", under: ["BT1-010"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("evolving").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").isSuspended && s.perm("base").stack.length === 3);
+
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.perm("base").topCard?.cardId).toBe("EX8-048");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX8-047", "EX8-049", "EX8-050"]));
+    expect(s.state.players[0]!.trash.some((card) => ["EX8-049", "EX8-050"].includes(card.cardId))).toBe(false);
+  });
 });

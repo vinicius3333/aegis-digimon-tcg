@@ -60,6 +60,9 @@ export const compiled: CompiledCard = {
                 upTo: true,
                 from: ["trash"],
               },
+              underFilter: {
+                isTriggerSource: true,
+              },
               cost: {
                 kind: "suspend",
                 target: {
