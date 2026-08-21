@@ -43,17 +43,13 @@ function isEligibleFromStack(def: CardDefinition): boolean {
 }
 
 function optionCandidatesFromHand(ctx: EffectContext, ownerSeat: 0 | 1): CardInstance[] {
-  return Array.from(ctx.game.player(ownerSeat).hand).filter((c) =>
-    isOptionCostAtMost5(ctx.game.definitionOf(c)),
-  );
+  return Array.from(ctx.game.player(ownerSeat).hand).filter((c) => isOptionCostAtMost5(ctx.game.definitionOf(c)));
 }
 
 function eligibleStackCandidates(ctx: EffectContext): string[] {
   const perm = ctx.source.permanent?.();
   if (perm === undefined) return [];
-  return perm.stack
-    .filter((c) => isEligibleFromStack(ctx.game.definitionOf(c)))
-    .map((c) => c.instanceId);
+  return perm.stack.filter((c) => isEligibleFromStack(ctx.game.definitionOf(c))).map((c) => c.instanceId);
 }
 
 const module: EffectModule = {
