@@ -4,7 +4,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OpponentsTurn",
@@ -46,7 +46,7 @@ const compiled: CompiledCard = {
                 "hand"
               ],
               "payCost": false,
-              "ignoreReqs": true,
+              "ignoreRequirements": true,
               "condition": {
                 "kind": "triggerSubjectMatchesFilter",
                 "filter": { "kind": ["Digimon"], "levelComparison": { "op": "gte", "value": 5 } },
@@ -93,7 +93,7 @@ const compiled: CompiledCard = {
                 "hand"
               ],
               "payCost": false,
-              "ignoreReqs": true,
+              "ignoreRequirements": true,
               "condition": {
                 "kind": "triggerSubjectMatchesFilter",
                 "filter": { "kind": ["Digimon"], "levelComparison": { "op": "gte", "value": 5 } },
