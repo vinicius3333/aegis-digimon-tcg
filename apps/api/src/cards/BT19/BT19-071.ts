@@ -19,11 +19,7 @@ async function trashAndGrantBlocker(ctx: EffectContext, source: CardSource): Pro
   }
   const selfPermanent = ctx.source.permanent();
   if (selfPermanent) {
-    ctx.fx.grantKeyword(
-      selfPermanent.permanentId,
-      "Blocker",
-      EffectDuration.UntilOpponentTurnEnd,
-    );
+    ctx.fx.grantKeyword(selfPermanent.permanentId, "Blocker", EffectDuration.UntilOpponentTurnEnd);
   }
 }
 

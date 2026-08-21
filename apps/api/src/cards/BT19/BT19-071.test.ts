@@ -93,10 +93,18 @@ function makeCtx(opts: {
   } as unknown as GameAccess;
 
   const fx = {
-    trash: async (...a: unknown[]) => { calls.push({ verb: "trash", args: a }); },
-    grantKeyword: (...a: unknown[]) => { calls.push({ verb: "grantKeyword", args: a }); },
-    subscribeSubTrigger: (...a: unknown[]) => { calls.push({ verb: "subscribeSubTrigger", args: a }); },
-    deletePermanent: async (...a: unknown[]) => { calls.push({ verb: "deletePermanent", args: a }); },
+    trash: async (...a: unknown[]) => {
+      calls.push({ verb: "trash", args: a });
+    },
+    grantKeyword: (...a: unknown[]) => {
+      calls.push({ verb: "grantKeyword", args: a });
+    },
+    subscribeSubTrigger: (...a: unknown[]) => {
+      calls.push({ verb: "subscribeSubTrigger", args: a });
+    },
+    deletePermanent: async (...a: unknown[]) => {
+      calls.push({ verb: "deletePermanent", args: a });
+    },
   } as unknown as Primitives;
 
   const ask: DecisionApi = {
