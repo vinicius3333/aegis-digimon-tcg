@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "WhenAttacking",
@@ -39,16 +39,8 @@ const compiled: CompiledCard = {
       "trigger": "YourTurn",
       "actions": [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": "all"
-          },
+          "kind": "ModifySecurityDP",
+          "controller": "opponent",
           "amount": -3000,
           "duration": "permanent"
         }
@@ -61,4 +53,3 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT17-029", compiled);
-export { compiled };
