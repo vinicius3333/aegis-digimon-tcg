@@ -37,4 +37,31 @@ describe("EX9-074 six-color digivolution stack", () => {
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
+
+  it("uses a single-color Digimon before a multicolor Digimon for the same color", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-074", as: "omegamon", under: ["BT1-009", "BT1-027", "BT1-045", "BT1-064", "BT10-058", "BT10-071"] }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT11-018", as: "redBlue" },
+            { card: "BT1-009", as: "red" },
+            { card: "BT1-027", as: "blue" },
+            { card: "BT1-045", as: "yellow" },
+            { card: "BT1-064", as: "green" },
+            { card: "BT10-058", as: "black" },
+            { card: "BT10-071", as: "purple" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("omegamon"));
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT11-018"]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
 });

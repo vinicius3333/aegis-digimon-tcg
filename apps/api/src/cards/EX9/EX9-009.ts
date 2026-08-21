@@ -27,7 +27,8 @@ export const compiled: CompiledCard = {
               "isSelfRef": true
             },
             "count": 1,
-            "isSelf": true
+            "isSelf": true,
+            "sourceRef": "triggerSubject"
           },
           "amount": 1000,
           "duration": "untilOpponentTurnEnd",
@@ -37,7 +38,8 @@ export const compiled: CompiledCard = {
               "filter": {
                 "controller": "mine"
               },
-              "count": 1
+              "count": 1,
+              "from": ["deck"]
             },
             "raw": "By placing your deck's top card face down as this Digimon's bottom digivolution card",
             "destination": "digivolutionStack",
@@ -47,13 +49,6 @@ export const compiled: CompiledCard = {
           },
           "optional": true,
           "abortOnDecline": true,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "mine"
-            },
-            "unit": "digivolutionCards"
-          }
         }
       ],
       "frequency": "OncePerTurn"

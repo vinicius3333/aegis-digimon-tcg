@@ -35,7 +35,8 @@ export const compiled: CompiledCard = {
                 "kind": "trash",
                 "target": {
                   "filter": {
-                    "isSelfRef": true
+                    "isSelfRef": true,
+                    "faceDown": true
                   },
                   "count": 1,
                   "isSelf": true
