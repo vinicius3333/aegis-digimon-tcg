@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "Security", actions: [{ kind: "AddToHandSelf" }] },
-    { trigger: "Main", actions: [{ kind: "PlayToken", tokens: ["Diaboromon"], count: 1, payCost: false }, { kind: "PlaceUnder", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, underFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Diaboromon"], match: "name" }, { tokens: ["Doomsday Clock"], match: "name" }] } }] },
+    { trigger: "Main", actions: [{ kind: "PlayToken", tokens: ["Diaboromon"], count: 1, payCost: false }, { kind: "PlaceUnder", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, underFilter: { controller: "mine", nameOrTrait: [{ tokens: ["Diaboromon"], match: "name" }], excludeNameOrTrait: [{ tokens: ["Doomsday Clock"], match: "name" }] } }] },
     { trigger: "StartOfYourTurn", actions: [{ kind: "WinGame", winner: "controller", condition: { kind: "raw", raw: "4 [Doomsday Clock]s are placed in your battle area" } }] },
     { trigger: "AllTurns", actions: [{ kind: "Replacement", event: "wouldLeavePlay", sourceFilter: { isSelfRef: true }, actions: [{ kind: "Prevent", cost: { kind: "deleteOwn", target: { filter: { controller: "mine", excludeSelf: true, nameOrTrait: [{ tokens: ["Diaboromon"], match: "name" }] }, count: 1 }, raw: "by deleting 1 of your other [Diaboromon]" }, optional: true, abortOnDecline: true }] }], isInherited: true },
     { trigger: "EndOfOpponentsTurn", actions: [{ kind: "PlaceInBattleAreaSelf" }], isInherited: true },

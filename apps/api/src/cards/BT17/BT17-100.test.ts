@@ -51,6 +51,11 @@ describe("BT17-100 Doomsday Clock — [Security] add to hand", () => {
 });
 
 describe("BT17-100 Doomsday Clock — [Main] plays Diaboromon Token", () => {
+  it("targets a Diaboromon without an existing Doomsday Clock", async () => {
+    const place = (await import("./BT17-100.js")).compiled.effects?.find((e) => e.trigger === "Main")?.actions?.[1];
+    expect(place).toMatchObject({ underFilter: { nameOrTrait: [{ tokens: ["Diaboromon"] }], excludeNameOrTrait: [{ tokens: ["Doomsday Clock"] }] } });
+  });
+
   it("[Main] plays a Diaboromon Token when used as an Option card", async () => {
     // BT17-100 is an Option card; it is used from hand.
     // The [Main] effect (OnDeclaration) plays a Diaboromon Token.
