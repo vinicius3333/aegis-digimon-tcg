@@ -85,6 +85,7 @@ const compiled: CompiledCard = {
         {
           "kind": "Replacement",
           "event": "wouldBeDeleted",
+          "leaveCause": "byBattle",
           "sourceFilter": {
             "isSelfRef": true
           },
@@ -130,6 +131,7 @@ const compiled: CompiledCard = {
         {
           "kind": "Replacement",
           "event": "wouldBeDeleted",
+          "leaveCause": "byBattle",
           "sourceFilter": {
             "isSelfRef": true
           },
