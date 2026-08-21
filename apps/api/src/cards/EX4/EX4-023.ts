@@ -20,6 +20,7 @@ export const compiled: CompiledCard = {
             {
               "kind": "SecurityManipulation",
               "op": "placeAsSecurity",
+              "from": ["hand"],
               "controller": "mine",
               "source": {
                 "filter": {

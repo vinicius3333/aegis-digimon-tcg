@@ -26,7 +26,7 @@ export const compiled: CompiledCard = {
           "duration": "forTheTurn"
         },
         {
-          "kind": "Trash",
+          "kind": "TrashDigivolution",
           "target": {
             "filter": {
               "controller": "opponent",
@@ -34,9 +34,10 @@ export const compiled: CompiledCard = {
                 "Digimon"
               ]
             },
-            "count": 2,
-            "upTo": true
+            "count": 1
           },
+          "amount": 2,
+          "fromTop": false,
           "condition": {
             "kind": "digiXrosCount",
             "minimum": 1,

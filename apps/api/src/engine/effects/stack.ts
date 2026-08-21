@@ -1,4 +1,5 @@
-import type { EffectTiming, Seat } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
+import type { Seat } from "@aegis/shared";
 import type { EffectContext } from "./EffectContext.js";
 import type { CollectedEffect } from "./collect.js";
 import { UseTracker, canActivate } from "./kernel.js";
@@ -253,7 +254,7 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
       inProgress.add(chosenKey);
       let wasResolved: boolean;
       try {
-        wasResolved = await resolveOne(chosen, env, () => declined.add(chosenKey), drainCurrentTimingWindow);
+        wasResolved = await resolveOne(chosen, env, timing, () => declined.add(chosenKey), drainCurrentTimingWindow);
       } finally {
         inProgress.delete(chosenKey);
       }
@@ -313,6 +314,7 @@ async function pickNext(
 async function resolveOne(
   collected: CollectedEffect,
   env: ResolutionEnv,
+  timing: EffectTiming,
   onDeclined: () => void,
   drainCurrentTimingWindow: () => Promise<void>,
 ): Promise<boolean> {
@@ -338,6 +340,6 @@ async function resolveOne(
   }
 
   // source RegisterUseEffectThisTurn(cardEffect): identity is (instanceId, effectKey).
-  env.tracker.register(source.instanceId, effect.effectKey);
+  if (timing !== EffectTiming.None) env.tracker.register(source.instanceId, effect.effectKey);
   return true;
 }

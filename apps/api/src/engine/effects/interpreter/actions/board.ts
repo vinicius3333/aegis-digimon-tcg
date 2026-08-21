@@ -45,6 +45,11 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       // whose text says "suspend ... If you did" must key off the permanents that really
       // changed orientation, not merely the candidates selected by the player.
       const suspendedIds = suspendResult;
+      if ((action as { preventUnsuspend?: string }).preventUnsuspend === "opponentNextUnsuspendPhase") {
+        for (const id of suspendedIds) {
+          ctx.fx.restrict(id, "unsuspend", toDuration("untilOpponentNextUnsuspendPhase"));
+        }
+      }
       ctx.lastSuspendedPermanentIds = suspendedIds;
       // `suspend()` may open nested trigger windows whose target resolution mutates the
       // shared context. Rebind sameTarget AFTER those windows finish, using the primitive's
