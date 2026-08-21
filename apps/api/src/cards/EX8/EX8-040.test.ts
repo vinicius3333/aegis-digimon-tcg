@@ -7,6 +7,8 @@ import "../index.js";
 import { compiled } from "./EX8-040.js";
 
 describe("EX8-040", () => {
+  it("inherits +2000 DP during your turn", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({ trigger: "YourTurn", actions: [{ kind: "ModifyDP", amount: 2000 }] }));
   it("may suspend one Digimon on play and digivolving", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "Suspend",
