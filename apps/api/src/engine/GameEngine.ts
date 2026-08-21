@@ -2464,6 +2464,7 @@ export class GameEngine {
         subjectPermanentId,
         entryCause: "digivolve",
         enteredByEffect: ownerSeat,
+        ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
       });
       await this.fireSubTrigger("whenOneOfYoursDigivolves", {
         subjectPermanentId,

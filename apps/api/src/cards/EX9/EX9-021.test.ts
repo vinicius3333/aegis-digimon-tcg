@@ -42,13 +42,19 @@ describe("EX9-021", () => {
     );
   });
 
-  it("deletes the highest level even when the DNA condition is false", async () => {
+  it("normal digivolution with a stack of at least 2 does not grant DNA immunity", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX9-021", as: "alterS" }] },
+      0: { battleArea: [{ card: "EX9-013", as: "alterS", under: ["BT1-009", "BT1-009"] }], hand: [{ card: "EX9-021", as: "evolver" }] },
       1: { battleArea: [{ card: "EX9-013", as: "highest" }, { card: "BT1-009", as: "lower" }] },
     });
+    s.state.memory = 10;
 
-    await advance(s.engine).fire(EffectTiming.OnEnterFieldAnyone, s.perm("alterS"));
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("alterS").permanentId,
+      instanceId: s.inst("evolver").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("alterS").topCard?.cardId === "EX9-021" && s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-009"]);
     expect(observe(s.engine).hasRestriction(s.perm("alterS"), "beAffected", "Digimon")).toBe(false);
   });

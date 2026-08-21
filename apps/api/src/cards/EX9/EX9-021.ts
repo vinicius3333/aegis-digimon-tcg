@@ -27,10 +27,7 @@ const module: EffectModule = {
             const singleSelf = ctx.source.permanent();
             if (singleSelf === undefined) return;
 
-            const isDna =
-              ctx.trigger?.isDnaDigivolve === true ||
-              (ctx.trigger?.enteredByEffect !== undefined && singleSelf.stack.length >= 2);
-            if (isDna) {
+            if (ctx.trigger?.isDnaDigivolve === true) {
               ctx.fx.restrict(singleSelf.permanentId, "beAffected",
                 EffectDuration.UntilEachTurnEnd,
                 { fromSourceKind: ["Digimon"] },
