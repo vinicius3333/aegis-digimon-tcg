@@ -5,6 +5,8 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import "./EX10-056.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 
 // A3 for EX10-056 (Bagramon, EX10 DigiXros):
 //   [On Play] / [When Digivolving]: optional relocate 1 opponent Digimon under another
@@ -59,6 +61,28 @@ const requireMod = () => {
 // ── module registration ──────────────────────────────────────────────────────
 
 describe("EX10-056 module structure", () => {
+  it("fires the real on-add-under watcher after relocating an opponent Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX10-056", as: "bagramon", under: ["BT1-009", "BT1-010"] }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "source" },
+            { card: "AD1-019", as: "destination" },
+          ],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("bagramon"));
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("bagramon").stack).toHaveLength(0);
+    expect(s.perm("destination").stack.some((card) => card.cardId === "BT1-009")).toBe(true);
+  });
+
   it("registers as a hand-written module", () => {
     expect(requireMod().cardId).toBe(cardId);
   });
