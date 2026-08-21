@@ -1,4 +1,4 @@
-import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming, type CompiledCard } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -200,5 +200,17 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard(cardId, compiledEffects[cardId]!, module);
+const compiled = JSON.parse(JSON.stringify(compiledEffects[cardId]!)) as CompiledCard;
+const replacement = compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions[0];
+if (replacement?.kind === "Replacement") {
+  replacement.event = "wouldLeavePlay";
+  replacement.raw = "When this Digimon would leave the battle area, play MetalGreymon and DarkKnightmon from its digivolution cards without paying their costs.";
+  replacement.actions = [
+    { kind: "PlayWithoutCost", target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["MetalGreymon"], match: "name" }] }, count: 1 }, from: ["digivolutionCards"], payCost: false, optional: true },
+    { kind: "PlayWithoutCost", target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["DarkKnightmon"], match: "name" }] }, count: 1 }, from: ["digivolutionCards"], payCost: false, optional: true },
+  ];
+}
+compiled.coverage = "full";
+compiled.residual = [];
+registerIrCard(cardId, compiled);
 export default module;
