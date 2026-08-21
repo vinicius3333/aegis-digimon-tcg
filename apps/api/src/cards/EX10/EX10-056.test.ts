@@ -106,11 +106,17 @@ describe("EX10-056 On Play: relocate opponent Digimon", () => {
           if (pid === oppDigimon2.permanentId) return oppDigimon2;
           return undefined;
         },
-        definitionOf: () => ({ kinds: ["Digimon"] } as never),
+        definitionOf: () => ({ kinds: ["Digimon"] }) as never,
       } as never,
       fx: {
-        relocatePermanent: (dest: string, src: string) => { relocated.push({ dest, src }); return true; },
-        subscribeSubTrigger: (sub: { event: string; oncePerTurnKey?: string }) => { installedEvents.push(sub); return 0; },
+        relocatePermanent: (dest: string, src: string) => {
+          relocated.push({ dest, src });
+          return true;
+        },
+        subscribeSubTrigger: (sub: { event: string; oncePerTurnKey?: string }) => {
+          installedEvents.push(sub);
+          return 0;
+        },
       } as never,
       ask: {
         optional: async () => true,
@@ -126,7 +132,9 @@ describe("EX10-056 On Play: relocate opponent Digimon", () => {
     // Sub-triggers should have been installed.
     expect(installedEvents.map(({ event }) => event)).toContain("whenOneOfYoursDigivolves");
     expect(installedEvents.map(({ event }) => event)).toContain("onAddDigivolutionCards");
-    expect(new Set(installedEvents.map(({ oncePerTurnKey }) => oncePerTurnKey))).toEqual(new Set(["EX10-056/AllTurns"]));
+    expect(new Set(installedEvents.map(({ oncePerTurnKey }) => oncePerTurnKey))).toEqual(
+      new Set(["EX10-056/AllTurns"]),
+    );
   });
 
   it("installs sub-triggers even when no opponent Digimon to relocate", async () => {
@@ -139,14 +147,17 @@ describe("EX10-056 On Play: relocate opponent Digimon", () => {
       source,
       trigger: {},
       game: {
-        player: (_seat: number) => ({ battleArea: [self] } as never),
+        player: (_seat: number) => ({ battleArea: [self] }) as never,
         opponentOf: (s: number) => (s === 0 ? 1 : 0),
         permanentById: () => undefined,
-        definitionOf: () => ({ kinds: ["Digimon"] } as never),
+        definitionOf: () => ({ kinds: ["Digimon"] }) as never,
       } as never,
       fx: {
         relocatePermanent: () => true,
-        subscribeSubTrigger: (sub: { event: string }) => { installedEvents.push(sub.event); return 0; },
+        subscribeSubTrigger: (sub: { event: string }) => {
+          installedEvents.push(sub.event);
+          return 0;
+        },
       } as never,
       ask: {
         optional: async () => true,
@@ -175,10 +186,10 @@ describe("EX10-056 AllTurns sub-trigger body: trash 2 digivolution → trash opp
       source,
       trigger: {},
       game: {
-        player: () => ({ battleArea: [] } as never),
+        player: () => ({ battleArea: [] }) as never,
         opponentOf: (s: number) => (s === 0 ? 1 : 0),
         permanentById: (pid: string) => (pid === self.permanentId ? self : undefined),
-        definitionOf: () => ({ kinds: ["Digimon"] } as never),
+        definitionOf: () => ({ kinds: ["Digimon"] }) as never,
       } as never,
       fx: {
         relocatePermanent: () => true,
@@ -208,14 +219,14 @@ describe("EX10-056 AllTurns sub-trigger body: trash 2 digivolution → trash opp
       source,
       trigger: { subjectPermanentId: oppDigimon.permanentId },
       game: {
-        player: () => ({ battleArea: [] } as never),
+        player: () => ({ battleArea: [] }) as never,
         opponentOf: (s: number) => (s === 0 ? 1 : 0),
         permanentById: (pid: string) => {
           if (pid === self.permanentId) return self;
           if (pid === oppDigimon.permanentId) return oppDigimon;
           return undefined;
         },
-        definitionOf: () => ({ kinds: ["Digimon"] } as never),
+        definitionOf: () => ({ kinds: ["Digimon"] }) as never,
       } as never,
       fx: {
         trashDigivolutionCards: (hostId: string, ids: string[]) => {
@@ -251,10 +262,10 @@ describe("EX10-056 AllTurns sub-trigger body: trash 2 digivolution → trash opp
       source,
       trigger: {},
       game: {
-        player: () => ({ battleArea: [] } as never),
+        player: () => ({ battleArea: [] }) as never,
         opponentOf: (s: number) => (s === 0 ? 1 : 0),
         permanentById: (pid: string) => (pid === self.permanentId ? self : undefined),
-        definitionOf: () => ({ kinds: ["Digimon"] } as never),
+        definitionOf: () => ({ kinds: ["Digimon"] }) as never,
       } as never,
       fx: {
         relocatePermanent: () => true,
@@ -279,17 +290,20 @@ describe("EX10-056 AllTurns sub-trigger body: trash 2 digivolution → trash opp
       source,
       trigger: { subjectPermanentId: oppDigimon.permanentId },
       game: {
-        player: () => ({ battleArea: [] } as never),
+        player: () => ({ battleArea: [] }) as never,
         opponentOf: (s: number) => (s === 0 ? 1 : 0),
         permanentById: (pid: string) => {
           if (pid === self.permanentId) return self;
           if (pid === oppDigimon.permanentId) return oppDigimon;
           return undefined;
         },
-        definitionOf: () => ({ kinds: ["Digimon"] } as never),
+        definitionOf: () => ({ kinds: ["Digimon"] }) as never,
       } as never,
       fx: {
-        trashFromSecurity: (n: unknown) => { trashedSecurity.push(n); return Promise.resolve([]); },
+        trashFromSecurity: (n: unknown) => {
+          trashedSecurity.push(n);
+          return Promise.resolve([]);
+        },
       } as never,
       ask: {
         optional: async () => false, // decline
