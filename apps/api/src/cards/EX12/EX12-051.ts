@@ -7,7 +7,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 
 /**
- * EX12-051 — Lamortmon (EX12, Purple Lv.6 Digimon).
+ * EX12-051 — Lamortmon (EX12, Green/Black Lv.5 Digimon).
  *
  *
  * Alt digivolve: from Lv.4 [Angoramon] text or [NSp] trait at cost 3 (in digivolutionRequirement).
@@ -46,9 +46,7 @@ async function suspendAndDeDigivolve(ctx: Parameters<Effect["resolve"]>[0]): Pro
   if (targets.length === 0) return;
 
   const suspendIds =
-    targets.length === 1
-      ? [targets[0]!]
-      : await ctx.ask.chooseTargets(ctx, { candidates: targets, min: 1, max: 1 });
+    targets.length === 1 ? [targets[0]!] : await ctx.ask.chooseTargets(ctx, { candidates: targets, min: 1, max: 1 });
 
   if (suspendIds.length > 0) {
     await ctx.fx.suspend(suspendIds);
@@ -109,7 +107,7 @@ const module: EffectModule = {
           description:
             "[All Turns][Once Per Turn] When this Digimon with [Angoramon] in its text or the " +
             "[NSp] trait wins a battle, trash your opponent's top security card.",
-          isInherited: false,
+          isInherited: true,
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
             if (self === undefined) return;

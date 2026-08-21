@@ -6,7 +6,7 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import "./EX12-051.js";
 
-// A3 for EX12-051 (Lamortmon, EX12 Purple Lv.6):
+// A3 for EX12-051 (Lamortmon, EX12 Green/Black Lv.5):
 //   ＜Reboot＞, ＜Blocker＞ (Static)
 //   [On Play]: suspend 1 opponent Digimon/Tamer, de-digivolve 1 opponent Digimon by 1.
 //   [When Digivolving]: same as On Play.
@@ -70,6 +70,7 @@ describe("EX12-051 module structure", () => {
     expect(effects[0]!.effectKey).toBe(`${cardId}/reboot`);
     expect(effects[1]!.effectKey).toBe(`${cardId}/blocker`);
     expect(effects[2]!.effectKey).toBe(`${cardId}/when-battle-won-trash-security`);
+    expect(effects[2]!.isInherited).toBe(true);
   });
 
   it("returns 1 effect at OnPlay", () => {
@@ -96,7 +97,7 @@ describe("EX12-051 static keyword grants", () => {
       source,
       trigger: {},
       game: {
-        player: () => ({ battleArea: [] } as never),
+        player: () => ({ battleArea: [] }) as never,
         opponentOf: (s: number) => (s === 0 ? 1 : 0),
         permanentById: () => undefined,
         definitionOf: () => undefined as never,
@@ -122,7 +123,7 @@ describe("EX12-051 static keyword grants", () => {
       source,
       trigger: {},
       game: {
-        player: () => ({ battleArea: [] } as never),
+        player: () => ({ battleArea: [] }) as never,
         opponentOf: (s: number) => (s === 0 ? 1 : 0),
         permanentById: () => undefined,
         definitionOf: () => undefined as never,
@@ -167,7 +168,10 @@ describe("EX12-051 On Play: suspend 1 opponent Digimon/Tamer + de-digivolve 1 op
         },
       } as never,
       fx: {
-        suspend: (ids: string[]) => { suspended.push(ids); return Promise.resolve(ids); },
+        suspend: (ids: string[]) => {
+          suspended.push(ids);
+          return Promise.resolve(ids);
+        },
         deDigivolve: (permanentId: string, n: number) => {
           deDigivolved.push({ permanentId, n });
           return [];
@@ -200,10 +204,13 @@ describe("EX12-051 On Play: suspend 1 opponent Digimon/Tamer + de-digivolve 1 op
         },
         opponentOf: (s: number) => (s === 0 ? 1 : 0),
         permanentById: () => undefined,
-        definitionOf: () => ({ kinds: ["Digimon"] } as never),
+        definitionOf: () => ({ kinds: ["Digimon"] }) as never,
       } as never,
       fx: {
-        suspend: (ids: string[]) => { suspended.push(ids); return Promise.resolve(ids); },
+        suspend: (ids: string[]) => {
+          suspended.push(ids);
+          return Promise.resolve(ids);
+        },
         deDigivolve: () => [],
       } as never,
       ask: {} as never,
@@ -236,10 +243,13 @@ describe("EX12-051 When Digivolving: same suspend + de-digivolve", () => {
         },
         opponentOf: (s: number) => (s === 0 ? 1 : 0),
         permanentById: () => undefined,
-        definitionOf: () => ({ kinds: ["Digimon"] } as never),
+        definitionOf: () => ({ kinds: ["Digimon"] }) as never,
       } as never,
       fx: {
-        suspend: (ids: string[]) => { suspended.push(ids); return Promise.resolve(ids); },
+        suspend: (ids: string[]) => {
+          suspended.push(ids);
+          return Promise.resolve(ids);
+        },
         deDigivolve: (permanentId: string, n: number) => {
           deDigivolved.push({ permanentId, n });
           return [];
@@ -267,7 +277,7 @@ describe("EX12-051 whenBattleWon watcher installation and gate", () => {
       source,
       trigger: {},
       game: {
-        player: () => ({ battleArea: [] } as never),
+        player: () => ({ battleArea: [] }) as never,
         opponentOf: (s: number) => (s === 0 ? 1 : 0),
         permanentById: (id: string) => (id === self.permanentId ? self : undefined),
         definitionOf: () => undefined as never,
@@ -307,7 +317,7 @@ describe("EX12-051 whenBattleWon watcher installation and gate", () => {
     const calls: { install?: unknown } = {};
     const { ctx, source } = makeInstallCtx(self, calls);
     (ctx.game as unknown as { definitionOf: (c: CardInstance) => unknown }).definitionOf = () =>
-      ({ nameEn: "Lamortmon", types: ["NSp"] } as never);
+      ({ nameEn: "Lamortmon", types: ["NSp"] }) as never;
 
     const effects = requireMod().effectsForTiming(EffectTiming.None, source);
     await effects[2]!.resolve(ctx);
@@ -338,7 +348,7 @@ describe("EX12-051 whenBattleWon watcher installation and gate", () => {
     const calls: { install?: unknown } = {};
     const { ctx, source } = makeInstallCtx(self, calls);
     (ctx.game as unknown as { definitionOf: (c: CardInstance) => unknown }).definitionOf = () =>
-      ({ nameEn: "SomeOtherDigimon", types: [] } as never);
+      ({ nameEn: "SomeOtherDigimon", types: [] }) as never;
 
     const effects = requireMod().effectsForTiming(EffectTiming.None, source);
     await effects[2]!.resolve(ctx);
