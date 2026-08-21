@@ -8,7 +8,6 @@ import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { turnTiming, whenAttacking, security } from "../../engine/effects/builders.js";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 import type { CompiledCard } from "@aegis/shared";
-import { registerCard } from "../../engine/effects/registry.js";
 
 /**
  * EX2-060 — Rika Nonaka (EX2, Yellow Tamer).
@@ -138,8 +137,6 @@ const module: EffectModule = {
     return [];
   },
 };
-
-registerCard(module);
 
 const compiled: CompiledCard = {
   effects: [
