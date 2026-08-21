@@ -17,7 +17,6 @@ import { registerCard } from "../../engine/effects/registry.js";
  *   For each link card, trash 1 of your opponent's top security cards AND return 1 of your
  *   opponent's Digimon to the bottom of their deck.
  *
- * RESIDUAL: none — all non-DNA clauses are implementable. The DNA check uses ctx.trigger.isDnaDigivolve.
  * The [End of Opponent's Turn] uses OnEndTurn timing gated on !isOwnersTurn().
  */
 const cardId = "EX11-073";
@@ -41,7 +40,7 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
             if (self !== undefined) {
-              ctx.fx.grantKeyword(self.permanentId, "SecurityAttack", EffectDuration.UntilEachTurnEnd, 1);
+              ctx.fx.grantKeyword(self.permanentId, "SecurityAttack", EffectDuration.Permanent, 1);
             }
           },
         }),
@@ -52,7 +51,7 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
             if (self !== undefined) {
-              ctx.fx.grantKeyword(self.permanentId, "Blocker", EffectDuration.UntilEachTurnEnd);
+              ctx.fx.grantKeyword(self.permanentId, "Blocker", EffectDuration.Permanent);
             }
           },
         }),
@@ -63,7 +62,7 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
             if (self !== undefined) {
-              ctx.fx.grantLinkMax(self.permanentId, 2, EffectDuration.UntilEachTurnEnd);
+              ctx.fx.grantLinkMax(self.permanentId, 2, EffectDuration.Permanent);
             }
           },
         }),
@@ -92,15 +91,11 @@ const module: EffectModule = {
             const player = ctx.game.player(seat);
 
             // Gather candidates from hand, trash, and this Digimon's digivolution cards.
-            const handCandidates = Array.from(player.hand).filter((c) =>
-              hasMaquinamonInText(ctx.game.definitionOf(c)),
-            );
+            const handCandidates = Array.from(player.hand).filter((c) => hasMaquinamonInText(ctx.game.definitionOf(c)));
             const trashCandidates = Array.from(player.trash).filter((c) =>
               hasMaquinamonInText(ctx.game.definitionOf(c)),
             );
-            const stackCandidates = self.stack.filter((c) =>
-              hasMaquinamonInText(ctx.game.definitionOf(c)),
-            );
+            const stackCandidates = self.stack.filter((c) => hasMaquinamonInText(ctx.game.definitionOf(c)));
 
             const allCandidates = [...handCandidates, ...trashCandidates, ...stackCandidates];
 
@@ -146,13 +141,11 @@ const module: EffectModule = {
             await ctx.fx.trashFromSecurity(opponentSeat, linkCount);
 
             // Return N opponent Digimon to the bottom of their deck.
-            const oppDigimon = ctx.game
-              .player(opponentSeat)
-              .battleArea.filter((p) => {
-                if (p.topCard === undefined) return false;
-                const def = ctx.game.definitionOf(p.topCard);
-                return (def.kinds as string[]).includes("Digimon");
-              });
+            const oppDigimon = ctx.game.player(opponentSeat).battleArea.filter((p) => {
+              if (p.topCard === undefined) return false;
+              const def = ctx.game.definitionOf(p.topCard);
+              return (def.kinds as string[]).includes("Digimon");
+            });
 
             if (oppDigimon.length === 0) return;
 
