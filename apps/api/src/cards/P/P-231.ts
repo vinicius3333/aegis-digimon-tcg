@@ -9,122 +9,126 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   into a Lv 6 or lower LIBERATOR Digimon from your hand, reducing cost by 3.
 // [Security] Activate the [Main] effect.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Cyborg",
-                      "Machine"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Cyborg", "Machine"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "LIBERATOR"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["LIBERATOR"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
+          rest: "deckBottom",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Altea"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
-              "into": {
-                "controllerDefault": "mine",
-                "levelComparison": {
-                  "op": "lte",
-                  "value": 6
-                },
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "LIBERATOR"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "from": [
-                "hand"
-              ],
-              "reduceCost": 3,
-              "optional": true
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "ActivateMain"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            nameOrTrait: [
+              {
+                tokens: ["Altea"],
+                match: "name",
+              },
+            ],
+          },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: { isSelfRef: true },
+                count: 1,
+                isSelf: true,
+              },
+              keyword: {
+                keyword: "Delay",
+                raw: "＜Delay＞",
+              },
+              duration: "permanent",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Main",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
+      actions: [
+        {
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          into: {
+            controllerDefault: "mine",
+            levelComparison: {
+              op: "lte",
+              value: 6,
+            },
+            nameOrTrait: [
+              {
+                tokens: ["LIBERATOR"],
+                match: "trait",
+              },
+            ],
+          },
+          from: ["hand"],
+          reduceCost: 3,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "ActivateMain",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-231", compiled);
