@@ -16,132 +16,102 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   KB Q5773: does NOT trigger for Security or <Delay> activations of Option effects.
 // - Added optional:true on PlayToken (text says "you may").
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 4,
-              "raw": "reduce the play cost by 4",
-              "condition": {
-                "kind": "zoneCount",
-                "seat": "mine",
-                "zone": "security",
-                "op": "lte",
-                "value": 3,
-                "raw": "you have 3 or fewer security cards"
-              }
-            }
-          ]
-        }
-      ]
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 4,
+              raw: "reduce the play cost by 4",
+              condition: {
+                kind: "zoneCount",
+                seat: "mine",
+                zone: "security",
+                op: "lte",
+                value: 3,
+                raw: "you have 3 or fewer security cards",
+              },
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "keyword": {
-                "or": [
-                  "Onmyōjutsu",
-                  "Plug-In"
-                ]
-              },
-              "cardType": "Option"
-            },
-            "count": 1,
-            "upTo": false,
-            "from": [
-              "hand",
-              "trash"
-            ],
-            "controller": "mine"
+          kind: "UseOptionWithoutCost",
+          filter: {
+            kind: ["Option"],
+            nameOrTrait: [{ tokens: ["Onmyōjutsu", "Plug-In"], match: "trait" }],
           },
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "keyword": {
-                "or": [
-                  "Onmyōjutsu",
-                  "Plug-In"
-                ]
-              },
-              "cardType": "Option"
-            },
-            "count": 1,
-            "upTo": false,
-            "from": [
-              "hand",
-              "trash"
-            ],
-            "controller": "mine"
+          kind: "UseOptionWithoutCost",
+          filter: {
+            kind: ["Option"],
+            nameOrTrait: [{ tokens: ["Onmyōjutsu", "Plug-In"], match: "trait" }],
           },
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
       // [All Turns][Once Per Turn] When you use Option cards (KB Q5773: not Security/Delay),
       // you may play 1 [Pipe Fox] Token.
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOptionUsed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": ["Option"]
+          kind: "SubTrigger",
+          event: "whenOptionUsed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Option"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "PlayToken",
-              "tokens": [
-                "Pipe Fox"
-              ],
-              "count": 1,
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
+              kind: "PlayToken",
+              tokens: ["Pipe Fox"],
+              count: 1,
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 6,
-      "names": [
-        "Maid Mode"
-      ],
-      "cost": 1,
-      "isAlternate": true
-    }
-  ]
+      level: 6,
+      names: ["Maid Mode"],
+      cost: 1,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("P-223", compiled);
