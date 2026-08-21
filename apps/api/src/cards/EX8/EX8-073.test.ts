@@ -20,7 +20,7 @@ describe("EX8-073", () => {
         ?.actions,
     ).toMatchObject([
       { kind: "Delete", target: { filter: { dp: { op: "lte", value: 10000 } } } },
-      { kind: "Trash", condition: { kind: "ifThisEffectDidNotDelete" } },
+      { kind: "trashSecurityTop", controller: "opponent", condition: { kind: "ifThisEffectDidNotDelete" } },
       { kind: "Unsuspend", condition: { kind: "ifThisEffectDidNotDelete" } },
     ]);
     expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({

@@ -129,14 +129,9 @@ export const compiled: CompiledCard = {
           },
         },
         {
-          kind: "Trash",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
+          kind: "trashSecurityTop",
+          controller: "opponent",
+          count: 1,
           condition: {
             kind: "ifThisEffectDidNotDelete",
             raw: "this didn't delete",
@@ -178,14 +173,9 @@ export const compiled: CompiledCard = {
           },
         },
         {
-          kind: "Trash",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
+          kind: "trashSecurityTop",
+          controller: "opponent",
+          count: 1,
           condition: {
             kind: "ifThisEffectDidNotDelete",
             raw: "this didn't delete",
