@@ -65,6 +65,7 @@ export interface Condition {
     | "ifOpponentDeclined"
     // SubTrigger fire-time payload gates; only meaningful inside a watcher body.
     | "triggerSecurityIsYours"
+    | "triggerSecurityIsOpponents"
     | "triggerAddedSecurityHasTrait" // whenAddSecurity: a just-added card matches `filter`
     | "triggerByYourEffect" // whenDigivolutionTrashed: byEffectSeat === ownerSeat (KB P-004 "when YOU trash")
     | "triggerEnteredByEffect" // entered play BY an effect, not a manual play/digivolve (BT25-084). A When Attacking entry never sets it.
