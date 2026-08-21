@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "StartOfYourTurn",
@@ -36,6 +36,9 @@ const compiled: CompiledCard = {
               "from": ["hand"]
             },
             "raw": "By placing 1 level 3 Digimon card from your hand under this Tamer"
+            ,"destination": "digivolutionStack"
+            ,"position": "bottom"
+            ,"host": "self"
           },
           "optional": true,
           "abortOnDecline": true
