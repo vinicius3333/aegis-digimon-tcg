@@ -363,7 +363,9 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             ? ctx.game.opponentOf(ctx.source.ownerSeat)
             : ctx.source.ownerSeat;
         const deck = ctx.game.player(seat).deck;
-        const n = action.target.count === "all" ? deck.length : action.target.count;
+        const n = action.target.count === "all"
+          ? deck.length
+          : action.target.count * (scale ?? 1);
         const topCards = deck.slice(0, n);
         const topIds = topCards.map((card) => card.instanceId);
         if (topIds.length > 0) {
