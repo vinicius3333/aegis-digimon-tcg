@@ -75,13 +75,7 @@ const compiled: CompiledCard = {
           "kind": "SecurityManipulation",
           "op": "placeAsSecurity",
           "controller": "mine",
-          "source": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
+          "faceUp": true,
           "toTop": false
         }
       ]
