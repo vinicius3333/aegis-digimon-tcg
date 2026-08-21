@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./EX8-045.js";
 
 describe("EX8-045", () => {
@@ -8,5 +11,28 @@ describe("EX8-045", () => {
     expect(actions[0]).toMatchObject({ kind: "ModifyDP", amount: 1000, scaling: { per: 1, unit: "colors" } });
     expect(actions[1]).toMatchObject({ kind: "Aura", effect: { kind: "keyword", keyword: { keyword: "Piercing" } }, while: { kind: "opponentHasNone" } });
     expect(actions[2]).toMatchObject({ kind: "Aura", effect: { kind: "keyword", keyword: { keyword: "SecurityAttack", amount: 1 } } });
+  });
+  it("applies the multicolor DP bonus and both conditional keywords on live state", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-045", as: "callismon", under: ["EX8-032", "EX8-033"] }] },
+      1: { battleArea: [{ card: "AD1-001", as: "target" }] },
+    });
+    await s.ready();
+    await settle(() => observe(s.engine).hasPierce(s.perm("callismon")));
+
+    expect(s.perm("callismon").currentDP).toBe(14000);
+    expect(observe(s.engine).hasPierce(s.perm("callismon"))).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("callismon"), "SecurityAttack")).toBe(1);
+  });
+  it("loses both conditional keywords when an opposing Digimon reaches the source DP", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-045", as: "callismon", under: ["EX8-032", "EX8-033"] }] },
+      1: { battleArea: [{ card: "AD1-001", as: "target", dp: 14000 }] },
+    });
+    await s.ready();
+    await settle(() => !observe(s.engine).hasPierce(s.perm("callismon")));
+
+    expect(observe(s.engine).hasPierce(s.perm("callismon"))).toBe(false);
+    expect(observe(s.engine).keywordAmount(s.perm("callismon"), "SecurityAttack")).toBe(0);
   });
 });
