@@ -331,7 +331,19 @@ export const staticModifier = (opts: BuilderOptions): Effect => {
   return build({ ...opts, resolve: scopedResolve }, {});
 };
 
-export const digivolveCostStatic = (opts: BuilderOptions): Effect => build(opts, { baseGuard: () => true });
+export const digivolveCostStatic = (opts: BuilderOptions): Effect => {
+  const resolve = (ctx: EffectContext) => opts.resolve({
+    ...ctx,
+    fx: {
+      ...ctx.fx,
+      changeEvoCost: (filter, delta, changeOpts) => ctx.fx.changeEvoCost(filter, delta, {
+        ...changeOpts,
+        continuous: true,
+      }),
+    },
+  });
+  return build({ ...opts, resolve }, { baseGuard: () => true });
+};
 
 /**
  * Static modifier whose source must still be in hand. This is used by printed clauses that
