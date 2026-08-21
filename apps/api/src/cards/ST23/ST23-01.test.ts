@@ -9,10 +9,10 @@ describe("ST23-01 Kekkomon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT25-003", as: "kekkomon", under: [{ card: "ST23-01", faceUp: true }] },
+            { card: "ST23-02", as: "liollmon", under: [{ card: "ST23-01", faceUp: true }] },
             { card: "ST23-13", as: "tamer", under: [{ card: "BT1-001", faceUp: false }] },
           ],
-          hand: [{ card: "ST23-02", as: "liollmon" }],
+          hand: [{ card: "ST23-03", as: "cougarmon" }],
           deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
         1: { security: ["BT1-009"] },
@@ -24,11 +24,11 @@ describe("ST23-01 Kekkomon", () => {
     const bottomUnderTamer = s.perm("tamer").stack[0]!.instanceId;
     expect(s.engine.applyIntent(0, {
       type: "attack",
-      attackerPermanentId: s.perm("kekkomon").permanentId,
+      attackerPermanentId: s.perm("liollmon").permanentId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "ST23-02"));
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "ST23-02")).toBe(true);
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "ST23-03"));
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "ST23-03")).toBe(true);
     expect(s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "ST23-13")?.stack.some((card) => card.instanceId === bottomUnderTamer)).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === bottomUnderTamer)).toBe(true);
   });
