@@ -13,6 +13,7 @@ import {
   onDeletion,
   onPlay,
   security,
+  securityStatic,
   staticModifier,
   turnTiming,
   whenAttacking,
@@ -39,6 +40,16 @@ import type { Action, CardEffect } from "@aegis/shared";
  * contributes nothing at any timing for that effect — visible as "none" stub).
  */
 function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
+  // A compound `[Security][Your Turn]`/`[Security][All Turns]` effect is a persistent
+  // watcher while the face-up card remains in security, not the one-shot `[Security]`
+  // skill window. Keep pure security skills on SecuritySkill below, but let the
+  // continuous trigger reach recomputeContinuousEffects so its SubTrigger can arm.
+  if (
+    effect.isSecurity &&
+    (effect.trigger === "YourTurn" || effect.trigger === "OpponentsTurn" || effect.trigger === "AllTurns")
+  ) {
+    return EffectTiming.None;
+  }
   if (effect.isSecurity) return EffectTiming.SecuritySkill;
   // A printed [Your Turn] clause whose payload is an effect-driven digivolution is a
   // player-declared ability, not a continuous modifier. Keep the turn ownership guard from
@@ -247,6 +258,12 @@ function isHandTrashWatcherHost(effect: CardEffect): boolean {
 
 /** Pick the timing builder that matches an IR trigger. */
 export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) => Effect {
+  if (
+    effect.isSecurity &&
+    (effect.trigger === "YourTurn" || effect.trigger === "OpponentsTurn" || effect.trigger === "AllTurns")
+  ) {
+    return securityStatic;
+  }
   if (effect.isSecurity || effect.trigger === "Security") return security;
   if (
     effect.trigger === "YourTurn" &&

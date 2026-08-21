@@ -357,7 +357,8 @@ export const handResidentStatic = (opts: BuilderOptions): Effect => build(opts, 
 export const colorWaiverStatic = (opts: BuilderOptions): Effect => build(opts, { baseGuard: () => true });
 
 /** Persistent effects whose source is a face-up card in the security stack. */
-export const securityStatic = (opts: BuilderOptions): Effect => build(opts, { baseGuard: inFaceUpSecurity });
+export const securityStatic = (opts: BuilderOptions): Effect =>
+  build(opts, { isSecurity: true, baseGuard: inFaceUpSecurity });
 
 /**
  * `[Breeding]`-region resident effects (source effects gated on
