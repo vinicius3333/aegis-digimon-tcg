@@ -1,17 +1,7 @@
 import { describe, it, expect } from "vitest";
-import {
-  EffectTiming,
-  type CardDefinition,
-  type Permanent,
-  type Seat,
-} from "@aegis/shared";
+import { EffectTiming, type CardDefinition, type Permanent, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
-import type {
-  DecisionApi,
-  EffectContext,
-  GameAccess,
-  Primitives,
-} from "../../engine/effects/EffectContext.js";
+import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import "./BT24-017.js";
 
@@ -188,53 +178,44 @@ describe("BT24-017 Medusamon [When Digivolving]", () => {
     for (const t of tokens) expect(t.args[1]).toBe("Petrification Token");
   });
 
-  it(
-    // Q5594 (2026-02-06): the [Petrification] Tokens are played as the OPPONENT's
-    // Digimon. The hand-written override calls playToken with the opponent's seat.
-    "plays the [Petrification] Tokens on the OPPONENT's side (Q5594)",
-    async () => {
-      const recorder: Recorder = { calls: [] };
-      const ctx = makeContext({ recorder, opponentDigimon: 1, opponentTrash: 2 });
-      const effect = module!.effectsForTiming(EffectTiming.WhenDigivolving, makeSource())[0]!;
-      await effect.resolve(ctx);
-      const tokens = recorder.calls.filter((c) => c.verb === "playToken");
-      expect(tokens.length).toBeGreaterThan(0);
-      // Opponent of the owner (seat 0) is seat 1.
-      for (const t of tokens) expect(t.args[0]).toBe(1);
-    },
-  );
+  it(// Q5594 (2026-02-06): the [Petrification] Tokens are played as the OPPONENT's
+  // Digimon. The hand-written override calls playToken with the opponent's seat.
+  "plays the [Petrification] Tokens on the OPPONENT's side (Q5594)", async () => {
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({ recorder, opponentDigimon: 1, opponentTrash: 2 });
+    const effect = module!.effectsForTiming(EffectTiming.WhenDigivolving, makeSource())[0]!;
+    await effect.resolve(ctx);
+    const tokens = recorder.calls.filter((c) => c.verb === "playToken");
+    expect(tokens.length).toBeGreaterThan(0);
+    // Opponent of the owner (seat 0) is seat 1.
+    for (const t of tokens) expect(t.args[0]).toBe(1);
+  });
 
-  it(
-    // Card text: "+2000 DP for each of your opponent's Digimon until their turn ends."
-    // The override scales the DP gain by the live opponent-Digimon count. With 3 opponent
-    // Digimon the gain is 6000.
-    "scales the DP gain by the opponent's Digimon count (+2000 each)",
-    async () => {
-      const recorder: Recorder = { calls: [] };
-      const ctx = makeContext({ recorder, opponentDigimon: 3, opponentTrash: 2 });
-      const effect = module!.effectsForTiming(EffectTiming.WhenDigivolving, makeSource())[0]!;
-      await effect.resolve(ctx);
-      const dp = recorder.calls.filter((c) => c.verb === "modifyDP" && c.args[0] === SELF_PERMANENT);
-      expect(dp).toHaveLength(1);
-      expect(dp[0]!.args[1]).toBe(2000 * 3);
-    },
-  );
+  it(// Card text: "+2000 DP for each of your opponent's Digimon until their turn ends."
+  // The override scales the DP gain by the live opponent-Digimon count. With 3 opponent
+  // Digimon the gain is 6000.
+  "scales the DP gain by the opponent's Digimon count (+2000 each)", async () => {
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({ recorder, opponentDigimon: 3, opponentTrash: 2 });
+    const effect = module!.effectsForTiming(EffectTiming.WhenDigivolving, makeSource())[0]!;
+    await effect.resolve(ctx);
+    const dp = recorder.calls.filter((c) => c.verb === "modifyDP" && c.args[0] === SELF_PERMANENT);
+    expect(dp).toHaveLength(1);
+    expect(dp[0]!.args[1]).toBe(2000 * 3);
+  });
 
-  it(
-    // Q5591/Q5592 (2025-12-25): the tokens are gated behind a "by" cost — returning
-    // exactly 2 cards from the opponent's trash to the BOTTOM of the deck. The override
-    // returns 2 opponent-trash cards to the deck bottom before playing the tokens.
-    "returns 2 cards from the opponent's trash to the deck bottom as the [by] cost",
-    async () => {
-      const recorder: Recorder = { calls: [] };
-      const ctx = makeContext({ recorder, opponentDigimon: 1, opponentTrash: 2 });
-      const effect = module!.effectsForTiming(EffectTiming.WhenDigivolving, makeSource())[0]!;
-      await effect.resolve(ctx);
-      const toDeck = recorder.calls.filter((c) => c.verb === "returnToDeck");
-      expect(toDeck).toHaveLength(1);
-      expect((toDeck[0]!.args[0] as string[]).length).toBe(2);
-      const opts = toDeck[0]!.args[1] as { toTop?: boolean } | undefined;
-      expect(opts?.toTop).toBeFalsy();
-    },
-  );
+  it(// Q5591/Q5592 (2025-12-25): the tokens are gated behind a "by" cost — returning
+  // exactly 2 cards from the opponent's trash to the BOTTOM of the deck. The override
+  // returns 2 opponent-trash cards to the deck bottom before playing the tokens.
+  "returns 2 cards from the opponent's trash to the deck bottom as the [by] cost", async () => {
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({ recorder, opponentDigimon: 1, opponentTrash: 2 });
+    const effect = module!.effectsForTiming(EffectTiming.WhenDigivolving, makeSource())[0]!;
+    await effect.resolve(ctx);
+    const toDeck = recorder.calls.filter((c) => c.verb === "returnToDeck");
+    expect(toDeck).toHaveLength(1);
+    expect((toDeck[0]!.args[0] as string[]).length).toBe(2);
+    const opts = toDeck[0]!.args[1] as { toTop?: boolean } | undefined;
+    expect(opts?.toTop).toBeFalsy();
+  });
 });
