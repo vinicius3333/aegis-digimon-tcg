@@ -153,7 +153,7 @@ export const compiled: CompiledCard = {
           ],
           "payCost": true,
           "optional": true,
-          "costReduction": 3
+          "reduceCostBy": 3
         }
       ]
     },
