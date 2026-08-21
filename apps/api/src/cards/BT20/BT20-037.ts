@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [When Digivolving]: For each level 6 digivolution card, suspend 1 opponent Digimon/Tamer
 // and gain 1 memory. All opponent Digimon and Tamers can't activate [On Play] effects
 // or unsuspend until end of their turn.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
