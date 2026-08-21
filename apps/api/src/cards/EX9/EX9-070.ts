@@ -58,10 +58,21 @@ export const compiled: CompiledCard = {
           "kind": "Digivolve",
           "target": {
             "filter": {
-              "isSelfRef": true
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ],
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "DM"
+                  ],
+                  "match": "trait"
+                }
+              ]
             },
             "count": 1,
-            "isSelf": true
+            "isSelf": false
           },
           "into": {
             "controllerDefault": "mine",
@@ -93,8 +104,10 @@ export const compiled: CompiledCard = {
               "count": 1,
               "from": [
                 "hand"
-              ],
-              "destinationFilter": {
+              ]
+            },
+            "host": {
+              "filter": {
                 "controller": "mine",
                 "kind": [
                   "Digimon"
@@ -107,7 +120,8 @@ export const compiled: CompiledCard = {
                     "match": "trait"
                   }
                 ]
-              }
+              },
+              "count": 1
             },
             "raw": "By placing 1 card from your hand face down as any of your [DM] trait Digimon's bottom digivolution card",
             "destination": "digivolutionStack",
