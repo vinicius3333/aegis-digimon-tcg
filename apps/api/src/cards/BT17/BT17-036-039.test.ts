@@ -9,7 +9,7 @@ describe("BT17-036 through BT17-039", () => {
     expect(boutmon.effects?.[0]).toMatchObject({
       trigger: "AllTurns",
       frequency: "OncePerTurn",
-      actions: [{ kind: "Replacement", event: "wouldLeavePlay", leaveCause: "opponentEffect", cost: { kind: "trashSecurityTop" } }],
+      actions: [{ kind: "Replacement", event: "wouldLeavePlay", leaveCause: "byOpponentEffect", cost: { kind: "trashSecurityTop" } }],
     });
     expect(boutmon.effects?.[1]).toMatchObject({
       trigger: "AllTurns",
