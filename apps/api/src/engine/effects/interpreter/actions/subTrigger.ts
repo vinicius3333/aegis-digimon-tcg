@@ -377,7 +377,14 @@ export async function runSubTrigger(
     event === "whenEffectAddsToHand"
       ? (subCtx: EffectContext): boolean => {
           const seat = subCtx.trigger?.effectAddedToHandSeat;
-          return seat !== undefined && seat === subCtx.source.ownerSeat;
+          if (seat === undefined || seat !== subCtx.source.ownerSeat) return false;
+          if (sourceFilter === undefined) return true;
+          const ids = subCtx.trigger?.addedToHand?.instanceIds ?? [];
+          return ids.some((instanceId) => {
+            const card = findLooseCandidateByInstance(subCtx, instanceId);
+            if (card === undefined) return false;
+            return definitionMatches(sourceFilter, subCtx.game.definitionOf(card));
+          });
         }
       : undefined;
   // `whenEffectAddsToDeck` ("[Your Turn] when your effects add to decks", BT26-015): mirrors
