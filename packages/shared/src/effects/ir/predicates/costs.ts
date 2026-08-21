@@ -58,6 +58,8 @@ export interface Cost {
    * ("by placing up to N cards ... reduce by X for each card placed").
    */
   trackCount?: string;
+  /** Store the distinct colors among cards selected by a return cost for later scaling. */
+  trackColors?: string;
   /** Destination for place costs: "under one of your Tamers" → {controller:"mine",kind:["Tamer"]}. */
   underFilter?: Filter;
   /**
