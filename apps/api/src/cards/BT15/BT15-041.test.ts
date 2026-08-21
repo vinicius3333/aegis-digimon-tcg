@@ -11,8 +11,6 @@ import "../index.js";
 //
 // Primary observable: playing BT15-041 reduces an opp Digimon's DP by 6000.
 //
-// FAILS-WHEN-REVERTED: remove the [On Play] resolve body → opp Digimon DP stays unchanged.
-
 describe("BT15-041 Babamon [On Play] -6000 DP", () => {
   it("playing Babamon reduces 1 opp Digimon's DP by 6000", async () => {
     const s = setup(
@@ -40,9 +38,6 @@ describe("BT15-041 Babamon [On Play] -6000 DP", () => {
 // A3 for BT15-041's [End of Opponent's Turn] clause: "By deleting this Digimon, you may play
 // 1 [Rosemon]/[Jijimon] from your hand without paying the cost. Then, activate the [When
 // Digivolving] effects of the Digimon this effect played."
-//
-// FAILS-WHEN-REVERTED: without `reactivateOnPlay`, the play happens but the played
-// [Rosemon]/[Jijimon]'s [When Digivolving] effect never re-fires.
 //
 // BT1-082 (a real, cataloged Rosemon) is overridden with a synthetic [When Digivolving]
 // effect (gain 1 memory) so the assertion is a simple, self-contained memory delta.
