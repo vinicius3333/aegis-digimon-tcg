@@ -12,6 +12,20 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   "effects": [
     {
+      "trigger": "Static",
+      "actions": [],
+      "keywords": [
+        {
+          "keyword": "Blocker",
+          "raw": "＜Blocker＞"
+        },
+        {
+          "keyword": "Reboot",
+          "raw": "＜Reboot＞"
+        }
+      ]
+    },
+    {
       "trigger": "Hand",
       "actions": [],
       "keywords": [
@@ -59,7 +73,22 @@ const compiled: CompiledCard = {
             },
             "count": 2
           },
-          "restriction": "unsuspendOrDigivolve",
+          "restriction": "unsuspend",
+          "duration": "untilOpponentTurnEnd"
+        },
+        {
+          "kind": "Restrict",
+          "target": {
+            "filter": {
+              "controllerDefault": "opponent",
+              "kind": [
+                "Digimon",
+                "Tamer"
+              ]
+            },
+            "count": 2
+          },
+          "restriction": "digivolve",
           "duration": "untilOpponentTurnEnd"
         }
       ]

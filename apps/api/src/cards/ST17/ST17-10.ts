@@ -85,55 +85,34 @@ const compiled: CompiledCard = {
           "ignoreRequirements": true,
           "optional": true,
           "cost": {
-            "kind": "placeMultiple",
-            "targets": [
+            "kind": "compound",
+            "costs": [
               {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true,
-                "from": [
-                  "battleArea"
-                ]
+                "kind": "place",
+                "target": { "filter": { "isSelfRef": true }, "count": 1, "from": ["battleArea"] },
+                "targetIsPermanent": true,
+                "destination": "digivolutionStack",
+                "host": "target",
+                "underFilter": { "controllerDefault": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Terriermon"], "match": "name" }] },
+                "position": "bottom"
               },
               {
-                "filter": {
-                  "controller": "mine",
-                  "zone": "trash",
-                  "kind": ["Digimon"],
-                  "nameOrTrait": [
-                    {
-                      "tokens": ["Gargomon"],
-                      "match": "name"
-                    }
-                  ]
-                },
-                "count": 1,
-                "from": [
-                  "trash"
-                ]
+                "kind": "place",
+                "target": { "filter": { "controller": "mine", "zone": "trash", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Gargomon"], "match": "name" }] }, "count": 1, "from": ["trash"] },
+                "destination": "digivolutionStack",
+                "host": "target",
+                "underFilter": { "controllerDefault": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Terriermon"], "match": "name" }] },
+                "position": "bottom"
               },
               {
-                "filter": {
-                  "controller": "mine",
-                  "zone": "trash",
-                  "kind": ["Digimon"],
-                  "nameOrTrait": [
-                    {
-                      "tokens": ["Rapidmon"],
-                      "match": "name"
-                    }
-                  ]
-                },
-                "count": 1,
-                "from": [
-                  "trash"
-                ]
+                "kind": "place",
+                "target": { "filter": { "controller": "mine", "zone": "trash", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Rapidmon"], "match": "name" }] }, "count": 1, "from": ["trash"] },
+                "destination": "digivolutionStack",
+                "host": "target",
+                "underFilter": { "controllerDefault": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Terriermon"], "match": "name" }] },
+                "position": "bottom"
               }
             ],
-            "underTargetRef": "terriermon",
-            "position": "bottomDigivolution",
             "raw": "By placing this Tamer and 1 [Gargomon] and 1 [Rapidmon] from your trash in any order as one of your [Terriermon]'s bottom digivolution cards"
           },
           "abortOnDecline": true
@@ -180,9 +159,7 @@ const compiled: CompiledCard = {
     }
   ],
   "coverage": "full",
-  "residual": [
-    "placeMultiple cost kind: places 3 cards (this Tamer + Gargomon + Rapidmon from trash) under one [Terriermon] as bottom digivolution cards. Engine needs multi-target place-as-digivolution cost (spec'd in LANE_A.md)."
-  ]
+  "residual": []
 };
 
 registerIrCard("ST17-10", compiled);
