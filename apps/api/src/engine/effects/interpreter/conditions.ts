@@ -203,7 +203,12 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const seat = cond.seat === "opponent" ? opp : mine;
       const player = ctx.game.player(seat);
       const zone = cond.zone ?? "hand";
-      const size = player[zone].length;
+      const size = zone === "battleArea"
+        ? player.battleArea.filter((permanent) =>
+            permanent.topCard !== undefined &&
+            (cond.filter === undefined || definitionMatches(cond.filter, ctx.game.definitionOf(permanent.topCard))),
+          ).length
+        : player[zone].length;
       const value = cond.value ?? 0;
       if (cond.op === "eq") return size === value;
       if (cond.op === "lt") return size < value;
