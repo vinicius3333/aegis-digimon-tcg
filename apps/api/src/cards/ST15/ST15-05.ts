@@ -23,6 +23,10 @@ const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "whenAttacking",
+          "fireCondition": {
+            "kind": "attackTargetsPlayer",
+            "raw": "this Digimon attacks a player"
+          },
           "actions": [
             {
               "kind": "GainMemory",
