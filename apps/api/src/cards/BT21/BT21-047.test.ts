@@ -18,14 +18,63 @@ describe("BT21-047 compiled implementation", () => {
     }
   });
 
+  it("preserves the Appmon link requirement and linked Piercing keyword", () => {
+    expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 1 }]);
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "Static",
+        isLinked: true,
+        keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }],
+      }),
+    );
+  });
+
+  it("reveals three cards, adds one Appmon and one App Driver, then bottoms the rest", () => {
+    const onPlay = compiled.effects.find((effect) => effect.trigger === "OnPlay");
+    expect(onPlay?.actions).toEqual([
+      {
+        kind: "RevealAdd",
+        revealCount: 3,
+        add: [
+          {
+            filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] },
+            count: 1,
+            to: "hand",
+          },
+          {
+            filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["App Driver"], match: "trait" }] },
+            count: 1,
+            to: "hand",
+          },
+        ],
+        rest: "deckBottom",
+      },
+    ]);
+  });
+
+  it("preserves the zero-cost Appmon alternate Digivolution requirement", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 2, traits: ["Appmon"], cost: 0, isAlternate: true }]);
+  });
+
   it("resolves the public On Play reveal by adding App Driver and Appmon cards", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "BT21-047", as: "navimon" }], deck: [{ card: "BT21-084", as: "appDriver" }, { card: "BT21-097", as: "appmon" }, { card: "BT1-009", as: "rest" }] } },
+      {
+        0: {
+          hand: [{ card: "BT21-047", as: "navimon" }],
+          deck: [
+            { card: "BT21-084", as: "appDriver" },
+            { card: "BT21-097", as: "appmon" },
+            { card: "BT1-009", as: "rest" },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("navimon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("navimon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("appDriver").instanceId));
     expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("appDriver").instanceId)).toBe(true);
     expect(s.state.players[0]!.deck.length + s.state.players[0]!.trash.length).toBe(2);
