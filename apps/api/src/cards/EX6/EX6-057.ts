@@ -162,11 +162,7 @@ const module: EffectModule = {
                 return isDigimon(subCtx.game.definitionOf(subject.topCard));
               },
               run: async (subCtx) => {
-                await subCtx.fx.trashFromSecurity(
-                  ctx.game.opponentOf(source.ownerSeat),
-                  1,
-                  { fromTop: true },
-                );
+                await subCtx.fx.trashFromSecurity(ctx.game.opponentOf(source.ownerSeat), 1, { fromTop: true });
               },
             });
           },
