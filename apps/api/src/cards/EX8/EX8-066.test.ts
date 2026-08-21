@@ -37,4 +37,23 @@ describe("EX8-066", () => {
     expect((s.state.players[1] as PlayerState).security.some((card) => card.instanceId === instanceId)).toBe(false);
     expect(s.state.memory).toBe(memoryBeforeSecurityEffect);
   });
+  it("suspends to trash an opponent's digivolution card when an Ice-Snow Digimon is played", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-066", as: "tamer" }], hand: [{ card: "EX8-019", as: "ice" }] },
+        1: { battleArea: [{ card: "AD1-001", as: "opponent", under: ["BT1-010"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const stackedInstanceId = s.perm("opponent").stack[0]!.instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ice").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").isSuspended && s.perm("opponent").stack.length === 0);
+
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.perm("opponent").stack).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === stackedInstanceId)).toBe(true);
+  });
 });
