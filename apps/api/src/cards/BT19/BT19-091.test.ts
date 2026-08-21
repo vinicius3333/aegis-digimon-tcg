@@ -10,18 +10,20 @@ describe("BT19-091 Trinity Burst!", () => {
     expect(card?.effects).toMatchObject([
       {
         trigger: "Static",
-        actions: [{
-          kind: "WaiveColorRequirement",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          condition: {
-            kind: "youHave",
-            filter: {
-              controllerDefault: "mine",
-              levels: [5],
-              nameOrTrait: [{ tokens: ["WarGrowlmon", "Taomon", "Rapidmon"], match: "name" }],
+        actions: [
+          {
+            kind: "WaiveColorRequirement",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            condition: {
+              kind: "youHave",
+              filter: {
+                controllerDefault: "mine",
+                levels: [5],
+                nameOrTrait: [{ tokens: ["WarGrowlmon", "Taomon", "Rapidmon"], match: "name" }],
+              },
             },
           },
-        }],
+        ],
       },
       {
         trigger: "Main",
@@ -61,20 +63,22 @@ describe("BT19-091 Trinity Burst!", () => {
       {
         trigger: "Security",
         isSecurity: true,
-        actions: [{
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              levels: [5],
-              nameOrTrait: [{ tokens: ["WarGrowlmon", "Taomon", "Rapidmon"], match: "name" }],
+        actions: [
+          {
+            kind: "PlayWithoutCost",
+            target: {
+              filter: {
+                controller: "mine",
+                levels: [5],
+                nameOrTrait: [{ tokens: ["WarGrowlmon", "Taomon", "Rapidmon"], match: "name" }],
+              },
+              count: 1,
             },
-            count: 1,
+            from: ["hand"],
+            payCost: false,
+            optional: true,
           },
-          from: ["hand"],
-          payCost: false,
-          optional: true,
-        }],
+        ],
       },
     ]);
   });
