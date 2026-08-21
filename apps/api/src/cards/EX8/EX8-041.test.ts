@@ -7,6 +7,12 @@ import "../index.js";
 import { compiled } from "./EX8-041.js";
 
 describe("EX8-041", () => {
+  it("inherits Retaliation", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({
+      keyword: "Retaliation",
+      raw: "＜Retaliation＞",
+    }));
+
   it("suspends an opposing Tamer and prevents it from unsuspending on play and digivolving", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([
       { kind: "Suspend", target: { count: 1 } },
