@@ -1,158 +1,110 @@
-import { CardKind, EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { cardHasTrait } from "../../engine/cards/cardData.js";
-import { turnTiming, onPlay, security, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT25-091 — Black Tamer (BT25, Monica Simmons).
-//
-// [Start of Your Turn] If you have 2 or less memory, set your memory to 3.
-// [On Play] You may return 1 [TS] trait Option card from your trash to the hand. If this
-//   effect didn't return, <Draw 1>.
-// [Your Turn] When you use [TS] trait Option cards, by suspending this Tamer, 1 of your
-//   opponent's Digimon can't attack until their turn ends.
-// [Security] Play this card without paying the cost.
-
-const cardId = "BT25-091";
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnStartTurn) {
-      return [
-        turnTiming({
-          source,
-          effectKey: `${cardId}/start-turn-set-memory`,
-          description: "[Start of Your Turn] If you have 2 or less memory, set your memory to 3.",
-          when: (ctx) => ctx.source.isOnBattleArea(),
-          canActivate: (ctx) => {
-            const m = ctx.game.state.memory;
-            const myMemory = ctx.source.ownerSeat === 0 ? m : -m;
-            return myMemory <= 2;
+export const compiled: CompiledCard = {
+  "effects": [
+    {
+      "trigger": "StartOfYourTurn",
+      "actions": [
+        {
+          "kind": "SetMemory",
+          "value": 3,
+          "condition": {
+            "kind": "memoryAtMost",
+            "value": 2
+          }
+        }
+      ]
+    },
+    {
+      "trigger": "OnPlay",
+      "actions": [
+        {
+          "kind": "Return",
+          "target": {
+            "filter": {
+              "zone": "trash",
+              "controller": "mine",
+              "kind": [
+                "Option"
+              ],
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "TS"
+                  ],
+                  "match": "trait"
+                }
+              ]
+            },
+            "count": 1,
+            "upTo": true
           },
-          resolve: async (ctx) => {
-            ctx.fx.setMemory(3);
+          "to": "hand",
+          "optional": false
+        },
+        {
+          "kind": "Draw",
+          "controller": "mine",
+          "amount": 1,
+          "condition": {
+            "kind": "ifThisEffectDidNotAct",
+            "raw": "this effect didn't return"
+          }
+        }
+      ]
+    },
+    {
+      "trigger": "YourTurn",
+      "actions": [
+        {
+          "kind": "SubTrigger",
+          "event": "whenOptionUsed",
+          "optional": true,
+          "fireCondition": {
+            "kind": "triggerOptionMatchesFilter",
+            "filter": {
+              "kind": ["Option"],
+              "nameOrTrait": [{ "tokens": ["TS"], "match": "trait" }]
+            },
+            "raw": "when you use a [TS] trait Option card"
           },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/your-turn-when-ts-option-used`,
-          description:
-            "[Your Turn] When you use a [TS] trait Option card, by suspending this Tamer, 1 of your opponent's Digimon can't attack until their turn ends.",
-          when: (ctx) => ctx.source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "whenOptionUsed",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              oncePerTiming: true,
-              description: `${cardId}: when a [TS] Option is used, suspend this Tamer to restrict an opponent Digimon's attack.`,
-              matches: (subCtx) => {
-                if (!subCtx.source.isOwnersTurn()) return false;
-                const usedId = subCtx.trigger?.subjectPermanentId;
-                if (usedId === undefined) return false;
-                const owner = subCtx.game.player(source.ownerSeat);
-                const cards = [
-                  ...Array.from(owner.trash),
-                  ...Array.from(owner.delay ?? []),
-                  ...Array.from(owner.hand),
-                  ...Array.from(owner.security),
-                  ...(owner.resolvingOption === undefined ? [] : [owner.resolvingOption]),
-                ];
-                const used = cards.find((card) => card.instanceId === usedId);
-                if (used === undefined) return false;
-                const def = subCtx.game.definitionOf(used);
-                return def.kinds?.includes(CardKind.Option) === true && cardHasTrait(def, "TS");
-              },
-              run: async (subCtx) => {
-                const host = subCtx.source.permanent();
-                if (host === undefined || host.isSuspended) return;
-                const opponent = subCtx.game.player(subCtx.game.opponentOf(source.ownerSeat));
-                const targets = opponent.battleArea
-                  .filter((perm) => perm.topCard !== undefined && isDigimon(subCtx.game.definitionOf(perm.topCard)))
-                  .map((perm) => perm.permanentId);
-                if (targets.length === 0) return;
-                const accepted = await subCtx.ask.optional(
-                  subCtx,
-                  "Suspend this Tamer to prevent 1 opponent Digimon from attacking?",
-                );
-                if (!accepted) return;
-                const chosen = await subCtx.ask.chooseTargets(subCtx, { candidates: targets, min: 1, max: 1 });
-                if (chosen.length === 0) return;
-                const suspended = await subCtx.fx.suspend([host.permanentId]);
-                if (!suspended.includes(host.permanentId)) return;
-                subCtx.fx.restrict(chosen[0]!, "attack", EffectDuration.UntilOpponentTurnEnd);
-              },
-            });
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.OnPlay) {
-      return [
-        onPlay({
-          source,
-          effectKey: `${cardId}/on-play`,
-          description:
-            "[On Play] You may return 1 [TS] trait Option card from your trash to the hand. " +
-            "If this effect didn't return, <Draw 1>.",
-          optional: false,
-          resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-
-            const tsOptions = Array.from(owner.trash).filter((card) => {
-              const def = ctx.game.definitionOf(card);
-              return cardHasTrait(def, "TS") && def.kinds?.includes(CardKind.Option);
-            });
-
-            let returned = false;
-
-            if (tsOptions.length > 0) {
-              const chosen = await ctx.ask.selectCards(ctx, {
-                candidates: tsOptions.map((c) => c.instanceId),
-                min: 0,
-                max: 1,
-              });
-              if (chosen.length > 0) {
-                const moved = await ctx.fx.returnToHand(chosen);
-                returned = moved.some((card) => card.instanceId === chosen[0]);
-              }
+          "actions": [
+            {
+              "kind": "Suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true }
+            },
+            {
+              "kind": "Restrict",
+              "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+              "restriction": "attack",
+              "duration": "untilOpponentTurnEnd"
             }
-
-            if (!returned) {
-              await ctx.fx.draw(source.ownerSeat, 1);
-            }
+          ]
+        }
+      ]
+    },
+    {
+      "trigger": "Security",
+      "actions": [
+        {
+          "kind": "PlayWithoutCost",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
           },
-        }),
-      ];
+          "payCost": false
+        }
+      ],
+      "isSecurity": true
     }
-
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security`,
-          description: "[Security] Play this card without paying the cost.",
-          resolve: async (ctx) => {
-            await ctx.fx.playInstances([ctx.source.instanceId], { payCost: false });
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+  ],
+  "coverage": "full",
+  "residual": []
 };
 
-registerCard(module);
-export default module;
+registerIrCard("BT25-091", compiled);

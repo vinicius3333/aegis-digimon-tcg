@@ -662,6 +662,12 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // with a cost of 2 or more"). KB Q5471-Q5473: the gate reads the card's cost itself, not a
       // paid/reduced cost. Unset payload (cost unknown) is conservative => does not fire.
       return (ctx.trigger.usedOptionCost ?? -1) >= (cond.value ?? 0);
+    case "triggerOptionMatchesFilter": {
+      const instanceId = ctx.trigger.subjectPermanentId;
+      if (instanceId === undefined || cond.filter === undefined) return false;
+      const candidate = findLooseCandidateByInstance(ctx, instanceId);
+      return candidate !== undefined && definitionMatches(cond.filter, ctx.game.definitionOf({ cardId: candidate.cardId }));
+    }
     case "triggerSubjectHasColor":
       // whenPlayed/whenOneOfYoursDigivolves fire-time gate: the permanent that drove the event
       // (TriggerInfo.subjectPermanentId) has one of `filter.colors` on its top card. Read at
