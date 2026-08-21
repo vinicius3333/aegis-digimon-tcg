@@ -7,7 +7,7 @@ import { onPlay, whenDigivolving, staticModifier } from "../../engine/effects/bu
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**
- * EX12-048 — SeitenGokuumon (EX12, Red Lv.7 Digimon).
+ * EX12-048 — SeitenGokuumon (EX12, multicolor Lv.6 Digimon).
  *
  *
  * Alt digivolve: from Lv.5 [Gokuumon] text or [Shambala] trait at cost 3 (in digivolutionRequirement).
@@ -26,15 +26,10 @@ import { registerCard } from "../../engine/effects/registry.js";
 const cardId = "EX12-048";
 
 function hasGokuumonOrSW(def: CardDefinition): boolean {
-  const haystack = [
-    def.nameEn,
-    def.effectText,
-    def.inheritedEffectText,
-    def.securityEffectText,
-    ...(def.types ?? []),
-  ];
-  return haystack.some(
-    (t) => t !== undefined && (t.toLowerCase().includes("gokuumon") || t.includes("SW")),
+  const haystack = [def.nameEn, def.effectText, def.inheritedEffectText, def.securityEffectText];
+  return (
+    haystack.some((t) => t !== undefined && t.toLowerCase().includes("gokuumon")) ||
+    (def.types ?? []).some((type) => type.toLowerCase() === "sw")
   );
 }
 
@@ -156,8 +151,7 @@ const module: EffectModule = {
               sourcePermanentId: self.permanentId,
               mode: "instead",
               description: `${cardId}: play up to 2 matching stack cards when leaving`,
-              oncePerTurnKey: `${cardId}/would-leave-play-digivolution-cards`,
-              causeAllows: (_cause, resolvingSeat) => resolvingSeat !== source.ownerSeat,
+              causeAllows: (cause, resolvingSeat) => cause !== "byEffect" || resolvingSeat !== source.ownerSeat,
               appliesTo: (_subCtx, leavingPermanentId) => leavingPermanentId === self.permanentId,
               apply: async (subCtx) => {
                 const stackCandidates = self.stack.filter((card: CardInstance) => {
@@ -165,9 +159,12 @@ const module: EffectModule = {
                   return def.level === 5 && hasGokuumonOrSW(def);
                 });
                 if (stackCandidates.length === 0) return;
-                if (!(await subCtx.ask.optional(subCtx, "Play matching cards from this Digimon's digivolution cards?"))) return;
+                if (!(await subCtx.ask.optional(subCtx, "Play matching cards from this Digimon's digivolution cards?")))
+                  return;
                 const chosen = await subCtx.ask.selectCards(subCtx, {
-                  candidates: stackCandidates.map((card) => card.instanceId), min: 0, max: 2,
+                  candidates: stackCandidates.map((card) => card.instanceId),
+                  min: 0,
+                  max: 2,
                 });
                 if (chosen.length > 0) await subCtx.fx.playInstances(chosen, { payCost: false });
               },

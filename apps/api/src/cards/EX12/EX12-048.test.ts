@@ -4,13 +4,16 @@ import type { CardInstance, Permanent } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import "./EX12-048.js";
 import { hasGokuumonOrSW } from "./EX12-048.js";
 
 // A3 for EX12-048 (SeitenGokuumon, EX12 Red Lv.7):
 //   [Static] ＜Rush＞, ＜Raid＞, ＜Piercing＞, ＜Security Attack +1＞
 //   [On Play] / [When Digivolving]: -8000 DP (+ -3000 per Lv.5 stack) on 1 opp Digimon + optional attack
-//   [All Turns] RESIDUAL: leave-play replacement (needs "run-then-depart" mode)
+//   [All Turns] When this Digimon would leave by a cause other than its owner's effect, play up
+//   to 2 matching level-5 cards from its digivolution cards without paying their costs.
 
 const cardId = "EX12-048";
 
@@ -25,7 +28,12 @@ function makePerm(opts: { cardId?: string; seat?: number; stackLevels?: number[]
   seq++;
   const stackCards = (opts.stackLevels ?? []).map((lvl) => {
     seq++;
-    return { instanceId: `stack-i${seq}`, cardId: `LV${lvl}-CARD`, ownerSeat: opts.seat ?? 0, faceUp: true } as unknown as CardInstance;
+    return {
+      instanceId: `stack-i${seq}`,
+      cardId: `LV${lvl}-CARD`,
+      ownerSeat: opts.seat ?? 0,
+      faceUp: true,
+    } as unknown as CardInstance;
   });
   return {
     permanentId: `p${seq}`,
@@ -93,17 +101,46 @@ describe("EX12-048 module structure", () => {
 
 describe("hasGokuumonOrSW helper", () => {
   it("returns true for a card with Gokuumon in nameEn", () => {
-    const def = { nameEn: "Gokuumon", kinds: ["Digimon"], colors: [], playCost: 5, dp: 4000, evoCosts: [], maxCountInDeck: 4, set: "T" } as never;
+    const def = {
+      nameEn: "Gokuumon",
+      kinds: ["Digimon"],
+      colors: [],
+      playCost: 5,
+      dp: 4000,
+      evoCosts: [],
+      maxCountInDeck: 4,
+      set: "T",
+    } as never;
     expect(hasGokuumonOrSW(def)).toBe(true);
   });
 
   it("returns true for a card with SW trait", () => {
-    const def = { nameEn: "SomeCard", types: ["SW"], kinds: ["Digimon"], colors: [], playCost: 5, dp: 4000, evoCosts: [], maxCountInDeck: 4, set: "T" } as never;
+    const def = {
+      nameEn: "SomeCard",
+      types: ["SW"],
+      kinds: ["Digimon"],
+      colors: [],
+      playCost: 5,
+      dp: 4000,
+      evoCosts: [],
+      maxCountInDeck: 4,
+      set: "T",
+    } as never;
     expect(hasGokuumonOrSW(def)).toBe(true);
   });
 
   it("returns false for an unrelated card", () => {
-    const def = { nameEn: "Agumon", types: ["Dragon"], kinds: ["Digimon"], colors: [], playCost: 3, dp: 2000, evoCosts: [], maxCountInDeck: 4, set: "T" } as never;
+    const def = {
+      nameEn: "Agumon",
+      types: ["Dragon"],
+      kinds: ["Digimon"],
+      colors: [],
+      playCost: 3,
+      dp: 2000,
+      evoCosts: [],
+      maxCountInDeck: 4,
+      set: "T",
+    } as never;
     expect(hasGokuumonOrSW(def)).toBe(false);
   });
 });
@@ -136,8 +173,13 @@ describe("EX12-048 On Play: DP reduction on opponent Digimon + optional attack",
         },
       } as never,
       fx: {
-        modifyDP: (permanentId: string, delta: number) => { dpMods.push({ permanentId, delta }); },
-        forceAttack: (permanentId: string) => { forced.push(permanentId); return Promise.resolve(); },
+        modifyDP: (permanentId: string, delta: number) => {
+          dpMods.push({ permanentId, delta });
+        },
+        forceAttack: (permanentId: string) => {
+          forced.push(permanentId);
+          return Promise.resolve();
+        },
       } as never,
       ask: {
         chooseTargets: async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!],
@@ -177,7 +219,9 @@ describe("EX12-048 On Play: DP reduction on opponent Digimon + optional attack",
         },
       } as never,
       fx: {
-        modifyDP: (permanentId: string, delta: number) => { dpMods.push({ permanentId, delta }); },
+        modifyDP: (permanentId: string, delta: number) => {
+          dpMods.push({ permanentId, delta });
+        },
         forceAttack: () => Promise.resolve(),
       } as never,
       ask: {
@@ -209,11 +253,14 @@ describe("EX12-048 On Play: DP reduction on opponent Digimon + optional attack",
         },
         opponentOf: (s: number) => (s === 0 ? 1 : 0),
         permanentById: () => undefined,
-        definitionOf: () => ({ kinds: ["Digimon"] } as never),
+        definitionOf: () => ({ kinds: ["Digimon"] }) as never,
       } as never,
       fx: {
         modifyDP: () => {},
-        forceAttack: (permanentId: string) => { forced.push(permanentId); return Promise.resolve(); },
+        forceAttack: (permanentId: string) => {
+          forced.push(permanentId);
+          return Promise.resolve();
+        },
       } as never,
       ask: {
         chooseTargets: async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!],
@@ -227,11 +274,43 @@ describe("EX12-048 On Play: DP reduction on opponent Digimon + optional attack",
   });
 });
 
-// ── RESIDUAL: AllTurns leave-play replacement ────────────────────────────────
+describe("EX12-048 leave-play replacement", () => {
+  it("plays two matching level-5 SW cards from the stack when an opponent effect removes it", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "source", under: ["EX12-015", "EX12-029"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
 
-describe("EX12-048 [All Turns] RESIDUAL", () => {
-  it("does not emit effects at OnLeaveFieldAnyone (leave-play replacement is RESIDUAL)", () => {
-    const effects = requireMod().effectsForTiming(EffectTiming.OnLeaveFieldAnyone, makeSource(makePerm()));
-    expect(effects).toHaveLength(0);
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === cardId)).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.filter((permanent) =>
+        ["EX12-015", "EX12-029"].includes(permanent.topCard?.cardId ?? ""),
+      ),
+    ).toHaveLength(2);
+  });
+
+  it("does not activate for a removal driven by the owner's effect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "source", under: ["EX12-015", "EX12-029"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === cardId)).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.filter((permanent) =>
+        ["EX12-015", "EX12-029"].includes(permanent.topCard?.cardId ?? ""),
+      ),
+    ).toHaveLength(0);
   });
 });
