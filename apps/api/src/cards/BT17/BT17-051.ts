@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",
@@ -38,37 +38,11 @@ const compiled: CompiledCard = {
           "optional": true
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1,
-            "countModifier": {
-              "amount": 1,
-              "scaling": {
-                "per": 2,
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Argomon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
-                },
-                "unit": "digivolutionCards"
-              }
-            }
-          },
+          "kind": "DeleteLevelBudget",
+          "filter": {"controller": "opponent", "kind": ["Digimon"], "hasLevel": true},
+          "baseBudget": 4,
+          "upTo": true,
+          "scaling": {"per": 2, "filter": {"controllerDefault": "mine", "nameOrTrait": [{"tokens": ["Argomon"], "match": "name"}]}, "unit": "digivolutionCards", "budgetAdd": 1},
           "optional": true
         }
       ]
@@ -104,37 +78,11 @@ const compiled: CompiledCard = {
           "optional": true
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1,
-            "countModifier": {
-              "amount": 1,
-              "scaling": {
-                "per": 2,
-                "filter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Argomon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
-                },
-                "unit": "digivolutionCards"
-              }
-            }
-          },
+          "kind": "DeleteLevelBudget",
+          "filter": {"controller": "opponent", "kind": ["Digimon"], "hasLevel": true},
+          "baseBudget": 4,
+          "upTo": true,
+          "scaling": {"per": 2, "filter": {"controllerDefault": "mine", "nameOrTrait": [{"tokens": ["Argomon"], "match": "name"}]}, "unit": "digivolutionCards", "budgetAdd": 1},
           "optional": true
         }
       ]
@@ -175,7 +123,7 @@ const compiled: CompiledCard = {
       "trigger": "OpponentsTurn",
       "actions": [
         {
-          "kind": "Unsuspend",
+          "kind": "Restrict",
           "target": {
             "filter": {
               "controller": "opponent",
@@ -183,8 +131,10 @@ const compiled: CompiledCard = {
                 "Tamer"
               ]
             },
-            "count": 1
-          }
+            "count": "all"
+          },
+          "restriction": "unsuspend",
+          "duration": "untilOpponentTurnEnd"
         }
       ]
     }
