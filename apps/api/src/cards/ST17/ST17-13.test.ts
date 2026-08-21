@@ -66,7 +66,8 @@ describe("ST17-13 Magnamon [When Digivolving] — trash digi-cards per color, bo
     await settle(() => oppDigimon.stack.length < initialStack && p1.battleArea.length < initialOppBattleCount, 800);
 
     // The 2-color opponent Digimon should have lost at least 1 digi-card (ideally 2).
-    expect(oppDigimon.stack.length).toBeLessThan(initialStack);
+    expect(oppDigimon.stack.length).toBe(initialStack - 2);
+    expect(p1.trash.filter((card) => ["BT1-002", "BT1-003"].includes(card.cardId))).toHaveLength(2);
 
     // The no-stack opponent Digimon should have been returned to p1's hand.
     expect(p1.battleArea.some((p) => p.permanentId === bounceTarget.permanentId)).toBe(false);
@@ -99,5 +100,25 @@ describe("ST17-13 Magnamon [Security] — end of security battle digivolution", 
     await settle(() => s.perm("veemon").topCard.cardId === "ST17-13", 3000);
     expect(s.perm("veemon").topCard.cardId).toBe("ST17-13");
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT11-023")).toBe(false);
+  });
+
+  it("de-digivolves the attacking Digimon before the security battle continues", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST8-09", as: "attacker", dp: 12000, under: ["BT1-001"] }] },
+        1: { security: [{ card: "ST17-13", as: "magnamon" }] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+
+    await settle(() => s.perm("attacker").stack.length === 0, 3000);
+    expect(s.perm("attacker").stack).toHaveLength(0);
   });
 });
