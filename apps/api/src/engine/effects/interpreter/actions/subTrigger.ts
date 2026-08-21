@@ -771,6 +771,7 @@ export async function runGainTriggeredEffect(
   action: Extract<Action, { kind: "GainTriggeredEffect" }>,
 ): Promise<void> {
   const event = SUBTRIGGER_EVENT_MAP[action.gainedTrigger];
+  const sourceFilter = action.sourceFilter;
   if (event === undefined) {
     unsupported(
       ctx,
