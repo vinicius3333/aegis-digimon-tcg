@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type Seat } from "@aegis/shared";
 import { setupEngine, type BoardSpec, type EngineSetup } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT20-089.js";
 import "../index.js";
 
 // A3 for BT20-089 (Code Cracker Fang & Hacker Judge — Purple/Black Tamer).
@@ -59,6 +60,15 @@ async function driveTurn(h: Harness, seat: Seat): Promise<void> {
 }
 
 describe("BT20-089 Code Cracker Fang & Hacker Judge — Tamer effects", () => {
+  it("encodes the rule name, Mind Link, inherited keywords, Eiji recursion, and Security clauses", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects.find((effect) => effect.trigger === "Rule")).toMatchObject({ actions: [{ kind: "GrantStatic", grant: "name" }] });
+    expect(compiled.effects.filter((effect) => effect.isInherited)).toHaveLength(3);
+    expect(compiled.effects.find((effect) => effect.trigger === "StartOfYourMainPhase")).toMatchObject({ actions: [{ kind: "GainMemory", amount: 1 }] });
+    expect(compiled.effects.find((effect) => effect.trigger === "Security")).toMatchObject({ isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] });
+  });
+
   it("[Start of Your Main Phase] gains 1 memory when opponent has a Digimon", async () => {
     const h = harness({
       // Place CC Fang on seat 0's battle area.
