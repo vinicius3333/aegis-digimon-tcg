@@ -8,7 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [End of All Turns] [Once Per Turn] "Delete all Digimon with the lowest level" —
 // targets ALL Digimon (both players), superlative lowestLevel.
 // KB Q4408: must return exactly 3 cards (partial payment fails the condition).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
