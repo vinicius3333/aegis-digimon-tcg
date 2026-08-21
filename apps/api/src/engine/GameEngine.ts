@@ -685,6 +685,7 @@ export class GameEngine {
       },
       controllerSeat: () => this.state.turnSeat,
       inContinuousPass: () => this.continuousMode,
+      inResolvingWindow: () => this.activeWindowToken !== undefined,
       barrierFired: (key) => this.tracker.count(key, "replacement") > 0,
       markBarrierFired: (key) => this.tracker.register(key, "replacement"),
     });
