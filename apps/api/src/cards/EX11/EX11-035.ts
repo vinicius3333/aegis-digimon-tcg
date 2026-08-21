@@ -9,6 +9,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     says "For each suspended Digimon" with no controller restriction.
 
 const compiled: CompiledCard = {
+  "digivolutionRequirement": [
+    { "level": 5, "cost": 3, "isAlternate": true }
+  ],
   "effects": [
     {
       "trigger": "Static",
@@ -115,26 +118,18 @@ const compiled: CompiledCard = {
                 "hand"
               ],
               "payCost": false,
-              "optional": true
+              "optional": true,
+              "dpCeilingModifier": {
+                "mode": "raiseCeiling",
+                "amount": 2000,
+                "scaling": {
+                  "per": 1,
+                  "filter": { "controllerDefault": "any", "suspended": true, "kind": ["Digimon"] },
+                  "unit": "cards"
+                }
+              }
             }
           ]
-        },
-        {
-          "kind": "CostModifier",
-          "mode": "raiseCeiling",
-          "costType": "dp",
-          "amount": 2000,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "any",
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "unit": "cards"
-          }
         }
       ],
       "frequency": "OncePerTurn"
