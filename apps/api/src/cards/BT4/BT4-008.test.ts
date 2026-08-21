@@ -9,17 +9,29 @@ describe("BT4-008 Agumon", () => {
   it("returns itself to hand after it is trashed for its host's Digi-Burst", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT4-012", as: "host", under: [{ card: "BT1-001" }, { card: "BT4-008", as: "agumon" }] }] },
+        0: {
+          battleArea: [
+            { card: "BT4-012", as: "host", under: [{ card: "BT1-001" }, { card: "BT4-008", as: "agumon" }] },
+          ],
+        },
         1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "target" }] },
       },
       { autoSelectCards: true },
     );
     await s.engine.recomputeContinuousEffects();
     const source = (s.engine as any).cardSourceOf(s.perm("host").topCard!);
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((e) => e.effectKey.startsWith("BT4-012/"))?.effectKey;
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((e) =>
+      e.effectKey.startsWith("BT4-012/"),
+    )?.effectKey;
     expect(effectKey).toBeDefined();
 
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: s.perm("host").topCard!.instanceId, effectKey: effectKey! })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("host").topCard!.instanceId,
+        effectKey: effectKey!,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("agumon").instanceId));
 
     expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("agumon").instanceId)).toBe(true);
