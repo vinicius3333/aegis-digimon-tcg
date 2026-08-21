@@ -198,49 +198,43 @@ describe("P-103 (Offense Training)", () => {
     expect(reveals[0]!.args[1]).toBe(2);
   });
 
-  it(
-    // Printed text: "...Then, place this card into your battle area." documented behavior confirms this is
-    // `PlaceDelayOptionCards` — a genuine self-play onto the battle area, not a keyword grant.
-    // Previously this clause emitted a self-targeted permanent Delay GainKeyword as a stand-in
-    // (an undocumented residual) and a spurious `Return` from trash that has no basis in the
-    // printed text or the documented behavior source. Now it must call fx.placeOptionAsPermanent and nothing else.
-    "OnUseOption places this card into the battle area (self-play), not a Delay GainKeyword",
-    async () => {
-      const source = makeSource();
-      const effects = module!.effectsForTiming(EffectTiming.OnUseOption, source);
-      const recorder: Recorder = { calls: [] };
-      const ctx = makeContext({ recorder });
-      await effects[0]!.resolve(ctx);
+  it(// Printed text: "...Then, place this card into your battle area." documented behavior confirms this is
+  // `PlaceDelayOptionCards` — a genuine self-play onto the battle area, not a keyword grant.
+  // Previously this clause emitted a self-targeted permanent Delay GainKeyword as a stand-in
+  // and a spurious `Return` from trash that has no basis in the
+  // printed text or the documented behavior source. Now it must call fx.placeOptionAsPermanent and nothing else.
+  "OnUseOption places this card into the battle area (self-play), not a Delay GainKeyword", async () => {
+    const source = makeSource();
+    const effects = module!.effectsForTiming(EffectTiming.OnUseOption, source);
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({ recorder });
+    await effects[0]!.resolve(ctx);
 
-      const placements = recorder.calls.filter((c) => c.verb === "placeOptionAsPermanent");
-      expect(placements).toHaveLength(1);
-      expect(placements[0]!.args[0]).toBe(source.instanceId);
+    const placements = recorder.calls.filter((c) => c.verb === "placeOptionAsPermanent");
+    expect(placements).toHaveLength(1);
+    expect(placements[0]!.args[0]).toBe(source.instanceId);
 
-      // No stand-in Delay grant and no unfounded return-from-trash.
-      expect(recorder.calls.some((c) => c.verb === "grantKeyword")).toBe(false);
-      expect(recorder.calls.some((c) => c.verb === "returnToHand")).toBe(false);
-    },
-  );
+    // No stand-in Delay grant and no unfounded return-from-trash.
+    expect(recorder.calls.some((c) => c.verb === "grantKeyword")).toBe(false);
+    expect(recorder.calls.some((c) => c.verb === "returnToHand")).toBe(false);
+  });
 
-  it(
-    // securityEffectText: "[Security] Place this card in the battle area." — an unconditional
-    // placement (documented behavior PlaceSelfDelayOptionSecurityEffect), not a for-the-turn Delay grant. The
-    // card's own ＜Delay＞ ability lives on the second [Main] clause, activated later by
-    // trashing the placed permanent — it is not re-granted here.
-    "SecuritySkill places this card into the battle area, not a for-the-turn Delay GainKeyword",
-    async () => {
-      const source = makeSource();
-      const effects = module!.effectsForTiming(EffectTiming.SecuritySkill, source);
-      expect(effects.length).toBeGreaterThanOrEqual(1);
-      const recorder: Recorder = { calls: [] };
-      const ctx = makeContext({ recorder });
-      await effects[0]!.resolve(ctx);
+  it(// securityEffectText: "[Security] Place this card in the battle area." — an unconditional
+  // placement (documented behavior PlaceSelfDelayOptionSecurityEffect), not a for-the-turn Delay grant. The
+  // card's own ＜Delay＞ ability lives on the second [Main] clause, activated later by
+  // trashing the placed permanent — it is not re-granted here.
+  "SecuritySkill places this card into the battle area, not a for-the-turn Delay GainKeyword", async () => {
+    const source = makeSource();
+    const effects = module!.effectsForTiming(EffectTiming.SecuritySkill, source);
+    expect(effects.length).toBeGreaterThanOrEqual(1);
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({ recorder });
+    await effects[0]!.resolve(ctx);
 
-      const placements = recorder.calls.filter((c) => c.verb === "placeOptionAsPermanent");
-      expect(placements).toHaveLength(1);
-      expect(recorder.calls.some((c) => c.verb === "grantKeyword")).toBe(false);
-    },
-  );
+    const placements = recorder.calls.filter((c) => c.verb === "placeOptionAsPermanent");
+    expect(placements).toHaveLength(1);
+    expect(recorder.calls.some((c) => c.verb === "grantKeyword")).toBe(false);
+  });
 
   // Both [Main] effects map to OnDeclaration, so the <Delay> digivolve clause must be
   // selected by its action shape (not effects[0], the reveal clause), and a board Digimon
@@ -265,100 +259,91 @@ describe("P-103 (Offense Training)", () => {
     return effect!;
   }
 
-  it(
-    // Comprehensive rules §16-17-1: activating ＜Delay＞ costs trashing THIS card (the option
-    // permanent placed by the first [Main] clause) — the documented behavior source deletes
-    // `card.PermanentOfThisCard()`. Previously the IR mis-encoded this as `Delete{kind:
-    // ["Digimon"]}`, which would trash an arbitrary Digimon target instead of the source
-    // option itself. Now the trash-cost comes from the effect's declared `keywords: [Delay]`
-    // going through the interpreter's OnDeclaration Delay branch, which deletes
-    // `ctx.source.permanent()` — proven here by asserting deletePermanent is called with the
-    // SOURCE's own permanentId, not a selected Digimon's.
-    "OnDeclaration <Delay> trashes the source option permanent itself as the activation cost (rules §16-17-1)",
-    async () => {
-      const recorder: Recorder = { calls: [] };
-      const redDigimon = { instanceId: "INST#RED-COST", cardId: "RED-DIGIMON-COST", ownerSeat: 0 as Seat };
+  it(// Comprehensive rules §16-17-1: activating ＜Delay＞ costs trashing THIS card (the option
+  // permanent placed by the first [Main] clause) — the documented behavior source deletes
+  // `card.PermanentOfThisCard()`. Previously the IR mis-encoded this as `Delete{kind:
+  // ["Digimon"]}`, which would trash an arbitrary Digimon target instead of the source
+  // option itself. Now the trash-cost comes from the effect's declared `keywords: [Delay]`
+  // going through the interpreter's OnDeclaration Delay branch, which deletes
+  // `ctx.source.permanent()` — proven here by asserting deletePermanent is called with the
+  // SOURCE's own permanentId, not a selected Digimon's.
+  "OnDeclaration <Delay> trashes the source option permanent itself as the activation cost (rules §16-17-1)", async () => {
+    const recorder: Recorder = { calls: [] };
+    const redDigimon = { instanceId: "INST#RED-COST", cardId: "RED-DIGIMON-COST", ownerSeat: 0 as Seat };
 
-      const ctx = makeContext({
-        recorder,
-        hand: [redDigimon],
-        battleArea: [boardDigimon()],
-        definitionOverrides: {
-          "OWN-BASE": { kinds: ["Digimon"] as never, colors: ["Red"] as never },
-          "RED-DIGIMON-COST": { kinds: ["Digimon"] as never, colors: ["Red"] as never },
-        },
-      });
+    const ctx = makeContext({
+      recorder,
+      hand: [redDigimon],
+      battleArea: [boardDigimon()],
+      definitionOverrides: {
+        "OWN-BASE": { kinds: ["Digimon"] as never, colors: ["Red"] as never },
+        "RED-DIGIMON-COST": { kinds: ["Digimon"] as never, colors: ["Red"] as never },
+      },
+    });
 
-      await digivolveClause().resolve(ctx);
+    await digivolveClause().resolve(ctx);
 
-      const deletes = recorder.calls.filter((c) => c.verb === "deletePermanent");
-      expect(deletes).toHaveLength(1);
-      expect(deletes[0]!.args[0]).toEqual([SOURCE_PERMANENT_ID]);
-      // The board Digimon that digivolves must NOT be the one trashed as the Delay cost.
-      expect(deletes[0]!.args[0]).not.toEqual(["OWN-DIGI"]);
-    },
-  );
+    const deletes = recorder.calls.filter((c) => c.verb === "deletePermanent");
+    expect(deletes).toHaveLength(1);
+    expect(deletes[0]!.args[0]).toEqual([SOURCE_PERMANENT_ID]);
+    // The board Digimon that digivolves must NOT be the one trashed as the Delay cost.
+    expect(deletes[0]!.args[0]).not.toEqual(["OWN-DIGI"]);
+  });
 
-  it(
-    // Q4188: digivolution into the P-103 <Delay> effect must respect digivolution
-    // requirements, including card color (documented behavior CanSelectCardCondition: IsDigimon &&
-    // HasCardColor(Red)). Now PASSES: the IR override sets the Digivolve `into` filter to
-    // `{ kind: ["Digimon"], colors: ["Red"] }`, so digivolveFromInstance is invoked with
-    // the red instance in hand, never the blue one.
-    "OnDeclaration <Delay> only digivolves into a RED Digimon in hand (Q4188 / documented behavior HasCardColor(Red))",
-    async () => {
-      const recorder: Recorder = { calls: [] };
-      const redDigimon = { instanceId: "INST#RED", cardId: "RED-DIGIMON", ownerSeat: 0 as Seat };
-      const blueDigimon = { instanceId: "INST#BLUE", cardId: "BLUE-DIGIMON", ownerSeat: 0 as Seat };
+  it(// Q4188: digivolution into the P-103 <Delay> effect must respect digivolution
+  // requirements, including card color (documented behavior CanSelectCardCondition: IsDigimon &&
+  // HasCardColor(Red)). Now PASSES: the IR override sets the Digivolve `into` filter to
+  // `{ kind: ["Digimon"], colors: ["Red"] }`, so digivolveFromInstance is invoked with
+  // the red instance in hand, never the blue one.
+  "OnDeclaration <Delay> only digivolves into a RED Digimon in hand (Q4188 / documented behavior HasCardColor(Red))", async () => {
+    const recorder: Recorder = { calls: [] };
+    const redDigimon = { instanceId: "INST#RED", cardId: "RED-DIGIMON", ownerSeat: 0 as Seat };
+    const blueDigimon = { instanceId: "INST#BLUE", cardId: "BLUE-DIGIMON", ownerSeat: 0 as Seat };
 
-      const ctx = makeContext({
-        recorder,
-        hand: [redDigimon, blueDigimon],
-        battleArea: [boardDigimon()],
-        definitionOverrides: {
-          "OWN-BASE": { kinds: ["Digimon"] as never, colors: ["Red"] as never },
-          "RED-DIGIMON": { kinds: ["Digimon"] as never, colors: ["Red"] as never },
-          "BLUE-DIGIMON": { kinds: ["Digimon"] as never, colors: ["Blue"] as never },
-        },
-      });
+    const ctx = makeContext({
+      recorder,
+      hand: [redDigimon, blueDigimon],
+      battleArea: [boardDigimon()],
+      definitionOverrides: {
+        "OWN-BASE": { kinds: ["Digimon"] as never, colors: ["Red"] as never },
+        "RED-DIGIMON": { kinds: ["Digimon"] as never, colors: ["Red"] as never },
+        "BLUE-DIGIMON": { kinds: ["Digimon"] as never, colors: ["Blue"] as never },
+      },
+    });
 
-      await digivolveClause().resolve(ctx);
+    await digivolveClause().resolve(ctx);
 
-      const digivolves = recorder.calls.filter((c) => c.verb === "digivolveFromInstance");
-      expect(digivolves).toHaveLength(1);
-      expect(digivolves[0]!.args[1]).toBe(redDigimon.instanceId);
-      expect(digivolves[0]!.args[1]).not.toBe(blueDigimon.instanceId);
-    },
-  );
+    const digivolves = recorder.calls.filter((c) => c.verb === "digivolveFromInstance");
+    expect(digivolves).toHaveLength(1);
+    expect(digivolves[0]!.args[1]).toBe(redDigimon.instanceId);
+    expect(digivolves[0]!.args[1]).not.toBe(blueDigimon.instanceId);
+  });
 
-  it(
-    // documented behavior DigivolveIntoHandOrTrashCard: reduceCostTuple = (reduceCost: 2, reduceCostCardCondition: null).
-    // Now PASSES: runDigivolve forwards the IR's costDelta:-2 to digivolveFromInstance, which
-    // applies it to the paid digivolution cost (floored at 0).
-    "OnDeclaration <Delay> reduces the digivolution cost by 2 (documented behavior reduceCostTuple reduceCost:2)",
-    async () => {
-      const recorder: Recorder = { calls: [] };
-      const redDigimon = { instanceId: "INST#RED2", cardId: "RED-DIGIMON2", ownerSeat: 0 as Seat };
+  it(// documented behavior DigivolveIntoHandOrTrashCard: reduceCostTuple = (reduceCost: 2, reduceCostCardCondition: null).
+  // Now PASSES: runDigivolve forwards the IR's costDelta:-2 to digivolveFromInstance, which
+  // applies it to the paid digivolution cost (floored at 0).
+  "OnDeclaration <Delay> reduces the digivolution cost by 2 (documented behavior reduceCostTuple reduceCost:2)", async () => {
+    const recorder: Recorder = { calls: [] };
+    const redDigimon = { instanceId: "INST#RED2", cardId: "RED-DIGIMON2", ownerSeat: 0 as Seat };
 
-      const ctx = makeContext({
-        recorder,
-        hand: [redDigimon],
-        battleArea: [boardDigimon()],
-        definitionOverrides: {
-          "OWN-BASE": { kinds: ["Digimon"] as never, colors: ["Red"] as never },
-          "RED-DIGIMON2": { kinds: ["Digimon"] as never, colors: ["Red"] as never },
-        },
-      });
+    const ctx = makeContext({
+      recorder,
+      hand: [redDigimon],
+      battleArea: [boardDigimon()],
+      definitionOverrides: {
+        "OWN-BASE": { kinds: ["Digimon"] as never, colors: ["Red"] as never },
+        "RED-DIGIMON2": { kinds: ["Digimon"] as never, colors: ["Red"] as never },
+      },
+    });
 
-      await digivolveClause().resolve(ctx);
+    await digivolveClause().resolve(ctx);
 
-      const digivolves = recorder.calls.filter((c) => c.verb === "digivolveFromInstance");
-      expect(digivolves.length).toBeGreaterThanOrEqual(1);
-      // The third arg is opts; opts.costDelta should carry -2 from the IR's DigivolveAction.
-      const opts = digivolves[0]!.args[2] as Record<string, unknown> | undefined;
-      expect(opts?.costDelta).toBe(-2);
-    },
-  );
+    const digivolves = recorder.calls.filter((c) => c.verb === "digivolveFromInstance");
+    expect(digivolves.length).toBeGreaterThanOrEqual(1);
+    // The third arg is opts; opts.costDelta should carry -2 from the IR's DigivolveAction.
+    const opts = digivolves[0]!.args[2] as Record<string, unknown> | undefined;
+    expect(opts?.costDelta).toBe(-2);
+  });
 
   it("OnDeclaration <Delay> does NOT digivolve when the player declines (Q4191: choosing not to is allowed)", async () => {
     // Q4191: "Can I activate this card's <Delay> effect but choose to not digivolve? Yes, you can."
