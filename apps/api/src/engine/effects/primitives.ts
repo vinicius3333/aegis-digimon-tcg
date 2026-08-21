@@ -3770,6 +3770,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     });
   };
 
+  const grantDynamicNames = (permanentId: string, names: () => string[], duration: EffectDuration): void => {
+    continuous.addNameTraitGrant(permanentId, "name", [], durationForTarget(permanentId, duration), {
+      ...continuousOpt(),
+      dynamicTokens: names,
+    });
+  };
+
   const setOriginalCardInfo: Primitives["setOriginalCardInfo"] = (permanentId, info, duration): void => {
     continuous.addOriginalCardInfoOverride(
       permanentId,
@@ -4431,6 +4438,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     restrictPlayer,
     restrictAttackTarget,
     grantNameTrait,
+    grantDynamicNames,
     setOriginalCardInfo,
     grantKeyword,
     grantDnaLevel,

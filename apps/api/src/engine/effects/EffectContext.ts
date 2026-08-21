@@ -1011,6 +1011,8 @@ export interface Primitives {
     duration: EffectDuration,
     opts?: { digiXrosOnly?: boolean },
   ): void;
+  /** Grant names whose current values are recomputed from live game state. */
+  grantDynamicNames?(permanentId: string, names: () => string[], duration: EffectDuration): void;
   /** Replace printed/original info while effect-granted aliases and colors stay additive. */
   setOriginalCardInfo(
     permanentId: string,
