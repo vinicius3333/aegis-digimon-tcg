@@ -22,11 +22,14 @@ describe("ST21-11", () => {
   it("returns a level-4 opponent to the bottom of the deck when digivolving", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "ST21-09", as: "base" }], hand: [{ card: "ST21-11", as: "metal" }] },
-      1: { battleArea: [{ card: "ST1-05", as: "target" }], security: ["BT1-001"] },
+      1: { battleArea: [{ card: "ST1-05", as: "target" }, { card: "ST1-08", as: "level5" }], security: ["BT1-001"] },
     }, { autoSelectCards: true, autoOrderTriggers: true });
     s.state.memory = 10;
+    const level5PermanentId = s.perm("level5").permanentId;
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("metal").instanceId })).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId));
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId)).toBe(false);
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "ST1-05"));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "ST1-05")).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === level5PermanentId)).toBe(true);
+    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("ST1-05");
   });
 });
