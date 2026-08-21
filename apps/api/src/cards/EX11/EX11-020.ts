@@ -24,7 +24,7 @@ const compiled: CompiledCard = {
                   "tokens": [
                     "Shoemon"
                   ],
-                  "match": "trait"
+                  "match": "name"
                 }
               ]
             },
