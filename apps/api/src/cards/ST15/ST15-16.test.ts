@@ -1,10 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 /**
- * A3 — Q1f: ST15-16 (Angoramon: Sword of Vikemon) [Main] "＜De-Digivolve 3＞ 1 of your
+ * A3 — Q1f: ST15-16 Trident Arm [Main] "＜De-Digivolve 3＞ 1 of your
  * opponent's Digimon. Then, until the end of your opponent's turn, 1 of your opponent's
  * Digimon gains '[Start of Your Main Phase] This Digimon attacks.'"
  *
@@ -31,7 +32,14 @@ describe('A3 ST15-16 — granted "[Start of Your Main Phase] This Digimon attack
           security: ["BT1-001", "BT1-001", "BT1-001"],
         },
         1: {
-          battleArea: [{ card: "BT1-009", dp: 3000, as: "recipient" }],
+          battleArea: [
+            {
+              card: "ST15-12",
+              dp: 11000,
+              as: "recipient",
+              under: ["BT1-009", "ST15-08", "ST15-11"],
+            },
+          ],
           security: ["BT1-001", "BT1-001", "BT1-001"],
         },
       },
@@ -61,6 +69,11 @@ describe('A3 ST15-16 — granted "[Start of Your Main Phase] This Digimon attack
           g.token === "[Start of Your Main Phase] This Digimon attacks.",
       ),
     ).toBe(true);
+    expect(recipient.topCard.cardId).toBe("BT1-009");
+    expect(recipient.stack).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["ST15-12", "ST15-11", "ST15-08"]),
+    );
 
     const securityBefore = p0.security.length;
 
@@ -75,6 +88,37 @@ describe('A3 ST15-16 — granted "[Start of Your Main Phase] This Digimon attack
     // 1 security card off their stack.
     expect(recipient.isSuspended).toBe(true);
     expect(p0.security.length).toBe(securityBefore - 1);
+  });
+
+  it("Security De-Digivolves 3 and stops at level 3 without granting an attack effect", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "ST15-16", as: "tridentArm", faceUp: true }] },
+        1: {
+          battleArea: [
+            {
+              card: "ST15-12",
+              as: "target",
+              under: ["BT1-009", "ST15-08", "ST15-11"],
+            },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const target = s.perm("target");
+    const engine = s.engine as unknown as {
+      continuous: { listCustomEffectGrants(): readonly { instanceId: string; token: string }[] };
+    };
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("tridentArm"));
+
+    expect(target.topCard.cardId).toBe("BT1-009");
+    expect(target.stack).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["ST15-12", "ST15-11", "ST15-08"]),
+    );
+    expect(engine.continuous.listCustomEffectGrants()).toHaveLength(0);
   });
 
   it("NEGATIVE: a Digimon that never received the grant does not attack on its controller's main phase", async () => {
