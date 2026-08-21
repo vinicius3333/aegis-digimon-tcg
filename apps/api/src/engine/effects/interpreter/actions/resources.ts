@@ -134,6 +134,19 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
         ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, delta);
         return false;
       }
+      if (payment.kind === "trashSecurityTopUpToLeave") {
+        const seat = ctx.source.ownerSeat;
+        const maximum = Math.max(0, ctx.game.player(seat).security.length - payment.leaveCount);
+        let paid = 0;
+        while (paid < maximum && (await ctx.ask.optional(ctx, "Trash the top security card to reduce the cost"))) {
+          const moved = await ctx.fx.trashFromSecurity(seat, 1, { fromTop: true });
+          if (moved.length === 0) break;
+          paid += moved.length;
+        }
+        const delta = action.amount.kind === "perPaid" ? action.amount.value * paid : 0;
+        ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, delta);
+        return false;
+      }
       if (payment.kind === "trashFromHand") {
         // "By trashing 1 [Cyborg]/[Ver.5] card from your hand" — an optional hand discard. The card
         // being played is itself still in hand at this BeforePayCost window; exclude it so it cannot

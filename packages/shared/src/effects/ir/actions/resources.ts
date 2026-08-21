@@ -144,8 +144,12 @@ export interface ReducePlayCostAction extends ActionBase {
     | {
         kind: "returnFromTrashToDeckTop";
         target: Target;
+      }
+    | {
+        kind: "trashSecurityTopUpToLeave";
+        leaveCount: number;
       };
-  amount: { kind: "fixed"; value: number } | { kind: "deletedSacrificePlayCost" };
+  amount: { kind: "fixed"; value: number } | { kind: "perPaid"; value: number } | { kind: "deletedSacrificePlayCost" };
 }
 
 /** Run a group of actions only once one shared activation cost is paid. */

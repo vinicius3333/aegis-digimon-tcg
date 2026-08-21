@@ -17,6 +17,7 @@ export interface Cost {
     | "place"
     | "placeOwnTopAtStackBottom"
     | "deleteOwn"
+    | "trashBreeding" // trash the owner's entire breeding-area Digimon stack
     | "payMemory"
     | "flipSecurity" // flip your top face-up security card face down (BT23-043, EX11-031)
     | "trashSecurityTop" // ST23-05
