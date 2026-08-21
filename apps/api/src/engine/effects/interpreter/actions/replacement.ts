@@ -257,6 +257,11 @@ export async function runReplacement(
               return permanentMatchesFilter(ctx, target, filter, ctx.source);
             },
           }
+        : mode === "reduceCost" && replacementSourceFilter !== undefined
+          ? {
+              appliesTo: (target: Permanent) =>
+                permanentMatchesFilter(ctx, target, replacementSourceFilter, ctx.source),
+            }
         : {}),
       ...(interactiveCost !== undefined
         ? {
