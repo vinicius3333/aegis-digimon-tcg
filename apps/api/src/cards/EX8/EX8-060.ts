@@ -13,6 +13,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "Unsuspend",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           cost: {
             kind: "deleteOwn",
             target: { filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] }, count: 1 },
