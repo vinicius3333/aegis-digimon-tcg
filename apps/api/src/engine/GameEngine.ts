@@ -3091,7 +3091,7 @@ export class GameEngine {
   /** #4 predicate — a battle-area Digimon at exactly raw DP 0. */
   private anyZeroDpDigimon(): boolean {
     return this.battleAreaPermanents().some(
-      (p) => this.access.isBattleAreaDigimon(p) && this.modifiers.rawDp(this.state, p.permanentId) === 0,
+      (p) => this.access.isBattleAreaDigimon(p) && p.topCard !== undefined && definitionOf(p.topCard).kinds.includes(CardKind.Digimon) && this.modifiers.rawDp(this.state, p.permanentId) === 0,
     );
   }
 
@@ -3106,7 +3106,7 @@ export class GameEngine {
   /** #4 process — delete every raw-DP-0 Digimon via deletePermanent(byRule). */
   private async deleteZeroDpDigimon(): Promise<void> {
     const ids = this.battleAreaPermanents()
-      .filter((p) => this.access.isBattleAreaDigimon(p) && this.modifiers.rawDp(this.state, p.permanentId) === 0)
+      .filter((p) => this.access.isBattleAreaDigimon(p) && p.topCard !== undefined && definitionOf(p.topCard).kinds.includes(CardKind.Digimon) && this.modifiers.rawDp(this.state, p.permanentId) === 0)
       .map((p) => p.permanentId);
     if (ids.length > 0) await this.primitives.deletePermanent(ids, "byRule");
   }
