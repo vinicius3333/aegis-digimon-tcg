@@ -5,6 +5,7 @@ import "./BT8-003.js";
 import "./BT8-004.js";
 import "./BT8-005.js";
 import "./BT8-006.js";
+import "./BT8-007.js";
 import "./BT8-008.js";
 import "./BT8-009.js";
 import "./BT8-010.js";
