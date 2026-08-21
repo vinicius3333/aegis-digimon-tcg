@@ -234,7 +234,7 @@ export async function runUseOptionWithoutCost(
       const def = ctx.game.definitionOf({ cardId: cand.cardId } as never);
       if (filter !== undefined && !definitionMatches(filter, def)) continue;
       if (!def.kinds.includes(CardKind.Option)) continue;
-      if (def.colors.length !== 1) continue;
+      if (def.colors !== undefined && def.colors.length !== 1) continue;
       if (def.playCost > costCap) continue;
       if (ctx.fx.isPlayProhibited?.(seat, cand.cardId, "play") === true) continue;
       candidates.push(cand.instanceId);

@@ -26,7 +26,7 @@ import { canPayCost } from "./costs.js";
 import { installEffectRunner, runAction } from "./dispatch.js";
 import { ACTION_TYPE_KEYWORDS } from "./errors.js";
 import { isBlastDigivolveMarker } from "./registration/keywords.js";
-import { EffectDuration, EffectTiming } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
 import type { Action, CardEffect } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
@@ -521,6 +521,15 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
   // effect that resolution will silently skip.
   if (effect.condition && (effect.condition.kind === "raw" || !evaluateCondition(ctx, effect.condition))) return false;
   const relevantActions = (effect.actions ?? []).filter((action) => action.kind !== "RawUnparsed");
+  const hasUsableOption = (action: Extract<Action, { kind: "UseOptionWithoutCost" }>): boolean => {
+    const filter = action.filter ?? action.target?.filter;
+    const maxCost = filter?.playCostLte ?? 5;
+    return ctx.game.player(ctx.source.ownerSeat).hand.some((card) => {
+      const def = ctx.game.definitionOf(card);
+      return def.kinds.includes(CardKind.Option) && (def.playCost ?? 0) <= maxCost && (filter === undefined || !filter.kind || filter.kind.includes(CardKind.Option));
+    });
+  };
+  if (relevantActions.some((action) => action.kind === "UseOptionWithoutCost" && !hasUsableOption(action))) return false;
   const isGated = (action: Action) =>
     action.kind === "DnaDigivolve" ||
     (action.kind !== "ConditionalBranch" && action.condition !== undefined) ||
