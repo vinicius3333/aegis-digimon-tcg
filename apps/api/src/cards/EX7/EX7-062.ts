@@ -43,13 +43,13 @@ const module: EffectModule = {
 
             const self = source.permanent();
             if (self === undefined || self.topCard === undefined) return;
-            const sourceDp = ctx.game.definitionOf(self.topCard).dp ?? 0;
+            const sourceDp = self.currentDP;
             const opponent = ctx.game.opponentOf(source.ownerSeat);
             const oppCandidates = Array.from(ctx.game.player(opponent).battleArea)
               .filter((p) =>
                 p.topCard !== undefined &&
                 isDigimon(ctx.game.definitionOf(p.topCard)) &&
-                (ctx.game.definitionOf(p.topCard).dp ?? 0) <= sourceDp,
+                p.currentDP <= sourceDp,
               )
               .map((p) => p.permanentId);
             if (oppCandidates.length > 0) {
