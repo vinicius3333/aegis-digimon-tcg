@@ -6,11 +6,6 @@ import "../index.js";
 // "When you would play this card, you may place specified cards from your hand/battle area under
 // it. Each placed card reduces the play cost." (documented behavior; reduceCostPerCard = 2.)
 //
-// FAILS-WHEN-REVERTED: the recipe slot 1 is "name contains MetalGreymon AND color Blue" — expressed
-// only by the @aegis/shared DIGIXROS_REQUIREMENT_OVERRIDES entry (the compiler flattened it to the
-// single token "Blue MetalGreymon", which no real card name contains). Remove the override and the
-// Blue MetalGreymon material no longer matches slot 1 → the DigiXros play is rejected.
-
 const EX4_021 = "EX4-021"; // played card, cost 12
 const BLUE_METALGREYMON = "BT10-024"; // "MetalGreymon", Blue L5
 const DARKKNIGHTMON = "BT10-066"; // "DarkKnightmon", Black L5
@@ -44,9 +39,7 @@ describe("EX4-021 [DigiXros -2] play by placing Blue MetalGreymon + DarkKnightmo
     expect(res).toEqual({ ok: true });
 
     // Settle on the FULL resolution (both materials placed → all 3 cards have left the hand).
-    await settle(
-      () => p0.battleArea.some((perm) => perm.topCard?.cardId === EX4_021) && p0.hand.length === 0,
-    );
+    await settle(() => p0.battleArea.some((perm) => perm.topCard?.cardId === EX4_021) && p0.hand.length === 0);
 
     const perm = p0.battleArea.find((p) => p.topCard?.cardId === EX4_021);
     expect(perm).toBeDefined();
