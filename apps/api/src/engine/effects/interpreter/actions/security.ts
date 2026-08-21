@@ -220,7 +220,8 @@ export async function runSecurityManipulation(
       }
       if (action.source === undefined) {
         // Self form: the resolving card becomes security (common on [Security] effects).
-        await ctx.fx.addSecurity(seat, [ctx.source.instanceId], {
+        const selfInstanceId = ctx.source.permanent()?.topCard?.instanceId ?? ctx.source.instanceId;
+        await ctx.fx.addSecurity(seat, [selfInstanceId], {
           toTop: action.toTop ?? true,
           faceUp: action.faceUp,
         });

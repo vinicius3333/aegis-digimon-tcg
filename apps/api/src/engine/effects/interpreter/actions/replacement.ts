@@ -8,7 +8,7 @@ import { unsupported } from "../errors.js";
 import { definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { getCardDefinition } from "@aegis/shared";
-import type { Action, Condition, Cost, Permanent } from "@aegis/shared";
+import type { Action, Condition, Cost, Filter, Permanent } from "@aegis/shared";
 
 const REPLACEMENT_EVENT_MAP: Record<string, ReplacementEventName | undefined> = {
   wouldLeavePlay: "wouldLeavePlay",
@@ -63,7 +63,15 @@ export async function runReplacement(
   // reduceCost entry `costReductionFor` can sum — not a mode-less dead store.
   const nestedCostModifier = (
     action.actions as
-      | { kind?: string; event?: string; mode?: string; amount?: number; condition?: Condition }[]
+      | {
+          kind?: string;
+          event?: string;
+          mode?: string;
+          amount?: number;
+          condition?: Condition;
+          cost?: Cost;
+          sourceFilter?: Filter;
+        }[]
       | undefined
   )?.find(
     (a) =>
@@ -220,8 +228,12 @@ export async function runReplacement(
     return;
   }
   const intoFilter = action.into;
+  const replacementSourceFilter = action.sourceFilter ?? nestedCostModifier?.sourceFilter;
   if (mode === "reduceCost" || mode === "increaseCost") {
-    const interactiveCost = action.cost;
+    // Nested cost-reduction IR keeps the payment cost on the inner Replacement. Preserve it
+    // when hoisting that inner reducer; otherwise the reducer is installed as a free reduction
+    // and the printed payment (for example, suspending ST20-12) is silently lost.
+    const interactiveCost = action.cost ?? nestedCostModifier?.cost;
     const ownerSeat = ctx.source.ownerSeat;
     ctx.fx.subscribeReplacement({
       ...replacementBudget,
@@ -252,7 +264,9 @@ export async function runReplacement(
             appliesTo: (target: Permanent) =>
               target.controllerSeat === ownerSeat &&
               !target.inBreeding &&
-              permanentMatchesFilter(ctx, target, action.sourceFilter ?? {}, ctx.source),
+              (target.permanentId.startsWith("pending-play-") && target.topCard !== undefined
+                ? definitionMatches(replacementSourceFilter ?? {}, ctx.game.definitionOf(target.topCard))
+                : permanentMatchesFilter(ctx, target, replacementSourceFilter ?? {}, ctx.source)),
             activate: async (runtimeCtx: EffectContext) => {
               if (action.optional !== false) {
                 const accepted = await runtimeCtx.ask.optional(

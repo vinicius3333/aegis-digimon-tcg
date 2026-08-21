@@ -6,10 +6,11 @@ import {
   EffectTiming,
   EffectDuration,
   Phase,
+  Permanent,
   type CardColor,
   type CardDefinition,
   type CardInstance,
-  type Permanent,
+  Permanent,
   type Intent,
   type IntentResult,
   type DecisionRequest,
@@ -2581,7 +2582,8 @@ export class GameEngine {
       selfReducers.length === 0 &&
       crossWatchers.length === 0 &&
       residentEffects.length === 0 &&
-      breedingResidentEffects.length === 0
+      breedingResidentEffects.length === 0 &&
+      !this.subTriggers.hasInteractiveReductionsFor("wouldBePlayed", source.ownerSeat)
     )
       return baseCost;
     // Seed `selections` so the interpreter's runEffect does NOT clone the context (it clones only
@@ -2593,6 +2595,35 @@ export class GameEngine {
       if (!canActivate(effect, ctx, this.tracker)) continue;
       await effect.resolve(ctx);
     }
+    const playTarget = new Permanent();
+    playTarget.permanentId = `pending-play-${instance.instanceId}`;
+    playTarget.controllerSeat = source.ownerSeat;
+    playTarget.topCard = instance;
+    playTarget.inBreeding = false;
+    playTarget.baseDP = source.definition.dp ?? 0;
+    playTarget.currentDP = playTarget.baseDP;
+    const interactiveReduction = await this.subTriggers.activateInteractiveReductionsFor(
+      "wouldBePlayed",
+      source.ownerSeat,
+      playTarget,
+      source.definition,
+      undefined,
+      (sourcePermanentId) => {
+        const resident = this.access.permanentById(sourcePermanentId);
+        return resident?.topCard === undefined
+          ? undefined
+          : this.buildEffectContext(this.cardSourceOf(resident.topCard), {
+              wouldBePlayedInstanceId: instance.instanceId,
+              wouldBePlayedCardId: instance.cardId,
+              wouldBePlayedAsOption: useAsOption,
+            });
+      },
+      {
+        hasFired: (key) => this.tracker.count(key, "replacement") > 0,
+        markFired: (key) => this.tracker.register(key, "replacement"),
+      },
+    );
+    if (interactiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + interactiveReduction;
     // Generic battle-area pay-time watchers. Unlike the card being played, their
     // EffectContext source is the physical resident carrying the effect; the imminent
     // card identity is carried in TriggerInfo. This lets independent copies resolve and
@@ -3525,7 +3556,8 @@ export class GameEngine {
           ),
         ) ||
         this.crossPermanentPlayReducerWatchers(instance, this.cardSourceOf(instance).ownerSeat).length > 0 ||
-        this.residentPlayCostEffects(this.cardSourceOf(instance).ownerSeat).length > 0,
+        this.residentPlayCostEffects(this.cardSourceOf(instance).ownerSeat).length > 0 ||
+        this.subTriggers.hasInteractiveReductionsFor("wouldBePlayed", this.cardSourceOf(instance).ownerSeat),
       // After the played permanent is created (before On Play), place any cards a cross-permanent
       // reducer (BT10-093) committed under it, and relocate any whole permanent a SELF reducer's cost
       // body (BT12-112) selected to become one of its digivolution cards. No-op when nothing was

@@ -10,115 +10,100 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [Security] You may play 1 Tamer card from your hand without paying the cost.
 // Q4697: can activate [Main] with 0 security cards; can't add top security but still places self as security
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "WaiveColorRequirement",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "youHaveNone",
-            "filter": {
-              "controllerDefault": "mine",
-              "zone": "security",
-              "faceUp": true,
-              "nameOrTrait": [
+          condition: {
+            kind: "youHaveNone",
+            filter: {
+              controllerDefault: "mine",
+              zone: "security",
+              faceUp: true,
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Island of Adventure"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "raw": "you have no face-up [Island of Adventure] security cards"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
+                  tokens: ["Island of Adventure"],
+                  match: "name",
+                },
               ],
-              "levelComparison": {
-                "op": "gte",
-                "value": 3
-              }
             },
-            "count": "all"
+            raw: "you have no face-up [Island of Adventure] security cards",
           },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+        },
       ],
-      "isSecurity": true
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "toHand",
-          "controller": "mine",
-          "amount": 1,
-          "toTop": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "gte",
+                value: 3,
+              },
+            },
+            count: "all",
+          },
+          amount: 2000,
+          duration: "permanent",
+        },
+      ],
+      isSecurity: true,
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "toHand",
+          controller: "mine",
+          amount: 1,
+          toTop: true,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "mine",
-          "source": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "toTop": true,
-          "faceUp": true
-        }
-      ]
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "mine",
+          toTop: true,
+          faceUp: true,
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ]
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST20-15", compiled);
