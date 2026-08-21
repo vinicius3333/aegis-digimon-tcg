@@ -1,316 +1,119 @@
-import { describe, it, expect } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import type { CardInstance, Permanent } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
+import { describe, expect, it } from "vitest";
+import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
-import "./EX12-048.js";
-import { hasGokuumonOrSW } from "./EX12-048.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./EX12-048.js";
+import "../index.js";
 
-// A3 for EX12-048 (SeitenGokuumon, EX12 Red Lv.7):
-//   [Static] ＜Rush＞, ＜Raid＞, ＜Piercing＞, ＜Security Attack +1＞
-//   [On Play] / [When Digivolving]: -8000 DP (+ -3000 per Lv.5 stack) on 1 opp Digimon + optional attack
-//   [All Turns] When this Digimon would leave by a cause other than its owner's effect, play up
-//   to 2 matching level-5 cards from its digivolution cards without paying their costs.
-
-const cardId = "EX12-048";
-
-let seq = 0;
-
-function inst(cId: string, seat = 0, _level?: number): CardInstance {
-  seq++;
-  return { instanceId: `i${seq}`, cardId: cId, ownerSeat: seat, faceUp: true } as unknown as CardInstance;
-}
-
-function makePerm(opts: { cardId?: string; seat?: number; stackLevels?: number[] } = {}): Permanent {
-  seq++;
-  const stackCards = (opts.stackLevels ?? []).map((lvl) => {
-    seq++;
-    return {
-      instanceId: `stack-i${seq}`,
-      cardId: `LV${lvl}-CARD`,
-      ownerSeat: opts.seat ?? 0,
-      faceUp: true,
-    } as unknown as CardInstance;
-  });
-  return {
-    permanentId: `p${seq}`,
-    controllerSeat: opts.seat ?? 0,
-    topCard: inst(opts.cardId ?? cardId, opts.seat ?? 0),
-    stack: stackCards,
-    linked: [],
-    baseDP: 17000,
-    currentDP: 17000,
-    isSuspended: false,
-    inBreeding: false,
-  } as unknown as Permanent;
-}
-
-function makeSource(perm: Permanent | undefined, onField = true): CardSource {
-  return {
-    instanceId: "self",
-    cardId,
-    ownerSeat: 0,
-    definition: undefined as never,
-    permanent: () => perm,
-    isOnBattleArea: () => onField,
-    isOwnersTurn: () => true,
-    hasColor: () => false,
-  };
-}
-
-const requireMod = () => {
-  const mod = getEffectModule(cardId);
-  expect(mod, `${cardId} must be registered`).toBeDefined();
-  return mod!;
-};
-
-// ── module registration ──────────────────────────────────────────────────────
-
-describe("EX12-048 module structure", () => {
-  it("registers as a hand-written module", () => {
-    expect(requireMod().cardId).toBe(cardId);
-  });
-
-  it("returns keyword grants plus the live leave-play replacement", () => {
-    const effects = requireMod().effectsForTiming(EffectTiming.None, makeSource(makePerm()));
-    expect(effects).toHaveLength(5);
-    expect(effects[0]!.effectKey).toBe(`${cardId}/rush`);
-    expect(effects[1]!.effectKey).toBe(`${cardId}/raid`);
-    expect(effects[2]!.effectKey).toBe(`${cardId}/piercing`);
-    expect(effects[3]!.effectKey).toBe(`${cardId}/security-attack`);
-    expect(effects[4]!.effectKey).toBe(`${cardId}/would-leave-play-digivolution-cards`);
-  });
-
-  it("returns 1 effect at OnPlay", () => {
-    const effects = requireMod().effectsForTiming(EffectTiming.OnPlay, makeSource(makePerm()));
-    expect(effects).toHaveLength(1);
-    expect(effects[0]!.effectKey).toBe(`${cardId}/on-play-dp-attack`);
-  });
-
-  it("returns 1 effect at WhenDigivolving", () => {
-    const effects = requireMod().effectsForTiming(EffectTiming.WhenDigivolving, makeSource(makePerm()));
-    expect(effects).toHaveLength(1);
-    expect(effects[0]!.effectKey).toBe(`${cardId}/when-digivolving-dp-attack`);
-  });
-});
-
-// ── hasGokuumonOrSW helper ───────────────────────────────────────────────────
-
-describe("hasGokuumonOrSW helper", () => {
-  it("returns true for a card with Gokuumon in nameEn", () => {
-    const def = {
-      nameEn: "Gokuumon",
-      kinds: ["Digimon"],
-      colors: [],
-      playCost: 5,
-      dp: 4000,
-      evoCosts: [],
-      maxCountInDeck: 4,
-      set: "T",
-    } as never;
-    expect(hasGokuumonOrSW(def)).toBe(true);
-  });
-
-  it("returns true for a card with SW trait", () => {
-    const def = {
-      nameEn: "SomeCard",
-      types: ["SW"],
-      kinds: ["Digimon"],
-      colors: [],
-      playCost: 5,
-      dp: 4000,
-      evoCosts: [],
-      maxCountInDeck: 4,
-      set: "T",
-    } as never;
-    expect(hasGokuumonOrSW(def)).toBe(true);
-  });
-
-  it("returns false for an unrelated card", () => {
-    const def = {
-      nameEn: "Agumon",
-      types: ["Dragon"],
-      kinds: ["Digimon"],
-      colors: [],
-      playCost: 3,
-      dp: 2000,
-      evoCosts: [],
-      maxCountInDeck: 4,
-      set: "T",
-    } as never;
-    expect(hasGokuumonOrSW(def)).toBe(false);
-  });
-});
-
-// ── [On Play]: DP reduction + optional attack ────────────────────────────────
-
-describe("EX12-048 On Play: DP reduction on opponent Digimon + optional attack", () => {
-  it("applies -8000 DP to the only opponent Digimon", async () => {
-    const self = makePerm();
-    const source = makeSource(self);
-    const oppDigimon = makePerm({ seat: 1, cardId: "BT1-010" });
-
-    const dpMods: { permanentId: string; delta: number }[] = [];
-    const forced: string[] = [];
-
-    const ctx: EffectContext = {
-      source,
-      trigger: {},
-      game: {
-        player: (seat: number) => {
-          if (seat === 0) return { battleArea: [self] } as never;
-          return { battleArea: [oppDigimon] } as never;
+describe("EX12-048 SeitenGokuumon", () => {
+  it("maps evolution, Assembly, keywords, scaled target reduction, and leave-play replacement", () => {
+    expect(digivolutionRequirementsFor("EX12-048")).toEqual([
+      { level: 5, texts: ["Gokuumon"], cost: 3, isAlternate: true },
+      { level: 5, traits: ["Shambala"], cost: 3, isAlternate: true },
+    ]);
+    expect(compiled.assemblyRequirement).toEqual([
+      {
+        materials: [{ count: 3, names: ["Gokuumon", "Sangomon", "Cho-Hakkaimon", "Sanzomon"], differentNames: true }],
+        reduceCost: 6,
+      },
+    ]);
+    expect(compiled.effects.filter((effect) => effect.trigger === "Static")).toEqual([
+      { trigger: "Static", actions: [], keywords: [{ keyword: "Rush", raw: "＜Rush＞" }] },
+      { trigger: "Static", actions: [], keywords: [{ keyword: "Raid", raw: "＜Raid＞" }] },
+      { trigger: "Static", actions: [], keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }] },
+      {
+        trigger: "Static",
+        actions: [],
+        keywords: [{ keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" }],
+      },
+    ]);
+    for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+      expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
+        actions: [
+          { kind: "ModifyDP", amount: -8000, duration: "untilOpponentTurnEnd" },
+          {
+            kind: "ModifyDP",
+            amount: -3000,
+            duration: "untilOpponentTurnEnd",
+            scaling: { per: 1, filter: { levels: [5] }, unit: "digivolutionCards" },
+            target: { sameTarget: true },
+          },
+          { kind: "Attack", optional: true, withoutSuspending: false },
+        ],
+      });
+    }
+    expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")).toMatchObject({
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanYourEffect",
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              from: ["digivolutionCards"],
+              fromOwnDigivolutionStack: true,
+              payCost: false,
+              optional: true,
+            },
+          ],
         },
-        opponentOf: (s: number) => (s === 0 ? 1 : 0),
-        permanentById: () => undefined,
-        definitionOf: (c: CardInstance) => {
-          if (c.cardId === "BT1-010") return { kinds: ["Digimon"], level: 5 } as never;
-          if (c.cardId === cardId) return { kinds: ["Digimon"], level: 7 } as never;
-          return { kinds: ["Digimon"] } as never;
-        },
-      } as never,
-      fx: {
-        modifyDP: (permanentId: string, delta: number) => {
-          dpMods.push({ permanentId, delta });
-        },
-        forceAttack: (permanentId: string) => {
-          forced.push(permanentId);
-          return Promise.resolve();
-        },
-      } as never,
-      ask: {
-        chooseTargets: async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!],
-        optional: async () => true,
-      } as never,
-    };
-
-    const effects = requireMod().effectsForTiming(EffectTiming.OnPlay, source);
-    await effects[0]!.resolve(ctx);
-
-    expect(dpMods.some((m) => m.permanentId === oppDigimon.permanentId && m.delta === -8000)).toBe(true);
-    expect(forced).toContain(self.permanentId);
+      ],
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 
-  it("applies additional -3000 DP per Lv.5 digivolution card in THIS Digimon's stack", async () => {
-    // Permanent with 2 Lv.5 stack cards → total extra = -6000 DP.
-    const self = makePerm({ stackLevels: [5, 5] });
-    const source = makeSource(self);
-    const oppDigimon = makePerm({ seat: 1, cardId: "BT1-010" });
-
-    const dpMods: { permanentId: string; delta: number }[] = [];
-
-    const ctx: EffectContext = {
-      source,
-      trigger: {},
-      game: {
-        player: (seat: number) => {
-          if (seat === 0) return { battleArea: [self] } as never;
-          return { battleArea: [oppDigimon] } as never;
-        },
-        opponentOf: (s: number) => (s === 0 ? 1 : 0),
-        permanentById: () => undefined,
-        definitionOf: (c: CardInstance) => {
-          if (c.cardId.startsWith("LV5")) return { kinds: ["Digimon"], level: 5 } as never;
-          if (c.cardId === "BT1-010") return { kinds: ["Digimon"], level: 5 } as never;
-          return { kinds: ["Digimon"] } as never;
-        },
-      } as never,
-      fx: {
-        modifyDP: (permanentId: string, delta: number) => {
-          dpMods.push({ permanentId, delta });
-        },
-        forceAttack: () => Promise.resolve(),
-      } as never,
-      ask: {
-        chooseTargets: async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!],
-        optional: async () => false, // decline the attack
-      } as never,
-    };
-
-    const effects = requireMod().effectsForTiming(EffectTiming.OnPlay, source);
-    await effects[0]!.resolve(ctx);
-
-    const extraMods = dpMods.filter((m) => m.permanentId === oppDigimon.permanentId && m.delta === -6000);
-    expect(extraMods.length).toBeGreaterThan(0);
-  });
-
-  it("skips attack when player declines", async () => {
-    const self = makePerm();
-    const source = makeSource(self);
-    const oppDigimon = makePerm({ seat: 1, cardId: "BT1-010" });
-    const forced: string[] = [];
-
-    const ctx: EffectContext = {
-      source,
-      trigger: {},
-      game: {
-        player: (seat: number) => {
-          if (seat === 0) return { battleArea: [self] } as never;
-          return { battleArea: [oppDigimon] } as never;
-        },
-        opponentOf: (s: number) => (s === 0 ? 1 : 0),
-        permanentById: () => undefined,
-        definitionOf: () => ({ kinds: ["Digimon"] }) as never,
-      } as never,
-      fx: {
-        modifyDP: () => {},
-        forceAttack: (permanentId: string) => {
-          forced.push(permanentId);
-          return Promise.resolve();
-        },
-      } as never,
-      ask: {
-        chooseTargets: async (_ctx: unknown, opts: { candidates: string[] }) => [opts.candidates[0]!],
-        optional: async () => false,
-      } as never,
-    };
-
-    const effects = requireMod().effectsForTiming(EffectTiming.OnPlay, source);
-    await effects[0]!.resolve(ctx);
-    expect(forced).toHaveLength(0);
-  });
-});
-
-describe("EX12-048 leave-play replacement", () => {
-  it("plays two matching level-5 SW cards from the stack when an opponent effect removes it", async () => {
+  it("applies -8000 plus -3000 for each level-5 stack card to the selected opponent", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: cardId, as: "source", under: ["EX12-015", "EX12-029"] }] },
+        0: { battleArea: [{ card: "EX12-048", as: "source", dp: 50000, under: ["BT1-020", "BT1-024"] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 40000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle();
+
+    expect(s.perm("opponent").currentDP).toBe(26000);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+    expect(s.perm("source").stack.map((card) => card.cardId)).toEqual(["BT1-020", "BT1-024"]);
+  });
+
+  it("plays up to two eligible level-5 cards from its own stack when removed by an opponent effect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-048", as: "source", under: ["EX12-015", "EX12-029"] }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await s.ready();
     s.state.turnSeat = 1;
-
-    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
-
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === cardId)).toBe(false);
-    expect(
-      s.state.players[0]!.battleArea.filter((permanent) =>
-        ["EX12-015", "EX12-029"].includes(permanent.topCard?.cardId ?? ""),
-      ),
-    ).toHaveLength(2);
-  });
-
-  it("does not activate for a removal driven by the owner's effect", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: cardId, as: "source", under: ["EX12-015", "EX12-029"] }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
     await s.ready();
 
     await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === cardId)).toBe(false);
-    expect(
-      s.state.players[0]!.battleArea.filter((permanent) =>
-        ["EX12-015", "EX12-029"].includes(permanent.topCard?.cardId ?? ""),
-      ),
-    ).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(
+      expect.arrayContaining(["EX12-015", "EX12-029"]),
+    );
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-048")).toBe(false);
+  });
+
+  it("does not play stack cards when its controller's own effect removes it", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-048", as: "source", under: ["EX12-015", "EX12-029"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
+    await settle();
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 });
