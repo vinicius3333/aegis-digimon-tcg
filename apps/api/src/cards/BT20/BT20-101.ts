@@ -16,7 +16,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Digimon"); rather than widen the general handler and risk perturbing those 6 unverified
 // siblings, this card alone is pinned as a hand override so a future recompile can't
 // silently revert its "any" back to "mine".
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Counter",
