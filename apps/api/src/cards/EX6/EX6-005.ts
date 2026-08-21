@@ -17,7 +17,8 @@ export const compiled: CompiledCard = {
             "kind": "return",
             "target": {
               "filter": {
-                "controller": "mine",
+                "isSelfRef": true,
+                "zone": "digivolutionCards",
                 "kind": [
                   "Digimon"
                 ],
