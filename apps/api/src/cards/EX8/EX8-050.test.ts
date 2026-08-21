@@ -11,6 +11,11 @@ describe("EX8-050", () => {
       keyword: "Blocker",
       raw: "＜Blocker＞",
     });
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "OpponentsTurn",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "SubTrigger", event: "whenOpponentAttacks", actions: [{ kind: "RedirectAttack", optional: true }] }],
+    });
     expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions[0]).toMatchObject({
       kind: "RevealAdd",
       revealCount: 3,
@@ -39,5 +44,29 @@ describe("EX8-050", () => {
     expect(player.battleArea.some((permanent) => permanent.topCard?.cardId === "EX8-049")).toBe(true);
     expect(player.trash.some((card) => card.cardId === "EX8-048")).toBe(true);
     expect(player.trash.some((card) => card.cardId === "AD1-001")).toBe(true);
+  });
+  it("redirects an opponent's attack to the inherited host once per turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-081", as: "host", under: ["EX8-050"], dp: 10000 },
+        ],
+        security: ["BT1-001"],
+      },
+      1: { battleArea: [{ card: "BT1-016", as: "attacker", dp: 1000 }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(1);
   });
 });
