@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { PlayerState } from "@aegis/shared";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./EX8-067.js";
 
 describe("EX8-067", () => {
@@ -14,5 +17,14 @@ describe("EX8-067", () => {
       event: "whenOneOfYoursDigivolves",
       actions: [{ kind: "PlaceUnder", optional: true, cost: { kind: "suspend" } }],
     }));
-  it("contains only the printed effects", () => expect(compiled.effects).toHaveLength(2));
+  it("plays itself from security without paying its cost", () =>
+    expect(compiled.effects?.find((entry) => entry.trigger === "Security")).toMatchObject({ isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] }));
+  it("moves the exact security Tamer into the battle area during a security check", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-010", as: "attacker" }] }, 1: { security: [{ card: "EX8-067", as: "securityCard" }] } });
+    const instanceId = s.inst("securityCard").instanceId;
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => (s.state.players[1] as PlayerState).battleArea.some((permanent) => permanent.topCard.cardId === "EX8-067"));
+    expect((s.state.players[1] as PlayerState).battleArea.some((permanent) => permanent.topCard.instanceId === instanceId)).toBe(true);
+    expect((s.state.players[1] as PlayerState).security.some((card) => card.instanceId === instanceId)).toBe(false);
+  });
 });
