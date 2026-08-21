@@ -22,11 +22,11 @@ import { registerCard } from "../../engine/effects/registry.js";
 const cardId = "BT24-056";
 
 function hasSystemLifeTransmutationTrait(def: CardDefinition): boolean {
-  return (
-    (def.types ?? []).some(
-      (t) => t === "System" || t === "Life" || t === "Transmutation",
-    )
-  );
+  return (def.types ?? []).some((t) => t === "System" || t === "Life" || t === "Transmutation");
+}
+
+function hasAppmonTrait(def: CardDefinition): boolean {
+  return [...(def.types ?? []), ...(def.forms ?? []), ...(def.attributes ?? [])].some((trait) => trait === "Appmon");
 }
 
 const module: EffectModule = {
@@ -44,6 +44,17 @@ const module: EffectModule = {
           when: (_ctx) => source.isOnBattleArea(),
           canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
+            const appmon = ctx.game
+              .player(source.ownerSeat)
+              .trash.filter((card) => hasAppmonTrait(ctx.game.definitionOf(card)));
+            if (appmon.length > 0) {
+              const chosen = await ctx.ask.selectCards(ctx, {
+                candidates: appmon.map((card) => card.instanceId),
+                min: 0,
+                max: 1,
+              });
+              if (chosen.length > 0) await ctx.fx.playInstances(chosen, { payCost: false });
+            }
             const owner = ctx.game.player(source.ownerSeat);
             const candidates = owner.battleArea
               .filter((p) => {
@@ -62,7 +73,9 @@ const module: EffectModule = {
             });
             if (chosen.length === 0) return;
 
-            ctx.fx.restrict(chosen[0]!, "beReturned", EffectDuration.UntilOpponentTurnEnd, { byOpponentEffectsOnly: true });
+            ctx.fx.restrict(chosen[0]!, "beReturned", EffectDuration.UntilOpponentTurnEnd, {
+              byOpponentEffectsOnly: true,
+            });
           },
         }),
       ];
@@ -79,6 +92,17 @@ const module: EffectModule = {
             "your Digimon with [System]/[Life]/[Transmutation] to hands or decks.",
           canActivate: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
+            const appmon = ctx.game
+              .player(source.ownerSeat)
+              .trash.filter((card) => hasAppmonTrait(ctx.game.definitionOf(card)));
+            if (appmon.length > 0) {
+              const chosen = await ctx.ask.selectCards(ctx, {
+                candidates: appmon.map((card) => card.instanceId),
+                min: 0,
+                max: 1,
+              });
+              if (chosen.length > 0) await ctx.fx.playInstances(chosen, { payCost: false });
+            }
             const owner = ctx.game.player(source.ownerSeat);
             const candidates = owner.battleArea
               .filter((p) => {
@@ -97,7 +121,9 @@ const module: EffectModule = {
             });
             if (chosen.length === 0) return;
 
-            ctx.fx.restrict(chosen[0]!, "beReturned", EffectDuration.UntilOpponentTurnEnd, { byOpponentEffectsOnly: true });
+            ctx.fx.restrict(chosen[0]!, "beReturned", EffectDuration.UntilOpponentTurnEnd, {
+              byOpponentEffectsOnly: true,
+            });
           },
         }),
       ];
