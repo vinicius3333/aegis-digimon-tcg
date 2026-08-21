@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -38,5 +39,27 @@ describe("EX8-034", () => {
     );
     expect(observe(s.engine).keywordAmount(s.perm("one"), "SecurityAttack")).toBe(-1);
     expect(observe(s.engine).keywordAmount(s.perm("two"), "SecurityAttack")).toBe(-1);
+  });
+  it("plays an NSo Digimon costing 3 or less when digivolving and rejects cost 4", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-034", as: "mammoth" }],
+          hand: [
+            { card: "EX8-008", as: "allowed" },
+            { card: "EX8-010", as: "tooExpensive" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const allowedInstanceId = s.inst("allowed").instanceId;
+    const tooExpensiveInstanceId = s.inst("tooExpensive").instanceId;
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("mammoth"));
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === allowedInstanceId));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === allowedInstanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === tooExpensiveInstanceId)).toBe(true);
   });
 });
