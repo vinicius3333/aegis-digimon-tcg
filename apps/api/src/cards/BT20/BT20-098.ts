@@ -20,7 +20,7 @@ const compiled: CompiledCard = {
             target: {
               filter: { zone: "trash", controller: "opponent", kind: ["Digimon"] },
               totalLevels: 9,
-              upTo: false,
+              upTo: true,
             },
             to: "deckBottom",
             raw: "By returning 9 levels' total worth of Digimon cards from your opponent's trash to the bottom of the deck",
