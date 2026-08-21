@@ -5,13 +5,58 @@ import "./EX6-069.js";
 
 describe("EX6-069 Gate of Deadly Sins Option", () => {
   it("registers Main placement from hand/trash and Security permanent effects", () => {
-    const source = { instanceId: "source", cardId: "EX6-069", ownerSeat: 0, definition: {}, permanent: () => undefined, isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true } as never;
+    const source = {
+      instanceId: "source",
+      cardId: "EX6-069",
+      ownerSeat: 0,
+      definition: {},
+      permanent: () => undefined,
+      isOnBattleArea: () => true,
+      isOwnersTurn: () => true,
+      hasColor: () => true,
+    } as never;
     const module = getEffectModule("EX6-069")!;
-    expect(module.effectsForTiming(EffectTiming.OnUseOption, source)[0]?.description).toContain("Seven Great Demon Lords");
-    expect(module.effectsForTiming(EffectTiming.SecuritySkill, source)[0]?.description).toContain("battle-area permanent");
+    expect(module.effectsForTiming(EffectTiming.OnUseOption, source)[0]?.description).toContain(
+      "Seven Great Demon Lords",
+    );
+    expect(module.effectsForTiming(EffectTiming.SecuritySkill, source)[0]?.description).toContain(
+      "battle-area permanent",
+    );
   });
   it("registers the Seven Great Demon Lords deletion Delay watcher", () => {
-    const source = { instanceId: "source", cardId: "EX6-069", ownerSeat: 0, definition: {}, permanent: () => undefined, isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true } as never;
+    const source = {
+      instanceId: "source",
+      cardId: "EX6-069",
+      ownerSeat: 0,
+      definition: {},
+      permanent: () => undefined,
+      isOnBattleArea: () => true,
+      isOwnersTurn: () => true,
+      hasColor: () => true,
+    } as never;
     expect(getEffectModule("EX6-069")!.effectsForTiming(EffectTiming.None, source)[0]?.description).toContain("Delay");
+  });
+
+  it("installs the deletion watcher", async () => {
+    const source = {
+      instanceId: "source",
+      cardId: "EX6-069",
+      ownerSeat: 0,
+      definition: {},
+      permanent: () => ({ permanentId: "perm" }),
+      isOnBattleArea: () => true,
+      isOwnersTurn: () => true,
+      hasColor: () => true,
+    } as never;
+    const installed: unknown[] = [];
+    await getEffectModule("EX6-069")!
+      .effectsForTiming(EffectTiming.None, source)[0]!
+      .resolve({
+        source,
+        game: { player: () => ({ security: [], breeding: undefined }), permanentById: () => undefined },
+        fx: { subscribeSubTrigger: (sub: unknown) => installed.push(sub) },
+        ask: {},
+      } as never);
+    expect(installed[0]).toMatchObject({ event: "onDeletionOf", sourcePermanentId: "perm" });
   });
 });
