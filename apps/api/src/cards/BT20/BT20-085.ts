@@ -4,11 +4,12 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-fixed IR for BT20-085: the [End of Your Turn] compile glued the [Vortex
 // Warriors] trait (which belongs to the +2000 DP leg on YOUR Digimon) onto the
-// opponent-suspend target and dropped the DP leg entirely. Per the card text:
+// opponent-suspend target and dropped the DP leg entirely. The sequencing guards
+// below also preserve both "by" costs before resolving their following clauses.
 // "By suspending this Tamer, suspend 1 of your opponent's Digimon and, until the
 // end of their turn, 1 of your Digimon with the [Vortex Warriors] trait gets
 // +2000 DP."
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "StartOfYourMainPhase",
@@ -35,6 +36,7 @@ const compiled: CompiledCard = {
           "payCost": false,
           "cost": {
             "kind": "return",
+            "position": "bottom",
             "target": {
               "filter": {
                 "isSelfRef": true
@@ -74,7 +76,11 @@ const compiled: CompiledCard = {
           ],
           "payCost": false,
           "condition": {
-            "kind": "youHaveNone", "filter": {"kind": ["Digimon"]},
+            "kind": "allOf",
+            "conditions": [
+              { "kind": "ifThisEffectActed" },
+              { "kind": "youHaveNone", "filter": { "kind": ["Digimon"] } }
+            ],
             "raw": "you don't have a Digimon"
           },
           "optional": true
@@ -129,6 +135,7 @@ const compiled: CompiledCard = {
           },
           "amount": 2000,
           "duration": "untilOpponentTurnEnd"
+          ,"condition": { "kind": "ifThisEffectActed" }
         }
       ]
     },
