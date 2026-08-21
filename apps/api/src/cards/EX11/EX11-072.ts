@@ -11,126 +11,103 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // a Shoto Kazama suspends. The Digivolve action is the CONTENT of the <Delay> activation
 // (i.e., what happens when the Delay is used). It is placed inside the SubTrigger's
 // actions array, NOT as a sibling action.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Pteromon",
-                    "Muchomon",
-                    "Shoto Kazama"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Pteromon", "Muchomon", "Shoto Kazama"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "sourceFilter": {
-            "controller": "mine",
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: {
+            controller: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Shoto Kazama"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Shoto Kazama"],
+                match: "name",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Digivolve",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Avian",
-                        "Bird"
-                      ],
-                      "match": "trait"
+                      tokens: ["Avian", "Bird"],
+                      match: "trait",
                     },
                     {
-                      "tokens": [
-                        "Vortex Warriors"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
+                      tokens: ["Vortex Warriors"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "into": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Bird Dragon",
-                      "LIBERATOR"
-                    ],
-                    "match": "traitAll"
-                  }
-                ]
+                    tokens: ["Bird Dragon", "LIBERATOR"],
+                    match: "traitAll",
+                  },
+                ],
               },
-              "from": [
-                "hand"
-              ],
-              "reduceCost": 3,
-              "optional": true
-            }
+              from: ["hand"],
+              reduceCost: 3,
+              optional: true,
+            },
           ],
-          "keyword": {
-            "keyword": "Delay",
-            "raw": "＜Delay＞"
-          }
-        }
-      ]
+          keyword: {
+            keyword: "Delay",
+            raw: "＜Delay＞",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX11-072", compiled);
