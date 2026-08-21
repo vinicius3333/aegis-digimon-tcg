@@ -28,7 +28,9 @@ describe("BT21-092 Can't Turn My Back!", () => {
       hasColor: () => false,
     };
     expect(module).toBeDefined();
-    expect(module!.effectsForTiming(EffectTiming.None, source)).toHaveLength(1);
+    const waiver = module!.effectsForTiming(EffectTiming.None, source);
+    expect(waiver).toHaveLength(1);
+    expect(waiver[0]?.description).toContain("[Xros Heart] Digimon");
     expect(module!.effectsForTiming(EffectTiming.OnUseOption, source)).toHaveLength(1);
     expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
   });

@@ -67,7 +67,12 @@ const module: EffectModule = {
           when: (ctx) =>
             ctx.game
               .player(owner)
-              .battleArea.some((p) => p.topCard !== undefined && isXrosHeart(ctx.game.definitionOf(p.topCard))),
+              .battleArea.some(
+                (p) =>
+                  p.topCard !== undefined &&
+                  isDigimon(ctx.game.definitionOf(p.topCard)) &&
+                  isXrosHeart(ctx.game.definitionOf(p.topCard)),
+              ),
           resolve: async (ctx) => ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.UntilEachTurnEnd),
         }),
       ];
