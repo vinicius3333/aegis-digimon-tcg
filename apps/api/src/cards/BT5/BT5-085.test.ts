@@ -14,7 +14,7 @@ describe("BT5-085 Armageddemon", () => {
           hand: [{ card: "BT5-085", as: "armageddemon" }],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     // Immediate validation must be able to cover the printed 15 before the
     // interactive -12 reducer resolves; memory 5 has an affordability ceiling of 15.
@@ -23,6 +23,7 @@ describe("BT5-085 Armageddemon", () => {
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("armageddemon").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("armageddemon").instanceId));
+    await s.engine.recomputeContinuousEffects();
 
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("armageddemon").instanceId)!;
     expect(s.state.memory).toBe(2);
