@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardDefinition, type CardInstance, type GameState, type Permanent, type Seat } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, type CardDefinition, type CardInstance, type GameState, type Permanent, type Seat } from "@aegis/shared";
 import { SubTriggerRegistry } from "../../engine/effects/subtriggers.js";
 import { consultLeavePrevention } from "../../engine/effects/leavePrevention.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
@@ -49,6 +49,15 @@ function fakeDefinition(cardId: string): CardDefinition {
 }
 
 describe("ST19-02 ＜Barrier＞ is once per turn", () => {
+  it("uses the catalogued Junkmon Puppet identity", () => {
+    expect(getCardDefinition("ST19-02")).toMatchObject({
+      nameEn: "Junkmon",
+      types: ["Puppet"],
+      effectText: expect.stringContaining("Decoy ([Puppet] trait)"),
+      inheritedEffectText: "＜Barrier＞.",
+    });
+  });
+
   it("negates the first deletion this turn but NOT the second", async () => {
     const st19 = fakePermanent("perm-st19-02", "ST19-02");
     const players = [
