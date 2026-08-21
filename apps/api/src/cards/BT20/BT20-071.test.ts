@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT20-071.js";
 import "../index.js";
 
 // A3 for BT20-071 (Soloogarmon — Purple Lv.6 Digimon).
@@ -22,6 +23,23 @@ const AGUMON = "BT1-010";
 const KOROMON = "BT1-001";
 
 describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP", () => {
+  it("encodes every printed clause without residuals", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.digivolutionRequirement).toEqual([
+      { names: ["Loogarmon"], cost: 3, isAlternate: true },
+      { level: 4, traits: ["SEEKERS"], cost: 3, isAlternate: true },
+    ]);
+    expect(compiled.effects.filter((effect) => ["OnPlay", "WhenDigivolving"].includes(effect.trigger))).toHaveLength(2);
+    expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")).toMatchObject({
+      actions: [{ kind: "SubTrigger", event: "onAddDigivolutionCards" }],
+    });
+    expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({
+      trigger: "YourTurn",
+      actions: [{ kind: "DisableSecurityEffect", sourceKind: "option" }],
+    });
+  });
+
   it("[When Digivolving] by trashing 1 hand card, a Digimon gets +3000 DP for the turn", async () => {
     const s = setupEngine(
       {
