@@ -130,7 +130,9 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       const amount = scale === undefined ? action.amount : action.amount * scale;
       const continuous =
         action.continuous === true ||
-        (action.continuous === undefined && ctx.fx.inContinuousPass?.() === true);
+        (action.continuous === undefined &&
+          ["Static", "AllTurns", "YourTurn", "OpponentsTurn"].includes(ctx.activeTiming ?? "") &&
+          Object.keys(ctx.trigger ?? {}).length === 0);
       for (const id of ids) {
         ctx.fx.modifyDP(
           id,
