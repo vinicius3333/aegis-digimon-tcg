@@ -14,8 +14,6 @@ import { registerCard } from "../../engine/effects/registry.js";
  * Effects:
  *   [Your Turn] When an effect places a Tamer card in one of your Digimon's digivolution
  *     cards, by suspending this Tamer, gain 1 memory.
- *     RESIDUAL — requires the onAddDigivolutionCards SubTrigger (YourTurn + OnAddDigivolutionCards
- *     infrastructure outside the IR interpreter; this clause is a no-op.
  *   [End of Opponent's Turn][Once Per Turn] If this Tamer is suspended, 1 of your Digimon
  *     with a Tamer card in its digivolution cards may digivolve into a Digimon card with
  *     [Dex] or [DeathX] in its name from your trash without paying the cost.
@@ -185,9 +183,6 @@ const module: EffectModule = {
 
     return [];
   },
-  // RESIDUAL: [Your Turn] When an effect places a Tamer card in one of your Digimon's
-  // digivolution cards, by suspending this Tamer, gain 1 memory. Requires onAddDigivolutionCards
-  // SubTrigger subscription infrastructure not available in hand-written EffectModule.
 };
 
 registerCard(module);
