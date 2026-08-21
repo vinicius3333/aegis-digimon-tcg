@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./EX8-055.js";
 
@@ -18,5 +19,16 @@ describe("EX8-055", () => {
 
     expect(s.perm("pyramid").stack.some((card) => card.cardId === "EX8-053")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX8-053")).toBe(false);
+  });
+  it("trashes three Mineral digivolution cards to unsuspend and gain Security Attack +1 when digivolving", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-055", as: "pyramid", under: ["EX8-048", "EX8-048", "EX8-048"], suspended: true }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("pyramid"));
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.perm("pyramid").isSuspended).toBe(false);
+    expect(s.perm("pyramid").stack).toHaveLength(0);
+    expect(observe(s.engine).keywordAmount(s.perm("pyramid"), "SecurityAttack")).toBe(1);
   });
 });
