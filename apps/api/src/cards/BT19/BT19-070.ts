@@ -6,229 +6,190 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                3
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levels: [3],
             },
-            "count": 1
+            count: 1,
           },
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ]
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By deleting 1 of your Digimon"
+            raw: "By deleting 1 of your Digimon",
           },
-          "abortOnDecline": true,
-          "raw": "Delete 1 opponent level 3 Digimon."
+          abortOnDecline: true,
+          raw: "Delete 1 opponent level 3 Digimon.",
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                4
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levels: [4],
             },
-            "count": 1
+            count: 1,
           },
-          "raw": "Delete 1 opponent level 4 Digimon."
+          raw: "Delete 1 opponent level 4 Digimon.",
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                5
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levels: [5],
             },
-            "count": 1
+            count: 1,
           },
-          "raw": "Delete 1 opponent level 5 Digimon."
-        }
-      ]
+          raw: "Delete 1 opponent level 5 Digimon.",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                3
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levels: [3],
             },
-            "count": 1
+            count: 1,
           },
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ]
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By deleting 1 of your Digimon"
+            raw: "By deleting 1 of your Digimon",
           },
-          "abortOnDecline": true,
-          "raw": "Delete 1 opponent level 3 Digimon."
+          abortOnDecline: true,
+          raw: "Delete 1 opponent level 3 Digimon.",
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                4
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levels: [4],
             },
-            "count": 1
+            count: 1,
           },
-          "raw": "Delete 1 opponent level 4 Digimon."
+          raw: "Delete 1 opponent level 4 Digimon.",
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                5
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levels: [5],
             },
-            "count": 1
+            count: 1,
           },
-          "raw": "Delete 1 opponent level 5 Digimon."
-        }
-      ]
+          raw: "Delete 1 opponent level 5 Digimon.",
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Machinedramon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Machinedramon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "colors": [
-                  "Purple",
-                  "Red"
-                ],
-                "levelComparison": {
-                  "op": "lte",
-                  "value": 4
-                }
+          from: ["trash"],
+          payCost: false,
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                colors: ["Purple", "Red"],
+                levelComparison: {
+                  op: "lte",
+                  value: 4,
+                },
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By deleting 1 of your level 4 or lower purple or red Digimon"
+            raw: "By deleting 1 of your level 4 or lower purple or red Digimon",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "SecurityAttack",
-          "amount": 1,
-          "raw": "＜Security Attack +1＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 4,
-      "traits": [
-        "Composite"
+          keyword: "SecurityAttack",
+          amount: 1,
+          raw: "＜Security Attack +1＞",
+        },
       ],
-      "cost": 3,
-      "isAlternate": true
-    }
+    },
   ],
-  "digiXrosRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "materials": [
+      level: 4,
+      traits: ["Composite"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
+  digiXrosRequirement: [
+    {
+      materials: [
         {
-          "kind": ["Digimon"],
-          "levelComparison": { "op": "eq", "value": 4 },
-          "nameOrTrait": [{ "tokens": ["Composite"], "match": "trait" }],
-          "differentCardNumbers": true
-        }
+          kind: ["Digimon"],
+          levelComparison: { op: "eq", value: 4 },
+          nameOrTrait: [{ tokens: ["Composite"], match: "trait" }],
+          differentCardNumbers: true,
+        },
       ],
-      "count": 3,
-      "costReduction": 1
-    }
-  ]
+      count: 3,
+      costReduction: 1,
+    },
+  ],
 };
 
 registerIrCard("BT19-070", compiled);
