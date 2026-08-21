@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
 // A3 for BT19-079 (Taiki Kudo) — DigiXros source-zone expander:
@@ -16,6 +17,20 @@ const XROS_DIGIMON = "BT10-009"; // [Xros Heart] L4 DigiXros card, recipe incl. 
 const SHOUTMON = "BT10-008"; // "Shoutmon" L3 — a legal material for XROS_DIGIMON
 
 describe("BT19-079 DigiXros source-zone expansion (cards under Tamers)", () => {
+  it("keeps memory reset, DigiXros expansion, and security play in the runtime record", () => {
+    const card = runtimeCompiledCard(TAIKI);
+    expect(card).toMatchObject({ coverage: "full", residual: [] });
+    expect(card?.effects).toMatchObject([
+      { trigger: "StartOfYourTurn", actions: [{ kind: "SetMemory", value: 3 }] },
+      {
+        trigger: "AllTurns",
+        optional: true,
+        actions: [{ kind: "DigiXrosMaterialZoneExpansion", zones: ["digivolutionCards"] }],
+      },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
+    ]);
+  });
+
   it("with BT19-079 suspended, an under-Tamer [Shoutmon] is a legal DigiXros material", async () => {
     const s = setupEngine({
       0: {
