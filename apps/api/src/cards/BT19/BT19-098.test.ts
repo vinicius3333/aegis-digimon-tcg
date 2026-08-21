@@ -9,8 +9,6 @@ import "./BT19-098.js";
 //   [None] ignore-color waiver / [OnDestroyed] place [Device] from trash /
 //   [Main] place [Device] from trash + place self / [Security] place from hand + add self to hand.
 //
-// FAILS-WHEN-REVERTED: the declarative effect carried RawUnparsed residuals for the trash-place
-// and main clauses, so no placeOptionAsPermanent call was emitted.
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
@@ -212,6 +210,6 @@ describe("BT19-098 King Device", () => {
     expect(place[0]!.args[0]).toBe(dev.instanceId);
     const ret = recorder.calls.filter((c) => c.verb === "returnToHand");
     expect(ret).toHaveLength(1);
-    expect((ret[0]!.args[0] as string[])).toContain(SELF_INSTANCE);
+    expect(ret[0]!.args[0] as string[]).toContain(SELF_INSTANCE);
   });
 });
