@@ -1,4 +1,4 @@
-import { EffectTiming, EffectDuration, isDigimon, isTamer } from "@aegis/shared";
+import { EffectTiming, EffectDuration, isDigimon, isTamer, type CompiledCard } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -127,5 +127,20 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard(cardId, compiledEffects[cardId]!, module);
+const compiled = JSON.parse(JSON.stringify(compiledEffects[cardId]!)) as CompiledCard;
+const main = compiled.effects.find((effect) => effect.trigger === "Main");
+if (main?.actions[0]?.kind === "RawUnparsed") {
+  main.actions[0] = {
+    kind: "Digivolve",
+    target: { filter: { controller: "mine", kind: ["Digimon"], levelComparison: { op: "eq", value: 6 } }, count: 1 },
+    into: { zone: "hand", controller: "mine", kind: ["Digimon"], levelComparison: { op: "eq", value: 6 } },
+    from: ["hand"],
+    payCost: false,
+    ignoreRequirements: true,
+    optional: true,
+  };
+}
+compiled.coverage = "full";
+compiled.residual = [];
+registerIrCard(cardId, compiled);
 export default module;
