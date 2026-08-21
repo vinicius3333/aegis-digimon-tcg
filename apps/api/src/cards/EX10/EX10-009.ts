@@ -119,4 +119,6 @@ const compiled: CompiledCard = {
   "residual": []
 };
 
+export { compiled };
+
 registerIrCard("EX10-009", compiled);
