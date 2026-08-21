@@ -13,10 +13,7 @@ function hasAngelArchangel(def: CardDefinition): boolean {
 }
 
 function isThreeGreatAngelsDigimon(def: CardDefinition): boolean {
-  return (
-    isDigimon(def) &&
-    (def.types ?? []).some((t) => t === "Three Great Angels" || t === "ThreeGreatAngels")
-  );
+  return isDigimon(def) && (def.types ?? []).some((t) => t === "Three Great Angels" || t === "ThreeGreatAngels");
 }
 
 const module: EffectModule = {
@@ -100,9 +97,7 @@ const module: EffectModule = {
                 if (subject.controllerSeat !== ownerSeat) return false;
                 const def = subCtx.game.definitionOf(subject.topCard);
                 if (!isDigimon(def)) return false;
-                return (def.types ?? []).some(
-                  (t) => t === "Angel" || t === "Archangel",
-                );
+                return (def.types ?? []).some((t) => t === "Angel" || t === "Archangel");
               },
               run: async (subCtx) => {
                 const currentSelf = subCtx.game.permanentById(self.permanentId);
@@ -111,9 +106,7 @@ const module: EffectModule = {
                 const owner = subCtx.game.player(ownerSeat);
                 const security = [...owner.security];
                 if (security.length === 0) return;
-                const qualifying = security.filter((c) =>
-                  isThreeGreatAngelsDigimon(subCtx.game.definitionOf(c)),
-                );
+                const qualifying = security.filter((c) => isThreeGreatAngelsDigimon(subCtx.game.definitionOf(c)));
                 if (qualifying.length === 0) return;
                 const chosen = await subCtx.ask.selectCards(subCtx, {
                   candidates: qualifying.map((c) => c.instanceId),
