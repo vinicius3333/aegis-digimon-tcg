@@ -6,7 +6,7 @@ import { definitionMatches } from "./matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "./matching/permanent.js";
 import { LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose } from "./targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets, topInstanceIds } from "./targeting/permanents.js";
-import { getCardDefinition, isTamer } from "@aegis/shared";
+import { CardKind, getCardDefinition, isTamer } from "@aegis/shared";
 import type { Cost, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
@@ -1037,9 +1037,27 @@ export async function payCost(
               ? destIds[0]
               : (await ctx.ask.chooseTargets(ctx, { candidates: destIds, min: 1, max: 1 }))[0];
         } else {
-          const selfPerm = ctx.source.permanent();
-          if (selfPerm === undefined) return false;
-          hostPermId = selfPerm.permanentId;
+          // "place ... as 1 of your Digimon's ... card" names the destination
+          // separately from the material filter. Older IR omitted an explicit host
+          // target, so do not incorrectly default to the source Tamer; choose one of
+          // the controller's Digimon permanents through the production target seam.
+          const sourcePermanent = ctx.source.permanent();
+          const sourceIsTamer = sourcePermanent !== undefined &&
+            ctx.game.definitionOf(sourcePermanent.topCard).kinds.includes(CardKind.Tamer);
+          if ((cost.raw && /as 1 of your Digimon's/i.test(cost.raw)) ||
+              (sourceIsTamer && cost.target.filter.kind?.includes("Digimon"))) {
+            const candidates = ctx.game.player(ctx.source.ownerSeat).battleArea
+              .filter((permanent) => ctx.game.definitionOf(permanent.topCard).kinds.includes(CardKind.Digimon))
+              .map((permanent) => permanent.permanentId);
+            if (candidates.length === 0) return false;
+            hostPermId = candidates.length === 1
+              ? candidates[0]
+              : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
+          } else {
+            const selfPerm = ctx.source.permanent();
+            if (selfPerm === undefined) return false;
+            hostPermId = selfPerm.permanentId;
+          }
         }
         if (hostPermId === undefined) return false;
         if (cost.bindHostAs !== undefined) {
@@ -1113,8 +1131,18 @@ export async function payCost(
         const inBattleArea =
           self !== undefined &&
           Array.from(ctx.game.player(ctx.source.ownerSeat).battleArea).some((p) => p.permanentId === self.permanentId);
-        if (self === undefined || !inBattleArea) return false;
-        hostId = self.permanentId;
+        if (cost.raw && /as 1 of your Digimon's/i.test(cost.raw)) {
+          const destIds = ctx.game.player(ctx.source.ownerSeat).battleArea
+            .filter((permanent) => ctx.game.definitionOf(permanent.topCard).kinds.includes(CardKind.Digimon))
+            .map((permanent) => permanent.permanentId);
+          if (destIds.length === 0) return false;
+          hostId = destIds.length === 1
+            ? destIds[0]
+            : (await ctx.ask.chooseTargets(ctx, { candidates: destIds, min: 1, max: 1 }))[0];
+        } else {
+          if (self === undefined || !inBattleArea) return false;
+          hostId = self.permanentId;
+        }
       }
       if (hostId === undefined) return false;
       await ctx.fx.placeUnder(hostId, chosen, { belowTop: false });
