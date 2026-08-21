@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./EX8-002.js";
@@ -24,5 +26,16 @@ describe("EX8-002", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.memory === 1);
     expect(s.state.memory).toBe(1);
+  });
+
+  it("does not trigger below exactly 0 memory", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-002"] }] } });
+    await s.ready();
+    s.state.memory = -1;
+    s.state.phase = "Main";
+    s.state.turnSeat = 0;
+    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("host"));
+    await settle(() => s.state.memory !== -1);
+    expect(s.state.memory).toBe(-1);
   });
 });
