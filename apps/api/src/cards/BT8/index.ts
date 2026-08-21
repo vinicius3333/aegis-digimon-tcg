@@ -43,6 +43,7 @@ import "./BT8-041.js";
 import "./BT8-042.js";
 import "./BT8-043.js";
 import "./BT8-044.js";
+import "./BT8-045.js";
 import "./BT8-046.js";
 import "./BT8-047.js";
 import "./BT8-048.js";
