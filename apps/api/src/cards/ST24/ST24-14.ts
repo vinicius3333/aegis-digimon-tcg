@@ -107,7 +107,8 @@ const module: EffectModule = {
                   const opp = subCtx.game.player(opponent);
                   const targets = Array.from(opp.battleArea)
                     .filter((p) => p.topCard !== undefined && isDigimon(subCtx.game.definitionOf(p.topCard)) && !p.isSuspended)
-                    .map((p) => p.permanentId);
+                    // chooseTargets exposes permanent targets by their top-card instance id.
+                    .map((p) => p.topCard!.instanceId);
                   if (targets.length > 0) {
                     const chosen = await subCtx.ask.chooseTargets(subCtx, {
                       candidates: targets,
@@ -115,7 +116,8 @@ const module: EffectModule = {
                       max: 1,
                     });
                     if (chosen.length > 0) {
-                      subCtx.fx.suspend([chosen[0]!]);
+                      const target = opp.battleArea.find((p) => p.topCard?.instanceId === chosen[0]);
+                      if (target !== undefined) subCtx.fx.suspend([target.permanentId]);
                     }
                   }
                 }
