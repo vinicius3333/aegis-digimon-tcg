@@ -5,11 +5,17 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",
       "actions": [
+        {
+          "kind": "Restrict",
+          "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+          "restriction": "cannotActivateWhenDigivolving",
+          "duration": "untilOpponentTurnEnd"
+        },
         {
           "kind": "ModifyDP",
           "target": {
@@ -18,14 +24,6 @@ const compiled: CompiledCard = {
               "kind": [
                 "Digimon"
               ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "When Digivolving"
-                  ],
-                  "match": "trait"
-                }
-              ]
             },
             "count": 1
           },
@@ -38,6 +36,12 @@ const compiled: CompiledCard = {
       "trigger": "WhenDigivolving",
       "actions": [
         {
+          "kind": "Restrict",
+          "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+          "restriction": "cannotActivateWhenDigivolving",
+          "duration": "untilOpponentTurnEnd"
+        },
+        {
           "kind": "ModifyDP",
           "target": {
             "filter": {
@@ -45,14 +49,6 @@ const compiled: CompiledCard = {
               "kind": [
                 "Digimon"
               ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "When Digivolving"
-                  ],
-                  "match": "trait"
-                }
-              ]
             },
             "count": 1
           },
