@@ -24,6 +24,10 @@ export async function runRecoverByTrashingMostSecurity(
   if (action.recover !== false) await ctx.fx.recoverToSecurity(mine, action.amount ?? 1);
 }
 
+export async function runRecover(ctx: EffectContext, action: Extract<Action, { kind: "Recover" }>): Promise<void> {
+  await ctx.fx.recoverToSecurity(ctx.source.ownerSeat, action.amount ?? 1);
+}
+
 /** Security-stack manipulation: shuffle / trash top N / place cards as security. */
 export async function runSecurityManipulation(
   ctx: EffectContext,
@@ -52,6 +56,7 @@ export async function runSecurityManipulation(
     const decisionCtx =
       optionalSeat === ctx.source.ownerSeat ? ctx : { ...ctx, source: { ...ctx.source, ownerSeat: optionalSeat } };
     const accepted = await ctx.ask.optional(decisionCtx, describeAction(action));
+    ctx.lastOpponentDeclined = !accepted;
     if (!accepted) {
       ctx.lastEffectActed = false;
       if (action.bindResultAs) {
@@ -116,6 +121,7 @@ export async function runSecurityManipulation(
         ...(selectedSecurityIds !== undefined ? { instanceIds: selectedSecurityIds } : {}),
       });
       ctx.lastEffectActed = trashed.length > 0;
+      if (action.optionalFor !== undefined && trashed.length === 0) ctx.lastOpponentDeclined = true;
       if (action.trackCount !== undefined) {
         ctx.namedCounts ??= new Map();
         ctx.namedCounts.set(action.trackCount, trashed.length);
@@ -415,6 +421,10 @@ export async function runSecurityAction(ctx: EffectContext, action: Action, scop
     }
     case "RecoverByTrashingMostSecurity": {
       await runRecoverByTrashingMostSecurity(ctx, action);
+      return false;
+    }
+    case "Recover": {
+      await runRecover(ctx, action);
       return false;
     }
     case "trashSecurityTop": {

@@ -347,6 +347,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "OpponentMayTrashSecurity":
     case "SecurityManipulation":
     case "RecoverByTrashingMostSecurity":
+    case "Recover":
     case "trashSecurityTop":
     case "ModifySecurityDP":
     case "SecurityAttackInvert":

@@ -148,6 +148,11 @@ export interface RecoverByTrashingMostSecurityAction extends ActionBase {
   recover?: boolean;
 }
 
+export interface RecoverAction extends ActionBase {
+  kind: "Recover";
+  amount?: number;
+}
+
 /**
  * "Trash the top N card(s) of <controller>'s security stack" as a standalone action rather than a
  * cost. `ActionBase.condition` gates whether the trash happens (CAP-E15, BT21-052).
