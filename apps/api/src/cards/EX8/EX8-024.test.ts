@@ -29,10 +29,7 @@ describe("EX8-024", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "EX8-024", as: "source", suspended: true },
-            { card: "EX8-021", as: "ally" },
-          ],
+          battleArea: [{ card: "EX8-024", as: "source", suspended: true }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
