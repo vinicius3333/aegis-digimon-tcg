@@ -411,7 +411,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
           })) ?? rest;
       }
       const toTop = choice === 0;
-      await ctx.fx.returnToDeck(toTop ? [...rest].reverse() : [...rest].reverse(), { toTop });
+      await ctx.fx.returnToDeck(toTop ? [...rest].reverse() : action.reverseBottomOrder === true ? [...rest].reverse() : rest, { toTop });
     } else {
       if (rest.length > 1) {
         rest =
@@ -424,7 +424,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
           })) ?? rest;
       }
       const toTop = action.rest === "deckTop";
-      await ctx.fx.returnToDeck(toTop ? [...rest].reverse() : [...rest].reverse(), { toTop });
+      await ctx.fx.returnToDeck(toTop ? [...rest].reverse() : action.reverseBottomOrder === true ? [...rest].reverse() : rest, { toTop });
     }
   };
 
