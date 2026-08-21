@@ -3490,11 +3490,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           permanent.topCard = promoted;
           const promotedDefinition = requireCardDefinition(promoted.cardId);
           permanent.baseDP = promotedDefinition.kinds.includes(CardKind.Digimon) ? promotedDefinition.dp : 0;
+          dropPermanentLedgers(permanent.permanentId);
           ledger.recomputeDP(state, permanent.permanentId);
         }
         detached.faceUp = faceUp;
         if (toTop) insertCard(p, Zone.Security, detached, "top");
         else insertCard(p, Zone.Security, detached);
+        ledger.dropSourceInstances(state, [detached.instanceId]);
         added.push(detached);
         continue;
       }
