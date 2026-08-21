@@ -10,61 +10,69 @@ describe("BT19-083 Rika Nonaka", () => {
     expect(card?.effects).toMatchObject([
       {
         trigger: "OnPlay",
-        actions: [{
-          kind: "RevealAdd",
-          revealCount: 3,
-          add: [
-            {
-              filter: {
-                controllerDefault: "mine",
-                kind: ["Digimon"],
-                nameOrTrait: [{ tokens: ["Renamon", "Kyubimon", "Taomon", "Sakuyamon"], match: "name" }],
+        actions: [
+          {
+            kind: "RevealAdd",
+            revealCount: 3,
+            add: [
+              {
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Renamon", "Kyubimon", "Taomon", "Sakuyamon"], match: "name" }],
+                },
+                count: 1,
+                to: "hand",
               },
-              count: 1,
-              to: "hand",
-            },
-            {
-              filter: {
-                controllerDefault: "mine",
-                kind: ["Option"],
-                nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }],
+              {
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Option"],
+                  nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }],
+                },
+                count: 1,
+                to: "hand",
               },
-              count: 1,
-              to: "hand",
-            },
-          ],
-          rest: "deckBottom",
-        }],
+            ],
+            rest: "deckBottom",
+          },
+        ],
       },
       {
         trigger: "YourTurn",
-        actions: [{
-          kind: "SubTrigger",
-          event: "whenOptionUsed",
-          fireCondition: {
-            kind: "triggerOptionCostAtLeast",
-            value: 2,
-          },
-          actions: [{
-            kind: "GainMemory",
-            amount: 1,
-            cost: {
-              kind: "suspend",
-              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        actions: [
+          {
+            kind: "SubTrigger",
+            event: "whenOptionUsed",
+            fireCondition: {
+              kind: "triggerOptionCostAtLeast",
+              value: 2,
             },
-            optional: true,
-            abortOnDecline: true,
-          }],
-        }],
+            actions: [
+              {
+                kind: "GainMemory",
+                amount: 1,
+                cost: {
+                  kind: "suspend",
+                  target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                },
+                optional: true,
+                abortOnDecline: true,
+              },
+            ],
+          },
+        ],
       },
       {
         trigger: "Security",
         isSecurity: true,
-        actions: [{
-          kind: "PlayWithoutCost",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          payCost: false,
-        }],
+        actions: [
+          {
+            kind: "PlayWithoutCost",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            payCost: false,
+          },
+        ],
       },
     ]);
   });
