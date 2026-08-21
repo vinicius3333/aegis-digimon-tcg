@@ -31,13 +31,16 @@ export const compiled: CompiledCard = {
           ],
           "payCost": false,
           "condition": {
-            "kind": "youHave",
+            "kind": "zoneCount",
             "filter": {
-              "controllerDefault": "mine",
+              "zone": "battleArea",
+              "controller": "mine",
               "kind": [
                 "Tamer"
               ]
             },
+            "op": "lte",
+            "value": 1,
             "raw": "you have 1 or fewer Tamers"
           },
           "optional": true

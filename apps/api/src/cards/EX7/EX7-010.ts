@@ -16,7 +16,7 @@ export const compiled: CompiledCard = {
             "filter": {
               "zone": "digivolutionCards",
               "cardType": "Option",
-              "anyController": true
+              "controller": "any"
             },
             "count": 1
           },
@@ -33,7 +33,7 @@ export const compiled: CompiledCard = {
             "filter": {
               "zone": "digivolutionCards",
               "cardType": "Option",
-              "anyController": true
+              "controller": "any"
             },
             "count": 1
           },

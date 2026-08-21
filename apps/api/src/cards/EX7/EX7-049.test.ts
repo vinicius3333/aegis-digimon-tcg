@@ -11,7 +11,7 @@ import "./EX7-049.js";
 //   [When Attacking] Same De-Digivolve 4 effect.
 //   [When Digivolving] ALL opponent battle-area Digimon with level <= 4 can't digivolve
 //     until opponent's turn ends. Breeding area and level > 4 Digimon are excluded.
-//   [All Turns] (Once Per Turn) — RESIDUAL: not implemented.
+//   [All Turns] (Once Per Turn) — when it would leave play, play a Rock/Earth Dragon from trash.
 
 const cardId = "EX7-049";
 
@@ -95,6 +95,13 @@ describe("EX7-049 module structure", () => {
     const effects = requireMod().effectsForTiming(EffectTiming.WhenDigivolving, makeSource());
     expect(effects).toHaveLength(1);
     expect(effects[0]!.effectKey).toBe(`${cardId}/when-digivolving-restrict-digivolve`);
+  });
+
+  it("installs the once-per-turn leave-play replacement", () => {
+    const effects = requireMod().effectsForTiming(EffectTiming.None, makeSource());
+    expect(effects).toHaveLength(1);
+    expect(effects[0]!.maxPerTurn).toBe(1);
+    expect(effects[0]!.effectKey).toBe(`${cardId}/leave-play-rock-earth-play`);
   });
 
   it("returns no effects for unhandled timings", () => {

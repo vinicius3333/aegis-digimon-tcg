@@ -11,6 +11,8 @@ export interface DrawAction extends ActionBase {
   kind: "Draw";
   controller: Controller;
   amount: number;
+  /** Draw only enough cards to reach this hand size. */
+  untilHandSize?: number;
 }
 
 export interface GainMemoryAction extends ActionBase {

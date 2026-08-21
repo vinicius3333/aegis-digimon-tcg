@@ -16,12 +16,10 @@ async function deleteLowestDP(
     .filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)));
   if (oppDigimon.length === 0) return;
   oppDigimon.sort((a, b) => {
-    const defA = ctx.game.definitionOf(a.topCard!);
-    const defB = ctx.game.definitionOf(b.topCard!);
-    return (defA.dp ?? 0) - (defB.dp ?? 0);
+    return a.currentDP - b.currentDP;
   });
   const lowest = oppDigimon.filter((p) => {
-    return (ctx.game.definitionOf(p.topCard!).dp ?? 0) === (ctx.game.definitionOf(oppDigimon[0]!.topCard!).dp ?? 0);
+    return p.currentDP === oppDigimon[0]!.currentDP;
   });
   const candidates = lowest.map((p) => p.permanentId);
   const chosen = await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 });

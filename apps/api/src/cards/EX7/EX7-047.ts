@@ -123,7 +123,7 @@ export const compiled: CompiledCard = {
     {
       "level": 5,
       "traits": [
-        "NSP"
+        "NSp"
       ],
       "cost": 3,
       "isAlternate": true

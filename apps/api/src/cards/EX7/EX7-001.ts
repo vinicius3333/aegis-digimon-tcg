@@ -31,6 +31,7 @@ export const compiled: CompiledCard = {
                 "Digimon"
               ]
             },
+            "countMax": 1,
             "raw": "your opponent has 1 or fewer Digimon"
           }
         }

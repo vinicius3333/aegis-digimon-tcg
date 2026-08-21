@@ -155,7 +155,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return cond.filter ? countMatching(ctx, { controller: "mine", ...cond.filter }) >= (cond.count ?? 1) : false;
     case "opponentHas": {
       const threshold = cond.countMin ?? cond.count ?? 1;
-      return cond.filter ? countMatching(ctx, { controller: "opponent", ...cond.filter }) >= threshold : false;
+      const count = cond.filter ? countMatching(ctx, { controller: "opponent", ...cond.filter }) : 0;
+      return count >= threshold && (cond.countMax === undefined || count <= cond.countMax);
     }
     case "youHaveNone":
       return cond.filter ? countMatching(ctx, { controller: "mine", ...cond.filter }) === 0 : false;
@@ -202,7 +203,12 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const seat = cond.seat === "opponent" ? opp : mine;
       const player = ctx.game.player(seat);
       const zone = cond.zone ?? "hand";
-      const size = player[zone].length;
+      const size = zone === "battleArea"
+        ? player.battleArea.filter((permanent) =>
+            permanent.topCard !== undefined &&
+            (cond.filter === undefined || definitionMatches(cond.filter, ctx.game.definitionOf(permanent.topCard))),
+          ).length
+        : player[zone].length;
       const value = cond.value ?? 0;
       if (cond.op === "eq") return size === value;
       if (cond.op === "lt") return size < value;

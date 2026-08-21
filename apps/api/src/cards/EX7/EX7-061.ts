@@ -9,7 +9,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 const cardId = "EX7-061";
 
 function isLilithmonOrXAntibody(def: CardDefinition): boolean {
-  return def.nameEn === "Lilithmon" || (def.types ?? []).includes("Lilithmon X Antibody");
+  return def.nameEn === "Lilithmon" || def.nameEn === "Lilithmon (X Antibody)" || (def.types ?? []).includes("X Antibody");
 }
 
 function isPurpleLv4OrLowerDigimon(def: CardDefinition): boolean {
