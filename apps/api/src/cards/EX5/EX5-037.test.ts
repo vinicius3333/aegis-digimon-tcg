@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { type PlayerState } from "@aegis/shared";
+import { EffectTiming, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { getEffectModule } from "../../engine/effects/registry.js";
 import "../index.js";
 
 // A3 for EX5-037 (Vajramon) — Red Lv.5 Digimon.
@@ -27,7 +28,10 @@ describe("EX5-037 [On Play] draws 1 then plays Deva to breeding slot", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: VAJRAMON, as: "vajramon" }, { card: DEVA, as: "deva" }],
+          hand: [
+            { card: VAJRAMON, as: "vajramon" },
+            { card: DEVA, as: "deva" },
+          ],
           deck: [FILLER, FILLER, FILLER],
         },
       },
@@ -36,9 +40,9 @@ describe("EX5-037 [On Play] draws 1 then plays Deva to breeding slot", () => {
     const p0 = s.state.players[0] as PlayerState;
     s.state.memory = 7; // exact play cost of EX5-037
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vajramon").instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vajramon").instanceId })).toEqual({
+      ok: true,
+    });
 
     await settle(() => p0.breeding?.topCard?.cardId === DEVA);
 
@@ -56,7 +60,10 @@ describe("EX5-037 [On Play] draws 1 then plays Deva to breeding slot", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: VAJRAMON, as: "vajramon" }, { card: DEVA, as: "deva" }],
+          hand: [
+            { card: VAJRAMON, as: "vajramon" },
+            { card: DEVA, as: "deva" },
+          ],
           deck: [FILLER, FILLER, FILLER],
           breeding: { card: FILLER, dp: 2000 },
         },
@@ -66,9 +73,9 @@ describe("EX5-037 [On Play] draws 1 then plays Deva to breeding slot", () => {
     const p0 = s.state.players[0] as PlayerState;
     s.state.memory = 7;
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vajramon").instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vajramon").instanceId })).toEqual({
+      ok: true,
+    });
 
     // Wait for draw to complete.
     await settle(() => p0.deck.length < 3);
@@ -77,5 +84,22 @@ describe("EX5-037 [On Play] draws 1 then plays Deva to breeding slot", () => {
     expect(p0.breeding?.topCard?.cardId).toBe(FILLER);
     // The Deva stays in hand (was not chosen as there's no valid slot).
     expect(p0.hand.some((c) => c.instanceId === s.inst("deva").instanceId)).toBe(true);
+  });
+
+  it("registers the once-per-turn Option trigger and inherited Piercing effect", () => {
+    const source = {
+      instanceId: "source",
+      cardId: VAJRAMON,
+      ownerSeat: 0,
+      definition: {},
+      permanent: () => undefined,
+      isOnBattleArea: () => true,
+      isOwnersTurn: () => true,
+      hasColor: () => true,
+    } as never;
+    const effects = getEffectModule(VAJRAMON)!.effectsForTiming(EffectTiming.None, source);
+    expect(effects).toHaveLength(2);
+    expect(effects[0]?.description).toContain("use an Option card");
+    expect(effects[1]).toMatchObject({ isInherited: true, description: expect.stringContaining("Piercing") });
   });
 });
