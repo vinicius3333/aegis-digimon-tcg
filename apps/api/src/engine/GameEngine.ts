@@ -1836,6 +1836,14 @@ export class GameEngine {
         await this.subTriggers.fire(
           event,
           (sub) => {
+            // Inherited watchers keep both the host anchor and the card instance that
+            // installed the watcher. Once that source card leaves the stack, resolve the
+            // loose instance first so isSelfRef and inherited effects still refer to the
+            // card that was actually trashed (BT7-031, BT8-081, P-032).
+            if (sub.sourceInstanceId !== undefined) {
+              const loose = this.findLooseInstance(sub.sourceInstanceId);
+              if (loose !== undefined) return this.buildEffectContext(this.cardSourceOf(loose), payload);
+            }
             // Anchor the watcher's context on its OWN source permanent. A watcher whose anchor
             // has left the field (its subscription should already be dropped on leave; guard
             // defensively) yields undefined and is skipped by the registry.
@@ -1847,11 +1855,7 @@ export class GameEngine {
               if (srcPerm?.topCard === undefined) return undefined;
               return this.buildEffectContext(this.cardSourceOf(srcPerm.topCard), payload);
             }
-            if (sub.sourceInstanceId !== undefined) {
-              const loose = this.findLooseInstance(sub.sourceInstanceId);
-              if (loose === undefined) return undefined;
-              return this.buildEffectContext(this.cardSourceOf(loose), payload);
-            }
+            if (sub.sourceInstanceId !== undefined) return undefined;
             if (sub.activationContext !== undefined) {
               return { ...sub.activationContext, trigger: payload, selections: new Map() };
             }
@@ -1885,16 +1889,16 @@ export class GameEngine {
   }
 
   private buildSubTriggerContext(sub: SubTriggerSubscription, payload: TriggerInfo): EffectContext | undefined {
+    if (sub.sourceInstanceId !== undefined) {
+      const loose = this.findLooseInstance(sub.sourceInstanceId);
+      if (loose !== undefined) return this.buildEffectContext(this.cardSourceOf(loose), payload);
+    }
     if (sub.sourcePermanentId !== undefined) {
       const srcPerm = this.access.permanentById(sub.sourcePermanentId);
       if (srcPerm?.topCard === undefined) return undefined;
       return this.buildEffectContext(this.cardSourceOf(srcPerm.topCard), payload);
     }
-    if (sub.sourceInstanceId !== undefined) {
-      const loose = this.findLooseInstance(sub.sourceInstanceId);
-      if (loose === undefined) return undefined;
-      return this.buildEffectContext(this.cardSourceOf(loose), payload);
-    }
+    if (sub.sourceInstanceId !== undefined) return undefined;
     if (sub.activationContext !== undefined) {
       return { ...sub.activationContext, trigger: payload, selections: new Map() };
     }
