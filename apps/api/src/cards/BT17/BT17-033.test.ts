@@ -6,7 +6,7 @@ describe("BT17-033", () => {
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "WhenAttacking", actions: [{ kind: "ModifyDP", amount: 3000, duration: "forTheTurn", optional: true, abortOnDecline: true, cost: { kind: "suspend" } }] });
   });
 
-  it("reduces opposing Digimon DP by 3000 as inherited", () => {
-    expect(compiled.effects?.[1]).toMatchObject({ trigger: "YourTurn", isInherited: true, actions: [{ kind: "ModifyDP", amount: -3000, duration: "permanent", target: { count: "all" } }] });
+  it("reduces all opposing security Digimon by 3000 as inherited", () => {
+    expect(compiled.effects?.[1]).toMatchObject({ trigger: "YourTurn", isInherited: true, actions: [{ kind: "ModifySecurityDP", controller: "opponent", amount: -3000, duration: "permanent" }] });
   });
 });
