@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -13,6 +15,20 @@ describe("ST21-12", () => {
   });
   it("plays itself from security without cost", () => {
     expect((runtimeCompiledCard("ST21-12")?.effects ?? []).find((effect) => effect.trigger === "Security")).toMatchObject({ isSecurity: true });
+  });
+
+  it("gains exactly one memory only when an Adventure Digimon is present", async () => {
+    const withAdventure = setupEngine({
+      0: { battleArea: [{ card: "ST21-12", as: "joeMimi" }, { card: "ST21-02", as: "adventure" }] },
+    });
+    await advance(withAdventure.engine).fire(EffectTiming.OnStartMainPhase, withAdventure.perm("joeMimi"));
+    expect(withAdventure.state.memory).toBe(1);
+
+    const withoutAdventure = setupEngine({
+      0: { battleArea: [{ card: "ST21-12", as: "joeMimi" }] },
+    });
+    await advance(withoutAdventure.engine).fire(EffectTiming.OnStartMainPhase, withoutAdventure.perm("joeMimi"));
+    expect(withoutAdventure.state.memory).toBe(0);
   });
 
   it("plays itself without cost when revealed from security", async () => {
