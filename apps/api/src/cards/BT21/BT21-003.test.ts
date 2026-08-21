@@ -15,4 +15,26 @@ describe("BT21-003 compiled implementation", () => {
       for (const action of effect.actions ?? []) expect(typeof action.kind).toBe("string");
     }
   });
+
+  it("draws once per turn when one of your WG Digimon is played", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "YourTurn",
+        isInherited: true,
+        frequency: "OncePerTurn",
+        actions: [
+          {
+            kind: "SubTrigger",
+            event: "whenPlayed",
+            sourceFilter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["WG"], match: "trait" }],
+            },
+            actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
+          },
+        ],
+      }),
+    ]);
+  });
 });
