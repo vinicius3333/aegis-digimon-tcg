@@ -10,7 +10,6 @@ import {
   type CardColor,
   type CardDefinition,
   type CardInstance,
-  Permanent,
   type Intent,
   type IntentResult,
   type DecisionRequest,
@@ -1741,7 +1740,7 @@ export class GameEngine {
    * field is skipped (its subscription was already dropped on leave).
    */
   private async fireSubTrigger(event: SubTriggerEventName, payload: TriggerInfo = {}): Promise<void> {
-    if (this.ruleProcessing) {
+    if (this.ruleProcessing && event !== "onDeletionOf") {
       const deletedControllerSeat =
         payload.deletedPermanentId === undefined
           ? undefined
