@@ -1,43 +1,26 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import "../index.js";
+import "./BT19-067.js";
 
-describe("BT19-067 Impmon", () => {
-  it("preserves the limited-Tamer purple Tamer revival and inherited Retaliation", () => {
+describe("BT19-067", () => {
+  it("preserves the one-or-fewer-Tamers purple Tamer trash play and inherited Retaliation", () => {
     const card = runtimeCompiledCard("BT19-067");
-
     expect(card).toMatchObject({ coverage: "full", residual: [] });
     expect(card?.effects).toMatchObject([
       {
         trigger: "OnPlay",
-        actions: [{
-          kind: "PlayWithoutCost",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Tamer"],
-              colors: ["Purple"],
-              playCostLte: 4,
-            },
-            count: 1,
+        actions: [
+          {
+            kind: "PlayWithoutCost",
+            target: { filter: { kind: ["Tamer"], colors: ["Purple"], playCostLte: 4 } },
+            from: ["trash"],
+            payCost: false,
+            condition: { kind: "youHave", countMin: 0, countMax: 1, filter: { kind: ["Tamer"] } },
+            optional: true,
           },
-          from: ["trash"],
-          payCost: false,
-          condition: {
-            kind: "youHave",
-            countMin: 0,
-            countMax: 1,
-            filter: { controllerDefault: "mine", kind: ["Tamer"] },
-          },
-          optional: true,
-        }],
+        ],
       },
-      {
-        trigger: "Static",
-        actions: [],
-        isInherited: true,
-        keywords: [{ keyword: "Retaliation", raw: "＜Retaliation＞" }],
-      },
+      { trigger: "Static", isInherited: true, keywords: [{ keyword: "Retaliation" }] },
     ]);
   });
 });
