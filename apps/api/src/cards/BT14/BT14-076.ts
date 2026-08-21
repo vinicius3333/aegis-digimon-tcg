@@ -14,13 +14,13 @@ export const compiled: CompiledCard = {
           "kind": "Delete",
           "target": {
             "filter": {
-              "controller": "opponent",
+              "controller": "mine",
               "kind": [
                 "Digimon"
               ],
               "superlative": "lowestLevel"
             },
-            "count": 1
+          "count": 1
           },
           "cost": {
             "kind": "trash",
@@ -35,6 +35,19 @@ export const compiled: CompiledCard = {
           },
           "optional": true,
           "abortOnDecline": true
+        },
+        {
+          "kind": "Delete",
+          "target": {
+            "filter": {
+              "controller": "opponent",
+              "kind": [
+                "Digimon"
+              ],
+              "superlative": "lowestLevel"
+            },
+            "count": 1
+          }
         }
       ]
     },
