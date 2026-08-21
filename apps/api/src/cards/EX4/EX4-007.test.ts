@@ -24,6 +24,17 @@ describe("EX4-007 GeoGreymon", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it("gains memory at the start of main phase with a yellow Tamer", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX4-007", as: "host" }, { card: "AD1-019", as: "tamer" }] } });
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
+
+    expect(s.state.memory).toBe(1);
+  });
+
   it("draws once when a matching inherited Tamer becomes suspended", async () => {
     const s = setupEngine({ 0: { deck: ["BT1-010", "BT1-011"], battleArea: [{ card: "BT4-009", as: "host", under: ["EX4-007"] }, { card: "BT1-085", as: "tamer" }] } });
     s.state.turnSeat = 0;
@@ -32,6 +43,9 @@ describe("EX4-007 GeoGreymon", () => {
 
     await advance(s.engine).verb.suspend([s.perm("tamer").permanentId]);
     await settle(() => s.state.players[0]!.hand.length === 1);
+
+    await advance(s.engine).verb.unsuspend([s.perm("tamer").permanentId]);
+    await advance(s.engine).verb.suspend([s.perm("tamer").permanentId]);
 
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.deck).toHaveLength(1);
