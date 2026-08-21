@@ -1,4 +1,5 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
+import { EffectTiming, appFusionCostFor, isDigimon } from "@aegis/shared";
+import type { CardInstance } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -6,6 +7,26 @@ import { turnTiming, security, staticModifier } from "../../engine/effects/build
 import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "EX10-062";
+
+function ownDigimon(ctx: Parameters<Effect["resolve"]>[0], source: CardSource) {
+  return ctx.game.player(source.ownerSeat).battleArea.filter(
+    (permanent) => permanent.topCard !== undefined && isDigimon(ctx.game.definitionOf(permanent.topCard)),
+  );
+}
+
+function fusionCardsFor(
+  ctx: Parameters<Effect["resolve"]>[0],
+  host: NonNullable<ReturnType<CardSource["permanent"]>>,
+  source: CardSource,
+): CardInstance[] {
+  if (host.topCard === undefined) return [];
+  const topName = ctx.game.definitionOf(host.topCard).nameEn;
+  const linkedNames = Array.from(host.linked).map((card) => ctx.game.definitionOf(card).nameEn);
+  return ctx.game.player(source.ownerSeat).hand.filter((card) => {
+    const definition = ctx.game.definitionOf(card);
+    return isDigimon(definition) && appFusionCostFor(card.cardId, { topName, linkedNames }) !== undefined;
+  });
+}
 
 const module: EffectModule = {
   cardId,
@@ -45,26 +66,23 @@ const module: EffectModule = {
           optional: true,
           when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-            const battleDigimon = Array.from(owner.battleArea)
-              .filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)));
-            if (battleDigimon.length < 2) return;
+            const hosts = ownDigimon(ctx, source).filter((host) => fusionCardsFor(ctx, host, source).length > 0);
+            if (hosts.length === 0) return;
             const materialChosen = await ctx.ask.chooseTargets(ctx, {
-              candidates: battleDigimon.map((p) => p.permanentId),
+              candidates: hosts.map((p) => p.permanentId),
               min: 1,
               max: 1,
             });
-            if (materialChosen.length === 0) return;
-            const digimonCards = Array.from(owner.hand).filter((c) => isDigimon(ctx.game.definitionOf(c)));
-            if (digimonCards.length === 0) return;
+            const host = hosts.find((candidate) => candidate.permanentId === materialChosen[0]);
+            if (host === undefined) return;
+            const digimonCards = fusionCardsFor(ctx, host, source);
             const intoChosen = await ctx.ask.selectCards(ctx, {
               candidates: digimonCards.map((c) => c.instanceId),
               min: 0,
               max: 1,
             });
             if (intoChosen.length === 0) return;
-            const materialsWithSelf = [source.permanent()?.permanentId, ...materialChosen].filter(Boolean) as string[];
-            await ctx.fx.dnaDigivolveInto(materialsWithSelf, intoChosen[0]!, { payCost: false });
+            await ctx.fx.appFuseInto(host.permanentId, intoChosen[0]!);
           },
         }),
       ];

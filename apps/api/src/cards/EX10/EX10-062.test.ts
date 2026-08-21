@@ -1,6 +1,8 @@
 import { describe, it, expect } from "vitest";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { EffectTiming } from "@aegis/shared";
 // Boot side-effect: self-register every compiled-IR card module (so EX10-062's real IR loads).
 import "../index.js";
 
@@ -30,6 +32,26 @@ function primitivesOf(s: { engine: unknown }): Primitives {
 }
 
 describe("A3 EX10-062 — whenLinkTrashed consumer: suspend this Tamer to <Draw 1>", () => {
+  it("uses the real App Fusion primitive at end of turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX10-062", as: "tamer" },
+          { card: "BT24-057", as: "host", linked: [{ card: "BT24-036", as: "link" }] },
+        ],
+        hand: [{ card: "BT24-038", as: "fusion" }],
+        deck: ["BT1-001"],
+      },
+    }, { autoSelectCards: true, autoAcceptOptional: true });
+    s.state.memory = 5;
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("tamer"));
+    await settle(() => s.perm("host").topCard.cardId === "BT24-038");
+
+    expect(s.perm("host").topCard.cardId).toBe("BT24-038");
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT24-038")).toBe(false);
+  });
+
   it("trashing a friendly Digimon's link card suspends the Tamer and draws 1", async () => {
     // EX10-062 Yujin Ozora (a Tamer) on the controller's field — the watcher anchor + suspend cost.
     // A friendly Digimon (host) carries a LINK card (the genuine link-trash subject).
