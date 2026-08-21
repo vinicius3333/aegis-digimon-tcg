@@ -297,6 +297,20 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
       // loudly here — instead of the old silent `grantCustom` store — surfaces them the moment
       // a game actually resolves one, matching the fail-loud shape used across this case.
       if (typeof action.grant === "object" && action.grant !== null) {
+        if ("dp" in action.grant || "color" in action.grant || "originalName" in action.grant) {
+          const grant = action.grant as { dp?: number; color?: string; originalName?: string };
+          const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
+          for (const permanentId of ids) {
+            if (grant.dp !== undefined) ctx.fx.setBaseDP(permanentId, grant.dp, grantDuration);
+            if (grant.color !== undefined || grant.originalName !== undefined) {
+              ctx.fx.setOriginalCardInfo(permanentId, {
+                ...(grant.color === undefined ? {} : { colors: [COLOR_MAP[Object.keys(COLOR_MAP).find((key) => key.toLowerCase() === grant.color!.toLowerCase()) as keyof typeof COLOR_MAP]] }),
+                ...(grant.originalName === undefined ? {} : { name: grant.originalName }),
+              }, grantDuration);
+            }
+          }
+          return false;
+        }
         if ((action.grant as { kind?: string }).kind === "TreatAsLevel") {
           const grant = action.grant as { level?: number; context?: string; intoNames?: string[] };
           if (grant.context !== "DNADigivolution" || grant.level === undefined) {
