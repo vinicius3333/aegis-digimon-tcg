@@ -173,7 +173,7 @@ describe("EX4-069 Gaia Reactor", () => {
       ask: {
         optional: async () => true,
         chooseOption: async () => 0,
-        chooseTargets: async (_ctx, options) => [options.candidates[0]!],
+        chooseTargets: async (_ctx, options: { candidates: string[] }) => [options.candidates[0]!],
         selectCards: async () => [],
         selectPermanents: async () => [],
       },
