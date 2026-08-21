@@ -27,6 +27,7 @@ const compiled: CompiledCard = {
             },
             "count": 1
           },
+          "selectionRef": "protected",
           "grant": {
             "kind": "Protection",
             "protections": [
@@ -47,6 +48,7 @@ const compiled: CompiledCard = {
             },
             "count": 1
           },
+          "fromSelectionRef": "protected",
           "amount": 3000,
           "duration": "untilOpponentTurnEnd"
         }
@@ -66,6 +68,7 @@ const compiled: CompiledCard = {
             },
             "count": 1
           },
+          "selectionRef": "protected",
           "grant": {
             "kind": "Protection",
             "protections": [
@@ -86,6 +89,7 @@ const compiled: CompiledCard = {
             },
             "count": 1
           },
+          "fromSelectionRef": "protected",
           "amount": 3000,
           "duration": "untilOpponentTurnEnd"
         }
@@ -181,5 +185,7 @@ const compiled: CompiledCard = {
     }
   ]
 };
+
+export { compiled };
 
 registerIrCard("EX10-031", compiled);
