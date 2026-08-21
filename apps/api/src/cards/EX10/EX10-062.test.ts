@@ -33,16 +33,19 @@ function primitivesOf(s: { engine: unknown }): Primitives {
 
 describe("A3 EX10-062 — whenLinkTrashed consumer: suspend this Tamer to <Draw 1>", () => {
   it("uses the real App Fusion primitive at end of turn", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "EX10-062", as: "tamer" },
-          { card: "BT24-057", as: "host", linked: [{ card: "BT24-036", as: "link" }] },
-        ],
-        hand: [{ card: "BT24-038", as: "fusion" }],
-        deck: ["BT1-001"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX10-062", as: "tamer" },
+            { card: "BT24-057", as: "host", linked: [{ card: "BT24-036", as: "link" }] },
+          ],
+          hand: [{ card: "BT24-038", as: "fusion" }],
+          deck: ["BT1-001"],
+        },
       },
-    }, { autoSelectCards: true, autoAcceptOptional: true });
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
     s.state.memory = 5;
 
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("tamer"));

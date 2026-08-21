@@ -226,7 +226,9 @@ describe("EX10-023 Astamon", () => {
     });
     await s.engine.recomputeContinuousEffects();
 
-    await (s.engine as unknown as { unsuspendForActivePhase(seat: 0 | 1): Promise<string[]> }).unsuspendForActivePhase(0);
+    await (s.engine as unknown as { unsuspendForActivePhase(seat: 0 | 1): Promise<string[]> }).unsuspendForActivePhase(
+      0,
+    );
 
     expect(s.perm("quartzmon").isSuspended).toBe(false);
     expect(s.perm("ownOther").isSuspended).toBe(true);

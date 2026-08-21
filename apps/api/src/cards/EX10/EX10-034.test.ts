@@ -42,7 +42,9 @@ describe("EX10-034 Blastmon", () => {
       },
       ask: { chooseTargets: async () => [opponent.permanentId] },
       fx: {
-        subscribeSubTrigger: (spec: any) => { subscription = spec; },
+        subscribeSubTrigger: (spec: any) => {
+          subscription = spec;
+        },
       },
     };
 

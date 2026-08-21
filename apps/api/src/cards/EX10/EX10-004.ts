@@ -10,7 +10,8 @@ const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     if (timing === EffectTiming.None || timing === EffectTiming.OnMove) {
-      return [{
+      return [
+        {
           effectKey: `${cardId}/lucemon-breed-move-draw`,
           description:
             "[Your Turn] [Once Per Turn] [Inherited] When any of your Digimon with [Lucemon] " +
@@ -25,7 +26,13 @@ const module: EffectModule = {
             const self = source.permanent();
             const movedId = ctx.trigger?.movedPermanentId;
             if (movedId === undefined) return self !== undefined;
-            if (self === undefined || !source.isOnBattleArea() || !source.isOwnersTurn() || movedId !== self.permanentId) return false;
+            if (
+              self === undefined ||
+              !source.isOnBattleArea() ||
+              !source.isOwnersTurn() ||
+              movedId !== self.permanentId
+            )
+              return false;
             const moved = ctx.game.permanentById(movedId);
             return moved !== undefined && ctx.game.definitionOf(moved.topCard).nameEn.includes("Lucemon");
           },
@@ -34,7 +41,11 @@ const module: EffectModule = {
             if (ctx.trigger?.movedPermanentId !== undefined) {
               const hand = ctx.game.player(source.ownerSeat).hand;
               if (hand.length === 0) return;
-              const chosen = await ctx.ask.selectCards(ctx, { candidates: hand.map((c) => c.instanceId), min: 1, max: 1 });
+              const chosen = await ctx.ask.selectCards(ctx, {
+                candidates: hand.map((c) => c.instanceId),
+                min: 1,
+                max: 1,
+              });
               if (chosen.length === 0) return;
               await ctx.fx.trash(chosen, { byEffectSeat: source.ownerSeat });
               ctx.fx.draw(source.ownerSeat, 1);
@@ -79,7 +90,8 @@ const module: EffectModule = {
               },
             });
           },
-        }];
+        },
+      ];
     }
 
     return [];

@@ -9,9 +9,11 @@ import { registerCard } from "../../engine/effects/registry.js";
 const cardId = "EX10-062";
 
 function ownDigimon(ctx: Parameters<Effect["resolve"]>[0], source: CardSource) {
-  return ctx.game.player(source.ownerSeat).battleArea.filter(
-    (permanent) => permanent.topCard !== undefined && isDigimon(ctx.game.definitionOf(permanent.topCard)),
-  );
+  return ctx.game
+    .player(source.ownerSeat)
+    .battleArea.filter(
+      (permanent) => permanent.topCard !== undefined && isDigimon(ctx.game.definitionOf(permanent.topCard)),
+    );
 }
 
 function fusionCardsFor(
@@ -94,8 +96,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/link-trash-draw`,
           description:
-            "[All Turns] When effects trash any of your Digimon's link cards, by suspending " +
-            "this Tamer, <Draw 1>.",
+            "[All Turns] When effects trash any of your Digimon's link cards, by suspending " + "this Tamer, <Draw 1>.",
           when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
