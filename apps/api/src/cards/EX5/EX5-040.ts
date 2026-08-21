@@ -5,101 +5,99 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Plan 13-01 Task 3 (Phase 13 primitives): PlayWithoutCost.breeding: true routes the
 // played card to the BREEDING area. The engine's playInstances primitive now handles
 // the breeding destination.
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Deva"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Deva"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1,
-            "upTo": true
+            count: 1,
+            upTo: true,
           },
-          "payCost": false,
-          "from": [
-            "hand"
+          payCost: false,
+          from: ["hand"],
+          breeding: true,
+          notSameNameAs: ["battleArea", "trash"],
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
+          },
+          actions: [
+            {
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+            },
           ],
-          "breeding": true,
-          "notSameNameAs": [
-            "battleArea",
-            "trash"
-          ]
-        }
-      ]
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "frequency": "OncePerTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
-        }
-      ]
-    },
-    {
-      "trigger": "Static",
-      "actions": [
-        {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "Piercing"
-            }
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Piercing",
+            },
           },
-          "while": {
-            "kind": "youHave",
-            "filter": {
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          while: {
+            kind: "youHave",
+            filter: {
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Four Sovereigns",
-                    "God Beast"
-                  ],
-                  "match": "trait"
-                }
+                  tokens: ["Four Sovereigns", "God Beast"],
+                  match: "trait",
+                },
               ],
-              "isSelfRef": true
+              isSelfRef: true,
             },
-            "count": 1
-          }
-        }
-      ]
-    }
+            count: 1,
+          },
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX5-040", compiled);
