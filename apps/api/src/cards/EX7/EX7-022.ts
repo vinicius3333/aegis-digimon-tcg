@@ -10,7 +10,7 @@ export const compiled: CompiledCard = {
       "trigger": "OnPlay",
       "actions": [
         {
-          "kind": "Restrict",
+          "kind": "Suspend",
           "target": {
             "filter": {
               "controller": "opponent",
