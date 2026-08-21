@@ -142,15 +142,6 @@ export const compiled: CompiledCard = {
               },
             },
           ],
-          scaling: {
-            per: 1,
-            filter: {
-              controllerDefault: "any",
-              suspended: true,
-              kind: ["Digimon"],
-            },
-            unit: "cards",
-          },
         },
       ],
       frequency: "OncePerTurn",
