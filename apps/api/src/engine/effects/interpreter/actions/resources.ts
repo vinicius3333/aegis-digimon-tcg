@@ -14,14 +14,26 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
   const { scale } = scope;
   switch (action.kind) {
     case "Draw": {
-      const seat = action.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
-      const requested = action.untilHandSize === undefined
-        ? (scale === undefined ? action.amount : action.amount * scale)
-        : Math.max(0, action.untilHandSize - ctx.game.player(seat).hand.length);
-      const drawn = await ctx.fx.draw(seat, requested);
+      const seats: Seat[] =
+        action.controller === "both"
+          ? [ctx.source.ownerSeat, ctx.game.opponentOf(ctx.source.ownerSeat)]
+          : action.controller === "opponent"
+            ? [ctx.game.opponentOf(ctx.source.ownerSeat)]
+            : [ctx.source.ownerSeat];
+      let drewAny = false;
+      for (const seat of seats) {
+        const requested =
+          action.untilHandSize === undefined
+            ? scale === undefined
+              ? action.amount
+              : action.amount * scale
+            : Math.max(0, action.untilHandSize - ctx.game.player(seat).hand.length);
+        const drawn = await ctx.fx.draw(seat, requested);
+        drewAny ||= drawn.length > 0;
+      }
       // Bind "If you do" to an ACTUAL draw. Drawing from an empty deck does not satisfy the
       // clause (ST10-01), while one or more cards drawn does and enables the following action.
-      ctx.lastEffectActed = drawn.length > 0;
+      ctx.lastEffectActed = drewAny;
       return false;
     }
     case "GainMemory": {

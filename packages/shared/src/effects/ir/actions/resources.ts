@@ -9,7 +9,7 @@ import type { ActionBase } from "./base.js";
 
 export interface DrawAction extends ActionBase {
   kind: "Draw";
-  controller: Controller;
+  controller: Controller | "both";
   amount: number;
   /** Draw only enough cards to reach this hand size. */
   untilHandSize?: number;
