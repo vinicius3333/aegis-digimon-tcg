@@ -3,6 +3,20 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
+  "digivolutionRequirement": [
+    {
+      "level": 3,
+      "cost": 3,
+      "colors": ["Green", "Black"],
+      "isAlternate": true
+    },
+    {
+      "level": 3,
+      "traits": ["Royal Base"],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
   "effects": [
     {
       "trigger": "OpponentsTurn",
@@ -138,16 +152,6 @@ const compiled: CompiledCard = {
   ],
   "coverage": "full",
   "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 3,
-      "traits": [
-        "Royal Base"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
 };
 
 registerIrCard("EX11-030", compiled);
