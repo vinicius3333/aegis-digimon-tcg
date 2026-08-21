@@ -7,26 +7,18 @@ import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { onPlay, whenDigivolving, onAddHand, onDeletion } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
-
 const cardId = "BT17-028";
 
 function lowestLevelOpponentDigimon(ctx: EffectContext, source: CardSource): Permanent[] {
   const opponent = ctx.game.opponentOf(source.ownerSeat);
   const oppArea = Array.from(ctx.game.player(opponent).battleArea);
-  const digimon = oppArea.filter(
-    (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
-  );
+  const digimon = oppArea.filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)));
   if (digimon.length === 0) return [];
-  const minLevel = Math.min(
-    ...digimon.map((p) => ctx.game.definitionOf(p.topCard!).level ?? 99),
-  );
+  const minLevel = Math.min(...digimon.map((p) => ctx.game.definitionOf(p.topCard!).level ?? 99));
   return digimon.filter((p) => (ctx.game.definitionOf(p.topCard!).level ?? 99) === minLevel);
 }
 
-async function returnLowestLevelOpponentDigimon(
-  ctx: EffectContext,
-  source: CardSource,
-): Promise<void> {
+async function returnLowestLevelOpponentDigimon(ctx: EffectContext, source: CardSource): Promise<void> {
   const candidates = lowestLevelOpponentDigimon(ctx, source);
   if (candidates.length === 0) return;
   const chosen = await ctx.ask.chooseTargets(ctx, {
@@ -50,12 +42,9 @@ const module: EffectModule = {
         onPlay({
           source,
           effectKey: `${cardId}/on-play-return-lowest-level`,
-          description:
-            "[On Play] Return 1 of your opponent's Digimon with the lowest level to their hand.",
+          description: "[On Play] Return 1 of your opponent's Digimon with the lowest level to their hand.",
           optional: false,
-          canActivate: (ctx) =>
-            ctx.source.isOnBattleArea() &&
-            lowestLevelOpponentDigimon(ctx, source).length >= 1,
+          canActivate: (ctx) => ctx.source.isOnBattleArea() && lowestLevelOpponentDigimon(ctx, source).length >= 1,
           resolve: (ctx) => returnLowestLevelOpponentDigimon(ctx, source),
         }),
       ];
@@ -68,12 +57,9 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/when-digivolving-return-lowest-level`,
           description:
-            "[When Digivolving] Return 1 of your opponent's Digimon with the lowest level " +
-            "to their hand.",
+            "[When Digivolving] Return 1 of your opponent's Digimon with the lowest level " + "to their hand.",
           optional: false,
-          canActivate: (ctx) =>
-            ctx.source.isOnBattleArea() &&
-            lowestLevelOpponentDigimon(ctx, source).length >= 1,
+          canActivate: (ctx) => ctx.source.isOnBattleArea() && lowestLevelOpponentDigimon(ctx, source).length >= 1,
           resolve: (ctx) => returnLowestLevelOpponentDigimon(ctx, source),
         }),
       ];
@@ -97,10 +83,7 @@ const module: EffectModule = {
             if (!ctx.source.isOnBattleArea() || !ctx.source.isOwnersTurn()) return false;
             const addedSeat = ctx.trigger.effectAddedToHandSeat;
             if (addedSeat === undefined) return false;
-            return (
-              addedSeat === source.ownerSeat ||
-              addedSeat === ctx.game.opponentOf(source.ownerSeat)
-            );
+            return addedSeat === source.ownerSeat || addedSeat === ctx.game.opponentOf(source.ownerSeat);
           },
           canActivate: (ctx) => {
             const opponent = ctx.game.opponentOf(source.ownerSeat);
@@ -140,10 +123,7 @@ const module: EffectModule = {
             });
             const hasHybrid = owner.trash.some((c) => {
               const def = ctx.game.definitionOf(c);
-              return (
-                (def.kinds as string[]).includes("Digimon") &&
-                (def.types ?? []).includes("Hybrid")
-              );
+              return (def.kinds as string[]).includes("Digimon") && (def.types ?? []).includes("Hybrid");
             });
             const hasTamerInHand = owner.hand.some((c) => {
               const def = ctx.game.definitionOf(c);
@@ -173,10 +153,7 @@ const module: EffectModule = {
             // Step 2: optionally return 1 [Hybrid] Digimon from trash to hand.
             const trashHybrid = owner.trash.filter((c) => {
               const def = ctx.game.definitionOf(c);
-              return (
-                (def.kinds as string[]).includes("Digimon") &&
-                (def.types ?? []).includes("Hybrid")
-              );
+              return (def.kinds as string[]).includes("Digimon") && (def.types ?? []).includes("Hybrid");
             });
             if (trashHybrid.length > 0) {
               const chosen = await ctx.ask.selectCards(ctx, {
