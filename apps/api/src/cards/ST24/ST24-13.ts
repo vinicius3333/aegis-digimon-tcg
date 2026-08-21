@@ -132,7 +132,10 @@ const module: EffectModule = {
                     const types = (def.types ?? []) as string[];
                     return types.includes("DATA SQUAD");
                   })
-                  .map((p) => p.permanentId);
+                  // chooseTargets uses the target Digimon's top-card instance id as its
+                  // public selection identity; map back to the permanent below after the
+                  // decision resolves.
+                  .map((p) => p.topCard!.instanceId);
 
                 if (datSquadCandidates.length === 0) return;
 
@@ -154,7 +157,6 @@ const module: EffectModule = {
                     "Jamming",
                     EffectDuration.UntilEachTurnEnd,
                   );
-                  await subCtx.fx.recomputeContinuousEffects?.();
                 }
               },
             });
