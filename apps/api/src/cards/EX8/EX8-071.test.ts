@@ -20,5 +20,5 @@ describe("EX8-071", () => {
       { kind: "SecurityManipulation", op: "placeAsSecurity", toTop: false, faceUp: true },
     ]);
   });
-  it("contains only the printed effects", () => expect(compiled.effects).toHaveLength(3));
+  it("contains the printed Security, static, All Turns, and Main effects", () => expect(compiled.effects).toHaveLength(4));
 });

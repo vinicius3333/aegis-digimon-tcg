@@ -19,5 +19,5 @@ describe("EX8-070", () => {
     });
     expect(actions[5]).toMatchObject({ kind: "ModifyDP", amount: 3000, duration: "untilOpponentTurnEnd" });
   });
-  it("contains only the printed main effect", () => expect(compiled.effects).toHaveLength(1));
+  it("contains the printed main and Security effects", () => expect(compiled.effects).toHaveLength(2));
 });

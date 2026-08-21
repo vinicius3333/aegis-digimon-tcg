@@ -7,6 +7,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
   effects: [
+    { trigger: "Security", actions: [{ kind: "Delete", target: { filter: { controllerDefault: "opponent", kind: ["Digimon"], superlative: "lowestPlayCost" }, count: 1 } }], isSecurity: true },
     {
       trigger: "Main",
       actions: [
