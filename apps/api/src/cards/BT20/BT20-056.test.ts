@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT20-056.js";
 import "../index.js";
 
 // A3 for BT20-056 (Alphamon — Black/White Lv.6 Digimon).
@@ -22,6 +23,22 @@ const RYUDAMON = "BT20-010";
 const AGUMON = "BT1-010";
 
 describe("BT20-056 Alphamon — On Play Recovery +1", () => {
+  it("encodes Barrier, Recovery, attack-only breeding digivolution, security DP loss, and inherited protection", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects[0]).toMatchObject({ keywords: [{ keyword: "Barrier" }] });
+    expect(compiled.effects.filter((effect) => ["OnPlay", "WhenDigivolving"].includes(effect.trigger))).toHaveLength(2);
+    expect(compiled.effects[3]).toMatchObject({
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "SubTrigger", event: "whenSecurityRemoved", sourceFilter: { controller: "opponent" } }],
+    });
+    expect(compiled.effects[4]).toMatchObject({
+      isInherited: true,
+      actions: [{ kind: "Replacement", event: "wouldLeavePlay", mode: "prevent" }],
+    });
+  });
+
   it("does not use the breeding-area digivolution clause outside an attack", async () => {
     const s = setupEngine(
       {
