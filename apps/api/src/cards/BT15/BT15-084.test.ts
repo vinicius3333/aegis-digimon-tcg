@@ -15,7 +15,6 @@ import "./BT15-084.js";
 //     cost: suspend this Tamer; effect: SecurityAttack-1 on 1 opponent Digimon.
 //   [SecuritySkill] Play this Tamer without paying its memory cost.
 //
-// FAILS-WHEN-REVERTED: the declarative effect has:
 //   - No OnDiscardSecurity effect (the grant-SecurityAttack-on-security-trash clause is absent).
 //   - The AllTurns SubTrigger body is RawUnparsed (no executable suspend + grantKeyword).
 //   - No [Security] playFromSecurity call in the SecuritySkill clause.
@@ -33,12 +32,14 @@ function fakePermanentId(): string {
   return `PERM#${++permanentSeq}`;
 }
 
-function makeSource(opts: {
-  permanentId?: string;
-  isSuspended?: boolean;
-  onField?: boolean;
-  ownerSeat?: Seat;
-} = {}): CardSource {
+function makeSource(
+  opts: {
+    permanentId?: string;
+    isSuspended?: boolean;
+    onField?: boolean;
+    ownerSeat?: Seat;
+  } = {},
+): CardSource {
   const permId = opts.permanentId ?? fakePermanentId();
   const suspended = opts.isSuspended ?? false;
   const onField = opts.onField ?? true;
@@ -97,7 +98,8 @@ function makeCtx(opts: {
   }));
 
   const fx = new Proxy({} as Primitives, {
-    get: (_, verb: string) =>
+    get:
+      (_, verb: string) =>
       (...args: unknown[]) => {
         rec.calls.push({ verb, args });
         if (verb === "suspend") return Promise.resolve();
@@ -208,10 +210,7 @@ describe("BT15-084 OnDiscardSecurity behavior", () => {
     const effects = mod.effectsForTiming(EffectTiming.OnDiscardSecurity, source);
     await effects[0]!.resolve(ctx);
 
-    const call = recorder.calls.find(
-      (c) => c.verb === "grantKeyword" && c.args[1] === "SecurityAttack",
-    );
-    // FAILS-WHEN-REVERTED: the declarative effect emits no OnDiscardSecurity effect at all.
+    const call = recorder.calls.find((c) => c.verb === "grantKeyword" && c.args[1] === "SecurityAttack");
     expect(call, "grantKeyword(SecurityAttack) must be called").toBeDefined();
     expect(call!.args[0]).toBe(oppPermId);
     expect(call!.args[2]).toBe(EffectDuration.UntilOpponentTurnEnd);
@@ -251,7 +250,6 @@ describe("BT15-084 OnStartTurn behavior", () => {
     await effects[0]!.resolve(ctx);
 
     const call = recorder.calls.find((c) => c.verb === "setMemory");
-    // FAILS-WHEN-REVERTED: the declarative effect record's SetMemory runs via the interpreter, not here.
     expect(call, "setMemory must be called").toBeDefined();
     expect(call!.args[0]).toBe(3);
   });
@@ -315,7 +313,6 @@ describe("BT15-084 static sub-trigger install", () => {
     const effects = mod.effectsForTiming(EffectTiming.None, source);
     await effects[0]!.resolve(ctx);
 
-    // FAILS-WHEN-REVERTED: the declarative effect record uses whenTrashedFromSecurity (wrong event)
     // with empty actions, so no whenEffectRemovesFromSecurity subscription is installed.
     expect(installedSubs).toHaveLength(1);
     expect(installedSubs[0]!.event).toBe("whenEffectRemovesFromSecurity");
@@ -384,9 +381,7 @@ describe("BT15-084 static sub-trigger install", () => {
 describe("BT15-084 sub-trigger run behavior", () => {
   const mod = getEffectModule(cardId)!;
 
-  async function installAndGetRun(
-    source: CardSource,
-  ): Promise<(subCtx: EffectContext) => Promise<void>> {
+  async function installAndGetRun(source: CardSource): Promise<(subCtx: EffectContext) => Promise<void>> {
     let capturedRun: ((subCtx: EffectContext) => Promise<void>) | undefined;
 
     const installCtx: EffectContext = {
@@ -422,12 +417,14 @@ describe("BT15-084 sub-trigger run behavior", () => {
         player: (seat: Seat) => {
           if (seat === 0) return { battleArea: [] } as never;
           return {
-            battleArea: [{
-              permanentId: oppPermId,
-              inBreeding: false,
-              topCard: { instanceId: "opp-top", cardId: "DUMMY", ownerSeat: 1 as Seat } as never,
-              isSuspended: false,
-            }],
+            battleArea: [
+              {
+                permanentId: oppPermId,
+                inBreeding: false,
+                topCard: { instanceId: "opp-top", cardId: "DUMMY", ownerSeat: 1 as Seat } as never,
+                isSuspended: false,
+              },
+            ],
           } as never;
         },
         opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
@@ -435,7 +432,8 @@ describe("BT15-084 sub-trigger run behavior", () => {
         definitionOf: () => ({ kinds: ["Digimon"] }) as never,
       } as never,
       fx: new Proxy({} as Primitives, {
-        get: (_, verb: string) =>
+        get:
+          (_, verb: string) =>
           (...args: unknown[]) => {
             recorder.calls.push({ verb, args });
             if (verb === "suspend") return Promise.resolve();
@@ -454,13 +452,10 @@ describe("BT15-084 sub-trigger run behavior", () => {
     await run(subCtx);
 
     const suspendCall = recorder.calls.find((c) => c.verb === "suspend");
-    // FAILS-WHEN-REVERTED: the declarative effect record has RawUnparsed for this clause; no suspend call.
     expect(suspendCall, "suspend must be called").toBeDefined();
     expect((suspendCall!.args[0] as string[])[0]).toBe(permId);
 
-    const grantCall = recorder.calls.find(
-      (c) => c.verb === "grantKeyword" && c.args[1] === "SecurityAttack",
-    );
+    const grantCall = recorder.calls.find((c) => c.verb === "grantKeyword" && c.args[1] === "SecurityAttack");
     expect(grantCall, "grantKeyword(SecurityAttack) must be called").toBeDefined();
     expect(grantCall!.args[0]).toBe(oppPermId);
     expect(grantCall!.args[2]).toBe(EffectDuration.UntilOpponentTurnEnd);
@@ -483,7 +478,8 @@ describe("BT15-084 sub-trigger run behavior", () => {
         definitionOf: () => ({}) as never,
       } as never,
       fx: new Proxy({} as Primitives, {
-        get: (_, verb: string) =>
+        get:
+          (_, verb: string) =>
           (...args: unknown[]) => {
             recorder.calls.push({ verb, args });
             return undefined;
@@ -515,7 +511,8 @@ describe("BT15-084 sub-trigger run behavior", () => {
         definitionOf: () => ({}) as never,
       } as never,
       fx: new Proxy({} as Primitives, {
-        get: (_, verb: string) =>
+        get:
+          (_, verb: string) =>
           (...args: unknown[]) => {
             recorder.calls.push({ verb, args });
             return undefined;
