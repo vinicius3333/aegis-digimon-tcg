@@ -3,127 +3,124 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "orFilters": [
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              orFilters: [
                 {
-                  "levelComparison": {
-                    "op": "eq",
-                    "value": 4
-                  }
+                  levelComparison: {
+                    op: "eq",
+                    value: 4,
+                  },
                 },
                 {
-                  "nameOrTrait": [
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Legend-Arms"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
-                }
-              ]
+                      tokens: ["Legend-Arms"],
+                      match: "trait",
+                    },
+                  ],
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 4000,
-          "duration": "forTheTurn",
-          "cost": {
-            "kind": "payAndPlaceUnder",
-            "payCost": 1,
-            "placeThis": true,
-            "position": "bottom",
-            "raw": "By paying 1 cost and placing this card as the bottom digivolution card of 1 of your Digimon that's level 4 or has the [Legend-Arms] trait"
+          amount: 4000,
+          duration: "forTheTurn",
+          cost: {
+            kind: "payAndPlaceUnder",
+            payCost: 1,
+            placeThis: true,
+            position: "bottom",
+            raw: "By paying 1 cost and placing this card as the bottom digivolution card of 1 of your Digimon that's level 4 or has the [Legend-Arms] trait",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "isFromHand": true
+      isFromHand: true,
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onAddDigivolutionCards",
-          "actions": [
+          kind: "SubTrigger",
+          event: "onAddDigivolutionCards",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "keyword": {
-                "keyword": "Raid",
-                "raw": "＜Raid＞"
+              keyword: {
+                keyword: "Raid",
+                raw: "＜Raid＞",
               },
-              "duration": "forTheTurn"
+              duration: "forTheTurn",
             },
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "keyword": {
-                "keyword": "Piercing",
-                "raw": "＜Piercing＞"
+              keyword: {
+                keyword: "Piercing",
+                raw: "＜Piercing＞",
               },
-              "duration": "forTheTurn"
-            }
-          ]
-        }
+              duration: "forTheTurn",
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+          amount: 2000,
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "traits": [
-        "Legend-Arms"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["Legend-Arms"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX6-008", compiled);
