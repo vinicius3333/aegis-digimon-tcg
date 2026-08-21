@@ -13,7 +13,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [When Attacking][Once Per Turn] If this Digimon is [Alphamon: Ouryuken],
 //   trash your opponent's top security card.
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
