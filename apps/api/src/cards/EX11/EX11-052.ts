@@ -3,6 +3,10 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
+  "digivolutionRequirement": [
+    { "level": 5, "cost": 5, "colors": ["Purple", "Red"], "isAlternate": true },
+    { "level": 5, "traits": ["Dark Dragon", "Evil Dragon"], "cost": 3, "isAlternate": true }
+  ],
   "effects": [
     {
       "trigger": "OnPlay",
@@ -249,17 +253,6 @@ const compiled: CompiledCard = {
   ],
   "coverage": "full",
   "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 5,
-      "traits": [
-        "Dark Dragon",
-        "Evil Dragon"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
 };
 
 registerIrCard("EX11-052", compiled);
