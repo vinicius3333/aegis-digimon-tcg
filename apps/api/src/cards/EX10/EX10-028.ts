@@ -34,9 +34,9 @@ const compiled: CompiledCard = {
                 }
               ]
             },
-            "count": 1,
-            "selectionRef": "chosen"
+            "count": 1
           },
+          "selectionRef": "chosen",
           "keyword": {
             "keyword": "Reboot",
             "raw": "＜Reboot＞"
@@ -109,9 +109,9 @@ const compiled: CompiledCard = {
                 }
               ]
             },
-            "count": 1,
-            "selectionRef": "chosen"
+            "count": 1
           },
+          "selectionRef": "chosen",
           "keyword": {
             "keyword": "Reboot",
             "raw": "＜Reboot＞"
@@ -207,5 +207,7 @@ const compiled: CompiledCard = {
   "coverage": "full",
   "residual": []
 };
+
+export { compiled };
 
 registerIrCard("EX10-028", compiled);
