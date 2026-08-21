@@ -6,74 +6,50 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "amount": 2000,
-          "duration": "permanent"
-        }
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "traits": [
-        "NSp"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["NSp"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX8-040", compiled);
