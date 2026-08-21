@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX9-055.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 
 describe("EX9-055", () => {
   it("plays Abbadomon Core from hand or trash in the breeding area when four Negamon-text cards are available", () => expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")).toMatchObject({ actions: [{ kind: "PlayWithoutCost", from: ["hand", "trash"], breeding: true, requiresEmpty: "breedingArea", condition: { kind: "youHave", count: 4 } }] }));
@@ -18,4 +21,15 @@ describe("EX9-055", () => {
       storeAs: "ex9055PlacedLevel",
     },
   }));
+  it("places a Negamon-text Digimon on top and deletes an opposing Digimon of the same level", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX9-055", as: "source" }], trash: ["EX9-047"] },
+      1: { battleArea: [{ card: "EX9-050", as: "target" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+
+    expect(s.perm("source").stack[0]?.cardId).toBe("EX9-047");
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
 });
