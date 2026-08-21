@@ -16,6 +16,18 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
   const { scale } = scope;
   switch (action.kind) {
     case "HandManipulation": {
+      if (action.amount === "untilFive") {
+        for (const seat of [ctx.source.ownerSeat, ctx.game.opponentOf(ctx.source.ownerSeat)] as const) {
+          const hand = ctx.game.player(seat).hand;
+          const count = Math.max(0, hand.length - 5);
+          if (count === 0) continue;
+          const target: Target = { filter: { zone: "hand", controller: seat === ctx.source.ownerSeat ? "mine" : "opponent" }, count };
+          const candidates = candidateLooseInstances(ctx, target, ["hand"]);
+          const chosen = await pickLoose(ctx, target, candidates, undefined, ctx.ask);
+          if (chosen.length > 0) await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
+        }
+        return false;
+      }
       const count = action.amount === "variable" ? (ctx.trigger.addedToHand?.instanceIds.length ?? 0) : action.amount;
       if (count <= 0) return false;
       const controller = action.controller ?? "mine";

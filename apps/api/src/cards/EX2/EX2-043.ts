@@ -3,6 +3,8 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { registerCard } from "../../engine/effects/registry.js";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+import type { CompiledCard } from "@aegis/shared";
 import { staticModifier } from "../../engine/effects/builders.js";
 
 
@@ -96,4 +98,24 @@ const module: EffectModule = {
 };
 
 registerCard(module);
+
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "WhenDigivolving",
+      actions: [{ kind: "HandManipulation", op: "trashVariable", amount: "untilFive" }],
+    },
+    {
+      trigger: "YourTurn",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "SubTrigger", event: "whenHandTrashed", sourceFilter: { controller: "mine" }, actions: [
+        { kind: "Unsuspend", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 }, optional: true },
+      ] }],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard(cardId, compiled);
 export default module;
