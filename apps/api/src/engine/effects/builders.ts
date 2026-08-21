@@ -318,6 +318,11 @@ export const staticModifier = (opts: BuilderOptions): Effect => {
           ...changeOpts,
           continuous: true,
         }),
+      modifyDP: (permanentId, delta, duration, modifyOpts) =>
+        ctx.fx.modifyDP(permanentId, delta, duration, {
+          ...modifyOpts,
+          continuous: true,
+        }),
       subscribeReplacement: (replacement: Parameters<EffectContext["fx"]["subscribeReplacement"]>[0]) =>
         ctx.fx.subscribeReplacement({
           ...replacement,
