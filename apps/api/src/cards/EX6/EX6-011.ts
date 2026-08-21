@@ -9,164 +9,151 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   and Digimon isn't affected by your opponent's effects until the end of their turn.
 //   Then, if DNA digivolving, <De-Digivolve 1> all of your opponent's Digimon
 //   (Trash the top card. You can't trash past level 3 cards) and delete 1 of their Digimon."
-// KB Q3707: protection from opponent's effects applies even if opponent has 0 security cards.
-// Fixes:
-//   - Replace Trash targeting a Digimon with SecurityManipulation trashTop on opponent's security
-//   - Add GrantStatic immuneToOpponentEffects until opponent's turn end
-//   - Add Delete action conditioned on DNA digivolving (alongside the DeDigivolve)
-//   - Both OnPlay and WhenDigivolving effects get the same correction
+// Protection applies even when the opponent has no security cards.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Counter",
-      "actions": [],
-      "isFromHand": true,
-      "keywords": [
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [
         {
-          "keyword": "BlastDNADigivolve",
-          "raw": "＜Blast DNA Digivolve ([Durandamon] + [BryweLudramon])＞"
-        }
-      ]
+          keyword: "BlastDNADigivolve",
+          raw: "＜Blast DNA Digivolve ([Durandamon] + [BryweLudramon])＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Raid",
-          "raw": "＜Raid＞"
-        }
-      ]
+          keyword: "Raid",
+          raw: "＜Raid＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Reboot",
-          "raw": "＜Reboot＞"
-        }
-      ]
+          keyword: "Reboot",
+          raw: "＜Reboot＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "opponent",
-          "amount": 1
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          amount: 1,
         },
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "immuneToOpponentEffects",
-          "tokens": [],
-          "duration": "untilOpponentTurnEnd"
+          grant: "immuneToOpponentEffects",
+          tokens: [],
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "amount": 1,
-          "stopAtLevel": 3,
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "DNA digivolving"
-          }
+          amount: 1,
+          stopAtLevel: 3,
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
+          },
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "DNA digivolving"
-          }
-        }
-      ]
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "opponent",
-          "amount": 1
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          amount: 1,
         },
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "immuneToOpponentEffects",
-          "tokens": [],
-          "duration": "untilOpponentTurnEnd"
+          grant: "immuneToOpponentEffects",
+          tokens: [],
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "amount": 1,
-          "stopAtLevel": 3,
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "DNA digivolving"
-          }
+          amount: 1,
+          stopAtLevel: 3,
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
+          },
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "DNA digivolving"
-          }
-        }
-      ]
-    }
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX6-011", compiled);
