@@ -7,208 +7,163 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // during an existing attack — KB Q3943). [When Attacking] + [When Digivolving] trigger
 // simultaneously when DNA'd Digimon attacks (KB Q3944).
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "playCostLte": 3,
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "NSo"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
+          kind: "Unsuspend",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          cost: {
+            kind: "deleteOwn",
+            target: { filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] }, count: 1 },
+            raw: "By deleting 1 of your other Digimon",
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "NSo"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "DnaDigivolve",
-              "materials": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              playCostLte: 3,
+              nameOrTrait: [
+                {
+                  tokens: ["NSo"],
+                  match: "trait",
                 },
-                "count": 2
+              ],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              {
+                tokens: ["NSo"],
+                match: "trait",
               },
-              "into": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+            ],
+          },
+          actions: [
+            {
+              kind: "DnaDigivolve",
+              materials: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 2,
+              },
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "NSo"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["NSo"],
+                    match: "trait",
+                  },
+                ],
               },
-              "payCost": true,
-              "optional": true
+              payCost: true,
+              optional: true,
             },
             {
-              "kind": "Attack",
-              "target": {
-                "filter": {
-                  "dnaDigivolvedByThisEffect": true
+              kind: "Attack",
+              target: {
+                filter: {
+                  dnaDigivolvedByThisEffect: true,
                 },
-                "count": 1
+                count: 1,
               },
-              "withoutSuspending": false,
-              "optional": true
-            }
-          ]
+              withoutSuspending: false,
+              optional: true,
+            },
+          ],
         },
         {
-          "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "NSo"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "DnaDigivolve",
-              "materials": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 2
+                tokens: ["NSo"],
+                match: "trait",
               },
-              "into": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+            ],
+          },
+          actions: [
+            {
+              kind: "DnaDigivolve",
+              materials: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 2,
+              },
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "NSo"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["NSo"],
+                    match: "trait",
+                  },
+                ],
               },
-              "payCost": true,
-              "optional": true
+              payCost: true,
+              optional: true,
             },
             {
-              "kind": "Attack",
-              "target": {
-                "filter": {
-                  "dnaDigivolvedByThisEffect": true
+              kind: "Attack",
+              target: {
+                filter: {
+                  dnaDigivolvedByThisEffect: true,
                 },
-                "count": 1
+                count: 1,
               },
-              "withoutSuspending": false,
-              "optional": true
-            }
-          ]
-        }
+              withoutSuspending: false,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "excludeSelf": true,
-                "kind": [
-                  "Digimon"
-                ]
-              },
-              "count": 1
-            },
-            "raw": "By deleting 1 of your other Digimon"
-          },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "traits": [
-        "NSo"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      traits: ["NSo"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX8-060", compiled);

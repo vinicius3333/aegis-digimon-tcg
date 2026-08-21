@@ -5,13 +5,17 @@ import { toDuration } from "../duration.js";
 import { definitionMatches } from "../matching/definition.js";
 import { seatsForController } from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
+import { evaluateCondition } from "../conditions.js";
 import type { Action } from "@aegis/shared";
 
 export async function runRestrictionAction(ctx: EffectContext, action: Action): Promise<boolean> {
   switch (action.kind) {
     case "Restrict": {
+      const gate = action.while ?? action.condition;
+      if (gate !== undefined && !evaluateCondition(ctx, gate)) return false;
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
+      const continuous = action.while !== undefined ? true : undefined;
       // Target-scoped prohibition (BT10-042): affected Digimon can't attack THIS source,
       // but may still attack the player or a different Digimon. A plain `attack`
       // restriction would incorrectly suppress the entire declaration.
@@ -24,14 +28,14 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action): 
       }
       if ((action.restriction as string) === "attackOrBlock") {
         for (const id of ids) {
-          ctx.fx.restrict(id, "attack", duration);
-          ctx.fx.restrict(id, "block", duration);
+          ctx.fx.restrict(id, "attack", duration, { continuous });
+          ctx.fx.restrict(id, "block", duration, { continuous });
         }
         return false;
       }
       // Card IR spells this immunity using the printed-action vocabulary, while the engine's
       // legality layer consumes the normalized `beReturned` restriction for both hand and deck.
-      const restriction = (action.restriction === "returnToHandOrDeck"
+      const restriction = (action.restriction === "returnToHandOrDeck" || action.restriction === "cannotReturnToHandOrDeck"
         ? "beReturned"
         : action.restriction) as Restriction;
       // A deprecated kind has no consumer, so recording it would be a silent no-op. Drop it
@@ -41,7 +45,7 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action): 
       if (restriction === "activateEffects") return false;
       const fromSourceKind = action.fromSourceKind as string[] | undefined;
       const byOpponentEffectsOnly = action.byOpponentEffectsOnly === true ? true : undefined;
-      for (const id of ids) ctx.fx.restrict(id, restriction, duration, { fromSourceKind, byOpponentEffectsOnly });
+      for (const id of ids) ctx.fx.restrict(id, restriction, duration, { fromSourceKind, byOpponentEffectsOnly, continuous });
       return false;
     }
     case "RestrictUnsuspendedDigivolve": {

@@ -8,6 +8,7 @@ import { type ActionScope, installActionRunner } from "../dispatch.js";
 import { unsupported } from "../errors.js";
 import { scaleFactor } from "../scaling.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances } from "../targeting/loose.js";
+import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { runBoardAction } from "./board.js";
 import { runCombatAction } from "./combat.js";
 import { runControlFlowAction } from "./controlFlow.js";
@@ -41,6 +42,17 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     if (!ctx.lastActionConditionMatched) return false;
   } else {
     ctx.lastActionConditionMatched = true;
+  }
+  // Bind a SelectBind target before paying a cost that refers to that selected host.
+  if (action.kind === "SelectBind" && action.target.bindAs !== undefined && action.cost?.kind === "trash") {
+    const boundTo = action.cost.target?.filter !== undefined && "boundTo" in action.cost.target.filter
+      ? action.cost.target.filter.boundTo
+      : undefined;
+    if (boundTo === action.target.bindAs && ctx.selections?.get(boundTo) === undefined) {
+      const ids = await resolvePermanentTargets(ctx, action.target);
+      if (ids.length === 0) return action.abortOnDecline === true;
+      ctx.selections?.set(boundTo, ids[0]!);
+    }
   }
   // "You may" — ask the controller. Skip the prompt when the action carries a cost that is
   // provably unpayable (e.g. a "by trashing your security" cost with an empty security stack):

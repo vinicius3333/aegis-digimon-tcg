@@ -147,7 +147,7 @@ export const compiled: CompiledCard = {
           "kind": "SubTrigger",
           "event": "onDeletionOf",
           "sourceFilter": {
-            "controllerDefault": "mine",
+            "controllerDefault": "both",
             "excludeSelf": true,
             "kind": [
               "Digimon"

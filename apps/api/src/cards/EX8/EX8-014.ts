@@ -21,39 +21,19 @@ export const compiled: CompiledCard = {
       "trigger": "OnPlay",
       "actions": [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "optional": true
-        },
-        {
           "kind": "SubTrigger",
           "event": "whenSuspended",
-          "actions": [
-            {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "dp": {
-                    "op": "lte",
-                    "value": 8000
-                  }
-                },
-                "count": 1
-              }
-            }
-          ]
+          "sourceFilter": {"isSelfRef": true},
+          "actions": [{
+            "kind": "Delete",
+            "target": {"filter": {"controller": "opponent", "kind": ["Digimon"], "dp": {"op": "lte", "value": 8000}}, "count": 1},
+            "condition": {"kind": "selfIsSuspended", "raw": "if this Digimon is suspended"}
+          }]
+        },
+        {
+          "kind": "Suspend",
+          "target": {"filter": {"controllerDefault": "any", "kind": ["Digimon"]}, "count": 1},
+          "optional": true
         }
       ]
     },
@@ -61,39 +41,19 @@ export const compiled: CompiledCard = {
       "trigger": "WhenDigivolving",
       "actions": [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "optional": true
-        },
-        {
           "kind": "SubTrigger",
           "event": "whenSuspended",
-          "actions": [
-            {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "dp": {
-                    "op": "lte",
-                    "value": 8000
-                  }
-                },
-                "count": 1
-              }
-            }
-          ]
+          "sourceFilter": {"isSelfRef": true},
+          "actions": [{
+            "kind": "Delete",
+            "target": {"filter": {"controller": "opponent", "kind": ["Digimon"], "dp": {"op": "lte", "value": 8000}}, "count": 1},
+            "condition": {"kind": "selfIsSuspended", "raw": "if this Digimon is suspended"}
+          }]
+        },
+        {
+          "kind": "Suspend",
+          "target": {"filter": {"controllerDefault": "any", "kind": ["Digimon"]}, "count": 1},
+          "optional": true
         }
       ]
     },

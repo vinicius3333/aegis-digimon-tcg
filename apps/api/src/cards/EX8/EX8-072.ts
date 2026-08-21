@@ -17,8 +17,6 @@ import { registerCard } from "../../engine/effects/registry.js";
  *     If opponent has ≥5 hand cards, they trash 1. Then delete 1 opponent Digimon with
  *     level ≤ (7 - floor(handCount / 3)). Per KB Q4740: the delete step is unconditional.
  *
- *   EffectTiming.SecuritySkill: Activate this card's [Main] effect.
- *
  * KB rulings (binding):
  *   Q4740: Even if opponent has fewer than 5 cards (trash step skipped), still delete the Digimon.
  */
@@ -28,13 +26,10 @@ const BARBAMON_X_ANTIBODY = "Barbamon (X Antibody)";
 async function resolveMain(ctx: EffectContext, source: CardSource): Promise<void> {
   const opponentSeat = ctx.game.opponentOf(source.ownerSeat);
   const handCount = ctx.game.player(opponentSeat).hand.length;
-  const levelMax = 7 - Math.floor(handCount / 3);
 
   // Step 1: if opponent has ≥5 hand cards, they must trash 1 (mandatory).
   if (handCount >= 5) {
-    const handCandidates = Array.from(ctx.game.player(opponentSeat).hand).map(
-      (c) => c.instanceId,
-    );
+    const handCandidates = Array.from(ctx.game.player(opponentSeat).hand).map((c) => c.instanceId);
     const chosen = await ctx.ask.selectCards(ctx, {
       candidates: handCandidates,
       min: 1,
@@ -44,6 +39,10 @@ async function resolveMain(ctx: EffectContext, source: CardSource): Promise<void
       await ctx.fx.trash(chosen);
     }
   }
+
+  // The level maximum is part of the effect after the "Then" instruction, so
+  // count the opponent's hand after the mandatory trash has resolved.
+  const levelMax = 7 - Math.floor(ctx.game.player(opponentSeat).hand.length / 3);
 
   // Step 2: delete 1 opponent Digimon with level ≤ levelMax (mandatory per KB Q4740).
   const deleteCandidates = Array.from(ctx.game.player(opponentSeat).battleArea)
@@ -87,19 +86,6 @@ const module: EffectModule = {
       ];
     }
 
-    // [Security] Activate this card's [Main] effect.
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security-activate-main`,
-          description: "[Security] Activate this card's [Main] effect.",
-          optional: false,
-          resolve: (ctx) => resolveMain(ctx, source),
-        }),
-      ];
-    }
-
     // [Trash] [Your Turn] When one of your Digimon digivolves into Barbamon
     // (X Antibody), return this card to the bottom of the deck and activate
     // this card's [Main] effects.
@@ -133,6 +119,17 @@ const module: EffectModule = {
               },
             });
           },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.SecuritySkill) {
+      return [
+        security({
+          source,
+          effectKey: `${cardId}/security-activate-main`,
+          description: "[Security] Activate this card's [Main] effect.",
+          resolve: (ctx) => resolveMain(ctx, source),
         }),
       ];
     }

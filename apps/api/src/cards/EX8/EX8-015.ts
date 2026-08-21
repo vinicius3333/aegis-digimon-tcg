@@ -11,6 +11,18 @@ export const compiled: CompiledCard = {
       "trigger": "WhenDigivolving",
       "actions": [
         {
+          "kind": "Restrict",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          },
+          "restriction": "beReturned",
+          "duration": "untilOpponentTurnEnd"
+        },
+        {
           "kind": "ModifyDP",
           "target": {
             "filter": {

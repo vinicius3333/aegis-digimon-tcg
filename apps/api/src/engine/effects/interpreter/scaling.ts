@@ -124,6 +124,18 @@ function countLinkCards(ctx: EffectContext, filter: Filter): number {
 export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
   let raw = 0;
   const filter = scaling.filter ?? {};
+  if ((filter as { suspendedByThisEffect?: boolean }).suspendedByThisEffect === true) {
+    const { suspendedByThisEffect: _receipt, ...matchingFilter } = filter as typeof filter & { suspendedByThisEffect?: boolean };
+    raw = (ctx.lastSuspendedPermanentIds ?? []).filter((id) => {
+      const permanent = ctx.game.permanentById(id);
+      if (permanent === undefined || !permanent.isSuspended) return false;
+      if (matchingFilter.controller === "opponent" && permanent.controllerSeat !== ctx.game.opponentOf(ctx.source.ownerSeat)) return false;
+      if (matchingFilter.controller === "mine" && permanent.controllerSeat !== ctx.source.ownerSeat) return false;
+      return permanentMatchesFilter(ctx, permanent, matchingFilter, ctx.source);
+    }).length;
+    const per = scaling.per > 0 ? scaling.per : 1;
+    return Math.floor(raw / per);
+  }
   // `deletedByThisEffect` overrides the normal counting source: count the permanents
   // actually deleted by the preceding DeleteByDPBudget action in this resolution (CAP-A3).
   if (filter.deletedByThisEffect) {

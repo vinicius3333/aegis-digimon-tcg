@@ -42,7 +42,7 @@ export const compiled: CompiledCard = {
             "per": 1,
             "filter": {
               "controller": "opponent",
-              "suspended": true,
+              "suspendedByThisEffect": true,
               "kind": [
                 "Digimon"
               ]
@@ -76,7 +76,7 @@ export const compiled: CompiledCard = {
             "per": 1,
             "filter": {
               "controller": "opponent",
-              "suspended": true,
+              "suspendedByThisEffect": true,
               "kind": [
                 "Digimon"
               ]

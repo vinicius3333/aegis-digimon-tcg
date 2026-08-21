@@ -1,10 +1,45 @@
 import { describe, expect, it } from "vitest";
+import { PlayerState } from "@aegis/shared";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX8-069.js";
+import "../index.js";
 
 describe("EX8-069", () => {
   it("waives its color requirement with no face-up security cards and grants all NSp Digimon Alliance", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.actions[0]).toMatchObject({ kind: "WaiveColorRequirement", condition: { kind: "youHaveNone" } });
-    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({ kind: "GainKeyword", keyword: { keyword: "Alliance" }, target: { count: "all" }, duration: "permanent" });
+    expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.actions[0]).toMatchObject({
+      kind: "WaiveColorRequirement",
+      condition: { kind: "youHaveNone", filter: { faceUp: true } },
+    });
+    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
+      kind: "GainKeyword",
+      keyword: { keyword: "Alliance" },
+      target: { count: "all" },
+      duration: "permanent",
+    });
   });
-  it("takes the bottom security card to hand, places itself face-up at the bottom, and plays an NSp Digimon from hand in security", () => expect(compiled.effects?.find((entry) => entry.trigger === "Security")?.actions[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["hand"], payCost: false, optional: true }));
+  it("takes the bottom security card to hand and places itself face-up at the bottom", () =>
+    expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions).toMatchObject([
+      { kind: "SecurityManipulation", op: "toHand", toTop: false },
+      { kind: "SecurityManipulation", op: "placeAsSecurity", toTop: false, faceUp: true },
+    ]));
+  it("contains only the printed effects", () => expect(compiled.effects).toHaveLength(4));
+  it("plays an optional level 5 or lower NSp Digimon from hand without cost in security", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-010", as: "attacker" }] }, 1: { security: [{ card: "EX8-069", as: "securityCard" }], hand: [{ card: "EX7-015", as: "nsp" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const instanceId = s.inst("nsp").instanceId;
+    const memoryBeforeSecurityEffect = s.state.memory;
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => (s.state.players[1] as PlayerState).battleArea.some((permanent) => permanent.topCard.instanceId === instanceId));
+    expect((s.state.players[1] as PlayerState).battleArea.some((permanent) => permanent.topCard.instanceId === instanceId)).toBe(true);
+    expect((s.state.players[1] as PlayerState).hand.some((card) => card.instanceId === instanceId)).toBe(false);
+    expect(s.state.memory).toBe(memoryBeforeSecurityEffect);
+  });
+  it("grants Alliance to a live NSp Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-069", as: "source" }, { card: "EX7-015", as: "nsp" }] },
+    });
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("nsp"), "Alliance")).toBe(true);
+  });
 });

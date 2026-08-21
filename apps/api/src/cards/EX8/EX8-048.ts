@@ -6,75 +6,66 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Close"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
+          kind: "SubTrigger",
+          event: "onDigivolutionCardsDiscardedBatch",
+          sourceFilter: { isSelfRef: true },
+          hostFilter: {
+            nameOrTrait: [{ tokens: ["Mineral", "Rock"], match: "trait" }],
           },
-          "from": [
-            "hand"
+          actions: [
+            {
+              kind: "Delete",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 4 },
+                count: 1,
+              },
+            },
           ],
-          "payCost": false,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ]
-            },
-            "raw": "you have 1 or fewer Tamers"
-          },
-          "optional": true
-        }
-      ]
+          raw: "When this card is trashed from the digivolution cards of a Digimon with the [Mineral]/[Rock] trait, delete 1 of your opponent's Digimon with a play cost of 4 or less.",
+        },
+      ],
+      isInherited: true,
     },
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDigivolutionCardDiscarded",
-          "sourceFilter": {
-            "isSelfRef": true
-          },
-          "actions": [
-            {
-              "kind": "Delete",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "playCostLte": 4
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Close"],
+                  match: "name",
                 },
-                "count": 1
-              }
-            }
-          ]
-        }
+              ],
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          payCost: false,
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+              countMax: 1,
+            },
+            raw: "you have 1 or fewer Tamers",
+          },
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX8-048", compiled);

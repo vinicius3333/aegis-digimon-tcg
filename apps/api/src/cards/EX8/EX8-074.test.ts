@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX8-074.js";
 
 describe("EX8-074", () => {
@@ -21,5 +23,12 @@ describe("EX8-074", () => {
       sourceFilter: { controllerDefault: "both", kind: ["Digimon"] },
       actions: [{ kind: "ActivateEffect", effectType: "WhenDigivolving", optional: true, target: { filter: { isSelfRef: true }, count: 1, isSelf: true } }],
     });
+  });
+
+  it("exposes Alliance and Vortex on the live permanent", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX8-074", as: "medieval" }] } });
+    await (s.engine as unknown as { recomputeContinuousEffects(): Promise<void> }).recomputeContinuousEffects();
+    expect(observe(s.engine).hasKeyword(s.perm("medieval"), "Alliance")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("medieval"), "Vortex")).toBe(true);
   });
 });

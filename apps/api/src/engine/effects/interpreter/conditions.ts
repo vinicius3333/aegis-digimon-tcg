@@ -151,8 +151,13 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     // filter wins: the runtime record emits e.g. `youHave {controller:"opponent"}` for a
     // CanSelectPermanentCondition ("there is an opponent permanent to target"), and that
     // explicit side must not be clobbered back to the kind's default.
-    case "youHave":
-      return cond.filter ? countMatching(ctx, { controller: "mine", ...cond.filter }) >= (cond.count ?? 1) : false;
+    case "youHave": {
+      if (cond.filter === undefined) return false;
+      const { countMax, ...matchingFilter } = cond.filter as Filter & { countMax?: number };
+      const count = countMatching(ctx, { controller: "mine", ...matchingFilter });
+      if (countMax !== undefined) return count <= countMax;
+      return count >= (cond.count ?? 1);
+    }
     case "opponentHas": {
       const threshold = cond.countMin ?? cond.count ?? 1;
       const count = cond.filter ? countMatching(ctx, { controller: "opponent", ...cond.filter }) : 0;
