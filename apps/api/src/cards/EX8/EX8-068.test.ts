@@ -36,4 +36,23 @@ describe("EX8-068", () => {
     expect(player.hand.some((card) => card.instanceId === instanceId)).toBe(false);
     expect(s.state.memory).toBe(memoryBeforeSecurityEffect);
   });
+  it("prevents battle deletion of an own DS Digimon while memory is at least 1", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-068", as: "source" }, { card: "EX8-058", as: "ds", suspended: true }] },
+      1: { battleArea: [{ card: "BT1-016", as: "attacker", dp: 20000 }] },
+    });
+    s.state.memory = 1;
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("ds").permanentId },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("ds").permanentId));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("ds").permanentId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX8-058")).toBe(false);
+  });
 });
