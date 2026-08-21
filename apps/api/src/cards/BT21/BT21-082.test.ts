@@ -8,13 +8,22 @@ describe("BT21-082 Takuya Kanbara", () => {
     expect(mainAction).toMatchObject({
       kind: "Digivolve",
       payCost: true,
-      reduceCostScaling: { unit: "distinctNames" },
+      target: { filter: { kind: ["Digimon", "Tamer"] } },
+      into: { nameOrTrait: [{ tokens: ["Hybrid", "Hero"], match: "trait" }] },
+      reduceCostScaling: {
+        per: 1,
+        unit: "distinctNames",
+        filter: { controller: "mine", kind: ["Tamer"], colors: ["Red"] },
+      },
     });
     const inherited = compiled.effects.find((entry) => entry.trigger === "YourTurn");
     expect(inherited).toMatchObject({ isInherited: true, frequency: "OncePerTurn" });
     expect(inherited?.actions[0]).toMatchObject({
       event: "whenSecurityRemoved",
       fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "opponent" },
+      actions: [expect.objectContaining({ kind: "PlayWithoutCost", from: ["hand"], payCost: false, optional: true })],
     });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });
