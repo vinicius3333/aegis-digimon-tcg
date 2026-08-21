@@ -89,8 +89,7 @@ const module: EffectModule = {
               return;
             }
 
-            // Branch B. Q3159: BOTH a Shoutmon EX6 and a ShootingStarmon must be unsuspendable —
-            // the "by doing X" cost cannot be partially met.
+            // Branch B. Q3159: BOTH a Shoutmon EX6 and a ShootingStarmon must be unsuspendable.
             const shoutmons = suspendedNamed(ctx, owner, "Shoutmon EX6");
             const starmons = suspendedNamed(ctx, owner, "ShootingStarmon");
             if (shoutmons.length === 0 || starmons.length === 0) return;
