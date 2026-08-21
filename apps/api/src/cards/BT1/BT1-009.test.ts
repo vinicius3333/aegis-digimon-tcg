@@ -40,4 +40,21 @@ describe("BT1-009 Monodramon", () => {
     expect(s.perm("base")).toMatchObject({ baseDP: 3000, currentDP: 3000 });
     expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
   });
+
+  it("rejects digivolving from a non-red level 2", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-007", as: "base" }],
+        hand: [{ card: "BT1-009", as: "monodramon" }],
+      },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("monodramon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
 });
