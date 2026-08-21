@@ -8,6 +8,7 @@ import type {
   Primitives,
 } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "./EX2-060.js";
 
 // A3 for EX2-060 (Rika Nonaka):
@@ -168,6 +169,11 @@ function makeCtx(
 }
 
 describe("EX2-060 Rika Nonaka", () => {
+  it("registers full compiled IR without residuals", () => {
+    const compiled = registeredCompiledCards.get("EX2-060");
+    expect(compiled?.coverage).toBe("full");
+    expect(compiled?.residual).toEqual([]);
+  });
   const module = getEffectModule("EX2-060");
 
   it("is registered on import", () => {

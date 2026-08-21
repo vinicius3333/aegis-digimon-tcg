@@ -3,6 +3,7 @@ import { EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, Primitives, SubTriggerInstall } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "./EX2-043.js";
 
 const digimonDefinition = {
@@ -65,6 +66,11 @@ function context(subscription: { value?: SubTriggerInstall }, unsuspended: strin
 }
 
 describe("EX2-043 Gulfmon", () => {
+  it("registers full compiled IR without residuals", () => {
+    const compiled = registeredCompiledCards.get("EX2-043");
+    expect(compiled?.coverage).toBe("full");
+    expect(compiled?.residual).toEqual([]);
+  });
   it("discards each player's excess hand down to exactly 5 when digivolving", async () => {
     const module = getEffectModule("EX2-043")!;
     const subscription: { value?: SubTriggerInstall } = {};
