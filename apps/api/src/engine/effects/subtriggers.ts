@@ -124,6 +124,8 @@ export interface ReplacementSubscriptionBase {
   id: number;
   event: ReplacementEventName;
   sourcePermanentId?: string;
+  /** Anchor for a card-resident replacement whose source is in hand/trash. */
+  sourceInstanceId?: string;
   /** Stable key used to consume a persistent replacement at most once in a turn. */
   oncePerTurnKey?: string;
   /**
