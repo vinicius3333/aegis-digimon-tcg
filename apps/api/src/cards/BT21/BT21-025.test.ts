@@ -15,4 +15,53 @@ describe("BT21-025 compiled implementation", () => {
       for (const action of effect.actions ?? []) expect(typeof action.kind).toBe("string");
     }
   });
+
+  it("trashes the opponent's top security card when an eligible attack target changes", () => {
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "Progress", raw: "＜Progress＞" }] }),
+    );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "YourTurn",
+        frequency: "OncePerTurn",
+        actions: [
+          {
+            kind: "SubTrigger",
+            event: "whenAttackTargetSwitched",
+            actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }],
+          },
+        ],
+      }),
+    );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "AllTurns",
+        isInherited: true,
+        frequency: "OncePerTurn",
+        actions: [
+          {
+            kind: "SubTrigger",
+            event: "whenSecurityRemoved",
+            actions: [
+              {
+                kind: "PlayWithoutCost",
+                from: ["hand"],
+                payCost: false,
+                optional: true,
+                target: {
+                  filter: {
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    dp: { op: "lte", value: 5000 },
+                    nameOrTrait: [{ tokens: ["Reptile", "Dragonkin"], match: "trait" }],
+                  },
+                  count: 1,
+                },
+              },
+            ],
+          },
+        ],
+      }),
+    );
+  });
 });
