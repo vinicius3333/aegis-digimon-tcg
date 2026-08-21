@@ -47,7 +47,7 @@ const dnaBody = [
   },
 ] as unknown as Actions;
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
