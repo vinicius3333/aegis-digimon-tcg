@@ -112,17 +112,13 @@ const module: EffectModule = {
               const materialCandidates = Array.from(ownerPlayer.trash)
                 .filter((card) => card.instanceId !== chosen[0])
                 .filter((card) =>
-                  requirement.materials.some((slot) =>
-                    materialsSatisfyRecipe([ctx.game.definitionOf(card)], [slot]),
-                  ),
+                  requirement.materials.some((slot) => materialsSatisfyRecipe([ctx.game.definitionOf(card)], [slot])),
                 )
                 .map((card) => card.instanceId);
               const selected = await ctx.ask.selectCards(ctx, {
                 candidates: materialCandidates,
                 min: 0,
-                max: requirement.materials.length === 1
-                  ? materialCandidates.length
-                  : requirement.materials.length,
+                max: requirement.materials.length === 1 ? materialCandidates.length : requirement.materials.length,
               });
               const selectedDefinitions = selected.map((id) =>
                 ctx.game.definitionOf(ownerPlayer.trash.find((card) => card.instanceId === id)!),
