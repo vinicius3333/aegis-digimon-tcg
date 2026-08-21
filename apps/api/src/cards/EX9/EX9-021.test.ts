@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { EffectTiming } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import "./EX9-021.js";
@@ -35,6 +36,7 @@ describe("EX9-021", () => {
     expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT1-009");
     const alterS = s.state.players[0]!.battleArea[0]!;
     expect(alterS.topCard.cardId).toBe("EX9-021");
+    expect(observe(s.engine).hasRestriction(alterS, "beAffected", "Digimon")).toBe(true);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["EX9-013"]),
     );
@@ -48,5 +50,6 @@ describe("EX9-021", () => {
 
     await advance(s.engine).fire(EffectTiming.OnEnterFieldAnyone, s.perm("alterS"));
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-009"]);
+    expect(observe(s.engine).hasRestriction(s.perm("alterS"), "beAffected", "Digimon")).toBe(false);
   });
 });
