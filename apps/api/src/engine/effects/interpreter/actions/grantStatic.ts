@@ -122,7 +122,13 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           return false;
         }
         const grantDuration = toDuration(action.duration ?? "forTheTurn");
-        for (const id of ids) ctx.fx.setBaseDP(id, value, grantDuration);
+        for (const id of ids) {
+          ctx.fx.setBaseDP(id, value, grantDuration);
+          const keyword = (action.staticEffect as { keyword?: string }).keyword;
+          if (keyword !== undefined) ctx.fx.grantKeyword(id, keyword, grantDuration);
+          const restriction = (action.staticEffect as { restriction?: string }).restriction;
+          if (restriction !== undefined) ctx.fx.restrict(id, restriction as never, grantDuration);
+        }
         if (action.grant === "kind") {
           const wantedKinds = (action.tokens ?? []).map((t) => t as CardKind);
           if (wantedKinds.length > 0) {
