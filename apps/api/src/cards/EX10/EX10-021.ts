@@ -60,8 +60,7 @@ const compiled: CompiledCard = {
           },
           "immuneFrom": "opponentEffects",
           "duration": "untilOpponentTurnEnd",
-          "optional": true,
-          "abortOnDecline": true
+          "optional": false
         }
       ]
     },
@@ -118,8 +117,7 @@ const compiled: CompiledCard = {
           },
           "immuneFrom": "opponentEffects",
           "duration": "untilOpponentTurnEnd",
-          "optional": true,
-          "abortOnDecline": true
+          "optional": false
         }
       ]
     },
@@ -180,5 +178,7 @@ const compiled: CompiledCard = {
     }
   ]
 };
+
+export { compiled };
 
 registerIrCard("EX10-021", compiled);
