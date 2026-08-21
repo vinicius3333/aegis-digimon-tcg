@@ -43,16 +43,7 @@ export const compiled: CompiledCard = {
                 ],
                 "nameOrTrait": [
                   {
-                    "tokens": [
-                      "Agumon",
-                      "Greymon"
-                    ],
-                    "match": "name"
-                  },
-                  {
-                    "tokens": [
-                      "Omnimon"
-                    ],
+                    "tokens": ["Agumon", "Greymon", "Omnimon"],
                     "match": "name"
                   }
                 ]
@@ -71,6 +62,7 @@ export const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "whenOneOfYoursDigivolves",
+          "sourceFilter": { "controller": "mine", "kind": ["Digimon"], "excludeSelf": true },
           "actions": [
             {
               "kind": "GainMemory",
