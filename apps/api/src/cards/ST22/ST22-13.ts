@@ -43,7 +43,7 @@ const compiled: CompiledCard = {
           "kind": "Suspend",
           "target": {
             "filter": {
-              "controllerDefault": "any",
+            "controller": "any",
               "kind": [
                 "Digimon"
               ]
@@ -74,7 +74,7 @@ const compiled: CompiledCard = {
           "kind": "Suspend",
           "target": {
             "filter": {
-              "controllerDefault": "any",
+            "controller": "any",
               "kind": [
                 "Digimon"
               ]
@@ -105,7 +105,7 @@ const compiled: CompiledCard = {
           "kind": "Suspend",
           "target": {
             "filter": {
-              "controllerDefault": "any",
+            "controller": "any",
               "kind": [
                 "Digimon"
               ]
