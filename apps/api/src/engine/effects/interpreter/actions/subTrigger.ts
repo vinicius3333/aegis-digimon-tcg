@@ -641,6 +641,7 @@ export async function runSubTrigger(
   ctx.fx.subscribeSubTrigger({
     event,
     sourcePermanentId: anchorPermanentId,
+    continuous: ["Static", "AllTurns", "YourTurn", "OpponentsTurn"].includes(ctx.activeTiming ?? ""),
     ...(playerScoped
       ? { activationContext: ctx }
       : action.on !== undefined
