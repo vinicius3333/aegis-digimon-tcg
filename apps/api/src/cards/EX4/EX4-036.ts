@@ -20,94 +20,86 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Digivolution fix: multicolor:true requires exactly 2+ colors AND must include green.
 // The existing IR uses multicolor:true + colors:['Green'] which is correct for "2-color w/green".
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "TrashDigivolution",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "TrashDigivolution",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "fromTop": true,
-          "amount": 99,
-          "stopAtLevel": 3
+          fromTop: true,
+          amount: 99,
+          stopAtLevel: 3,
         },
         {
-          "kind": "DeDigivolve",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeDigivolve",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 1
-        }
-      ]
+          amount: 1,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenEffectSuspends",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon"
-            ],
-            "excludeSelf": true
+          kind: "SubTrigger",
+          event: "whenEffectSuspends",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
+            excludeSelf: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "keyword": {
-                "keyword": "Piercing",
-                "raw": "＜Piercing＞"
+              keyword: {
+                keyword: "Piercing",
+                raw: "＜Piercing＞",
               },
-              "duration": "forTheTurn"
-            }
-          ]
-        }
+              duration: "forTheTurn",
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "names": ["Gargomon"],
-      "cost": 3,
-      "isAlternate": true
+      level: 4,
+      names: ["Gargomon"],
+      cost: 3,
+      isAlternate: true,
     },
     {
-      "level": 4,
-      "multicolor": true,
-      "colors": [
-        "Green"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      multicolor: true,
+      colors: ["Green"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 registerIrCard("EX4-036", compiled);
