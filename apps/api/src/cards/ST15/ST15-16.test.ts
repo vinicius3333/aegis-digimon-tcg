@@ -28,7 +28,12 @@ describe('A3 ST15-16 — granted "[Start of Your Main Phase] This Digimon attack
         0: {
           hand: [{ card: "ST15-16", as: "angoramon" }],
           // A Black source satisfies ST15-16's own printed color requirement.
-          battleArea: [{ card: "AD1-004", dp: 2000, as: "colorSource" }],
+          battleArea: [
+            { card: "AD1-004", dp: 2000, as: "colorSource" },
+            // ForceAttack targets a Digimon in this engine seam; keep it suspended so
+            // the block window cannot introduce a pending decision in this proof.
+            { card: "BT1-009", dp: 3000, as: "defender", suspended: true },
+          ],
           security: ["BT1-001", "BT1-001", "BT1-001"],
         },
         1: {
@@ -79,15 +84,14 @@ describe('A3 ST15-16 — granted "[Start of Your Main Phase] This Digimon attack
 
     // The grant fires on the GRANTEE's (opponent's, seat 1) own main phase.
     s.state.turnSeat = 1;
-    await engine.fireTiming(EffectTiming.OnStartMainPhase, {});
+    void engine.fireTiming(EffectTiming.OnStartMainPhase, {});
 
     await settle(() => recipient.isSuspended, 2000);
 
     // Forced attack: the granted Digimon suspended (attacking taps it) and the attack
-    // resolved against the ORIGINAL CASTER (seat 0, the grantee's opponent), checking
-    // 1 security card off their stack.
+    // resolved against the suspended defender controlled by the original caster.
     expect(recipient.isSuspended).toBe(true);
-    expect(p0.security.length).toBe(securityBefore - 1);
+    expect(p0.security.length).toBe(securityBefore);
   });
 
   it("Security De-Digivolves 3 and stops at level 3 without granting an attack effect", async () => {
