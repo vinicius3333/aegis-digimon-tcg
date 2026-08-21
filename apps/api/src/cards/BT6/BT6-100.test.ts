@@ -22,8 +22,10 @@ describe("BT6-100 Reinforcing Memory Boost!", () => {
     s.state.memory = 2;
     await s.ready();
     const effects = observe(s.engine).activatableEffects(optionPermanent) as Array<{ effectKey: string }>;
+    const delay = effects.find((effect) => effect.description.includes("Delay"));
+    expect(delay).toBeDefined();
 
-    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: optionId, effectKey: effects[0]!.effectKey })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: optionId, effectKey: delay!.effectKey })).toEqual({ ok: true });
     await settle(() => s.state.memory === 5);
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);

@@ -42,6 +42,16 @@ const compiled: CompiledCard = {
       "trigger": "Main",
       "actions": [
         {
+          "kind": "Trash",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          }
+        },
+        {
           "kind": "GainMemory",
           "amount": 3
         }

@@ -65,6 +65,8 @@ describe("BT6 Three Musketeers deck", () => {
         ],
       },
     });
+    const flyBulletId = s.inst("flyBullet").instanceId;
+    const happyBulletId = s.inst("happyBullet").instanceId;
     s.state.memory = 10;
     await s.ready();
 
@@ -78,14 +80,14 @@ describe("BT6 Three Musketeers deck", () => {
     expect(recoverDecision.kind).toBe("selectCards");
     expect(recoverDecision.sourceCardId).toBe("BT6-112");
     expect(recoverDecision.options?.candidateInstanceIds).toEqual([
-      s.inst("flyBullet").instanceId,
+      flyBulletId,
     ]);
     expect(s.engine.applyIntent(0, {
       type: "respondDecision",
       decisionId: recoverDecision.decisionId,
       response: {
         kind: "selectCards",
-        instanceIds: [s.inst("flyBullet").instanceId],
+        instanceIds: [flyBulletId],
       },
     })).toEqual({ ok: true });
     await settle(() =>
@@ -103,8 +105,8 @@ describe("BT6 Three Musketeers deck", () => {
     )!.req;
     expect(useDecision.options?.candidateInstanceIds).toEqual(
       expect.arrayContaining([
-        s.inst("happyBullet").instanceId,
-        s.inst("flyBullet").instanceId,
+        happyBulletId,
+        flyBulletId,
       ]),
     );
     expect(s.engine.applyIntent(0, {
@@ -112,7 +114,7 @@ describe("BT6 Three Musketeers deck", () => {
       decisionId: useDecision.decisionId,
       response: {
         kind: "selectCards",
-        instanceIds: [s.inst("flyBullet").instanceId],
+        instanceIds: [flyBulletId],
       },
     })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
@@ -140,13 +142,13 @@ describe("BT6 Three Musketeers deck", () => {
       "BT1-009",
     ]);
     expect(s.state.players[0]!.hand.some((card) =>
-      card.instanceId === s.inst("happyBullet").instanceId
+      card.instanceId === happyBulletId
     )).toBe(true);
     await settle(() => s.state.players[0]!.trash.some((card) =>
-      card.instanceId === s.inst("flyBullet").instanceId
+      card.instanceId === flyBulletId
     ));
     expect(s.state.players[0]!.trash.some((card) =>
-      card.instanceId === s.inst("flyBullet").instanceId
+      card.instanceId === flyBulletId
     )).toBe(true);
     expect(s.state.memory).toBe(0);
   });
