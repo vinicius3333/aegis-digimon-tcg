@@ -2,6 +2,11 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./BT21-056.js";
 
 describe("BT21-056 Vemmon", () => {
+  it("preserves full coverage with no residual clauses", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual ?? []).toEqual([]);
+  });
+
   it("trashes a Vemmon-text card to return a non-Digi-Egg Vemmon-text card", () => {
     const effect = compiled.effects.find((entry) => entry.trigger === "OnPlay");
     const action = effect?.actions[0] as { target?: unknown; cost?: unknown } | undefined;
@@ -16,7 +21,14 @@ describe("BT21-056 Vemmon", () => {
       },
       count: 1,
     });
-    expect(action?.cost).toMatchObject({ kind: "trash", target: { count: 1 } });
+    expect(action?.cost).toEqual({
+      kind: "trash",
+      target: {
+        filter: { controller: "mine", zone: "hand", nameOrTrait: [{ tokens: ["Vemmon"], match: "text" }] },
+        count: 1,
+      },
+      raw: "By trashing 1 card with [Vemmon] in its text from your hand",
+    });
   });
 
   it("restricts inherited cost reduction to this Digimon and Vemmon-text Digimon", () => {
