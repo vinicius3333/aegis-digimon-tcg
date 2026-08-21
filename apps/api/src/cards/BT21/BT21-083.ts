@@ -24,10 +24,6 @@ import { registerCard } from "../../engine/effects/registry.js";
  *
  *   EffectTiming.SecuritySkill: Play this card. (documented behavior)
  *
- * Residual:
- *   The [Your Turn] attack-grant on played/digivolving Digimon with [Xros Heart]/[Hero]
- *   is fully implemented. The attack is driven by forceAttack which respects the
- *   "can't attack during an ongoing attack" restriction (KB Q4598/Q4728).
  */
 const cardId = "BT21-083";
 
