@@ -8,97 +8,97 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // The trigger condition is leave-by-effects only, not combat/battle resolution.
 // Mode "prevent" indicates the leaving is cancelled entirely; cost is the placement.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Royal Base"], "match": "trait" }]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }],
             },
-            "count": "all"
+            count: "all",
           },
-          "amount": 1000,
-          "duration": "permanent"
-        }
+          amount: 1000,
+          duration: "permanent",
+        },
       ],
-      "isSecurity": true
+      isSecurity: true,
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "mode": "prevent",
-          "sourceFilter": {
-            "controller": "mine",
-            "excludeSelf": true,
-            "kind": ["Digimon"],
-            "nameOrTrait": [{ "tokens": ["Royal Base"], "match": "trait" }],
-            "leaveReason": "effect"
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          mode: "prevent",
+          sourceFilter: {
+            controller: "mine",
+            excludeSelf: true,
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }],
+            leaveReason: "effect",
           },
-          "cost": {
-            "kind": "placeAsSecurity",
-            "target": {
-              "filter": { "isSelfRef": true },
-              "count": 1,
-              "isSelf": true
+          cost: {
+            kind: "placeAsSecurity",
+            target: {
+              filter: { isSelfRef: true },
+              count: 1,
+              isSelf: true,
             },
-            "position": "faceUpBottom",
-            "raw": "by placing this Digimon as the face-up bottom security card"
+            position: "faceUpBottom",
+            raw: "by placing this Digimon as the face-up bottom security card",
           },
-          "actions": []
-        }
+          actions: [],
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "Rule",
-      "actions": [
+      trigger: "Rule",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": { "isSelfRef": true },
-            "count": 1,
-            "isSelf": true
+          kind: "GrantStatic",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
           },
-          "grant": "trait",
-          "tokens": ["Insectoid"]
-        }
-      ]
+          grant: "trait",
+          tokens: ["Insectoid"],
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": { "isSelfRef": true },
-            "count": 1,
-            "isSelf": true
+          kind: "ModifyDP",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
           },
-          "amount": 1000,
-          "duration": "permanent"
-        }
+          amount: 1000,
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "traits": ["Royal Base"],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      traits: ["Royal Base"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT19-048", compiled);
