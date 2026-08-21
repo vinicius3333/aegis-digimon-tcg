@@ -1,4 +1,4 @@
-import { EffectTiming, EffectDuration, isDigimon, CardColor } from "@aegis/shared";
+import { EffectTiming, EffectDuration, isDigimon, isTamer, CardColor } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -29,8 +29,23 @@ const module: EffectModule = {
           isLinked: false,
           maxPerTurn: -1,
           canTrigger: () => true,
-          canActivate: () => true,
+          canActivate: (ctx) => {
+            const mine = ctx.game.player(source.ownerSeat).battleArea;
+            return mine.some((p) => {
+              if (p.inBreeding || p.topCard === undefined) return false;
+              const def = ctx.game.definitionOf(p.topCard);
+              return (isDigimon(def) || isTamer(def)) && def.colors.includes(CardColor.Green);
+            });
+          },
           resolve: async (ctx) => {
+            if (
+              !ctx.game.player(source.ownerSeat).battleArea.some((p) => {
+                if (p.inBreeding || p.topCard === undefined) return false;
+                const def = ctx.game.definitionOf(p.topCard);
+                return (isDigimon(def) || isTamer(def)) && def.colors.includes(CardColor.Green);
+              })
+            )
+              return;
             ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.UntilEachTurnEnd);
           },
         },
