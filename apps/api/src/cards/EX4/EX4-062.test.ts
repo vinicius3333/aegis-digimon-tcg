@@ -6,10 +6,6 @@ import "../index.js";
 //   "by suspending this Tamer, you may place DigiXros materials from your trash and from under your
 //    Tamers" for a [Blue Flare]/[Twilight] DigiXros play (documented behavior — trash max 1, under-Tamer max 1).
 //
-// FAILS-WHEN-REVERTED: a trash card is a legal DigiXros material ONLY while EX4-062's expansion is
-// active AND the played card carries [Blue Flare]/[Twilight]. Without suspending it the trash zone
-// is locked → the material is illegal and the DigiXros play is rejected.
-
 const EX4_062 = "EX4-062";
 const BLUE_FLARE_DIGIMON = "BT11-030"; // [Blue Flare] L5 DigiXros card, recipe incl. [MetalGreymon]; cost 8
 const METALGREYMON = "BT10-024"; // "MetalGreymon" Blue L5

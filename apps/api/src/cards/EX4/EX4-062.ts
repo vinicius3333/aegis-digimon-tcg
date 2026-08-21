@@ -101,9 +101,7 @@ const module: EffectModule = {
             if (def === undefined) return false;
             const traits = def.types ?? [];
             const hasTrait =
-              traits.includes("Blue Flare") ||
-              traits.includes("BlueFlare") ||
-              traits.includes("Twilight");
+              traits.includes("Blue Flare") || traits.includes("BlueFlare") || traits.includes("Twilight");
             const isDigimon = def.kinds.includes(CardKind.Digimon);
             const inHand = ctx.source.permanent() === undefined;
             return isDigimon && hasTrait && inHand;
@@ -158,7 +156,11 @@ const module: EffectModule = {
             // Cards that are placed as DigiXros materials go under the DigiXros target
             // They are placed during the DigiXros resolution via the engine's expanded zones
             // Record the zone expansion so the play-card subsystem can read it
-            ctx.fx.expandDigiXrosZones?.(ctx.source.ownerSeat, ["digivolutionCards", "trash"], EffectDuration.Permanent);
+            ctx.fx.expandDigiXrosZones?.(
+              ctx.source.ownerSeat,
+              ["digivolutionCards", "trash"],
+              EffectDuration.Permanent,
+            );
           },
         }),
       ];
