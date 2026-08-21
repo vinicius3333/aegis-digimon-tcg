@@ -112,7 +112,7 @@ import {
 import { MatchHistorySheet, OpponentActionFeed } from "./OpponentActionFeedView";
 import { hasOpenCombatPrompt } from "./opponentActionFeed";
 import { ownPermanentTapDestination } from "./ownPermanentStack";
-import { pressGesture } from "./pressGesture";
+import { pressGesture, swallowNextClick } from "./pressGesture";
 import { useOpponentActionFeed } from "./useOpponentActionFeed";
 
 const PHASES: Phase[] = [Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main, Phase.End];
@@ -470,7 +470,13 @@ export function GameScreen({
       const d = dragRef.current;
       if (d) {
         if (d.started) handleDropRef.current?.(d, e.clientX, e.clientY);
-        else handleTapRef.current?.(d);
+        else {
+          // A tap opens a sheet right under the finger that made it, and the click the
+          // browser sends after the tap would land on whatever mounted there — zooming
+          // the card, or dismissing the sheet before it was ever read.
+          swallowNextClick();
+          handleTapRef.current?.(d);
+        }
       }
       setDrag(null);
     };

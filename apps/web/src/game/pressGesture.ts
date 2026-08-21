@@ -18,3 +18,19 @@ export function pressGesture({ dx, dy, touch }: { dx: number; dy: number; touch:
   if (Math.hypot(dx, dy) <= (touch ? TOUCH_DRAG_THRESHOLD : DRAG_THRESHOLD)) return "press";
   return touch && Math.abs(dx) > Math.abs(dy) ? "scroll" : "drag";
 }
+
+/**
+ * Drop the click the browser sends after a tap that has already been answered.
+ *
+ * A tap opens its sheet right under the finger that made it, so the trailing click
+ * lands on whatever mounted there — zooming the card, or dismissing the sheet before
+ * it was ever read.
+ */
+export function swallowNextClick(): void {
+  const swallow = (event: MouseEvent) => {
+    event.stopPropagation();
+    event.preventDefault();
+  };
+  window.addEventListener("click", swallow, { capture: true, once: true });
+  window.setTimeout(() => window.removeEventListener("click", swallow, { capture: true }), 400);
+}

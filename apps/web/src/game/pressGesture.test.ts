@@ -1,5 +1,6 @@
-import { describe, expect, it } from "vitest";
-import { pressGesture } from "./pressGesture";
+// @vitest-environment jsdom
+import { describe, expect, it, vi } from "vitest";
+import { pressGesture, swallowNextClick } from "./pressGesture";
 
 describe("reading a moving press", () => {
   it("keeps a finger's ordinary wobble a press", () => {
@@ -22,5 +23,30 @@ describe("reading a moving press", () => {
 
   it("reads a pull towards the board as a drag", () => {
     expect(pressGesture({ dx: 8, dy: -60, touch: true })).toBe("drag");
+  });
+});
+
+describe("the click that follows a tap", () => {
+  const clicks = () => {
+    const seen = vi.fn<(event: MouseEvent) => void>();
+    const target = document.createElement("button");
+    target.addEventListener("click", seen);
+    document.body.append(target);
+    return { seen, target };
+  };
+
+  it("never reaches whatever the tap put under the finger", () => {
+    const { seen, target } = clicks();
+    swallowNextClick();
+    target.click();
+    expect(seen).not.toHaveBeenCalled();
+  });
+
+  it("lets the next real click through", () => {
+    const { seen, target } = clicks();
+    swallowNextClick();
+    target.click();
+    target.click();
+    expect(seen).toHaveBeenCalledOnce();
   });
 });
