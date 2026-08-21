@@ -156,7 +156,6 @@ const compiled: CompiledCard = {
           "optional": true
         }
       ],
-      "isInherited": true
     }
   ],
   "coverage": "full",
@@ -164,3 +163,5 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("EX10-048", compiled);
+
+export { compiled };
