@@ -7,15 +7,12 @@ import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { whenDigivolving, turnTiming } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
-
 const cardId = "BT17-040";
 
 function hasLeonAlexanderInStack(ctx: EffectContext, source: CardSource): boolean {
   const self = source.permanent();
   if (self === undefined) return false;
-  return self.stack.some(
-    (card) => ctx.game.definitionOf(card).nameEn === "Leon Alexander",
-  );
+  return self.stack.some((card) => ctx.game.definitionOf(card).nameEn === "Leon Alexander");
 }
 
 function opponentBattleAreaDigimon(ctx: EffectContext, source: CardSource): Permanent[] {
@@ -63,12 +60,7 @@ const module: EffectModule = {
             // If [Leon Alexander] in digivolution stack, all opponent Digimon get Sec A. -1.
             if (hasLeonAlexanderInStack(ctx, source)) {
               for (const p of opponentBattleAreaDigimon(ctx, source)) {
-                ctx.fx.grantKeyword(
-                  p.permanentId,
-                  "SecurityAttack",
-                  EffectDuration.UntilOpponentTurnEnd,
-                  -1,
-                );
+                ctx.fx.grantKeyword(p.permanentId, "SecurityAttack", EffectDuration.UntilOpponentTurnEnd, -1);
               }
             }
           },
@@ -101,16 +93,13 @@ const module: EffectModule = {
             if (securityCount >= 3) {
               const candidates = opponentBattleAreaDigimon(ctx, source);
               if (candidates.length > 0) {
-                const byTopCard = new Map<string, Permanent>(
-                  candidates.map((p) => [p.topCard!.instanceId, p]),
-                );
+                const byTopCard = new Map<string, Permanent>(candidates.map((p) => [p.topCard!.instanceId, p]));
                 const chosen = await ctx.ask.chooseTargets(ctx, {
                   candidates: Array.from(byTopCard.keys()),
                   min: 1,
                   max: 1,
                 });
-                const chosenPerm =
-                  chosen[0] !== undefined ? byTopCard.get(chosen[0]) : undefined;
+                const chosenPerm = chosen[0] !== undefined ? byTopCard.get(chosen[0]) : undefined;
                 if (chosenPerm !== undefined) {
                   ctx.fx.modifyDP(chosenPerm.permanentId, -6000, EffectDuration.UntilEachTurnEnd);
                 }
@@ -123,14 +112,9 @@ const module: EffectModule = {
             }
 
             // Then: 1 of your Digimon may attack an opponent's Digimon (KB Q2794: always runs).
-            const attackCandidates = ownerBattleAreaDigimon(ctx, source).filter(
-              (p) => !p.isSuspended,
-            );
+            const attackCandidates = ownerBattleAreaDigimon(ctx, source).filter((p) => !p.isSuspended);
             if (attackCandidates.length > 0) {
-              const wantToAttack = await ctx.ask.optional(
-                ctx,
-                "1 of your Digimon may attack an opponent's Digimon.",
-              );
+              const wantToAttack = await ctx.ask.optional(ctx, "1 of your Digimon may attack an opponent's Digimon.");
               if (wantToAttack) {
                 const chosen = await ctx.ask.chooseTargets(ctx, {
                   candidates: attackCandidates.map((p) => p.permanentId),
@@ -183,16 +167,13 @@ const module: EffectModule = {
             if (!ctx.game.definitionOf(self.topCard).nameEn.includes("Fenriloogamon")) return;
             const candidates = opponentBattleAreaDigimon(ctx, source);
             if (candidates.length === 0) return;
-            const byTopCard = new Map<string, Permanent>(
-              candidates.map((p) => [p.topCard!.instanceId, p]),
-            );
+            const byTopCard = new Map<string, Permanent>(candidates.map((p) => [p.topCard!.instanceId, p]));
             const chosen = await ctx.ask.chooseTargets(ctx, {
               candidates: Array.from(byTopCard.keys()),
               min: 1,
               max: 1,
             });
-            const chosenPerm =
-              chosen[0] !== undefined ? byTopCard.get(chosen[0]) : undefined;
+            const chosenPerm = chosen[0] !== undefined ? byTopCard.get(chosen[0]) : undefined;
             if (chosenPerm !== undefined) {
               ctx.fx.modifyDP(chosenPerm.permanentId, -8000, EffectDuration.UntilEachTurnEnd);
             }

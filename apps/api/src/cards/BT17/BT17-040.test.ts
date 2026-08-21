@@ -3,15 +3,6 @@ import type { PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
-// A3 for BT17-040 (Kazuchimon):
-//   [When Digivolving] Suspend 1 opponent Digimon. If [Leon Alexander] in digivolution cards,
-//     all opponent Digimon gain <Security A. -1> until end of their turn.
-//
-// FAILS-WHEN-REVERTED: [When Digivolving] suspend fires unconditionally; the SecurityAttack
-// grant is gated on Leon Alexander in the digivolution stack. Without the hand-written module,
-// the RawUnparsed for "1 of your Digimon may attack" in [End of Your Turn] remains inert.
-// This test proves the [When Digivolving] suspend fires.
-
 const KAZUCHIMON = "BT17-040";
 // BT1-057 is Sirenmon (Lv.5 Yellow Digimon) — valid base for Kazuchimon (Lv.6 Yellow/Green evo, cost 4).
 const BASE_DIGIMON = "BT1-057";
@@ -51,18 +42,22 @@ describe("BT17-040 Kazuchimon — [When Digivolving] suspend opponent Digimon", 
     await settle(() => !p0.hand.some((c) => c.instanceId === kazuchimonId), 600);
 
     // Wait for the WhenDigivolving effect to fire (async after digivolve).
-    await settle(
-      () => {
-        const oppPerm = p1.battleArea.find((p) => p.permanentId === oppPermId);
-        return oppPerm === undefined || oppPerm.isSuspended;
-      },
-      800,
-    );
+    await settle(() => {
+      const oppPerm = p1.battleArea.find((p) => p.permanentId === oppPermId);
+      return oppPerm === undefined || oppPerm.isSuspended;
+    }, 800);
 
     // The opponent's Digimon should have been suspended.
     const oppPerm = p1.battleArea.find((p) => p.permanentId === oppPermId);
     if (oppPerm !== undefined) {
       expect(oppPerm.isSuspended).toBe(true);
     }
+  });
+
+  it("registers complete compiled coverage for the end-turn attack clause", async () => {
+    const { runtimeCompiledCard } = await import("../../engine/effects/interpreter.js");
+    const compiled = runtimeCompiledCard(KAZUCHIMON)!;
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });
