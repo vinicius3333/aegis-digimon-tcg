@@ -78,10 +78,15 @@ const compiled: CompiledCard = {
                 "Digimon"
               ]
             },
-            "count": 1
+            "count": 1,
+            "sameTarget": true
           },
           "withoutSuspending": false,
-          "optional": true
+          "mandatory": true,
+          "condition": {
+            "kind": "ifThisEffectActed",
+            "raw": "if a Digimon gained Alliance"
+          }
         }
       ]
     },
@@ -138,10 +143,15 @@ const compiled: CompiledCard = {
                 "Digimon"
               ]
             },
-            "count": 1
+            "count": 1,
+            "sameTarget": true
           },
           "withoutSuspending": false,
-          "optional": true
+          "mandatory": true,
+          "condition": {
+            "kind": "ifThisEffectActed",
+            "raw": "if a Digimon gained Alliance"
+          }
         }
       ]
     },
