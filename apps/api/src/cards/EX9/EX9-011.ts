@@ -60,7 +60,8 @@ export const compiled: CompiledCard = {
               "controller": "opponent",
               "kind": [
                 "Digimon"
-              ]
+              ],
+              "faceDown": true
             },
             "count": 5000,
             "upTo": true
@@ -100,7 +101,8 @@ export const compiled: CompiledCard = {
               "controllerDefault": "mine",
               "kind": [
                 "Digimon"
-              ]
+              ],
+              "faceDown": true
             },
             "unit": "digivolutionCards"
           }
