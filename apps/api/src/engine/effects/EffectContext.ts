@@ -83,6 +83,7 @@ export type SubTriggerEventName =
   | "whenOpponentMovedFromBreeding"
   | "onDeletionOf"
   | "whenSecurityRemoved"
+  | "whenCardTrashedFromSecurity"
   | "whenEffectRemovesFromSecurity"
   | "whenAddSecurity"
   | "whenFaceUpCardsAddedToOpponentSecurity"
@@ -280,6 +281,8 @@ export interface TriggerInfo {
    * its own controller's stack rather than the opponent's.
    */
   removedFromSecuritySeat?: Seat;
+  /** Card instances just trashed from a security stack. */
+  trashedFromSecurityInstanceIds?: string[];
   /**
    * The seat whose EFFECT drove the digivolution-card trash (whenDigivolutionTrashed). A
    * watcher gated on "when YOU trash a digivolution card" (KB P-004) reads this to require

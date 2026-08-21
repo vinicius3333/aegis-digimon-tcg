@@ -2368,6 +2368,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // whether it was checked or removed by an effect. Security checks already fire this
       // event at their own movement seam; effect-driven trash must reach the same bus too.
       await engine.fireSubTrigger?.("whenSecurityRemoved", { removedFromSecuritySeat: seat });
+      await engine.fireSubTrigger?.("whenCardTrashedFromSecurity", {
+        removedFromSecuritySeat: seat,
+        trashedFromSecurityInstanceIds: moved.map((c) => c.instanceId),
+      });
       // Each trashed security card's own OnDiscardSecurity clause (ST22-10) fires now that it is in trash.
       await engine.fireDiscardedFromSecurity?.(moved.map((c) => c.instanceId));
     }
