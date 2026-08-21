@@ -8,6 +8,11 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   "effects": [
     {
+      "trigger": "Static",
+      "actions": [],
+      "keywords": [{ "keyword": "Armor Purge", "raw": "＜Armor Purge＞" }]
+    },
+    {
       "trigger": "WhenDigivolving",
       "actions": [
         {
