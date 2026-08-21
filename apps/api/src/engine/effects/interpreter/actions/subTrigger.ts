@@ -7,6 +7,7 @@ import { runAction } from "../dispatch.js";
 import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches, matchNameOrTrait } from "../matching/definition.js";
 import { matchingSubjectPermanentIds, subjectMatchesFilter, triggerAddedSecurityMatches } from "../matching/trigger.js";
+import { permanentMatchesFilter } from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { getCardDefinition } from "@aegis/shared";
 import type { Action, Cost, Filter } from "@aegis/shared";
@@ -156,6 +157,7 @@ export async function runSubTrigger(
   // The filter is evaluated against the freshly bound context's payload subject via the
   // canonical `permanentMatchesFilter` / `definitionMatches` — never a hand-rolled matcher.
   const sourceFilter = action.sourceFilter;
+  const hostFilter = (action as Action & { hostFilter?: Filter }).hostFilter;
   // Some deletion reactions explicitly require their host to survive the same deletion batch
   // (BT22-065 Q4923; BT22-068 Q4928; BT22-070 Q4929). Deletion seams publish the complete
   // simultaneous permanent set, so reject the activation when it contains this watcher anchor.
@@ -512,10 +514,22 @@ export async function runSubTrigger(
       event === "onDigivolutionCardsDiscardedBatch" ||
       event === "onDigiBurstCardDiscarded") &&
     sourceFilter?.isSelfRef === true
-      ? (subCtx: EffectContext): boolean =>
-          event === "onDigiBurstCardDiscarded" || event === "onDigivolutionCardsDiscardedBatch"
-            ? (subCtx.trigger?.trashedDigivolutionInstanceIds ?? []).includes(subCtx.source.instanceId)
-            : subCtx.trigger?.trashedDigivolutionInstanceId === subCtx.source.instanceId
+      ? (subCtx: EffectContext): boolean => {
+          const matched =
+            event === "onDigiBurstCardDiscarded" || event === "onDigivolutionCardsDiscardedBatch"
+              ? (subCtx.trigger?.trashedDigivolutionInstanceIds ?? []).includes(subCtx.source.instanceId)
+              : subCtx.trigger?.trashedDigivolutionInstanceId === subCtx.source.instanceId;
+          return matched;
+        }
+      : undefined;
+  const digivolutionHostFilterGate =
+    hostFilter !== undefined &&
+    (event === "onDigivolutionCardDiscarded" || event === "onDigivolutionCardsDiscardedBatch")
+      ? (subCtx: EffectContext): boolean => {
+          const hostId = subCtx.trigger?.subjectPermanentId;
+          const host = hostId === undefined ? undefined : subCtx.game.permanentById(hostId);
+          return host !== undefined && permanentMatchesFilter(subCtx, host, hostFilter, subCtx.source);
+        }
       : undefined;
   const effectSourceGate =
     action.effectSourceFilter === undefined
@@ -613,6 +627,7 @@ export async function runSubTrigger(
     whenTrashedFromDeckGate,
     whenTrashedFromHandGate,
     digivolutionCardDiscardedGate,
+    digivolutionHostFilterGate,
     effectSourceGate,
     triggerFilterGate,
     addedDigivolutionCardGate,
