@@ -15,8 +15,8 @@ import "./EX10-015.js";
 //   Also: can digivolve onto Lv.2 with ＜Save＞ text at cost 0
 //     (via ALTERNATE_DIGIVOLUTION_OVERRIDES["EX10-015"] in packages/shared/src/effects/data.ts).
 //
-// FAILS-WHEN-REVERTED: without the hand-written module, the HAND-FIXED IR stub only partially
-// covers these effects (marked coverage:"none"); the Save PlaceUnder, the grantPierce, and the
+// FAILS-WHEN-REVERTED: without the hand-written module, the HAND-FIXED IR stub does not cover
+// these effects (marked coverage:"none"); the Save PlaceUnder, the grantPierce, and the
 // main-phase trash+draw+suspend are not exercised.
 
 const cardId = "EX10-015";
@@ -88,7 +88,7 @@ const requireMod = () => {
 // ── module structure ──────────────────────────────────────────────────────────
 
 describe("EX10-015 module structure", () => {
-  it("registers a hand-written module (not the inert HAND-FIXED IR stub)", () => {
+  it("registers a hand-written module rather than the HAND-FIXED IR stub", () => {
     expect(requireMod().cardId).toBe(cardId);
   });
 

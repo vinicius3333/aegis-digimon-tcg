@@ -15,7 +15,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 // keyword on a Static effect, but the interpreter only runs `effect.actions`, never
 // `effect.keywords`, so a keyword-only Static is a silent no-op), and emitted both the
 // [When Digivolving] "may move" and the [End of Your Turn] "return 5 / digivolve"
-// clauses as RawUnparsed (loud gaps). Removing the AUTO-GENERATED header preserves this
+// clauses as RawUnparsed. Removing the AUTO-GENERATED header preserves this
 // file across regeneration (card-module contract + the file-header convention).
 //
 // Printed `effectText` (cards.json) is authoritative here (KB reports NO errata):
@@ -60,21 +60,13 @@ const CHAOS_MODE_NAME = "Lucemon: Chaos Mode";
  */
 const hasLucemonInText = (def: CardDefinition): boolean => {
   const token = "lucemon";
-  const haystacks = [
-    def.nameEn,
-    ...(def.types ?? []),
-    def.effectText,
-    def.inheritedEffectText,
-    def.securityEffectText,
-  ];
+  const haystacks = [def.nameEn, ...(def.types ?? []), def.effectText, def.inheritedEffectText, def.securityEffectText];
   return haystacks.some((text) => text !== undefined && text.toLowerCase().includes(token));
 };
 
 /** This seat's trash cards with [Lucemon] in their texts (the cost pool). */
 const lucemonTextTrash = (ctx: EffectContext, source: CardSource): CardInstance[] =>
-  Array.from(ctx.game.player(source.ownerSeat).trash).filter((card) =>
-    hasLucemonInText(ctx.game.definitionOf(card)),
-  );
+  Array.from(ctx.game.player(source.ownerSeat).trash).filter((card) => hasLucemonInText(ctx.game.definitionOf(card)));
 
 /**
  * This seat's trash [Lucemon: Chaos Mode] cards that THIS Digimon may legally digivolve
@@ -117,7 +109,11 @@ const module: EffectModule = {
           },
         });
       return [
-        blocker("blocker", "＜Blocker＞ (When an opponent's Digimon attacks, you may suspend this Digimon to redirect the attack to it.)", false),
+        blocker(
+          "blocker",
+          "＜Blocker＞ (When an opponent's Digimon attacks, you may suspend this Digimon to redirect the attack to it.)",
+          false,
+        ),
         blocker(
           "blocker-ess",
           "[ESS] ＜Blocker＞ (When an opponent's Digimon attacks, you may suspend this Digimon to redirect the attack to it.)",
@@ -137,7 +133,7 @@ const module: EffectModule = {
           description: "[Breeding] [When Digivolving] This Digimon may move (to the battle area).",
           optional: true,
           // Only relevant while this Digimon is in the breeding area (source
-          // IsExistOnBreedingAreaDigimon). A battle-area digivolve makes the clause inert.
+          // IsExistOnBreedingAreaDigimon). A battle-area digivolve does not satisfy this gate.
           canActivate: (ctx) => {
             const self = ctx.source.permanent();
             return self !== undefined && self.inBreeding;

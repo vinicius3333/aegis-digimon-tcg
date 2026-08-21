@@ -1,12 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectDuration, EffectTiming, type CardInstance, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
-import type {
-  DecisionApi,
-  EffectContext,
-  GameAccess,
-  Primitives,
-} from "../../engine/effects/EffectContext.js";
+import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import "./EX10-023.js";
 
@@ -15,8 +10,8 @@ import "./EX10-023.js";
 //   [When Digivolving] / [When Attacking] (shared once/turn) Delete 1 suspended opponent Digimon.
 //   [All Turns] Other than this Digimon, no Digimon or Tamers can unsuspend (restrict("unsuspend")).
 //
-// FAILS-WHEN-REVERTED: declarative effect has a RawUnparsed residual for the no-unsuspend effect;
-// the IR suspend actions use a filter+count model, but the can't-unsuspend static is absent.
+// FAILS-WHEN-REVERTED: reverting the module removes the can't-unsuspend behavior while the
+// declarative suspend actions remain present.
 
 const SELF_INST = "self-inst";
 const SELF_PERM = "astamon-perm";
@@ -71,12 +66,7 @@ function makeCtx(
     oppUnsuspendedDigimon?: boolean;
   } = {},
 ): { ctx: EffectContext; recorder: { calls: { verb: string; args: unknown[] }[] } } {
-  const {
-    ownOtherDigimon = true,
-    ownTamer = true,
-    oppSuspendedDigimon = true,
-    oppUnsuspendedDigimon = true,
-  } = opts;
+  const { ownOtherDigimon = true, ownTamer = true, oppSuspendedDigimon = true, oppUnsuspendedDigimon = true } = opts;
 
   const recorder: { calls: { verb: string; args: unknown[] }[] } = { calls: [] };
 
@@ -318,7 +308,7 @@ describe("EX10-023 Astamon", () => {
   });
 
   it("[All Turns] restricts 'unsuspend' on all battle-area Digimon/Tamers except self", async () => {
-    // FAILS-WHEN-REVERTED: IR RawUnparsed residual = no restrict('unsuspend') calls
+    // FAILS-WHEN-REVERTED: the reverted IR has no restrict('unsuspend') calls
     const source = makeSource();
     const { ctx, recorder } = makeCtx(source, {
       ownOtherDigimon: true,

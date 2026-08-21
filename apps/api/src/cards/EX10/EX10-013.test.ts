@@ -8,7 +8,7 @@ import { definitionOf } from "../../engine/cards/cardData.js";
 import "./EX10-013.js";
 
 // EX10-013 Lucemon: ＜Blocker＞ (own + ESS), [Breeding][When Digivolving] may move
-// (blocked), and [End of Your Turn] return-5-[Lucemon]-text-then-digivolve-into-Chaos-Mode.
+// and [End of Your Turn] return-5-[Lucemon]-text-then-digivolve-into-Chaos-Mode.
 
 const cardId = "EX10-013";
 
@@ -120,7 +120,7 @@ function onlyEffect(timing: EffectTiming, source: CardSource) {
 }
 
 describe("EX10-013 Lucemon", () => {
-  it("registers a hand-written module (not the inert IR stub)", () => {
+  it("registers a hand-written module rather than the IR stub", () => {
     expect(requireModule().cardId).toBe(cardId);
   });
 
@@ -197,9 +197,7 @@ describe("EX10-013 Lucemon", () => {
 
     // 5 [Lucemon]-text cards but the only Chaos Mode (BT7-111) has NO printed EvoCost =>
     // illegal digivolution target (Q5041/Q4999) => effect not offered.
-    const fiveLucemon = ["BT18-034", "BT18-086", "AD1-017", "AD1-018", "BT13-087"].map((id, i) =>
-      inst(`l${i}`, id),
-    );
+    const fiveLucemon = ["BT18-034", "BT18-086", "AD1-017", "AD1-018", "BT13-087"].map((id, i) => inst(`l${i}`, id));
     const ctxNoLegalChaos = makeCtx({ source, trash: [...fiveLucemon, inst("c", "BT7-111")] }).ctx;
     expect(eff.canActivate(ctxNoLegalChaos)).toBe(false);
 
@@ -224,9 +222,7 @@ describe("EX10-013 Lucemon", () => {
     const source = makeSource(perm);
     const eff = onlyEffect(EffectTiming.OnEndTurn, source);
 
-    const fiveLucemon = ["BT18-034", "BT18-086", "AD1-017", "AD1-018", "BT13-087"].map((id, i) =>
-      inst(`l${i}`, id),
-    );
+    const fiveLucemon = ["BT18-034", "BT18-086", "AD1-017", "AD1-018", "BT13-087"].map((id, i) => inst(`l${i}`, id));
     const chaos = inst("chaos", "EX10-052"); // Lv.4 EvoCost; illegal target for a Lv.3 base.
     const fiveIds = fiveLucemon.map((c) => c.instanceId);
     const { ctx, calls } = makeCtx({
@@ -258,9 +254,7 @@ describe("EX10-013 Lucemon", () => {
     const source = makeSource(selfPermanent());
     const eff = onlyEffect(EffectTiming.OnEndTurn, source);
 
-    const fiveLucemon = ["BT18-034", "BT18-086", "AD1-017", "AD1-018", "BT13-087"].map((id, i) =>
-      inst(`l${i}`, id),
-    );
+    const fiveLucemon = ["BT18-034", "BT18-086", "AD1-017", "AD1-018", "BT13-087"].map((id, i) => inst(`l${i}`, id));
     const fiveIds = fiveLucemon.map((c) => c.instanceId);
     const { ctx, calls } = makeCtx({
       source,
@@ -278,9 +272,7 @@ describe("EX10-013 Lucemon", () => {
     const source = makeSource(selfPermanent());
     const eff = onlyEffect(EffectTiming.OnEndTurn, source);
 
-    const fiveLucemon = ["BT18-034", "BT18-086", "AD1-017", "AD1-018", "BT13-087"].map((id, i) =>
-      inst(`l${i}`, id),
-    );
+    const fiveLucemon = ["BT18-034", "BT18-086", "AD1-017", "AD1-018", "BT13-087"].map((id, i) => inst(`l${i}`, id));
     const { ctx, calls } = makeCtx({
       source,
       trash: [...fiveLucemon, inst("chaos", "EX10-052")],

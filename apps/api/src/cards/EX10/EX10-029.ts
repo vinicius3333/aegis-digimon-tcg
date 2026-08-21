@@ -2,111 +2,105 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-authored override for EX10-029.
-// Fix: SubTrigger whenLinked was inert (no Restrict after SelectBind).
+// Fix: SubTrigger whenLinked was missing its Restrict after SelectBind.
 // (documented behavior). Fixed by adding Restrict{cantBeDeDigivolved, untilOpponentTurnEnd}
 // on the bound target after SelectBind.
 // Added cantBeDeDigivolved to RestrictionKind (ir.ts) + Restriction (EffectContext.ts)
 // and a guard in primitives.ts deDigivolve.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Security",
-      "isSecurity": true,
-      "actions": [
+      trigger: "Security",
+      isSecurity: true,
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
-      ]
+          payCost: false,
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "keywords": [],
-      "actions": [
+      trigger: "Static",
+      keywords: [],
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Blocker"
+          keyword: {
+            keyword: "Blocker",
           },
-          "duration": "permanent"
-        }
-      ]
+          duration: "permanent",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenLinked",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenLinked",
+          actions: [
             {
-              "kind": "SelectBind",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
+              kind: "SelectBind",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
                 },
-                "count": 1,
-                "bindAs": "A"
+                count: 1,
+                bindAs: "A",
               },
-              "cost": {
-                "kind": "trash",
-                "target": { "filter": { "controller": "mine", "kind": ["Digimon"], "zone": "linked" }, "count": 1 },
-                "raw": "By trashing 1 of this Digimon's link cards"
+              cost: {
+                kind: "trash",
+                target: { filter: { controller: "mine", kind: ["Digimon"], zone: "linked" }, count: 1 },
+                raw: "By trashing 1 of this Digimon's link cards",
               },
-              "optional": true,
-              "abortOnDecline": true
+              optional: true,
+              abortOnDecline: true,
             },
             {
-              "kind": "Restrict",
-              "target": {
-                "filter": {},
-                "count": 1,
-                "fromSelectionRef": "A"
+              kind: "Restrict",
+              target: {
+                filter: {},
+                count: 1,
+                fromSelectionRef: "A",
               },
-              "restriction": "cantBeDeDigivolved",
-              "duration": "untilOpponentTurnEnd"
-            }
+              restriction: "cantBeDeDigivolved",
+              duration: "untilOpponentTurnEnd",
+            },
           ],
-          "raw": "[When Linking] By trashing 1 of this Digimon's link cards, <De-Digivolve> effects don't affect 1 of your Digimon until your opponent's turn ends."
-        }
-      ]
-    }
+          raw: "[When Linking] By trashing 1 of this Digimon's link cards, <De-Digivolve> effects don't affect 1 of your Digimon until your opponent's turn ends.",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "cost": 2,
-      "isAlternate": true,
-      "traits": [
-        "StandardApp"
-      ]
-    }
+      cost: 2,
+      isAlternate: true,
+      traits: ["StandardApp"],
+    },
   ],
-  "linkRequirement": [
+  linkRequirement: [
     {
-      "cost": 2,
-      "traits": [
-        "Appmon"
-      ]
-    }
+      cost: 2,
+      traits: ["Appmon"],
+    },
   ],
 };
 
