@@ -9,9 +9,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 const cardId = "EX6-030";
 
 function hasAngelTrait(def: CardDefinition): boolean {
-  return (def.types ?? []).some(
-    (t) => t === "Angel" || t === "Archangel" || t === "Three Great Angels",
-  );
+  return (def.types ?? []).some((t) => t === "Angel" || t === "Archangel" || t === "Three Great Angels");
 }
 
 const module: EffectModule = {
@@ -38,9 +36,7 @@ const module: EffectModule = {
               const def = ctx.game.definitionOf(c);
               if (!isDigimon(def)) return false;
               if ((def.level ?? 99) > 5) return false;
-              return (def.types ?? []).some(
-                (t) => t === "Angel" || t === "Archangel",
-              );
+              return (def.types ?? []).some((t) => t === "Angel" || t === "Archangel");
             });
             const maxCount = Math.min(1, qualifying.length);
             let _played = false;
