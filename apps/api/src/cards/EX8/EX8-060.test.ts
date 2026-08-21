@@ -3,7 +3,7 @@ import { compiled } from "./EX8-060.js";
 
 describe("EX8-060", () => {
   it("plays an NSo Digimon costing 3 or less from trash when attacking", () =>
-    expect(compiled.effects?.find((entry) => entry.trigger === "WhenAttacking")?.actions[0]).toMatchObject({
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenAttacking" && !entry.isInherited)?.actions[0]).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["trash"],
       payCost: false,
@@ -20,5 +20,10 @@ describe("EX8-060", () => {
     });
     expect(actions[1]).toMatchObject({ kind: "SubTrigger", event: "whenOneOfYoursDigivolves" });
   });
-  it("contains only the printed effects", () => expect(compiled.effects).toHaveLength(2));
+  it("inherits a once-per-turn unsuspend by deleting another Digimon", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "WhenAttacking",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "Unsuspend", cost: { kind: "deleteOwn", target: { filter: { excludeSelf: true }, count: 1 } } }],
+    }));
 });
