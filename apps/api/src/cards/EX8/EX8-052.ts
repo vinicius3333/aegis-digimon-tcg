@@ -5,6 +5,21 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "trash",
+          controller: "opponent",
+          target: { filter: { controller: "opponent" }, count: 1 },
+          from: ["security"],
+          cost: { kind: "trash", target: { filter: { zone: "battleArea", controller: "mine", kind: ["Option"] }, count: 1 } },
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
+    {
       trigger: "WhenDigivolving",
       actions: [
         {
