@@ -52,7 +52,7 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const perm = ctx.source.permanent();
             if (perm === undefined) return;
-            ctx.fx.grantNameTrait(perm.permanentId, "name", ["Eiji Nagasumi", "Leon Alexander"], EffectDuration.UntilEachTurnEnd);
+            ctx.fx.grantNameTrait(perm.permanentId, "name", ["Eiji Nagasumi", "Leon Alexander"], EffectDuration.Permanent);
           },
         }),
         staticModifier({
