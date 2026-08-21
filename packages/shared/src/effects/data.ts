@@ -121,6 +121,38 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
       ],
     },
   ],
+  // EX12-032 prints Blue/Yellow Lv.5 + Purple/Red Lv.5: expand the color alternatives
+  // into the four concrete material pairings consumed by the server legality seam.
+  "EX12-032": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 5 },
+        { color: "Red", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Red", level: 5 },
+      ],
+    },
+  ],
   "BT17-078": [
     {
       cost: 0,
@@ -151,6 +183,11 @@ export function dnaDigivolutionRequirementsFor(cardId: string): DnaDigivolveRequ
  * the CLIENT (digivolve-target highlighting + cost labels) read ONE source of truth.
  */
 export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequirement[]> = {
+  // EX12-032 prints two Lv.4 alternate paths: Garurumon in name, or NSo/VB trait.
+  "EX12-032": [
+    { level: 4, names: ["Garurumon"], cost: 3, isAlternate: true },
+    { level: 4, traits: ["NSo", "VB"], cost: 3, isAlternate: true },
+  ],
   // RB1-009: a Gammamon with a Gammamon-named digivolution card may evolve into this
   // card from hand for 3, ignoring the ordinary level/color requirement.
   "RB1-009": [
