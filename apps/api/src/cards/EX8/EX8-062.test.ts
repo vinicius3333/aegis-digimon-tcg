@@ -21,4 +21,20 @@ describe("EX8-062", () => {
     await settle(() => s.perm("target").currentDP === 4000);
     expect(s.perm("target").currentDP).toBe(4000);
   });
+  it("plays an eligible NSo Digimon from trash when another Digimon is deleted", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-062", as: "source" }], trash: ["BT26-062"] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT26-062"));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT26-062")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT26-062")).toBe(false);
+  });
 });
