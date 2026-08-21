@@ -66,6 +66,7 @@ export const compiled: CompiledCard = {
           },
           amount: 1000,
           duration: "permanent",
+          continuous: false,
         },
       ],
       isInherited: true,
