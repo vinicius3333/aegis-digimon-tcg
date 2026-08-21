@@ -55,9 +55,16 @@ describe("ST24-13 Marcus & Thomas — whenDigivolutionCardTrashed from THIS Tame
 
     expect(tamer.isSuspended).toBe(true);
     // The DATA SQUAD Digimon should have Jamming for the turn.
-    // We verify it by checking grantedKeywords if available, or simply accept the tamer suspension
-    // as the observable proof that the watcher fired.
-    // (Jamming grant is state-in-continuous-ledger; checking suspension is sufficient for FAILS-WHEN-REVERTED.)
+  });
+
+  it("on play places the deck top face down and gains memory when an opponent has a Digimon", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "ST24-13", as: "tamer" }], deck: [{ card: "BT1-001", as: "deckTop" }] }, 1: { battleArea: [{ card: "BT1-009", as: "opponent" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 0;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.memory === 1);
+    const tamer = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "ST24-13");
+    expect(tamer?.stack).toContainEqual(expect.objectContaining({ cardId: "BT1-001", faceUp: false }));
+    expect(s.state.memory).toBe(-3);
   });
 
   it("does NOT grant when the host permanent is a DIFFERENT Tamer (sourceFilter gate)", async () => {

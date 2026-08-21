@@ -41,7 +41,7 @@ async function executeSharedMainEffect(ctx: EffectContext, source: CardSource): 
         const topCardInstance = owner.deck[0];
         if (topCardInstance !== undefined) {
           topCardInstance.faceUp = false;
-          await ctx.fx.placeUnder(self.permanentId, [topCardInstance.instanceId]);
+          await ctx.fx.placeUnder(self.permanentId, [topCardInstance.instanceId], { faceUp: false });
         }
       }
     }
@@ -132,7 +132,7 @@ const module: EffectModule = {
                     const types = (def.types ?? []) as string[];
                     return types.includes("DATA SQUAD");
                   })
-                  .map((p) => p.topCard.instanceId);
+                  .map((p) => p.permanentId);
 
                 if (datSquadCandidates.length === 0) return;
 
@@ -141,11 +141,12 @@ const module: EffectModule = {
                   min: 1,
                   max: 1,
                 });
-                if (picks.length === 0) return;
+                const selectedId = picks[0] ?? datSquadCandidates[0];
+                if (selectedId === undefined) return;
 
                 // Grant <Jamming> for the turn (documented behavior: GainJamming, UntilEachTurnEnd)
                 const targetPerm = owner.battleArea.find(
-                  (p) => p.topCard.instanceId === picks[0],
+                  (p) => p.permanentId === selectedId || p.topCard?.instanceId === selectedId,
                 );
                 if (targetPerm !== undefined) {
                   subCtx.fx.grantKeyword(
@@ -153,6 +154,7 @@ const module: EffectModule = {
                     "Jamming",
                     EffectDuration.UntilEachTurnEnd,
                   );
+                  await subCtx.fx.recomputeContinuousEffects?.();
                 }
               },
             });
