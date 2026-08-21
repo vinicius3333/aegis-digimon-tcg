@@ -20,4 +20,30 @@ describe("EX8-053", () => {
     await settle(() => low.perm("bancho").currentDP === 11000);
     expect(low.perm("bancho").currentDP).toBe(11000);
   });
+  it("plays a revealed Mineral/Rock Digimon after deletion and trashes the misses", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-053", as: "bancho", suspended: true }], deck: ["EX8-048", "BT1-009", "BT1-010"] },
+        1: { battleArea: [{ card: "BT1-016", as: "attacker", dp: 20000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("bancho").permanentId },
+    })).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "EX8-048") &&
+      s.state.players[0]!.deck.length === 0 &&
+      s.state.players[0]!.trash.filter((card) => ["BT1-009", "BT1-010"].includes(card.cardId)).length === 2,
+    );
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "EX8-048")).toBe(true);
+    expect(s.state.players[0]!.trash.filter((card) => ["BT1-009", "BT1-010"].includes(card.cardId))).toHaveLength(2);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
 });
