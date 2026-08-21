@@ -11,7 +11,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
-          kind: "Restrict",
+          kind: "StackTrashLock",
           target: {
             filter: {
               isSelfRef: true,
@@ -19,7 +19,6 @@ export const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          restriction: "can't trash stacked cards",
           duration: "untilOpponentTurnEnd",
         },
         {
