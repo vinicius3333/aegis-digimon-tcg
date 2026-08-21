@@ -22,4 +22,21 @@ describe("ST19-15 Noble Family Arts", () => {
     await settle(() => s.perm("target").currentDP === 1000, 200);
     expect(s.perm("target").currentDP).toBe(1000);
   });
+
+  it("activates the Main effect when revealed from security", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-001", as: "attacker", dp: 13000 }] },
+      1: {
+        security: [{ card: "ST19-15", as: "arts" }],
+        battleArea: [{ card: "AD1-001", as: "one" }, { card: "AD1-001", as: "two" }],
+      },
+    }, { autoSelectCards: true });
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").currentDP === 1000);
+    expect(s.perm("attacker").currentDP).toBe(1000);
+  });
 });
