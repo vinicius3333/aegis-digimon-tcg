@@ -5,6 +5,8 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { turnTiming, whenAttacking, security } from "../../engine/effects/builders.js";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+import type { CompiledCard } from "@aegis/shared";
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**
@@ -137,4 +139,24 @@ const module: EffectModule = {
 };
 
 registerCard(module);
+
+const compiled: CompiledCard = {
+  effects: [
+    { trigger: "StartOfYourTurn", actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } }] },
+    {
+      trigger: "YourTurn",
+      actions: [{ kind: "SubTrigger", event: "whenAttacking", sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [
+        { tokens: ["Renamon", "Kyubimon", "Taomon", "Sakuyamon"], match: "name" },
+      ] }, actions: [
+        { kind: "Suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true },
+        { kind: "UseOptionWithoutCost", filter: { controller: "mine", kind: ["Option"], nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] }, from: ["hand"], payCost: false, condition: { kind: "selfIsSuspended", raw: "after suspending this Tamer" } },
+      ] }],
+    },
+    { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }] },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard(cardId, compiled);
 export default module;
