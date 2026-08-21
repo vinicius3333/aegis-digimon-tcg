@@ -152,7 +152,7 @@ describe("EX4-060 Omnimon Alter-S", () => {
       ask: {
         chooseOption: async () => 0,
         chooseTargets: async () => [],
-        selectCards: async (_ctx, options: { candidates: string[] }) => [options.candidates[0]!],
+        selectCards: async (_ctx: unknown, options: { candidates: string[] }) => [options.candidates[0]!],
         selectPermanents: async () => [],
         optional: async () => true,
       },
