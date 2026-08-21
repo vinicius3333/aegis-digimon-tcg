@@ -73,6 +73,34 @@ export async function runPlaceUnder(
     }
     return;
   }
+  if (action.fromSelectedPermanentDigivolutionCards) {
+    const sourceIds = await resolvePermanentTargets(ctx, action.target);
+    const sourcePermanent = sourceIds[0] === undefined ? undefined : ctx.game.permanentById(sourceIds[0]);
+    if (sourcePermanent === undefined || action.underFilter === undefined) return;
+    const cards = sourcePermanent.stack.filter((card) =>
+      ctx.game.definitionOf(card).kinds.includes("Digimon" as never),
+    );
+    if (cards.length === 0) return;
+    const hostIds = await resolvePermanentTargets(ctx, { filter: action.underFilter, count: 1 });
+    const hostId = hostIds[0];
+    if (hostId === undefined) return;
+    let chosen = cards.map((card) => card.instanceId);
+    if (action.order === "any" && chosen.length > 1 && ctx.ask.orderCards !== undefined) {
+      chosen = await ctx.ask.orderCards(ctx, {
+        candidates: chosen,
+        visibleCards: cards.map(({ instanceId, cardId }) => ({ instanceId, cardId })),
+        destination: "stackBottom",
+      });
+    }
+    await ctx.fx.placeUnder(hostId, chosen, { belowTop: true });
+    ctx.lastPlacedUnderInstanceIds = chosen;
+    ctx.lastEffectActed = chosen.length > 0;
+    if (action.trackCount !== undefined) {
+      ctx.namedCounts ??= new Map();
+      ctx.namedCounts.set(action.trackCount, chosen.length);
+    }
+    return;
+  }
   if (action.target?.isSelf || action.target?.filter?.isSelfRef) {
     // ＜Save＞ form: place THIS card under one of the controller's Tamers (chosen).
     // `underFilter` carries the destination predicate (mine, Tamer, non-Token).
@@ -210,7 +238,10 @@ export async function runPlaceUnder(
   // The placeUnder primitive records them as material cards in the host's stack (belowTop as
   // the DigiXros convention; the flag is structural metadata for the DigiXros system to read).
   if (chosen.length > 0) {
-    await ctx.fx.placeUnder(hostId, chosen, { belowTop: action.position !== "bottom", faceUp: action.faceDown !== true });
+    await ctx.fx.placeUnder(hostId, chosen, {
+      belowTop: action.position !== "bottom",
+      faceUp: action.faceDown !== true,
+    });
   }
   if (action.bindHostAs && chosen.length > 0) {
     ctx.boundPlayed ??= new Map();
