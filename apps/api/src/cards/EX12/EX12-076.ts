@@ -6,194 +6,179 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Rush",
-          "raw": "＜Rush＞"
-        }
-      ]
+          keyword: "Rush",
+          raw: "＜Rush＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Raid",
-          "raw": "＜Raid＞"
-        }
-      ]
+          keyword: "Raid",
+          raw: "＜Raid＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "amount": -3000,
-          "duration": "forTheTurn",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          amount: -3000,
+          duration: "forTheTurn",
+          scaling: {
+            per: 1,
+            filter: {
+              isSelfRef: true,
+              zone: "digivolutionCards",
             },
-            "unit": "colors"
-          }
-        }
-      ]
+            unit: "digivolutionCardColors",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "amount": -3000,
-          "duration": "forTheTurn",
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          amount: -3000,
+          duration: "forTheTurn",
+          scaling: {
+            per: 1,
+            filter: {
+              isSelfRef: true,
+              zone: "digivolutionCards",
             },
-            "unit": "colors"
-          }
-        }
-      ]
+            unit: "digivolutionCardColors",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "opponent",
-          "source": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "opponent",
+          source: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "toTop": true
+          toTop: true,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "opponent",
-          "amount": 1,
-          "condition": {
-            "kind": "selfDigivolutionStackDistinctColorCount", "op": "gte", "value": 4,
-            "raw": "this Digimon has 4 or more colors in its digivolution cards"
-          }
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          amount: 1,
+          condition: {
+            kind: "selfDigivolutionStackDistinctColorCount",
+            op: "gte",
+            value: 4,
+            raw: "this Digimon has 4 or more colors in its digivolution cards",
+          },
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Recovery",
-            "amount": 1,
-            "raw": "＜Recovery +1＞"
+          keyword: {
+            keyword: "Recovery",
+            amount: 1,
+            raw: "＜Recovery +1＞",
           },
-          "condition": {
-            "kind": "selfDigivolutionStackDistinctColorCount", "op": "gte", "value": 4,
-            "raw": "this Digimon has 4 or more colors in its digivolution cards"
-          }
-        }
+          condition: {
+            kind: "selfDigivolutionStackDistinctColorCount",
+            op: "gte",
+            value: 4,
+            raw: "this Digimon has 4 or more colors in its digivolution cards",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
+      frequency: "OncePerTurn",
     },
     {
-      "trigger": "Rule",
-      "actions": [
+      trigger: "Rule",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "trait",
-          "tokens": [
-            "Hybrid"
-          ]
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 6,
-      "traits": [
-        "Hybrid",
-        "Shambala",
-        "TS"
+          grant: "trait",
+          tokens: ["Hybrid"],
+        },
       ],
-      "cost": 5,
-      "isAlternate": true
-    }
+    },
   ],
-  "assemblyRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "materials": [
+      level: 6,
+      traits: ["Hybrid", "Shambala", "TS"],
+      cost: 5,
+      isAlternate: true,
+    },
+  ],
+  assemblyRequirement: [
+    {
+      materials: [
         {
-          "count": 8,
-          "traits": [
-            "Hybrid",
-            "Shambala"
-          ],
-          "differentNames": true
-        }
+          count: 8,
+          traits: ["Hybrid", "Shambala"],
+          differentNames: true,
+        },
       ],
-      "reduceCost": 9
-    }
-  ]
+      reduceCost: 9,
+    },
+  ],
 };
 
 registerIrCard("EX12-076", compiled);
