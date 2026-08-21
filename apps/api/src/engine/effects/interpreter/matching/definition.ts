@@ -63,6 +63,13 @@ export function parseCopyEffectsFilterText(raw: string): Filter | undefined {
  * (e.g. `hasLevel` excludes Lv.- cards from a level-budget delete).
  */
 export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean {
+  // A small set of catalog records still uses the legacy `cardType`/`trait`
+  // spelling inside `orFilters` (notably BT25-085's dual Option clause).
+  // Normalize those fields here so an unsupported field cannot accidentally
+  // turn an OR branch into an unconstrained match.
+  const legacy = filter as Filter & { cardType?: string; trait?: string[] };
+  if (legacy.cardType !== undefined && !def.kinds.some((kind) => String(kind) === legacy.cardType)) return false;
+  if (legacy.trait !== undefined && !legacy.trait.some((trait) => (def.types ?? []).includes(trait))) return false;
   // Disjunctive sub-filter: "black or has [Legend-Arms] in its traits" — the card matches
   // if ANY sub-filter matches. All other fields on the parent filter still apply (AND).
   if (filter.or && filter.or.length > 0) {

@@ -80,6 +80,7 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   if (
     cost.kind === "trash" &&
     (cost.target?.filter.zone === "digivolutionCards" ||
+      cost.target?.filter.zone === "digivolutionCardsOrLinkCards" ||
       (cost.target?.filter.isSelfRef === true &&
         (cost.target.filter.faceDown !== undefined || cost.target.filter.position !== undefined)))
   ) {
@@ -90,7 +91,25 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
       const required = cost.target.count === "all" ? candidates.length : cost.target.count;
       return required > 0 && candidates.length >= required;
     }
-    const candidates = candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
+    let candidates =
+      cost.target.filter.zone === "digivolutionCardsOrLinkCards"
+        ? candidateLooseInstances(
+            ctx,
+            { ...cost.target, filter: { ...cost.target.filter, zone: "digivolutionCards" } },
+            ["digivolutionCards"],
+          )
+        : candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
+    if (cost.target.filter.zone === "digivolutionCardsOrLinkCards") {
+      const linked: LooseCandidate[] = [];
+      const { zone: _zone, controller: _controller, isSelfRef: _isSelfRef, ...linkedCardFilter } = cost.target.filter;
+      for (const host of ctx.game.player(ctx.source.ownerSeat).battleArea) {
+        for (const card of host.linked) {
+          if (!definitionMatches(linkedCardFilter, getCardDefinition(card.cardId) as never)) continue;
+          linked.push({ instanceId: card.instanceId, cardId: card.cardId, ownerSeat: card.ownerSeat, hostPermanentId: host.permanentId });
+        }
+      }
+      candidates = [...candidates, ...linked];
+    }
     const required = cost.target.count === "all" ? candidates.length : cost.target.count;
     if (required <= 0) return false;
     if (cost.target.filter.sameHost !== true) return candidates.length >= required;
@@ -349,7 +368,7 @@ export async function payCost(
       // the controller pick, then route through `ctx.fx.trash` — which removes each chosen card
       // from its host's `.linked` ArraySchema and moves it to the OWNER's trash (firing
       // whenLinkTrashed). An empty pool fails the cost (unmet optional-processing condition).
-      if (cost.target.filter.zone === "linked") {
+      if (cost.target.filter.zone === "linked" || cost.target.filter.zone === "digivolutionCardsOrLinkCards") {
         const linkTarget = cost.target;
         const { zone: _linkZone, ...hostFilter } = linkTarget.filter;
         const selfHost = linkTarget.filter.isSelfRef === true;
@@ -357,6 +376,14 @@ export async function payCost(
         if (selfHost) {
           const self = ctx.source.permanent();
           if (self !== undefined) hosts.push(self);
+        } else if (linkTarget.filter.zone === "digivolutionCardsOrLinkCards") {
+          for (const seat of seatsForController(ctx, linkTarget.filter)) {
+            for (const permanent of ctx.game.player(seat).battleArea) {
+              if (permanent.topCard !== undefined && getCardDefinition(permanent.topCard.cardId)?.kinds.includes(CardKind.Digimon)) {
+                hosts.push(permanent);
+              }
+            }
+          }
         } else {
           for (const seat of seatsForController(ctx, linkTarget.filter)) {
             for (const permanent of ctx.game.player(seat).battleArea) {
@@ -365,6 +392,15 @@ export async function payCost(
           }
         }
         const candidates: LooseCandidate[] = [];
+        if (cost.target.filter.zone === "digivolutionCardsOrLinkCards") {
+          candidates.push(
+            ...candidateLooseInstances(
+              ctx,
+              { ...cost.target, filter: { ...cost.target.filter, zone: "digivolutionCards" } },
+              ["digivolutionCards"],
+            ),
+          );
+        }
         for (const host of hosts) {
           for (const c of host.linked) {
             candidates.push({
@@ -377,7 +413,15 @@ export async function payCost(
         }
         const n = linkTarget.count === "all" ? candidates.length : linkTarget.count;
         if (n <= 0 || candidates.length < n) return false;
-        const chosen = await pickLoose(ctx, { ...linkTarget, count: n }, candidates);
+        const chosen = await pickLoose(
+          ctx,
+          {
+            ...linkTarget,
+            count: n,
+            filter: { ...linkTarget.filter, zone: undefined },
+          },
+          candidates,
+        );
         if (chosen.length < n) return false;
         const moved = await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
         const movedIds = new Set(moved.map((card) => card.instanceId));
