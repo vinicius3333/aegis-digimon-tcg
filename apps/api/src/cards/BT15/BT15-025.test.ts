@@ -12,9 +12,6 @@ import "./BT15-025.js";
 //
 // documented behavior:
 //
-// FAILS-WHEN-REVERTED: remove the staticModifier returns from BT15-025.ts and
-// grantKeyword is never called for Rush or Jamming, so neither keyword is granted.
-
 interface Call {
   verb: string;
   args: unknown[];
@@ -36,13 +33,14 @@ function makeSource(permanentId = "PERM#sea"): CardSource {
       evoCosts: [],
       maxCountInDeck: 4,
     } as never,
-    permanent: () => ({
-      permanentId,
-      controllerSeat: 0 as Seat,
-      topCard: { instanceId: "INST#BT15-025", cardId: "BT15-025", ownerSeat: 0 as Seat },
-      isSuspended: false,
-      stack: [],
-    } as never),
+    permanent: () =>
+      ({
+        permanentId,
+        controllerSeat: 0 as Seat,
+        topCard: { instanceId: "INST#BT15-025", cardId: "BT15-025", ownerSeat: 0 as Seat },
+        isSuspended: false,
+        stack: [],
+      }) as never,
     isOnBattleArea: () => true,
     isOwnersTurn: () => true,
     hasColor: () => false,
@@ -51,7 +49,8 @@ function makeSource(permanentId = "PERM#sea"): CardSource {
 
 function makeContext(recorder: { calls: Call[] }, source: CardSource) {
   const fx = new Proxy({} as Primitives, {
-    get: (_, verb: string) =>
+    get:
+      (_, verb: string) =>
       (...args: unknown[]) => {
         recorder.calls.push({ verb, args });
       },

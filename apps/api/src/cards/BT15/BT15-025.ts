@@ -29,8 +29,7 @@ const module: EffectModule = {
         staticModifier({
           source,
           effectKey: `${cardId}/jamming`,
-          description:
-            "＜Jamming＞ [Inherited] (This Digimon can't be deleted in battles against Security Digimon.)",
+          description: "＜Jamming＞ [Inherited] (This Digimon can't be deleted in battles against Security Digimon.)",
           isInherited: true,
           when: (ctx) => ctx.source.isOnBattleArea(),
           resolve: async (ctx) => {
