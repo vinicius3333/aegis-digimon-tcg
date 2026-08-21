@@ -135,7 +135,9 @@ export async function runPlaceUnder(
       destId = self.permanentId;
     }
     if (destId === undefined) return;
-    await ctx.fx.placeUnder(destId, [top.instanceId], { belowTop: true, faceUp: false });
+    // `position: "top"` is the printed "under ... as its top card" form; the default is the
+    // true bottom used by BT25-088 and other "top of deck under this Tamer" effects.
+    await ctx.fx.placeUnder(destId, [top.instanceId], { belowTop: action.position !== "top", faceUp: false });
     return;
   }
   // Cards to place: loose cards matching the target filter.
