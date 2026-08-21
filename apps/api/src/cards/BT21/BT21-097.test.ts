@@ -29,5 +29,7 @@ describe("BT21-097 App Link", () => {
     expect(compiled.effects).toContainEqual(
       expect.objectContaining({ trigger: "Security", isSecurity: true, actions: [{ kind: "PlaceInBattleAreaSelf" }] }),
     );
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });
