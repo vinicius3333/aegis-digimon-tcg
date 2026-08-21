@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { CardKind, EffectTiming } from "@aegis/shared";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./BT21-096.js";
 import "../index.js";
 
 describe("BT21-096 The Champion Ultimate Fighter!", () => {
@@ -21,20 +21,31 @@ describe("BT21-096 The Champion Ultimate Fighter!", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
+    const targetId = s.perm("target").permanentId;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("marcus").currentDP === 12000);
+    await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== targetId));
 
     expect(s.perm("marcus").currentDP).toBe(12000);
+    expect(s.perm("marcus").isSuspended).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Rush")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("marcus"), "digivolve")).toBe(true);
+    expect(observe(s.engine).canAttackUnsuspended(s.perm("marcus"))).toBe(true);
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });
 
   it("targets the chosen Marcus permanent and carries the temporary Digimon grants", () => {
-    const module = getEffectModule("BT21-096");
-    expect(module).toBeDefined();
-    expect(module!.effectsForTiming(EffectTiming.OnUseOption, {} as never)).toHaveLength(1);
-    expect(CardKind.Digimon).toBeDefined();
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects.find((effect) => effect.trigger === "Main")?.actions).toMatchObject([
+      { kind: "SelectBind", target: { bindAs: "chosenMarcus" } },
+      { kind: "GrantStatic", grant: "kind", tokens: ["Digimon"], staticEffect: { value: 12000 } },
+      { kind: "Restrict", restriction: "digivolve" },
+      { kind: "GainKeyword", keyword: { keyword: "Rush" } },
+      { kind: "GrantCanAttackUnsuspended" },
+      { kind: "Attack", attackPlayer: false, optional: true },
+    ]);
   });
 });
