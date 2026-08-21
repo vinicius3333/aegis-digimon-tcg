@@ -62,8 +62,7 @@ const module: EffectModule = {
         staticModifier({
           source,
           effectKey: `${cardId}/alt-digivolve-condition`,
-          description:
-            "Digivolve onto Betamon or ModokiBetamon for 0 cost, ignoring color requirements.",
+          description: "Digivolve onto Betamon or ModokiBetamon for 0 cost, ignoring color requirements.",
           resolve: async (_ctx) => {
             // The digivolutionRequirement in card data handles the alt digivolve.
           },
@@ -72,13 +71,37 @@ const module: EffectModule = {
         staticModifier({
           source,
           effectKey: `${cardId}/decode-keyword`,
-          description:
-            "<Decode> (Return Betamon or ModokiBetamon from trash to digivolution stack.)",
+          description: "<Decode> (Return Betamon or ModokiBetamon from trash to digivolution stack.)",
           when: () => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self === undefined) return;
             ctx.fx.grantKeyword(self.permanentId, "Decode", EffectDuration.Permanent);
+            ctx.fx.subscribeReplacement({
+              event: "wouldLeavePlay",
+              sourcePermanentId: self.permanentId,
+              mode: "instead",
+              description: `${cardId}: Decode ([Betamon])/([ModokiBetamon])`,
+              causeAllows: (cause) => cause !== "byBattle",
+              appliesTo: (_subCtx, leavingPermanentId) => leavingPermanentId === self.permanentId,
+              apply: async (subCtx) => {
+                const candidates = self.stack.filter((card) => {
+                  const def = subCtx.game.definitionOf(card);
+                  return isDigimon(def) && (def.nameEn === "Betamon" || def.nameEn === "ModokiBetamon");
+                });
+                if (candidates.length === 0) return;
+                const chosen = await subCtx.ask.selectCards(subCtx, {
+                  candidates: candidates.map((card) => card.instanceId),
+                  min: 0,
+                  max: 1,
+                  visibleCards: candidates.map(({ instanceId, cardId: candidateCardId }) => ({
+                    instanceId,
+                    cardId: candidateCardId,
+                  })),
+                });
+                if (chosen.length > 0) await subCtx.fx.playInstances(chosen, { payCost: false });
+              },
+            });
           },
         }),
         // ESS: Prevent leaving by trashing 2 same-level digivolution cards.
@@ -111,10 +134,11 @@ const module: EffectModule = {
 
                 const stack = self.stack;
                 const hasPair = stack.some((c1, i) =>
-                  stack.some((c2, j) =>
-                    i !== j &&
-                    ctx.game.definitionOf(c1).level !== undefined &&
-                    ctx.game.definitionOf(c1).level === ctx.game.definitionOf(c2).level,
+                  stack.some(
+                    (c2, j) =>
+                      i !== j &&
+                      ctx.game.definitionOf(c1).level !== undefined &&
+                      ctx.game.definitionOf(c1).level === ctx.game.definitionOf(c2).level,
                   ),
                 );
                 if (!hasPair) return false;
@@ -133,12 +157,8 @@ const module: EffectModule = {
                 });
                 if (chosen.length !== 2) return false;
 
-                const lvlA = ctx.game.definitionOf(
-                  stack.find((c) => c.instanceId === chosen[0])!,
-                ).level;
-                const lvlB = ctx.game.definitionOf(
-                  stack.find((c) => c.instanceId === chosen[1])!,
-                ).level;
+                const lvlA = ctx.game.definitionOf(stack.find((c) => c.instanceId === chosen[0])!).level;
+                const lvlB = ctx.game.definitionOf(stack.find((c) => c.instanceId === chosen[1])!).level;
                 if (lvlA === undefined || lvlA !== lvlB) return false;
 
                 await checkCtx.fx.trashDigivolutionCards(self.permanentId, chosen);
