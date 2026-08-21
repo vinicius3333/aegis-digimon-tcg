@@ -97,7 +97,7 @@ const compiled: CompiledCard = {
             "count": "all"
           },
           "amount": -3000,
-          "duration": "forTheTurn"
+          "duration": "untilOpponentTurnEnd"
         }
       ]
     },
@@ -131,7 +131,7 @@ const compiled: CompiledCard = {
             "count": "all"
           },
           "amount": -3000,
-          "duration": "forTheTurn"
+          "duration": "untilOpponentTurnEnd"
         }
       ]
     },
@@ -162,3 +162,5 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("EX10-041", compiled);
+
+export { compiled };
