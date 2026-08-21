@@ -182,25 +182,35 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      actions: [{
-        kind: "WaiveColorRequirement",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        condition: {
-          kind: "youHaveNone",
-          filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["King Device"], match: "name" }] },
-          raw: "you don't have [King Device]",
+      actions: [
+        {
+          kind: "WaiveColorRequirement",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          condition: {
+            kind: "youHaveNone",
+            filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["King Device"], match: "name" }] },
+            raw: "you don't have [King Device]",
+          },
         },
-      }],
+      ],
     },
     {
       trigger: "whenTrashedFromBattleArea",
-      actions: [{
-        kind: "PlaceInBattleAreaSelf",
-        target: {
-          filter: { controller: "mine", kind: ["Option"], nameOrTrait: [{ tokens: ["Device"], match: "trait" }], playCost: { op: "lte", value: 3 } },
-          from: ["trash"], count: 1,
+      actions: [
+        {
+          kind: "PlaceInBattleAreaSelf",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Option"],
+              nameOrTrait: [{ tokens: ["Device"], match: "trait" }],
+              playCost: { op: "lte", value: 3 },
+            },
+            from: ["trash"],
+            count: 1,
+          },
         },
-      }],
+      ],
     },
     {
       trigger: "Main",
@@ -208,8 +218,14 @@ const compiled: CompiledCard = {
         {
           kind: "PlaceInBattleAreaSelf",
           target: {
-            filter: { controller: "mine", kind: ["Option"], nameOrTrait: [{ tokens: ["Device"], match: "trait" }], playCost: { op: "lte", value: 3 } },
-            from: ["trash"], count: 1,
+            filter: {
+              controller: "mine",
+              kind: ["Option"],
+              nameOrTrait: [{ tokens: ["Device"], match: "trait" }],
+              playCost: { op: "lte", value: 3 },
+            },
+            from: ["trash"],
+            count: 1,
           },
           optional: true,
         },
@@ -222,7 +238,12 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlaceInBattleAreaSelf",
-          target: { filter: { controller: "mine", kind: ["Option"], nameOrTrait: [{ tokens: ["Device"], match: "trait" }] }, from: ["hand"], count: 1, optional: true },
+          target: {
+            filter: { controller: "mine", kind: ["Option"], nameOrTrait: [{ tokens: ["Device"], match: "trait" }] },
+            from: ["hand"],
+            count: 1,
+            optional: true,
+          },
         },
         { kind: "AddToHandSelf" },
       ],
