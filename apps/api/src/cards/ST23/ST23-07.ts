@@ -34,13 +34,11 @@ const compiled: CompiledCard = {
           ],
           "payCost": false,
           "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ]
-            },
+            "kind": "permanentCount",
+            "seat": "mine",
+            "op": "lte",
+            "value": 1,
+            "filter": { "kind": ["Tamer"] },
             "raw": "you have 1 or fewer Tamers"
           },
           "optional": true
@@ -74,13 +72,11 @@ const compiled: CompiledCard = {
           ],
           "payCost": false,
           "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ]
-            },
+            "kind": "permanentCount",
+            "seat": "mine",
+            "op": "lte",
+            "value": 1,
+            "filter": { "kind": ["Tamer"] },
             "raw": "you have 1 or fewer Tamers"
           },
           "optional": true
