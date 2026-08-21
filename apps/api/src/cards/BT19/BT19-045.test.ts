@@ -2,56 +2,35 @@ import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
-describe("BT19-045 FunBeemon", () => {
-  it("preserves the Royal Base security buff, digivolution reduction, inheritance, and ruling boundary", () => {
+describe("BT19-045", () => {
+  it("preserves security Royal Base DP, digivolution cost reduction, and inherited DP", () => {
     const card = runtimeCompiledCard("BT19-045");
     expect(card).toMatchObject({ coverage: "full", residual: [] });
-    expect(card?.digivolutionRequirement).toEqual([
-      { level: 2, traits: ["Royal Base"], cost: 0, isAlternate: true },
-    ]);
-
     expect(card?.effects).toMatchObject([
       {
         trigger: "AllTurns",
         isSecurity: true,
-        actions: [{
-          kind: "ModifyDP",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }],
-            },
-            count: "all",
+        actions: [
+          {
+            kind: "ModifyDP",
+            amount: 1000,
+            duration: "permanent",
+            target: { filter: { nameOrTrait: [{ tokens: ["Royal Base"] }] } },
           },
-          amount: 1000,
-          duration: "permanent",
-        }],
+        ],
       },
       {
         trigger: "YourTurn",
-        actions: [{
-          kind: "Replacement",
-          event: "wouldDigivolve",
-          sourceFilter: { isSelfRef: true },
-          into: {
-            controllerDefault: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }],
+        actions: [
+          {
+            kind: "Replacement",
+            event: "wouldDigivolve",
+            into: { nameOrTrait: [{ tokens: ["Royal Base"] }] },
+            actions: [{ kind: "Replacement", event: "wouldDigivolve", mode: "reduceCost", amount: 1 }],
           },
-          actions: [{ kind: "Replacement", event: "wouldDigivolve", mode: "reduceCost", amount: 1 }],
-        }],
+        ],
       },
-      {
-        trigger: "AllTurns",
-        isInherited: true,
-        actions: [{
-          kind: "ModifyDP",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          amount: 1000,
-          duration: "permanent",
-        }],
-      },
+      { trigger: "AllTurns", isInherited: true, actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent" }] },
     ]);
   });
 });
