@@ -15,6 +15,11 @@ describe("EX8-039", () => {
       ],
       rest: "deckBottom",
     }));
+  it("inherits +2000 DP during its owner's turn", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "YourTurn",
+      actions: [{ kind: "ModifyDP", amount: 2000, duration: "permanent", target: { isSelf: true } }],
+    }));
   it("reveals three cards, adds matching Insectoid and NSp cards, and bottoms the rest", async () => {
     const s = setupEngine(
       {
