@@ -26,9 +26,11 @@ describe("EX8-065", () => {
   it("plays the exact face-up security card into the battle area without cost", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT1-010", as: "attacker" }] }, 1: { security: [{ card: "EX8-065", as: "securityCard" }] } });
     const instanceId = s.inst("securityCard").instanceId;
+    const memoryBeforeSecurityEffect = s.state.memory;
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX8-065"));
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX8-065")).toBe(true);
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId)).toBe(true);
     expect(s.state.players[1]!.security.some((card) => card.instanceId === instanceId)).toBe(false);
+    expect(s.state.memory).toBe(memoryBeforeSecurityEffect);
   });
 });
