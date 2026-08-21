@@ -652,16 +652,19 @@ button.opponent-action-feed__current:focus-visible { outline: 2px solid var(--ds
   .game-layout { height: 100dvh !important; display: grid !important; grid-template-rows: minmax(0, 1fr) auto; overflow: hidden !important; background: var(--ds-brand-ink); }
   .game-board { min-height: 0; display: grid !important; grid-template-rows: auto minmax(0, 1fr) auto; flex: 1 1 auto !important; overflow: hidden; background: var(--ds-game-surface) !important; }
   .game-opponent-bar { min-height: 56px; padding: var(--ds-space-2) var(--ds-space-3) !important; border-bottom: 0 !important; background: var(--ds-brand-ink) !important; }
-  .game-opponent-bar { display: grid !important; grid-template-columns: 1fr auto auto; gap: var(--ds-space-2); }
+  /* One column per control the bar actually holds: with fewer, the last one wrapped
+     onto a second row and the header changed height as the match went on. */
+  .game-opponent-bar { display: grid !important; grid-template-columns: minmax(0, 1fr) auto auto auto; gap: var(--ds-space-2); }
   .game-opponent-identity > div:last-child > div:first-child { color: var(--ds-brand-on-ink) !important; }
   .game-opponent-identity > div:last-child > div:last-child { display: none !important; }
   .game-opponent-hand { display: none !important; }
   .game-mobile-turn { display: flex; align-items: center; flex-direction: column; color: var(--ds-brand-on-ink); font-size: 0.625rem; text-align: center; text-transform: uppercase; }
   .game-mobile-turn strong { font-family: var(--ds-font-display); }
   .game-mobile-turn span { color: var(--ds-accent); font-weight: 700; }
+  /* Both match controls are square icons: the surrender label was as wide as the
+     word it happened to be translated into, and the header shifted around it. */
   .game-mobile-surrender,
-  .game-mobile-bug { display: block; min-width: 44px; min-height: 44px; padding-inline: var(--ds-space-2); color: var(--ds-brand-on-ink); font-size: 0.625rem; font-weight: 700; text-transform: uppercase; border: 1px solid color-mix(in srgb, var(--ds-brand-on-ink) 42%, transparent); border-radius: var(--ds-radius-sm); background: color-mix(in srgb, var(--ds-brand-on-ink) 8%, transparent); }
-  .game-mobile-bug { display: grid; place-items: center; }
+  .game-mobile-bug { display: grid; place-items: center; width: 44px; min-height: 44px; padding: 0; color: var(--ds-brand-on-ink); border: 1px solid color-mix(in srgb, var(--ds-brand-on-ink) 42%, transparent); border-radius: var(--ds-radius-sm); background: color-mix(in srgb, var(--ds-brand-on-ink) 8%, transparent); }
   .game-opponent-bar > div:last-child > div { width: 22px !important; height: 32px !important; margin-left: -17px !important; }
   .opponent-action-feed {
     top: calc(6.75rem + env(safe-area-inset-top, 0px));

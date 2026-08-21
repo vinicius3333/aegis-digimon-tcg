@@ -1655,8 +1655,12 @@ export function GameScreen({
               >
                 <Icons.Bug size={16} />
               </button>
-              <button className="game-mobile-surrender" onClick={() => room && intents.surrender(room)}>
-                {t("game.surrender")}
+              <button
+                className="game-mobile-surrender"
+                onClick={() => room && intents.surrender(room)}
+                aria-label={t("game.surrender")}
+              >
+                <Icons.LogOut size={16} />
               </button>
             </>
           ) : null}
