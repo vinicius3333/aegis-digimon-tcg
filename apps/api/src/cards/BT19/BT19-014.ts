@@ -6,120 +6,112 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Alliance",
-          "raw": "＜Alliance＞"
-        }
-      ]
+          keyword: "Alliance",
+          raw: "＜Alliance＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Reboot",
-          "raw": "＜Reboot＞"
-        }
-      ]
+          keyword: "Reboot",
+          raw: "＜Reboot＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "MaterialSave",
-          "amount": 4,
-          "raw": "＜Material Save 4＞"
-        }
-      ]
+          keyword: "MaterialSave",
+          amount: 4,
+          raw: "＜Material Save 4＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "amount": -1000,
-          "duration": "forTheTurn",
-          "scaling": {
-            "per": 1,
-            "filter": {
-                "isSelfRef": true,
-                "zone": "digivolutionCards"
+          amount: -1000,
+          duration: "forTheTurn",
+          scaling: {
+            per: 1,
+            filter: {
+              isSelfRef: true,
+              zone: "digivolutionCards",
             },
-              "unit": "digivolutionCardColors"
-          }
+            unit: "digivolutionCardColors",
+          },
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "ShootingStarmon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["ShootingStarmon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "relativeToSource": true
-              }
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                relativeToSource: true,
+              },
             },
-            "count": 1
-          }
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digiXrosRequirement": [
-    {
-      "materials": [
-        {
-          "names": [
-            "OmniShoutmon"
-          ]
-        }
+            count: 1,
+          },
+        },
       ],
-      "count": 2
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digiXrosRequirement: [
+    {
+      materials: [
+        {
+          names: ["OmniShoutmon"],
+        },
+      ],
+      count: 2,
+    },
+  ],
 };
 
 registerIrCard("BT19-014", compiled);
