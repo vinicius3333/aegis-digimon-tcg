@@ -31,12 +31,13 @@ async function dpBoostAndBattle(
   source: CardSource,
 ): Promise<void> {
   const owner = ctx.game.player(source.ownerSeat);
-  const myDigimon = Array.from(owner.battleArea)
-    .filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)));
+  const myDigimon = Array.from(owner.battleArea).filter(
+    (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
+  );
   if (myDigimon.length === 0) return;
   const chosen = await ctx.ask.chooseTargets(ctx, {
     candidates: myDigimon.map((p) => p.permanentId),
-    min: 1,
+    min: 0,
     max: 1,
   });
   if (chosen.length === 0) return;
@@ -45,17 +46,16 @@ async function dpBoostAndBattle(
   const oppDigimon = Array.from(ctx.game.player(opponent).battleArea)
     .filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)))
     .map((p) => p.permanentId);
+  // Q6836: once a Digimon receives this effect's DP boost, it must battle an opponent's
+  // Digimon whenever one is available. The battle is not a second optional effect.
   if (oppDigimon.length > 0) {
-    const willBattle = await ctx.ask.optional(ctx, "Battle 1 opponent Digimon?");
-    if (willBattle) {
-      const battleTarget = await ctx.ask.chooseTargets(ctx, {
-        candidates: oppDigimon,
-        min: 1,
-        max: 1,
-      });
-      if (battleTarget.length > 0 && ctx.fx.forceBattle) {
-        await ctx.fx.forceBattle(chosen[0]!, battleTarget[0]!);
-      }
+    const battleTarget = await ctx.ask.chooseTargets(ctx, {
+      candidates: oppDigimon,
+      min: 1,
+      max: 1,
+    });
+    if (battleTarget.length > 0 && ctx.fx.forceBattle) {
+      await ctx.fx.forceBattle(chosen[0]!, battleTarget[0]!);
     }
   }
 }
@@ -97,7 +97,7 @@ const module: EffectModule = {
             if (unsuspendedOppDigimon.length > 0) {
               const toSuspend = await ctx.ask.chooseTargets(ctx, {
                 candidates: unsuspendedOppDigimon,
-                min: 0,
+                min: 1,
                 max: Math.min(2, unsuspendedOppDigimon.length),
               });
               if (toSuspend.length > 0) await ctx.fx.suspend(toSuspend);
@@ -113,7 +113,7 @@ const module: EffectModule = {
             if (oppDigimonOrTamers.length > 0) {
               const locked = await ctx.ask.chooseTargets(ctx, {
                 candidates: oppDigimonOrTamers,
-                min: 0,
+                min: 1,
                 max: Math.min(2, oppDigimonOrTamers.length),
               });
               for (const permanentId of locked) {
@@ -142,7 +142,9 @@ const module: EffectModule = {
             if (myDigimon.length === 0) return;
             const chosen = await ctx.ask.chooseTargets(ctx, { candidates: myDigimon, min: 1, max: 1 });
             if (chosen.length > 0) {
-              ctx.fx.restrict(chosen[0]!, "beAffected", EffectDuration.UntilOpponentTurnEnd, { fromSourceKind: ["Digimon"] });
+              ctx.fx.restrict(chosen[0]!, "beAffected", EffectDuration.UntilOpponentTurnEnd, {
+                fromSourceKind: ["Digimon"],
+              });
             }
           },
         }),
@@ -161,7 +163,7 @@ const module: EffectModule = {
       ];
     }
 
-    if (timing === EffectTiming.OnAllyAttack) {
+    if (timing === EffectTiming.OnUseAttack) {
       return [
         whenAttacking({
           source,
