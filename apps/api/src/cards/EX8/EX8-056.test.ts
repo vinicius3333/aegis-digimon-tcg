@@ -29,4 +29,25 @@ describe("EX8-056", () => {
     expect(player.trash.some((card) => card.instanceId === s.inst("filler").instanceId)).toBe(true);
     expect(player.trash).toHaveLength(2);
   });
+  it("deletes a real opposing level 3 Digimon when the inherited host attacks", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-056"] }] },
+        1: { battleArea: [{ card: "BT1-016", as: "victim", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("host").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-016")).toBe(true);
+  });
 });
