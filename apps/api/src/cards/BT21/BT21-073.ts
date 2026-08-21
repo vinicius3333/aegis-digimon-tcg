@@ -8,6 +8,28 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "AllTurns",
+      isLinked: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "Prevent",
+              cost: {
+                kind: "trash",
+                target: { filter: { isSelfRef: true, zone: "linked" }, count: 1 },
+                raw: "By trashing 1 of this Digimon's link cards",
+              },
+            },
+          ],
+        },
+      ],
+    },
+    {
       trigger: "Static",
       actions: [],
       keywords: [
@@ -89,6 +111,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["Appmon"], cost: 3 }],
   appFusionRequirement: [
     {
       names: ["Sociamon", "Gossipmon"],
