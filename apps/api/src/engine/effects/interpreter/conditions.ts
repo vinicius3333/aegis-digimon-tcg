@@ -155,7 +155,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return cond.filter ? countMatching(ctx, { controller: "mine", ...cond.filter }) >= (cond.count ?? 1) : false;
     case "opponentHas": {
       const threshold = cond.countMin ?? cond.count ?? 1;
-      return cond.filter ? countMatching(ctx, { controller: "opponent", ...cond.filter }) >= threshold : false;
+      const count = cond.filter ? countMatching(ctx, { controller: "opponent", ...cond.filter }) : 0;
+      return count >= threshold && (cond.countMax === undefined || count <= cond.countMax);
     }
     case "youHaveNone":
       return cond.filter ? countMatching(ctx, { controller: "mine", ...cond.filter }) === 0 : false;

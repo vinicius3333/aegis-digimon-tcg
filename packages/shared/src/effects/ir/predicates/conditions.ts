@@ -129,6 +129,7 @@ export interface Condition {
    * `count` so "if your opponent has 2 or more Digimon" does not overload it (BT19-026).
    */
   countMin?: number;
+  countMax?: number;
   value?: number;
   phase?: "Active" | "Draw" | "Breeding" | "Main" | "End" | "None";
   /**
