@@ -20,11 +20,21 @@ describe("LM-028 Blue Scramble", () => {
   });
 
   it("returns blue trash to deck top before playing a small blue Digimon", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "LM-028", as: "option" }, "BT1-029"], trash: ["BT1-030"] }, 1: { battleArea: ["BT1-029"] } }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+    const options = { autoSelectCards: false, autoAcceptOptional: false, autoOrderTriggers: true, preferInstanceIds: [] as string[] };
+    const s = setupEngine({ 0: { battleArea: [{ card: "LM-028", as: "option" }], trash: [{ card: "BT1-030", as: "returnTarget" }, { card: "BT1-029", as: "playTarget" }] }, 1: { battleArea: ["BT1-029"] } }, options);
+    options.preferInstanceIds.push(s.inst("returnTarget").instanceId);
     await s.ready();
     armOption(s);
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("option"));
+    const resolution = advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("option"));
+    await settle(() => s.decisions.length === 1);
+    expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: s.decisions[0]!.req.decisionId, response: { kind: "optional", accept: true } })).toEqual({ ok: true });
+    await settle(() => s.decisions.length === 2 && s.decisions[1]!.req.kind === "selectCards");
+    expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: s.decisions[1]!.req.decisionId, response: { kind: "selectCards", instanceIds: [s.inst("returnTarget").instanceId] } })).toEqual({ ok: true });
+    await settle(() => s.decisions.length === 3);
     expect(s.state.players[0]!.deck[0]?.cardId).toBe("BT1-030");
+    expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: s.decisions[2]!.req.decisionId, response: { kind: "optional", accept: true } })).toEqual({ ok: true });
+    await resolution;
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT1-029")).toBe(true);
   });
 
   it("does not activate without an opponent Digimon", async () => {
