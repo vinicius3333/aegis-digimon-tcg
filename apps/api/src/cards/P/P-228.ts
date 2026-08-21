@@ -2,150 +2,135 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Ice-Snow"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Ice-Snow"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "LIBERATOR"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["LIBERATOR"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
+          rest: "deckBottom",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Suzune Kazuki"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Suzune Kazuki"],
+                match: "name",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "keyword": {
-                "keyword": "Delay",
-                "raw": "＜Delay＞"
+              keyword: {
+                keyword: "Delay",
+                raw: "＜Delay＞",
               },
-              "duration": "untilTurnEnd"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+              duration: "permanent",
             },
-            "count": 1
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "levelComparison": {
-              "op": "lte",
-              "value": 6
-            },
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "LIBERATOR"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "from": [
-            "hand"
           ],
-          "payCost": true,
-          "reduceCost": 3,
-          "optional": true
-        }
+        },
       ],
-      "keywords": [
-        {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ]
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          into: {
+            controllerDefault: "mine",
+            levelComparison: {
+              op: "lte",
+              value: 6,
+            },
+            nameOrTrait: [
+              {
+                tokens: ["LIBERATOR"],
+                match: "trait",
+              },
+            ],
+          },
+          from: ["hand"],
+          payCost: true,
+          reduceCost: 3,
+          optional: true,
+        },
       ],
-      "isSecurity": true
-    }
+      keywords: [
+        {
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "ActivateMain",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-228", compiled);
