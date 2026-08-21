@@ -2,7 +2,7 @@ import { EffectTiming, isDigimon } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
-import { staticModifier, turnTiming } from "../../engine/effects/builders.js";
+import { security, staticModifier, turnTiming } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 // Suzune Kazuki — EX8-066 (Blue Tamer).
@@ -94,6 +94,19 @@ const module: EffectModule = {
             };
             install("whenPlayed");
             install("whenOneOfYoursDigivolves");
+          },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.SecuritySkill) {
+      return [
+        security({
+          source,
+          effectKey: `${cardId}/security-play`,
+          description: "[Security] Play this card without paying its cost.",
+          resolve: async (ctx) => {
+            await ctx.fx.playFromSecurity(ctx.source.instanceId, { payCost: false });
           },
         }),
       ];
