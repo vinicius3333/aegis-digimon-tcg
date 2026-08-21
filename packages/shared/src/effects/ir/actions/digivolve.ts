@@ -104,6 +104,8 @@ export interface PlaceUnderAction extends ActionBase {
    * rather than loose cards from hand or trash.
    */
   targetIsPermanent?: boolean;
+  /** Move every Digimon card from one selected permanent's stack under a selected host. */
+  fromSelectedPermanentDigivolutionCards?: boolean;
   /**
    * The host is itself a prior `Target.bindAs` selection (the second `Mode.Custom` select, whose
    * predicate is `permanent != selectedPermanent`). Used instead of resolving `underFilter`.

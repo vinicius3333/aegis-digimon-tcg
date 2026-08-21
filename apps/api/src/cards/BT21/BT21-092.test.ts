@@ -1,35 +1,69 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import "./BT21-092.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT21-092.js";
 
 describe("BT21-092 Can't Turn My Back!", () => {
-  it("registers color waiver, stack transfer with cost scaling, and Security add-to-hand", () => {
-    const module = getEffectModule("BT21-092");
-    const source: CardSource = {
-      instanceId: "INST#092",
-      cardId: "BT21-092",
-      ownerSeat: 0 as Seat,
-      definition: {
-        cardId: "BT21-092",
-        set: "BT21",
-        nameEn: "Can't Turn My Back!",
-        kinds: ["Option"] as never,
-        colors: ["Red"] as never,
-        playCost: 2,
-        dp: 0,
-        evoCosts: [],
-        maxCountInDeck: 4,
-      } as CardDefinition,
-      permanent: () => undefined,
-      isOnBattleArea: () => false,
-      isOwnersTurn: () => true,
-      hasColor: () => false,
-    };
-    expect(module).toBeDefined();
-    expect(module!.effectsForTiming(EffectTiming.None, source)).toHaveLength(1);
-    expect(module!.effectsForTiming(EffectTiming.OnUseOption, source)).toHaveLength(1);
-    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+  it("encodes stack transfer, counted reduction, color waiver, and Security play", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects.find((effect) => effect.trigger === "Main")?.actions).toMatchObject([
+      {
+        kind: "PlaceUnder",
+        fromSelectedPermanentDigivolutionCards: true,
+        order: "any",
+        trackCount: "placedXrosSources",
+      },
+      {
+        kind: "PlayWithoutCost",
+        payCost: true,
+        from: ["hand"],
+        reduceCostByScaling: { unit: "namedCount", countSource: "placedXrosSources" },
+      },
+    ]);
+    expect(compiled.effects.find((effect) => effect.trigger === "Security")?.isSecurity).toBe(true);
+  });
+
+  it("moves only Digimon source cards under a Tamer and reduces the played card by that count", async () => {
+    const setup = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT10-008",
+              as: "xrosHost",
+              under: [
+                { card: "BT1-009", as: "digimonSource" },
+                { card: "BT21-083", as: "tamerSource" },
+              ],
+            },
+            { card: "BT21-083", as: "destination" },
+          ],
+          hand: [
+            { card: "BT21-092", as: "option" },
+            { card: "BT10-008", as: "playedXros" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    setup.state.memory = 10;
+
+    expect(
+      setup.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: setup.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    const playedId = setup.inst("playedXros").instanceId;
+    await settle(() =>
+      setup.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === playedId),
+    );
+
+    expect(setup.perm("xrosHost").stack.map((card) => card.instanceId)).toEqual([setup.inst("tamerSource").instanceId]);
+    expect(setup.perm("destination").stack.map((card) => card.instanceId)).toContain(
+      setup.inst("digimonSource").instanceId,
+    );
+    // 10 - option cost 2 - (Shoutmon cost 4 - 1 placed Digimon card) = 5.
+    expect(setup.state.memory).toBe(5);
   });
 });
