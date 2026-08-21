@@ -31,7 +31,8 @@ export const compiled: CompiledCard = {
                 "Digimon"
               ]
             },
-            "count": 1
+            "count": 1,
+            "sameTarget": true
           },
           "restriction": "unsuspend",
           "duration": "untilOpponentTurnEnd"
@@ -62,7 +63,8 @@ export const compiled: CompiledCard = {
                 "Digimon"
               ]
             },
-            "count": 1
+            "count": 1,
+            "sameTarget": true
           },
           "restriction": "unsuspend",
           "duration": "untilOpponentTurnEnd"
