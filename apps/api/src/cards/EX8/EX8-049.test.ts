@@ -6,6 +6,8 @@ import "../index.js";
 import { compiled } from "./EX8-049.js";
 
 describe("EX8-049", () => {
+  it("inherits Blocker", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({ keyword: "Blocker", raw: "＜Blocker＞" }));
   it("de-digivolves an opposing Digimon by 1 on play and deletion", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "DeDigivolve",
