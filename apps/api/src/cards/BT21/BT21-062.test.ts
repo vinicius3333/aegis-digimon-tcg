@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import { module } from "./BT21-062.js";
 import "../index.js";
 
 // A3 for BT21-062 (Galacticmon) — [Start of Your Main Phase]:
@@ -19,17 +20,22 @@ import "../index.js";
 const GALACTICMON = "BT21-062";
 const PLAIN_DIGIMON = "BT1-009"; // Monodramon — playCost 2, opponent target for delete
 
-function fireTiming(
-  s: EngineSetup,
-  timing: EffectTiming,
-  trigger: Record<string, unknown> = {},
-): Promise<void> {
-  return (s.engine as unknown as {
-    fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
-  }).fireTiming(timing, trigger);
+function fireTiming(s: EngineSetup, timing: EffectTiming, trigger: Record<string, unknown> = {}): Promise<void> {
+  return (
+    s.engine as unknown as {
+      fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
+    }
+  ).fireTiming(timing, trigger);
 }
 
 describe("BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon", () => {
+  it("registers all three printed timings and the Snatchmon evolution route", () => {
+    expect(module.effectsForTiming(EffectTiming.WhenDigivolving, {} as never)).toHaveLength(1);
+    expect(module.effectsForTiming(EffectTiming.OnStartMainPhase, {} as never)).toHaveLength(1);
+    expect(module.effectsForTiming(EffectTiming.OnEnterFieldAnyone, {} as never)).toHaveLength(1);
+    expect(module.cardId).toBe(GALACTICMON);
+  });
+
   it("deletes one of the opponent's Digimon on start of main phase", async () => {
     const s = setupEngine(
       {
