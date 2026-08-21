@@ -15,6 +15,6 @@ it("returns every opposing level 3 Digimon on play", async () => {
   s.state.memory = 10;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marine").instanceId })).toEqual({ ok: true });
   await settle(() => s.state.players[1]!.hand.filter((card) => card.cardId === "BT14-020").length === 2);
-  expect(s.state.players[1]!.battleArea.some((p) => p.cardId === "BT14-022")).toBe(true);
-  expect(s.state.players[1]!.battleArea.filter((p) => p.cardId === "BT14-020")).toHaveLength(0);
+  expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT14-022")).toBe(true);
+  expect(s.state.players[1]!.battleArea.filter((p) => p.topCard?.cardId === "BT14-020")).toHaveLength(0);
 });
