@@ -14,6 +14,7 @@ export const compiled: CompiledCard = {
           "kind": "ModifyDP",
           "target": {
             "filter": {
+              "zone": "security",
               "controller": "opponent",
               "kind": [
                 "Digimon"
