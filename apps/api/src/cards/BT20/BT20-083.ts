@@ -105,6 +105,7 @@ export const compiled: CompiledCard = {
               },
             ],
             controller: "mine",
+            zone: "breedingArea",
           },
           position: "bottom",
         },
@@ -113,6 +114,7 @@ export const compiled: CompiledCard = {
     {
       trigger: "OpponentsTurn",
       isInherited: true,
+      isBreeding: true,
       optional: true,
       actions: [
         {
