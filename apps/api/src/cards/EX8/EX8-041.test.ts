@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { PlayerState } from "@aegis/shared";
+import { EffectTiming, PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -30,5 +31,44 @@ describe("EX8-041", () => {
     );
     expect(s.state.players[1]!.battleArea[0]!.isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("tamer"), "unsuspend")).toBe(true);
+  });
+  it("can suspend one Tamer and restrict a different Tamer when digivolving", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-041", as: "dark" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-087", as: "suspended" },
+            { card: "BT1-087", as: "restricted" },
+          ],
+        },
+      },
+      {},
+    );
+
+    const resolution = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("dark"));
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const firstDecision = s.state.pendingDecision!;
+    const firstSeat = s.decisions.at(-1)!.seat;
+    const firstResponse = s.engine.applyIntent(firstSeat, {
+      type: "respondDecision",
+      decisionId: firstDecision.decisionId,
+      response: { kind: "chooseTargets", instanceIds: [s.perm("suspended").permanentId] },
+    });
+    expect(firstResponse).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const secondDecision = s.state.pendingDecision!;
+    const secondSeat = s.decisions.at(-1)!.seat;
+    expect(s.engine.applyIntent(secondSeat, {
+      type: "respondDecision",
+      decisionId: secondDecision.decisionId,
+      response: { kind: "chooseTargets", instanceIds: [s.perm("restricted").permanentId] },
+    })).toEqual({ ok: true });
+    await resolution;
+    await settle(() => observe(s.engine).isRestricted(s.perm("restricted"), "unsuspend"));
+
+    expect(s.perm("suspended").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("suspended"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("restricted"), "unsuspend")).toBe(true);
   });
 });
