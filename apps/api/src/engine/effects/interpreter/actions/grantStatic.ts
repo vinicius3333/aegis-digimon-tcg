@@ -11,6 +11,20 @@ import type { Action } from "@aegis/shared";
 
 export async function runGrantStaticAction(ctx: EffectContext, action: Action): Promise<boolean> {
   switch (action.kind) {
+    case "DynamicDigivolutionNames": {
+      const self = ctx.source.permanent();
+      if (self === undefined || ctx.fx.grantDynamicNames === undefined) return false;
+      ctx.fx.grantDynamicNames(self.permanentId, () => {
+        const current = ctx.source.permanent();
+        if (current === undefined) return [];
+        const names = Array.from(current.stack).flatMap((card) => {
+          const definition = ctx.game.definitionOf(card);
+          return (definition.level ?? 99) <= 3 ? (definition.nameEn ? [definition.nameEn] : []) : [];
+        });
+        return [...new Set(names)];
+      }, toDuration("permanent"));
+      return false;
+    }
     case "GrantStatic": {
       // Registration metadata consumed by the digivolve-cost path. Its live field/turn/OPT
       // gates are enforced when GameEngine selects an eligible redirector permanent.

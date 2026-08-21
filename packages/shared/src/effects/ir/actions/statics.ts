@@ -8,6 +8,10 @@ import type { Action } from "./action.js";
 import type { ActionBase } from "./base.js";
 import type { RestrictionKind } from "./restrictions.js";
 
+export interface DynamicDigivolutionNamesAction extends ActionBase {
+  kind: "DynamicDigivolutionNames";
+}
+
 /**
  * Grant a debuff aura to all opponent Digimon (P-075): a SubTrigger watcher is installed on each
  * matching opponent permanent and runs `actions` when its event occurs.

@@ -314,6 +314,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "WaiveColorRequirement":
       return await runStaticAction(ctx, action);
     case "GrantStatic":
+    case "DynamicDigivolutionNames":
       return await runGrantStaticAction(ctx, action);
     case "Attack":
     case "Battle":

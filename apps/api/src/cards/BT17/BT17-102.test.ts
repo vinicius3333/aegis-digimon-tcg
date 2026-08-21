@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { module } from "./BT17-102.js";
+import { compiled } from "./BT17-102.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
@@ -22,8 +21,7 @@ const AGUMON_LV3 = "BT1-010";
 
 describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4713)", () => {
   it("keeps the delete clause independent from the Koromon-only DP boost", () => {
-    const effect = module.effectsForTiming(EffectTiming.WhenDigivolving, {} as any)[0] as any;
-    expect(effect.description).toContain("delete 1 of your opponent's Digimon");
+    expect(compiled.effects?.[0]).toMatchObject({ trigger: "WhenDigivolving", actions: expect.arrayContaining([expect.objectContaining({ kind: "Delete" })]) });
   });
 
   it("[When Digivolving] deletes 1 opponent Digimon with DP ≤ Greymon's 5000 DP", async () => {
