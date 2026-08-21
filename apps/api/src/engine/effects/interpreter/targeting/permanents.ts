@@ -381,9 +381,8 @@ export async function resolvePermanentTargets(
 
   const want = effectiveTargetCount(ctx, target);
   if (candidates.length < want && !target.upTo) {
-    const result = finalize(candidates.map((p) => p.permanentId));
-    ctx.lastResolvedPermanentIds = result;
-    return result;
+    ctx.lastResolvedPermanentIds = [];
+    return [];
   }
   // Choice required: ask the printed chooser to pick (min = want unless "up to"). The FULL
   // (immune-inclusive) pool is offered so an immune permanent can be chosen.
