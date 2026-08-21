@@ -8,6 +8,25 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+        },
+        {
+          kind: "Trash",
+          target: {
+            filter: { controller: "mine", zone: "hand" },
+            count: 1,
+          },
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
+    {
       trigger: "OnPlay",
       actions: [
         {
