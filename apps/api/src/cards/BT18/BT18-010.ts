@@ -1,9 +1,10 @@
 import { CardKind, EffectTiming } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
+import type { CardDefinition, CompiledCard } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { onPlay, staticModifier } from "../../engine/effects/builders.js";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 import { registerCard } from "../../engine/effects/registry.js";
 import { cardHasTrait } from "../../engine/cards/cardData.js";
 
@@ -21,6 +22,58 @@ const isRedTamerWithInherited = (def: CardDefinition): boolean =>
 const isDigimonOrTamerDef = (def: CardDefinition): boolean =>
   (def.kinds as string[]).includes(CardKind.Digimon) ||
   (def.kinds as string[]).includes(CardKind.Tamer);
+
+// The generated record historically left the digivolution trigger as RawUnparsed. Keep the
+// shared runtime record aligned with the executable module so nested IR consumers and audit gates
+// see the same complete contract.
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
+            {
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [{ tokens: ["Hybrid", "Ten Warriors"], match: "trait" }],
+              },
+              count: 1,
+              to: "hand",
+            },
+            {
+              filter: { hasInheritedEffects: true, controllerDefault: "mine", kind: ["Tamer"], colors: ["Red"] },
+              count: 1,
+              to: "hand",
+            },
+          ],
+          rest: "deckBottom",
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon", "Tamer"],
+            nameOrTrait: [{ tokens: ["Hybrid", "Ten Warriors"], match: "trait" }],
+          },
+          actions: [{ kind: "GainMemory", amount: 1 }],
+          raw: "when any of your Digimon or Tamers digivolve into a Digimon with the [Hybrid]/[Ten Warriors] trait",
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
 
 const module: EffectModule = {
   cardId,
@@ -142,4 +195,5 @@ const module: EffectModule = {
 };
 
 registerCard(module);
+registerIrCard(cardId, compiled);
 export default module;

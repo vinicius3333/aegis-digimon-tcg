@@ -19,6 +19,8 @@ const compiled: CompiledCard = {
             "count": 1,
             "isSelf": true
           },
+          "breeding": true,
+          "requiresEmpty": "breedingArea",
           "payCost": false,
           "condition": {
             "kind": "breedingAreaEmpty",

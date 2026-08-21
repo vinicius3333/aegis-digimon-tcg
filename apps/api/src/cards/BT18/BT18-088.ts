@@ -1,10 +1,11 @@
 import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
+import type { CardDefinition, CompiledCard } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { security, staticModifier, turnTiming } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 import { cardHasTrait } from "../../engine/cards/cardData.js";
 
 /**
@@ -44,6 +45,64 @@ const hasHybridOrTenWarriors = (def: CardDefinition): boolean =>
   cardHasTrait(def, "Hybrid") || cardHasTrait(def, "Ten Warriors");
 
 const hasHybridTrait = (def: CardDefinition): boolean => cardHasTrait(def, "Hybrid");
+
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
+    },
+    {
+      trigger: "StartOfYourTurn",
+      actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } }],
+    },
+    {
+      trigger: "StartOfYourMainPhase",
+      actions: [
+        {
+          kind: "PlaceUnder",
+          target: {
+            filter: { zone: "trash", controller: "mine", nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] },
+            count: 1,
+            upTo: true,
+            from: ["trash"],
+          },
+          underFilter: { controllerDefault: "mine", kind: ["Tamer"] },
+          optional: true,
+        },
+        {
+          kind: "CostModifier",
+          mode: "raiseCeiling",
+          costType: "play",
+          amount: 2,
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          duration: "permanent",
+          scaling: { per: 1, filter: { controller: "mine", excludeSelf: true, kind: ["Tamer"] }, unit: "cards" },
+        },
+      ],
+    },
+    {
+      trigger: "Rule",
+      actions: [{ kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "name", tokens: ["Takuya Kanbara", "Koji Minamoto"] }],
+    },
+    {
+      trigger: "EndOfYourTurn",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Attack",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          attackPlayer: true,
+          mandatory: false,
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
 
 const module: EffectModule = {
   cardId,
@@ -236,4 +295,5 @@ const module: EffectModule = {
 };
 
 registerCard(module);
+registerIrCard(cardId, compiled);
 export default module;

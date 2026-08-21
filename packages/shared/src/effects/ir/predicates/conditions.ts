@@ -114,6 +114,7 @@ export interface Condition {
     | "digiXrosCount" // the triggering DigiXros used >= `minimum` materials; false if it was not a DigiXros
     | "selfHasInDigivolutionCards" // BT19-073. Off-field source => false.
     | "bindingEmpty" // a never-written binding counts as empty (BT18-101)
+    | "lastEffectDidNotAct"
     | "bindingExists"
     | "bindingContains"
     | "boardCountCompare"

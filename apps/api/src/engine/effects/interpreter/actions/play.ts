@@ -94,7 +94,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           ctx.lastPlayedPermanentIds = [];
           return false;
         }
-        const fromSecurity = action.from?.includes("security") ?? ctx.source.permanent() === undefined;
+        const fromSecurity = action.from?.includes("security") === true;
         if (fromSecurity) {
           const played = await ctx.fx.playFromSecurity(self.instanceId, { payCost: action.payCost });
           ctx.lastPlayedPermanentIds = played !== undefined ? [played.permanentId] : [];
@@ -107,6 +107,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           // instance in ANY zone.
           const played = await ctx.fx.playInstances([self.instanceId], {
             payCost: action.payCost,
+            ...(action.breeding === true ? { breeding: true } : {}),
             ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
           });
           ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);
@@ -118,6 +119,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           // watchers both fire (the same contract used by filtered plays).
           const played = await ctx.fx.playInstances([self.instanceId], {
             payCost: action.payCost,
+            ...(action.breeding === true ? { breeding: true } : {}),
             ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
           });
           ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);

@@ -29,18 +29,15 @@ const compiled: CompiledCard = {
           "op": "trashTop",
           "controller": "opponent",
           "amount": 1,
-          "optional": true,
-          "abortOnDecline": true,
-          "optionalController": "opponent",
+          "optionalFor": "opponent",
           "bindResultAs": "opponentTrashedSecurity"
         },
         {
-          "kind": "RecoverByTrashingMostSecurity",
+          "kind": "Recover",
           "amount": 1,
           "optional": false,
           "condition": {
-            "kind": "bindingEmpty",
-            "ref": "opponentTrashedSecurity",
+            "kind": "lastEffectDidNotAct",
             "raw": "opponent didn't trash security"
           }
         }

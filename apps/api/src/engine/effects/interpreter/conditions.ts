@@ -419,6 +419,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const binding = ctx.boundPlayed?.get(cond.ref);
       return binding === undefined || binding.size === 0;
     }
+    case "lastEffectDidNotAct":
+      return ctx.lastEffectActed !== true;
     case "bindingExists": {
       // True when a previous action in this same resolution wrote at least one card/permanent
       // into the named binding. Used for "if this effect digivolved/played/moved a card, then..."

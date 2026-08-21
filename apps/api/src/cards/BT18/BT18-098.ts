@@ -16,7 +16,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // wrapper — it fires only from the effect-driven trash-from-security seam
 // (GameEngine.fireDiscardedFromSecurity), matching "when this card is trashed from the security
 // stack" without needing a byEffect/sourceFilter gate.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnDiscardSecurity",
