@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX9-071.js";
 
@@ -74,5 +76,27 @@ describe("EX9-071", () => {
     expect(s.perm("target").stack).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX9-071")).toBe(true);
+  });
+  it("draws one and enters the battle area when played from hand", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX9-007", as: "dm" }], hand: [{ card: "EX9-071", as: "protein" }], deck: [{ card: "BT1-009", as: "drawn" }] } }, { autoAcceptOptional: true, autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("protein").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-071"));
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-071")).toBe(true);
+  });
+  it("gains one memory and enters the battle area from security", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "EX9-071", as: "protein" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.inst("protein").faceUp = true;
+    const before = s.state.memory;
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("protein"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-071"));
+
+    expect(s.state.memory).toBe(before + 1);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-071")).toBe(true);
+    expect(s.state.players[0]!.security.some((card) => card.cardId === "EX9-071")).toBe(false);
   });
 });
