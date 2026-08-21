@@ -7,6 +7,15 @@ import "../index.js";
 import { compiled } from "./EX8-023.js";
 
 describe("EX8-023", () => {
+  it("inherits conditional Piercing and Security Attack +1", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "YourTurn",
+      actions: [
+        { kind: "Aura", effect: { kind: "keyword", keyword: { keyword: "Piercing" } } },
+        { kind: "Aura", effect: { kind: "keyword", keyword: { keyword: "SecurityAttack", amount: 1 } } },
+      ],
+    }));
+
   it("has Ice Clad, trashes 2 digivolution cards, and restricts a card with no digivolution cards", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.keywords).toContainEqual({
       keyword: "IceClad",
