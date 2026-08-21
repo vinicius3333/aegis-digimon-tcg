@@ -158,6 +158,8 @@ export interface TriggerInfo {
   /** Whether the pay-time declaration is using the card as an Option rather than playing a permanent. */
   wouldBePlayedAsOption?: boolean;
   attackerPermanentId?: string;
+  /** Stable identity for this attack across all reactive attack sub-trigger fires. */
+  attackSequence?: number;
   /** Named attack procedure that caused the current attack watcher, when applicable. */
   attackMechanic?: string;
   /** The defending permanent of the in-flight battle (the original target or the blocker). */

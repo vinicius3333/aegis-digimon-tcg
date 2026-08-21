@@ -1868,7 +1868,10 @@ export class GameEngine {
           // ID of the outermost effect resolution currently in progress, so an `oncePerTiming`
           // watcher dedupes across multiple plays/events from ONE resolving effect (KB Q2814)
           // while still firing once per genuinely separate top-level resolution.
-          this.activeWindowToken,
+          this.activeWindowToken ??
+            (event === "whenAttacking" || event === "whenOpponentAttacks"
+              ? payload.attackSequence
+              : undefined),
           // `oncePerTurnKey` ledger: reuses the SAME per-turn UseTracker the kernel's
           // maxPerTurn and the leave-prevention "replacement" keys use, namespaced with
           // "subtrigger" so the three ledgers never collide. Resets with everything else at
