@@ -15,10 +15,6 @@ import "./BT15-087.js";
  *   [All Turns] inh.    → EffectTiming.None / isInherited (1 effect, grantKeyword TeamWork+Reboot)
  *   [End of All Turns] inh. → EffectTiming.OnEndTurn / isInherited (1 effect, play Shuu Yulin)
  *
- * FAILS-WHEN-REVERTED: remove the grantKeyword calls from the None effect — neither
- *   TeamWork nor Reboot is granted, so the "grantKeyword(TeamWork)" assertion goes RED.
- *   Remove the playInstances call from the OnEndTurn effect — the "playInstances called"
- *   assertion goes RED.
  */
 
 interface Call {
@@ -44,26 +40,32 @@ function makeSource(permanentId = "PERM#shuu"): CardSource {
       evoCosts: [],
       maxCountInDeck: 4,
     } as never,
-    permanent: () => ({
-      permanentId,
-      controllerSeat: 0 as Seat,
-      topCard: { instanceId: `INST#${CARD_ID}`, cardId: CARD_ID, ownerSeat: 0 as Seat },
-      isSuspended: false,
-      stack: [],
-    } as never),
+    permanent: () =>
+      ({
+        permanentId,
+        controllerSeat: 0 as Seat,
+        topCard: { instanceId: `INST#${CARD_ID}`, cardId: CARD_ID, ownerSeat: 0 as Seat },
+        isSuspended: false,
+        stack: [],
+      }) as never,
     isOnBattleArea: () => true,
     isOwnersTurn: () => true,
     hasColor: () => false,
   };
 }
 
-function makeContext(recorder: { calls: Call[] }, source: CardSource, overrides?: Partial<{
-  memory: number;
-  isOnBattleArea: boolean;
-  isOwnersTurn: boolean;
-}>) {
+function makeContext(
+  recorder: { calls: Call[] },
+  source: CardSource,
+  overrides?: Partial<{
+    memory: number;
+    isOnBattleArea: boolean;
+    isOwnersTurn: boolean;
+  }>,
+) {
   const fx = new Proxy({} as Primitives, {
-    get: (_, verb: string) =>
+    get:
+      (_, verb: string) =>
       (...args: unknown[]) => {
         recorder.calls.push({ verb, args });
         if (verb === "playInstances") return Promise.resolve([]);
@@ -85,10 +87,10 @@ function makeContext(recorder: { calls: Call[] }, source: CardSource, overrides?
     trigger: {},
     game: {
       state,
-      player: () => ({ battleArea: [], hand: [] } as never),
+      player: () => ({ battleArea: [], hand: [] }) as never,
       opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
       permanentById: () => undefined,
-      definitionOf: () => ({ kinds: ["Digimon"], nameEn: "", types: [], forms: [], attributes: [] } as never),
+      definitionOf: () => ({ kinds: ["Digimon"], nameEn: "", types: [], forms: [], attributes: [] }) as never,
       linkMax: () => 1,
       linkCostReduction: () => 0,
     } as never,
@@ -167,7 +169,8 @@ describe("BT15-087 Shuu Yulin — full effect structure + keyword grant behavior
     };
 
     const fx = new Proxy({} as Primitives, {
-      get: (_, verb: string) =>
+      get:
+        (_, verb: string) =>
         (...args: unknown[]) => {
           recorder.calls.push({ verb, args });
         },
@@ -178,17 +181,18 @@ describe("BT15-087 Shuu Yulin — full effect structure + keyword grant behavior
       trigger: {},
       game: {
         state: { memory: 3 },
-        player: () => ({ battleArea: [hostPerm] } as never),
+        player: () => ({ battleArea: [hostPerm] }) as never,
         opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
         permanentById: (id: string) => (id === hostPermId ? hostPerm : undefined),
         // Card definition for the host has X Antibody in its types.
-        definitionOf: () => ({
-          kinds: ["Digimon"],
-          nameEn: "WarGreymon X",
-          types: ["X Antibody"],
-          forms: [],
-          attributes: [],
-        } as never),
+        definitionOf: () =>
+          ({
+            kinds: ["Digimon"],
+            nameEn: "WarGreymon X",
+            types: ["X Antibody"],
+            forms: [],
+            attributes: [],
+          }) as never,
         linkMax: () => 1,
         linkCostReduction: () => 0,
       } as never,
@@ -200,9 +204,7 @@ describe("BT15-087 Shuu Yulin — full effect structure + keyword grant behavior
     expect(effects).toHaveLength(1);
     await effects[0]!.resolve(ctx as never);
 
-    const teamworkCall = recorder.calls.find(
-      (c) => c.verb === "grantKeyword" && c.args[1] === "TeamWork",
-    );
+    const teamworkCall = recorder.calls.find((c) => c.verb === "grantKeyword" && c.args[1] === "TeamWork");
     expect(teamworkCall, "grantKeyword(TeamWork) must be called for X Antibody host").toBeDefined();
     expect(teamworkCall!.args[0]).toBe(hostPermId);
     expect(teamworkCall!.args[2]).toBe(EffectDuration.UntilEachTurnEnd);
@@ -227,7 +229,8 @@ describe("BT15-087 Shuu Yulin — full effect structure + keyword grant behavior
     };
 
     const fx = new Proxy({} as Primitives, {
-      get: (_, verb: string) =>
+      get:
+        (_, verb: string) =>
         (...args: unknown[]) => {
           recorder.calls.push({ verb, args });
         },
@@ -238,16 +241,17 @@ describe("BT15-087 Shuu Yulin — full effect structure + keyword grant behavior
       trigger: {},
       game: {
         state: { memory: 3 },
-        player: () => ({ battleArea: [hostPerm] } as never),
+        player: () => ({ battleArea: [hostPerm] }) as never,
         opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
         permanentById: (id: string) => (id === hostPermId ? hostPerm : undefined),
-        definitionOf: () => ({
-          kinds: ["Digimon"],
-          nameEn: "ShineGreymon",
-          types: ["DigiPolice"],
-          forms: [],
-          attributes: [],
-        } as never),
+        definitionOf: () =>
+          ({
+            kinds: ["Digimon"],
+            nameEn: "ShineGreymon",
+            types: ["DigiPolice"],
+            forms: [],
+            attributes: [],
+          }) as never,
         linkMax: () => 1,
         linkCostReduction: () => 0,
       } as never,
@@ -258,9 +262,7 @@ describe("BT15-087 Shuu Yulin — full effect structure + keyword grant behavior
     const effects = module!.effectsForTiming(EffectTiming.None, sourceWithHost);
     await effects[0]!.resolve(ctx as never);
 
-    const rebootCall = recorder.calls.find(
-      (c) => c.verb === "grantKeyword" && c.args[1] === "Reboot",
-    );
+    const rebootCall = recorder.calls.find((c) => c.verb === "grantKeyword" && c.args[1] === "Reboot");
     expect(rebootCall, "grantKeyword(Reboot) must be called for DigiPolice host").toBeDefined();
     expect(rebootCall!.args[0]).toBe(hostPermId);
     expect(rebootCall!.args[2]).toBe(EffectDuration.UntilEachTurnEnd);
@@ -284,7 +286,8 @@ describe("BT15-087 Shuu Yulin — full effect structure + keyword grant behavior
     };
 
     const fx = new Proxy({} as Primitives, {
-      get: (_, verb: string) =>
+      get:
+        (_, verb: string) =>
         (...args: unknown[]) => {
           recorder.calls.push({ verb, args });
         },
@@ -296,13 +299,14 @@ describe("BT15-087 Shuu Yulin — full effect structure + keyword grant behavior
       game: {
         state: {},
         permanentById: () => hostPerm,
-        definitionOf: () => ({
-          kinds: ["Digimon"],
-          nameEn: "Agumon",
-          types: ["Dinosaur"],
-          forms: [],
-          attributes: [],
-        } as never),
+        definitionOf: () =>
+          ({
+            kinds: ["Digimon"],
+            nameEn: "Agumon",
+            types: ["Dinosaur"],
+            forms: [],
+            attributes: [],
+          }) as never,
         linkMax: () => 1,
         linkCostReduction: () => 0,
       } as never,
@@ -352,9 +356,7 @@ describe("BT15-087 Shuu Yulin — full effect structure + keyword grant behavior
       controllerSeat: 0 as Seat,
       topCard: { instanceId: "INST#warg", cardId: "BT1-010", ownerSeat: 0 as Seat },
       isSuspended: false,
-      stack: [
-        { instanceId: shuuInstanceId, cardId: "BT15-087", ownerSeat: 0 as Seat, faceUp: true },
-      ],
+      stack: [{ instanceId: shuuInstanceId, cardId: "BT15-087", ownerSeat: 0 as Seat, faceUp: true }],
     };
 
     const source: CardSource = {
@@ -369,7 +371,8 @@ describe("BT15-087 Shuu Yulin — full effect structure + keyword grant behavior
     };
 
     const fx = new Proxy({} as Primitives, {
-      get: (_, verb: string) =>
+      get:
+        (_, verb: string) =>
         (...args: unknown[]) => {
           recorder.calls.push({ verb, args });
           if (verb === "playInstances") return Promise.resolve([]);
@@ -381,7 +384,7 @@ describe("BT15-087 Shuu Yulin — full effect structure + keyword grant behavior
       trigger: {},
       game: {
         state: {},
-        player: () => ({} as never),
+        player: () => ({}) as never,
         opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
         definitionOf: (c: { cardId: string }) => {
           if (c.cardId === "BT15-087") {
@@ -433,7 +436,8 @@ describe("BT15-087 Shuu Yulin — full effect structure + keyword grant behavior
     };
 
     const fx = new Proxy({} as Primitives, {
-      get: (_, verb: string) =>
+      get:
+        (_, verb: string) =>
         (...args: unknown[]) => {
           recorder.calls.push({ verb, args });
         },
@@ -444,7 +448,7 @@ describe("BT15-087 Shuu Yulin — full effect structure + keyword grant behavior
       trigger: {},
       game: {
         state: {},
-        definitionOf: () => ({ kinds: ["Digimon"], nameEn: "Agumon" } as never),
+        definitionOf: () => ({ kinds: ["Digimon"], nameEn: "Agumon" }) as never,
         linkMax: () => 1,
         linkCostReduction: () => 0,
       } as never,
