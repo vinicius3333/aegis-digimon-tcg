@@ -6,7 +6,7 @@ import { registerCard, unregisterCard } from "./registry.js";
 import { UseTracker } from "./kernel.js";
 import { unimplementedPrimitives, unimplementedDecisions, type EffectEnvironment } from "./context.js";
 import { ContinuousEffectLedger } from "./continuous.js";
-import { onPlay } from "./builders.js";
+import { onPlay, staticModifier } from "./builders.js";
 import type { EffectModule } from "./EffectModule.js";
 import type { Effect } from "./Effect.js";
 
@@ -24,24 +24,39 @@ import type { Effect } from "./Effect.js";
  */
 const TEST_CARD_ID = "BT1-001";
 const TEST_EFFECT_KEY = `${TEST_CARD_ID}/test-on-play`;
+const TEST_STATIC_KEY = `${TEST_CARD_ID}/test-static`;
 
 let resolvedCount = 0;
+let staticResolvedCount = 0;
 
 const TEST_MODULE: EffectModule = {
   cardId: TEST_CARD_ID,
   effectsForTiming(timing, source): Effect[] {
-    if (timing !== EffectTiming.OnPlay) return [];
+    if (timing === EffectTiming.OnPlay) {
+      return [
+        onPlay({
+          source,
+          effectKey: TEST_EFFECT_KEY,
+          description: "test on-play",
+          // Once-per-turn: with a stable collect() (candidate stays on field), the use
+          // ledger filters it after the first resolution so runTiming terminates —
+          // exactly how a real once-per-turn trigger drains.
+          maxPerTurn: 1,
+          resolve: async () => {
+            resolvedCount += 1;
+          },
+        }),
+      ];
+    }
+    if (timing !== EffectTiming.None) return [];
     return [
-      onPlay({
+      staticModifier({
         source,
-        effectKey: TEST_EFFECT_KEY,
-        description: "test on-play",
-        // Once-per-turn: with a stable collect() (candidate stays on field), the use
-        // ledger filters it after the first resolution so runTiming terminates —
-        // exactly how a real once-per-turn trigger drains.
+        effectKey: TEST_STATIC_KEY,
+        description: "test continuous effect",
         maxPerTurn: 1,
         resolve: async () => {
-          resolvedCount += 1;
+          staticResolvedCount += 1;
         },
       }),
     ];
@@ -139,6 +154,19 @@ describe("buildResolutionEnv — makeContext link-cost-reduction wiring", () => 
 });
 
 describe("runTiming (composition root end-to-end)", () => {
+  it("does not consume the per-turn ledger while re-deriving a continuous effect", async () => {
+    const before = staticResolvedCount;
+    const s = setupEngine({ 0: { battleArea: [{ card: TEST_CARD_ID, as: "static" }] } });
+    const { state } = s;
+    const card = topCardOf(s, "static");
+    const fenv = frameworkEnv(state);
+
+    await runTiming(EffectTiming.None, fenv, deps(state, [card]));
+
+    expect(staticResolvedCount).toBe(before + 1);
+    expect(fenv.tracker.count(card.instanceId, TEST_STATIC_KEY)).toBe(0);
+  });
+
   it("collects and resolves a registered OnPlay effect against authoritative state", async () => {
     const before = resolvedCount;
     const s = setupEngine({ 0: { battleArea: [{ card: TEST_CARD_ID, as: "run" }] } });
