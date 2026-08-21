@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // KB Q4404 (binding): after [When Digivolving] effect activates, attacking with a Digimon
 // via the [All Turns] effect is optional.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
