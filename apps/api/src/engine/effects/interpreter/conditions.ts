@@ -354,7 +354,11 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // card is checked (the permanent's current identity); stack cards below are not included
       // (use `selfDigivolutionStackHasTrait` for that). An off-field source or absent filter
       // returns false (conservative — we never invent a gate).
-      return selfTopMatchesTrait(ctx, cond.filter);
+      const self = ctx.source.permanent();
+      if (self !== undefined) return selfTopMatchesTrait(ctx, cond.filter);
+      const deleted = sourceTopDefinition(ctx);
+      if (deleted === undefined || cond.filter?.nameOrTrait === undefined) return false;
+      return cond.filter.nameOrTrait.some((ref) => matchNameOrTrait(deleted, ref));
     }
     case "selfHasName": {
       // "This Digimon is [X]" — exact current top-card name check.
