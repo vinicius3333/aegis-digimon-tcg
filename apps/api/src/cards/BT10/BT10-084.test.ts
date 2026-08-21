@@ -278,7 +278,7 @@ describe("BT10-084 (Tactimon)", () => {
   it("[On Play] targets only Bagra Army Digimon at level 4 or lower from trash", async () => {
     const onPlay = compiled.effects?.find((entry) => entry.trigger === "OnPlay");
     expect(onPlay?.actions[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["trash"], optional: true });
-    expect(onPlay?.actions[0]?.target.filter).toMatchObject({ levelMax: 4, nameOrTrait: [{ tokens: ["Bagra Army"] }] });
+    expect(onPlay?.actions[0]).toMatchObject({ target: { filter: { levelMax: 4, nameOrTrait: [{ tokens: ["Bagra Army"] }] } } });
   });
 });
 
