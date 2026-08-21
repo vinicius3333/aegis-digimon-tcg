@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./EX8-040.js";
@@ -33,5 +35,27 @@ describe("EX8-040", () => {
         s.state.players[1]!.battleArea[0]!.isSuspended,
     );
     expect(s.state.players[1]!.battleArea[0]!.isSuspended).toBe(true);
+  });
+  it("suspends an allied Digimon when digivolving", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-040", as: "kab" },
+            { card: "EX8-015", as: "target" },
+          ],
+        },
+        1: { battleArea: [{ card: "AD1-001", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("target").permanentId);
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("kab"));
+    await settle(() => s.perm("target").isSuspended);
+
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.perm("opponent").isSuspended).toBe(false);
   });
 });
