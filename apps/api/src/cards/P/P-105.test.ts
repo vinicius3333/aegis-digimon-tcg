@@ -5,18 +5,9 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./P-105.js";
 
-// P-105 (Physical Training) — Yellow Option card with two [Main] clauses:
-//   1. [Main] Reveal top 2; add 1 YELLOW card to hand; rest to deck bottom; place this card in battle area.
-//   2. [Main] <Delay> Trash self from battle area; 1 of your Digimon may digivolve into a
-//      YELLOW Digimon card in hand for its digivolution cost -2.
-//
-// KB authority (authoritative over printed text):
-//   Q4192: Does not ignore digivolution requirements — only cards that meet them are legal targets.
-//   Q4193: Cannot burst-digivolve or DNA-digivolve; only standard digivolve.
-//   Q4194 / Q2758 / Q2767: Digivolves 1 Digimon only; Tamers cannot be the target.
-//   Q4195: The controller may choose NOT to digivolve (optional).
-//   documented behavior source: CanSelectCardCondition = cardSource.IsDigimon && cardSource.HasCardColor(Yellow);
-//              reduceCostTuple = (reduceCost: 2, reduceCostCardCondition: null).
+// P-105 (Physical Training): reveal two cards, add a yellow card, place this
+// Option in the battle area, and optionally use Delay to digivolve a yellow
+// Digimon from hand for its cost reduced by 2.
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
@@ -37,10 +28,6 @@ function fakeDefinition(over: Partial<CardDefinition> = {}): CardDefinition {
   };
 }
 
-// The OnDeclaration <Delay> resolve path (interpreter.ts's `isDelay && timing ===
-// EffectTiming.OnDeclaration` branch) deletes `ctx.source.permanent()` as the trash-cost
-// before running the payload — so the source must resolve to a real battle-area permanent,
-// as it would after the first [Main] clause's `PlaceInBattleAreaSelf` placed it there.
 const SOURCE_PERMANENT_ID = "PERM#P104";
 
 function makeSource(): CardSource {
@@ -168,19 +155,16 @@ describe("P-105 (Physical Training)", () => {
   });
 
   it("exposes at least one effect at OnUseOption (the [Main] body fires when played)", () => {
-    // documented behavior: EffectTiming.OptionSkill => the reveal-top-2 main body.
     const source = makeSource();
     expect(module!.effectsForTiming(EffectTiming.OnUseOption, source).length).toBeGreaterThanOrEqual(1);
   });
 
   it("exposes at least one effect at SecuritySkill", () => {
-    // documented behavior: EffectTiming.SecuritySkill => PlaceSelfDelayOptionSecurityEffect.
     const source = makeSource();
     expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source).length).toBeGreaterThanOrEqual(1);
   });
 
   it("exposes at least one effect at OnDeclaration (the <Delay> activation window)", () => {
-    // documented behavior: EffectTiming.OnDeclaration => the Delay effect body.
     const source = makeSource();
     expect(module!.effectsForTiming(EffectTiming.OnDeclaration, source).length).toBeGreaterThanOrEqual(1);
   });
@@ -193,7 +177,6 @@ describe("P-105 (Physical Training)", () => {
   });
 
   it("OnUseOption effect calls reveal(2) for the top-2 reveal clause", async () => {
-    // documented behavior OptionSkill => SimplifiedRevealDeckTopCardsAndSelect(revealCount: 2, ...).
     const source = makeSource();
     const effects = module!.effectsForTiming(EffectTiming.OnUseOption, source);
     const recorder: Recorder = { calls: [] };
@@ -204,9 +187,7 @@ describe("P-105 (Physical Training)", () => {
     expect(reveals[0]!.args[1]).toBe(2);
   });
 
-  it(// The printed clause places this Option into the battle area; the implementation must use
-  // the dedicated self-placement primitive and perform no unrelated side effects.
-  "OnUseOption places this card into the battle area (self-play), not a Delay GainKeyword", async () => {
+  it("OnUseOption places this card into the battle area (self-play), not a Delay GainKeyword", async () => {
     const source = makeSource();
     const effects = module!.effectsForTiming(EffectTiming.OnUseOption, source);
     const recorder: Recorder = { calls: [] };
@@ -217,16 +198,11 @@ describe("P-105 (Physical Training)", () => {
     expect(placements).toHaveLength(1);
     expect(placements[0]!.args[0]).toBe(source.instanceId);
 
-    // No stand-in Delay grant and no unfounded return-from-trash.
     expect(recorder.calls.some((c) => c.verb === "grantKeyword")).toBe(false);
     expect(recorder.calls.some((c) => c.verb === "returnToHand")).toBe(false);
   });
 
-  it(// securityEffectText: "[Security] Place this card in the battle area." — an unconditional
-  // placement (documented behavior PlaceSelfDelayOptionSecurityEffect), not a for-the-turn Delay grant. The
-  // card's own ＜Delay＞ ability lives on the second [Main] clause, activated later by
-  // trashing the placed permanent — it is not re-granted here.
-  "SecuritySkill places this card into the battle area, not a for-the-turn Delay GainKeyword", async () => {
+  it("SecuritySkill places this card into the battle area, not a for-the-turn Delay GainKeyword", async () => {
     const source = makeSource();
     const effects = module!.effectsForTiming(EffectTiming.SecuritySkill, source);
     expect(effects.length).toBeGreaterThanOrEqual(1);
@@ -239,11 +215,7 @@ describe("P-105 (Physical Training)", () => {
     expect(recorder.calls.some((c) => c.verb === "grantKeyword")).toBe(false);
   });
 
-  it(// Card text: "Add 1 yellow card among them to your hand."
-  // documented behavior CanSelectCardCondition: cardSource.HasCardColor(targetColor) where targetColor = Yellow.
-  // Now PASSES: the IR override sets RevealAdd `add[0].filter` to `{ colors: ["Yellow"] }`,
-  // so a non-yellow revealed card is never offered/added.
-  "OnUseOption RevealAdd only adds YELLOW cards to hand (card text + documented behavior HasCardColor(Yellow))", async () => {
+  it("OnUseOption RevealAdd only adds YELLOW cards to hand (card text + documented behavior HasCardColor(Yellow))", async () => {
     const source = makeSource();
     const effects = module!.effectsForTiming(EffectTiming.OnUseOption, source);
     expect(effects.length).toBeGreaterThanOrEqual(1);
@@ -320,7 +292,6 @@ describe("P-105 (Physical Training)", () => {
     await effects[0]!.resolve(ctx);
 
     // Only the yellow card should be offered/added — the red one must not appear.
-    // With the current empty `filter: {}`, the red card IS offered, so this assertion fails.
     const addedToHand = recorder.calls.filter((c) => c.verb === "returnToHand");
     const instancesAdded = addedToHand.flatMap((c) => c.args[0] as string[]);
     expect(instancesAdded).toContain(yellowCard.instanceId);
@@ -351,15 +322,7 @@ describe("P-105 (Physical Training)", () => {
     return effect!;
   }
 
-  it(// Comprehensive rules §16-17-1: activating ＜Delay＞ costs trashing THIS card (the option
-  // permanent placed by the first [Main] clause) — the documented behavior source deletes
-  // `card.PermanentOfThisCard()`. Previously the IR mis-encoded this as `Delete{kind:
-  // ["Digimon"]}`, which would trash an arbitrary Digimon target instead of the source
-  // option itself. Now the trash-cost comes from the effect's declared `keywords: [Delay]`
-  // going through the interpreter's OnDeclaration Delay branch, which deletes
-  // `ctx.source.permanent()` — proven here by asserting deletePermanent is called with the
-  // SOURCE's own permanentId, not a selected Digimon's.
-  "OnDeclaration <Delay> trashes the source option permanent itself as the activation cost (rules §16-17-1)", async () => {
+  it("OnDeclaration <Delay> trashes the source option permanent itself as the activation cost (rules §16-17-1)", async () => {
     const recorder: Recorder = { calls: [] };
     const yellowDigimon = { instanceId: "INST#YELLOW-COST", cardId: "YELLOW-DIGIMON-COST", ownerSeat: 0 as Seat };
 
@@ -382,11 +345,7 @@ describe("P-105 (Physical Training)", () => {
     expect(deletes[0]!.args[0]).not.toEqual(["OWN-DIGI"]);
   });
 
-  it(// Q4192 / documented behavior CanSelectCardCondition: IsDigimon && HasCardColor(Yellow).
-  // Now PASSES: the IR override sets the Digivolve `into` filter to
-  // `{ kind: ["Digimon"], colors: ["Yellow"] }`, so only the yellow Digimon in hand is a
-  // legal target — digivolveFromInstance is invoked with the yellow instance, never red.
-  "OnDeclaration <Delay> only digivolves into a YELLOW Digimon in hand (Q4192 / documented behavior HasCardColor(Yellow))", async () => {
+  it("OnDeclaration <Delay> only digivolves into a YELLOW Digimon in hand (Q4192 / documented behavior HasCardColor(Yellow))", async () => {
     const recorder: Recorder = { calls: [] };
     const yellowDigimon = { instanceId: "INST#YELLOW-D", cardId: "YELLOW-DIGIMON", ownerSeat: 0 as Seat };
     const redDigimon = { instanceId: "INST#RED-D", cardId: "RED-DIGIMON", ownerSeat: 0 as Seat };
@@ -411,10 +370,7 @@ describe("P-105 (Physical Training)", () => {
     expect(digivolves[0]!.args[1]).not.toBe(redDigimon.instanceId);
   });
 
-  it(// documented behavior DigivolveIntoHandOrTrashCard: reduceCostTuple = (reduceCost: 2, reduceCostCardCondition: null).
-  // Now PASSES: runDigivolve forwards the IR's costDelta:-2 to digivolveFromInstance, which
-  // applies it to the paid digivolution cost (floored at 0).
-  "OnDeclaration <Delay> reduces the digivolution cost by 2 (documented behavior reduceCostTuple reduceCost:2)", async () => {
+  it("OnDeclaration <Delay> reduces the digivolution cost by 2 (documented behavior reduceCostTuple reduceCost:2)", async () => {
     const recorder: Recorder = { calls: [] };
     const yellowDigimon = { instanceId: "INST#YELLOW-D2", cardId: "YELLOW-DIGIMON-2", ownerSeat: 0 as Seat };
 
