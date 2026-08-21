@@ -35,7 +35,10 @@ describe("BT22-037 Chirinmon", () => {
       {
         0: {
           battleArea: [{ card: "BT22-034", as: "base" }],
-          hand: [{ card: "BT22-037", as: "chirinmon" }, { card: "BT22-041", as: "target" }],
+          hand: [
+            { card: "BT22-037", as: "chirinmon" },
+            { card: "BT22-041", as: "target" },
+          ],
           security: ["BT1-028"],
         },
       },
@@ -54,7 +57,7 @@ describe("BT22-037 Chirinmon", () => {
 
     expect(s.state.memory).toBe(5); // 3 for Chirinmon, then 4 - 2 for BT22-041.
     expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT22-034", "BT22-037", "BT22-041"]);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT22-034", "BT22-037"]);
     expect(s.perm("base").topCard.cardId).toBe("BT22-041");
   });
 
