@@ -36,6 +36,15 @@ const compiled: CompiledCard = {
                     ],
                     "match": "name"
                   }
+                ],
+                "orFilters": [
+                  {
+                    "zone": "hand",
+                    "controller": "mine",
+                    "kind": ["Digimon"],
+                    "colors": ["Blue"],
+                    "levels": [3]
+                  }
                 ]
               },
               "count": 1,
