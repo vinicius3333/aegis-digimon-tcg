@@ -38,9 +38,10 @@ const module: EffectModule = {
             const owner = ctx.game.player(source.ownerSeat);
             const royalKnightCards = Array.from(owner.hand).filter((c) => isRoyalKnight(ctx.game.definitionOf(c)));
             if (royalKnightCards.length === 0) return;
-            const kingDrasilPerms = Array.from(owner.battleArea).filter(
-              (p) => p.topCard !== undefined && isKingDrasil(ctx.game.definitionOf(p.topCard)),
-            );
+            const kingDrasilPerms = [
+              ...Array.from(owner.battleArea),
+              ...(owner.breeding ? [owner.breeding] : []),
+            ].filter((p) => p.topCard !== undefined && isKingDrasil(ctx.game.definitionOf(p.topCard)));
             if (kingDrasilPerms.length === 0) return;
             const chosenCard = await ctx.ask.selectCards(ctx, {
               candidates: royalKnightCards.map((c) => c.instanceId),
@@ -55,7 +56,7 @@ const module: EffectModule = {
             });
             if (chosenHost.length === 0) return;
             await ctx.fx.placeUnder(chosenHost[0]!, chosenCard);
-            ctx.fx.draw(source.ownerSeat, 1);
+            await ctx.fx.draw(source.ownerSeat, 1);
           },
         }),
       ];
@@ -77,7 +78,10 @@ const module: EffectModule = {
             const omnimonCards = Array.from(owner.hand)
               .filter((card) => isOmnimonXAntibody(ctx.game.definitionOf(card)))
               .map((card) => ({ instanceId: card.instanceId }));
-            const kingDrasilHosts = Array.from(owner.battleArea).filter(
+            const kingDrasilHosts = [
+              ...Array.from(owner.battleArea),
+              ...(owner.breeding ? [owner.breeding] : []),
+            ].filter(
               (permanent) => permanent.topCard !== undefined && isKingDrasil(ctx.game.definitionOf(permanent.topCard)),
             );
             for (const host of kingDrasilHosts) {
