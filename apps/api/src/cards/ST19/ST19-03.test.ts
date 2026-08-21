@@ -2,6 +2,7 @@ import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./ST19-03.js";
 
 describe("ST19-03 Shoemon", () => {
@@ -24,5 +25,14 @@ describe("ST19-03 Shoemon", () => {
     expect(getCardDefinition("ST19-03")).toMatchObject({
       inheritedEffectText: "[Your Turn] All of your opponent's security Digimon get -3000 DP.",
     });
+  });
+
+  it("applies the inherited -3000 security-Digimon modifier from a real stack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST19-10", as: "host", under: ["ST19-03"] }] },
+      1: { security: [{ card: "BT1-009", as: "security" }] },
+    });
+    await s.ready();
+    expect(observe(s.engine).securityDp(1)).toBe(-3000);
   });
 });

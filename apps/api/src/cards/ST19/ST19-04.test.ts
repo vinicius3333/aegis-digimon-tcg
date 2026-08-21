@@ -2,6 +2,7 @@ import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./ST19-04.js";
 
 describe("ST19-04 PawnChessmon", () => {
@@ -23,5 +24,14 @@ describe("ST19-04 PawnChessmon", () => {
 
   it("catalogues the inherited Reboot keyword", () => {
     expect(getCardDefinition("ST19-04")).toMatchObject({ inheritedEffectText: "＜Reboot＞." });
+  });
+
+  it("exposes inherited Reboot on a real evolution stack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST19-10", as: "host", under: ["ST19-04"] }] },
+      1: {},
+    });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
   });
 });
