@@ -2,7 +2,6 @@ import { EffectTiming } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
-import { staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "EX10-004";
@@ -10,19 +9,38 @@ const cardId = "EX10-004";
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
+    if (timing === EffectTiming.None || timing === EffectTiming.OnMove) {
+      return [{
           effectKey: `${cardId}/lucemon-breed-move-draw`,
           description:
             "[Your Turn] [Once Per Turn] [Inherited] When any of your Digimon with [Lucemon] " +
             "in their names move from the breeding area to the battle area, by trashing 1 card " +
             "in your hand, <Draw 1> and gain 1 memory.",
+          optional: false,
           isInherited: true,
+          isSecurity: false,
+          isLinked: false,
           maxPerTurn: 1,
-          when: (_ctx) => source.isOnBattleArea(),
+          canTrigger: (ctx) => {
+            const self = source.permanent();
+            const movedId = ctx.trigger?.movedPermanentId;
+            if (movedId === undefined) return self !== undefined;
+            if (self === undefined || !source.isOnBattleArea() || !source.isOwnersTurn() || movedId !== self.permanentId) return false;
+            const moved = ctx.game.permanentById(movedId);
+            return moved !== undefined && ctx.game.definitionOf(moved.topCard).nameEn.includes("Lucemon");
+          },
+          canActivate: () => true,
           resolve: async (ctx) => {
+            if (ctx.trigger?.movedPermanentId !== undefined) {
+              const hand = ctx.game.player(source.ownerSeat).hand;
+              if (hand.length === 0) return;
+              const chosen = await ctx.ask.selectCards(ctx, { candidates: hand.map((c) => c.instanceId), min: 1, max: 1 });
+              if (chosen.length === 0) return;
+              await ctx.fx.trash(chosen, { byEffectSeat: source.ownerSeat });
+              ctx.fx.draw(source.ownerSeat, 1);
+              ctx.fx.gainMemory(1);
+              return;
+            }
             const self = source.permanent();
             if (self === undefined) return;
             ctx.fx.subscribeSubTrigger({
@@ -61,8 +79,7 @@ const module: EffectModule = {
               },
             });
           },
-        }),
-      ];
+        }];
     }
 
     return [];
