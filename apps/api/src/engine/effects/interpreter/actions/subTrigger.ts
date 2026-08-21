@@ -554,6 +554,8 @@ export async function runSubTrigger(
           return subject.stack.some(
             (card) =>
               ids.includes(card.instanceId) &&
+              (action.addedDigivolutionCardFilter!.faceDown !== true || card.faceUp === false) &&
+              (action.addedDigivolutionCardFilter!.faceUp !== true || card.faceUp === true) &&
               definitionMatches(action.addedDigivolutionCardFilter!, subCtx.game.definitionOf(card)),
           );
         }
