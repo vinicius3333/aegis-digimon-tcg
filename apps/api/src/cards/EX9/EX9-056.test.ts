@@ -11,4 +11,16 @@ describe("EX9-056", () => {
     }
   });
   it("once per turn prevents a Ver.3 Digimon from leaving by trashing top security", () => expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "Replacement", event: "wouldLeavePlay", mode: "prevent", cost: { kind: "trashSecurityTop" } }] }));
+  it("allows either player's qualifying Digimon as the bottom-security payment and affects all own Ver.3 leaves", () => {
+    for (const trigger of ["OnPlay", "WhenDigivolving"]) expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.actions[0]).toMatchObject({
+      optional: true,
+      abortOnDecline: true,
+      target: { filter: { controller: "opponent" }, count: 1 },
+      cost: { target: { filter: { kind: ["Digimon"], dp: { op: "lte", value: 8000 } }, count: 1 }, destination: "security", position: "bottom", faceDown: true },
+    });
+    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions[0]).toMatchObject({
+      affectsAll: true,
+      target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Ver.3"], match: "trait" }] } },
+    });
+  });
 });
