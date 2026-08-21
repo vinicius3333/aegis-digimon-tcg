@@ -1,7 +1,6 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./ST19-03.js";
 
@@ -9,11 +8,13 @@ describe("ST19-03 Shoemon", () => {
   it("reveals three, adds one Puppet and one LIBERATOR, and bottoms the rest", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "ST19-03", as: "shoemon" }],
+        hand: [{ card: "ST19-03", as: "shoemon" }],
         deck: [{ card: "ST19-02", as: "puppet" }, { card: "ST19-14", as: "liberator" }, { card: "BT1-010", as: "rest" }],
       },
     }, { autoAcceptOptional: true, autoSelectCards: true });
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("shoemon"));
+    s.state.memory = 20;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shoemon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 2);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
       s.inst("puppet").instanceId,
       s.inst("liberator").instanceId,
