@@ -13,7 +13,7 @@ describe("EX8-023", () => {
       raw: "＜Ice Clad＞",
     });
     const actions = compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions ?? [];
-    expect(actions[0]).toMatchObject({ kind: "TrashDigivolution", amount: 2 });
+    expect(actions[0]).toMatchObject({ kind: "TrashDigivolution", amount: 2, scope: "acrossDigimon" });
     expect(actions[1]).toMatchObject({ kind: "Restrict", restriction: "suspend", duration: "untilOpponentTurnEnd" });
     expect(actions[2]).toMatchObject({
       kind: "Restrict",
@@ -25,10 +25,25 @@ describe("EX8-023", () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX8-023", as: "polar" }] },
       1: { battleArea: [{ card: "EX8-022", as: "opponent", under: ["BT1-009", "BT1-009"] }] },
-    });
+    }, { autoSelectCards: true });
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("polar"));
     expect(s.perm("opponent").stack).toHaveLength(0);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "suspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "cannotActivateWhenDigivolving")).toBe(true);
+  });
+
+  it("can trash the two cards from different opposing Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-023", as: "polar" }] },
+      1: {
+        battleArea: [
+          { card: "EX8-022", as: "opponent-a", under: ["BT1-009"] },
+          { card: "EX8-022", as: "opponent-b", under: ["BT1-009"] },
+        ],
+      },
+    }, { autoSelectCards: true });
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("polar"));
+    expect(s.perm("opponent-a").stack).toHaveLength(0);
+    expect(s.perm("opponent-b").stack).toHaveLength(0);
   });
 });

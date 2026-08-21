@@ -31,6 +31,7 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           amount: 2,
+          scope: "acrossDigimon",
         },
         {
           kind: "Restrict",
@@ -75,6 +76,7 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           amount: 2,
+          scope: "acrossDigimon",
         },
         {
           kind: "Restrict",
