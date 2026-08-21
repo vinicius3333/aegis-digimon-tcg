@@ -32,6 +32,7 @@ import "./BT8-030.js";
 import "./BT8-031.js";
 import "./BT8-032.js";
 import "./BT8-033.js";
+import "./BT8-034.js";
 import "./BT8-035.js";
 import "./BT8-036.js";
 import "./BT8-037.js";
