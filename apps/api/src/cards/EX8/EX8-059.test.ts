@@ -13,5 +13,9 @@ describe("EX8-059", () => {
       kind: "GrantAuraToOpponents",
     });
   });
-  it("contains only the printed play and digivolving effects", () => expect(compiled.effects).toHaveLength(2));
+  it("inherits draw 1 then trash 1 when attacking", () =>
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "WhenAttacking",
+      actions: [{ kind: "Draw", amount: 1 }, { kind: "Trash", target: { count: 1 } }],
+    }));
 });
