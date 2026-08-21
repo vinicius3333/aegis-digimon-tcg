@@ -15,5 +15,9 @@ describe("EX8-065", () => {
       actions: [{ kind: "Digivolve", from: ["hand"], reduceCost: 1, optional: true, cost: { kind: "suspend" } }],
     });
   });
-  it("contains only the printed effects", () => expect(compiled.effects).toHaveLength(2));
+  it("plays itself without paying the cost when revealed in security", () =>
+    expect(compiled.effects?.find((entry) => entry.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
+    }));
 });
