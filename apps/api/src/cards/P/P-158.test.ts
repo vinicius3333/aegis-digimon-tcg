@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { EffectTiming } from "@aegis/shared";
+import { getEffectModule } from "../../engine/effects/registry.js";
 import "./P-158.js";
 
 describe("P-158 Jeri (Fake)", () => {
@@ -37,5 +39,12 @@ describe("P-158 Jeri (Fake)", () => {
       s.inst("nonMatch3").instanceId,
     ]);
     assertNoLoudGap(s);
+  });
+
+  it("registers Main return-and-play and Security self-play timings", () => {
+    const module = getEffectModule("P-158")!;
+    const source = { ownerSeat: 0 } as never;
+    expect(module.effectsForTiming(EffectTiming.OnDeclaration, source)).toHaveLength(1);
+    expect(module.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
   });
 });
