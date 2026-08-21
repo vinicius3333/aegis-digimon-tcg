@@ -27,6 +27,7 @@ describe("BT21-098 Ragnarok Cannon", () => {
       kind: "SecurityManipulation",
       op: "trashTop",
       leaveCount: 1,
+      condition: { kind: "ifThisEffectDidNotDelete" },
     });
 
     const security = compiled.effects.find((entry) => entry.trigger === "Security");

@@ -2,8 +2,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-authored IR correction: the Delay payload is nested under the Galacticmon
-// attack watcher, and the fallback security trash leaves exactly 1 security card.
 export const compiled: CompiledCard = {
   effects: [
     {
