@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
+import { PlayerState } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX8-072.js";
 
 describe("EX8-072", () => {
@@ -25,5 +27,11 @@ describe("EX8-072", () => {
   it("does not register an unprinted security effect", () => {
     const module = getEffectModule("EX8-072")!;
     expect(module.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(0);
+  });
+  it("deletes an opponent level 7 or lower Digimon even when their hand has fewer than 5 cards", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "EX8-072", as: "option" }], battleArea: [{ card: "BT2-070", as: "purpleSource" }] }, 1: { battleArea: [{ card: "BT1-010", as: "target" }] } }, { autoSelectCards: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => (s.state.players[1] as PlayerState).battleArea.length === 0);
+    expect((s.state.players[1] as PlayerState).battleArea).toHaveLength(0);
   });
 });
