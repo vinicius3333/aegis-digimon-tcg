@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type CompiledCard, type Seat } from "@aegis/shared";
 import { irCardModule } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-050.js";
 
 function makeRecorder() {
@@ -219,5 +220,14 @@ describe("LM-050 Magenta Memory Boost! — hand-corrected IR", () => {
     });
     await staticEffect.resolve(ctxWithRed as never);
     expect(recorderWithRed.calls.some((c) => c.verb === "waiveColorRequirement")).toBe(true);
+  });
+
+  it("plays with its printed purple color, adds a red Digimon, and places itself", async () => {
+    const s = setupEngine({ 0: { battleArea: ["BT10-079"], hand: [{ card: "LM-050", as: "option" }], deck: ["BT1-009", "BT1-064", "BT1-027"] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "LM-050"));
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "LM-050")).toBe(true);
   });
 });
