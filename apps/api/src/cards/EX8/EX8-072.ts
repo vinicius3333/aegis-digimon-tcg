@@ -3,7 +3,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { activated, inTrash, security } from "../../engine/effects/builders.js";
+import { activated, inTrash } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**
@@ -16,8 +16,6 @@ import { registerCard } from "../../engine/effects/registry.js";
  *     Option's resolution:
  *     If opponent has ≥5 hand cards, they trash 1. Then delete 1 opponent Digimon with
  *     level ≤ (7 - floor(handCount / 3)). Per KB Q4740: the delete step is unconditional.
- *
- *   EffectTiming.SecuritySkill: Activate this card's [Main] effect.
  *
  * KB rulings (binding):
  *   Q4740: Even if opponent has fewer than 5 cards (trash step skipped), still delete the Digimon.
@@ -32,9 +30,7 @@ async function resolveMain(ctx: EffectContext, source: CardSource): Promise<void
 
   // Step 1: if opponent has ≥5 hand cards, they must trash 1 (mandatory).
   if (handCount >= 5) {
-    const handCandidates = Array.from(ctx.game.player(opponentSeat).hand).map(
-      (c) => c.instanceId,
-    );
+    const handCandidates = Array.from(ctx.game.player(opponentSeat).hand).map((c) => c.instanceId);
     const chosen = await ctx.ask.selectCards(ctx, {
       candidates: handCandidates,
       min: 1,
@@ -81,19 +77,6 @@ const module: EffectModule = {
           description:
             "[Main] If your opponent has 5 or more cards in hand, they trash 1. " +
             "Delete 1 of your opponent's Digimon with level ≤ 7 - floor(handCount / 3).",
-          optional: false,
-          resolve: (ctx) => resolveMain(ctx, source),
-        }),
-      ];
-    }
-
-    // [Security] Activate this card's [Main] effect.
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security-activate-main`,
-          description: "[Security] Activate this card's [Main] effect.",
           optional: false,
           resolve: (ctx) => resolveMain(ctx, source),
         }),
