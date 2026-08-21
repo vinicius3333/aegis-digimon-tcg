@@ -131,6 +131,7 @@ export async function runReplacement(
       ...replacementBudget,
       event,
       sourcePermanentId: self?.permanentId,
+      sourceInstanceId: self === undefined ? ctx.source.instanceId : undefined,
       mode: "prevent",
       affectsAll: action.affectsAll,
       description: action.raw,
@@ -172,6 +173,11 @@ export async function runReplacement(
         if (action.optional !== false) {
           const yes = await subCtx.ask.optional(subCtx, `Prevent leaving the battle area? (${action.raw})`);
           if (!yes) return false;
+        }
+        if (action.digivolveFromTrash === true) {
+          const targetId = subCtx.trigger.deletedPermanentId;
+          if (targetId === undefined) return false;
+          return (await subCtx.fx.digivolveFromInstance(targetId, subCtx.source.instanceId, { payCost: false })) !== undefined;
         }
         const runCtx: EffectContext =
           action.requiresDelayArmed === true ? { ...subCtx, delayArmedConsumed: true } : subCtx;
