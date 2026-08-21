@@ -26,7 +26,6 @@ const BARBAMON_X_ANTIBODY = "Barbamon (X Antibody)";
 async function resolveMain(ctx: EffectContext, source: CardSource): Promise<void> {
   const opponentSeat = ctx.game.opponentOf(source.ownerSeat);
   const handCount = ctx.game.player(opponentSeat).hand.length;
-  const levelMax = 7 - Math.floor(handCount / 3);
 
   // Step 1: if opponent has ≥5 hand cards, they must trash 1 (mandatory).
   if (handCount >= 5) {
@@ -40,6 +39,10 @@ async function resolveMain(ctx: EffectContext, source: CardSource): Promise<void
       await ctx.fx.trash(chosen);
     }
   }
+
+  // The level maximum is part of the effect after the "Then" instruction, so
+  // count the opponent's hand after the mandatory trash has resolved.
+  const levelMax = 7 - Math.floor(ctx.game.player(opponentSeat).hand.length / 3);
 
   // Step 2: delete 1 opponent Digimon with level ≤ levelMax (mandatory per KB Q4740).
   const deleteCandidates = Array.from(ctx.game.player(opponentSeat).battleArea)
