@@ -85,7 +85,7 @@ const module: EffectModule = {
                     max: 1,
                   });
                   if (chosen.length > 0) {
-                    await subCtx.fx.digivolveFromInstance(subjectId, chosen[0]!, { payCost: true, ignoreRequirements: true });
+                    await subCtx.fx.digivolveFromInstance(subjectId, chosen[0]!, { payCost: true, costDelta: -1, ignoreRequirements: true });
                   }
                 }
               },
