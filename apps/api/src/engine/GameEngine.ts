@@ -1842,6 +1842,10 @@ export class GameEngine {
             // Preserve the exact card that installed the watcher. This matters for inherited
             // effects whose source card is later trashed from the host's stack: the body still
             // means "this card", not the host's current top card.
+            if (sub.sourceInstanceId !== undefined) {
+              const loose = this.findLooseInstance(sub.sourceInstanceId);
+              if (loose !== undefined) return this.buildEffectContext(this.cardSourceOf(loose), payload);
+            }
             if (sub.sourcePermanentId !== undefined) {
               const srcPerm = this.access.permanentById(sub.sourcePermanentId);
               if (srcPerm?.topCard === undefined) return undefined;
@@ -1885,6 +1889,10 @@ export class GameEngine {
   }
 
   private buildSubTriggerContext(sub: SubTriggerSubscription, payload: TriggerInfo): EffectContext | undefined {
+    if (sub.sourceInstanceId !== undefined) {
+      const loose = this.findLooseInstance(sub.sourceInstanceId);
+      if (loose !== undefined) return this.buildEffectContext(this.cardSourceOf(loose), payload);
+    }
     if (sub.sourcePermanentId !== undefined) {
       const srcPerm = this.access.permanentById(sub.sourcePermanentId);
       if (srcPerm?.topCard === undefined) return undefined;

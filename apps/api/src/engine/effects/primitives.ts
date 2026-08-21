@@ -1938,10 +1938,6 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // face state because it also serves loose face-up zones, so normalize this specific
     // stack-to-trash route before publishing its watcher events.
     for (const card of moved) card.faceUp = true;
-    ledger.dropSourceInstances(
-      state,
-      moved.map((card) => card.instanceId),
-    );
     if (moved.length > 0 && engine.fireSubTrigger) {
       // Digi-Burst trashes all chosen sources simultaneously. Notify its self-card watchers in
       // one batch before any per-card fire can trigger a continuous recompute and tear down the
@@ -1992,6 +1988,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         });
       }
     }
+    ledger.dropSourceInstances(
+      state,
+      moved.map((card) => card.instanceId),
+    );
     return moved;
   };
 
@@ -2050,11 +2050,6 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       from: "various",
       to: Zone.Trash,
     });
-    ledger.dropSourceInstances(
-      state,
-      moved.map((card) => card.instanceId),
-    );
-
     if (engine.fireSubTrigger) {
       const byHost = new Map<string, typeof validated>();
       for (const entry of validated) {
@@ -2099,6 +2094,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         }
       }
     }
+    ledger.dropSourceInstances(
+      state,
+      moved.map((card) => card.instanceId),
+    );
     return moved;
   };
 
