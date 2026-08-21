@@ -117,10 +117,8 @@ const module: EffectModule = {
             }
 
             // Shuffle the security stack regardless (Q2468: even when no digivolve occurred).
-            // Security shuffle is not a direct primitive; we model it by moving cards then
-            // trusting the engine will shuffle internally. In practice the engine has no
-            // explicit security-shuffle primitive — we skip the shuffle as it is cosmetic for
-            // single-player tests; the KB ruling (Q4176) is satisfied at the rule level.
+            // This also re-hides any cards revealed while searching security.
+            ctx.fx.shuffleSecurity(ownerSeat);
 
             // Conditional <Recovery +1 (Deck)>: digivolved by this effect AND T.K. Takaishi in play.
             if (digivolvedByEffect && hasTKTakaishiTamer(ctx, ownerSeat)) {
