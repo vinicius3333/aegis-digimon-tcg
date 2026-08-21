@@ -181,7 +181,6 @@ const compiled: CompiledCard = {
           "kind": "SubTrigger",
           "event": "whenPlayed",
           "sourceFilter": {
-            "controllerDefault": "mine",
             "excludeSelf": true,
             "kind": [
               "Digimon"
@@ -201,14 +200,26 @@ const compiled: CompiledCard = {
                 "count": 1
               },
               "amount": 3
+            },
+            {
+              "kind": "Restrict",
+              "target": {
+                "filter": {
+                  "digivolutionCards": "none",
+                  "controller": "opponent",
+                  "kind": ["Digimon"]
+                },
+                "count": 1
+              },
+              "restriction": "suspend",
+              "duration": "untilOpponentTurnEnd"
             }
           ]
         },
         {
           "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
+          "event": "whenAnyDigivolves",
           "sourceFilter": {
-            "controllerDefault": "mine",
             "excludeSelf": true,
             "kind": [
               "Digimon"
@@ -228,23 +239,21 @@ const compiled: CompiledCard = {
                 "count": 1
               },
               "amount": 3
+            },
+            {
+              "kind": "Restrict",
+              "target": {
+                "filter": {
+                  "digivolutionCards": "none",
+                  "controller": "opponent",
+                  "kind": ["Digimon"]
+                },
+                "count": 1
+              },
+              "restriction": "suspend",
+              "duration": "untilOpponentTurnEnd"
             }
           ]
-        },
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "digivolutionCards": "none",
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "restriction": "suspend",
-          "duration": "untilOpponentTurnEnd"
         }
       ],
       "frequency": "OncePerTurn"
