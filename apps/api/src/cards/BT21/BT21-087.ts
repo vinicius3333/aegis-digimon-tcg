@@ -39,7 +39,7 @@ async function revealZenith(ctx: EffectContext, source: CardSource): Promise<voi
     else await ctx.fx.returnToHand(selected);
   }
   const rest = revealed.filter((card) => !selected.includes(card.instanceId)).map((card) => card.instanceId);
-  if (rest.length > 0) await ctx.fx.returnToDeck(rest, { toTop: false });
+  if (rest.length > 0) await ctx.fx.trash(rest, { byEffectSeat: source.ownerSeat });
 }
 
 const module: EffectModule = {

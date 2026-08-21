@@ -5,7 +5,7 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import "./BT21-087.js";
 
 describe("BT21-087 Zenith", () => {
-  it("registers a real reveal/play-or-add On Play effect and Security skill", () => {
+  it("registers a real reveal/play-or-add/trash-rest On Play effect and Security skill", () => {
     const module = getEffectModule("BT21-087");
     expect(module).toBeDefined();
     const source: CardSource = {
@@ -29,6 +29,7 @@ describe("BT21-087 Zenith", () => {
       hasColor: () => false,
     };
     expect(module!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(1);
+    expect(module!.effectsForTiming(EffectTiming.OnPlay, source)[0]?.description).toContain("Trash the rest");
     expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)[0]?.isSecurity).toBe(true);
   });
 });
