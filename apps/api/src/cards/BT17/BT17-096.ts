@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Main",
@@ -41,6 +41,20 @@ const compiled: CompiledCard = {
       ]
     },
     {
+      "trigger": "Main",
+      "actions": [
+        {
+          "kind": "Digivolve",
+          "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+          "into": { "controllerDefault": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Gallantmon"], "match": "name" }] },
+          "payCost": false,
+          "from": ["hand"],
+          "optional": true
+        }
+      ],
+      "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }]
+    },
+    {
       "trigger": "AllTurns",
       "actions": [
         {
@@ -73,37 +87,6 @@ const compiled: CompiledCard = {
               "duration": "permanent"
             }
           ]
-        },
-        {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Gallantmon"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "payCost": false,
-          "from": [
-            "hand"
-          ],
-          "optional": true
         }
       ]
     },
