@@ -32,7 +32,8 @@ const compiled: CompiledCard = {
           },
           "to": "hand",
           "cost": {
-            "kind": "trash",
+            "kind": "trashBottomFaceDownUnderTamer",
+            "controller": "mine",
             "target": {
               "filter": {
                 "controller": "mine",
