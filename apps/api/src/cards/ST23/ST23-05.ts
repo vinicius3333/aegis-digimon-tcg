@@ -23,7 +23,7 @@ const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }],
+            nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }],
             },
             count: 1,
           },
