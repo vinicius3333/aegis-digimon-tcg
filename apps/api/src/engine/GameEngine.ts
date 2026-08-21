@@ -10,7 +10,7 @@ import {
   type CardColor,
   type CardDefinition,
   type CardInstance,
-  type Permanent,
+  Permanent,
   type Intent,
   type IntentResult,
   type DecisionRequest,
