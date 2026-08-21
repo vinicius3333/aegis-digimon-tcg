@@ -90,7 +90,13 @@ const module: EffectModule = {
             if (p.topCard === undefined) return false;
             if (!isDigimon(ctx.game.definitionOf(p.topCard))) return false;
             const stack = p.stack as unknown as { instanceId: string }[];
-            if (stack.some((c) => hasXAntibodyName(ctx.game.definitionOf(c as unknown as import("@aegis/shared").CardInstance).nameEn))) return false;
+            if (
+              stack.some((c) => {
+                const def = ctx.game.definitionOf(c as unknown as import("@aegis/shared").CardInstance);
+                return hasXAntibodyName(def.nameEn) || hasXAntibodyTrait(def);
+              })
+            )
+              return false;
             return hand.some((c) => {
               const def = ctx.game.definitionOf(c);
               return isDigimon(def) && hasXAntibodyTrait(def);
@@ -106,7 +112,13 @@ const module: EffectModule = {
               if (p.topCard === undefined) return false;
               if (!isDigimon(ctx.game.definitionOf(p.topCard))) return false;
               const stack = p.stack as unknown as { instanceId: string }[];
-              if (stack.some((c) => hasXAntibodyName(ctx.game.definitionOf(c as unknown as import("@aegis/shared").CardInstance).nameEn))) return false;
+              if (
+                stack.some((c) => {
+                  const def = ctx.game.definitionOf(c as unknown as import("@aegis/shared").CardInstance);
+                  return hasXAntibodyName(def.nameEn) || hasXAntibodyTrait(def);
+                })
+              )
+                return false;
               return hand.some((c) => {
                 const def = ctx.game.definitionOf(c);
                 return isDigimon(def) && hasXAntibodyTrait(def);
@@ -173,9 +185,7 @@ const module: EffectModule = {
           const host = source.permanent();
           if (!host) return;
 
-          const digiCands = host.stack
-            .filter((c) => isDigimon(ctx.game.definitionOf(c)))
-            .map((c) => c.instanceId);
+          const digiCands = host.stack.filter((c) => isDigimon(ctx.game.definitionOf(c))).map((c) => c.instanceId);
           if (digiCands.length > 0) {
             const chosen = await ctx.ask.selectCards(ctx, { candidates: digiCands, min: 1, max: 1 });
             if (chosen.length > 0) {
@@ -184,7 +194,10 @@ const module: EffectModule = {
           }
 
           const xCands = host.stack
-            .filter((c) => hasXAntibodyName(ctx.game.definitionOf(c).nameEn))
+            .filter((c) => {
+              const def = ctx.game.definitionOf(c);
+              return hasXAntibodyName(def.nameEn) || hasXAntibodyTrait(def);
+            })
             .map((c) => c.instanceId);
           if (xCands.length > 0) {
             const chosen = await ctx.ask.selectCards(ctx, { candidates: xCands, min: 1, max: 1 });
