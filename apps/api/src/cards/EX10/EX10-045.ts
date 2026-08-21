@@ -51,7 +51,8 @@ const compiled: CompiledCard = {
                 }
               ]
             },
-            "count": 1
+            "count": 1,
+            "bindAs": "chosen"
           },
           "keyword": {
             "keyword": "Blocker",
@@ -75,7 +76,8 @@ const compiled: CompiledCard = {
                   }
                 ]
               },
-              "count": 1
+              "count": 1,
+              "from": ["digivolutionCards"]
             },
             "raw": "By trashing any 1 digivolution card of your [Bagra Army] trait Digimon"
           },
@@ -84,23 +86,7 @@ const compiled: CompiledCard = {
         },
         {
           "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Bagra Army"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
+          "target": { "fromSelectionRef": "chosen" },
           "keyword": {
             "keyword": "Retaliation",
             "raw": "＜Retaliation＞"
@@ -131,7 +117,8 @@ const compiled: CompiledCard = {
                 }
               ]
             },
-            "count": 1
+            "count": 1,
+            "bindAs": "chosen"
           },
           "keyword": {
             "keyword": "Blocker",
@@ -155,7 +142,8 @@ const compiled: CompiledCard = {
                   }
                 ]
               },
-              "count": 1
+              "count": 1,
+              "from": ["digivolutionCards"]
             },
             "raw": "By trashing any 1 digivolution card of your [Bagra Army] trait Digimon"
           },
@@ -164,23 +152,7 @@ const compiled: CompiledCard = {
         },
         {
           "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Bagra Army"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
+          "target": { "fromSelectionRef": "chosen" },
           "keyword": {
             "keyword": "Retaliation",
             "raw": "＜Retaliation＞"
@@ -211,7 +183,8 @@ const compiled: CompiledCard = {
                 }
               ]
             },
-            "count": 1
+            "count": 1,
+            "bindAs": "chosen"
           },
           "keyword": {
             "keyword": "Blocker",
@@ -235,7 +208,8 @@ const compiled: CompiledCard = {
                   }
                 ]
               },
-              "count": 1
+              "count": 1,
+              "from": ["digivolutionCards"]
             },
             "raw": "By trashing any 1 digivolution card of your [Bagra Army] trait Digimon"
           },
@@ -244,23 +218,7 @@ const compiled: CompiledCard = {
         },
         {
           "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Bagra Army"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
+          "target": { "fromSelectionRef": "chosen" },
           "keyword": {
             "keyword": "Retaliation",
             "raw": "＜Retaliation＞"
@@ -287,6 +245,8 @@ const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "onDigivolutionCardDiscarded",
+          "sourceFilter": { "isSelfRef": true },
+          "hostFilter": { "controller": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Bagra Army"], "match": "trait" }] },
           "actions": [
             {
               "kind": "Draw",
@@ -330,3 +290,5 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("EX10-045", compiled);
+
+export { compiled };
