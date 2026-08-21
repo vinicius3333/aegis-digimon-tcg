@@ -4,7 +4,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
-import "./BT17-034.js";
+import { compiled } from "./BT17-034.js";
 
 const source = { instanceId: "source", cardId: "BT17-034", ownerSeat: 0, definition: {}, permanent: () => undefined, isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true } as unknown as CardSource;
 
@@ -14,6 +14,10 @@ describe("BT17-034", () => {
     expect(module).toBeDefined();
     expect(module!.effectsForTiming(EffectTiming.WhenDigivolving, source)).toHaveLength(1);
     expect(module!.effectsForTiming(EffectTiming.None, source)).toHaveLength(2);
+    expect(compiled.effects?.[2]).toMatchObject({
+      isInherited: true,
+      actions: [{ while: { kind: "selfTopHasText", filter: { nameOrTrait: [{ tokens: ["Pulsemon"], match: "text" }] } } }],
+    });
   });
 
   it("recovers when any of its owner's security cards is trashed with Leon Alexander in stack", async () => {
