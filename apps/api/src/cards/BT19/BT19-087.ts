@@ -10,80 +10,80 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // the replacement to [Composite]/[Twilight] Digimon that actually have DigiXros requirements
 // (defined in their IR registry entry), not merely any Digimon with those traits.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourTurn",
-      "actions": [
+      trigger: "StartOfYourTurn",
+      actions: [
         {
-          "kind": "SetMemory",
-          "value": 3,
-          "condition": {
-            "kind": "memoryAtMost",
-            "value": 2
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": ["Digimon"],
-            "nameOrTrait": [
-              {
-                "tokens": ["Composite", "Twilight"],
-                "match": "trait"
-              }
-            ],
-            "hasDigiXrosRequirement": true
+          kind: "SetMemory",
+          value: 3,
+          condition: {
+            kind: "memoryAtMost",
+            value: 2,
           },
-          "mode": "instead",
-          "actions": [
-            {
-              "kind": "DigiXrosMaterialZoneExpansion",
-              "zones": ["tamerCards", "trash"],
-              "duration": "forTheTurn",
-              "cost": {
-                "kind": "suspend",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
-                  },
-                  "count": 1,
-                  "isSelf": true
-                },
-                "raw": "by suspending this Tamer"
-              }
-            }
-          ],
-          "raw": "by suspending this Tamer, 1 card under your Tamers and 1 card in your trash can also be placed for their DigiXros"
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "payCost": false
-        }
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              {
+                tokens: ["Composite", "Twilight"],
+                match: "trait",
+              },
+            ],
+            hasDigiXrosRequirement: true,
+          },
+          mode: "instead",
+          actions: [
+            {
+              kind: "DigiXrosMaterialZoneExpansion",
+              zones: ["tamerCards", "trash"],
+              duration: "forTheTurn",
+              cost: {
+                kind: "suspend",
+                target: {
+                  filter: {
+                    isSelfRef: true,
+                  },
+                  count: 1,
+                  isSelf: true,
+                },
+                raw: "by suspending this Tamer",
+              },
+            },
+          ],
+          raw: "by suspending this Tamer, 1 card under your Tamers and 1 card in your trash can also be placed for their DigiXros",
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT19-087", compiled);
