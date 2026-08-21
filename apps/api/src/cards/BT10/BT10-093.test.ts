@@ -11,8 +11,7 @@ import {
 } from "@aegis/shared";
 import { GameEngine, type GameEngineHooks } from "../../engine/GameEngine.js";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
-import { module } from "./BT10-093.js";
-import "./BT10-093.js";
+import { compiled } from "./BT10-093.js";
 
 // A3 for BT10-093 (Yuu Amano) — the cross-permanent + scaled play-cost reducer:
 //   "[Your turn][Once per turn] When you would play 1 Lv.4+ [Bagra Army] Digimon, by placing up to 3
@@ -252,7 +251,7 @@ describe("BT10-093 [All Turns] purple-card-placed memory credits its OWNER, not 
 
 describe("BT10-093 Security", () => {
   it("plays itself without cost from Security", () => {
-    const effect = module.effectsForTiming(EffectTiming.SecuritySkill, {} as any)[0];
-    expect(effect).toMatchObject({ isSecurity: true, optional: false });
+    const effect = compiled.effects?.find((entry) => entry.trigger === "Security");
+    expect(effect).toMatchObject({ isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] });
   });
 });
