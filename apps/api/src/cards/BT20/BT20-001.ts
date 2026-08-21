@@ -20,7 +20,12 @@ const compiled: CompiledCard = {
             "isSelf": true
           },
           "amount": 2000,
-          "duration": "permanent"
+          "duration": "permanent",
+          "condition": {
+            "kind": "selfDigivolutionCountAtLeast",
+            "value": 4,
+            "raw": "this Digimon has 4 or more digivolution cards"
+          }
         }
       ],
       "isInherited": true
