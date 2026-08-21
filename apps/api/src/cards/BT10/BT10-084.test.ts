@@ -29,7 +29,7 @@ import "./BT10-084.js";
 //
 // [On Play] Play up to 2 Bagra Army Lv.4 or lower Digimon from trash without cost;
 //   those Digimon gain ＜Blocker＞ until end of opponent's turn.
-// [Opponent's Turn] Replacement: digivolution-card trash redirect (engine gap; residual).
+// [Opponent's Turn] Replacement: digivolution-card trash redirect.
 //
 // Primary A3: [On Play] calls grantKeyword(Blocker, UntilOpponentTurnEnd) for each
 // Digimon played. Without the effect the grant would not be made.
