@@ -15,4 +15,22 @@ describe("BT21-004 compiled implementation", () => {
       for (const action of effect.actions ?? []) expect(typeof action.kind).toBe("string");
     }
   });
+
+  it("draws once per turn when one of your red or yellow Tamers suspends", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "YourTurn",
+        isInherited: true,
+        frequency: "OncePerTurn",
+        actions: [
+          {
+            kind: "SubTrigger",
+            event: "whenSuspended",
+            sourceFilter: { controller: "mine", kind: ["Tamer"], colors: ["Red", "Yellow"] },
+            actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
+          },
+        ],
+      }),
+    ]);
+  });
 });
