@@ -7,85 +7,75 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // return a Digimon Lv.6 or lower INSTEAD (not in addition).
 // Encoded as: try upgraded (cost+Lv.6); if declined, fall back to base (Lv.4).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 6
-              }
-            },
-            "count": 1
-          },
-          "to": "deckBottom",
-          "bindResultAs": "upgraded",
-          "cost": {
-            "kind": "return",
-            "target": {
-              "filter": {
-                "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Blue"
-              ],
-              "keywords": [
-                "Decode"
-              ]
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 6,
               },
-              "count": 1
             },
-            "raw": "By returning 1 of your blue Digimon to the bottom of the deck"
+            count: 1,
           },
-          "optional": true,
-          "abortOnDecline": false
+          to: "deckBottom",
+          bindResultAs: "upgraded",
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                colors: ["Blue"],
+                keywords: ["Decode"],
+              },
+              count: 1,
+            },
+            raw: "By returning 1 of your blue Digimon to the bottom of the deck",
+          },
+          optional: true,
+          abortOnDecline: false,
         },
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "to": "deckBottom",
-          "condition": {
-            "kind": "bindingEmpty",
-            "ref": "upgraded",
-            "raw": "the upgraded return was not used"
-          }
-        }
-      ]
+          to: "deckBottom",
+          condition: {
+            kind: "bindingEmpty",
+            ref: "upgraded",
+            raw: "the upgraded return was not used",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT19-092", compiled);
