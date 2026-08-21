@@ -214,6 +214,36 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
       ],
     },
   ],
+  "EX12-037": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 6 },
+        { color: "Red", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 6 },
+        { color: "Black", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 6 },
+        { color: "Red", level: 6 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 6 },
+        { color: "Black", level: 6 },
+      ],
+    },
+  ],
   "BT17-078": [
     {
       cost: 0,
@@ -254,6 +284,7 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     { level: 5, names: ["Garurumon"], cost: 3, isAlternate: true },
     { level: 5, traits: ["ME", "VB"], cost: 3, isAlternate: true },
   ],
+  "EX12-037": [{ level: 6, traits: ["ME", "VB"], cost: 5, isAlternate: true }],
   // RB1-009: a Gammamon with a Gammamon-named digivolution card may evolve into this
   // card from hand for 3, ignoring the ordinary level/color requirement.
   "RB1-009": [
