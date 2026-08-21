@@ -21,7 +21,7 @@ describe("ST20-14 Our Courage United", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
     const option = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === optionId)!.topCard;
-    await advance(s.engine).fire(EffectTiming.Main, option);
+    await advance(s.engine).fire(EffectTiming.OnDeclaration, option);
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawnTwo").instanceId));
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("drawnOne").instanceId, s.inst("drawnTwo").instanceId]),
@@ -38,9 +38,15 @@ describe("ST20-14 Our Courage United", () => {
     });
     await s.ready();
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("securityOption").instanceId));
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("securityOption").instanceId)).toBe(true);
-    expect(s.state.players[0]!.hand).not.toContainEqual(expect.objectContaining({ instanceId: s.inst("untouched").instanceId }));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("securityOption").instanceId),
+    );
+    expect(
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("securityOption").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand).not.toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("untouched").instanceId }),
+    );
     expect(s.state.memory).toBe(0);
   });
 
@@ -49,9 +55,17 @@ describe("ST20-14 Our Courage United", () => {
     await s.ready();
     await advance(s.engine).verb.placeOptionAsPermanent(s.inst("option").instanceId);
     const option = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("option").instanceId)!;
-    expect(JSON.parse(option.activatableEffectsJson || "[]").some((e: { description: string }) => /Delay/i.test(e.description))).toBe(false);
+    expect(
+      JSON.parse(option.activatableEffectsJson || "[]").some((e: { description: string }) =>
+        /Delay/i.test(e.description),
+      ),
+    ).toBe(false);
     s.state.turnCount += 1;
     await advance(s.engine).recompute();
-    expect(JSON.parse(option.activatableEffectsJson || "[]").some((e: { description: string }) => /Delay/i.test(e.description))).toBe(true);
+    expect(
+      JSON.parse(option.activatableEffectsJson || "[]").some((e: { description: string }) =>
+        /Delay/i.test(e.description),
+      ),
+    ).toBe(true);
   });
 });
