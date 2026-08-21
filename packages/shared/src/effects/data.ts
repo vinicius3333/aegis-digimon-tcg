@@ -26,6 +26,37 @@ export const ASSEMBLY_REQUIREMENT_OVERRIDES: Record<string, AssemblyRequirement[
       ],
     },
   ],
+  "EX12-035": [
+    {
+      reduceCost: 6,
+      materials: [
+        {
+          count: 1,
+          level: 5,
+          nameOrTrait: [
+            { tokens: ["Gabumon", "Garurumon"], match: "name" },
+            { tokens: ["ME", "VB"], match: "trait" },
+          ],
+        },
+        {
+          count: 1,
+          level: 4,
+          nameOrTrait: [
+            { tokens: ["Gabumon", "Garurumon"], match: "name" },
+            { tokens: ["ME", "VB"], match: "trait" },
+          ],
+        },
+        {
+          count: 1,
+          level: 3,
+          nameOrTrait: [
+            { tokens: ["Gabumon", "Garurumon"], match: "name" },
+            { tokens: ["ME", "VB"], match: "trait" },
+          ],
+        },
+      ],
+    },
+  ],
   "BT26-014": [{ reduceCost: 2, materials: [{ traits: ["TB"], levelMax: 4, count: 1 }] }],
   "BT26-017": [{ reduceCost: 4, materials: [{ traits: ["Shambala"], levelMax: 5, count: 2, differentLevels: true }] }],
   "BT26-028": [{ reduceCost: 2, materials: [{ traits: ["Life", "System", "Seven Code"], level: 3, count: 1 }] }],
@@ -153,6 +184,36 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
       ],
     },
   ],
+  "EX12-035": [
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Blue", level: 5 },
+        { color: "Yellow", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 5 },
+        { color: "Yellow", level: 5 },
+      ],
+    },
+  ],
   "BT17-078": [
     {
       cost: 0,
@@ -187,6 +248,11 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
   "EX12-032": [
     { level: 4, names: ["Garurumon"], cost: 3, isAlternate: true },
     { level: 4, traits: ["NSo", "VB"], cost: 3, isAlternate: true },
+  ],
+  // EX12-035 prints Lv.5 [Garurumon] in name OR [ME]/[VB] trait: cost 3.
+  "EX12-035": [
+    { level: 5, names: ["Garurumon"], cost: 3, isAlternate: true },
+    { level: 5, traits: ["ME", "VB"], cost: 3, isAlternate: true },
   ],
   // RB1-009: a Gammamon with a Gammamon-named digivolution card may evolve into this
   // card from hand for 3, ignoring the ordinary level/color requirement.
