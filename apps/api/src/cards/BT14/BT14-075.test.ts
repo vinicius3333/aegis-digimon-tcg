@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT14-075.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -15,5 +16,11 @@ describe("BT14-075", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ogre").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.length >= 3);
     expect(s.state.players[0]!.trash.slice(-3).map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002", "BT1-003"]);
+  });
+  it("trashes a random opponent hand card on deletion", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT14-075", as: "source" }] }, 1: { hand: [{ card: "BT1-002", as: "victim" }] } }, { autoSelectCards: true, autoAcceptOptional: true });
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-002"));
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-002")).toBe(true);
   });
 });
