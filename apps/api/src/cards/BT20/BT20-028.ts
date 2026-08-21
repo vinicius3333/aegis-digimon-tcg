@@ -13,7 +13,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q4320: Effect can't activate without [MetalSeadramon] or [X Antibody] in digivolution cards.
 // KB Q4321: Triggers when this card itself is played from digivolution cards.
 // Audit finding: [MetalSeadramon] is NAME match, [X Antibody] is TRAIT match.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
