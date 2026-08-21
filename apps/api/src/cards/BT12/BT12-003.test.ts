@@ -12,4 +12,13 @@ describe("BT12-003 Koromon", () => {
     await settle(() => s.perm("target").currentDP === before - 1000);
     expect(s.perm("target").currentDP).toBe(before - 1000);
   });
+
+  it("ignores a black Tamer", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT12-034", under: ["BT12-003"] }, { card: "BT12-094", as: "tamer" }] }, 1: { battleArea: [{ card: "BT1-009", as: "target" }] } }, { autoSelectCards: true });
+    await s.engine.recomputeContinuousEffects();
+    const before = s.perm("target").currentDP;
+    await advance(s.engine).verb.suspend([s.perm("tamer").permanentId]);
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.perm("target").currentDP).toBe(before);
+  });
 });
