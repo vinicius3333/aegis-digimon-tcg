@@ -43,7 +43,8 @@ const compiled: CompiledCard = {
               "controller": "opponent",
               "kind": [
                 "Digimon"
-              ]
+              ],
+              "digivolutionCards": "none"
             },
             "count": 1
           },
@@ -78,7 +79,8 @@ const compiled: CompiledCard = {
               "controller": "opponent",
               "kind": [
                 "Digimon"
-              ]
+              ],
+              "digivolutionCards": "none"
             },
             "count": 1
           },
