@@ -6,6 +6,8 @@ import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { activated, digivolveCostStatic, onDeletion, security } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
  * BT19-098 — King Device (BT19, Purple Option).
@@ -173,5 +175,63 @@ const module: EffectModule = {
   },
 };
 
+// Keep the generated contract lossless as well as the handwritten runtime module.  The
+// targeted PlaceInBattleAreaSelf form is the shared IR seam for placing an arbitrary
+// Option permanent from hand/trash (the interpreter routes it to placeOptionAsPermanent).
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Static",
+      actions: [{
+        kind: "WaiveColorRequirement",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        condition: {
+          kind: "youHaveNone",
+          filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["King Device"], match: "name" }] },
+          raw: "you don't have [King Device]",
+        },
+      }],
+    },
+    {
+      trigger: "whenTrashedFromBattleArea",
+      actions: [{
+        kind: "PlaceInBattleAreaSelf",
+        target: {
+          filter: { controller: "mine", kind: ["Option"], nameOrTrait: [{ tokens: ["Device"], match: "trait" }], playCost: { op: "lte", value: 3 } },
+          from: ["trash"], count: 1,
+        },
+      }],
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "PlaceInBattleAreaSelf",
+          target: {
+            filter: { controller: "mine", kind: ["Option"], nameOrTrait: [{ tokens: ["Device"], match: "trait" }], playCost: { op: "lte", value: 3 } },
+            from: ["trash"], count: 1,
+          },
+          optional: true,
+        },
+        { kind: "PlaceInBattleAreaSelf" },
+      ],
+    },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlaceInBattleAreaSelf",
+          target: { filter: { controller: "mine", kind: ["Option"], nameOrTrait: [{ tokens: ["Device"], match: "trait" }] }, from: ["hand"], count: 1, optional: true },
+        },
+        { kind: "AddToHandSelf" },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
 registerCard(module);
+registerIrCard(cardId, compiled);
 export default module;
