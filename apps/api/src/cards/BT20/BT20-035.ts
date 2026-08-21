@@ -8,7 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [All Turns]: When Tamer cards are placed in this Digimon's digivolution cards, activate
 // 1 of this Digimon's [When Digivolving] effects. Then, 1 of your Digimon may attack.
 // The ActivateEffect targets the opponent's Digimon or Tamer (inherited from WhenDigivolving).
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
@@ -66,19 +66,16 @@ const compiled: CompiledCard = {
                 "isSelf": true
               },
               "effectType": "WhenDigivolving"
+            },
+            {
+              "kind": "Attack",
+              "target": {
+                "filter": { "controller": "mine", "kind": ["Digimon"] },
+                "count": 1
+              },
+              "optional": true
             }
           ]
-        },
-        {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"]
-            },
-            "count": 1
-          },
-          "optional": true
         }
       ]
     },
