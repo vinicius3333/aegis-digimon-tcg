@@ -59,8 +59,8 @@ export interface AuraAction extends ActionBase {
     | { kind: "modifySecurityDP"; amount: number; seat?: "mine" | "opponent" }
     | { kind: "securityAttack"; amount: number }
     | { kind: "restriction"; restriction: RestrictionKind };
-  /** Re-evaluated continuously. */
-  while: Condition;
+  /** Optional gate re-evaluated continuously; omitted means continuously while the source exists. */
+  while?: Condition;
 }
 
 /**

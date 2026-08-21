@@ -245,7 +245,10 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       }
       for (const extra of action.keywords ?? []) {
         if (extra.keyword === kw) continue;
-        for (const id of ids) ctx.fx.grantKeyword(id, extra.keyword, duration, extra.amount);
+        for (const id of ids) {
+          if (extra.keyword === "Piercing") ctx.fx.grantPierce(id, duration);
+          else ctx.fx.grantKeyword(id, extra.keyword, duration, extra.amount);
+        }
       }
       // Some generated cards attach a second continuous grant to a keyword action. The legacy
       // shape used by BT24-028 is `additionalEffect: { kind: "GrantStatic", modifier:

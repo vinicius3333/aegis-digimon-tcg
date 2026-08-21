@@ -19,7 +19,7 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
       // builder re-runs this resolve each evaluation, so re-checking the gate here
       // condition gives (it lapses the moment the gate fails). The battle-area guard
       // is implicit (no source permanent => no candidates).
-      if (!evaluateCondition(ctx, action.while)) return false;
+      if (action.while !== undefined && !evaluateCondition(ctx, action.while)) return false;
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = EffectDuration.UntilEachTurnEnd;
       for (const id of ids) {
