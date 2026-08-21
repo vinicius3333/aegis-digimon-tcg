@@ -638,7 +638,9 @@ export async function runSubTrigger(
   const matches = gates.length === 0 ? undefined : (subCtx: EffectContext): boolean => gates.every((g) => g(subCtx));
   ctx.fx.subscribeSubTrigger({
     event,
-    sourcePermanentId: anchorPermanentId,
+    ...(sourceFilter?.isSelfRef === true
+      ? { sourceInstanceId: ctx.source.instanceId }
+      : { sourcePermanentId: anchorPermanentId }),
     ...(playerScoped
       ? { activationContext: ctx }
       : action.on !== undefined
