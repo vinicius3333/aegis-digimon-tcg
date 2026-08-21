@@ -16,4 +16,18 @@ describe("BT9-021 Jellymon", () => {
     await advance(s.engine).verb.returnToHand([s.inst("added").instanceId]);
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === targetId)).toBe(true);
   });
+
+  it("does not return an opposing level 3 when an effect adds a card to the opponent's hand", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT9-025", as: "host", under: ["BT9-021"] }] },
+      1: {
+        battleArea: [{ card: "BT1-028", as: "target" }],
+        trash: [{ card: "BT1-001", as: "added" }],
+      },
+    });
+    const targetId = s.perm("target").topCard!.instanceId;
+    await advance(s.engine).verb.returnToHand([s.inst("added").instanceId]);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === targetId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === targetId)).toBe(false);
+  });
 });
