@@ -8,6 +8,18 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   "effects": [
     {
+      "trigger": "WhenAttacking",
+      "isLinked": true,
+      "actions": [{
+        "kind": "Return",
+        "to": "hand",
+        "target": { "filter": { "controller": "mine", "zone": "trash", "kind": ["Digimon"], "nameOrTrait": [{ "match": "trait", "tokens": ["Appmon"] }] }, "count": 1 },
+        "cost": { "kind": "trash", "target": { "filter": { "controller": "mine", "kind": ["Digimon"], "zone": "linked" }, "count": 1 }, "raw": "By trashing 1 of this Digimon's link cards" },
+        "optional": true,
+        "abortOnDecline": true
+      }]
+    },
+    {
       "trigger": "Static",
       "actions": [],
       "keywords": [
@@ -33,8 +45,9 @@ const compiled: CompiledCard = {
                 "value": 4
               }
             },
-            "count": 1
+          "count": 1
           },
+          "from": ["hand", "digivolutionCards"],
           "payCost": false,
           "optional": true
         }
@@ -56,8 +69,9 @@ const compiled: CompiledCard = {
                 "value": 4
               }
             },
-            "count": 1
+          "count": 1
           },
+          "from": ["hand", "digivolutionCards"],
           "payCost": false,
           "optional": true
         }
@@ -105,9 +119,7 @@ const compiled: CompiledCard = {
               "cost": {
                 "kind": "trash",
                 "target": {
-                  "filter": {
-                    "controllerDefault": "mine"
-                  },
+                  "filter": { "isSelfRef": true, "zone": "linked" },
                   "count": 1
                 },
                 "raw": "by trashing 1 of its link cards"
@@ -134,5 +146,7 @@ const compiled: CompiledCard = {
     }
   ]
 };
+
+export { compiled };
 
 registerIrCard("EX10-030", compiled);
