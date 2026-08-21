@@ -27,6 +27,14 @@ describe("BT21-081 Owen Dreadnought", () => {
         actions: [expect.objectContaining({ kind: "GainMemory", amount: 1 })],
       }),
     );
-    expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "Security", isSecurity: true }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "Security",
+        isSecurity: true,
+        actions: [expect.objectContaining({ kind: "PlayWithoutCost", payCost: false })],
+      }),
+    );
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });
