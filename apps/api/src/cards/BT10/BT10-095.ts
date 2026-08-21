@@ -6,153 +6,133 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Modal",
-          "choose": 1,
-          "options": [
+          kind: "Modal",
+          choose: 1,
+          options: [
             [
               {
-                "kind": "GainKeyword",
-                "target": {
-                  "filter": {
-                    "controller": "mine",
-                    "kind": [
-                      "Digimon"
-                    ],
-                    "nameOrTrait": [
+                kind: "GainKeyword",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    kind: ["Digimon"],
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "Xros Heart"
-                        ],
-                        "match": "trait"
-                      }
-                    ]
+                        tokens: ["Xros Heart"],
+                        match: "trait",
+                      },
+                    ],
                   },
-                  "count": 1
+                  count: 1,
                 },
-                "keyword": {
-                  "keyword": "SecurityAttack",
-                  "amount": 1,
-                  "raw": "＜Security Attack +1＞"
+                keyword: {
+                  keyword: "SecurityAttack",
+                  amount: 1,
+                  raw: "＜Security Attack +1＞",
                 },
-                "duration": "forTheTurn"
-              }
+                duration: "forTheTurn",
+              },
             ],
             [
               {
-                "kind": "Draw",
-                "controller": "mine",
-                "amount": 2
-              }
-            ]
+                kind: "Draw",
+                controller: "mine",
+                amount: 2,
+              },
+            ],
           ],
-          "optional": false,
-          "condition": {
-            "kind": "not",
-            "condition": {
-              "kind": "youHave",
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+          optional: false,
+          condition: {
+            kind: "not",
+            condition: {
+              kind: "youHave",
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Shoutmon X5"
-                    ],
-                    "match": "name"
-                  }
-                ]
-              }
-            }
-          }
-        },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Xros Heart"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                    tokens: ["Shoutmon X5"],
+                    match: "name",
+                  },
+                ],
+              },
             },
-            "count": 1
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": 1,
-            "raw": "＜Security Attack +1＞"
-          },
-          "duration": "forTheTurn",
-          "optional": false,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Shoutmon X5"
-                  ],
-                  "match": "name"
-                }
-              ]
-            }
-          }
         },
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 2,
-          "optional": false,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Shoutmon X5"
-                  ],
-                  "match": "name"
-                }
-              ]
-            }
-          }
-        }
-      ]
+                  tokens: ["Xros Heart"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: 1,
+            raw: "＜Security Attack +1＞",
+          },
+          duration: "forTheTurn",
+          optional: false,
+          condition: {
+            kind: "youHave",
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Shoutmon X5"],
+                  match: "name",
+                },
+              ],
+            },
+          },
+        },
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 2,
+          optional: false,
+          condition: {
+            kind: "youHave",
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Shoutmon X5"],
+                  match: "name",
+                },
+              ],
+            },
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "AddToHandSelf"
-        }
+          kind: "AddToHandSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT10-095", compiled);
