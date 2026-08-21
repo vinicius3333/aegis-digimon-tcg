@@ -8,7 +8,28 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "WhenLinking",
+      isLinked: true,
+      actions: [
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+            },
+            count: 1,
+          },
+          to: "hand",
+          optional: true,
+        },
+      ],
+    },
+    {
       trigger: "Security",
+      timing: "endOfBattle",
       actions: [
         {
           kind: "PlayWithoutCost",
@@ -74,6 +95,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["Appmon"], cost: 2 }],
 };
 
 registerIrCard("BT21-070", compiled);
