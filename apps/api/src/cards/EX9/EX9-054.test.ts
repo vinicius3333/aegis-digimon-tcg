@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./EX9-054.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 describe("EX9-054", () => {
   it("de-digivolves one on play and digivolution", () => {
@@ -32,4 +34,16 @@ describe("EX9-054", () => {
     },
   }));
   it("inherits once-per-turn unsuspend when an Abbadomon attack target switches", () => expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenAttackTargetSwitched", actions: [{ kind: "Unsuspend" }] }] }));
+  it("plays a qualifying Negamon-text Digimon from hand when deleted", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX9-054", as: "source" }], hand: ["EX9-047"] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const player = s.state.players[0]!;
+
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
+    await settle(() => player.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-047"));
+
+    expect(player.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-047")).toBe(true);
+    expect(player.hand.some((card) => card.cardId === "EX9-047")).toBe(false);
+  });
 });
