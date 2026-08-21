@@ -12,8 +12,8 @@ function hasVemmonOrZenith(def: CardDefinition): boolean {
   return def.nameEn.includes("Vemmon") || def.nameEn.includes("Zenith");
 }
 
-function _hasVemmonText(def: CardDefinition): boolean {
-  return def.nameEn.includes("Vemmon");
+function hasVemmonText(def: CardDefinition): boolean {
+  return JSON.stringify(def).includes("Vemmon");
 }
 
 const module: EffectModule = {
@@ -70,20 +70,23 @@ const module: EffectModule = {
               description: `${cardId}: When Vemmon placed as digivolution, digivolve.`,
               matches: (subCtx) => {
                 if (!subCtx.source.isOnBattleArea()) return false;
-                // ENGINE-GAP: subjectCard not available on TriggerInfo;
-                // approximate by checking the host Digimon has Vemmon in name.
                 const subjectId = subCtx.trigger?.subjectPermanentId;
                 if (subjectId === undefined) return false;
                 const host = subCtx.game.permanentById(subjectId);
                 if (host === undefined || host.topCard === undefined) return false;
-                return subCtx.game.definitionOf(host.topCard).nameEn.includes("Vemmon");
+                const addedIds = subCtx.trigger?.addedDigivolutionCardInstanceIds ?? [];
+                const addedVemmon = addedIds.some((instanceId) => {
+                  const card = host.stack.find((entry) => entry.instanceId === instanceId);
+                  return card !== undefined && hasVemmonText(subCtx.game.definitionOf(card));
+                });
+                return addedVemmon && hasVemmonText(subCtx.game.definitionOf(host.topCard));
               },
               run: async (subCtx) => {
                 const currentSelf = subCtx.game.permanentById(self.permanentId);
                 if (currentSelf === undefined) return;
                 const owner = subCtx.game.player(source.ownerSeat);
                 const targets = Array.from(owner.battleArea)
-                  .filter((p) => p.topCard !== undefined && subCtx.game.definitionOf(p.topCard).nameEn.includes("Vemmon"))
+                  .filter((p) => p.topCard !== undefined && hasVemmonText(subCtx.game.definitionOf(p.topCard)))
                   .map((p) => p.permanentId);
                 if (targets.length === 0) return;
                 const chosen = await subCtx.ask.chooseTargets(subCtx, {
@@ -105,7 +108,10 @@ const module: EffectModule = {
                   max: 1,
                 });
                 if (into.length > 0) {
-                  await subCtx.fx.digivolveFromInstance(chosen[0]!, into[0]!, { payCost: true, ignoreRequirements: true });
+                  await subCtx.fx.digivolveFromInstance(chosen[0]!, into[0]!, {
+                    payCost: true,
+                    ignoreRequirements: true,
+                  });
                 }
               },
             });
