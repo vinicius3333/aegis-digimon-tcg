@@ -49,7 +49,7 @@ describe("EX11-027 Maquinamon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX11-033")).toBe(true);
   });
 
-  it("has no residual metadata after the link behavior is implemented", () => {
+  it("records complete compiled coverage after the link behavior is implemented", () => {
     const compiled = runtimeCompiledCard("EX11-027")!;
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
