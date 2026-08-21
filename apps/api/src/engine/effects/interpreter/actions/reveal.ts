@@ -11,6 +11,12 @@ import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } fr
 import { isDigimon } from "@aegis/shared";
 import type { Action, Filter, Target } from "@aegis/shared";
 
+/** Cards whose rule text changes their level only while they are revealed from deck. */
+export function revealedDefinition(ctx: EffectContext, card: import("@aegis/shared").CardInstance): DefinitionFacts {
+  const def = ctx.game.definitionOf(card) as DefinitionFacts;
+  return card.cardId === "BT17-068" ? { ...def, level: 6 } : def;
+}
+
 /**
  * Reveal without moving cards. Deck reveals use the primitive that flips the top N
  * cards face-up in place. Hand reveals select the cards to expose but intentionally
@@ -159,7 +165,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     const primaryFilter = materializePlayCostScaling(spec.filter);
     const alternativeFilters = (spec.orFilters ?? []).map(materializePlayCostScaling);
     const qualifies = (c: import("@aegis/shared").CardInstance) => {
-      const def = ctx.game.definitionOf(c);
+      const def = revealedDefinition(ctx, c);
       // "Add 1 [X] or 1 Y card among them": a card qualifies under EITHER alternative;
       // `count` is the total across the union, so the player adds 1 from either, not one each.
       return definitionMatches(primaryFilter, def) || alternativeFilters.some((alt) => definitionMatches(alt, def));
@@ -261,7 +267,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         faceDown?: boolean;
       } = { to: spec.to, underFilter: spec.underFilter, toTop: spec.toTop, faceDown: spec.faceDown };
       const alternatives = (spec.orDispositions ?? []).filter(
-        (choice) => choice.filter === undefined || definitionMatches(choice.filter, ctx.game.definitionOf(c)),
+        (choice) => choice.filter === undefined || definitionMatches(choice.filter, revealedDefinition(ctx, c)),
       );
       if (alternatives.length > 0) {
         const choices = [disposition, ...alternatives];
@@ -492,7 +498,7 @@ export async function runRevealChooseDeleteBudget(
 
   const visible = revealed.map((card) => card.instanceId);
   const referenceCandidates = revealed.filter((card) =>
-    definitionMatches(action.chooseFilter, ctx.game.definitionOf(card)),
+    definitionMatches(action.chooseFilter, revealedDefinition(ctx, card)),
   );
   if (referenceCandidates.length > 0) {
     const chosen = await ctx.ask.selectCards(ctx, {
@@ -594,7 +600,7 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
         const security = ctx.game.player(seat).security;
         const { zone: _zone, ...definitionFilter } = action.filter;
         const candidates = security.filter((card) =>
-          definitionMatches(definitionFilter, ctx.game.definitionOf(card) as DefinitionFacts),
+          definitionMatches(definitionFilter, revealedDefinition(ctx, card)),
         );
         const maximum = action.count === "all" ? candidates.length : action.count;
         const selectedIds = await ctx.ask.selectCards(ctx, {
