@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 
 // A3 for BT21-058 (Snatchmon) — [On Play] / [When Digivolving]:
@@ -126,5 +127,21 @@ describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () =>
     }
 
     expect(p0?.hand.some((c) => c.instanceId === qualifyingId)).toBe(true);
+  });
+
+  it("deletes an opposing play-cost-4-or-less Digimon when a stacked Vemmon returns to deck", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: SNATCHMON }, { card: VEMMON_CARD, as: "stackedVemmon" }] }] },
+      1: { battleArea: [{ card: PLAIN_CARD, as: "target" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const hostId = s.perm("host").permanentId;
+    const targetId = s.perm("target").permanentId;
+    const vemmonId = s.inst("stackedVemmon").instanceId;
+
+    await fireTiming(s, EffectTiming.OnEnterFieldAnyone, { subjectPermanentId: hostId });
+    await advance(s.engine).verb.returnToDeck([vemmonId], { toTop: false });
+
+    await new Promise((resolve) => setTimeout(resolve, 20));
+    expect(s.state.players[1]?.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
   });
 });
