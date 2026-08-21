@@ -79,12 +79,17 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/grant-on-deletion`,
           description:
-            "[When Digivolving] Until the end of your opponent's turn, this Digimon and 1 of your level 5 or lower Digimon gain \"[On Deletion] You may play this card without paying the cost.\"",
+            '[When Digivolving] Until the end of your opponent\'s turn, this Digimon and 1 of your level 5 or lower Digimon gain "[On Deletion] You may play this card without paying the cost."',
           optional: false,
           resolve: async (ctx) => {
             const self = source.permanent();
             if (!self) return;
-            ctx.fx.grantCustomEffect?.(self.permanentId, source.ownerSeat, "OnDeletionPlaySelf", EffectDuration.UntilOpponentTurnEnd);
+            ctx.fx.grantCustomEffect?.(
+              self.permanentId,
+              source.ownerSeat,
+              "OnDeletionPlaySelf",
+              EffectDuration.UntilOpponentTurnEnd,
+            );
 
             const mine = ctx.game.player(source.ownerSeat).battleArea;
             const candidates = mine
@@ -99,7 +104,12 @@ const module: EffectModule = {
             if (candidates.length > 0) {
               const chosen = await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 });
               if (chosen.length > 0) {
-                ctx.fx.grantCustomEffect?.(chosen[0]!, source.ownerSeat, "OnDeletionPlaySelf", EffectDuration.UntilOpponentTurnEnd);
+                ctx.fx.grantCustomEffect?.(
+                  chosen[0]!,
+                  source.ownerSeat,
+                  "OnDeletionPlaySelf",
+                  EffectDuration.UntilOpponentTurnEnd,
+                );
               }
             }
           },
