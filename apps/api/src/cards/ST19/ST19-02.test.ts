@@ -5,6 +5,7 @@ import { consultLeavePrevention } from "../../engine/effects/leavePrevention.js"
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST19-02.js";
 
 // A3 for ST19-02 (Angewomon (X Antibody)) — ＜Barrier＞ ONCE PER TURN.
@@ -49,6 +50,29 @@ function fakeDefinition(cardId: string): CardDefinition {
 }
 
 describe("ST19-02 ＜Barrier＞ is once per turn", () => {
+  it("prevents the first battle deletion but not the second in the same turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-001", as: "first", dp: 5000 }, { card: "AD1-001", as: "second", dp: 5000 }] },
+      1: { battleArea: [{ card: "ST19-10", as: "barrier", dp: 1000, suspended: true, under: ["ST19-02"] }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("first").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("barrier").permanentId },
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("first").suspended && s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("barrier").permanentId));
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("second").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("barrier").permanentId },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
   it("uses the catalogued Junkmon Puppet identity", () => {
     expect(getCardDefinition("ST19-02")).toMatchObject({
       nameEn: "Junkmon",
