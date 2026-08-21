@@ -32,7 +32,6 @@ import { registerCard } from "../../engine/effects/registry.js";
  * The "different names" constraint is enforced via the engine's differentNames filter in
  * the IR, but here we enforce it manually for the place-under and return-cost selections.
  *
- * residual: the security-trash reduction (7 - deleted count) — fully implemented here.
  */
 const cardId = "EX6-073";
 
@@ -48,11 +47,7 @@ function isOpponentDigimonOrTamer(def: CardDefinition): boolean {
 }
 
 /** Select up to `max` from `pool` enforcing different card names. */
-async function selectDifferentNames(
-  ctx: EffectContext,
-  pool: CardInstance[],
-  max: number,
-): Promise<CardInstance[]> {
+async function selectDifferentNames(ctx: EffectContext, pool: CardInstance[], max: number): Promise<CardInstance[]> {
   const selected: CardInstance[] = [];
   const usedNames = new Set<string>();
 
@@ -84,15 +79,13 @@ async function selectDifferentNames(
 /** Shared place-under-from-trash logic for [When Digivolving] and [When Attacking] #1. */
 async function placeUnderFromTrash(ctx: EffectContext, source: CardSource): Promise<void> {
   const player = ctx.game.player(source.ownerSeat);
-  const qualifying = Array.from(player.trash).filter((c) =>
-    hasSevenGreatDemonLords(ctx.game.definitionOf(c)),
-  );
+  const qualifying = Array.from(player.trash).filter((c) => hasSevenGreatDemonLords(ctx.game.definitionOf(c)));
   if (qualifying.length === 0) return;
 
   const willDo = await ctx.ask.optional(
     ctx,
     "Place up to 7 [Seven Great Demon Lords] cards with different names from your trash as " +
-    "this Digimon's bottom digivolution cards? (4+ placed = delete 1 opponent Digimon/Tamer)",
+      "this Digimon's bottom digivolution cards? (4+ placed = delete 1 opponent Digimon/Tamer)",
   );
   if (!willDo) return;
 
@@ -187,9 +180,7 @@ const module: EffectModule = {
             if (perm === undefined) return false;
             // Need exactly 7+ qualifying cards with different names in digivolution stack
             // (KB Q3826: must return all 7 — can't return fewer).
-            const qualifying = perm.stack.filter((c) =>
-              hasSevenGreatDemonLords(ctx.game.definitionOf(c)),
-            );
+            const qualifying = perm.stack.filter((c) => hasSevenGreatDemonLords(ctx.game.definitionOf(c)));
             const uniqueNames = new Set(qualifying.map((c) => ctx.game.definitionOf(c).nameEn));
             return uniqueNames.size >= 7;
           },
@@ -198,9 +189,7 @@ const module: EffectModule = {
             if (perm === undefined) return;
 
             // Select 7 cards with different names from digivolution stack.
-            const stackCards = perm.stack.filter((c) =>
-              hasSevenGreatDemonLords(ctx.game.definitionOf(c)),
-            );
+            const stackCards = perm.stack.filter((c) => hasSevenGreatDemonLords(ctx.game.definitionOf(c)));
 
             const willDo = await ctx.ask.optional(
               ctx,
@@ -221,11 +210,7 @@ const module: EffectModule = {
             const opponent = ctx.game.opponentOf(source.ownerSeat);
             const opponentPlayer = ctx.game.player(opponent);
             const deleteCandidates = Array.from(opponentPlayer.battleArea)
-              .filter(
-                (p) =>
-                  p.topCard !== undefined &&
-                  isOpponentDigimonOrTamer(ctx.game.definitionOf(p.topCard)),
-              )
+              .filter((p) => p.topCard !== undefined && isOpponentDigimonOrTamer(ctx.game.definitionOf(p.topCard)))
               .map((p) => p.permanentId);
 
             let deletedCount = 0;
