@@ -286,8 +286,8 @@ const compiled: CompiledCard = {
       isInherited: true,
     },
   ],
-  coverage: "partial",
-  residual: ["DigivolveViaPlacement runtime execution is unsupported"],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX10-032", compiled);

@@ -80,6 +80,21 @@ export interface DigivolveAction extends ActionBase {
   bindResultAs?: string;
 }
 
+export interface DigivolveViaPlacementAction extends Omit<ActionBase, "cost"> {
+  kind: "DigivolveViaPlacement";
+  placeCost: {
+    kind: "placeFromTrash";
+    target: Target;
+    destination: "digivolutionStack";
+    position: "bottom";
+    hostFilter: Filter;
+    raw?: string;
+  };
+  into: Target;
+  cost: number;
+  ignoreDigivolutionRequirements?: boolean;
+}
+
 export interface PlaceUnderAction extends ActionBase {
   kind: "PlaceUnder";
   /** Cards placed as digivolution cards or under a Tamer. */

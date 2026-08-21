@@ -4,7 +4,7 @@ import type { EffectContext } from "../../EffectContext.js";
 import type { ActionScope } from "../dispatch.js";
 import { toDuration } from "../duration.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
-import { runDigivolve } from "./digivolve.js";
+import { runDigivolve, runDigivolveViaPlacement } from "./digivolve.js";
 import { runAppFuse, runDnaDigivolve } from "./dna.js";
 import { runLink, runMindLink } from "./link.js";
 import { runPlaceUnder, runTrashDigivolution } from "./placeUnder.js";
@@ -49,6 +49,10 @@ export async function runDigivolutionAction(ctx: EffectContext, action: Action, 
         return false;
       }
       await runDigivolve(ctx, action);
+      return false;
+    }
+    case "DigivolveViaPlacement": {
+      await runDigivolveViaPlacement(ctx, action);
       return false;
     }
     case "DnaDigivolve": {

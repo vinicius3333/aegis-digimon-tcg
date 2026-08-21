@@ -2,9 +2,9 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./EX10-032.js";
 
 describe("EX10-032 Proganomon", () => {
-  it("proves hand digivolution, shared buffs, inherited De-Digivolve, and the runtime residual", () => {
-    expect(compiled.coverage).toBe("partial");
-    expect(compiled.residual).toEqual(["DigivolveViaPlacement runtime execution is unsupported"]);
+  it("proves hand digivolution, shared buffs, inherited De-Digivolve, and complete coverage", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
     expect(compiled.effects?.find((effect) => effect.trigger === "Main")).toMatchObject({
       isFromHand: true,
       condition: { kind: "youHave" },
@@ -25,6 +25,21 @@ describe("EX10-032 Proganomon", () => {
       actions: [
         { kind: "SubTrigger", event: "onDigivolutionCardDiscarded", actions: [{ kind: "DeDigivolve", amount: 1 }] },
       ],
+    });
+  });
+
+  it("encodes the executable placement sequence", () => {
+    expect(compiled.effects?.find((effect) => effect.trigger === "Main")?.actions[0]).toMatchObject({
+      kind: "DigivolveViaPlacement",
+      cost: 3,
+      placeCost: {
+        kind: "placeFromTrash",
+        destination: "digivolutionStack",
+        position: "bottom",
+        hostFilter: { nameOrTrait: [{ tokens: ["Sunarizamon"], match: "name" }] },
+      },
+      into: { isSelfRef: true },
+      ignoreDigivolutionRequirements: true,
     });
   });
 });
