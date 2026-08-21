@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
   CardKind,
-  EffectDuration,
   EffectTiming,
   type CardDefinition,
   type CardInstance,
@@ -145,7 +144,7 @@ describe("EX4-059 Cherubimon", () => {
       source,
       trigger: {},
       game,
-      fx: { grantCustomEffect: (...args: unknown[]) => grants.push(args) } as unknown as Primitives,
+      fx: { subscribeSubTrigger: (args: unknown) => grants.push(args) } as unknown as Primitives,
       ask: {
         chooseOption: async () => 0,
         chooseTargets: async () => ["ally"],
@@ -155,7 +154,7 @@ describe("EX4-059 Cherubimon", () => {
       },
     } as unknown as EffectContext);
     expect(grants).toHaveLength(2);
-    expect(grants[0]).toEqual(["self", 0, "OnDeletionPlaySelf", EffectDuration.UntilOpponentTurnEnd]);
-    expect(grants[1]).toEqual(["ally", 0, "OnDeletionPlaySelf", EffectDuration.UntilOpponentTurnEnd]);
+    expect(grants[0]).toMatchObject({ sourcePermanentId: "self", event: "onDeletionOf" });
+    expect(grants[1]).toMatchObject({ sourcePermanentId: "ally", event: "onDeletionOf" });
   });
 });

@@ -168,7 +168,7 @@ export function timingsForTrigger(effect: CardEffect, isOptionPlayBody: boolean)
   if (!effect.isSecurity && effect.trigger === "Main" && !isDelay && !isOptionPlayBody) {
     return [EffectTiming.OnUseOption, EffectTiming.OnDeclaration];
   }
-  if (effect.isInherited && effect.trigger === "WhenAttacking") {
+  if (effect.trigger === "WhenAttacking") {
     return [primary, EffectTiming.OnAllyAttack];
   }
   return [primary];

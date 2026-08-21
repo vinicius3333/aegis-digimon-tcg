@@ -18,6 +18,50 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
  */
 const cardId = "EX4-059";
 
+const compiled = {
+  ...compiledEffects[cardId]!,
+  effects: [
+    ...compiledEffects[cardId]!.effects.map((effect) =>
+      effect.trigger === "WhenDigivolving"
+        ? {
+            ...effect,
+            actions: [
+              {
+                kind: "GainTriggeredEffect" as const,
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                gainedTrigger: "onDeletionOf",
+                gainedActions: [{ kind: "PlayWithoutCost" as const, target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false, optional: true }],
+                duration: "untilOpponentTurnEnd" as const,
+              },
+              {
+                kind: "GainTriggeredEffect" as const,
+                target: { filter: { controllerDefault: "mine", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 }, excludeSelf: true }, count: 1 },
+                gainedTrigger: "onDeletionOf",
+                gainedActions: [{ kind: "PlayWithoutCost" as const, target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false, optional: true }],
+                duration: "untilOpponentTurnEnd" as const,
+              },
+            ],
+          }
+        : effect,
+    ),
+    {
+      trigger: "WhenAttacking" as const,
+      actions: [
+        {
+          kind: "AddDPFromSuspendedCost" as const,
+          cost: { kind: "suspend" as const, target: { filter: { controller: "mine", kind: ["Digimon"], excludeSelf: true }, count: 1 } },
+          dpSource: { kind: "suspendedTarget" as const },
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          duration: "forThisAttack" as const,
+          alsoGainKeywords: [{ keyword: "Piercing" as const }],
+        },
+      ],
+    },
+  ],
+  coverage: "full" as const,
+  residual: [],
+};
+
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
@@ -112,5 +156,5 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard(cardId, compiledEffects[cardId]!, module);
+registerIrCard(cardId, compiled);
 export default module;
