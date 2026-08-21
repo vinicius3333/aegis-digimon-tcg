@@ -13,6 +13,7 @@ export interface Cost {
     | "trash"
     | "suspend"
     | "unsuspend" // BT14-054
+    | "unsuspendNamed" // BT19-090: one suspended permanent for each named requirement
     | "return"
     | "place"
     | "placeOwnTopAtStackBottom"
@@ -30,6 +31,8 @@ export interface Cost {
     | "playFromDigivolutionCards" // play a card from a selected Digimon's stack (BT19-102)
     | "raw";
   target?: Target;
+  /** Distinct targets for a compound named unsuspend cost. */
+  targets?: Target[];
   /** The nested costs a `compound` cost pays. */
   costs?: Cost[];
   /** Host permanent selected before resolving a stack-card play cost (BT19-102). */

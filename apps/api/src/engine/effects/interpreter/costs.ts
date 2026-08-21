@@ -309,6 +309,21 @@ export async function payCost(
       await ctx.fx.unsuspend(suspendedIds);
       return true;
     }
+    case "unsuspendNamed": {
+      const targets = cost.targets ?? [];
+      if (targets.length === 0) return false;
+      const ids: string[] = [];
+      for (const target of targets) {
+        const candidates = (await resolvePermanentTargets(ctx, target)).filter(
+          (id) => ctx.game.permanentById(id)?.isSuspended === true,
+        );
+        if (candidates.length !== 1) return false;
+        ids.push(candidates[0]!);
+      }
+      if (new Set(ids).size !== ids.length) return false;
+      await ctx.fx.unsuspend(ids);
+      return true;
+    }
     case "trash": {
       if (!cost.target) return false;
       // "By trashing (the top/bottom card of) your/their security stack" — a SECURITY-trash
