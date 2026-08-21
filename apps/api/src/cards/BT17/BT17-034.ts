@@ -85,11 +85,6 @@ export const module: EffectModule = {
 
     // [All Turns][Once Per Turn] When a card is trashed from your security stack, if
     // [Leon Alexander] is in this Digimon's digivolution cards, ＜Recovery +1＞.
-    //
-    // RESIDUAL: flat OnDiscardSecurity fires only when THIS card is trashed from security,
-    // not when any other security card is trashed. The SubTrigger bus for
-    // whenCardTrashedFromSecurity is inert (no engine callers). We implement here what the
-    // engine CAN deliver; the rest is residual.
     if (timing === EffectTiming.OnDiscardSecurity) {
       return [
         {
@@ -119,6 +114,30 @@ export const module: EffectModule = {
     // Condition: TopCard.HasPulsemonText (i.e. contains "Pulsemon").
     if (timing === EffectTiming.None) {
       return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/security-trash-recovery-watcher`,
+          description: "[All Turns][Once Per Turn] Recover 1 when an effect trashes your security card.",
+          when: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self === undefined) return;
+            ctx.fx.subscribeSubTrigger({
+              event: "whenEffectRemovesFromSecurity",
+              sourcePermanentId: self.permanentId,
+              once: false,
+              oncePerTurnKey: `${cardId}/security-trash-recovery`,
+              matches: (subCtx) =>
+                subCtx.trigger.removedFromSecuritySeat === source.ownerSeat && hasLeonAlexanderInStack(subCtx, source),
+              run: async (subCtx) => {
+                if (hasLeonAlexanderInStack(subCtx, source)) {
+                  await subCtx.fx.recoverToSecurity(source.ownerSeat, 1);
+                }
+              },
+              description: `${cardId}: recover when an effect trashes your security card`,
+            });
+          },
+        }),
         staticModifier({
           source,
           effectKey: `${cardId}/inherited-pulsemon-plus-1000dp`,
