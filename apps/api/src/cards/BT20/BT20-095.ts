@@ -7,7 +7,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // After errata:  "By moving your level 3 or higher Digimon from the breeding area..."
 // The [Chronicle] trait restriction on the MOVING Digimon is removed; only the destination
 // card (digivolve into) must still be a [Chronicle] trait Digimon card.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Main",
@@ -60,31 +60,27 @@ const compiled: CompiledCard = {
             }
           ]
         },
+      ]
+    },
+    {
+      "trigger": "Main",
+      "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
+      "actions": [
         {
           "kind": "Digivolve",
           "target": {
-            "filter": {
-              "zone": "breedingArea",
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "levelComparison": { "op": "gte", "value": 3 }
-            },
+            "filter": { "zone": "breedingArea", "controller": "mine", "kind": ["Digimon"], "levelComparison": { "op": "gte", "value": 3 } },
             "count": 1
           },
           "into": {
             "controllerDefault": "mine",
             "kind": ["Digimon"],
-            "nameOrTrait": [
-              { "tokens": ["Chronicle"], "match": "trait" }
-            ]
+            "nameOrTrait": [{ "tokens": ["Chronicle"], "match": "trait" }]
           },
           "payCost": false,
           "from": ["hand", "trash"],
           "optional": true,
-          "cost": {
-            "kind": "moveToBattleArea",
-            "raw": "By moving your level 3 or higher Digimon from the breeding area to the battle area"
-          },
+          "cost": { "kind": "moveToBattleArea", "raw": "By moving your level 3 or higher Digimon from the breeding area to the battle area" },
           "abortOnDecline": true
         }
       ]
