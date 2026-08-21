@@ -6,163 +6,149 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "name",
-          "tokens": [
-            "Shoutmon"
-          ]
-        }
-      ]
+          grant: "name",
+          tokens: ["Shoutmon"],
+        },
+      ],
     },
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" }],
+    },
+    {
+      trigger: "EndOfAttack",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Xros Heart",
-                    "Blue Flare",
-                    "Hero"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Xros Heart", "Blue Flare", "Hero"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": true,
-          "optional": true,
-          "costReduction": 5
+          from: ["hand"],
+          payCost: true,
+          optional: true,
+          costReduction: 5,
         },
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Delete",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "you did"
-          }
-        }
-      ]
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "you did",
+          },
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Xros Heart",
-                    "Blue Flare"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Xros Heart", "Blue Flare"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1,
-            "from": [
-              "hand",
-              "trash"
-            ]
+            count: 1,
+            from: ["hand", "trash"],
           },
-          "underFilter": {
-            "controller": "mine",
-            "kind": [
-              "Tamer"
-            ]
+          underFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
           },
-          "optional": true
+          optional: true,
         },
         {
-          "kind": "ActivateEffect",
-          "effectType": "Save",
-          "optional": true
-        }
-      ]
+          kind: "ActivateEffect",
+          effectType: "Save",
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Rush",
-            "raw": "＜Rush＞"
+          keyword: {
+            keyword: "Rush",
+            raw: "＜Rush＞",
           },
-          "duration": "permanent"
-        }
+          duration: "permanent",
+          condition: {
+            kind: "selfHasTrait",
+            filter: { nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }] },
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Shoutmon"
-      ],
-      "cost": 4,
-      "isAlternate": true
+      names: ["Shoutmon"],
+      cost: 4,
+      isAlternate: true,
     },
     {
-      "level": 4,
-      "traits": [
-        "Xros Heart",
-        "Hero"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
+      level: 4,
+      traits: ["Xros Heart", "Hero"],
+      cost: 3,
+      isAlternate: true,
+    },
   ],
-  "digiXrosRequirement": [
+  digiXrosRequirement: [
     {
-      "materials": [
+      materials: [
         {
-          "names": [
-            "Shoutmon"
-          ]
-        }
+          names: ["Shoutmon"],
+        },
       ],
-      "count": 2
-    }
-  ]
+      count: 2,
+    },
+  ],
 };
 
 registerIrCard("BT21-021", compiled);
