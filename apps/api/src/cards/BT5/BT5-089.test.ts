@@ -172,7 +172,8 @@ describe("BT5-089 Izzy Izumi & Mimi Tachikawa", () => {
     ).toEqual({ ok: true });
 
     await settle(() => s.perm("opponentTamer").isSuspended);
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(order);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([order[0]]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(order[1]);
     expect(s.perm("attacker").topCard.cardId).toBe("BT5-058");
   });
 

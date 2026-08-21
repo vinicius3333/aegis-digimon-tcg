@@ -411,7 +411,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
           })) ?? rest;
       }
       const toTop = choice === 0;
-      await ctx.fx.returnToDeck(toTop ? [...rest].reverse() : rest, { toTop });
+      await ctx.fx.returnToDeck(toTop ? [...rest].reverse() : [...rest].reverse(), { toTop });
     } else {
       if (rest.length > 1) {
         rest =
@@ -424,24 +424,17 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
           })) ?? rest;
       }
       const toTop = action.rest === "deckTop";
-      await ctx.fx.returnToDeck(toTop ? [...rest].reverse() : rest, { toTop });
+      await ctx.fx.returnToDeck(toTop ? [...rest].reverse() : [...rest].reverse(), { toTop });
     }
   };
 
   let restDisposed = false;
-  // `reveal()` exposes cards in place at the top of the deck. Stage the unchosen
-  // portion out of that deck before an effect-driven digivolution so its mandatory
-  // bonus draw cannot take one of the revealed cards. `silent` is essential: this is
-  // a transient reveal pool, not an effect adding cards to hand.
+  // Return the revealed remainder before the free digivolution so its bonus draw
+  // resolves after the printed bottom-deck operation.
   if (toDigivolve.length > 0) {
-    const restToStage = revealed.filter((card) => !taken.has(card.instanceId)).map((card) => card.instanceId);
-    if (restToStage.length > 0) await ctx.fx.returnToHand(restToStage, { silent: true });
+    await disposeRest();
+    restDisposed = true;
   }
-  // Effect-driven "digivolve into a revealed card" resolves its bonus draw before
-  // returning the remaining reveal pool, which keeps that draw restricted to the
-  // unrevealed deck. The primitive invokes the callback before it opens the evolved
-  // card's [When Digivolving] window, so the returned cards are no longer visible
-  // to that window.
   for (const pending of toDigivolve) {
     const revealedCard = revealed.find((card) => card.instanceId === pending.instanceId);
     if (revealedCard === undefined) continue;
@@ -463,11 +456,6 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     await ctx.fx.digivolveFromInstance(targets[0]!, pending.instanceId, {
       payCost: pending.payCost ?? false,
       draw: true,
-      beforeWhenDigivolving: async () => {
-        if (restDisposed) return;
-        restDisposed = true;
-        await disposeRest();
-      },
     });
   }
   if (!restDisposed) await disposeRest();
