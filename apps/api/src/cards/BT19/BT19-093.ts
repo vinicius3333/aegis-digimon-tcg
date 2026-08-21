@@ -70,7 +70,8 @@ const compiled: CompiledCard = {
                   "controller": "opponent",
                   "kind": ["Digimon"]
                 },
-                "count": 1
+                "count": 1,
+                "sameTarget": true
               },
               "restriction": "cannotActivateWhenDigivolving",
               "duration": "untilOpponentTurnEnd"
@@ -101,7 +102,8 @@ const compiled: CompiledCard = {
               "controller": "opponent",
               "kind": ["Digimon"]
             },
-            "count": 1
+            "count": 1,
+            "sameTarget": true
           },
           "restriction": "cannotActivateWhenDigivolving",
           "duration": "untilOpponentTurnEnd"
