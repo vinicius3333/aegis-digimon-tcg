@@ -8,6 +8,12 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "OnDeletion",
+      actions: [],
+      keywords: [{ keyword: "Recovery", amount: 1, raw: "＜Recovery +1 (Deck)＞" }],
+      isInherited: true,
+    },
+    {
       trigger: "OnPlay",
       actions: [
         {
