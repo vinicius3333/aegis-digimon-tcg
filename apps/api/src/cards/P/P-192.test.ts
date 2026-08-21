@@ -7,11 +7,16 @@ describe("P-192 Bakemon", () => {
     const card = runtimeCompiledCard("P-192")!;
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
       expect(card.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
-        actions: [{
-          kind: "Delete",
-          target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } } },
-          cost: { kind: "trash", target: { count: 1, filter: { zone: "hand", controller: "mine" } } },
-        }],
+        actions: [
+          {
+            kind: "Delete",
+            target: {
+              count: 1,
+              filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } },
+            },
+            cost: { kind: "trash", target: { count: 1, filter: { zone: "hand", controller: "mine" } } },
+          },
+        ],
       });
     }
   });
