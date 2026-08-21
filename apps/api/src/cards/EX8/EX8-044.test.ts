@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { PlayerState } from "@aegis/shared";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX8-044.js";
 
 describe("EX8-044", () => {
@@ -24,5 +26,12 @@ describe("EX8-044", () => {
     expect(s.state.memory).toBe(5); // 10 - 6 play cost + 1 newly suspended opponent.
     expect(s.perm("alreadySuspended").isSuspended).toBe(true);
     expect(s.perm("freshOpponent").isSuspended).toBe(true);
+  });
+  it("grants Piercing and +3000 DP when it becomes suspended", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX8-044", as: "hercules" }, { card: "AD1-001", as: "ally" }] } }, { autoSelectCards: true });
+    await advance(s.engine).verb.suspend([s.perm("hercules").permanentId]);
+    await settle(() => observe(s.engine).hasPierce(s.perm("hercules")));
+    expect(observe(s.engine).hasPierce(s.perm("hercules"))).toBe(true);
+    expect(s.perm("hercules").currentDP).toBe(14000);
   });
 });
