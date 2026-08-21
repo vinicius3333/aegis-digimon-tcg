@@ -73,6 +73,14 @@ export function getCompiledCard(cardId: string): CompiledCard | undefined {
  * one source of truth.
  */
 export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolveRequirement[]> = {
+  // EX12-017 prints Red/Yellow Lv.5 + Black/Purple Lv.5: expand the color alternatives
+  // into the four concrete material pairings consumed by the server legality seam.
+  "EX12-017": [
+    { cost: 0, materials: [{ color: "Red", level: 5 }, { color: "Black", level: 5 }] },
+    { cost: 0, materials: [{ color: "Red", level: 5 }, { color: "Purple", level: 5 }] },
+    { cost: 0, materials: [{ color: "Yellow", level: 5 }, { color: "Black", level: 5 }] },
+    { cost: 0, materials: [{ color: "Yellow", level: 5 }, { color: "Purple", level: 5 }] },
+  ],
   "BT17-078": [
     {
       cost: 0,

@@ -304,7 +304,7 @@ export async function runReplacement(
     mode: "instead",
     description: action.raw,
     digisorptionRedirect: action.digisorptionRedirect,
-    causeAllows: (cause) => {
+    causeAllows: (cause, resolvingSeat) => {
       switch (action.leaveCause ?? "any") {
         case "byBattle":
           return cause === "byBattle";
@@ -312,6 +312,8 @@ export async function runReplacement(
           return cause === "byEffect";
         case "otherThanBattle":
           return cause !== "byBattle";
+        case "otherThanYourEffect":
+          return !(cause === "byEffect" && resolvingSeat !== undefined && resolvingSeat === ctx.source.ownerSeat);
         case "any":
           return true;
         default:
