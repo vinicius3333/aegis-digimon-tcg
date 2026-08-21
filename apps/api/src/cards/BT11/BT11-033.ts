@@ -1,11 +1,21 @@
-import { EffectTiming } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { whenDigivolving, onAddHand } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "BT11-033";
+const compiled: CompiledCard = {
+  effects: [
+    { trigger: "WhenDigivolving", actions: [
+      { kind: "Return", target: { filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } }, count: 1 }, to: "hand" },
+      { kind: "SecurityManipulation", op: "toHand", controller: "opponent", source: "securityTop", condition: { kind: "lastEffectDidNotAct", raw: "no Digimon was returned by this effect" } },
+    ] },
+    { trigger: "AllTurns", actions: [{ kind: "SubTrigger", event: "whenEffectAddsToOpponentHand", actions: [{ kind: "GainMemory", amount: 1 }], scaling: { per: 4, filter: { zone: "hand", controller: "opponent" }, unit: "cards" } }], frequency: "OncePerTurn" },
+  ],
+  coverage: "full", residual: [],
+};
+
+registerIrCard("BT11-033", compiled);
+
+/*
 
 const module: EffectModule = {
   cardId,
@@ -122,3 +132,4 @@ const module: EffectModule = {
 
 registerCard(module);
 export default module;
+*/
