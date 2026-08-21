@@ -5,5 +5,6 @@ describe("BT17-028", () => {
   it("registers lowest-level return, security-to-hand, and deletion effects", () => {
     expect(compiled.effects).toHaveLength(4);
     expect(compiled.effects?.map((effect) => effect.trigger)).toEqual(["OnPlay", "WhenDigivolving", "YourTurn", "OnDeletion"]);
+    expect(compiled.effects?.[2]).toMatchObject({ actions: [{ kind: "SubTrigger", event: "whenEffectAddsToHand", actions: [{ kind: "SecurityManipulation", op: "toHand", controller: "opponent", amount: 1, toTop: true }] }] });
   });
 });
