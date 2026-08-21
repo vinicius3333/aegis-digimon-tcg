@@ -400,8 +400,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   };
 
   /** Whether the engine is currently re-firing persistent effects (see PrimitivesEngine). */
-  const continuousPass = (): boolean =>
-    (engine.inContinuousPass?.() ?? false) && !(engine.inResolvingWindow?.() ?? false);
+  const continuousPass = (): boolean => engine.inContinuousPass?.() ?? false;
   /** `{ continuous: true }` while re-firing persistent effects, else undefined. */
   const continuousOpt = (): { continuous: boolean } | undefined =>
     continuousPass() ? { continuous: true } : undefined;
