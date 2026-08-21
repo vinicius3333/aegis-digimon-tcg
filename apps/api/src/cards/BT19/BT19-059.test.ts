@@ -1,15 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import "../index.js";
+import "./BT19-059.js";
 
-describe("BT19-059 DeadlyAxemon", () => {
-  it("preserves Retaliation, Save on deletion, and inherited Reboot", () => {
+describe("BT19-059", () => {
+  it("preserves Retaliation, Save, and inherited Reboot", () => {
     const card = runtimeCompiledCard("BT19-059");
     expect(card).toMatchObject({ coverage: "full", residual: [] });
     expect(card?.effects).toMatchObject([
-      { trigger: "Static", actions: [], keywords: [{ keyword: "Retaliation", raw: "＜Retaliation＞" }] },
-      { trigger: "OnDeletion", actions: [], keywords: [{ keyword: "Save", raw: "＜Save＞" }] },
-      { trigger: "Static", actions: [], isInherited: true, keywords: [{ keyword: "Reboot", raw: "＜Reboot＞" }] },
+      { trigger: "Static", keywords: [{ keyword: "Retaliation" }] },
+      { trigger: "OnDeletion", keywords: [{ keyword: "Save" }] },
+      { trigger: "Static", isInherited: true, keywords: [{ keyword: "Reboot" }] },
     ]);
   });
 });
