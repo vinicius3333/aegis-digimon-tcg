@@ -83,7 +83,11 @@ async function relocateOpponentDigimon(ctx: Parameters<Effect["resolve"]>[0]): P
   const destPermId = destPick[0];
   if (destPermId === undefined) return;
 
-  ctx.fx.relocatePermanent(destPermId, sourcePermId);
+  if (ctx.fx.relocatePermanentByEffect !== undefined) {
+    await ctx.fx.relocatePermanentByEffect(destPermId, sourcePermId);
+  } else {
+    ctx.fx.relocatePermanent(destPermId, sourcePermId);
+  }
 }
 
 /** Install the [All Turns] sub-trigger watchers on the current permanent. */
@@ -132,16 +136,18 @@ async function installAllTurnsWatcher(ctx: Parameters<Effect["resolve"]>[0]): Pr
 
   ctx.fx.subscribeSubTrigger({
     event: "whenOneOfYoursDigivolves",
-    sourcePermanentId: hostPermId,
-    once: false,
+      sourcePermanentId: hostPermId,
+      once: false,
+      oncePerTurnKey: `${cardId}/AllTurns`,
     description: `${cardId}: when opponent digivolves → trash 2 digivolution → trash opp top security`,
     run: watcherRun,
   });
 
   ctx.fx.subscribeSubTrigger({
     event: "onAddDigivolutionCards",
-    sourcePermanentId: hostPermId,
-    once: false,
+      sourcePermanentId: hostPermId,
+      once: false,
+      oncePerTurnKey: `${cardId}/AllTurns`,
     description: `${cardId}: when effect places under opponent → trash 2 digivolution → trash opp top security`,
     run: watcherRun,
   });
@@ -161,8 +167,8 @@ const module: EffectModule = {
             "card of one of your opponent's other Digimon or Tamers.",
           optional: true,
           resolve: async (ctx) => {
-            await relocateOpponentDigimon(ctx);
             await installAllTurnsWatcher(ctx);
+            await relocateOpponentDigimon(ctx);
           },
         }),
       ];
@@ -179,8 +185,8 @@ const module: EffectModule = {
             "digivolution card of one of your opponent's other Digimon or Tamers.",
           optional: true,
           resolve: async (ctx) => {
-            await relocateOpponentDigimon(ctx);
             await installAllTurnsWatcher(ctx);
+            await relocateOpponentDigimon(ctx);
           },
         }),
       ];
