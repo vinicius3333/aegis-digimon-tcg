@@ -50,6 +50,7 @@ import "./BT8-048.js";
 import "./BT8-049.js";
 import "./BT8-050.js";
 import "./BT8-051.js";
+import "./BT8-052.js";
 import "./BT8-053.js";
 import "./BT8-054.js";
 import "./BT8-055.js";
