@@ -8,6 +8,19 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   "effects": [
     {
+      "trigger": "AllTurns",
+      "actions": [{
+        "kind": "SubTrigger",
+        "event": "whenSuspended",
+        "sourceFilter": { "controller": "opponent", "kind": ["Digimon"] },
+        "actions": [{
+          "kind": "trashSecurityTop", "controller": "opponent", "count": 1,
+          "cost": { "kind": "trash", "target": { "filter": { "controller": "mine", "kind": ["Digimon"], "zone": "linked" }, "count": 1 }, "raw": "By trashing 1 of this Digimon's link cards" },
+          "optional": true, "abortOnDecline": true
+        }]
+      }]
+    },
+    {
       "trigger": "Static",
       "actions": [],
       "keywords": [
@@ -103,10 +116,11 @@ const compiled: CompiledCard = {
                   ],
                   "suspended": true
                 },
-                "count": 1
+                "count": 1,
+                "sameTarget": true
               },
               "restriction": "unsuspend",
-              "duration": "permanent"
+              "duration": "untilOpponentNextUnsuspendPhase"
             }
           ]
         }
@@ -126,5 +140,7 @@ const compiled: CompiledCard = {
     }
   ]
 };
+
+export { compiled };
 
 registerIrCard("EX10-019", compiled);
