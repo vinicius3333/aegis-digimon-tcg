@@ -36,6 +36,13 @@ export async function runSecurityManipulation(
   const mine = ctx.source.ownerSeat;
   const opp = ctx.game.opponentOf(mine);
   const seat = action.controller === "opponent" ? opp : mine;
+  if (action.op === "placeAsSecurity" && action.source === "lastOptionUsed") {
+    const id = ctx.lastOptionUsedInstanceId;
+    if (id !== undefined && ctx.game.player(seat).trash.some((card) => card.instanceId === id)) {
+      await ctx.fx.addSecurity(seat, [id], { toTop: action.toTop ?? true, faceUp: action.faceUp });
+    }
+    return;
+  }
   // "both players' security": apply the op to each seat's stack (e.g. BT3-090 trashes
   // 1 from the top of each player's security).
   if (action.bothPlayers && (action.op === "trashTop" || action.op === "trash" || action.op === "shuffle")) {

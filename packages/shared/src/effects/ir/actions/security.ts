@@ -82,7 +82,7 @@ export interface SecurityManipulationAction extends ActionBase {
   /** For trashTop: the controller picks any amount from 0 to the computed maximum. */
   upTo?: boolean;
   /** For placeAsSecurity: which cards are placed. */
-  source?: Target | "securityTop" | "deck" | "deckTop" | "revealed" | "reveal" | "rest" | "hand" | "handOrTrash";
+  source?: Target | "securityTop" | "deck" | "deckTop" | "revealed" | "reveal" | "rest" | "hand" | "handOrTrash" | "lastOptionUsed";
   /** For placeAsSecurity: which zone the placed cards come from. */
   from?: ZoneRef[];
   /** For placeAsSecurity; default top. */

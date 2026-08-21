@@ -1626,6 +1626,7 @@ export interface EffectContext {
   lastDeletedLevel?: number;
   lastDigivolveResult?: boolean;
   lastOptionUsed?: boolean;
+  lastOptionUsedInstanceId?: string;
   lastEffectActed?: boolean;
   /** Whether the opponent declined the immediately preceding opponent-choice action. */
   lastOpponentDeclined?: boolean;
