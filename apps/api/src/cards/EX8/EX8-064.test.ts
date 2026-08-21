@@ -25,4 +25,18 @@ describe("EX8-064", () => {
     expect(s.perm("first").currentDP).toBe(4000);
     expect(s.perm("second").currentDP).toBe(2000);
   });
+  it("trashes the opponent's top security card after another Digimon is deleted", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-064", as: "source" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "victim" }], security: ["BT1-001"] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const securityInstanceId = s.state.players[1]!.security[0]!.instanceId;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === securityInstanceId)).toBe(true);
+  });
 });
