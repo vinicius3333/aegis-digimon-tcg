@@ -18,4 +18,25 @@ describe("EX9-067", () => {
     expect(s.state.players[0].hand.some((card) => card.cardId === "EX9-024")).toBe(true);
     expect(s.state.players[0].deck).toHaveLength(2);
   });
+  it("returns this Tamer to the deck bottom and plays a Puppet after its digivolution trigger", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX9-067", as: "source" }, { card: "BT13-035", as: "subject" }], hand: ["BT13-035"] },
+    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+
+    await advance(s.engine).fireSubTrigger("whenOneOfYoursDigivolves", { subjectPermanentId: s.perm("subject").permanentId });
+    await settle(() => s.state.players[0]!.deck.at(-1)?.cardId === "EX9-067" && s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-035"));
+
+    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("EX9-067");
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-035")).toBe(true);
+  });
+  it("plays itself from security without paying", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "EX9-067", as: "source" }] } }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+    s.inst("source").faceUp = true;
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("source"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-067"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-067")).toBe(true);
+    expect(s.state.players[0]!.security.some((card) => card.cardId === "EX9-067")).toBe(false);
+  });
 });
