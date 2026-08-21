@@ -52,19 +52,9 @@ export const compiled: CompiledCard = {
           "amount": 1,
           "position": "top"
         },
-        {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
-            },
-            "count": "all"
-          }
-        }
+        { "kind": "Suspend", "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 } },
+        { "kind": "Suspend", "target": { "filter": { "controller": "opponent", "kind": ["Tamer"] }, "count": 1 } },
+        { "kind": "Restrict", "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": "all" }, "restriction": "unsuspend", "duration": "untilOpponentTurnEnd" }
       ]
     },
     {
