@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { EffectDuration, EffectTiming } from "@aegis/shared";
+import { observe } from "../../engine/testkit/observe.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
@@ -36,5 +39,13 @@ describe("EX8-054", () => {
     await effect.resolve(ctx);
 
     expect(conferStackEffects).toHaveBeenCalledWith("host", "justimon-x", EffectDuration.UntilEachTurnEnd);
+  });
+  it("exposes the three printed static keywords on live state", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX8-054", as: "justimon" }] } });
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("justimon"), "Rush")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("justimon"))).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("justimon"), "SecurityAttack")).toBe(1);
   });
 });

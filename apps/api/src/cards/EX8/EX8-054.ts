@@ -32,7 +32,7 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const self = source.permanent();
             if (self !== undefined) {
-              ctx.fx.grantKeyword(self.permanentId, "Piercing", EffectDuration.UntilEachTurnEnd);
+              ctx.fx.grantPierce(self.permanentId, EffectDuration.UntilEachTurnEnd);
             }
           },
         }),
