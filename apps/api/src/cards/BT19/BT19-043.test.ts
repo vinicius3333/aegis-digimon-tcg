@@ -113,10 +113,18 @@ function makeCtx(opts: {
   } as unknown as GameAccess;
 
   const fx = {
-    trashFromSecurity: async (...a: unknown[]) => { calls.push({ verb: "trashFromSecurity", args: a }); },
-    recoverToSecurity: async (...a: unknown[]) => { calls.push({ verb: "recoverToSecurity", args: a }); },
-    deletePermanent: async (...a: unknown[]) => { calls.push({ verb: "deletePermanent", args: a }); },
-    subscribeReplacement: (...a: unknown[]) => { calls.push({ verb: "subscribeReplacement", args: a }); },
+    trashFromSecurity: async (...a: unknown[]) => {
+      calls.push({ verb: "trashFromSecurity", args: a });
+    },
+    recoverToSecurity: async (...a: unknown[]) => {
+      calls.push({ verb: "recoverToSecurity", args: a });
+    },
+    deletePermanent: async (...a: unknown[]) => {
+      calls.push({ verb: "deletePermanent", args: a });
+    },
+    subscribeReplacement: (...a: unknown[]) => {
+      calls.push({ verb: "subscribeReplacement", args: a });
+    },
   } as unknown as Primitives;
 
   const ask: DecisionApi = {

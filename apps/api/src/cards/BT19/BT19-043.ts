@@ -41,9 +41,7 @@ const module: EffectModule = {
                 // Must be on the battle area to fire (not already gone).
                 if (!subCtx.source.isOnBattleArea()) return false;
                 // Condition: at least one [Lucemon]-named card in digivolution cards.
-                const haLucemon = selfPermanent.stack.some((c) =>
-                  hasLucemonName(subCtx.game.definitionOf(c).nameEn),
-                );
+                const haLucemon = selfPermanent.stack.some((c) => hasLucemonName(subCtx.game.definitionOf(c).nameEn));
                 if (!haLucemon) return false;
                 // Q3096: both players' security stacks must be non-empty.
                 const owner = subCtx.game.player(source.ownerSeat);
@@ -57,11 +55,7 @@ const module: EffectModule = {
                 if (!yes) return false;
                 // Pay the cost: trash both players' top security cards.
                 await subCtx.fx.trashFromSecurity(source.ownerSeat, 1, { fromTop: true });
-                await subCtx.fx.trashFromSecurity(
-                  subCtx.game.opponentOf(source.ownerSeat),
-                  1,
-                  { fromTop: true },
-                );
+                await subCtx.fx.trashFromSecurity(subCtx.game.opponentOf(source.ownerSeat), 1, { fromTop: true });
                 return true;
               },
             });
@@ -83,8 +77,7 @@ const module: EffectModule = {
             "opponent's Digimon or Tamers.",
           optional: false,
           maxPerTurn: 1,
-          when: (ctx) =>
-            ctx.source.isOnBattleArea() && ctx.game.state.turnSeat === source.ownerSeat,
+          when: (ctx) => ctx.source.isOnBattleArea() && ctx.game.state.turnSeat === source.ownerSeat,
           canActivate: (ctx) => ctx.source.isOnBattleArea(),
           resolve: async (ctx) => {
             const opponentSeat = ctx.game.opponentOf(source.ownerSeat);
