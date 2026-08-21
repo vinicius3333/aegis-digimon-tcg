@@ -180,7 +180,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "cost": {
-            "kind": "trash",
+            "kind": "trashBottomFaceDownUnderTamer",
             "target": {
               "filter": {
                 "controller": "mine",
