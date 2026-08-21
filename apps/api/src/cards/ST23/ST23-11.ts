@@ -49,12 +49,9 @@ const compiled: CompiledCard = {
           },
           "mode": "reduceCost",
           "amount": 2,
-          "actions": [],
-          "cost": {
-            "kind": "trashBottomFaceDownUnderTamer",
-            "controller": "mine",
-            "raw": "by trashing the bottom face-down card from under any of your Tamers"
-          }
+          "cost": { "kind": "trashBottomFaceDownUnderTamer", "controller": "mine", "raw": "by trashing the bottom face-down card from under any of your Tamers" },
+          "optional": false,
+          "actions": []
         }
       ]
     },
