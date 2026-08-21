@@ -39,4 +39,21 @@ describe("EX8-046", () => {
     expect(player.trash.some((card) => card.cardId === "EX8-047")).toBe(true);
     expect(player.hand.filter((card) => card.cardId === "AD1-001")).toHaveLength(2);
   });
+
+  it("does not draw when the hand has no Mineral or Rock card to pay the cost", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX8-046", as: "source" }], deck: ["AD1-001", "AD1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    await settle(() => player.battleArea.some((permanent) => permanent.topCard?.cardId === "EX8-046"));
+    const source = player.battleArea.find((permanent) => permanent.topCard?.cardId === "EX8-046")!;
+    await advance(s.engine).verb.deletePermanent([source.permanentId]);
+    await settle(() => player.trash.some((card) => card.cardId === "EX8-046"));
+    expect(player.hand.filter((card) => card.cardId === "AD1-001")).toHaveLength(0);
+  });
 });
