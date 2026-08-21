@@ -76,10 +76,34 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
   // EX12-017 prints Red/Yellow Lv.5 + Black/Purple Lv.5: expand the color alternatives
   // into the four concrete material pairings consumed by the server legality seam.
   "EX12-017": [
-    { cost: 0, materials: [{ color: "Red", level: 5 }, { color: "Black", level: 5 }] },
-    { cost: 0, materials: [{ color: "Red", level: 5 }, { color: "Purple", level: 5 }] },
-    { cost: 0, materials: [{ color: "Yellow", level: 5 }, { color: "Black", level: 5 }] },
-    { cost: 0, materials: [{ color: "Yellow", level: 5 }, { color: "Purple", level: 5 }] },
+    {
+      cost: 0,
+      materials: [
+        { color: "Red", level: 5 },
+        { color: "Black", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Red", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Black", level: 5 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 5 },
+        { color: "Purple", level: 5 },
+      ],
+    },
   ],
   "BT17-078": [
     {
@@ -710,6 +734,23 @@ export function baseGrantedDigivolveFor(cardId: string): BaseGrantedDigivolve[] 
  * + cost) and CLIENT (material highlighting) read ONE source of truth.
  */
 export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[]> = {
+  // EX12-029: the printed slot is one Lv.5-or-lower Digimon with [Gokuumon] in its text
+  // OR the [SW] trait. The generated aggregate incorrectly made these predicates ANDed and
+  // required two materials, so keep server legality and client highlighting on the printed rule.
+  "EX12-029": [
+    {
+      materials: [
+        {
+          levelMax: 5,
+          nameOrTrait: [
+            { tokens: ["Gokuumon"], match: "text" },
+            { tokens: ["SW"], match: "trait" },
+          ],
+        },
+      ],
+      count: 2,
+    },
+  ],
   // EX3-014: up to 5 differently named Digimon whose trait CONTAINS Dragon/saur/Ceratopsian.
   // This includes Dragonkin, Rock Dragon and Dinosaur (Q3377), not only exact trait tokens.
   "EX3-014": [
