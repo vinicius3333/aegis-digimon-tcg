@@ -33,4 +33,27 @@ describe("EX8-057", () => {
     await settle(() => player.hand.some((card) => card.cardId === "BT26-062") && player.hand.some((card) => card.cardId === "BT11-080"));
     expect(player.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT26-062", "BT11-080"]));
   });
+  it("draws one and trashes one card when the inherited host attacks", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-057"] }], hand: [{ card: "BT1-010", as: "filler" }], deck: ["BT1-001"] },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("host").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => player.trash.length === 1 && player.hand.length === 1);
+
+    expect(player.hand).toHaveLength(1);
+    expect(player.trash).toHaveLength(1);
+    expect(player.hand.some((card) => ["BT1-010", "BT1-001"].includes(card.cardId))).toBe(true);
+  });
 });
