@@ -88,7 +88,9 @@ export const compiled: CompiledCard = {
             "kind": "trash",
             "target": {
               "filter": {
-                "zone": "digivolutionCards"
+                "zone": "digivolutionCards",
+                "faceDown": true,
+                "position": "bottom"
               },
               "count": 1
             },
@@ -132,7 +134,9 @@ export const compiled: CompiledCard = {
             "kind": "trash",
             "target": {
               "filter": {
-                "zone": "digivolutionCards"
+                "zone": "digivolutionCards",
+                "faceDown": true,
+                "position": "bottom"
               },
               "count": 1
             },
