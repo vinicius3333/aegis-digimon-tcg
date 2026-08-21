@@ -11,8 +11,6 @@ import module from "./BT20-089.js";
 //   gains ＜Alliance＞, ＜Piercing＞ and ＜Barrier＞.
 // [Inherited — End of All Turns] Play 1 [Eiji Nagasumi] from this Digimon's
 //   digivolution cards without paying the cost.
-//   RESIDUAL: inherited effects in hand-written EffectModules require conferStackEffects
-//   (IR-only path), so the stack-confer path is not tested here.
 //
 // FAILS-WHEN-REVERTED: [Start of Your Main Phase] memory gain fires — the memory
 //   increases by 1 when the opponent has a Digimon.
