@@ -2,7 +2,7 @@ import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
-import { onPlay, whenDigivolving, whenAttacking } from "../../engine/effects/builders.js";
+import { onPlay, staticModifier, whenDigivolving, whenAttacking } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "EX7-049";
@@ -87,11 +87,46 @@ const module: EffectModule = {
       ];
     }
 
-    // [All Turns] (Once Per Turn) — RESIDUAL: replacement-event hook not available.
-    // When this Digimon would leave the battle area other than by one of your effects,
-    // you may play 1 Digimon with [Rock Dragon]/[Earth Dragon] trait from your trash
-    // without paying the cost. (KB Q3856: played card can't be placed for the DigiXros
-    // that triggered this effect.)
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/leave-play-rock-earth-play`,
+          description:
+            "[All Turns][Once Per Turn] When this Digimon would leave the battle area " +
+            "other than by one of your effects, you may play 1 Rock Dragon/Earth Dragon " +
+            "Digimon from your trash without paying the cost.",
+          maxPerTurn: 1,
+          canActivate: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            const self = ctx.source.permanent();
+            if (self === undefined) return;
+            ctx.fx.subscribeReplacement({
+              event: "wouldLeavePlay",
+              sourcePermanentId: self.permanentId,
+              mode: "instead",
+              oncePerTurnKey: `${cardId}/leave-play-rock-earth-play`,
+              description: `${cardId}: play a Rock Dragon/Earth Dragon Digimon from trash`,
+              causeAllows: (cause, resolvingSeat) => cause !== "byEffect" || resolvingSeat !== source.ownerSeat,
+              appliesTo: (_subCtx, leavingPermanentId) => leavingPermanentId === self.permanentId,
+              apply: async (subCtx) => {
+                const candidates = subCtx.game.player(source.ownerSeat).trash.filter((card) => {
+                  const def = subCtx.game.definitionOf(card);
+                  return isDigimon(def) && (def.types ?? []).some((type) => type === "Rock Dragon" || type === "Earth Dragon");
+                });
+                if (candidates.length === 0) return;
+                const chosen = await subCtx.ask.selectCards(subCtx, {
+                  candidates: candidates.map((card) => card.instanceId),
+                  min: 0,
+                  max: 1,
+                });
+                if (chosen.length > 0) await subCtx.fx.playInstances(chosen, { payCost: false });
+              },
+            });
+          },
+        }),
+      ];
+    }
 
     return [];
   },
