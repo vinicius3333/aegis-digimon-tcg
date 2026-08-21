@@ -19,6 +19,7 @@ describe("BT21-084 Haru Shinkai", () => {
     expect(yourTurn?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenLinked",
+      sourceFilter: { controller: "mine", kind: ["Digimon"] },
     });
     const linkedActions = (yourTurn?.actions[0] as { actions?: unknown[] } | undefined)?.actions;
     expect(linkedActions?.[0]).toMatchObject({ kind: "Draw", amount: 1, cost: { kind: "suspend" } });
@@ -29,5 +30,7 @@ describe("BT21-084 Haru Shinkai", () => {
       optional: true,
     });
     expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "Security", isSecurity: true }));
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });
