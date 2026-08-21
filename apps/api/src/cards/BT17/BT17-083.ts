@@ -6,87 +6,87 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "payCost": false
-        }
-      ]
-    },
-    {
-      "trigger": "StartOfYourTurn",
-      "actions": [
-        {
-          "kind": "SetMemory",
-          "value": 3,
-          "condition": {
-            "kind": "memoryAtMost",
-            "value": 2
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenEffectAddsToHand",
-          "actions": [
-            {
-              "kind": "GainMemory",
-              "amount": 1
-            },
-            {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true
-              },
-              "keyword": {
-                "keyword": "Jamming",
-                "raw": "＜Jamming＞"
-              },
-              "duration": "forTheTurn"
-            }
-          ]
-        }
+          payCost: false,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          payCost: false,
+        },
+      ],
+    },
+    {
+      trigger: "StartOfYourTurn",
+      actions: [
+        {
+          kind: "SetMemory",
+          value: 3,
+          condition: {
+            kind: "memoryAtMost",
+            value: 2,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenEffectAddsToHand",
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 1,
+            },
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              keyword: {
+                keyword: "Jamming",
+                raw: "＜Jamming＞",
+              },
+              duration: "forTheTurn",
+            },
+          ],
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT17-083", compiled);

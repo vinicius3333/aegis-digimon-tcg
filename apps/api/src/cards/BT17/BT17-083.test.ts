@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
 const KOJI = "BT17-083";
@@ -13,12 +14,20 @@ describe("BT17-083 Koji Minamoto — inherited hand-add trigger", () => {
     s.state.memory = 0;
     await s.ready();
 
-    const fireSubTrigger = (s.engine as unknown as {
-      fireSubTrigger(event: string, payload?: Record<string, unknown>): Promise<void>;
-    }).fireSubTrigger.bind(s.engine);
+    const fireSubTrigger = (
+      s.engine as unknown as {
+        fireSubTrigger(event: string, payload?: Record<string, unknown>): Promise<void>;
+      }
+    ).fireSubTrigger.bind(s.engine);
 
     await fireSubTrigger("whenEffectAddsToHand", { effectAddedToHandSeat: 0 });
 
     expect(s.state.memory).toBe(1);
+  });
+
+  it("records complete compiled coverage for the hand-add memory and Jamming trigger", () => {
+    const compiled = runtimeCompiledCard(KOJI)!;
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });
