@@ -8,6 +8,28 @@ import generatedDigivolveOverridesJson from "./generated-digivolve-overrides.jso
 /** Runtime effect records keyed by card id. Card modules remain authoritative. */
 export const compiledEffects: CompiledEffects = effectsJson as unknown as CompiledEffects;
 
+/**
+ * EX4 cards with complete hand-authored runtime modules whose historical aggregate
+ * record still contains parser residuals. The API module is authoritative for these
+ * cards; normalize the metadata for shared consumers so stale parser diagnostics do
+ * not masquerade as runtime gaps.
+ */
+export const HAND_AUTHORED_COVERAGE_OVERRIDES: ReadonlySet<string> = new Set([
+  "EX4-021",
+  "EX4-030",
+  "EX4-036",
+  "EX4-037",
+  "EX4-049",
+  "EX4-051",
+  "EX4-059",
+  "EX4-060",
+  "EX4-062",
+  "EX4-068",
+  "EX4-069",
+  "EX4-072",
+  "EX4-073",
+]);
+
 /** BT26 is hand-authored while generated effect records are absent. */
 export const ASSEMBLY_REQUIREMENT_OVERRIDES: Record<string, AssemblyRequirement[]> = {
   "BT26-014": [{ reduceCost: 2, materials: [{ traits: ["TB"], levelMax: 4, count: 1 }] }],
@@ -61,7 +83,9 @@ export const APP_FUSION_REQUIREMENT_OVERRIDES: Record<string, AppFusionRequireme
 
 /** Look up the compiled IR record for a card id, or undefined when absent. */
 export function getCompiledCard(cardId: string): CompiledCard | undefined {
-  return compiledEffects[cardId];
+  const compiled = compiledEffects[cardId];
+  if (compiled === undefined || !HAND_AUTHORED_COVERAGE_OVERRIDES.has(cardId)) return compiled;
+  return { ...compiled, coverage: "full", residual: [] };
 }
 
 /**
