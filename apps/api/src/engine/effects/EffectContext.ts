@@ -105,6 +105,7 @@ export type SubTriggerEventName =
   | "whenEffectAddsToHand"
   | "whenEffectAddsToOpponentHand"
   | "whenCardReturnsFromTrashToHand"
+  | "whenDigimonReturnsToHand"
   | "whenCardReturnsFromTrashToDeck"
   | "whenEffectSuspends"
   | "whenOpponentDraws"
@@ -425,6 +426,9 @@ export interface TriggerInfo {
    * the returned cards' colors/traits (BT15-082: "a Red Digimon returns from your trash").
    */
   returnedFromTrashCardIds?: string[];
+  /** Digimon card instances that just returned to their owner's hand from any zone. */
+  returnedDigimonToHandSeat?: Seat;
+  returnedDigimonToHandInstanceIds?: string[];
   // TODO(effect-framework): add fields as more timings are implemented.
 }
 

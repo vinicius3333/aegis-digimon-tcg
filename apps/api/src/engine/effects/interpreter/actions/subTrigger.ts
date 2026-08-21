@@ -74,6 +74,7 @@ export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefine
   whenEffectAddsToOpponentHand: "whenEffectAddsToOpponentHand",
   whenEffectAddsToDeck: "whenEffectAddsToDeck",
   whenCardReturnsFromTrashToHand: "whenCardReturnsFromTrashToHand",
+  whenDigimonReturnsToHand: "whenDigimonReturnsToHand",
   whenEffectSuspends: "whenEffectSuspends",
   whenOpponentDraws: "whenOpponentDraws",
   // ＜Delay＞ watcher event (BT19-099): "when one of your Millenniummon would leave the battle
@@ -216,6 +217,7 @@ export async function runSubTrigger(
     event === "whenEffectAddsToHand" ||
     event === "whenEffectAddsToDeck" ||
     event === "whenCardReturnsFromTrashToHand" ||
+    event === "whenDigimonReturnsToHand" ||
     // whenTrashedByEffect uses trashedByEffectPermanentId (not subjectPermanentId); the
     // isSelfRef + zone gates are handled entirely by whenTrashedByEffectGate below.
     event === "whenTrashedByEffect" ||

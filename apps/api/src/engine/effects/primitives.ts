@@ -3202,6 +3202,17 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
             });
           }
         }
+        const returnedDigimon = movedToHand.filter((card) =>
+          requireCardDefinition(card.cardId).kinds.includes(CardKind.Digimon),
+        );
+        for (const seat of new Set(returnedDigimon.map((card) => card.ownerSeat))) {
+          await engine.fireSubTrigger?.("whenDigimonReturnsToHand", {
+            returnedDigimonToHandSeat: seat,
+            returnedDigimonToHandInstanceIds: returnedDigimon
+              .filter((card) => card.ownerSeat === seat)
+              .map((card) => card.instanceId),
+          });
+        }
       }
     }
     return moved;
