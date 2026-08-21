@@ -32,4 +32,20 @@ describe("EX4-008 BlackGrowlmon", () => {
     expect(s.state.players[1]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT12-007")).toBe(false);
   });
+
+  it("returns a matching trash card after the host is deleted", async () => {
+    const s = setupEngine(
+      {
+        0: { trash: ["BT12-007"], battleArea: [{ card: "BT4-009", as: "host", under: ["EX4-008"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT12-007"));
+
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT12-007")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT12-007")).toBe(false);
+  });
 });
