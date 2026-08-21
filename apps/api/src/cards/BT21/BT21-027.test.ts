@@ -15,4 +15,38 @@ describe("BT21-027 compiled implementation", () => {
       for (const action of effect.actions ?? []) expect(typeof action.kind).toBe("string");
     }
   });
+
+  it("requires OmniShoutmon and ZeigGreymon as the two DigiXros materials", () => {
+    expect(compiled.digiXrosRequirement).toEqual([
+      { materials: [{ names: ["OmniShoutmon"] }, { names: ["ZeigGreymon"] }], count: 2 },
+    ]);
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "Static",
+        keywords: [expect.objectContaining({ keyword: "SecurityAttack", amount: 1 })],
+      }),
+    );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "OnPlay",
+        actions: [
+          {
+            kind: "Delete",
+            target: { filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestDP" }, count: 1 },
+          },
+        ],
+      }),
+    );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "WhenDigivolving",
+        actions: [
+          {
+            kind: "Delete",
+            target: { filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestDP" }, count: 1 },
+          },
+        ],
+      }),
+    );
+  });
 });
