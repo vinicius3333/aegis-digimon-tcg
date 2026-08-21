@@ -10,154 +10,154 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // to bottom of deck. KB Q3185 confirms can't-be-suspended + Overclock combo.
 // digivolutionRequirement: must digivolve from MoonMillenniummon (name match).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Overclock",
-          "raw": "＜Overclock ([Composite] trait)＞"
-        }
-      ]
+          keyword: "Overclock",
+          raw: "＜Overclock ([Composite] trait)＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "zone": "battleArea"
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              zone: "battleArea",
             },
-            "count": 1
+            count: 1,
           },
-          "to": "deckBottom",
-          "cost": {
-            "kind": "return",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "opponent",
-                "kind": ["Digimon"]
+          to: "deckBottom",
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "opponent",
+                kind: ["Digimon"],
               },
-              "count": 1
+              count: 1,
             },
-            "to": "deckTop",
-            "raw": "By returning 1 Digimon card from your opponent's trash to the top of the deck"
+            to: "deckTop",
+            raw: "By returning 1 Digimon card from your opponent's trash to the top of the deck",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "zone": "battleArea"
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              zone: "battleArea",
             },
-            "count": 1
+            count: 1,
           },
-          "to": "deckBottom",
-          "cost": {
-            "kind": "return",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "opponent",
-                "kind": ["Digimon"]
+          to: "deckBottom",
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "opponent",
+                kind: ["Digimon"],
               },
-              "count": 1
+              count: 1,
             },
-            "to": "deckTop",
-            "raw": "By returning 1 Digimon card from your opponent's trash to the top of the deck"
+            to: "deckTop",
+            raw: "By returning 1 Digimon card from your opponent's trash to the top of the deck",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "zone": "battleArea"
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              zone: "battleArea",
             },
-            "count": 1
+            count: 1,
           },
-          "to": "deckBottom",
-          "cost": {
-            "kind": "return",
-            "target": {
-              "filter": {
-                "zone": "trash",
-                "controller": "opponent",
-                "kind": ["Digimon"]
+          to: "deckBottom",
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "opponent",
+                kind: ["Digimon"],
               },
-              "count": 1
+              count: 1,
             },
-            "to": "deckTop",
-            "raw": "By returning 1 Digimon card from your opponent's trash to the top of the deck"
+            to: "deckTop",
+            raw: "By returning 1 Digimon card from your opponent's trash to the top of the deck",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": { "isSelfRef": true },
-            "count": 1,
-            "isSelf": true
+          kind: "Restrict",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
           },
-          "restriction": "beSuspended",
-          "duration": "permanent",
-          "condition": {
-            "kind": "selfHasNoDigivolutionCards"
-          }
+          restriction: "beSuspended",
+          duration: "permanent",
+          condition: {
+            kind: "selfHasNoDigivolutionCards",
+          },
         },
         {
-          "kind": "GrantImmunity",
-          "target": {
-            "filter": { "isSelfRef": true },
-            "count": 1,
-            "isSelf": true
+          kind: "GrantImmunity",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
           },
-          "immuneFrom": "opponentEffects",
-          "duration": "permanent",
-          "condition": {
-            "kind": "selfHasNoDigivolutionCards"
-          }
-        }
-      ]
-    }
+          immuneFrom: "opponentEffects",
+          duration: "permanent",
+          condition: {
+            kind: "selfHasNoDigivolutionCards",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": ["MoonMillenniummon"],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      names: ["MoonMillenniummon"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT19-101", compiled);
