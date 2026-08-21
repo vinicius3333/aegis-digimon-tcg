@@ -3189,8 +3189,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       if (opts?.silent !== true) {
         const recipientSeats = new Set(movedToHand.map((c) => c.ownerSeat));
         for (const seat of recipientSeats) {
-          await engine.fireSubTrigger?.("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: seat });
-          await engine.fireSubTrigger?.("whenEffectAddsToHand", { effectAddedToHandSeat: seat });
+          const addedToHand = { instanceIds: movedToHand.filter((c) => c.ownerSeat === seat).map((c) => c.instanceId) };
+          await engine.fireSubTrigger?.("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: seat, addedToHand });
+          await engine.fireSubTrigger?.("whenEffectAddsToHand", { effectAddedToHandSeat: seat, addedToHand });
         }
         const trashReturned = movedToHand.filter((c) => trashOriginIds.has(c.instanceId));
         if (trashReturned.length > 0) {

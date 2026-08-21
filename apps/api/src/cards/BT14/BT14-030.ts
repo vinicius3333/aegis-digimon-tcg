@@ -3,7 +3,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, whenDigivolving } from "../../engine/effects/builders.js";
+import { onPlay, staticModifier, whenDigivolving } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**
@@ -140,6 +140,39 @@ const module: EffectModule = {
           },
         }),
       ];
+    }
+
+    if (timing === EffectTiming.None) {
+      return [staticModifier({
+        source,
+        effectKey: `${cardId}/your-turn-recovery-on-return`,
+        description: "[Your Turn][Once Per Turn] When another Digimon returns to the hand, Recovery +1 (Deck).",
+        when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn(),
+        resolve: async (ctx) => {
+          const self = ctx.source.permanent();
+          if (self === undefined) return;
+          ctx.fx.subscribeSubTrigger({
+            event: "whenEffectAddsToHand",
+            sourcePermanentId: self.permanentId,
+            once: true,
+            expiresOnTurnEndOf: source.ownerSeat,
+            description: `${cardId} recovers when another Digimon returns to hand`,
+            matches: (subCtx) => {
+              const ids = subCtx.trigger.addedToHand?.instanceIds ?? [];
+              return ids.some((id) => {
+                if (id === source.instanceId) return false;
+                for (const seat of [0, 1] as const) {
+                  const player = subCtx.game.player(seat);
+                  const card = [...player.hand, ...player.trash, ...player.deck, ...player.security].find((c) => c.instanceId === id);
+                  if (card !== undefined) return subCtx.game.definitionOf(card).kinds.includes("Digimon");
+                }
+                return false;
+              });
+            },
+            run: async (subCtx) => { await subCtx.fx.recoverToSecurity(source.ownerSeat, 1); },
+          });
+        },
+      })];
     }
 
     return [];
