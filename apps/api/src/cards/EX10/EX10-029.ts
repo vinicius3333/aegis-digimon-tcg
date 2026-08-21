@@ -64,7 +64,14 @@ const compiled: CompiledCard = {
                 },
                 "count": 1,
                 "bindAs": "A"
-              }
+              },
+              "cost": {
+                "kind": "trash",
+                "target": { "filter": { "controller": "mine", "kind": ["Digimon"], "zone": "linked" }, "count": 1 },
+                "raw": "By trashing 1 of this Digimon's link cards"
+              },
+              "optional": true,
+              "abortOnDecline": true
             },
             {
               "kind": "Restrict",
@@ -102,5 +109,7 @@ const compiled: CompiledCard = {
     }
   ],
 };
+
+export { compiled };
 
 registerIrCard("EX10-029", compiled);
