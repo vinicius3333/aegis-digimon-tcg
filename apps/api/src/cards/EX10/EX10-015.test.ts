@@ -5,6 +5,8 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { definitionOf } from "../../engine/cards/cardData.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "./EX10-015.js";
 
 // A3 for EX10-015 (Psychemon, EX10 Green/Purple Lv.3):
@@ -213,6 +215,27 @@ describe("EX10-015 ＜Save＞ [On Deletion]", () => {
 // ── [Start of Your Main Phase] ───────────────────────────────────────────────
 
 describe("EX10-015 [Start of Your Main Phase]", () => {
+  it("uses the real engine seam to trash Save, draw, and suspend an opponent Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX10-015", as: "psychemon" }],
+          hand: [{ card: SAVE_CARD_ID, as: "save" }],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("psychemon"));
+    await settle(() => s.state.players[1]!.battleArea[0]!.isSuspended);
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("save").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea[0]!.isSuspended).toBe(true);
+  });
+
   it("canActivate is false when no ＜Save＞-text card is in hand", () => {
     const source = makeSource(makePerm(), true, true);
     const eff = requireMod().effectsForTiming(EffectTiming.OnStartMainPhase, source)[0]!;
