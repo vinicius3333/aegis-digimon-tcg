@@ -8,6 +8,17 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "WhenLinking",
+      isLinked: true,
+      actions: [
+        {
+          kind: "DeDigivolve",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          amount: 1,
+        },
+      ],
+    },
+    {
       trigger: "Static",
       actions: [],
       keywords: [
@@ -23,6 +34,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "DeDigivolve",
@@ -49,6 +61,7 @@ export const compiled: CompiledCard = {
       cost: 0,
     },
   ],
+  linkRequirement: [{ traits: ["Appmon"], cost: 2 }],
 };
 
 registerIrCard("BT21-059", compiled);
