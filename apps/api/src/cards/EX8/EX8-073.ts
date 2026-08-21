@@ -6,183 +6,241 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "amount": 4000,
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          amount: 4000,
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Gallantmon",
-                    "X Antibody"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "raw": "[Gallantmon]/[X Antibody] is in this Digimon's digivolution cards"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "amount": 4000,
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Gallantmon",
-                    "X Antibody"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "raw": "[Gallantmon]/[X Antibody] is in this Digimon's digivolution cards"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
+                  tokens: ["Gallantmon", "X Antibody"],
+                  match: "name",
+                },
               ],
-              "dp": {
-                "op": "lte",
-                "value": 10000
-              }
             },
-            "count": 1
-          }
+            raw: "[Gallantmon]/[X Antibody] is in this Digimon's digivolution cards",
+          },
         },
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "this didn't delete"
-          }
-        }
+          amount: -4000,
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
+                {
+                  tokens: ["Gallantmon", "X Antibody"],
+                  match: "name",
+                },
+              ],
+            },
+          },
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
     },
     {
-      "trigger": "EndOfAttack",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 10000
-              }
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1
-          }
+            count: 1,
+            isSelf: true,
+          },
+          amount: 4000,
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
+                {
+                  tokens: ["Gallantmon", "X Antibody"],
+                  match: "name",
+                },
+              ],
+            },
+            raw: "[Gallantmon]/[X Antibody] is in this Digimon's digivolution cards",
+          },
         },
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "ifThisEffectDidNotDelete",
-            "raw": "this didn't delete"
-          }
-        }
+          amount: -4000,
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
+                {
+                  tokens: ["Gallantmon", "X Antibody"],
+                  match: "name",
+                },
+              ],
+            },
+          },
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 10000,
+              },
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
           },
-          "grant": "immuneToOpponentDigimonEffects",
-          "duration": "permanent",
-          "condition": {
-            "kind": "memoryAtMost",
-            "value": 0,
-            "controller": "mine"
-          }
-        }
-      ]
-    }
+        },
+        {
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "this didn't delete",
+          },
+        },
+        {
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "this didn't delete",
+          },
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "EndOfAttack",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: {
+                op: "lte",
+                value: 10000,
+              },
+            },
+            count: 1,
+          },
+        },
+        {
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "this didn't delete",
+          },
+        },
+        {
+          kind: "Unsuspend",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          condition: {
+            kind: "ifThisEffectDidNotDelete",
+            raw: "this didn't delete",
+          },
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          grant: "immuneToOpponentDigimonEffects",
+          duration: "permanent",
+          condition: {
+            kind: "memoryAtMost",
+            value: 0,
+            controller: "mine",
+          },
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Gallantmon"
-      ],
-      "cost": 1,
-      "isAlternate": true
-    }
-  ]
+      names: ["Gallantmon"],
+      cost: 1,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX8-073", compiled);
