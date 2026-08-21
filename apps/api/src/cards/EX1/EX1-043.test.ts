@@ -10,6 +10,17 @@ describe("EX1-043 HerculesKabuterimon", () => {
     expect(s.perm("hercules").currentDP).toBe(14000);
   });
 
+  it("counts only Insectoid cards in the stack and scales exactly", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX1-043", as: "hercules", dp: 12000, under: ["BT1-066", "BT1-070", "BT1-071", "BT1-066"] }],
+      },
+    });
+    await s.ready();
+
+    expect(s.perm("hercules").currentDP).toBe(15000);
+  });
+
   it("may unsuspend after an Insectoid deletes an opponent in battle", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX1-043", as: "hercules", suspended: true }, { card: "BT1-070", as: "insectoid" }] } }, { autoAcceptOptional: true });
     await s.ready();
@@ -32,6 +43,20 @@ describe("EX1-043 HerculesKabuterimon", () => {
       attackerPermanentId: s.perm("nonInsectoid").permanentId,
     });
 
+    expect(s.perm("hercules").isSuspended).toBe(true);
+  });
+
+  it("unsuspends at most once per turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-043", as: "hercules", suspended: true }, { card: "BT1-070", as: "insectoid" }] },
+    }, { autoAcceptOptional: true });
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", { attackerPermanentId: s.perm("insectoid").permanentId });
+    expect(s.perm("hercules").isSuspended).toBe(false);
+
+    s.perm("hercules").isSuspended = true;
+    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", { attackerPermanentId: s.perm("insectoid").permanentId });
     expect(s.perm("hercules").isSuspended).toBe(true);
   });
 });
