@@ -14,160 +14,142 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // <Delay> pattern: the SubTrigger grants Delay to this card (the option permanent).
 // The Delay payload is a separate Main trigger with keywords:[Delay].
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Digimon"
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
+                  {
+                    tokens: ["Tyrannomon"],
+                    match: "name",
+                  },
+                  {
+                    tokens: ["Reptile"],
+                    match: "trait",
+                  },
+                  {
+                    tokens: ["Dinosaur"],
+                    match: "trait",
+                  },
                 ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Tyrannomon"
-                    ],
-                    "match": "name"
-                  },
-                  {
-                    "tokens": [
-                      "Reptile"
-                    ],
-                    "match": "trait"
-                  },
-                  {
-                    "tokens": [
-                      "Dinosaur"
-                    ],
-                    "match": "trait"
-                  }
-                ]
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "LIBERATOR"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["LIBERATOR"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
+          rest: "deckBottom",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Ryutaro Williams"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Ryutaro Williams"],
+                match: "name",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "keyword": {
-                "keyword": "Delay",
-                "raw": "＜Delay＞"
+              keyword: {
+                keyword: "Delay",
+                raw: "＜Delay＞",
               },
-              "duration": "permanent"
-            }
+              duration: "permanent",
+            },
           ],
-          "raw": "When any of your [Ryutaro Williams] are played, grant this card <Delay>"
-        }
-      ]
+          raw: "When any of your [Ryutaro Williams] are played, grant this card <Delay>",
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "levelComparison": {
-              "op": "lte",
-              "value": 6
+          into: {
+            controllerDefault: "mine",
+            levelComparison: {
+              op: "lte",
+              value: 6,
             },
-            "nameOrTrait": [
+            nameOrTrait: [
               {
-                "tokens": [
-                  "LIBERATOR"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["LIBERATOR"],
+                match: "trait",
+              },
+            ],
           },
-          "from": [
-            "hand"
-          ],
-          "reduceCost": 3,
-          "optional": true
-        }
+          from: ["hand"],
+          reduceCost: 3,
+          optional: true,
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ]
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-227", compiled);
