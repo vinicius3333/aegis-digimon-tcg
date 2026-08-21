@@ -44,4 +44,20 @@ describe("EX8-014", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.perm("target").topCard!.instanceId)).toBe(false);
   });
+  it("suspends and deletes through the When Digivolving trigger", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-014", as: "master" }] },
+        1: { battleArea: [{ card: "EX8-015", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const targetInstanceId = s.perm("target").topCard!.instanceId;
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("master"));
+    await settle(() => s.perm("master").isSuspended);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetInstanceId)).toBe(true);
+  });
 });
