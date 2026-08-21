@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT20-091.js";
 import "../index.js";
 
 // A3 for BT20-091 (Cool Boy) — [Your Turn] Tamer: when your Digimon are played or
@@ -31,7 +32,27 @@ function fireTiming(
   }).fireTiming(timing, trigger);
 }
 
+function fireSubTrigger(s: EngineSetup, event: "whenPlayed" | "whenOneOfYoursDigivolves", subjectPermanentId: string): Promise<void> {
+  return (s.engine as unknown as {
+    fireSubTrigger(e: string, trigger: Record<string, unknown>): Promise<void>;
+  }).fireSubTrigger(event, { subjectPermanentId });
+}
+
 describe("BT20-091 [Your Turn] when Royal Knight played/digivolves, suspend to draw+memory", () => {
+  it("encodes all printed clauses without residuals", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "Static",
+      actions: [{ kind: "SubTrigger", event: "whenPlayed" }, { kind: "SubTrigger", event: "whenOneOfYoursDigivolves" }],
+    });
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "OpponentsTurn",
+      actions: [{ kind: "Replacement", event: "wouldLeavePlay", mode: "instead" }],
+    });
+    expect(compiled.effects[2]).toMatchObject({ isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] });
+  });
+
   it("draws 1 and gains 1 memory when a [Royal Knight] Digimon enters the field", async () => {
     const s = setupEngine({
       0: {
@@ -46,14 +67,14 @@ describe("BT20-091 [Your Turn] when Royal Knight played/digivolves, suspend to d
       },
     });
     const p0 = s.state.players[0];
+    s.state.turnSeat = 0;
     const royalKnightId = s.perm("royalKnight").permanentId;
 
     const memBefore = s.state.memory;
     const handBefore = p0?.hand.length ?? 0;
+    await (s.engine as unknown as { recomputeContinuousEffects(): Promise<void> }).recomputeContinuousEffects();
 
-    await fireTiming(s, EffectTiming.OnEnterFieldAnyone, {
-      subjectPermanentId: royalKnightId,
-    });
+    await fireSubTrigger(s, "whenPlayed", royalKnightId);
     for (let i = 0; i < 400 && (p0?.hand.length ?? 0) <= handBefore; i++) await Promise.resolve();
 
     // Cool Boy should be suspended (activation cost paid).
@@ -76,14 +97,14 @@ describe("BT20-091 [Your Turn] when Royal Knight played/digivolves, suspend to d
       },
     });
     const p0 = s.state.players[0];
+    s.state.turnSeat = 0;
     const nonRoyalKnightId = s.perm("nonRoyalKnight").permanentId;
 
     const memBefore = s.state.memory;
     const handBefore = p0?.hand.length ?? 0;
+    await (s.engine as unknown as { recomputeContinuousEffects(): Promise<void> }).recomputeContinuousEffects();
 
-    await fireTiming(s, EffectTiming.OnEnterFieldAnyone, {
-      subjectPermanentId: nonRoyalKnightId,
-    });
+    await fireSubTrigger(s, "whenPlayed", nonRoyalKnightId);
     for (let i = 0; i < 50; i++) await Promise.resolve();
 
     // No draw, no memory change.
