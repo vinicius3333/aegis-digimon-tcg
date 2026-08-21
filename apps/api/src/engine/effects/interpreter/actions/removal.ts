@@ -339,6 +339,11 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           chosen = await pickLoose(ctx, action.target, candidates, undefined, asker);
         }
         const moved = chosen.length > 0 ? await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat }) : [];
+        ctx.lastTrashedCards = moved.map((card) => ({
+          instanceId: card.instanceId,
+          cardId: card.cardId,
+          dp: ctx.game.definitionOf(card).dp ?? 0,
+        }));
         // Bind the branch-acted result so an "if you did" tail (BT16-094 OR-modal) can gate.
         ctx.lastEffectActed = moved.length > 0;
         // Store actual trash count under the named key for downstream scaling. (CAP-E12/E13)

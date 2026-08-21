@@ -285,6 +285,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "Hatch":
     case "ModifyDP":
     case "AddDPFromSuspendedCost":
+    case "AddDPFromTrashedCard":
     case "SetBaseDP":
     case "GainKeyword":
     case "AddToHandSelf":

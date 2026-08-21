@@ -161,6 +161,15 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       }
       return false;
     }
+    case "AddDPFromTrashedCard": {
+      const amount = (ctx.lastTrashedCards ?? []).reduce((total, card) => total + card.dp, 0);
+      if (amount === 0) return false;
+      const targetIds = await resolvePermanentTargets(ctx, action.target);
+      for (const id of targetIds) {
+        ctx.fx.modifyDP(id, amount, toDuration(action.duration), { sourceInstanceId: ctx.source.instanceId });
+      }
+      return false;
+    }
     case "SetBaseDP": {
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
