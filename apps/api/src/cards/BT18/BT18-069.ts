@@ -1,16 +1,57 @@
 import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
+import type { CardDefinition, CompiledCard } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { staticModifier, turnTiming } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const cardId = "BT18-069";
 
 const hasKnightmonInName = (def: CardDefinition): boolean =>
   def.nameEn.includes("Knightmon") ||
   (typeof def.effectText === "string" && def.effectText.includes("Knightmon"));
+
+const compiled: CompiledCard = {
+  effects: [
+    { trigger: "Static", actions: [], keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }] },
+    {
+      trigger: "EndOfOpponentsTurn",
+      optional: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Attack",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          mandatory: true,
+          attackPlayer: false,
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      isInherited: true,
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Knightmon"], match: "text" }],
+            },
+            count: "all",
+          },
+          amount: 2000,
+          duration: "permanent",
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
 
 const module: EffectModule = {
   cardId,
@@ -105,4 +146,5 @@ const module: EffectModule = {
 };
 
 registerCard(module);
+registerIrCard(cardId, compiled);
 export default module;
