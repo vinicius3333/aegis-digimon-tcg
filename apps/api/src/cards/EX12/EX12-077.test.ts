@@ -1,11 +1,32 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./EX12-077.js";
 
 describe("EX12-077 Proximamon", () => {
+  it("retains the normal level 6 routes and printed keywords", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 6, texts: ["Gammamon"], cost: 5, isAlternate: true },
+      { level: 6, traits: ["VB"], cost: 5, isAlternate: true },
+    ]);
+
+    expect(compiled.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          trigger: "Static",
+          keywords: [expect.objectContaining({ keyword: "SecurityAttack", amount: 1 })],
+        }),
+        expect.objectContaining({
+          trigger: "Static",
+          keywords: [expect.objectContaining({ keyword: "Blocker" })],
+        }),
+      ]),
+    );
+  });
+
   it("retains both printed DNA Digivolve routes at cost 0", () => {
     expect(compiled.dnaDigivolveRequirement).toEqual([
       {
@@ -101,5 +122,29 @@ describe("EX12-077 Proximamon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX12-077"));
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("host").stack).toHaveLength(0);
+  });
+
+  it("plays only a matching card costing 10 or less from a Digimon's stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX12-077",
+              as: "proximamon",
+              under: ["EX12-035", "EX12-013"],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("proximamon"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX12-013")).toBe(true);
+    expect(s.perm("proximamon").stack.map((card) => card.cardId)).toEqual(["EX12-035"]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX12-035")).toBe(false);
   });
 });
