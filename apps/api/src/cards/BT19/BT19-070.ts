@@ -219,12 +219,14 @@ const compiled: CompiledCard = {
     {
       "materials": [
         {
-          "traits": [
-            "Composite"
-          ]
+          "kind": ["Digimon"],
+          "levelComparison": { "op": "eq", "value": 4 },
+          "nameOrTrait": [{ "tokens": ["Composite"], "match": "trait" }],
+          "differentCardNumbers": true
         }
       ],
-      "count": 1
+      "count": 3,
+      "costReduction": 1
     }
   ]
 };
