@@ -25,9 +25,9 @@ describe("EX8-072", () => {
     const trashSource = { ...(source as object), isOnBattleArea: () => false } as never;
     expect(module.effectsForTiming(EffectTiming.None, trashSource)).toHaveLength(1);
   });
-  it("does not register an unprinted security effect", () => {
+  it("registers the printed security activation", () => {
     const module = getEffectModule("EX8-072")!;
-    expect(module.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(0);
+    expect(module.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
   });
   it("deletes an opponent level 7 or lower Digimon even when their hand has fewer than 5 cards", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "EX8-072", as: "option" }], battleArea: [{ card: "BT2-070", as: "purpleSource" }] }, 1: { battleArea: [{ card: "BT1-010", as: "target" }] } }, { autoSelectCards: true });
@@ -58,5 +58,15 @@ describe("EX8-072", () => {
     expect((s.state.players[1] as PlayerState).hand).toHaveLength(5);
     expect((s.state.players[1] as PlayerState).trash).toHaveLength(2);
     expect((s.state.players[1] as PlayerState).battleArea).toHaveLength(0);
+  });
+  it("activates the Main deletion effect when revealed from security", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
+      1: { security: [{ card: "EX8-072", as: "option" }] },
+    }, { autoSelectCards: true });
+    const targetId = s.perm("attacker").permanentId;
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: targetId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => (s.state.players[0] as PlayerState).battleArea.length === 0);
+    expect((s.state.players[0] as PlayerState).battleArea).toHaveLength(0);
   });
 });

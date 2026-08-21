@@ -3,7 +3,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { activated, inTrash } from "../../engine/effects/builders.js";
+import { activated, inTrash, security } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**
@@ -119,6 +119,17 @@ const module: EffectModule = {
               },
             });
           },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.SecuritySkill) {
+      return [
+        security({
+          source,
+          effectKey: `${cardId}/security-activate-main`,
+          description: "[Security] Activate this card's [Main] effect.",
+          resolve: (ctx) => resolveMain(ctx, source),
         }),
       ];
     }
