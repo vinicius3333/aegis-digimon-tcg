@@ -14,5 +14,23 @@ describe("BT21-074 Satellamon", () => {
         ],
       }),
     );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "WhenLinking",
+        isLinked: true,
+        actions: [
+          expect.objectContaining({
+            kind: "Delete",
+            target: {
+              filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } },
+              count: 1,
+            },
+          }),
+        ],
+      }),
+    );
+    expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 3 }]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });
