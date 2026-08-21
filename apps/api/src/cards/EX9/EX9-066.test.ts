@@ -34,4 +34,29 @@ describe("EX9-066", () => {
     await settle(() => s.state.players[0].hand.some((card) => card.cardId === "BT1-001"));
     expect(s.state.players[0].hand.some((card) => card.cardId === "BT1-001")).toBe(true);
   });
+  it.each([
+    ["whenPlayed", "whenPlayed"],
+    ["whenOneOfYoursDigivolves", "whenOneOfYoursDigivolves"],
+  ] as const)("gains two memory after %s by suspending itself when both named Digimon are present", async (_label, event) => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX9-066", as: "source" }, { card: "BT1-015", as: "greymon" }, "BT1-036"] },
+    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+    s.state.memory = 0;
+
+    await advance(s.engine).fireSubTrigger(event, { subjectPermanentId: s.perm("greymon").permanentId });
+    await settle(() => s.perm("source").isSuspended && s.state.memory === 2);
+
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(2);
+  });
+  it("plays itself from security without paying its cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "EX9-066", as: "source" }] } }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+    s.inst("source").faceUp = true;
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("source"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-066"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-066")).toBe(true);
+    expect(s.state.players[0]!.security.some((card) => card.cardId === "EX9-066")).toBe(false);
+  });
 });
