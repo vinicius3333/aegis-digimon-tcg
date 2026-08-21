@@ -76,6 +76,8 @@ const compiled: CompiledCard = {
           mode: "raiseCeiling",
           costType: "play",
           amount: 2,
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          duration: "permanent",
           scaling: { per: 1, filter: { controller: "mine", excludeSelf: true, kind: ["Tamer"] }, unit: "cards" },
         },
       ],
