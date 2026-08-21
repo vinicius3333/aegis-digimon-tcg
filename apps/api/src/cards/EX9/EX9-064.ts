@@ -96,11 +96,12 @@ export const compiled: CompiledCard = {
           "amount": 1,
           "scaling": {
             "per": 1,
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+              "filter": {
+                "controllerDefault": "mine",
+                "kind": [
+                  "Digimon"
+                ],
+                "faceDown": true
             },
             "unit": "selfFaceDownDigivolutionCards"
           }
@@ -153,11 +154,12 @@ export const compiled: CompiledCard = {
           "amount": 1,
           "scaling": {
             "per": 1,
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+              "filter": {
+                "controllerDefault": "mine",
+                "kind": [
+                  "Digimon"
+                ],
+                "faceDown": true
             },
             "unit": "selfFaceDownDigivolutionCards"
           }
