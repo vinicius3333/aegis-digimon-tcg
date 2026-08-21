@@ -6,6 +6,6 @@ describe("EX4-046 WereGarurumon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions?.[0]).toMatchObject({ kind: "Digivolve", from: ["hand"], reduceCost: 2, optional: true, target: { filter: { controller: "mine", excludeSelf: true } }, into: { filter: { levelComparison: { op: "lte", value: 6 }, nameOrTrait: [{ match: "name", tokens: ["Greymon"] }] } } });
   });
   it("can suspend itself to redirect an opponent attack", () => {
-    expect(compiled.effects?.find((entry) => (entry.trigger as string) === "WhenOpponentAttacks")).toMatchObject({ isInherited: true, actions: [{ kind: "Suspend", optional: true }, { kind: "RedirectAttack", condition: { kind: "ifThisEffectUsed" } }] });
+    expect(compiled.effects?.find((entry) => (entry.trigger as string) === "WhenOpponentAttacks")).toMatchObject({ isInherited: true, actions: [{ kind: "RedirectAttack", optional: true, abortOnDecline: true, cost: { kind: "suspend", target: { filter: { isSelfRef: true } } } }] });
   });
 });
