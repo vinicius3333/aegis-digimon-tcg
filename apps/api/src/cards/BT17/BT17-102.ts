@@ -19,9 +19,6 @@ import { registerCard } from "../../engine/effects/registry.js";
  *     Digimon.
  *   [All Turns] This Digimon has all the names of level 3 and lower cards in its
  *     digivolution cards.
- *     RESIDUAL — rule implementation requires a dynamic name-grant
- *     subsystem not available in grantNameTrait (which records static tokens at resolution
- *     time). No engine primitive for dynamic digivolution-stack-driven name aliasing.
  *   [On Deletion] You may play 1 Tamer card with [Tai Kamiya] or [Kari Kamiya] in its
  *     name from your hand without paying the cost, OR hatch in your breeding area. (exclusive)
  *   [Inherited][On Deletion] Same effect.
@@ -170,9 +167,6 @@ export const module: EffectModule = {
 
     return [];
   },
-  // RESIDUAL: [All Turns] This Digimon has all the names of level 3 and lower cards in its
-  // digivolution cards. rule implementation requires dynamic
-  // digivolution-stack-driven name aliasing, not available with grantNameTrait (static tokens).
 };
 
 registerCard(module);
