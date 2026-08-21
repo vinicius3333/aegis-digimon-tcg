@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 
 // A3 for BT21-062 (Galacticmon) — [Start of Your Main Phase]:
@@ -19,14 +20,12 @@ import "../index.js";
 const GALACTICMON = "BT21-062";
 const PLAIN_DIGIMON = "BT1-009"; // Monodramon — playCost 2, opponent target for delete
 
-function fireTiming(
-  s: EngineSetup,
-  timing: EffectTiming,
-  trigger: Record<string, unknown> = {},
-): Promise<void> {
-  return (s.engine as unknown as {
-    fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
-  }).fireTiming(timing, trigger);
+function fireTiming(s: EngineSetup, timing: EffectTiming, trigger: Record<string, unknown> = {}): Promise<void> {
+  return (
+    s.engine as unknown as {
+      fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
+    }
+  ).fireTiming(timing, trigger);
 }
 
 describe("BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon", () => {
@@ -66,5 +65,60 @@ describe("BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon", () => 
 
     // Opponent's Digimon should NOT be deleted (it's not seat 0's turn).
     expect(p1?.battleArea.length).toBe(1);
+  });
+
+  it("places exactly 4 Vemmon-text cards and uses Ragnarok Cannon for free", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: GALACTICMON, as: "galacticmon" }],
+          hand: [{ card: "BT21-098", as: "cannon" }],
+          trash: [
+            { card: "BT21-056", as: "vemmon1" },
+            { card: "BT21-056", as: "vemmon2" },
+            { card: "BT11-065", as: "vemmonText1" },
+            { card: "BT11-065", as: "vemmonText2" },
+          ],
+        },
+        1: { battleArea: [{ card: PLAIN_DIGIMON, as: "cannonTarget" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await fireTiming(s, EffectTiming.WhenDigivolving, {
+      subjectPermanentId: s.perm("galacticmon").permanentId,
+    });
+    for (let i = 0; i < 400 && s.perm("galacticmon").stack.length < 4; i++) await Promise.resolve();
+
+    expect(s.perm("galacticmon").stack).toHaveLength(4);
+    expect(s.state.players[0]?.hand.some((card) => card.instanceId === s.inst("cannon").instanceId)).toBe(false);
+    expect(s.state.players[1]?.battleArea).toHaveLength(0);
+  });
+
+  it("returns exactly 4 stacked Vemmon to deck bottom to prevent leaving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: GALACTICMON,
+              as: "galacticmon",
+              under: [
+                { card: "BT21-056", as: "vemmon1" },
+                { card: "BT21-056", as: "vemmon2" },
+                { card: "BT21-056", as: "vemmon3" },
+                { card: "BT21-056", as: "vemmon4" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const permanentId = s.perm("galacticmon").permanentId;
+
+    expect(await advance(s.engine).verb.deletePermanent([permanentId], "byEffect")).toBe(0);
+    expect(s.state.players[0]?.battleArea.some((permanent) => permanent.permanentId === permanentId)).toBe(true);
+    expect(s.state.players[0]?.deck.slice(-4).every((card) => card.cardId === "BT21-056")).toBe(true);
   });
 });
