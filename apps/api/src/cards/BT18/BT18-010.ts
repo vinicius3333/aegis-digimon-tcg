@@ -65,6 +65,7 @@ const compiled: CompiledCard = {
             nameOrTrait: [{ tokens: ["Hybrid", "Ten Warriors"], match: "trait" }],
           },
           actions: [{ kind: "GainMemory", amount: 1 }],
+          raw: "when any of your Digimon or Tamers digivolve into a Digimon with the [Hybrid]/[Ten Warriors] trait",
         },
       ],
       frequency: "OncePerTurn",
