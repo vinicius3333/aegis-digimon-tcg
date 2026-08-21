@@ -200,9 +200,6 @@ export async function runSubTrigger(
     event === "whenEffectRemovesFromSecurity" ||
     event === "whenSecurityRemoved" ||
     event === "onDiscardLibrary" ||
-    // whenSuspended carries suspendedPermanentId (and, for simultaneous suspension,
-    // subjectPermanentIds). Its dedicated gate below handles the physical host identity.
-    event === "whenSuspended" ||
     event === "onDigivolutionCardReturnToDeckBottom" ||
     event === "whenHandTrashed" ||
     event === "whenOpponentDraws" ||
