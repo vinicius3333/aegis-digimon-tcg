@@ -24,7 +24,7 @@ const compiled: CompiledCard = {
           "kind": "SetBaseDP",
           "target": {
             "filter": {
-              "controllerDefault": "opponent",
+              "controller": "opponent",
               "kind": [
                 "Digimon"
               ]
