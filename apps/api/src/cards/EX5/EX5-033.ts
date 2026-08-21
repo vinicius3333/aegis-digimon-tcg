@@ -3,185 +3,169 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "colors": [
-                "Yellow"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "security"
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              colors: ["Yellow"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "count": 1,
-              "position": "top"
             },
-            "raw": "By trashing the top card of your security stack"
+            count: 1,
           },
-          "optional": true,
-          "abortOnDecline": true
+          from: ["hand"],
+          payCost: false,
+          bindResultAs: "playedByThisEffect",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "security",
+              },
+              count: 1,
+              position: "top",
+            },
+            raw: "By trashing the top card of your security stack",
+          },
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              boundRef: "playedByThisEffect",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Rush",
-            "raw": "＜Rush＞"
+          keyword: {
+            keyword: "Rush",
+            raw: "＜Rush＞",
           },
-          "duration": "forTheTurn"
-        }
+          duration: "forTheTurn",
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "colors": [
-                "Yellow"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 4
-              }
-            },
-            "count": 1
-          },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "security"
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              colors: ["Yellow"],
+              levelComparison: {
+                op: "lte",
+                value: 4,
               },
-              "count": 1,
-              "position": "top"
             },
-            "raw": "By trashing the top card of your security stack"
+            count: 1,
           },
-          "optional": true,
-          "abortOnDecline": true
+          from: ["hand"],
+          payCost: false,
+          bindResultAs: "playedByThisEffect",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "security",
+              },
+              count: 1,
+              position: "top",
+            },
+            raw: "By trashing the top card of your security stack",
+          },
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              boundRef: "playedByThisEffect",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Rush",
-            "raw": "＜Rush＞"
+          keyword: {
+            keyword: "Rush",
+            raw: "＜Rush＞",
           },
-          "duration": "forTheTurn"
-        }
+          duration: "forTheTurn",
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Yellow"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              colors: ["Yellow"],
             },
-            "count": "all"
+            count: "all",
           },
-          "keyword": {
-            "keyword": "Barrier",
-            "raw": "＜Barrier＞"
+          keyword: {
+            keyword: "Barrier",
+            raw: "＜Barrier＞",
           },
-          "duration": "permanent"
-        }
-      ]
+          duration: "permanent",
+        },
+      ],
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "gte",
-                "value": {
-                  "kind": "dynamicCount",
-                  "filter": {
-                    "zone": "security",
-                    "controller": "any"
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "gte",
+                value: {
+                  kind: "dynamicCount",
+                  filter: {
+                    zone: "security",
+                    controller: "any",
                   },
-                  "unit": "cards"
-                }
-              }
+                  unit: "cards",
+                },
+              },
             },
-            "count": "all"
+            count: "all",
           },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": -2,
-            "raw": "＜Security Attack -2＞"
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: -2,
+            raw: "＜Security Attack -2＞",
           },
-          "duration": "permanent"
-        }
-      ]
-    }
+          duration: "permanent",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX5-033", compiled);
