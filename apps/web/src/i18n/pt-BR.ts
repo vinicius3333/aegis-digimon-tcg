@@ -308,6 +308,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.stack": "Pilha",
   "game.yourTrash": "Seu lixo",
   "game.oppTrash": "Lixo de {name}",
+  "game.yourSecurityPile": "Sua segurança",
+  "game.oppSecurityPile": "Segurança de {name}",
   "game.playOption": "Jogar Option",
   "game.playTamer": "Jogar Tamer",
   "game.playDigimon": "Jogar Digimon",
@@ -448,6 +450,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.zoomCard": "Ampliar carta",
   "overlay.trashEmpty": "lixo vazio",
   "overlay.trashCount": "{count} cartas",
+  "overlay.securityCount": "{faceUp} viradas para cima de {count} cartas",
+  "overlay.securityNoFaceUp": "nenhuma carta virada para cima",
   "overlay.xrosTitle": "＜DigiXros＞ — {name}",
   "overlay.xrosDetail": "Coloque cartas de material sob ela para reduzir o custo de jogo ({reduction}).",
   "overlay.xrosAccepted": " Aceitos: {slots}.",
@@ -870,7 +874,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "ranked.signInToEnable": "Entrar para ativar a ranqueada",
   "ranked.signInFirst": "Entre na sua conta nos Ajustes antes de buscar uma partida rankeada.",
   "ranked.confirmTitle": "Iniciar partida rankeada?",
-  "ranked.confirmBody": "O resultado desta batalha contará no seu histórico e nas suas estatísticas. É necessário estar conectado a uma conta.",
+  "ranked.confirmBody":
+    "O resultado desta batalha contará no seu histórico e nas suas estatísticas. É necessário estar conectado a uma conta.",
   "ranked.dontShowAgain": "Não mostrar novamente",
 
   "legal.title": "Projeto de fãs sem fins comerciais",

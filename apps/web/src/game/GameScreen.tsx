@@ -263,6 +263,7 @@ export function GameScreen({
   );
   const [stackView, setStackView] = useState<string | null>(null); // permanentId whose stack modal is open
   const [trashView, setTrashView] = useState<"you" | "opp" | null>(null); // which player's trash modal is open
+  const [securityView, setSecurityView] = useState<"you" | "opp" | null>(null); // which player's security modal is open
   const [picks, setPicks] = useState<string[]>([]);
   const [flash, setFlash] = useState<string | null>(null);
   const [turnTransition, setTurnTransition] = useState<{
@@ -342,6 +343,7 @@ export function GameScreen({
     cardMenu ||
     stackView ||
     trashView ||
+    securityView ||
     evoCostChoice ||
     digiXrosPick ||
     actionConfirm ||
@@ -415,6 +417,7 @@ export function GameScreen({
     setCardMenu(null);
     setStackView(null);
     setTrashView(null);
+    setSecurityView(null);
     setDigiXrosPick(null);
     setOppInspector(null);
   }, [decision?.decisionId, state?.turnSeat]);
@@ -1557,6 +1560,31 @@ export function GameScreen({
             );
           })()
         : null}
+
+      {securityView
+        ? (() => {
+            const owner = securityView === "you" ? you : opp;
+            const ownerLabel =
+              securityView === "you"
+                ? t("game.yourSecurityPile")
+                : t("game.oppSecurityPile", { name: opp.displayName || t("game.opponent") });
+            // Only face-up security cards are public; face-down cards stay hidden
+            // even from their owner (the stack cannot be looked at, per the rules).
+            const faceUpCardIds = Array.from(owner.security ?? [])
+              .filter((card) => card?.faceUp)
+              .map((card) => card.cardId);
+            return (
+              <TrashViewerOverlay
+                title={ownerLabel}
+                cardIds={faceUpCardIds}
+                countLabel={t("overlay.securityCount", { faceUp: faceUpCardIds.length, count: owner.securityCount })}
+                emptyLabel={t("overlay.securityNoFaceUp")}
+                sheet={narrowGameLayout}
+                onClose={() => setSecurityView(null)}
+              />
+            );
+          })()
+        : null}
     </>
   );
 
@@ -1765,6 +1793,7 @@ export function GameScreen({
               refEl={(el) => {
                 yourSecRef.current = el;
               }}
+              onClick={you.securityCount ? () => setSecurityView("you") : undefined}
             />
           </aside>
 
@@ -1925,7 +1954,11 @@ export function GameScreen({
                 drop={{ "data-drop": "opp-security" }}
                 glow={canAttackSecurity || canAttackPlayerWith(draggedAttackerPerm, false)}
                 onClick={
-                  selPerm && canAttackSecurity ? () => attack(selPerm, { kind: "player" }, vortexMode) : undefined
+                  selPerm && canAttackSecurity
+                    ? () => attack(selPerm, { kind: "player" }, vortexMode)
+                    : opp.securityCount
+                      ? () => setSecurityView("opp")
+                      : undefined
                 }
               />
             </div>
