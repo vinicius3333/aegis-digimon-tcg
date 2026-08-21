@@ -6,10 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - RevealAdd `add[0].filter` was `{}`; corrected to `{ colors: ["Blue"] }` so only a
 //   - Digivolve `into` was `{ kind: ["Digimon"] }`; corrected to add `colors: ["Blue"]`
 //     so only blue Digimon are legal <Delay> digivolve targets (Q4192).
-//   - Added `costDelta: -2`. NOTE: the interpreter's
-//     runDigivolve does not yet apply costDelta (documented v1 limitation), so the cost
-//     reduction is not realized — see BT9-109-style engine gap; P-104.test.ts keeps that
-//     assertion as it.fails until digivolveFromInstance honors a cost delta.
+//   - Added `costDelta: -2`, which the interpreter forwards to digivolveFromInstance.
 //   - Marked the Digivolve action `optional: true` — the <Delay> reads "1 of your Digimon
 //     MAY digivolve", and Q4195 confirms the controller may choose not to digivolve.
 //   - Dropped the first [Main] clause's `Return{zone:"trash"}` action: it has no basis in the
@@ -30,73 +27,63 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     grant — the card's own ＜Delay＞ ability lives on the second [Main] clause above, not on
 //     a separately-granted keyword.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 2,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 2,
+          add: [
             {
-              "filter": { "colors": ["Blue"] },
-              "count": 1,
-              "to": "hand"
-            }
+              filter: { colors: ["Blue"] },
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
+          rest: "deckBottom",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "keywords": [
-        { "keyword": "Delay", "raw": "＜Delay＞" }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "actions": [
-        {
-          "kind": "Digivolve",
-          "optional": true,
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "into": {
-            "kind": [
-              "Digimon"
-            ],
-            "colors": [
-              "Blue"
-            ]
-          },
-          "costDelta": -2,
-          "payCost": true,
-          "from": [
-            "hand"
-          ]
-        }
-      ]
     },
     {
-      "trigger": "Security",
-      "isSecurity": true,
-      "actions": [
+      trigger: "Main",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
+      actions: [
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
-    }
+          kind: "Digivolve",
+          optional: true,
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          into: {
+            kind: ["Digimon"],
+            colors: ["Blue"],
+          },
+          costDelta: -2,
+          payCost: true,
+          from: ["hand"],
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-104", compiled);
