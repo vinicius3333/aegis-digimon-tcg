@@ -8,6 +8,30 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOptionUsed",
+          fireCondition: {
+            kind: "triggerOptionCostAtLeast",
+            value: 2,
+            raw: "when you use an Option card with a use cost of 2 or more",
+          },
+          actions: [
+            {
+              kind: "ModifyDP",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+              amount: -2000,
+              duration: "forTheTurn",
+            },
+          ],
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
+    {
       trigger: "OnPlay",
       actions: [
         {

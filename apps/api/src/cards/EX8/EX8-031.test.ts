@@ -17,6 +17,18 @@ describe("EX8-031", () => {
       target: { count: 1 },
     });
   });
+  it("inherits a once-per-turn -2000 DP trigger for using an Option with use cost 2 or more", () => {
+    expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
+      trigger: "YourTurn",
+      frequency: "OncePerTurn",
+      actions: [{
+        kind: "SubTrigger",
+        event: "whenOptionUsed",
+        fireCondition: { kind: "triggerOptionCostAtLeast", value: 2 },
+        actions: [{ kind: "ModifyDP", amount: -2000, duration: "forTheTurn" }],
+      }],
+    });
+  });
   it("returns a Plug-In Option from trash on play", async () => {
     const s = setupEngine(
       { 0: { hand: [{ card: "EX8-031", as: "renamon" }], trash: [{ card: "ST22-08", as: "plugin" }] } },
