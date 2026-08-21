@@ -20,14 +20,12 @@ const VEMMON_CARD = "BT21-056"; // BT21 Vemmon — nameEn: "Vemmon"
 const VEMMON_IN_EFFECT_TEXT = "BT11-065"; // Snatchmon — mentions [Vemmon], but name/types do not.
 const PLAIN_CARD = "BT1-009"; // Agumon-like — no "Vemmon" in text
 
-function fireTiming(
-  s: EngineSetup,
-  timing: EffectTiming,
-  trigger: Record<string, unknown> = {},
-): Promise<void> {
-  return (s.engine as unknown as {
-    fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
-  }).fireTiming(timing, trigger);
+function fireTiming(s: EngineSetup, timing: EffectTiming, trigger: Record<string, unknown> = {}): Promise<void> {
+  return (
+    s.engine as unknown as {
+      fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
+    }
+  ).fireTiming(timing, trigger);
 }
 
 describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () => {
@@ -59,11 +57,7 @@ describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () =>
     await fireTiming(s, EffectTiming.OnPlay, {
       subjectPermanentId: snatchmonId,
     });
-    for (
-      let i = 0;
-      i < 400 && !((p0?.hand.length ?? 0) > handBefore || (p0?.trash.length ?? 0) > trashBefore);
-      i++
-    )
+    for (let i = 0; i < 400 && !((p0?.hand.length ?? 0) > handBefore || (p0?.trash.length ?? 0) > trashBefore); i++)
       await Promise.resolve();
 
     // The Vemmon card should be in hand (added from revealed 3).
@@ -107,11 +101,7 @@ describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () =>
       {
         0: {
           battleArea: [{ card: SNATCHMON, dp: 7000, as: "snatchmon" }],
-          deck: [
-            { card: VEMMON_IN_EFFECT_TEXT, as: "vemmonInText" },
-            PLAIN_CARD,
-            PLAIN_CARD,
-          ],
+          deck: [{ card: VEMMON_IN_EFFECT_TEXT, as: "vemmonInText" }, PLAIN_CARD, PLAIN_CARD],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -126,5 +116,27 @@ describe("BT21-058 [On Play] reveal-3 adds [Vemmon]-in-text card to hand", () =>
     }
 
     expect(p0?.hand.some((c) => c.instanceId === qualifyingId)).toBe(true);
+  });
+
+  it("offers a choice when multiple revealed cards contain [Vemmon] in their text", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: SNATCHMON, dp: 7000, as: "snatchmon" }],
+          deck: [{ card: VEMMON_CARD, as: "vemmon" }, { card: VEMMON_IN_EFFECT_TEXT, as: "vemmonText" }, PLAIN_CARD],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const p0 = s.state.players[0];
+    const snatchmonId = s.perm("snatchmon").permanentId;
+
+    await fireTiming(s, EffectTiming.OnPlay, { subjectPermanentId: snatchmonId });
+    for (let i = 0; i < 400 && (p0?.trash.length ?? 0) < 2; i++) await Promise.resolve();
+
+    expect(p0?.hand.filter((card) => [VEMMON_CARD, VEMMON_IN_EFFECT_TEXT].includes(card.cardId))).toHaveLength(1);
+    expect(
+      p0?.trash.filter((card) => [VEMMON_CARD, VEMMON_IN_EFFECT_TEXT, PLAIN_CARD].includes(card.cardId)),
+    ).toHaveLength(2);
   });
 });

@@ -45,7 +45,8 @@ async function revealAndPlaceVemmon(ctx: EffectContext, source: CardSource): Pro
     return hasVemmonInText(ctx.game.definitionOf(inst));
   });
 
-  const toHand = withVemmon.slice(0, 1);
+  const toHand =
+    withVemmon.length > 0 ? await ctx.ask.selectCards(ctx, { candidates: withVemmon, min: 0, max: 1 }) : [];
   const toTrash = revealedIds.filter((id) => !toHand.includes(id));
 
   // Move top 3 from deck first (reveal is informational; we move them).
@@ -57,9 +58,7 @@ async function revealAndPlaceVemmon(ctx: EffectContext, source: CardSource): Pro
   }
 
   // Then, you may place up to 2 [Vemmon] from your trash as 1 of your Digimon's bottom digi-cards.
-  const vemmonInTrash = owner.trash
-    .filter((c) => isVemmon(ctx.game.definitionOf(c)))
-    .map((c) => c.instanceId);
+  const vemmonInTrash = owner.trash.filter((c) => isVemmon(ctx.game.definitionOf(c))).map((c) => c.instanceId);
 
   if (vemmonInTrash.length === 0) return;
 
