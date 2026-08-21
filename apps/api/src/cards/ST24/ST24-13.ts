@@ -1,4 +1,4 @@
-import { EffectDuration, EffectTiming } from "@aegis/shared";
+import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -127,7 +127,7 @@ const module: EffectModule = {
                 const owner = subCtx.game.player(source.ownerSeat);
                 const datSquadCandidates = owner.battleArea
                   .filter((p) => {
-                    if (p.inBreeding || p.topCard === undefined) return false;
+                    if (p.inBreeding || p.topCard === undefined || !isDigimon(subCtx.game.definitionOf(p.topCard))) return false;
                     const def = subCtx.game.definitionOf(p.topCard);
                     const types = (def.types ?? []) as string[];
                     return types.includes("DATA SQUAD");
