@@ -50,17 +50,8 @@ const compiled: CompiledCard = {
               "duration": "untilOpponentTurnEnd"
             },
             {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "zone": "security"
-                },
-                "count": "all"
-              },
+              "kind": "ModifySecurityDP",
+              "controller": "opponent",
               "amount": -4000,
               "duration": "untilOpponentTurnEnd"
             }

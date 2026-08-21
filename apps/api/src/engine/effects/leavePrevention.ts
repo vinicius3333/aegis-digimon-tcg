@@ -89,13 +89,14 @@ export async function consultLeavePrevention(
         if (srcPerm === undefined || srcPerm.topCard === undefined) continue;
         const ctx = host.buildContext(srcPerm, leavingId);
         if (repl.protects && !repl.protects(ctx, leavingId)) continue;
-        // Once-per-turn cap (＜Barrier＞): a reaction that already prevented a removal this turn is
-        // spent — skip it (no prompt, no prevention) until the per-turn ledger resets.
-        if (repl.oncePerTurnKey !== undefined && host.oncePerTurnFired?.(repl.oncePerTurnKey)) continue;
         if (repl.affectsAll && firedAll.has(repl.id)) {
           prevented.add(leavingId); // one activation already prevented all matching
           break;
         }
+        // Once-per-turn cap (＜Barrier＞): a reaction that already prevented a removal this turn is
+        // spent — skip it (no prompt, no prevention) until the per-turn ledger resets. This check
+        // follows the affectsAll fast path so one activation protects every simultaneous match.
+        if (repl.oncePerTurnKey !== undefined && host.oncePerTurnFired?.(repl.oncePerTurnKey)) continue;
         const did = await repl.preventCheck(ctx, leavingId);
         if (did) {
           prevented.add(leavingId);

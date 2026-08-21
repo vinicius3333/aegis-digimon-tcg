@@ -151,11 +151,17 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     // filter wins: the runtime record emits e.g. `youHave {controller:"opponent"}` for a
     // CanSelectPermanentCondition ("there is an opponent permanent to target"), and that
     // explicit side must not be clobbered back to the kind's default.
-    case "youHave":
-      return cond.filter ? countMatching(ctx, { controller: "mine", ...cond.filter }) >= (cond.count ?? 1) : false;
+    case "youHave": {
+      if (cond.filter === undefined) return false;
+      const { countMax, ...matchingFilter } = cond.filter as Filter & { countMax?: number };
+      const count = countMatching(ctx, { controller: "mine", ...matchingFilter });
+      if (countMax !== undefined) return count <= countMax;
+      return count >= (cond.count ?? 1);
+    }
     case "opponentHas": {
       const threshold = cond.countMin ?? cond.count ?? 1;
-      return cond.filter ? countMatching(ctx, { controller: "opponent", ...cond.filter }) >= threshold : false;
+      const count = cond.filter ? countMatching(ctx, { controller: "opponent", ...cond.filter }) : 0;
+      return count >= threshold && (cond.countMax === undefined || count <= cond.countMax);
     }
     case "youHaveNone":
       return cond.filter ? countMatching(ctx, { controller: "mine", ...cond.filter }) === 0 : false;
@@ -202,7 +208,12 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const seat = cond.seat === "opponent" ? opp : mine;
       const player = ctx.game.player(seat);
       const zone = cond.zone ?? "hand";
-      const size = player[zone].length;
+      const size = zone === "battleArea"
+        ? player.battleArea.filter((permanent) =>
+            permanent.topCard !== undefined &&
+            (cond.filter === undefined || definitionMatches(cond.filter, ctx.game.definitionOf(permanent.topCard))),
+          ).length
+        : player[zone].length;
       const value = cond.value ?? 0;
       if (cond.op === "eq") return size === value;
       if (cond.op === "lt") return size < value;
@@ -413,6 +424,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const binding = ctx.boundPlayed?.get(cond.ref);
       return binding === undefined || binding.size === 0;
     }
+    case "lastEffectDidNotAct":
+      return ctx.lastEffectActed !== true;
     case "bindingExists": {
       // True when a previous action in this same resolution wrote at least one card/permanent
       // into the named binding. Used for "if this effect digivolved/played/moved a card, then..."
@@ -589,7 +602,11 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     case "ifThisEffectActed":
       // True when the prior place/trash branch actually moved >=1 card (BT16-094 "if you did
       // either"). Unset (no producing action ran) => false (conservative).
-      return ctx.lastEffectActed === true;
+      return (
+        ctx.lastEffectActed === true ||
+        (ctx.lastDeleteCount ?? 0) > 0 ||
+        (ctx.lastDeletedByThisEffectIds?.length ?? 0) > 0
+      );
     case "ifThisEffectDidNotAct":
       // Complement of ifThisEffectActed: true when the prior action moved 0 cards — "your opponent
       // may trash 1 Option card; if they do not, you gain 2 memory" (EX4-070, KB Q3514). Unset

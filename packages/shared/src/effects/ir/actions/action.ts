@@ -101,6 +101,7 @@ import type {
   DisableSecurityEffectAction,
   ModifySecurityDPAction,
   OpponentMayTrashSecurityAction,
+  RecoverAction,
   RecoverByTrashingMostSecurityAction,
   SecurityAttackInvertAction,
   SecurityManipulationAction,
@@ -199,6 +200,7 @@ export type Action =
   | CostModifierAction
   | SecurityManipulationAction
   | RecoverByTrashingMostSecurityAction
+  | RecoverAction
   | TrashSecurityTopAction
   | PlayPerLevelAction
   | DnaDigivolveAction

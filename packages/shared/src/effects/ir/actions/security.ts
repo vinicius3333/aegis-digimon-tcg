@@ -102,6 +102,8 @@ export interface SecurityManipulationAction extends ActionBase {
    * non-security placements, so it stays out of the structural signature for ordinary matching.
    */
   faceUp?: boolean;
+  /** For addTop/addBottom/addTopOrBottom: explicitly return a revealed card face down. */
+  faceDown?: boolean;
   /**
    * For placeAsSecurity: detach only the source's current top card, promoting the top
    * digivolution card and leaving the permanent in play. BT9-044 uses it as a deletion-prevention
@@ -146,6 +148,11 @@ export interface RecoverByTrashingMostSecurityAction extends ActionBase {
   amount?: number;
   /** When false, only the most-security top-card trash happens; the recovery is modeled separately. */
   recover?: boolean;
+}
+
+export interface RecoverAction extends ActionBase {
+  kind: "Recover";
+  amount?: number;
 }
 
 /**

@@ -12,14 +12,19 @@ export const compiled: CompiledCard = {
       "trigger": "OnPlay",
       "actions": [
         {
-          "kind": "ActivateMain",
+          "kind": "ActivateEffect",
+          "effectType": "OnPlay",
           "target": {
             "filter": {
-              "placedByThisEffect": true
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ],
+              "nameOrTrait": [{ "tokens": ["Cyborg", "Ver.5"], "match": "trait" }],
+              "zone": "digivolutionCards"
             },
             "count": 1
           },
-          "effectTrigger": "On Play",
           "cost": {
             "kind": "place",
             "target": {
@@ -60,14 +65,19 @@ export const compiled: CompiledCard = {
       "trigger": "WhenDigivolving",
       "actions": [
         {
-          "kind": "ActivateMain",
+          "kind": "ActivateEffect",
+          "effectType": "OnPlay",
           "target": {
             "filter": {
-              "placedByThisEffect": true
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ],
+              "nameOrTrait": [{ "tokens": ["Cyborg", "Ver.5"], "match": "trait" }],
+              "zone": "digivolutionCards"
             },
             "count": 1
           },
-          "effectTrigger": "On Play",
           "cost": {
             "kind": "place",
             "target": {
@@ -108,14 +118,19 @@ export const compiled: CompiledCard = {
       "trigger": "WhenAttacking",
       "actions": [
         {
-          "kind": "ActivateMain",
+          "kind": "ActivateEffect",
+          "effectType": "OnPlay",
           "target": {
             "filter": {
-              "placedByThisEffect": true
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ],
+              "nameOrTrait": [{ "tokens": ["Cyborg", "Ver.5"], "match": "trait" }],
+              "zone": "digivolutionCards"
             },
             "count": 1
           },
-          "effectTrigger": "On Play",
           "cost": {
             "kind": "place",
             "target": {

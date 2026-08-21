@@ -143,10 +143,11 @@ const compiled: CompiledCard = {
           "kind": "Restrict",
           "target": {
             "filter": {
-              "isSelfRef": true
+              "controller": "opponent",
+              "kind": ["Digimon", "Tamer"]
             },
             "count": 1,
-            "isSelf": true
+            "sameTarget": true
           },
           "restriction": "unsuspend",
           "duration": "untilOpponentTurnEnd"

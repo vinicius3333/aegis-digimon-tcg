@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 describe("ST21-10", () => {
   it("requires either the 10000 DP opponent threshold or three Tamer colors", () => {
@@ -39,5 +40,33 @@ describe("ST21-10", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("discard").instanceId);
     expect(s.state.players[0]!.hand.length).toBe(handBefore);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+  });
+
+  it("exposes and resolves the Your Turn digivolution when the opponent has 10000 DP or more", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST21-10", as: "gabumon" }], hand: [{ card: "ST21-11", as: "metal" }] },
+      1: { battleArea: [{ card: "ST21-11", as: "opponentMetal", dp: 12000 }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+    s.state.memory = 10;
+    const source = s.perm("gabumon");
+    const [effect] = observe(s.engine).activatableEffects(source) as { effectKey: string; description: string }[];
+    expect(effect).toBeDefined();
+    expect(effect.description).toContain("MetalGarurumon");
+    expect(s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: source.topCard!.instanceId,
+      effectKey: effect.effectKey,
+    })).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "ST21-11")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "ST21-11")).toBe(false);
+  });
+
+  it("does not expose the Your Turn digivolution without either qualifying branch", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST21-10", as: "gabumon" }], hand: [{ card: "ST21-11", as: "metal" }] },
+      1: { battleArea: [{ card: "ST1-03", as: "opponentRookie" }] },
+    });
+    expect(observe(s.engine).activatableEffects(s.perm("gabumon"))).toEqual([]);
   });
 });

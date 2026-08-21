@@ -119,7 +119,7 @@ const module: EffectModule = {
                   max: 1,
                 });
                 if (chosen.length > 0) {
-                  subCtx.fx.grantKeyword(chosen[0]!, "Jamming", EffectDuration.UntilEachTurnEnd);
+                  subCtx.fx.grantKeyword(chosen[0]!, "Jamming", EffectDuration.UntilEachTurnEnd, undefined, { continuous: false });
                 }
               },
             });

@@ -9,6 +9,8 @@ const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Security",
+      "timing": "endOfBattle",
+      "isSecurity": true,
       "actions": [
         {
           "kind": "PlayWithoutCost",

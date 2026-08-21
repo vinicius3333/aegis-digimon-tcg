@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Hand-authored IR correction: BT18-073's Q&A requires the target Millenniummon to
 // have a DNA Digivolution requirement. The generated card data omitted that
 // structural header for BT18-019, so preserve it here for interpreter legality checks.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",

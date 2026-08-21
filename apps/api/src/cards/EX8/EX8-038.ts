@@ -6,48 +6,44 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controllerDefault": "any",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controllerDefault: "any",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Retaliation",
-          "raw": "＜Retaliation＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "Koromon"
+          keyword: "Retaliation",
+          raw: "＜Retaliation＞",
+        },
       ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Koromon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX8-038", compiled);

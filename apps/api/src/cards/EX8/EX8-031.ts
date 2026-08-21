@@ -6,105 +6,87 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // trigger for Security activations or Delay activations. Cost reduction to the paid
 // amount doesn't affect whether it triggers — original use cost is checked.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Option"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Plug-In"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
+          kind: "SubTrigger",
+          event: "whenOptionUsed",
+          fireCondition: {
+            kind: "triggerOptionCostAtLeast",
+            value: 2,
+            raw: "when you use an Option card with a use cost of 2 or more",
           },
-          "to": "hand"
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "kind": [
-                "Option"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Plug-In"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "to": "hand"
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenOptionUsed",
-          "fireCondition": {
-            "kind": "triggerOptionCostAtLeast",
-            "value": 2,
-            "raw": "when you use an Option card with a use cost of 2 or more"
-          },
-          "actions": [
+          actions: [
             {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
-              "amount": -2000,
-              "duration": "forTheTurn"
-            }
-          ]
-        }
+              kind: "ModifyDP",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+              amount: -2000,
+              duration: "forTheTurn",
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
     {
-      "names": [
-        "Renamon"
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Option"],
+              nameOrTrait: [
+                {
+                  tokens: ["Plug-In"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          to: "hand",
+        },
       ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Option"],
+              nameOrTrait: [
+                {
+                  tokens: ["Plug-In"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 1,
+          },
+          to: "hand",
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      names: ["Renamon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX8-031", compiled);

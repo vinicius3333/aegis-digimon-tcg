@@ -57,7 +57,7 @@ const compiled: CompiledCard = {
             "raw": "it's your turn"
           },
           "cost": {
-            "kind": "trash",
+            "kind": "trashBottomFaceDownUnderTamer",
             "target": {
               "filter": {
                 "controller": "mine",
@@ -127,7 +127,7 @@ const compiled: CompiledCard = {
             "raw": "it's your turn"
           },
           "cost": {
-            "kind": "trash",
+            "kind": "trashBottomFaceDownUnderTamer",
             "target": {
               "filter": {
                 "controller": "mine",
@@ -180,7 +180,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "cost": {
-            "kind": "trash",
+            "kind": "trashBottomFaceDownUnderTamer",
             "target": {
               "filter": {
                 "controller": "mine",

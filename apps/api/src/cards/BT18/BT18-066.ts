@@ -11,48 +11,26 @@ const compiled: CompiledCard = {
       "trigger": "OnPlay",
       "actions": [
         {
-          "kind": "ActivateMain",
+          "kind": "PlaceUnder",
           "target": {
             "filter": {
-              "placedByThisEffect": true
+              "excludeNames": ["Sephirothmon"],
+              "controller": "mine",
+              "levelComparison": {"op": "lte", "value": 4},
+              "nameOrTrait": [{"tokens": ["Hybrid"], "match": "trait"}]
             },
+            "from": ["hand", "trash"],
             "count": 1
           },
-          "effectTrigger": "On Play",
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "excludeNames": [
-                  "Sephirothmon"
-                ],
-                "controller": "mine",
-                "levelComparison": {
-                  "op": "lte",
-                  "value": 4
-                },
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Hybrid"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "count": 1,
-              "from": [
-                "hand",
-                "trash"
-              ]
-            },
-            "raw": "By placing 1 level 4 or lower card with the [Hybrid] trait other than [Sephirothmon] from your hand or trash as this Digimon's bottom digivolution card",
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "self"
-          },
-          "optional": true,
-          "abortOnDecline": true
+          "underFilter": {"isSelfRef": true},
+          "position": "bottom",
+          "optional": true
+        },
+        {
+          "kind": "ActivateEffect",
+          "target": {"filter": {"controller": "mine", "zone": "digivolutionCards"}, "count": 1},
+          "effectType": "OnPlay",
+          "lastPlacedOnly": true
         }
       ]
     },
@@ -60,48 +38,15 @@ const compiled: CompiledCard = {
       "trigger": "WhenDigivolving",
       "actions": [
         {
-          "kind": "ActivateMain",
-          "target": {
-            "filter": {
-              "placedByThisEffect": true
-            },
-            "count": 1
-          },
-          "effectTrigger": "On Play",
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "excludeNames": [
-                  "Sephirothmon"
-                ],
-                "controller": "mine",
-                "levelComparison": {
-                  "op": "lte",
-                  "value": 4
-                },
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Hybrid"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "count": 1,
-              "from": [
-                "hand",
-                "trash"
-              ]
-            },
-            "raw": "By placing 1 level 4 or lower card with the [Hybrid] trait other than [Sephirothmon] from your hand or trash as this Digimon's bottom digivolution card",
-            "destination": "digivolutionStack",
-            "position": "bottom",
-            "host": "self"
-          },
-          "optional": true,
-          "abortOnDecline": true
+          "kind": "PlaceUnder",
+          "target": {"filter": {"excludeNames": ["Sephirothmon"], "controller": "mine", "levelComparison": {"op": "lte", "value": 4}, "nameOrTrait": [{"tokens": ["Hybrid"], "match": "trait"}]}, "from": ["hand", "trash"], "count": 1},
+          "underFilter": {"isSelfRef": true}, "position": "bottom", "optional": true
+        },
+        {
+          "kind": "ActivateEffect",
+          "target": {"filter": {"controller": "mine", "kind": ["Digimon"], "nameOrTrait": [{"tokens": ["Hybrid"], "match": "trait"}], "zone": "digivolutionCards"}, "count": 1},
+          "effectType": "OnPlay",
+          "lastPlacedOnly": true
         }
       ]
     },

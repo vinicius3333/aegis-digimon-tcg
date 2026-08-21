@@ -1,5 +1,11 @@
 // @ts-nocheck
+import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
 import type { CompiledCard } from "@aegis/shared";
+import type { Effect } from "../../engine/effects/Effect.js";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import { securityStatic } from "../../engine/effects/builders.js";
+import { registerCard, unregisterCard } from "../../engine/effects/registry.js";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Behavior is executed by the shared interpreter; this file only carries the IR and
@@ -56,9 +62,10 @@ export const compiled: CompiledCard = {
           "scaling": {
             "per": 1,
             "filter": {
-              "controllerDefault": "mine"
+              "controller": "mine",
+              "faceDown": true
             },
-            "unit": "digivolutionCards"
+            "unit": "digivolutionCardsOfFiltered"
           }
         }
       ],
@@ -78,14 +85,8 @@ export const compiled: CompiledCard = {
           "kind": "SecurityManipulation",
           "op": "placeAsSecurity",
           "controller": "mine",
-          "source": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "toTop": false
+          "toTop": false,
+          "faceUp": true
         }
       ]
     },
@@ -124,4 +125,31 @@ export const compiled: CompiledCard = {
   "residual": []
 };
 
-registerIrCard("EX9-072", compiled);
+const irModule = registerIrCard("EX9-072", compiled);
+const module: EffectModule = {
+  cardId: "EX9-072",
+  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
+    const effects = irModule.effectsForTiming(timing, source);
+    if (timing !== EffectTiming.None) return effects;
+    return [
+      ...effects.filter((effect) => effect.irTrigger !== "AllTurns"),
+      securityStatic({
+        source,
+        effectKey: "EX9-072/security-all-turns-dp",
+        description: "[Security][All Turns] Your Digimon with the [DM] trait get +1000 DP for each face-down digivolution card.",
+        optional: false,
+        resolve: async (ctx) => {
+          for (const permanent of ctx.game.player(source.ownerSeat).battleArea) {
+            if (permanent.topCard === undefined) continue;
+            const definition = ctx.game.definitionOf(permanent.topCard);
+            if (!isDigimon(definition) || !(definition.types ?? []).includes("DM")) continue;
+            const faceDownCount = permanent.stack.filter((card) => card.faceUp !== true).length;
+            if (faceDownCount > 0) ctx.fx.modifyDP(permanent.permanentId, 1000 * faceDownCount, EffectDuration.UntilEachTurnEnd, { continuous: true });
+          }
+        },
+      }),
+    ];
+  },
+};
+unregisterCard("EX9-072");
+registerCard(module);

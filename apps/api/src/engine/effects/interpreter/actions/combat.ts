@@ -91,7 +91,9 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
       const name = action.target.bindAs;
       if (name === undefined) return false;
       const target = action.chooser === undefined ? action.target : { ...action.target, chooser: action.chooser };
-      const ids = await resolvePermanentTargets(ctx, target);
+      const ids = ctx.selections?.get(name) !== undefined
+        ? [ctx.selections.get(name)!]
+        : await resolvePermanentTargets(ctx, target);
       if (ids.length > 0 && ctx.selections) ctx.selections.set(name, ids[0]!);
       return false;
     }

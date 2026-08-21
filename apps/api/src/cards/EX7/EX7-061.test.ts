@@ -10,4 +10,7 @@ describe("EX7-061", () => {
     expect(effects).toHaveLength(2);
     expect(effects.map((effect) => effect.maxPerTurn)).toEqual([1, 1]);
   });
+  it("keeps the self-protection effect keyed to Lilithmon or X Antibody stack cards", () => {
+    expect(getEffectModule("EX7-061")!.effectsForTiming(EffectTiming.None, source)[0]!.description).toContain("[Lilithmon]/[X Antibody]");
+  });
 });

@@ -1,179 +1,21 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
-
-// [On Play][When Digivolving]: By trashing 2 blue cards in hand, unsuspend 1 of your
-// Digimon and 1 of your [Kiyoshiro Higashimitarai] (Tamer), and this Digimon gains
-// <Blocker> until the end of your opponent's turn.
-// Inherited: [All Turns] [Once Per Turn] unsuspend this Digimon.
-const compiled: CompiledCard = {
-  "effects": [
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "Sequence",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine",
-                "colors": [
-                  "Blue"
-                ]
-              },
-              "count": 2
-            },
-            "raw": "By trashing 2 blue cards in your hand"
-          },
-          "optional": true,
-          "abortOnDecline": true,
-          "actions": [
-            {
-              "kind": "Unsuspend",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              }
-            },
-            {
-              "kind": "Unsuspend",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Tamer"
-                  ],
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Kiyoshiro Higashimitarai"
-                      ],
-                      "match": "name"
-                    }
-                  ]
-                },
-                "count": 1
-              }
-            },
-            {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true
-              },
-              "keyword": {
-                "keyword": "Blocker",
-                "raw": "＜Blocker＞"
-              },
-              "duration": "untilOpponentTurnEnd"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Sequence",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine",
-                "colors": [
-                  "Blue"
-                ]
-              },
-              "count": 2
-            },
-            "raw": "By trashing 2 blue cards in your hand"
-          },
-          "optional": true,
-          "abortOnDecline": true,
-          "actions": [
-            {
-              "kind": "Unsuspend",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              }
-            },
-            {
-              "kind": "Unsuspend",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Tamer"
-                  ],
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Kiyoshiro Higashimitarai"
-                      ],
-                      "match": "name"
-                    }
-                  ]
-                },
-                "count": 1
-              }
-            },
-            {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true
-              },
-              "keyword": {
-                "keyword": "Blocker",
-                "raw": "＜Blocker＞"
-              },
-              "duration": "untilOpponentTurnEnd"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "Unsuspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          }
-        }
-      ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
-  ],
-  "coverage": "full",
-  "residual": []
-};
-
-registerIrCard("LM-004", compiled);
+import type { CardDefinition } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import { staticModifier } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
+const cardId = "LM-004";
+const hasJellymonText = (d: CardDefinition) => d.effectText?.includes("Jellymon") || d.inheritedEffectText?.includes("Jellymon");
+const module: EffectModule = { cardId, effectsForTiming(timing: EffectTiming, source: CardSource) {
+  if (timing !== EffectTiming.None) return [];
+  return [staticModifier({ source, effectKey: `${cardId}/inherited-hand-jellymon-trash-unsuspend`, description: "When a card with [Jellymon] in its text is trashed from your hand, unsuspend this Digimon.", isInherited: true, maxPerTurn: 1, resolve: async (ctx) => {
+    const host = source.permanent(); if (host === undefined) return;
+    ctx.fx.subscribeSubTrigger({ event: "whenHandTrashed", sourcePermanentId: host.permanentId, once: false, oncePerTurnKey: `${cardId}/inherited-hand-jellymon-trash-unsuspend`, matches: (subCtx) => {
+      if (subCtx.trigger?.handTrashedSeat !== source.ownerSeat) return false;
+      const id = subCtx.trigger.trashedFromHandInstanceId; const card = subCtx.game.player(source.ownerSeat).trash.find((entry) => entry.instanceId === id);
+      return card !== undefined && hasJellymonText(subCtx.game.definitionOf(card));
+    }, run: async (subCtx) => { const current = subCtx.source.permanent(); if (current !== undefined) await subCtx.fx.unsuspend([current.permanentId]); } });
+  } })];
+} };
+registerCard(module);
+export default module;

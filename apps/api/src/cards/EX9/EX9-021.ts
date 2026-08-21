@@ -21,11 +21,13 @@ const module: EffectModule = {
             "with the highest level.",
           canActivate: (ctx) => ctx.source.isOnBattleArea(),
           resolve: async (ctx) => {
-            const singleSelf = source.permanent();
+            // Resolve the live permanent from the effect context: during DNA Digivolution the
+            // CardSource captured when the effect was registered can still point at the consumed
+            // material, while ctx.source resolves the newly-created DNA permanent (Q4768).
+            const singleSelf = ctx.source.permanent();
             if (singleSelf === undefined) return;
 
-            const isDna = ctx.trigger?.isDnaDigivolve ?? false;
-            if (isDna) {
+            if (ctx.trigger?.isDnaDigivolve === true) {
               ctx.fx.restrict(singleSelf.permanentId, "beAffected",
                 EffectDuration.UntilEachTurnEnd,
                 { fromSourceKind: ["Digimon"] },

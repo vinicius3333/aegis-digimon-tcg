@@ -114,6 +114,7 @@ export interface Condition {
     | "digiXrosCount" // the triggering DigiXros used >= `minimum` materials; false if it was not a DigiXros
     | "selfHasInDigivolutionCards" // BT19-073. Off-field source => false.
     | "bindingEmpty" // a never-written binding counts as empty (BT18-101)
+    | "lastEffectDidNotAct"
     | "bindingExists"
     | "bindingContains"
     | "boardCountCompare"
@@ -129,6 +130,7 @@ export interface Condition {
    * `count` so "if your opponent has 2 or more Digimon" does not overload it (BT19-026).
    */
   countMin?: number;
+  countMax?: number;
   value?: number;
   phase?: "Active" | "Draw" | "Breeding" | "Main" | "End" | "None";
   /**

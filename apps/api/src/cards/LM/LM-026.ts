@@ -60,8 +60,7 @@ const module: EffectModule = {
               if (chosen.length === 0) return false;
               const played = await subCtx.fx.playInstances(chosen, { payCost: false });
               if (played.length === 0) return false;
-              const moved = await subCtx.fx.placeUnder(played[0].permanentId, [source.instanceId]);
-              return moved.length === 1;
+              return subCtx.fx.relocatePermanent(played[0].permanentId, hostId, { belowTop: true });
             },
           });
         },

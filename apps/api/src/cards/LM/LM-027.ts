@@ -34,6 +34,12 @@ const compiled: CompiledCard = {
     },
     {
       "trigger": "StartOfYourTurn",
+      "keywords": [
+        {
+          "keyword": "Delay",
+          "raw": "＜Delay＞"
+        }
+      ],
       "condition": {
         "kind": "opponentHas",
         "filter": {
@@ -55,7 +61,8 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "to": "deckTop",
-          "optional": false
+          "from": ["trash"],
+          "mandatory": true
         },
         {
           "kind": "PlayWithoutCost",
@@ -82,12 +89,6 @@ const compiled: CompiledCard = {
             "raw": "you don't have a Digimon"
           },
           "optional": true
-        }
-      ],
-      "keywords": [
-        {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
         }
       ]
     },

@@ -21,8 +21,7 @@ const module: EffectModule = {
     if (timing === EffectTiming.OnUseOption) {
       out.push({
         effectKey: `${cardId}/main`,
-        description:
-          "[Main] Choose 1 of each player's Digimon with the highest play cost. Delete all other Digimon.",
+        description: "[Main] Choose 1 of each player's Digimon with the highest play cost. Delete all other Digimon.",
         optional: false,
         isInherited: false,
         isSecurity: false,
@@ -90,7 +89,10 @@ const module: EffectModule = {
           effectKey: `${cardId}/security`,
           description: "[Security] Activate [Main] effect.",
           optional: false,
-          resolve: async () => {},
+          resolve: async (ctx) => {
+            const main = module.effectsForTiming(EffectTiming.OnUseOption, source)[0];
+            if (main !== undefined) await main.resolve(ctx);
+          },
         }),
         isSecurity: true,
       });

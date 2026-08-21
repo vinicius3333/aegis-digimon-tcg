@@ -1,4 +1,4 @@
-import { EffectDuration, EffectTiming } from "@aegis/shared";
+import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -41,7 +41,7 @@ async function executeSharedMainEffect(ctx: EffectContext, source: CardSource): 
         const topCardInstance = owner.deck[0];
         if (topCardInstance !== undefined) {
           topCardInstance.faceUp = false;
-          await ctx.fx.placeUnder(self.permanentId, [topCardInstance.instanceId]);
+          await ctx.fx.placeUnder(self.permanentId, [topCardInstance.instanceId], { faceUp: false });
         }
       }
     }
@@ -127,12 +127,15 @@ const module: EffectModule = {
                 const owner = subCtx.game.player(source.ownerSeat);
                 const datSquadCandidates = owner.battleArea
                   .filter((p) => {
-                    if (p.inBreeding || p.topCard === undefined) return false;
+                    if (p.inBreeding || p.topCard === undefined || !isDigimon(subCtx.game.definitionOf(p.topCard))) return false;
                     const def = subCtx.game.definitionOf(p.topCard);
                     const types = (def.types ?? []) as string[];
                     return types.includes("DATA SQUAD");
                   })
-                  .map((p) => p.topCard.instanceId);
+                  // chooseTargets uses the target Digimon's top-card instance id as its
+                  // public selection identity; map back to the permanent below after the
+                  // decision resolves.
+                  .map((p) => p.topCard!.instanceId);
 
                 if (datSquadCandidates.length === 0) return;
 
@@ -141,11 +144,12 @@ const module: EffectModule = {
                   min: 1,
                   max: 1,
                 });
-                if (picks.length === 0) return;
+                const selectedId = picks[0] ?? datSquadCandidates[0];
+                if (selectedId === undefined) return;
 
                 // Grant <Jamming> for the turn (documented behavior: GainJamming, UntilEachTurnEnd)
                 const targetPerm = owner.battleArea.find(
-                  (p) => p.topCard.instanceId === picks[0],
+                  (p) => p.permanentId === selectedId || p.topCard?.instanceId === selectedId,
                 );
                 if (targetPerm !== undefined) {
                   subCtx.fx.grantKeyword(

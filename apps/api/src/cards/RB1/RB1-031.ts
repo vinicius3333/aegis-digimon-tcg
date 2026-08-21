@@ -42,7 +42,15 @@ const compiled: CompiledCard = {
               "controllerDefault": "opponent",
               "kind": [
                 "Digimon"
-              ]
+              ],
+              "levelComparison": {
+                "op": "lte",
+                "value": 0,
+                "scaling": {
+                  "per": 1,
+                  "unit": "digivolutionCards"
+                }
+              }
             },
             "count": 1
           },

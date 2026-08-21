@@ -38,6 +38,14 @@ const compiled: CompiledCard = {
                 "kind": [
                   "Tamer",
                   "Option"
+                ],
+                "nameOrTrait": [
+                  {
+                    "tokens": [
+                      "ADVENTURE"
+                    ],
+                    "match": "trait"
+                  }
                 ]
               },
               "count": 1,

@@ -6,7 +6,7 @@ import { definitionMatches } from "./matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "./matching/permanent.js";
 import { LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose } from "./targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets, topInstanceIds } from "./targeting/permanents.js";
-import { getCardDefinition, isTamer } from "@aegis/shared";
+import { CardKind, getCardDefinition, isTamer } from "@aegis/shared";
 import type { Cost, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
@@ -116,6 +116,10 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     return n <= memoryForSeat - MEMORY_MIN;
   }
   if (cost.kind === "place" && cost.target !== undefined) {
+    if (cost.destination === "digivolutionStack" && cost.target.from?.includes("deck")) {
+      const source = (ctx.trigger.attackerPermanentId !== undefined ? ctx.game.permanentById(ctx.trigger.attackerPermanentId) : undefined) ?? ctx.source.permanent() ?? ctx.game.player(ctx.source.ownerSeat).battleArea.find((p) => p.topCard?.instanceId === ctx.source.instanceId || p.permanentId === ctx.source.instanceId);
+      return ctx.game.player(ctx.source.ownerSeat).deck.length > 0 && source !== undefined;
+    }
     // Self-restack costs operate on the source permanent's own evolution stack,
     // not on loose cards from hand. Keep this in sync with payCost's dedicated
     // placeOwnTopAtStackBottom route below so an available cost is actually
@@ -177,6 +181,15 @@ export async function payCost(
   out?: { paidCount: number },
   opts?: { deferSuspendTriggers?: boolean },
 ): Promise<boolean> {
+  if (cost.kind === "place" && cost.destination === "digivolutionStack" && cost.target?.from?.includes("deck")) {
+    const host = ctx.trigger.attackerPermanentId !== undefined
+      ? ctx.game.permanentById(ctx.trigger.attackerPermanentId)
+      : ctx.source.permanent();
+    if (host === undefined || ctx.game.player(ctx.source.ownerSeat).deck.length === 0) return false;
+    const placed = await ctx.fx.placeUnderFromDeck(host.permanentId, ctx.source.ownerSeat);
+    if (placed !== undefined && out) out.paidCount = 1;
+    return placed !== undefined;
+  }
   switch (cost.kind) {
     case "moveToBattleArea": {
       const self = ctx.source.permanent();
@@ -629,7 +642,8 @@ export async function payCost(
         if (n <= 0 || candidates.length < n) return false;
         const chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
         if (chosen.length < n) return false;
-        await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
+        if (await returnToTop()) await ctx.fx.returnToDeck(chosen, { toTop: true });
+        else await ctx.fx.returnToEggDeck?.(chosen);
         if (out) out.paidCount = chosen.length;
         return true;
       }
@@ -1037,9 +1051,27 @@ export async function payCost(
               ? destIds[0]
               : (await ctx.ask.chooseTargets(ctx, { candidates: destIds, min: 1, max: 1 }))[0];
         } else {
-          const selfPerm = ctx.source.permanent();
-          if (selfPerm === undefined) return false;
-          hostPermId = selfPerm.permanentId;
+          // "place ... as 1 of your Digimon's ... card" names the destination
+          // separately from the material filter. Older IR omitted an explicit host
+          // target, so do not incorrectly default to the source Tamer; choose one of
+          // the controller's Digimon permanents through the production target seam.
+          const sourcePermanent = ctx.source.permanent();
+          const sourceIsTamer = sourcePermanent !== undefined &&
+            ctx.game.definitionOf(sourcePermanent.topCard).kinds.includes(CardKind.Tamer);
+          if ((cost.raw && /as 1 of your Digimon's/i.test(cost.raw)) ||
+              (sourceIsTamer && cost.target.filter.kind?.includes("Digimon"))) {
+            const candidates = ctx.game.player(ctx.source.ownerSeat).battleArea
+              .filter((permanent) => ctx.game.definitionOf(permanent.topCard).kinds.includes(CardKind.Digimon))
+              .map((permanent) => permanent.permanentId);
+            if (candidates.length === 0) return false;
+            hostPermId = candidates.length === 1
+              ? candidates[0]
+              : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
+          } else {
+            const selfPerm = ctx.source.permanent();
+            if (selfPerm === undefined) return false;
+            hostPermId = selfPerm.permanentId;
+          }
         }
         if (hostPermId === undefined) return false;
         if (cost.bindHostAs !== undefined) {
@@ -1113,11 +1145,21 @@ export async function payCost(
         const inBattleArea =
           self !== undefined &&
           Array.from(ctx.game.player(ctx.source.ownerSeat).battleArea).some((p) => p.permanentId === self.permanentId);
-        if (self === undefined || !inBattleArea) return false;
-        hostId = self.permanentId;
+        if (cost.raw && /as 1 of your Digimon's/i.test(cost.raw)) {
+          const destIds = ctx.game.player(ctx.source.ownerSeat).battleArea
+            .filter((permanent) => ctx.game.definitionOf(permanent.topCard).kinds.includes(CardKind.Digimon))
+            .map((permanent) => permanent.permanentId);
+          if (destIds.length === 0) return false;
+          hostId = destIds.length === 1
+            ? destIds[0]
+            : (await ctx.ask.chooseTargets(ctx, { candidates: destIds, min: 1, max: 1 }))[0];
+        } else {
+          if (self === undefined || !inBattleArea) return false;
+          hostId = self.permanentId;
+        }
       }
       if (hostId === undefined) return false;
-      await ctx.fx.placeUnder(hostId, chosen, { belowTop: false });
+      await ctx.fx.placeUnder(hostId, chosen, { belowTop: false, faceUp: cost.faceDown !== true });
       if (cost.storeAs !== undefined && chosen.length > 0) {
         const pickedCard = candidates.find((c) => c.instanceId === chosen[0]);
         const level = pickedCard !== undefined ? ctx.game.definitionOf(pickedCard as never).level : undefined;

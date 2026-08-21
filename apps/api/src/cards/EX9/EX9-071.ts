@@ -80,7 +80,7 @@ export const compiled: CompiledCard = {
               filter: {
                 controller: "mine",
                 zone: "digivolutionCards",
-                faceUp: false,
+                faceDown: true,
                 withinBottomN: 2,
                 sameHost: true,
                 hostFilter: {

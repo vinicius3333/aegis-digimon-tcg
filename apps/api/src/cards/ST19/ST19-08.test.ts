@@ -1,0 +1,28 @@
+import { getCardDefinition } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./ST19-08.js";
+
+describe("ST19-08 ShoeShoemon", () => {
+  it("plays a LIBERATOR Tamer costing 4 or less from hand without cost in security", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-001", as: "attacker", dp: 7000 }] },
+      1: { security: [{ card: "ST19-08", as: "shoe" }], hand: [{ card: "ST19-14", as: "tamer" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST19-14"));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST19-14")).toBe(true);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("tamer").instanceId)).toBe(false);
+  });
+
+  it("matches the errata and inherited security-DP catalog text", () => {
+    expect(getCardDefinition("ST19-08")).toMatchObject({
+      inheritedEffectText: "[Your Turn] All of your opponent's security Digimon get -3000 DP.",
+      effectText: expect.stringContaining("＜Overclock ([Puppet] trait)＞"),
+    });
+  });
+});

@@ -22,6 +22,7 @@ export const compiled: CompiledCard = {
       "actions": [
         {
           "kind": "PlaceUnder",
+          "faceDown": true,
           "target": {
             "filter": {
               "controller": "mine"
@@ -44,10 +45,7 @@ export const compiled: CompiledCard = {
           "scaling": {
             "per": 1,
             "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+              "isSelfRef": true
             },
             "unit": "digivolutionCards"
           }
@@ -72,6 +70,7 @@ export const compiled: CompiledCard = {
       "actions": [
         {
           "kind": "PlaceUnder",
+          "faceDown": true,
           "target": {
             "filter": {
               "controller": "mine"
@@ -94,10 +93,7 @@ export const compiled: CompiledCard = {
           "scaling": {
             "per": 1,
             "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+              "isSelfRef": true
             },
             "unit": "digivolutionCards"
           }

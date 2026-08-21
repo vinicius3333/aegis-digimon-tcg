@@ -64,7 +64,9 @@ const compiled: CompiledCard = {
             },
             "count": 1
           },
-          "to": "deckTop"
+          "to": "deckTop",
+          "from": ["trash"],
+          "mandatory": true
         },
         {
           "kind": "PlayWithoutCost",

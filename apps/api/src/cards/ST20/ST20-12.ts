@@ -6,99 +6,91 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "ADVENTURE"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "raw": "you have a Digimon with the [ADVENTURE] trait"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "ADVENTURE"
-                ],
-                "match": "trait"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 1,
-              "raw": "reduce the play cost by 1",
-              "cost": {
-                "kind": "suspend",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
-                  },
-                  "count": 1,
-                  "isSelf": true
+                  tokens: ["ADVENTURE"],
+                  match: "trait",
                 },
-                "raw": "by suspending this Tamer"
-              },
-              "optional": true,
-              "abortOnDecline": true
-            }
-          ]
-        }
-      ]
+              ],
+            },
+            raw: "you have a Digimon with the [ADVENTURE] trait",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              {
+                tokens: ["ADVENTURE"],
+                match: "trait",
+              },
+            ],
           },
-          "payCost": false
-        }
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 1,
+              raw: "reduce the play cost by 1",
+              cost: {
+                kind: "suspend",
+                target: {
+                  filter: {
+                    isSelfRef: true,
+                  },
+                  count: 1,
+                  isSelf: true,
+                },
+                raw: "by suspending this Tamer",
+              },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST20-12", compiled);

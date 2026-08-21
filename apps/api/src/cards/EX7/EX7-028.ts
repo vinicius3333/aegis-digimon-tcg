@@ -15,12 +15,13 @@ export const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "colors": [
-                "Yellow"
-              ],
+              "kind": ["Digimon"],
+              "colors": ["Yellow"],
+              "playCostLte": 4
+            },
+            "orFilters": [{
+              "controller": "mine",
+              "kind": ["Digimon"],
               "playCostLte": 4,
               "nameOrTrait": [
                 {
@@ -30,7 +31,7 @@ export const compiled: CompiledCard = {
                   "match": "trait"
                 }
               ]
-            },
+            }],
             "count": 1
           },
           "from": [

@@ -35,7 +35,7 @@ export const compiled: CompiledCard = {
     {
       "level": 2,
       "traits": [
-        "NSP"
+        "NSp"
       ],
       "cost": 0,
       "isAlternate": true

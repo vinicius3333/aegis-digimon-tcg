@@ -145,7 +145,7 @@ const module: EffectModule = {
               description: `${cardId}: When opponent Digimon/Tamer suspended, trash top security.`,
               matches: (subCtx) => {
                 if (!subCtx.source.isOnBattleArea()) return false;
-                const subjectId = subCtx.trigger?.subjectPermanentId;
+                const subjectId = subCtx.trigger?.suspendedPermanentId ?? subCtx.trigger?.subjectPermanentId;
                 if (subjectId === undefined) return false;
                 const subject = subCtx.game.permanentById(subjectId);
                 if (subject === undefined) return false;

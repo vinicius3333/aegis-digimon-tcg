@@ -27,7 +27,7 @@ const compiled: CompiledCard = {
           "kind": "TrashDigivolution",
           "target": {
             "filter": {
-              "owner": "opponent",
+            "controller": "opponent",
               "kind": ["Digimon"]
             },
             "count": 1,
@@ -69,7 +69,7 @@ const compiled: CompiledCard = {
           "kind": "TrashDigivolution",
           "target": {
             "filter": {
-              "owner": "opponent",
+            "controller": "opponent",
               "kind": ["Digimon"]
             },
             "count": 1,

@@ -23,6 +23,13 @@ function primitivesOf(s: EngineSetup): Primitives {
   return (s.engine as unknown as { primitives: Primitives }).primitives;
 }
 
+function hasKeyword(s: EngineSetup, permanentId: string, keyword: string): boolean {
+  return (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } }).continuous.hasKeyword(
+    permanentId,
+    keyword,
+  );
+}
+
 describe("ST24-13 Marcus & Thomas — whenDigivolutionCardTrashed from THIS Tamer → suspend, Jamming", () => {
   it("suspends the Tamer and grants Jamming to a DATA SQUAD Digimon when a card under this Tamer is trashed", async () => {
     const s = setupEngine(
@@ -34,6 +41,8 @@ describe("ST24-13 Marcus & Thomas — whenDigivolutionCardTrashed from THIS Tame
             { card: "ST24-13", dp: 0, as: "tamer", under: [{ card: "BT1-001", as: "underCard", faceUp: false }] },
             // A DATA SQUAD Digimon on p0's battle area (the Jamming target).
             { card: "AD1-016", dp: 12000, as: "datSquadDigimon" },
+            // A non-DATA SQUAD Digimon must not be a legal Jamming target.
+            { card: "BT1-009", dp: 6000, as: "nonDatSquadDigimon" },
           ],
         },
       },
@@ -54,10 +63,18 @@ describe("ST24-13 Marcus & Thomas — whenDigivolutionCardTrashed from THIS Tame
     await settle(() => tamer.isSuspended);
 
     expect(tamer.isSuspended).toBe(true);
-    // The DATA SQUAD Digimon should have Jamming for the turn.
-    // We verify it by checking grantedKeywords if available, or simply accept the tamer suspension
-    // as the observable proof that the watcher fired.
-    // (Jamming grant is state-in-continuous-ledger; checking suspension is sufficient for FAILS-WHEN-REVERTED.)
+    expect(hasKeyword(s, s.perm("datSquadDigimon").permanentId, "Jamming")).toBe(true);
+    expect(hasKeyword(s, s.perm("nonDatSquadDigimon").permanentId, "Jamming")).toBe(false);
+  });
+
+  it("on play places the deck top face down and gains memory when an opponent has a Digimon", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "ST24-13", as: "tamer" }], deck: [{ card: "BT1-001", as: "deckTop" }] }, 1: { battleArea: [{ card: "BT1-009", as: "opponent" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 0;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.memory === 1);
+    const tamer = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "ST24-13");
+    expect(tamer?.stack).toContainEqual(expect.objectContaining({ cardId: "BT1-001", faceUp: false }));
+    expect(s.state.memory).toBe(-3);
   });
 
   it("does NOT grant when the host permanent is a DIFFERENT Tamer (sourceFilter gate)", async () => {

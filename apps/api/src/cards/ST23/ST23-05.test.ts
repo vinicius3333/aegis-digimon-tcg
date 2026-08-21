@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/index.js";
 import "../index.js";
 
 // A3 for ST23-05 (Habakirimon) — the Recovery clause.
@@ -65,5 +66,34 @@ describe("ST23-05 place-as-security + Recovery by trashing the most-security pla
     expect(p0.trash.some((c) => c.instanceId === oppTopId)).toBe(true);
     // Recovery happened: deck shrank by 2 (standard digivolve draw + <Recovery +1>).
     expect(deckBefore - p0.deck.length).toBe(2);
+  });
+
+  it("trashes one security card to prevent all simultaneous Glowing Dawn leaves", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: HABA, as: "habakirimon" },
+            { card: "ST23-02", as: "firstGlowingDawn" },
+            { card: "ST23-03", as: "secondGlowingDawn" },
+          ],
+          security: [{ card: DECK_FILLER }, { card: DECK_FILLER }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    const securityBefore = s.state.players[0]!.security.length;
+
+    const deleted = await advance(s.engine).verb.deletePermanent([
+      s.perm("firstGlowingDawn").permanentId,
+      s.perm("secondGlowingDawn").permanentId,
+    ]);
+
+    expect(deleted).toBe(0);
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard?.cardId)).toEqual(
+      expect.arrayContaining(["ST23-02", "ST23-03"]),
+    );
+    expect(s.state.players[0]!.security).toHaveLength(securityBefore - 1);
   });
 });

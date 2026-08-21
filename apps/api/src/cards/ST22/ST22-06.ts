@@ -23,184 +23,156 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   trait filters and "from hand or under Tamers" (from:["hand","digivolutionCards"]).
 // - AllTurns: added missing whenOptionUsed SubTrigger alongside whenSecurityRemoved.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "UseOptionWithoutCost",
-          "target": {
-            "filter": {
-              "kind": [
-                "Option"
-              ],
-              "nameOrTrait": [
+          kind: "UseOptionWithoutCost",
+          target: {
+            filter: {
+              kind: ["Option"],
+              playCostLte: 99,
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Onmyōjutsu"
-                  ],
-                  "match": "trait"
-                }
+                  tokens: ["Onmyōjutsu"],
+                  match: "trait",
+                },
               ],
-              "hostFilter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Tamer"
-                ]
-              }
+              hostFilter: {
+                controllerDefault: "mine",
+                kind: ["Tamer"],
+              },
             },
-            "count": 1,
-            "from": [
-              "hand",
-              "digivolutionCards"
-            ],
-            "orFilters": [
+            count: 1,
+            from: ["hand", "digivolutionCards"],
+            orFilters: [
               {
-                "kind": [
-                  "Option"
-                ],
-                "nameOrTrait": [
+                kind: ["Option"],
+                playCostLte: 99,
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Plug-In"
-                    ],
-                    "match": "trait"
-                  }
+                    tokens: ["Plug-In"],
+                    match: "trait",
+                  },
                 ],
-                "hostFilter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Tamer"
-                  ]
-                }
-              }
-            ]
+                hostFilter: {
+                  controllerDefault: "mine",
+                  kind: ["Tamer"],
+                },
+              },
+            ],
           },
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "UseOptionWithoutCost",
-          "target": {
-            "filter": {
-              "kind": [
-                "Option"
-              ],
-              "nameOrTrait": [
+          kind: "UseOptionWithoutCost",
+          target: {
+            filter: {
+              kind: ["Option"],
+              playCostLte: 99,
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Onmyōjutsu"
-                  ],
-                  "match": "trait"
-                }
+                  tokens: ["Onmyōjutsu"],
+                  match: "trait",
+                },
               ],
-              "hostFilter": {
-                "controllerDefault": "mine",
-                "kind": [
-                  "Tamer"
-                ]
-              }
+              hostFilter: {
+                controllerDefault: "mine",
+                kind: ["Tamer"],
+              },
             },
-            "count": 1,
-            "from": [
-              "hand",
-              "digivolutionCards"
-            ],
-            "orFilters": [
+            count: 1,
+            from: ["hand", "digivolutionCards"],
+            orFilters: [
               {
-                "kind": [
-                  "Option"
-                ],
-                "nameOrTrait": [
+                kind: ["Option"],
+                playCostLte: 99,
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Plug-In"
-                    ],
-                    "match": "trait"
-                  }
+                    tokens: ["Plug-In"],
+                    match: "trait",
+                  },
                 ],
-                "hostFilter": {
-                  "controllerDefault": "mine",
-                  "kind": [
-                    "Tamer"
-                  ]
-                }
-              }
-            ]
+                hostFilter: {
+                  controllerDefault: "mine",
+                  kind: ["Tamer"],
+                },
+              },
+            ],
           },
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOptionUsed",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenOptionUsed",
+          actions: [
             {
-              "kind": "SecurityManipulation",
-              "op": "trashTop",
-              "controller": "opponent"
-            }
-          ],
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestDP" },
-              "count": 1,
-              "from": ["battleArea"]
+              kind: "SecurityManipulation",
+              op: "trashTop",
+              controller: "opponent",
             },
-            "destination": "security",
-            "position": "bottom",
-            "targetIsPermanent": true,
-            "raw": "by placing 1 of your opponent's Digimon with the lowest DP as the bottom security card"
-          }
+          ],
+          cost: {
+            kind: "place",
+            target: {
+              filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestDP" },
+              count: 1,
+              from: ["battleArea"],
+            },
+            destination: "security",
+            position: "bottom",
+            targetIsPermanent: true,
+            raw: "by placing 1 of your opponent's Digimon with the lowest DP as the bottom security card",
+          },
         },
         {
-          "kind": "SubTrigger",
-          "event": "whenSecurityRemoved",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenSecurityRemoved",
+          actions: [
             {
-              "kind": "SecurityManipulation",
-              "op": "trashTop",
-              "controller": "opponent"
-            }
-          ],
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": { "controller": "opponent", "kind": ["Digimon"], "superlative": "lowestDP" },
-              "count": 1
+              kind: "SecurityManipulation",
+              op: "trashTop",
+              controller: "opponent",
             },
-            "destination": "security",
-            "position": "bottom",
-            "targetIsPermanent": true,
-            "raw": "by placing 1 of your opponent's Digimon with the lowest DP as the bottom security card"
-          }
-        }
+          ],
+          cost: {
+            kind: "place",
+            target: {
+              filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestDP" },
+              count: 1,
+            },
+            destination: "security",
+            position: "bottom",
+            targetIsPermanent: true,
+            raw: "by placing 1 of your opponent's Digimon with the lowest DP as the bottom security card",
+          },
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Sakuyamon"
-      ],
-      "cost": 1,
-      "isAlternate": true
-    }
-  ]
+      names: ["Sakuyamon"],
+      cost: 1,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("ST22-06", compiled);

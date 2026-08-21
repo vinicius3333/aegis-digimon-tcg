@@ -76,14 +76,18 @@ const module: EffectModule = {
           maxPerTurn: 1,
           canActivate: (ctx) => ctx.source.isOnBattleArea(),
           resolve: async (ctx) => {
+            const player = ctx.game.player(source.ownerSeat);
             const opponent = ctx.game.opponentOf(source.ownerSeat);
+            const ownCount = Array.from(player.battleArea).filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard))).length;
             const oppDigimon = Array.from(ctx.game.player(opponent).battleArea)
               .filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)));
-            if (oppDigimon.length === 0) return;
+            if (oppDigimon.length === 0 || ownCount === 0) return;
             const candidates = oppDigimon.map((p) => p.permanentId);
-            const chosen = await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 });
-            if (chosen.length > 0) {
-              ctx.fx.modifyDP(chosen[0]!, -7000, EffectDuration.UntilEachTurnEnd);
+            for (let i = 0; i < ownCount; i++) {
+              const chosen = await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 });
+              if (chosen.length > 0) {
+                ctx.fx.modifyDP(chosen[0]!, -7000, EffectDuration.UntilEachTurnEnd);
+              }
             }
           },
         }),
@@ -101,14 +105,18 @@ const module: EffectModule = {
           maxPerTurn: 1,
           canActivate: (ctx) => ctx.source.isOnBattleArea(),
           resolve: async (ctx) => {
+            const player = ctx.game.player(source.ownerSeat);
             const opponent = ctx.game.opponentOf(source.ownerSeat);
+            const ownCount = Array.from(player.battleArea).filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard))).length;
             const oppDigimon = Array.from(ctx.game.player(opponent).battleArea)
               .filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)));
-            if (oppDigimon.length === 0) return;
+            if (oppDigimon.length === 0 || ownCount === 0) return;
             const candidates = oppDigimon.map((p) => p.permanentId);
-            const chosen = await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 });
-            if (chosen.length > 0) {
-              ctx.fx.modifyDP(chosen[0]!, -7000, EffectDuration.UntilEachTurnEnd);
+            for (let i = 0; i < ownCount; i++) {
+              const chosen = await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 });
+              if (chosen.length > 0) {
+                ctx.fx.modifyDP(chosen[0]!, -7000, EffectDuration.UntilEachTurnEnd);
+              }
             }
           },
         }),

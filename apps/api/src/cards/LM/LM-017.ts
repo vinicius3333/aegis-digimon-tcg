@@ -1,4 +1,4 @@
-import { EffectTiming, isDigimon, isTamer } from "@aegis/shared";
+import { EffectTiming, isDigimon } from "@aegis/shared";
 import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -9,7 +9,7 @@ import { registerCard } from "../../engine/effects/registry.js";
 const cardId = "LM-017";
 
 function hasGammamonInText(def: CardDefinition): boolean {
-  return def.nameEn.includes("Gammamon");
+  return def.effectText?.includes("Gammamon") === true || def.inheritedEffectText?.includes("Gammamon") === true;
 }
 
 const module: EffectModule = {
@@ -40,24 +40,14 @@ const module: EffectModule = {
               return hasGammamonInText(ctx.game.definitionOf(c));
             });
             if (gammas.length > 0) {
-              const tamers = Array.from(owner.battleArea).filter(
-                (p) => p.topCard !== undefined && isTamer(ctx.game.definitionOf(p.topCard)),
-              );
-              if (tamers.length > 0) {
+              if (source.permanent() !== undefined) {
                 const chosen = await ctx.ask.selectCards(ctx, {
                   candidates: gammas.map((c) => c.instanceId),
                   min: 0,
                   max: 1,
                 });
                 if (chosen.length > 0) {
-                  const tamer = await ctx.ask.chooseTargets(ctx, {
-                    candidates: tamers.map((t) => t.permanentId),
-                    min: 1,
-                    max: 1,
-                  });
-                  if (tamer.length > 0) {
-                    await ctx.fx.placeUnder(tamer[0]!, chosen);
-                  }
+                  await ctx.fx.placeUnder(source.permanent()!.permanentId, chosen);
                 }
               }
             }
@@ -91,24 +81,14 @@ const module: EffectModule = {
               return hasGammamonInText(ctx.game.definitionOf(c));
             });
             if (gammas.length > 0) {
-              const tamers = Array.from(owner.battleArea).filter(
-                (p) => p.topCard !== undefined && isTamer(ctx.game.definitionOf(p.topCard)),
-              );
-              if (tamers.length > 0) {
+              if (source.permanent() !== undefined) {
                 const chosen = await ctx.ask.selectCards(ctx, {
                   candidates: gammas.map((c) => c.instanceId),
                   min: 0,
                   max: 1,
                 });
                 if (chosen.length > 0) {
-                  const tamer = await ctx.ask.chooseTargets(ctx, {
-                    candidates: tamers.map((t) => t.permanentId),
-                    min: 1,
-                    max: 1,
-                  });
-                  if (tamer.length > 0) {
-                    await ctx.fx.placeUnder(tamer[0]!, chosen);
-                  }
+                  await ctx.fx.placeUnder(source.permanent()!.permanentId, chosen);
                 }
               }
             }

@@ -17,6 +17,7 @@ import {
   withIntrinsicDelayGate,
   withSubTriggerFrequency,
 } from "../effect.js";
+import { evaluateCondition } from "../conditions.js";
 import {
   declaresExecuteKeyword,
   detectAllowDigiXrosMaterialsFromTrash,
@@ -73,6 +74,10 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
   const overclockTrait = synthesizedOverclockTrait(compiled, definition);
   if (overclockTrait !== undefined) effects.push(overclockActivatedEffect(overclockTrait));
   const cardIsOption = definition !== undefined && isOption(definition);
+  const effectCondition = (effect: CardEffect, ctx: Parameters<NonNullable<BuilderOptions["when"]>>[0]): boolean => {
+    const result = effect.condition === undefined || evaluateCondition(ctx, effect.condition);
+    return result;
+  };
   // The on-play body is the FIRST plain (non-security, non-＜Delay＞) [Main] of an Option — the one
   // play-card fires via OnUseOption. Only that clause is stripped of the OnDeclaration co-home (so
   // it cannot re-fire on the placed option permanent); later [Main] clauses stay activatable.
@@ -142,7 +147,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
             isFromTrash: effect.isFromTrash,
             isFromHand: effect.isFromHand,
             maxPerTurn: effect.frequency === "OncePerTurn" ? 1 : -1,
-            when: turnOwnerGuard(effect.trigger),
+            when: (ctx) => (turnOwnerGuard(effect.trigger)?.(ctx) ?? true) && effectCondition(effect, ctx),
             // "Can't activate the turn this card enters play" (CanDeclareOptionDelayEffect):
             // the source must still be a battle-area permanent that entered on an earlier turn.
             canActivate: (ctx) => {
@@ -154,6 +159,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
               );
             },
             resolve: async (ctx) => {
+              if (!effectCondition(effect, ctx)) return;
               // "By trashing this card" — delete the source option permanent (the cost); only run
               // the payload if it was actually trashed.
               const self = ctx.source.permanent();
@@ -168,8 +174,11 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
                 ctx.fx.revokeKeyword?.(self.permanentId, "Delay");
                 delayArmedConsumed = true;
               }
-              const deleted = await ctx.fx.deletePermanent([self.permanentId]);
-              if (deleted > 0) await runEffect({ ...ctx, delayArmedConsumed }, effect);
+              // Resolve the payload while the source remains addressable. Its printed cost is
+              // still atomic with Delay activation: a failed payload cost leaves the source in
+              // play, while a successful payload is followed by the intrinsic source trash.
+              await runEffect({ ...ctx, delayArmedConsumed }, effect);
+              await ctx.fx.deletePermanent([self.permanentId]);
             },
           });
         }
@@ -196,7 +205,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
             isFromTrash: effect.isFromTrash,
             isFromHand: effect.isFromHand,
             maxPerTurn: effect.frequency === "OncePerTurn" ? 1 : effect.frequency === "TwicePerTurn" ? 2 : -1,
-            when: turnOwnerGuard(effect.trigger),
+            when: (ctx) => (turnOwnerGuard(effect.trigger)?.(ctx) ?? true) && effectCondition(effect, ctx),
             // "Can't activate the turn this card enters play" (§16-17-3).
             canActivate: (ctx) => {
               const self = ctx.source.permanent();
@@ -204,6 +213,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
               return canActivateEffect(ctx, effect);
             },
             resolve: async (ctx) => {
+              if (!effectCondition(effect, ctx)) return;
               // "By trashing this card" — delete the source permanent (the cost); only run the
               // payload if it was actually trashed. §16-17-2: the whole thing is optional.
               const self = ctx.source.permanent();

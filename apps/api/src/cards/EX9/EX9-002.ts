@@ -16,6 +16,9 @@ export const compiled: CompiledCard = {
           "sourceFilter": {
             "controllerDefault": "mine"
           },
+          "addedDigivolutionCardFilter": {
+            "faceDown": true
+          },
           "actions": [
             {
               "kind": "Digivolve",

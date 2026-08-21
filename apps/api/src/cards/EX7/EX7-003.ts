@@ -11,16 +11,7 @@ export const compiled: CompiledCard = {
       "trigger": "YourTurn",
       "actions": [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": "all"
-          },
+          "kind": "ModifySecurityDP",
           "amount": -2000,
           "duration": "permanent"
         }

@@ -331,6 +331,14 @@ export class SubTriggerRegistry {
 
   /** Install a replacement effect. Returns its id. */
   subscribeReplacement(sub: DistributiveOmit<ReplacementSubscription, "id">): number {
+    const existing = this.replacements.find(
+      (replacement) =>
+        replacement.event === sub.event &&
+        replacement.mode === sub.mode &&
+        replacement.sourcePermanentId === sub.sourcePermanentId &&
+        replacement.description === sub.description,
+    );
+    if (existing !== undefined) return existing.id;
     const id = this.seq++;
     // The spread below loses the sub/mode correlation TS tracks on the discriminated union
     // (it widens to the members' common shape) — `sub`'s own type already guarantees the
@@ -511,6 +519,17 @@ export class SubTriggerRegistry {
       if (replacement.intoMatches !== undefined && !replacement.intoMatches(into)) return sum;
       return sum + replacement.amount;
     }, 0);
+  }
+
+  /** Potential reduction used only by the affordability gate before an interactive cost is paid. */
+  hasInteractiveReductionsFor(event: ReplacementEventName, seat: Seat): boolean {
+    return this.replacements.some(
+      (replacement) =>
+        replacement.event === event &&
+        replacement.mode === "reduceCost" &&
+        replacement.activate !== undefined &&
+        replacement.controllerSeat === seat,
+    );
   }
 
   /** Potential reduction used only by the affordability gate before an interactive cost is paid. */

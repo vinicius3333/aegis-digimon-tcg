@@ -33,7 +33,7 @@ const module: EffectModule = {
               if (topCard !== undefined) {
                 const self = source.permanent();
                 if (self !== undefined) {
-                  await ctx.fx.placeUnder(self.permanentId, [topCard.instanceId]);
+                  await ctx.fx.placeUnder(self.permanentId, [topCard.instanceId], { faceUp: false });
                 }
               }
             }
@@ -66,7 +66,7 @@ const module: EffectModule = {
               if (topCard !== undefined) {
                 const self = source.permanent();
                 if (self !== undefined) {
-                  await ctx.fx.placeUnder(self.permanentId, [topCard.instanceId]);
+                  await ctx.fx.placeUnder(self.permanentId, [topCard.instanceId], { faceUp: false });
                 }
               }
             }

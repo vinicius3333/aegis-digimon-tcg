@@ -55,15 +55,15 @@ const module: EffectModule = {
             return self !== undefined && !self.isSuspended;
           },
           resolve: async (ctx) => {
-            const selfPerm = source.permanent();
-            if (selfPerm === undefined) return;
-            const paid = ctx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
-            if (!paid) return;
             const owner = ctx.game.player(source.ownerSeat);
             const candidates = Array.from(owner.battleArea)
               .filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)))
               .map((p) => p.permanentId);
             if (candidates.length === 0) return;
+            const selfPerm = source.permanent();
+            if (selfPerm === undefined) return;
+            const paid = ctx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
+            if (!paid) return;
             const chosen = await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 });
             if (chosen.length === 0) return;
             const targetId = chosen[0]!;

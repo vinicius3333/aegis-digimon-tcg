@@ -31,8 +31,8 @@ export const compiled: CompiledCard = {
         },
         {
           "kind": "Draw",
-          "amount": "until",
-          "targetCount": 6,
+          "amount": 1,
+          "untilHandSize": 6,
           "controller": "mine"
         }
       ]
@@ -64,8 +64,8 @@ export const compiled: CompiledCard = {
         },
         {
           "kind": "Draw",
-          "amount": "until",
-          "targetCount": 6,
+          "amount": 1,
+          "untilHandSize": 6,
           "controller": "mine"
         }
       ]

@@ -6,72 +6,70 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Fortitude",
-          "raw": "＜Fortitude＞"
-        }
-      ]
+          keyword: "Fortitude",
+          raw: "＜Fortitude＞",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": 3000
+          effect: {
+            kind: "modifyDP",
+            amount: 3000,
           },
-          "while": {
-            "kind": "selfIsSuspended",
-            "raw": "this Digimon is suspended"
-          }
-        }
-      ]
+          while: {
+            kind: "selfIsSuspended",
+            raw: "this Digimon is suspended",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenDeletesInBattle",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenDeletesInBattle",
+          actions: [
             {
-              "kind": "SecurityManipulation",
-              "op": "trashTop",
-              "controller": "opponent",
-              "amount": 1
-            }
-          ]
-        }
+              kind: "SecurityManipulation",
+              op: "trashTop",
+              controller: "opponent",
+              amount: 1,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "traits": [
-        "NSp"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 4,
+      traits: ["NSp"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("EX8-042", compiled);

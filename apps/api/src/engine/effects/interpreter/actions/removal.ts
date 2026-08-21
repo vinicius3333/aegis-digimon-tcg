@@ -107,11 +107,23 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           return def?.colors.includes(color) === true;
         });
         if (candidates.length === 0) continue;
+        // Prefer a single-color candidate over a multicolor candidate. This preserves a
+        // multicolor Digimon for another color when both choices are possible (EX9-074 / KB
+        // Q5005): a red single-color Digimon must be used for red before a red/blue Digimon.
+        const orderedCandidates = [...candidates].sort((left, right) => {
+          const leftColors = left.topCard === undefined ? 0 : ctx.game.definitionOf(left.topCard).colors.length;
+          const rightColors = right.topCard === undefined ? 0 : ctx.game.definitionOf(right.topCard).colors.length;
+          return leftColors - rightColors;
+        });
         const chosen =
-          candidates.length === 1
-            ? candidates[0]!.permanentId
+          orderedCandidates.length === 1
+            ? orderedCandidates[0]!.permanentId
             : (
-                await ctx.ask.chooseTargets(ctx, { candidates: candidates.map((p) => p.permanentId), min: 1, max: 1 })
+                await ctx.ask.chooseTargets(ctx, {
+                  candidates: orderedCandidates.map((p) => p.permanentId),
+                  min: 1,
+                  max: 1,
+                })
               )[0];
         if (chosen !== undefined) selected.push(chosen);
       }
@@ -363,7 +375,9 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             ? ctx.game.opponentOf(ctx.source.ownerSeat)
             : ctx.source.ownerSeat;
         const deck = ctx.game.player(seat).deck;
-        const n = action.target.count === "all" ? deck.length : action.target.count;
+        const n = action.target.count === "all"
+          ? deck.length
+          : action.target.count * (scale ?? 1);
         const topCards = deck.slice(0, n);
         const topIds = topCards.map((card) => card.instanceId);
         if (topIds.length > 0) {

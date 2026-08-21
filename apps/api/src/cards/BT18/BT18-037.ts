@@ -28,6 +28,7 @@ const compiled: CompiledCard = {
         {
           "kind": "Search",
           "controller": "mine",
+          "searchZone": "security",
           "zone": "security",
           "filter": {
             "controller": "mine",
@@ -43,24 +44,15 @@ const compiled: CompiledCard = {
           },
           "count": 1,
           "to": "hand",
+          "bindResultAs": "searched",
           "optional": true
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "keyword": {
-            "keyword": "Recovery",
-            "amount": 1,
-            "raw": "＜Recovery +1 (Deck)＞"
-          },
+          "kind": "Recover",
+          "amount": 1,
           "condition": {
-            "kind": "lastSearchAdded",
+            "kind": "bindingExists",
+            "ref": "searched",
             "raw": "if you added"
           }
         },

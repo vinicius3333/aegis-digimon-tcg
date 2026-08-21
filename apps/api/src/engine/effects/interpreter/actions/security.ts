@@ -24,6 +24,10 @@ export async function runRecoverByTrashingMostSecurity(
   if (action.recover !== false) await ctx.fx.recoverToSecurity(mine, action.amount ?? 1);
 }
 
+export async function runRecover(ctx: EffectContext, action: Extract<Action, { kind: "Recover" }>): Promise<void> {
+  await ctx.fx.recoverToSecurity(ctx.source.ownerSeat, action.amount ?? 1);
+}
+
 /** Security-stack manipulation: shuffle / trash top N / place cards as security. */
 export async function runSecurityManipulation(
   ctx: EffectContext,
@@ -52,6 +56,7 @@ export async function runSecurityManipulation(
     const decisionCtx =
       optionalSeat === ctx.source.ownerSeat ? ctx : { ...ctx, source: { ...ctx.source, ownerSeat: optionalSeat } };
     const accepted = await ctx.ask.optional(decisionCtx, describeAction(action));
+    ctx.lastOpponentDeclined = !accepted;
     if (!accepted) {
       ctx.lastEffectActed = false;
       if (action.bindResultAs) {
@@ -116,6 +121,7 @@ export async function runSecurityManipulation(
         ...(selectedSecurityIds !== undefined ? { instanceIds: selectedSecurityIds } : {}),
       });
       ctx.lastEffectActed = trashed.length > 0;
+      if (action.optionalFor !== undefined && trashed.length === 0) ctx.lastOpponentDeclined = true;
       if (action.trackCount !== undefined) {
         ctx.namedCounts ??= new Map();
         ctx.namedCounts.set(action.trackCount, trashed.length);
@@ -220,7 +226,8 @@ export async function runSecurityManipulation(
       }
       if (action.source === undefined) {
         // Self form: the resolving card becomes security (common on [Security] effects).
-        await ctx.fx.addSecurity(seat, [ctx.source.instanceId], {
+        const selfInstanceId = ctx.source.permanent()?.topCard?.instanceId ?? ctx.source.instanceId;
+        await ctx.fx.addSecurity(seat, [selfInstanceId], {
           toTop: action.toTop ?? true,
           faceUp: action.faceUp,
         });
@@ -274,7 +281,11 @@ export async function runSecurityManipulation(
       // the card flips face up IN PLACE (revealed to both players; it stays in security).
       // The same effects later place it back face down — the `source:"revealed"` add in
       // runSecurityAdd flips it back.
+      const security = ctx.game.player(seat).security;
+      const revealed = action.op === "revealTop" ? security[0] : security[security.length - 1];
+      if (revealed === undefined) return;
       ctx.fx.flipSecurityFaceUp(seat, { fromTop: action.op === "revealTop" });
+      ctx.lastRevealedCards = [{ instanceId: revealed.instanceId, cardId: revealed.cardId, ownerSeat: seat }];
       return;
     }
     case "flipUp": {
@@ -319,13 +330,18 @@ async function runSecurityAdd(
       : action.op === "addBottom"
         ? false
         : (await ctx.ask.chooseOption(ctx, ["Top of security", "Bottom of security"])) === 0;
-  const opts = { toTop, faceUp: action.faceUp };
+  const opts = { toTop, faceUp: action.faceDown === true ? false : action.faceUp };
   const baseCount = action.amount ?? 1;
   const count = action.scaling === undefined ? baseCount : baseCount * scaleFactor(ctx, action.scaling);
   const ownController = action.controller === "opponent" ? ("opponent" as const) : ("mine" as const);
 
   if (source === "revealed") {
-    ctx.fx.flipTopSecurity(seat);
+    const revealedInstanceId = ctx.lastRevealedCards?.at(-1)?.instanceId;
+    const restored = ctx.game.state.players[seat]?.security.find((card) => card.instanceId === revealedInstanceId);
+    if (restored !== undefined) {
+      restored.faceUp = false;
+      ctx.fx.flipTopSecurity(seat);
+    }
     return;
   }
   if (source === "rest") {
@@ -414,6 +430,10 @@ export async function runSecurityAction(ctx: EffectContext, action: Action, scop
     }
     case "RecoverByTrashingMostSecurity": {
       await runRecoverByTrashingMostSecurity(ctx, action);
+      return false;
+    }
+    case "Recover": {
+      await runRecover(ctx, action);
       return false;
     }
     case "trashSecurityTop": {

@@ -6,130 +6,107 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
+    { trigger: "Security", actions: [{ kind: "Delete", target: { filter: { controllerDefault: "opponent", kind: ["Digimon"], superlative: "lowestPlayCost" }, count: 1 } }], isSecurity: true },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "SelectBind",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "SelectBind",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Mineral",
-                    "Rock"
-                  ],
-                  "match": "trait"
-                }
+                  tokens: ["Mineral", "Rock"],
+                  match: "trait",
+                },
               ],
-              "digivolutionCards": "hasAny"
+              digivolutionCards: "hasAny",
             },
-            "count": 1,
-            "bindAs": "thatDigimon"
+            count: 1,
+            bindAs: "thatDigimon",
           },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "digivolutionCards",
-                "boundTo": "thatDigimon"
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "digivolutionCards",
+                boundTo: "thatDigimon",
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing any 1 digivolution card of 1 of your Digimon with the [Mineral]/[Rock] trait"
+            raw: "By trashing any 1 digivolution card of 1 of your Digimon with the [Mineral]/[Rock] trait",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "fromSelectionRef": "thatDigimon",
-            "filter": {},
-            "count": 1
+          kind: "GainKeyword",
+          target: {
+            fromSelectionRef: "thatDigimon",
+            filter: {},
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Collision",
-            "raw": "＜Collision＞"
+          keyword: {
+            keyword: "Collision",
+            raw: "＜Collision＞",
           },
-          "duration": "untilOpponentTurnEnd"
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "fromSelectionRef": "thatDigimon",
-            "filter": {},
-            "count": 1
+          kind: "GainKeyword",
+          target: {
+            fromSelectionRef: "thatDigimon",
+            filter: {},
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Piercing",
-            "raw": "＜Piercing＞"
+          keyword: {
+            keyword: "Piercing",
+            raw: "＜Piercing＞",
           },
-          "duration": "untilOpponentTurnEnd"
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "fromSelectionRef": "thatDigimon",
-            "filter": {},
-            "count": 1
+          kind: "GainKeyword",
+          target: {
+            fromSelectionRef: "thatDigimon",
+            filter: {},
+            count: 1,
           },
-          "keyword": {
-            "keyword": "Reboot",
-            "raw": "＜Reboot＞"
+          keyword: {
+            keyword: "Reboot",
+            raw: "＜Reboot＞",
           },
-          "duration": "untilOpponentTurnEnd"
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "fromSelectionRef": "thatDigimon",
-            "filter": {},
-            "count": 1
+          kind: "Restrict",
+          target: {
+            fromSelectionRef: "thatDigimon",
+            filter: {},
+            count: 1,
           },
-          "restriction": "cannotReturnToHandOrDeck",
-          "byOpponentOnly": true,
-          "duration": "untilOpponentTurnEnd"
+          restriction: "cannotReturnToHandOrDeck",
+          byOpponentOnly: true,
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "fromSelectionRef": "thatDigimon",
-            "filter": {},
-            "count": 1
+          kind: "ModifyDP",
+          target: {
+            fromSelectionRef: "thatDigimon",
+            filter: {},
+            count: 1,
           },
-          "amount": 3000,
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "lowestPlayCost"
-            },
-            "count": 1
-          }
-        }
+          amount: 3000,
+          duration: "untilOpponentTurnEnd",
+        },
       ],
-      "isSecurity": true
-    }
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX8-070", compiled);

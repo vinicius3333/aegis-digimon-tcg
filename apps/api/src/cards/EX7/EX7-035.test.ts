@@ -3,8 +3,8 @@ import { compiled } from "./EX7-035.js";
 
 describe("EX7-035", () => {
   it("suspends an opposing Digimon and prevents it from unsuspending on play and digivolving", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([{ kind: "Suspend" }, { kind: "Restrict", restriction: "unsuspend", duration: "untilOpponentTurnEnd" }]);
-    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions).toMatchObject([{ kind: "Suspend" }, { kind: "Restrict", restriction: "unsuspend" }]);
+    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions).toMatchObject([{ kind: "Suspend" }, { kind: "Restrict", restriction: "unsuspend", duration: "untilOpponentTurnEnd", target: { sameTarget: true } }]);
+    expect(compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions).toMatchObject([{ kind: "Suspend" }, { kind: "Restrict", restriction: "unsuspend", target: { sameTarget: true } }]);
   });
   it("has Dinosaur as a rule trait and inherits trashing the opponent's top security after a battle deletion", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Rule")?.actions[0]).toMatchObject({ kind: "GrantStatic", grant: "trait", tokens: ["Dinosaur"] });

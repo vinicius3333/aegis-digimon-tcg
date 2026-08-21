@@ -62,7 +62,7 @@ const module: EffectModule = {
           return mine.some((p) => {
             if (p.topCard === undefined) return false;
             const def = ctx.game.definitionOf(p.topCard);
-            return isDigimon(def) && VALID_NAMES.has(def.nameEn) && (def.level ?? 0) >= 6;
+            return isDigimon(def) && [...VALID_NAMES].some((name) => def.nameEn.includes(name));
           });
         },
         resolve: async (ctx) => {
@@ -71,7 +71,7 @@ const module: EffectModule = {
             .filter((p) => {
               if (p.topCard === undefined) return false;
               const def = ctx.game.definitionOf(p.topCard);
-              return isDigimon(def) && VALID_NAMES.has(def.nameEn) && (def.level ?? 0) >= 6;
+              return isDigimon(def) && [...VALID_NAMES].some((name) => def.nameEn.includes(name));
             })
             .map((p) => p.permanentId);
           if (candidates.length === 0) return;
@@ -84,10 +84,7 @@ const module: EffectModule = {
           const intoCandidates = hand.filter((c) => {
             const def = ctx.game.definitionOf(c);
             return (
-              isDigimon(def) &&
-              (def.level ?? 0) === 6 &&
-              def.nameEn !== chosenName &&
-              def.nameEn.includes(chosenName)
+              isDigimon(def) && (def.level ?? 0) === 6 && def.nameEn !== chosenName && def.nameEn.includes(chosenName)
             );
           });
           if (intoCandidates.length === 0) return;
@@ -112,9 +109,7 @@ const module: EffectModule = {
           optional: false,
           resolve: async (ctx) => {
             const trash = ctx.game.player(source.ownerSeat).trash;
-            const digiTrash = trash
-              .filter((c) => isDigimon(ctx.game.definitionOf(c)))
-              .map((c) => c.instanceId);
+            const digiTrash = trash.filter((c) => isDigimon(ctx.game.definitionOf(c))).map((c) => c.instanceId);
             if (digiTrash.length > 0) {
               const chosen = await ctx.ask.selectCards(ctx, { candidates: digiTrash, min: 1, max: 1 });
               if (chosen.length > 0) {

@@ -27,9 +27,7 @@ export const compiled: CompiledCard = {
             "filter": {
               "controller": "opponent",
               "suspended": true,
-              "kind": [
-                "Digimon"
-              ]
+              "kind": ["Digimon"]
             },
             "count": 2
           },
@@ -47,9 +45,7 @@ export const compiled: CompiledCard = {
             "filter": {
               "controller": "opponent",
               "suspended": true,
-              "kind": [
-                "Digimon"
-              ]
+              "kind": ["Digimon"]
             },
             "count": 2
           },

@@ -39,7 +39,8 @@ export const compiled: CompiledCard = {
               "filter": {
                 "controller": "mine"
               },
-              "count": 1
+              "count": 1,
+              "from": ["deck"]
             },
             "raw": "By placing your deck's top card face down as this Digimon's bottom digivolution card",
             "destination": "digivolutionStack",
@@ -52,12 +53,9 @@ export const compiled: CompiledCard = {
           "scaling": {
             "per": 1,
             "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+              "controllerDefault": "mine"
             },
-            "unit": "digivolutionCards"
+            "unit": "selfFaceDownDigivolutionCards"
           }
         }
       ],

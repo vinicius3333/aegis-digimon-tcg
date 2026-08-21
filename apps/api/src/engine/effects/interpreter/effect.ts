@@ -248,6 +248,12 @@ function isHandTrashWatcherHost(effect: CardEffect): boolean {
 /** Pick the timing builder that matches an IR trigger. */
 export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) => Effect {
   if (effect.isSecurity || effect.trigger === "Security") return security;
+  if (
+    effect.trigger === "YourTurn" &&
+    effect.actions.some((action) => ["Digivolve", "DnaDigivolve", "AppFuse"].includes(action.kind))
+  ) {
+    return activated;
+  }
   if (isHandResidentDigivolveCostStatic(effect)) return digivolveCostStatic;
   if (isColorWaiverStatic(effect)) return colorWaiverStatic;
   if (isHandTrashWatcherHost(effect)) return onAddHand;

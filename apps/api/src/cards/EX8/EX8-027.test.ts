@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./EX8-027.js";
 
 describe("EX8-027", () => {
@@ -8,5 +11,10 @@ describe("EX8-027", () => {
     expect(actions).toHaveLength(2);
     expect(actions[0]).toMatchObject({ kind: "SubTrigger", actions: [{ kind: "DnaDigivolve" }, { kind: "Attack", optional: true }] });
     expect(actions[1]).toMatchObject({ kind: "SubTrigger", event: "whenOneOfYoursDigivolves" });
+  });
+  it("registers the live Plesiomon permanent with its DS trait", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX8-027", as: "plesiomon" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasEffectiveTrait(s.perm("plesiomon"), "DS")).toBe(true);
   });
 });

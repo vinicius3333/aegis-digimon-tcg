@@ -6,10 +6,11 @@ import {
   EffectTiming,
   EffectDuration,
   Phase,
+  Permanent,
   type CardColor,
   type CardDefinition,
   type CardInstance,
-  type Permanent,
+  Permanent,
   type Intent,
   type IntentResult,
   type DecisionRequest,
@@ -684,6 +685,7 @@ export class GameEngine {
       },
       controllerSeat: () => this.state.turnSeat,
       inContinuousPass: () => this.continuousMode,
+      inResolvingWindow: () => this.activeWindowToken !== undefined,
       barrierFired: (key) => this.tracker.count(key, "replacement") > 0,
       markBarrierFired: (key) => this.tracker.register(key, "replacement"),
     });
@@ -1840,15 +1842,15 @@ export class GameEngine {
             // Preserve the exact card that installed the watcher. This matters for inherited
             // effects whose source card is later trashed from the host's stack: the body still
             // means "this card", not the host's current top card.
-            if (sub.sourceInstanceId !== undefined) {
-              const loose = this.findLooseInstance(sub.sourceInstanceId);
-              if (loose === undefined) return undefined;
-              return this.buildEffectContext(this.cardSourceOf(loose), payload);
-            }
             if (sub.sourcePermanentId !== undefined) {
               const srcPerm = this.access.permanentById(sub.sourcePermanentId);
               if (srcPerm?.topCard === undefined) return undefined;
               return this.buildEffectContext(this.cardSourceOf(srcPerm.topCard), payload);
+            }
+            if (sub.sourceInstanceId !== undefined) {
+              const loose = this.findLooseInstance(sub.sourceInstanceId);
+              if (loose === undefined) return undefined;
+              return this.buildEffectContext(this.cardSourceOf(loose), payload);
             }
             if (sub.activationContext !== undefined) {
               return { ...sub.activationContext, trigger: payload, selections: new Map() };
@@ -1883,15 +1885,15 @@ export class GameEngine {
   }
 
   private buildSubTriggerContext(sub: SubTriggerSubscription, payload: TriggerInfo): EffectContext | undefined {
-    if (sub.sourceInstanceId !== undefined) {
-      const loose = this.findLooseInstance(sub.sourceInstanceId);
-      if (loose === undefined) return undefined;
-      return this.buildEffectContext(this.cardSourceOf(loose), payload);
-    }
     if (sub.sourcePermanentId !== undefined) {
       const srcPerm = this.access.permanentById(sub.sourcePermanentId);
       if (srcPerm?.topCard === undefined) return undefined;
       return this.buildEffectContext(this.cardSourceOf(srcPerm.topCard), payload);
+    }
+    if (sub.sourceInstanceId !== undefined) {
+      const loose = this.findLooseInstance(sub.sourceInstanceId);
+      if (loose === undefined) return undefined;
+      return this.buildEffectContext(this.cardSourceOf(loose), payload);
     }
     if (sub.activationContext !== undefined) {
       return { ...sub.activationContext, trigger: payload, selections: new Map() };
@@ -2464,6 +2466,7 @@ export class GameEngine {
         subjectPermanentId,
         entryCause: "digivolve",
         enteredByEffect: ownerSeat,
+        ...(opts?.isDnaDigivolve === true ? { isDnaDigivolve: true } : {}),
       });
       await this.fireSubTrigger("whenOneOfYoursDigivolves", {
         subjectPermanentId,
@@ -2581,7 +2584,8 @@ export class GameEngine {
       selfReducers.length === 0 &&
       crossWatchers.length === 0 &&
       residentEffects.length === 0 &&
-      breedingResidentEffects.length === 0
+      breedingResidentEffects.length === 0 &&
+      !this.subTriggers.hasInteractiveReductionsFor("wouldBePlayed", source.ownerSeat)
     )
       return baseCost;
     // Seed `selections` so the interpreter's runEffect does NOT clone the context (it clones only
@@ -2593,6 +2597,35 @@ export class GameEngine {
       if (!canActivate(effect, ctx, this.tracker)) continue;
       await effect.resolve(ctx);
     }
+    const playTarget = new Permanent();
+    playTarget.permanentId = `pending-play-${instance.instanceId}`;
+    playTarget.controllerSeat = source.ownerSeat;
+    playTarget.topCard = instance;
+    playTarget.inBreeding = false;
+    playTarget.baseDP = source.definition.dp ?? 0;
+    playTarget.currentDP = playTarget.baseDP;
+    const interactiveReduction = await this.subTriggers.activateInteractiveReductionsFor(
+      "wouldBePlayed",
+      source.ownerSeat,
+      playTarget,
+      source.definition,
+      undefined,
+      (sourcePermanentId) => {
+        const resident = this.access.permanentById(sourcePermanentId);
+        return resident?.topCard === undefined
+          ? undefined
+          : this.buildEffectContext(this.cardSourceOf(resident.topCard), {
+              wouldBePlayedInstanceId: instance.instanceId,
+              wouldBePlayedCardId: instance.cardId,
+              wouldBePlayedAsOption: useAsOption,
+            });
+      },
+      {
+        hasFired: (key) => this.tracker.count(key, "replacement") > 0,
+        markFired: (key) => this.tracker.register(key, "replacement"),
+      },
+    );
+    if (interactiveReduction > 0) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + interactiveReduction;
     // Generic battle-area pay-time watchers. Unlike the card being played, their
     // EffectContext source is the physical resident carrying the effect; the imminent
     // card identity is carried in TriggerInfo. This lets independent copies resolve and
@@ -3525,7 +3558,8 @@ export class GameEngine {
           ),
         ) ||
         this.crossPermanentPlayReducerWatchers(instance, this.cardSourceOf(instance).ownerSeat).length > 0 ||
-        this.residentPlayCostEffects(this.cardSourceOf(instance).ownerSeat).length > 0,
+        this.residentPlayCostEffects(this.cardSourceOf(instance).ownerSeat).length > 0 ||
+        this.subTriggers.hasInteractiveReductionsFor("wouldBePlayed", this.cardSourceOf(instance).ownerSeat),
       // After the played permanent is created (before On Play), place any cards a cross-permanent
       // reducer (BT10-093) committed under it, and relocate any whole permanent a SELF reducer's cost
       // body (BT12-112) selected to become one of its digivolution cards. No-op when nothing was

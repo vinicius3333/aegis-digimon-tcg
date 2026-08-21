@@ -43,7 +43,9 @@ export const compiled: CompiledCard = {
             },
             "count": "all"
           },
-          "totalAmount": 4
+          "scope": "acrossDigimon",
+          "amount": 4,
+          "fromTop": false
         },
         {
           "kind": "Return",
@@ -58,7 +60,7 @@ export const compiled: CompiledCard = {
           },
           "to": "deckBottom",
           "condition": {
-            "kind": "youHaveNone",
+            "kind": "opponentHasNone",
             "filter": {
               "digivolutionCards": "hasAny",
               "controllerDefault": "opponent",

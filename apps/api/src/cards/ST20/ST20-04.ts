@@ -62,13 +62,39 @@ const compiled: CompiledCard = {
                 raw: "any of them have the [ADVENTURE] trait",
               },
             },
+            {
+              kind: "Attack",
+              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              withoutSuspending: false,
+              optional: true,
+            },
           ],
           raw: "When one of your other Digimon is played, 1 of your Digimon gains ＜Alliance＞ for the turn",
         },
         {
-          kind: "Attack",
-          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
-          withoutSuspending: false,
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              keyword: { keyword: "Alliance", raw: "＜Alliance＞" },
+              duration: "forTheTurn",
+              condition: {
+                kind: "triggerSubjectMatchesFilter",
+                filter: { nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }] },
+                raw: "any of them have the [ADVENTURE] trait",
+              },
+            },
+            {
+              kind: "Attack",
+              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              withoutSuspending: false,
+              optional: true,
+            },
+          ],
+          raw: "When one of your other Digimon digivolves, 1 of your Digimon gains ＜Alliance＞ for the turn",
         },
       ],
       frequency: "OncePerTurn",
@@ -82,9 +108,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [
-    { level: 4, traits: ["ADVENTURE"], cost: 3, isAlternate: true },
-  ],
+  digivolutionRequirement: [{ level: 4, traits: ["ADVENTURE"], cost: 3, isAlternate: true }],
 };
 
 registerIrCard("ST20-04", compiled);

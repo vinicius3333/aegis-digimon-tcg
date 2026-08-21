@@ -57,6 +57,10 @@ export const compiled: CompiledCard = {
             "raw": "＜Retaliation＞"
           },
           "duration": "untilOpponentTurnEnd"
+          ,"condition": {
+            "kind": "ifThisEffectActed",
+            "raw": "this effect granted Blocker"
+          }
         }
       ]
     },
@@ -110,6 +114,10 @@ export const compiled: CompiledCard = {
             "raw": "＜Retaliation＞"
           },
           "duration": "untilOpponentTurnEnd"
+          ,"condition": {
+            "kind": "ifThisEffectActed",
+            "raw": "this effect granted Blocker"
+          }
         }
       ]
     },

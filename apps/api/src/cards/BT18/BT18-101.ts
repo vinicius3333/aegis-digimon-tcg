@@ -6,7 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // without paying the cost, delete 1 of your opponent's Digimon or Tamers.
 // [End of All Turns] [Once Per Turn]: Trash top security of opponent's security stack.
 // If this effect DIDN'T trash (opponent has no security), delete 1 Digimon and 1 Tamer instead.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "WhenDigivolving",
