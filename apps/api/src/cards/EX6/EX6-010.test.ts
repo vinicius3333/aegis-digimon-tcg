@@ -4,19 +4,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { ContinuousEffectLedger } from "../../engine/effects/continuous.js";
 import "../index.js";
 
-// A3 for EX6-010 (Durandamon) — Red Lv.6 Digimon (Legend-Arms).
-//
-// [Your Turn][Inherited] When this Digimon's top card is [RagnaLoardmon] and it is
-// attacking, the [Security] effects on cards it checks don't activate.
-// Implemented via disableSecurityEffect(perm, "any", UntilEachTurnEnd).
-//
-// Observable outcome tested here: after recompute(), a RagnaLoardmon permanent with
-// Durandamon in its digivolution stack has `isSecurityEffectDisabled(...) === true`
-// for any security card kind.
-//
-// FAILS-WHEN-REVERTED: remove the `disableSecurityEffect` call in the staticModifier
-// → the ledger never records the disable → `isSecurityEffectDisabled` returns false.
-
 const DURANDAMON = "EX6-010";
 const RAGNALOARDMON = "BT3-019"; // "RagnaLoardmon" — exact name match for guard
 const FILLER = "BT1-009"; // Monodramon — not RagnaLoardmon
@@ -53,9 +40,8 @@ describe("EX6-010 [Inherited] RagnaLoardmon host disables security effects (reco
     await recompute(s.engine);
 
     // The inherited static effect should have recorded a security-effect disable on the host.
-    expect(
-      ledger(s.engine).isSecurityEffectDisabled(s.perm("host").permanentId, fakeOptionDef()),
-    ).toBe(true);
+    expect(ledger(s.engine).isSecurityEffectDisabled(s.perm("host").permanentId, fakeOptionDef())).toBe(true);
+    expect(ledger(s.engine).hasKeyword(s.perm("host").permanentId, "Piercing")).toBe(true);
     // FAILS-WHEN-REVERTED: the `disableSecurityEffect` call is removed → no disable recorded → false.
   });
 
@@ -66,9 +52,7 @@ describe("EX6-010 [Inherited] RagnaLoardmon host disables security effects (reco
 
     await recompute(s.engine);
 
-    expect(
-      ledger(s.engine).isSecurityEffectDisabled(s.perm("host").permanentId, fakeOptionDef()),
-    ).toBe(false);
+    expect(ledger(s.engine).isSecurityEffectDisabled(s.perm("host").permanentId, fakeOptionDef())).toBe(false);
   });
 });
 
@@ -76,10 +60,6 @@ describe("EX6-010 [Inherited] RagnaLoardmon host disables security effects (reco
 // bottom digivolution card of 1 of your Digimon that's level 6 or has the [Legend-Arms]
 // trait, delete 1 of your opponent's Digimon with as much or less DP as that Digimon."
 //
-// FAILS-WHEN-REVERTED: the module had no EffectTiming.OnDeclaration branch at all — this
-// whole cost-ability was unported, despite the file's own header comments claiming it was
-// "kept in IR form" (the module registers via registerCard, not registerIrCard/irCardModule,
-// so no IR ever ran for this card).
 describe("EX6-010 [Hand] [Main] pay 3, place as bottom digivolution card, delete opponent Digimon", () => {
   it("places itself under the eligible level-6 host and deletes a lower-DP opponent Digimon, paying 3 memory", async () => {
     const s = setupEngine(
