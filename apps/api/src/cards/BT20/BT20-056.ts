@@ -64,6 +64,8 @@ async function recoveryAndBreedingDigivolve(ctx: Parameters<Effect["resolve"]>[0
   });
 }
 
+export { module };
+
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {

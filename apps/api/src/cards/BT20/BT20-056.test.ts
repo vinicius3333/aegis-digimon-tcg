@@ -1,7 +1,9 @@
 import { describe, it, expect } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import type { PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { module as alphamonModule } from "./BT20-056.js";
 
 // A3 for BT20-056 (Alphamon — Black/White Lv.6 Digimon).
 //
@@ -22,6 +24,12 @@ const RYUDAMON = "BT20-010";
 const AGUMON = "BT1-010";
 
 describe("BT20-056 Alphamon — On Play Recovery +1", () => {
+  it("registers Barrier and the Alphamon: Ouryuken leave-prevention clause", () => {
+    const staticEffects = alphamonModule.effectsForTiming(EffectTiming.None, { ownerSeat: 0, permanent: () => undefined } as never);
+    expect(staticEffects).toHaveLength(2);
+    expect(staticEffects[0]?.description).toContain("Barrier");
+    expect(staticEffects[1]?.description).toContain("Ouryuken");
+  });
   it("does not use the breeding-area digivolution clause outside an attack", async () => {
     const s = setupEngine(
       {
