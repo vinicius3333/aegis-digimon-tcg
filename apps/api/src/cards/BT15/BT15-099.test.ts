@@ -13,9 +13,6 @@ import "./BT15-099.js";
  *                Digimon with level ≤ trashed card's level; draw 2 if Myotismon in text.
  *   [Security] → EffectTiming.SecuritySkill: same body as [Main].
  *
- * FAILS-WHEN-REVERTED: remove the `ctx.fx.deletePermanent` call from resolveMainBody —
- *   the "deletePermanent called" assertion goes RED.
- *   Remove the `ctx.fx.draw` call — the "draw 2 on Myotismon" assertion goes RED.
  */
 
 interface Call {
@@ -94,7 +91,8 @@ function makeScenario(opts: ScenarioOptions) {
   definitionMap[CARD_ID] = { kinds: ["Option"], nameEn: "Venom Infusion" };
 
   const fx = new Proxy({} as Primitives, {
-    get: (_, verb: string) =>
+    get:
+      (_, verb: string) =>
       (...args: unknown[]) => {
         recorder.calls.push({ verb, args });
         if (verb === "trash") return Promise.resolve([]);
@@ -108,23 +106,23 @@ function makeScenario(opts: ScenarioOptions) {
     trigger: {},
     game: {
       state: { memory: 3 },
-      player: (seat: Seat) => ({
-        hand: seat === 0 ? handCards : [],
-        battleArea: seat === 0 ? [] : oppPerms,
-      } as never),
+      player: (seat: Seat) =>
+        ({
+          hand: seat === 0 ? handCards : [],
+          battleArea: seat === 0 ? [] : oppPerms,
+        }) as never,
       opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
       permanentById: (id: string) => oppPerms.find((p) => p.permanentId === id),
-      definitionOf: (c: { cardId: string }) => (definitionMap[c.cardId] ?? { kinds: ["Digimon"], nameEn: c.cardId } as never),
+      definitionOf: (c: { cardId: string }) =>
+        definitionMap[c.cardId] ?? ({ kinds: ["Digimon"], nameEn: c.cardId } as never),
       linkMax: () => 1,
       linkCostReduction: () => 0,
     } as never,
     fx,
     ask: {
       optional: async () => opts.acceptOptional ?? true,
-      chooseTargets: async (_ctx: unknown, o: { candidates: string[]; max: number }) =>
-        o.candidates.slice(0, o.max),
-      selectCards: async (_ctx: unknown, o: { candidates: string[]; max: number }) =>
-        o.candidates.slice(0, o.max),
+      chooseTargets: async (_ctx: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
+      selectCards: async (_ctx: unknown, o: { candidates: string[]; max: number }) => o.candidates.slice(0, o.max),
     } as never,
   };
 
@@ -186,7 +184,7 @@ describe("BT15-099 Venom Infusion — [Main] trash/delete/draw + [Security]", ()
 
     const deleteCall = recorder.calls.find((c) => c.verb === "deletePermanent");
     expect(deleteCall, "deletePermanent must be called for eligible opponent Digimon").toBeDefined();
-    expect((deleteCall!.args[0] as string[])).toContain("PERM#opp-lv4");
+    expect(deleteCall!.args[0] as string[]).toContain("PERM#opp-lv4");
   });
 
   it("[Main] does NOT delete an opponent Digimon with level > trashed card's level", async () => {
@@ -205,12 +203,14 @@ describe("BT15-099 Venom Infusion — [Main] trash/delete/draw + [Security]", ()
 
   it("[Main] draws 2 when trashed card has 'Myotismon' in its name", async () => {
     const { recorder, ctx } = makeScenario({
-      handDigimon: [{
-        instanceId: "INST#myo-hand",
-        cardId: "BT1-085",
-        level: 5,
-        nameEn: "Myotismon",
-      }],
+      handDigimon: [
+        {
+          instanceId: "INST#myo-hand",
+          cardId: "BT1-085",
+          level: 5,
+          nameEn: "Myotismon",
+        },
+      ],
       oppDigimon: [{ permanentId: "PERM#opp2", cardId: "BT1-010", level: 4 }],
     });
 
@@ -225,13 +225,15 @@ describe("BT15-099 Venom Infusion — [Main] trash/delete/draw + [Security]", ()
 
   it("[Main] draws 2 when trashed card has 'Myotismon' in its effectText", async () => {
     const { recorder, ctx } = makeScenario({
-      handDigimon: [{
-        instanceId: "INST#myo-eff-hand",
-        cardId: "BT1-086",
-        level: 4,
-        nameEn: "VenomVamdemon",
-        effectText: "When this Digimon attacks, if it has [Myotismon] in its digivolution cards...",
-      }],
+      handDigimon: [
+        {
+          instanceId: "INST#myo-eff-hand",
+          cardId: "BT1-086",
+          level: 4,
+          nameEn: "VenomVamdemon",
+          effectText: "When this Digimon attacks, if it has [Myotismon] in its digivolution cards...",
+        },
+      ],
       oppDigimon: [{ permanentId: "PERM#opp3", cardId: "BT1-010", level: 3 }],
     });
 
@@ -246,12 +248,14 @@ describe("BT15-099 Venom Infusion — [Main] trash/delete/draw + [Security]", ()
 
   it("[Main] does NOT draw when trashed card has no Myotismon text", async () => {
     const { recorder, ctx } = makeScenario({
-      handDigimon: [{
-        instanceId: "INST#agumon",
-        cardId: "BT1-001",
-        level: 3,
-        nameEn: "Agumon",
-      }],
+      handDigimon: [
+        {
+          instanceId: "INST#agumon",
+          cardId: "BT1-001",
+          level: 3,
+          nameEn: "Agumon",
+        },
+      ],
       oppDigimon: [{ permanentId: "PERM#opp4", cardId: "BT1-010", level: 2 }],
     });
 
