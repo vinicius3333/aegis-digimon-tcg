@@ -19,6 +19,7 @@ const compiled: CompiledCard = {
         filter: {
           controller: "mine",
           kind: ["Digimon", "Tamer"],
+          nameOrTrait: [{ tokens: ["DM"], match: "trait" }],
         },
         count: 1,
         raw: "you have a Digimon or Tamer with DM traits in play",
@@ -80,6 +81,7 @@ const compiled: CompiledCard = {
           kind: "PlayWithoutCost",
           target: {
             filter: {
+              controller: "mine",
               kind: ["Digimon"],
               nameOrTrait: [
                 { tokens: ["Kimeramon", "Millenniummon"], match: "name" },
