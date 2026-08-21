@@ -43,7 +43,7 @@ export const compiled: CompiledCard = {
                         "tokens": [
                           "Negamon"
                         ],
-                        "match": "name"
+                        "match": "text"
                       }
                     ]
                   },

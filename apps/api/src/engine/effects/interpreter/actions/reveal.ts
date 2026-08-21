@@ -82,7 +82,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
   const toPlay: { instanceId: string; costDelta?: number }[] = [];
   const toDigivolve: { instanceId: string; target?: Target; payCost?: boolean }[] = [];
   const toSecurity: { instanceId: string; toTop: boolean; faceDown: boolean }[] = [];
-  const toPlaceUnder: { instanceId: string; underFilter?: import("@aegis/shared").Filter }[] = [];
+  const toPlaceUnder: { instanceId: string; underFilter?: import("@aegis/shared").Filter; faceDown?: boolean }[] = [];
   const toUnderTamer: { instanceId: string; underFilter?: import("@aegis/shared").Filter; faceDown?: boolean }[] = [];
   if (action.trashFilter !== undefined) {
     for (const card of revealed) {
@@ -280,7 +280,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
           faceDown: disposition.faceDown ?? true,
         });
       else if (disposition.to === "placeUnder")
-        toPlaceUnder.push({ instanceId: c.instanceId, underFilter: disposition.underFilter });
+        toPlaceUnder.push({ instanceId: c.instanceId, underFilter: disposition.underFilter, faceDown: disposition.faceDown });
       else if (disposition.to === "underTamer")
         toUnderTamer.push({
           instanceId: c.instanceId,
@@ -334,7 +334,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
   }
   // "place N [X] as the bottom digivolution card of one of your [Y] Digimon"
   if (toPlaceUnder.length > 0) {
-    for (const { instanceId, underFilter } of toPlaceUnder) {
+  for (const { instanceId, underFilter, faceDown } of toPlaceUnder) {
       const candidates = ctx.game.player(seat).battleArea.filter((p) => {
         if (!p.topCard || !isDigimon(ctx.game.definitionOf(p.topCard))) return false;
         return underFilter === undefined || permanentMatchesFilter(ctx, p, underFilter, ctx.source);
@@ -354,7 +354,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         if (chosen.length > 0) hostPermanentId = chosen[0]!;
       }
       // Move the revealed card from the revealed pool to the host's digivolution stack (bottom).
-      await ctx.fx.placeUnder(hostPermanentId, [instanceId]);
+      await ctx.fx.placeUnder(hostPermanentId, [instanceId], { faceUp: faceDown === true ? false : undefined });
     }
   }
   // "place N [X] under one of your Tamer permanents" (BT19-055 `to:"underTamer"`):

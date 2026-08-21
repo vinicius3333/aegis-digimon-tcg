@@ -47,7 +47,7 @@ const module: EffectModule = {
               max: 1,
             });
             if (cardChosen.length > 0) {
-              await ctx.fx.placeUnder(hostChosen[0]!, cardChosen);
+              await ctx.fx.placeUnder(hostChosen[0]!, cardChosen, { belowTop: true, faceUp: false });
             }
           },
         }),
@@ -79,7 +79,12 @@ const module: EffectModule = {
                 const subject = subCtx.game.permanentById(subjectId);
                 if (subject === undefined) return false;
                 if (!Array.from(subCtx.game.player(source.ownerSeat).battleArea).some((p) => p.permanentId === subjectId)) return false;
-                return subject.controllerSeat === source.ownerSeat;
+                if (subject.controllerSeat !== source.ownerSeat) return false;
+                const addedIds = subCtx.trigger?.addedDigivolutionCardInstanceIds ?? [];
+                return addedIds.some((instanceId) => {
+                  const added = subject.stack.find((card) => card.instanceId === instanceId);
+                  return added !== undefined && added.faceUp !== true;
+                });
               },
               run: async (subCtx) => {
                 const selfPerm = subCtx.source.permanent();

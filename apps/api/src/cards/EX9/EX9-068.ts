@@ -79,7 +79,7 @@ const module: EffectModule = {
                     max: 1,
                   });
                   if (chosen.length > 0) {
-                    await subCtx.fx.placeUnder(subjectId, chosen);
+                    await subCtx.fx.placeUnder(subjectId, chosen, { belowTop: true, faceUp: false });
                   }
                 }
               },

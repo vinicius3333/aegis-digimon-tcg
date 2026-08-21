@@ -37,7 +37,8 @@ export const compiled: CompiledCard = {
               "scaling": {
                 "per": 1,
                 "filter": {
-                  "controllerDefault": "mine"
+                  "isSelfRef": true,
+                  "faceDown": true
                 },
                 "unit": "digivolutionCards"
               }
@@ -89,7 +90,10 @@ export const compiled: CompiledCard = {
             "kind": "trash",
             "target": {
               "filter": {
-                "isSelfRef": true
+                "isSelfRef": true,
+                "zone": "digivolutionCards",
+                "faceDown": true,
+                "position": "bottom"
               },
               "count": 1,
               "isSelf": true
@@ -134,7 +138,10 @@ export const compiled: CompiledCard = {
             "kind": "trash",
             "target": {
               "filter": {
-                "isSelfRef": true
+                "isSelfRef": true,
+                "zone": "digivolutionCards",
+                "faceDown": true,
+                "position": "bottom"
               },
               "count": 1,
               "isSelf": true

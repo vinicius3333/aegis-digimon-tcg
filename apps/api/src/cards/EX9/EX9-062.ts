@@ -17,7 +17,8 @@ export const compiled: CompiledCard = {
           "kind": "Trash",
           "target": {
             "filter": {
-              "controller": "mine"
+              "controller": "mine",
+              "zone": "deck"
             },
             "count": 1
           },
@@ -65,7 +66,8 @@ export const compiled: CompiledCard = {
           "kind": "Trash",
           "target": {
             "filter": {
-              "controller": "mine"
+              "controller": "mine",
+              "zone": "deck"
             },
             "count": 1
           },

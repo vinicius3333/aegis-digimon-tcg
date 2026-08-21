@@ -1419,6 +1419,22 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     return placed;
   };
 
+  const placeUnderFromDeck = async (targetPermanentId: string, seat: Seat): Promise<CardInstance | undefined> => {
+    const permanent = access.permanentById(targetPermanentId);
+    if (permanent === undefined) return undefined;
+    const card = takeTop(player(seat), Zone.Deck);
+    if (card === undefined) return undefined;
+    card.faceUp = false;
+    permanent.stack.unshift(card);
+    engine.emit({ kind: "cardsMoved", instanceIds: [card.instanceId], from: Zone.Deck, to: Zone.BattleArea });
+    await engine.fireSubTrigger?.("onAddDigivolutionCards", {
+      subjectPermanentId: targetPermanentId,
+      addedDigivolutionCardInstanceIds: [card.instanceId],
+      addedDigivolutionCardsPosition: "top",
+    });
+    return card;
+  };
+
   /**
    * ＜Material Save N＞'s reaction (Comprehensive Rules §16-21): when `permanentId` (a Digimon
    * with this keyword) is deleted, place up to N of its own specified DigiXros-requirement
@@ -1499,6 +1515,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       const idx = owner.battleArea.findIndex((p) => p.permanentId === sourcePermanentId);
       if (idx >= 0) {
         source = extractPermanentAt(owner, idx);
+        break;
+      }
+      if (owner.breeding?.permanentId === sourcePermanentId) {
+        source = owner.breeding;
+        owner.breeding = undefined;
         break;
       }
     }
@@ -4337,6 +4358,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     appFuseInto,
     deDigivolve,
     placeUnder,
+    placeUnderFromDeck,
     placeOwnTopAtStackBottom,
     relocatePermanent,
     relocatePermanentByEffect,

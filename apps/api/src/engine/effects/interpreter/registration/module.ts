@@ -174,8 +174,11 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
                 ctx.fx.revokeKeyword?.(self.permanentId, "Delay");
                 delayArmedConsumed = true;
               }
-              const deleted = await ctx.fx.deletePermanent([self.permanentId]);
-              if (deleted > 0) await runEffect({ ...ctx, delayArmedConsumed }, effect);
+              // Resolve the payload while the source remains addressable. Its printed cost is
+              // still atomic with Delay activation: a failed payload cost leaves the source in
+              // play, while a successful payload is followed by the intrinsic source trash.
+              await runEffect({ ...ctx, delayArmedConsumed }, effect);
+              await ctx.fx.deletePermanent([self.permanentId]);
             },
           });
         }
