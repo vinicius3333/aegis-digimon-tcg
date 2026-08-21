@@ -1,29 +1,13 @@
-import { EffectTiming } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { onDeletion } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "BT12-006";
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing, source) {
-    if (timing !== EffectTiming.OnDestroyedAnyone) return [];
-    return [onDeletion({
-      source,
-      effectKey: `${cardId}/inherited-save-deletion-draw`,
-      description: "[On Deletion] If this Digimon has Save in its text, draw 1.",
-      isInherited: true,
-      canActivate: (ctx) => {
-        const deletedTopId = ctx.trigger.deletedTopCardId;
-        if (deletedTopId === undefined) return false;
-        const deleted = ctx.game.player(source.ownerSeat).trash.find(({ cardId }) => cardId === deletedTopId);
-        if (deleted === undefined) return false;
-        const def = ctx.game.definitionOf(deleted);
-        return def.effectText?.includes("Save") === true || def.inheritedEffectText?.includes("Save") === true;
-      },
-      resolve: async (ctx) => { await ctx.fx.draw(source.ownerSeat, 1); },
-    })];
-  },
+const compiled: CompiledCard = {
+  effects: [{ trigger: "OnDeletion", actions: [{ kind: "Draw", controller: "mine", amount: 1, condition: {
+    kind: "selfTopHasText", filter: { nameOrTrait: [{ tokens: ["Save"], match: "text" }] },
+  } }], isInherited: true }],
+  coverage: "full",
+  residual: [],
 };
-registerCard(module);
-export default module;
+
+registerIrCard("BT12-006", compiled);

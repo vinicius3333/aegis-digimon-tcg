@@ -10,4 +10,11 @@ describe("BT12-006 Monimon", () => {
     await settle(() => s.state.players[0]!.hand.length === 1);
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
+
+  it("does not draw when the deleted host has no Save text", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT12-006"] }], deck: ["BT1-010"] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
+    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT1-009"));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
 });

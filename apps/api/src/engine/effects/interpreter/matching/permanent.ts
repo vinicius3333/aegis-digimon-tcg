@@ -49,8 +49,9 @@ export function selfTopMatchesText(ctx: EffectContext, filter: Filter | undefine
   const refs = filter?.nameOrTrait;
   if (refs === undefined || refs.length === 0) return false;
   const self = ctx.source.permanent();
-  if (self?.topCard === undefined) return false;
-  const def = ctx.game.definitionOf(self.topCard);
+  const topCard = self?.topCard ?? (ctx.trigger.deletedTopCardId !== undefined ? { cardId: ctx.trigger.deletedTopCardId } : undefined);
+  if (topCard === undefined) return false;
+  const def = ctx.game.definitionOf(topCard as never);
   return refs.some((ref) => matchNameOrTrait(def, ref));
 }
 
