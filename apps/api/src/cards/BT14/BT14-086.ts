@@ -46,16 +46,6 @@ const compiled: CompiledCard = {
             "count": 1,
             "controller": "mine"
           }
-        },
-        {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          }
         }
       ],
       "keywords": [
