@@ -269,8 +269,12 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
  * mask a genuine conflict between two distinct IR cards. `registerCard` still throws
  * for a hand-written double-port that does not go through this bulk path.
  */
-export function registerIrCard(cardId: string, compiled: CompiledCard): EffectModule {
+export function registerIrCard(cardId: string, compiled: CompiledCard, legacyModule?: EffectModule): EffectModule {
   registeredCompiledCards.set(cardId, compiled);
+  if (legacyModule !== undefined) {
+    registerCard(legacyModule);
+    return legacyModule;
+  }
   const existing = getEffectModule(cardId);
   const previousIrModule = registeredIrModules.get(cardId);
   // Registry precedence belongs to the concrete module, not merely to the fact that IR for

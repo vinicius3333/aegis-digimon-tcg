@@ -3,7 +3,8 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { security } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import { compiledEffects } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
  * EX4-072 — X Antibody PF (EX4, White Option).
@@ -126,5 +127,5 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
+registerIrCard(cardId, compiledEffects[cardId]!, module);
 export default module;

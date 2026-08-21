@@ -4,7 +4,8 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { onPlay, turnTiming } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import { compiledEffects } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const cardId = "EX4-021";
 
@@ -199,5 +200,5 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
+registerIrCard(cardId, compiledEffects[cardId]!, module);
 export default module;

@@ -3,7 +3,8 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { whenDigivolving } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import { compiledEffects } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
  * EX4-060 — Omnimon Alter-S (EX4, White Lv.7 Digimon).
@@ -117,5 +118,5 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
+registerIrCard(cardId, compiledEffects[cardId]!, module);
 export default module;

@@ -4,7 +4,8 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { turnTiming } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import { compiledEffects } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
  * EX4-037 — Rapidmon X (EX4, Green Lv.5 Digimon).
@@ -104,5 +105,5 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
+registerIrCard(cardId, compiledEffects[cardId]!, module);
 export default module;
