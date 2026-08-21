@@ -1,11 +1,8 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT10-011.js";
+import { compiled } from "./BT10-011.js";
 
 // BT10-011 Canoweissmon — documented behavior: the card behavior source
 //   "[Your Turn][Once Per Turn] WHEN ONE OF YOUR TAMERS BECOMES SUSPENDED, this Digimon
@@ -22,57 +19,13 @@ import "./BT10-011.js";
 // continuous/static window), so the engine treats the DP gain as a passive modifier and
 // it is NEVER reachable at the Tamer-suspend event. This file pins the correct home.
 
-function fakeDefinition(over: Partial<CardDefinition> = {}): CardDefinition {
-  return {
-    cardId: "BT10-011",
-    set: "BT10",
-    nameEn: "Canoweissmon",
-    kinds: ["Digimon"] as never,
-    colors: ["Red"] as never,
-    playCost: 0,
-    dp: 0,
-    evoCosts: [],
-    maxCountInDeck: 4,
-    ...over,
-  };
-}
-
-function makeSource(): CardSource {
-  return {
-    instanceId: "INST#CANO",
-    cardId: "BT10-011",
-    ownerSeat: 0 as Seat,
-    definition: fakeDefinition(),
-    permanent: () => undefined,
-    isOnBattleArea: () => true,
-    isOwnersTurn: () => true,
-    hasColor: () => false,
-  };
-}
-
 describe("BT10-011 Canoweissmon [Your Turn] suspend trigger", () => {
-  const module = getEffectModule("BT10-011");
-
-  it("registers on import", () => {
-    expect(module, "BT10-011 must self-register on import").toBeDefined();
+  it("encodes both the suspend trigger and Gammamon effect conferral in IR", () => {
+    expect(compiled.effects).toEqual(expect.arrayContaining([
+      expect.objectContaining({ trigger: "YourTurn", frequency: "OncePerTurn" }),
+      expect.objectContaining({ trigger: "AllTurns", actions: [expect.objectContaining({ kind: "GrantStatic", grant: "effects" })] }),
+    ]));
   });
-
-  it("routes the [All Turns] Gammamon effect-grant statics to the static window (None)", () => {
-    // The two [All Turns] "gains all effects of [Gammamon] digivolution cards" statics
-    // (printed + inherited) live at None; the suspend clause now lives at OnTappedAnyone.
-    const source = makeSource();
-    expect(module!.effectsForTiming(EffectTiming.None, source).length).toBeGreaterThanOrEqual(1);
-  });
-
-  it(
-    // the "+2000 DP / <Security Attack +1>" effect must be reachable at the moment a
-    // controlled Tamer suspends. The hand-written override homes it at OnTappedAnyone.
-    "fires when one of your Tamers becomes suspended (OnTappedAnyone)",
-    () => {
-      const source = makeSource();
-      expect(module!.effectsForTiming(EffectTiming.OnTappedAnyone, source).length).toBeGreaterThanOrEqual(1);
-    },
-  );
 
   it("ignores an opponent's Tamer becoming suspended", async () => {
     const s = setupEngine({
