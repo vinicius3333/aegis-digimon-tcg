@@ -171,6 +171,9 @@ export function timingsForTrigger(effect: CardEffect, isOptionPlayBody: boolean)
   if (effect.trigger === "WhenAttacking") {
     return [primary, EffectTiming.OnAllyAttack];
   }
+  if (effect.trigger === "AllTurns" && effect.actions.some((action) => action.kind === "Replacement")) {
+    return [primary, EffectTiming.OnLeaveFieldAnyone];
+  }
   return [primary];
 }
 

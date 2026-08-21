@@ -18,6 +18,48 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
  */
 const cardId = "EX4-060";
 
+const compiled = {
+  ...compiledEffects[cardId]!,
+  effects: compiledEffects[cardId]!.effects.map((effect) => {
+    if (effect.trigger === "WhenDigivolving") {
+      return {
+        ...effect,
+        actions: [
+          {
+            kind: "Delete" as const,
+            target: { filter: { controllerDefault: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } }, count: 1 },
+          },
+          {
+            kind: "Return" as const,
+            target: { filter: { controllerDefault: "opponent", kind: ["Digimon"], levelComparison: { op: "gte", value: 6 } }, count: 1 },
+            to: "deckBottom" as const,
+          },
+        ],
+      };
+    }
+    if (effect.trigger === "AllTurns") {
+      return {
+        ...effect,
+        actions: [
+          {
+            kind: "Replacement" as const,
+            event: "wouldLeavePlay" as const,
+            sourceFilter: { isSelfRef: true },
+            actions: [
+              { kind: "PlayWithoutCost" as const, target: { filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["BlitzGreymon"], match: "nameExact" }] }, count: 1 }, from: ["digivolutionCards"], payCost: false },
+              { kind: "PlayWithoutCost" as const, target: { filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["CresGarurumon"], match: "nameExact" }] }, count: 1 }, from: ["digivolutionCards"], payCost: false },
+            ],
+          },
+          ...effect.actions.filter((action) => action.kind !== "Replacement"),
+        ],
+      };
+    }
+    return effect;
+  }),
+  coverage: "full" as const,
+  residual: [],
+};
+
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
@@ -118,5 +160,5 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard(cardId, compiledEffects[cardId]!, module);
+registerIrCard(cardId, compiled);
 export default module;
