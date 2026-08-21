@@ -61,7 +61,6 @@ export const compiled: CompiledCard = {
           "kind": "SubTrigger",
           "event": "whenEffectSuspends",
           "sourceFilter": {
-            "controller": "opponent",
             "kind": [
               "Digimon"
             ],

@@ -8,6 +8,6 @@ describe("EX4-036 BlackRapidmon", () => {
     expect(actions?.[1]).toMatchObject({ kind: "DeDigivolve", amount: 1, target: { filter: { controller: "opponent" } } });
   });
   it("gains Piercing when an effect suspends another opposing Digimon", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")).toMatchObject({ isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenEffectSuspends", sourceFilter: { controller: "opponent", excludeSelf: true }, actions: [{ kind: "GainKeyword", keyword: { keyword: "Piercing" } }] }] });
+    expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")).toMatchObject({ isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenEffectSuspends", sourceFilter: { kind: ["Digimon"], excludeSelf: true }, actions: [{ kind: "GainKeyword", keyword: { keyword: "Piercing" } }] }] });
   });
 });
