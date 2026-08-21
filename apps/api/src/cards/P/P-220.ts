@@ -53,9 +53,7 @@ const module: EffectModule = {
         onPlay({
           source,
           effectKey: `${cardId}/on-play`,
-          description:
-            "[On Play] <De-Digivolve 2> 1 of your opponent's Digimon. Then, you may delete " +
-            "1 Digimon.",
+          description: "[On Play] <De-Digivolve 2> 1 of your opponent's Digimon. Then, you may delete " + "1 Digimon.",
           canActivate: (ctx) => ctx.source.isOnBattleArea(),
           resolve: async (ctx) => {
             const opponent = ctx.game.opponentOf(source.ownerSeat);
@@ -90,8 +88,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/when-digivolving`,
           description:
-            "[When Digivolving] <De-Digivolve 2> 1 of your opponent's Digimon. Then, you may " +
-            "delete 1 Digimon.",
+            "[When Digivolving] <De-Digivolve 2> 1 of your opponent's Digimon. Then, you may " + "delete 1 Digimon.",
           canActivate: (ctx) => ctx.source.isOnBattleArea(),
           resolve: async (ctx) => {
             const opponent = ctx.game.opponentOf(source.ownerSeat);
@@ -146,14 +143,26 @@ const module: EffectModule = {
               return isDigimon(def) && (def.level ?? 99) <= 6 && hasCompositeOrVer(def);
             });
             if (playables.length > 0) {
-              const toPlay = await ctx.ask.selectCards(ctx, {
+              const first = await ctx.ask.selectCards(ctx, {
                 candidates: playables.map((c) => c.instanceId),
                 min: 0,
-                max: 2,
+                max: 1,
               });
-              if (toPlay.length > 0) {
-                await ctx.fx.playInstances(toPlay, { payCost: false });
-              }
+              if (first.length === 0) return;
+              const firstLevel = ctx.game.definitionOf(playables.find((c) => c.instanceId === first[0])!).level;
+              const secondCandidates = playables.filter((c) => {
+                const level = ctx.game.definitionOf(c).level;
+                return c.instanceId !== first[0] && level !== firstLevel;
+              });
+              const second =
+                secondCandidates.length > 0
+                  ? await ctx.ask.selectCards(ctx, {
+                      candidates: secondCandidates.map((c) => c.instanceId),
+                      min: 0,
+                      max: 1,
+                    })
+                  : [];
+              await ctx.fx.playInstances([...first, ...second], { payCost: false });
             }
           },
         }),
