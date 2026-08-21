@@ -8,154 +8,136 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // under any of your Tamers.
 // Static GrantStatic "name" for Ballistamon is scoped to DigiXros only per Q&A Q3105.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "name",
-          "tokens": [
-            "Ballistamon"
-          ],
-          "digiXrosOnly": true
-        }
-      ]
+          grant: "name",
+          tokens: ["Ballistamon"],
+          digiXrosOnly: true,
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "bindAs": "atlurTarget"
+            count: 1,
+            bindAs: "atlurTarget",
           },
-          "amount": 3000,
-          "duration": "untilOpponentTurnEnd"
+          amount: 3000,
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "fromSelectionRef": "atlurTarget"
+          kind: "Restrict",
+          target: {
+            fromSelectionRef: "atlurTarget",
           },
-          "restriction": "beReturned",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          restriction: "beReturned",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "bindAs": "atlurTarget"
+            count: 1,
+            bindAs: "atlurTarget",
           },
-          "amount": 3000,
-          "duration": "untilOpponentTurnEnd"
+          amount: 3000,
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "fromSelectionRef": "atlurTarget"
+          kind: "Restrict",
+          target: {
+            fromSelectionRef: "atlurTarget",
           },
-          "restriction": "beReturned",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          restriction: "beReturned",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Xros Heart",
-                    "Blue Flare"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Xros Heart", "Blue Flare"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1,
-            "source": [
-              "hand",
-              "trash"
-            ]
+            count: 1,
+            source: ["hand", "trash"],
           },
-          "underFilter": {
-            "controller": "mine",
-            "kind": [
-              "Tamer"
-            ]
+          underFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
           },
-          "optional": true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
           },
-          "duration": "permanent"
-        }
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 4,
-      "traits": [
-        "Xros Heart"
-      ],
-      "cost": 3,
-      "isAlternate": false
-    }
-  ]
+      level: 4,
+      traits: ["Xros Heart"],
+      cost: 3,
+      isAlternate: false,
+    },
+  ],
 };
 
 registerIrCard("BT19-051", compiled);
