@@ -31,7 +31,30 @@ export const compiled: CompiledCard = {
         },
       ],
     },
-    { trigger: "EndOfAttack", actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } }], isInherited: true, frequency: "OncePerTurn" },
+    {
+      trigger: "EndOfAttack",
+      actions: [
+        {
+          kind: "SelectBind",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1, bindAs: "chosenDigimon", upTo: true },
+        },
+        { kind: "Delete", target: { fromSelectionRef: "chosenDigimon" } },
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              relativeTo: { attr: "level", op: "lte", selectionRef: "chosenDigimon" },
+            },
+            count: 1,
+          },
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+      optional: true,
+    },
   ],
   coverage: "full",
   residual: [],

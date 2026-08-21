@@ -11,7 +11,17 @@ describe("BT17-067 DexDoruGreymon", () => {
   });
 
   it("keeps the inherited end-of-attack deletion once per turn", () => {
-    expect(compiled.effects?.[2]).toMatchObject({ trigger: "EndOfAttack", isInherited: true, frequency: "OncePerTurn" });
+    expect(compiled.effects?.[2]).toMatchObject({
+      trigger: "EndOfAttack",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      optional: true,
+      actions: [
+        { kind: "SelectBind", target: { bindAs: "chosenDigimon", upTo: true } },
+        { kind: "Delete", target: { fromSelectionRef: "chosenDigimon" } },
+        { kind: "Delete", target: { filter: { relativeTo: { attr: "level", op: "lte", selectionRef: "chosenDigimon" } } } },
+      ],
+    });
   });
 
   it("replaces only the draw with play-cost deletion when the condition is met", () => {
