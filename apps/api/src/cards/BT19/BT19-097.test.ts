@@ -10,20 +10,19 @@ describe("BT19-097 Bonds of True Love", () => {
     expect(card?.effects).toMatchObject([
       {
         trigger: "AllTurns",
-        actions: [{
-          kind: "SubTrigger",
-          event: "whenTrashedFromDeck",
-          sourceFilter: { isSelfRef: true },
-          actions: [{ kind: "PlaceInBattleAreaSelf" }],
-          optional: true,
-        }],
+        actions: [
+          {
+            kind: "SubTrigger",
+            event: "whenTrashedFromDeck",
+            sourceFilter: { isSelfRef: true },
+            actions: [{ kind: "PlaceInBattleAreaSelf" }],
+            optional: true,
+          },
+        ],
       },
       {
         trigger: "Main",
-        actions: [
-          { kind: "TrashTopDeck", controller: "mine", amount: 2 },
-          { kind: "PlaceInBattleAreaSelf" },
-        ],
+        actions: [{ kind: "TrashTopDeck", controller: "mine", amount: 2 }, { kind: "PlaceInBattleAreaSelf" }],
       },
       {
         trigger: "StartOfYourTurn",
@@ -32,16 +31,18 @@ describe("BT19-097 Bonds of True Love", () => {
           filter: { controllerDefault: "mine", kind: ["Digimon"] },
         },
         keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
-        actions: [{
-          kind: "PlayWithoutCost",
-          target: {
-            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Impmon"], match: "name" }] },
-            count: 1,
+        actions: [
+          {
+            kind: "PlayWithoutCost",
+            target: {
+              filter: { controller: "mine", nameOrTrait: [{ tokens: ["Impmon"], match: "name" }] },
+              count: 1,
+            },
+            from: ["trash"],
+            payCost: false,
+            optional: true,
           },
-          from: ["trash"],
-          payCost: false,
-          optional: true,
-        }],
+        ],
       },
       {
         trigger: "Security",

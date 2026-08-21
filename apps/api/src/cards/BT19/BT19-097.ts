@@ -14,88 +14,88 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // if you don't have a Digimon, the Delay sub-effect triggers (play 1 [Impmon] from trash).
 // KB Q6244: only activates when DIRECTLY trashed from deck, not via reveal/search.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenTrashedFromDeck",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "SubTrigger",
+          event: "whenTrashedFromDeck",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "PlaceInBattleAreaSelf"
-            }
-          ],
-          "optional": true,
-          "raw": "when this card is trashed from the deck, you may place this card in the battle area"
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "TrashTopDeck",
-          "controller": "mine",
-          "amount": 2
-        },
-        {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
-    },
-    {
-      "trigger": "StartOfYourTurn",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": ["Impmon"],
-                  "match": "name"
-                }
-              ]
+              kind: "PlaceInBattleAreaSelf",
             },
-            "count": 1
-          },
-          "from": ["trash"],
-          "payCost": false,
-          "optional": true
-        }
-      ],
-      "keywords": [
-        {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ],
-      "condition": {
-        "kind": "youHaveNone",
-        "filter": {
-          "controllerDefault": "mine",
-          "kind": ["Digimon"]
+          ],
+          optional: true,
+          raw: "when this card is trashed from the deck, you may place this card in the battle area",
         },
-        "raw": "you don't have a Digimon"
-      }
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
+          kind: "TrashTopDeck",
+          controller: "mine",
+          amount: 2,
+        },
+        {
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "StartOfYourTurn",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Impmon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+      keywords: [
+        {
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
+      condition: {
+        kind: "youHaveNone",
+        filter: {
+          controllerDefault: "mine",
+          kind: ["Digimon"],
+        },
+        raw: "you don't have a Digimon",
+      },
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT19-097", compiled);
