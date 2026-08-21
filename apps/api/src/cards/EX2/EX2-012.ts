@@ -6,6 +6,8 @@ import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { whenDigivolving, onDeletion, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+import type { CompiledCard } from "@aegis/shared";
 
 const cardId = "EX2-012";
 
@@ -173,4 +175,34 @@ const module: EffectModule = {
 };
 
 registerCard(module);
+
+// Hand-authored compiled IR keeps the server-authoritative path faithful to the legacy module.
+// In particular, the deletion branch is executable rather than RawUnparsed: both named cards
+// may come from hand or trash and are played without cost.
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Static",
+      actions: [{ kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "name", tokens: ["ChaosGallantmon"] }],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 10000 } }, count: 1 } },
+        { kind: "TrashTopDeck", controller: "both", amount: 5, condition: { kind: "ifThisEffectDidNotDelete", raw: "no Digimon was deleted by this effect" } },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Guilmon"], match: "name" }] }, count: 1 }, from: ["hand", "trash"], payCost: false, optional: true },
+        { kind: "PlayWithoutCost", target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Takato Matsuki"], match: "name" }] }, count: 1 }, from: ["hand", "trash"], payCost: false, optional: true },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard(cardId, compiled);
 export default module;
