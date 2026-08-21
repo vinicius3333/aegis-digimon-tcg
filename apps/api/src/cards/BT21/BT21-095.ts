@@ -23,6 +23,8 @@ export const compiled: CompiledCard = {
             kind: "youHaveNone",
             filter: {
               controllerDefault: "mine",
+              zone: "security",
+              faceUp: true,
             },
             raw: "you have no face-up security cards",
           },

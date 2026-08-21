@@ -6,7 +6,7 @@ describe("BT21-095 Wind Guardians", () => {
     const staticEffect = compiled.effects.find((entry) => entry.trigger === "Static");
     expect(staticEffect?.actions[0]).toMatchObject({
       kind: "WaiveColorRequirement",
-      condition: { kind: "youHaveNone" },
+      condition: { kind: "youHaveNone", filter: { zone: "security", faceUp: true } },
     });
 
     const securityAllTurns = compiled.effects.find((entry) => entry.trigger === "AllTurns");
@@ -32,5 +32,7 @@ describe("BT21-095 Wind Guardians", () => {
         filter: { levelComparison: { op: "lte", value: 5 }, nameOrTrait: [{ tokens: ["WG"], match: "trait" }] },
       },
     });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });
