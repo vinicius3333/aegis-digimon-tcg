@@ -8,4 +8,7 @@ describe("EX9-062", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) expect(compiled.effects?.find((entry) => entry.trigger === trigger)).toMatchObject({ actions: [{ kind: "Trash", scaling: { unit: "selfFaceDownDigivolutionCards", per: 1 } }, { kind: "Return", to: "hand", target: { filter: { zone: "trash", nameOrTrait: [{ tokens: ["DM"], match: "trait" }] } } }] });
   });
   it("plays a level-four-or-lower DM Digimon from trash as inherited text", () => expect(compiled.effects?.find((entry) => entry.isInherited)?.actions[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["trash"], target: { filter: { levelComparison: { op: "lte", value: 4 } } } }));
+  it("scales deck trashing by face-down sources and returns only one own DM Digimon", () => {
+    for (const trigger of ["OnPlay", "WhenDigivolving"]) expect(compiled.effects?.find((entry) => entry.trigger === trigger)?.actions).toMatchObject([{ kind: "Trash", target: { filter: { controller: "mine" }, count: 1 }, scaling: { per: 1, unit: "selfFaceDownDigivolutionCards", filter: { controllerDefault: "mine", kind: ["Digimon"], faceDown: true } } }, { kind: "Return", to: "hand", optional: true, target: { filter: { zone: "trash", controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["DM"], match: "trait" }] }, count: 1 } }]);
+  });
 });
