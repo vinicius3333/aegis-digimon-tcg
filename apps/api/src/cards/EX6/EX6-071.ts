@@ -7,7 +7,10 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "EX6-071";
 
-async function resolveMain(ctx: Parameters<NonNullable<Parameters<typeof activated>[0]["resolve"]>>[0], source: CardSource): Promise<void> {
+async function resolveMain(
+  ctx: Parameters<NonNullable<Parameters<typeof activated>[0]["resolve"]>>[0],
+  source: CardSource,
+): Promise<void> {
   const opponent = ctx.game.opponentOf(source.ownerSeat);
   const oppPlayer = ctx.game.player(opponent);
   const oppHandSize = oppPlayer.hand.length;
@@ -65,8 +68,7 @@ const module: EffectModule = {
         security({
           source,
           effectKey: `${cardId}/security`,
-          description:
-            "[Security] Activate this card's [Main] effect.",
+          description: "[Security] Activate this card's [Main] effect.",
           resolve: async (ctx) => {
             await resolveMain(ctx, source);
           },
