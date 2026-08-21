@@ -3,6 +3,7 @@ import { EffectDuration, EffectTiming, type CardInstance, type Seat } from "@aeg
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import "./EX10-023.js";
 
 // A3 for EX10-023 (Astamon):
@@ -212,6 +213,25 @@ function makeCtx(
 
 describe("EX10-023 Astamon", () => {
   const module = getEffectModule("EX10-023");
+
+  it("blocks the real turn-start unsuspend phase for every other Digimon and Tamer", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX10-023", as: "quartzmon", suspended: true },
+          { card: "BT1-009", as: "ownOther", suspended: true },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent", suspended: true }] },
+    });
+    await s.engine.recomputeContinuousEffects();
+
+    await (s.engine as unknown as { unsuspendForActivePhase(seat: 0 | 1): Promise<string[]> }).unsuspendForActivePhase(0);
+
+    expect(s.perm("quartzmon").isSuspended).toBe(false);
+    expect(s.perm("ownOther").isSuspended).toBe(true);
+    expect(s.perm("opponent").isSuspended).toBe(true);
+  });
 
   it("is registered on import", () => {
     expect(module, "EX10-023 must self-register").toBeDefined();
