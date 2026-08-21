@@ -24,8 +24,7 @@ const module: EffectModule = {
         staticModifier({
           source,
           effectKey: `${cardId}/when-hatch-suspend-gain-memory`,
-          description:
-            "[All Turns] When you hatch in the breeding area, by suspending this Tamer, gain 1 memory.",
+          description: "[All Turns] When you hatch in the breeding area, by suspending this Tamer, gain 1 memory.",
           resolve: async (ctx) => {
             const self = ctx.source.permanent();
             if (self === undefined) return;
