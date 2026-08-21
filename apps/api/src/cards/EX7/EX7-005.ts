@@ -37,11 +37,12 @@ const module: EffectModule = {
                 if (subjectId === undefined || subjectId !== self.permanentId) return false;
                 const perm = subCtx.game.permanentById(subjectId);
                 if (perm === undefined) return false;
-                return perm.stack.some((c) => {
+                const addedIds = subCtx.trigger?.addedDigivolutionCardInstanceIds ?? [];
+                return perm.stack.some((c) => addedIds.includes(c.instanceId) && (() => {
                   const def = subCtx.game.definitionOf(c);
                   return (def.types ?? []).includes("Three Musketeers") &&
                     (def.kinds ?? []).includes(CardKind.Option);
-                });
+                })());
               },
               run: async (subCtx) => {
                 subCtx.fx.gainMemory(1);
