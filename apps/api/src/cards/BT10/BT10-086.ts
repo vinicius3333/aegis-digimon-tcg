@@ -5,153 +5,140 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "superlative": "highestLevel"
+          kind: "Return",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "highestLevel",
             },
-            "count": "all"
+            count: "all",
           },
-          "to": "deckBottom"
-        }
-      ]
+          to: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "opponent",
-          "amount": 1,
-          "source": "reveal",
-          "cost": {
-            "kind": "return",
-            "target": {
-              "filter": {
-                "zone": "digivolutionCards",
-                "or": [
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          amount: 1,
+          source: "reveal",
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                zone: "digivolutionCards",
+                or: [
                   {
-                    "nameOrTrait": [
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "X Antibody"
-                        ],
-                        "match": "nameExact"
-                      }
-                    ]
+                        tokens: ["X Antibody"],
+                        match: "nameExact",
+                      },
+                    ],
                   },
                   {
-                    "levels": [
-                      6
-                    ]
-                  }
+                    levels: [6],
+                  },
                 ],
-                "controllerDefault": "mine"
+                controllerDefault: "mine",
               },
-              "count": 1,
-              "from": ["digivolutionCards"]
+              count: 1,
+              from: ["digivolutionCards"],
             },
-            "to": "deckBottom",
-            "raw": "By placing 1 [X Antibody] or level 6 card from this Digimon's digivolution cards at the bottom of its owner's deck"
+            to: "deckBottom",
+            raw: "By placing 1 [X Antibody] or level 6 card from this Digimon's digivolution cards at the bottom of its owner's deck",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "addBottom",
-          "controller": "opponent",
-          "source": "rest"
+          kind: "SecurityManipulation",
+          op: "addBottom",
+          controller: "opponent",
+          source: "rest",
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "shuffle",
-          "controller": "opponent"
-        }
+          kind: "SecurityManipulation",
+          op: "shuffle",
+          controller: "opponent",
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "SecurityManipulation",
-          "op": "trashTop",
-          "controller": "opponent",
-          "amount": 1,
-          "source": "reveal",
-          "cost": {
-            "kind": "return",
-            "target": {
-              "filter": {
-                "zone": "digivolutionCards",
-                "or": [
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          amount: 1,
+          source: "reveal",
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                zone: "digivolutionCards",
+                or: [
                   {
-                    "nameOrTrait": [
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "X Antibody"
-                        ],
-                        "match": "nameExact"
-                      }
-                    ]
+                        tokens: ["X Antibody"],
+                        match: "nameExact",
+                      },
+                    ],
                   },
                   {
-                    "levels": [
-                      6
-                    ]
-                  }
+                    levels: [6],
+                  },
                 ],
-                "controllerDefault": "mine"
+                controllerDefault: "mine",
               },
-              "count": 1,
-              "from": ["digivolutionCards"]
+              count: 1,
+              from: ["digivolutionCards"],
             },
-            "to": "deckBottom",
-            "raw": "By placing 1 [X Antibody] or level 6 card from this Digimon's digivolution cards at the bottom of its owner's deck"
+            to: "deckBottom",
+            raw: "By placing 1 [X Antibody] or level 6 card from this Digimon's digivolution cards at the bottom of its owner's deck",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "addBottom",
-          "controller": "opponent",
-          "source": "rest"
+          kind: "SecurityManipulation",
+          op: "addBottom",
+          controller: "opponent",
+          source: "rest",
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "shuffle",
-          "controller": "opponent"
-        }
+          kind: "SecurityManipulation",
+          op: "shuffle",
+          controller: "opponent",
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
-    }
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Omnimon",
-        "X Antibody"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      names: ["Omnimon", "X Antibody"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT10-086", compiled);
