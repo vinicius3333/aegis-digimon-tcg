@@ -18,7 +18,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // natively (securityCheck.ts fires it precisely when the checked card was ALREADY face-up),
 // so the raw workaround condition is gone and the event is renamed.
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "EndOfOpponentsTurn",
