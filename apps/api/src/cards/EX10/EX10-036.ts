@@ -56,6 +56,11 @@ const compiled: CompiledCard = {
           },
           "optional": true,
           "abortOnDecline": true
+        },
+        {
+          "kind": "trashSecurityTop",
+          "controller": "opponent",
+          "count": 1
         }
       ]
     },
@@ -97,6 +102,11 @@ const compiled: CompiledCard = {
           },
           "optional": true,
           "abortOnDecline": true
+        },
+        {
+          "kind": "trashSecurityTop",
+          "controller": "opponent",
+          "count": 1
         }
       ]
     },
@@ -206,3 +216,5 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("EX10-036", compiled);
+
+export { compiled };
