@@ -20,7 +20,11 @@ describe("P-243 Digiseabass", () => {
       expect.objectContaining({
         trigger: "Main",
         actions: [
-          expect.objectContaining({ kind: "Draw", amount: 2, cost: expect.objectContaining({ kind: "trash" }) }),
+          expect.objectContaining({
+            kind: "Draw",
+            amount: 2,
+            cost: expect.objectContaining({ kind: "trash", target: { filter: { controller: "mine" }, count: 1 } }),
+          }),
           { kind: "PlaceInBattleAreaSelf" },
         ],
       }),
@@ -43,8 +47,17 @@ describe("P-243 Digiseabass", () => {
             requiresDelayArmed: true,
             from: ["trash"],
             optional: true,
-            target: expect.objectContaining({ filter: expect.objectContaining({ playCostLte: 3 }) }),
-            cost: expect.objectContaining({ kind: "return", raw: expect.stringContaining("top of your deck") }),
+            target: expect.objectContaining({
+              filter: { controller: "mine", nameOrTrait: [{ tokens: ["DM"], match: "trait" }], playCostLte: 3 },
+            }),
+            cost: expect.objectContaining({
+              kind: "return",
+              target: {
+                filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["DM"], match: "trait" }] },
+                count: 1,
+              },
+              raw: expect.stringContaining("top of your deck"),
+            }),
           }),
         ],
       }),
@@ -56,7 +69,18 @@ describe("P-243 Digiseabass", () => {
       expect.objectContaining({
         trigger: "Security",
         isSecurity: true,
-        actions: [expect.objectContaining({ kind: "PlayWithoutCost", from: ["hand", "trash"], optional: true })],
+        actions: [
+          expect.objectContaining({
+            kind: "PlayWithoutCost",
+            from: ["hand", "trash"],
+            optional: true,
+            target: {
+              filter: { controller: "mine", nameOrTrait: [{ tokens: ["DM"], match: "trait" }], playCostLte: 3 },
+              count: 1,
+            },
+            payCost: false,
+          }),
+        ],
       }),
     );
   });

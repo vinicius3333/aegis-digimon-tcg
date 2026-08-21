@@ -2,13 +2,8 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Hand-fixed IR for P-243 (Digiseabass).
-// [Start of Your Turn]: GainKeyword(Delay) arms the source on a given turn (gated on
-//   opponent having a Digimon); PlayWithoutCost carries requiresDelayArmed:true so it
-//   only fires while that Delay grant is active and consumes it on resolution.
-// [Start of Your Turn] PlayWithoutCost sub-action: added playCost ≤ 3 restriction
-//   (text: "play 1 play cost of 3 or lower [DM] trait card").
-// [Security] PlayWithoutCost: same playCost ≤ 3 restriction added.
+// Delay is granted only while the opponent has a Digimon and is consumed by the
+// optional trash-to-deck play effect.
 const compiled: CompiledCard = {
   effects: [
     {
