@@ -10,8 +10,7 @@ import "../index.js";
 // FAILS-WHEN-REVERTED: without the OnStartMainPhase handler, the trait card stays in hand
 // and neither the draw nor the memory gain fires when the main phase begins.
 //
-// The [Main] activated suspend-to-link clause is a known residual (no link primitive).
-// We test the [Start of Your Main Phase] clause which is fully implemented.
+// The start-of-main-phase clause is covered by the real turn-cycle test below.
 //
 // Test strategy: use engine.runOneTurn() to drive a real turn cycle, which fires the
 // OnStartMainPhase timing when the main phase starts. P-242 is placed on the battle area

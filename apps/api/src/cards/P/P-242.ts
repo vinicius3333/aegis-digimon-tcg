@@ -4,6 +4,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { turnTiming, activated, security } from "../../engine/effects/builders.js";
+import { linkCostOf } from "../../engine/effects/interpreter.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**
@@ -19,10 +20,6 @@ import { registerCard } from "../../engine/effects/registry.js";
  *     with the cost reduced by 1.
  *   [Security] Play this Tamer without paying its memory cost.
  *
- * Residual:
- *   "Link" action: link 1 trait card from trash to a Digimon with cost -1. The
- *   engine has no "link a card" primitive. The activated [Main] body guards and
- *   suspends this Tamer as the cost, but the link placement cannot be executed.
  */
 const cardId = "P-242";
 
@@ -74,7 +71,6 @@ const module: EffectModule = {
     }
 
     // [Main] By suspending this Tamer, link 1 trait card from trash to a Digimon.
-    // Cost is applied (suspend); link placement is a residual — no engine primitive.
     if (timing === EffectTiming.OnDeclaration) {
       return [
         activated({
@@ -83,7 +79,7 @@ const module: EffectModule = {
           description:
             "[Main] By suspending this Tamer, link 1 [System], [Life (App Name)], or " +
             "[Transmutation (App Name)] trait card from your trash to 1 of your Digimon " +
-            "with the cost reduced by 1. (Residual: link placement has no engine primitive.)",
+            "with the cost reduced by 1.",
           optional: true,
           when: (_ctx) => {
             if (!source.isOnBattleArea()) return false;
@@ -98,9 +94,30 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const self = source.permanent?.();
             if (self === undefined) return;
-            // Pay cost: suspend this Tamer.
-            await ctx.fx.suspend([self.permanentId]);
-            // Link placement: residual — no engine primitive available.
+            const candidates = Array.from(ctx.game.player(source.ownerSeat).trash).filter((card) =>
+              hasLinkTrait(ctx.game.definitionOf(card)),
+            );
+            const chosen = await ctx.ask.selectCards(ctx, {
+              candidates: candidates.map((card) => card.instanceId),
+              min: 1,
+              max: 1,
+            });
+            const selected = candidates.find((card) => card.instanceId === chosen[0]);
+            if (selected === undefined) return;
+            const hosts = ctx.game
+              .player(source.ownerSeat)
+              .battleArea.filter((permanent) => permanent.topCard !== undefined && !permanent.inBreeding);
+            const target = await ctx.ask.chooseTargets(ctx, {
+              candidates: hosts.map((host) => host.permanentId),
+              min: 1,
+              max: 1,
+            });
+            if (target.length !== 1) return;
+            const suspended = await ctx.fx.suspend([self.permanentId]);
+            if (!suspended.includes(self.permanentId)) return;
+            const cost = linkCostOf(ctx.game.definitionOf(selected), -1);
+            if (cost > 0) ctx.fx.gainMemory(-cost);
+            await ctx.fx.link(target[0]!, [selected.instanceId]);
           },
         }),
       ];
