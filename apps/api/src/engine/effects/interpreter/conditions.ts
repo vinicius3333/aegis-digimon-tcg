@@ -372,7 +372,9 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       }
       const def = sourceTopDefinition(ctx);
       if (def === undefined) return false;
-      return compareNumber(new Set(def.colors ?? []).size, cond.op, cond.value ?? 0);
+      const permanent = ctx.source.permanent();
+      const colors = permanent === undefined ? def.colors ?? [] : ctx.game.effectiveColors?.(permanent) ?? def.colors ?? [];
+      return compareNumber(new Set(colors).size, cond.op, cond.value ?? 0);
     }
     case "selfLevelIs": {
       // "This Digimon is level N" — exact current top-card level.

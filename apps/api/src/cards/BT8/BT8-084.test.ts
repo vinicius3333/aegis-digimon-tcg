@@ -12,4 +12,13 @@ describe("BT8-084 Kimeramon", () => {
     expect(s.perm("first").currentDP).toBe(3000);
     expect(s.perm("second").currentDP).toBe(3000);
   });
+
+  it("is treated as all stack colors and gains +4000 DP at four colors during its turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT8-084", as: "kimeramon", under: ["BT8-013", "BT8-004", "BT8-005"] }] },
+    });
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(s.perm("kimeramon").currentDP).toBe(12000);
+  });
 });
