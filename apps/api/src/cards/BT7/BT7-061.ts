@@ -26,12 +26,11 @@ const compiled: CompiledCard = {
           },
           "asLevel": 3,
           "from": "hand"
-        }
-      ],
-      "keywords": [
+        },
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
+          "kind": "Aura",
+          "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+          "effect": { "kind": "keyword", "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" } }
         }
       ]
     }
