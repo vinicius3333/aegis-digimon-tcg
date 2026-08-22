@@ -7,26 +7,54 @@ const tbDigimon = { ...tbHand, kind: ["Digimon"] };
 const tbOption = { ...tbHand, kind: ["Option"] };
 
 export const compiled: CompiledCard = {
-  effects: [{
-    trigger: "Main",
-    frequency: "OncePerTurn",
-    actions: [{
-      kind: "Modal",
-      choose: 1,
-      options: [[{
-        kind: "PlayWithoutCost", target: { filter: tbDigimon, count: 1 }, from: ["hand"],
-        payCost: true, reduceCostBy: 2, optional: true,
-      }], [{
-        kind: "UseOptionWithoutCost", filter: tbOption, from: ["hand"],
-        payCost: true, reduceCostBy: 2, optional: true,
-      }]],
-    }],
-  }, {
-    trigger: "OnAllyAttack",
-    isInherited: true,
-    frequency: "OncePerTurn",
-    actions: [{ kind: "ModifyDP", target: { filter: { controllerDefault: "opponent", kind: ["Digimon"] }, count: 1 }, amount: -2000, duration: "untilEachTurnEnd" }],
-  }],
+  digivolutionRequirement: [{ level: 3, traits: ["Shambala"], cost: 2, isAlternate: true }],
+  effects: [
+    {
+      trigger: "Main",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Modal",
+          choose: 1,
+          options: [
+            [
+              {
+                kind: "PlayWithoutCost",
+                target: { filter: tbDigimon, count: 1 },
+                from: ["hand"],
+                payCost: true,
+                reduceCostBy: 2,
+                optional: true,
+              },
+            ],
+            [
+              {
+                kind: "UseOptionWithoutCost",
+                filter: tbOption,
+                from: ["hand"],
+                payCost: true,
+                reduceCostBy: 2,
+                optional: true,
+              },
+            ],
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "OnAllyAttack",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: { filter: { controllerDefault: "opponent", kind: ["Digimon"] }, count: 1 },
+          amount: -2000,
+          duration: "untilEachTurnEnd",
+        },
+      ],
+    },
+  ],
   coverage: "full",
   residual: [],
 };
