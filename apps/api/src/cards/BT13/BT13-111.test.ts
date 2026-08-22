@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "../index.js";
 import { compiled } from "./BT13-111.js";
 
 describe("BT13-111 Gallantmon", () => {
