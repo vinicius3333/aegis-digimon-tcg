@@ -9,5 +9,5 @@ const action = [
 export const compiled: CompiledCard = { effects: [
   { trigger: "OnPlay", actions: action }, { trigger: "WhenDigivolving", actions: action },
   { trigger: "YourTurn", isInherited: true, actions: [{ kind: "SubTrigger", event: "whenBattleWon", frequency: "OncePerTurn", actions: [{ kind: "GainMemory", amount: 1 }] }] },
-], coverage: "full", residual: [] };
+], coverage: "full", residual: [], digivolutionRequirement: [{ level: 3, traits: ["Larva", "Insectoid", "NSp"], cost: 2, isAlternate: true }] };
 registerIrCard("BT26-041", compiled);

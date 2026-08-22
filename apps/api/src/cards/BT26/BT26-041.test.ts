@@ -1,9 +1,13 @@
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT26-041.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 describe("BT26-041 Hudiemon", () => {
+  it("exposes the printed level-3 Larva/Insectoid/NSp evolution", () => {
+    expect(digivolutionRequirementsFor("BT26-041")).toContainEqual({ level: 3, traits: ["Larva", "Insectoid", "NSp"], cost: 2, isAlternate: true });
+  });
   it("compiles both play windows with security handoff, recovery, and optional suspend", () => {
     expect(compiled.coverage).toBe("full"); expect(compiled.residual).toEqual([]);
     expect(compiled.effects[0]?.actions).toMatchObject([{ kind: "SecurityManipulation", op: "toHand" }, { kind: "SecurityManipulation", op: "addTop" }, { kind: "Suspend", optional: true }]);
