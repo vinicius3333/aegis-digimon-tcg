@@ -11,40 +11,127 @@ describe("BT24-056 Dezipmon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.appFusionRequirement).toEqual([{ names: ["Hackmon", "Protecmon", "Pipomon"], cost: 0 }]);
     expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 2 }]);
-    expect(compiled.effects).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "Blocker" }] }),
-        expect.objectContaining({
-          trigger: "OnPlay",
-          actions: [
-            expect.objectContaining({ kind: "Restrict", restriction: "beReturned", byOpponentEffectsOnly: true }),
-            expect.objectContaining({ kind: "PlayWithoutCost", from: ["trash"], payCost: false }),
-          ],
-        }),
-        expect.objectContaining({ trigger: "WhenDigivolving" }),
-        expect.objectContaining({
-          trigger: "WhenLinking",
-          isLinked: true,
-          actions: [expect.objectContaining({ kind: "Delete", target: { filter: { playCostLte: 5 } } })],
-        }),
-      ]),
-    );
+    expect(compiled.effects.find((effect) => effect.trigger === "Static")).toMatchObject({
+      keywords: [{ keyword: "Blocker" }],
+    });
+    expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")).toMatchObject({
+      actions: [
+        { kind: "Restrict", restriction: "beReturned", byOpponentEffectsOnly: true },
+        { kind: "PlayWithoutCost", from: ["trash"], payCost: false },
+      ],
+    });
+    expect(compiled.effects.find((effect) => effect.trigger === "WhenDigivolving")).toBeDefined();
+    expect(compiled.effects.find((effect) => effect.trigger === "WhenLinking")).toMatchObject({
+      isLinked: true,
+      actions: [{ kind: "Delete", target: { filter: { playCostLte: 5 } } }],
+    });
   });
 
   it("restricts returning an own Life Digimon after being played", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT24-056", as: "source" },
-          { card: "BT24-038", as: "protected" },
-        ],
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-056", as: "source" },
+            { card: "BT24-038", as: "protected" },
+          ],
+        },
       },
-    });
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("protected").permanentId);
+    await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
     await settle(() => observe(s.engine).isRestricted(s.perm("protected"), "beReturned"));
 
     expect(observe(s.engine).isRestricted(s.perm("protected"), "beReturned")).toBe(true);
+  });
+
+  it("recognizes the catalog Transmutation trait behind the printed App Name qualifier", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-056", as: "source" },
+            { card: "BT24-079", as: "protected" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("protected").permanentId);
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await settle(() => observe(s.engine).isRestricted(s.perm("protected"), "beReturned"));
+
+    expect(observe(s.engine).isRestricted(s.perm("protected"), "beReturned")).toBe(true);
+  });
+
+  it("public play protects a Life Digimon and revives an Appmon without paying", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-038", as: "protected" }],
+          hand: [{ card: "BT24-056", as: "dezipmon" }],
+          trash: [{ card: "BT21-009", as: "appmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("protected").permanentId, s.inst("appmon").instanceId);
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dezipmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("protected"), "beReturned"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("appmon").instanceId),
+    );
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
+  it("normal evolution costs 2 and resolves the same protection and revival", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-036", as: "base" },
+            { card: "BT24-038", as: "protected" },
+          ],
+          hand: [{ card: "BT24-056", as: "dezipmon" }],
+          trash: [{ card: "BT21-009", as: "appmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("protected").permanentId, s.inst("appmon").instanceId);
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("dezipmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("dezipmon").instanceId);
+    await settle(() => observe(s.engine).isRestricted(s.perm("protected"), "beReturned"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("appmon").instanceId),
+    );
+
+    expect(s.state.memory).toBe(3);
   });
 
   it("has Blocker and plays an Appmon from the trash without paying", async () => {

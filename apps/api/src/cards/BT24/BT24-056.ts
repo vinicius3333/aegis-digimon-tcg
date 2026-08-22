@@ -9,7 +9,8 @@ const protectedTarget = {
     nameOrTrait: [
       { tokens: ["System"], match: "trait" },
       { tokens: ["Life"], match: "trait" },
-      { tokens: ["Transmutation (App Name)"], match: "trait" },
+      // The parenthetical is printed reminder text; the catalog trait identity is Transmutation.
+      { tokens: ["Transmutation"], match: "trait" },
     ],
   },
   count: 1,
