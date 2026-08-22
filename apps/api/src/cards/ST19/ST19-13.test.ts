@@ -31,7 +31,10 @@ describe("ST19-13 ShinMonzaemon", () => {
 
     const shin = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "ST19-13");
     expect(shin?.stack.map((card) => card.instanceId)).toContain(s.inst("eligible").instanceId);
+    expect(shin?.stack[0]?.instanceId).toBe(s.inst("eligible").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("eligible").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("ineligible").instanceId);
+    expect(s.state.players[0]!.security[0]?.cardId).toBe("BT1-009");
+    expect(s.state.players[0]!.security[0]?.faceUp).toBe(false);
   });
 });
