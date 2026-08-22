@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST16-15.js";
@@ -70,5 +71,31 @@ describe("ST16-15 Lament of Friendship", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-079")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT10-079")).toBe(false);
+  });
+
+  it("activates its complete main effect from security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "ST16-15", as: "option", faceUp: true }],
+          battleArea: [{ card: "ST16-08", as: "garurumon" }],
+          trash: [{ card: "ST16-02", as: "recover" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("recover").instanceId)).toBe(true);
+    const grants = (
+      s.engine as unknown as { continuous: { listCustomEffectGrants(): readonly { instanceId: string; token: string }[] } }
+    ).continuous.listCustomEffectGrants();
+    expect(grants).toContainEqual(
+      expect.objectContaining({
+        instanceId: s.perm("garurumon").topCard.instanceId,
+        token: "OnDeletionPlaySelfMandatory",
+      }),
+    );
   });
 });
