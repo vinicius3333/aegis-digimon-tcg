@@ -33,8 +33,10 @@ describe("BT13-071 Giromon", () => {
       0: { battleArea: [{ card: "BT1-009", under: ["BT13-071"], as: "host" }] },
       1: { security: ["BT1-001"] },
     });
+    await s.ready();
     await advance(s.engine).fireForPermanent(EffectTiming.OpponentsTurn, s.perm("host"));
     await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
+    await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("host").permanentId });
     await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
