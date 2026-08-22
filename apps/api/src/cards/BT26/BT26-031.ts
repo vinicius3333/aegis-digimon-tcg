@@ -6,8 +6,8 @@ const opponentDigimon = { controller: "opponent", kind: ["Digimon"] };
 const ownDigimon = { controller: "mine", kind: ["Digimon"] };
 const glowingDawn = { controller: "mine", nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }] };
 const recovery = [
-  { kind: "Trash", target: { filter: { controller: "mine", zone: "underTamers", position: "bottom", faceDown: true }, count: 1 }, trackCount: "trashedTamerCard", optional: true },
-  { kind: "SecurityManipulation", op: "placeFromDeck", controller: "mine", source: "deck", amount: 1, condition: { kind: "ifThisEffectActed" } },
+  { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 },
+  { kind: "Recover", controller: "mine", amount: 1, condition: { kind: "ifThisEffectActed" } },
 ];
 
 export const compiled: CompiledCard = {
