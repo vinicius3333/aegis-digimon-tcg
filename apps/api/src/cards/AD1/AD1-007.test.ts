@@ -40,7 +40,7 @@ describe("AD1-007 Siriusmon", () => {
     );
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("siriusmon").instanceId, digivolutionRequirementIndex: 0 })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("siriusmon").instanceId, alternateRequirementIndex: 0 })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(s.perm("base").stack).toHaveLength(4);
