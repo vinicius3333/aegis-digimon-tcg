@@ -37,6 +37,22 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
         for (const id of ids) ctx.fx.grantNameTrait(id, action.grant, tokens, duration);
         return false;
       }
+      if (action.grant === "colorFromLastTrashed") {
+        const trashedIds = ctx.boundPlayed?.get("trashedCard") ?? new Set<string>();
+        const grantDuration = toDuration(action.duration ?? "forTheTurn");
+        for (const trashedId of trashedIds) {
+          const trashed = ctx.game.state.players.flatMap((player) => player.trash).find((card) => card.instanceId === trashedId);
+          if (trashed === undefined) continue;
+          const colors = ctx.game.definitionOf(trashed).colors as (keyof typeof COLOR_MAP)[];
+          for (const id of ids) {
+            for (const color of colors) {
+              const mapped = COLOR_MAP[color];
+              if (mapped !== undefined) ctx.fx.addColorGrant(id, mapped, grantDuration);
+            }
+          }
+        }
+        return false;
+      }
       if (action.grant === "color") {
         const colors = (action.tokens ?? []).filter((token): token is keyof typeof COLOR_MAP => token in COLOR_MAP);
         if (colors.length === 0) {
