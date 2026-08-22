@@ -80,6 +80,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "AllTurns",
+      frequency: "OncePerTurn",
       actions: [
         {
           kind: "SubTrigger",
@@ -100,6 +101,19 @@ export const compiled: CompiledCard = {
             { kind: "ModifyDP", target: { filter: opponentDigimon, count: 3 }, amount: -5000, duration: "forTheTurn" },
           ],
           raw: "When your security stack is removed by an effect, 3 opponent Digimon get -5000 DP for the turn.",
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSecurityRemoved",
+          fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "mine" },
+          actions: [{ kind: "DeDigivolve", target: { filter: opponentDigimon, count: 1 }, amount: 1 }],
         },
       ],
     },
