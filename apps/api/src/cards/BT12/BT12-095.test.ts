@@ -33,4 +33,26 @@ describe("BT12-095 handwritten module", () => {
     expect(s.perm("agumon").currentDP).toBe(before + 1000);
     expect(observe(s.engine).hasKeyword(s.perm("agumon"), "Blocker")).toBe(true);
   });
+
+  it("applies the same +1000 DP and Blocker effect when Tai is played", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT12-034", as: "agumon" }], hand: [{ card: "BT12-095", as: "tai" }] },
+    });
+    await s.ready();
+    const before = s.perm("agumon").currentDP;
+
+    await advance(s.engine).verb.playInstances([s.inst("tai").instanceId], { payCost: false });
+
+    expect(s.perm("agumon").currentDP).toBe(before + 1000);
+    expect(observe(s.engine).hasKeyword(s.perm("agumon"), "Blocker")).toBe(true);
+  });
+
+  it("plays Tai from security without paying its memory cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT12-095", as: "tai", faceUp: true }] } });
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("tai"));
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT12-095")).toBe(true);
+  });
 });
