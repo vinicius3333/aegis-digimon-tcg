@@ -3537,6 +3537,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           const promotedDefinition = requireCardDefinition(promoted.cardId);
           permanent.baseDP = promotedDefinition.kinds.includes(CardKind.Digimon) ? promotedDefinition.dp : 0;
           ledger.recomputeDP(state, permanent.permanentId);
+          // The promoted card is now the active top card. Recompute printed keywords and
+          // continuous effects before the next deletion/prevention window (BT9-044's
+          // security redirect can promote a Digimon with Armor Purge, such as BT8-038).
+          await engine.recomputeContinuousEffects?.();
         }
         detached.faceUp = faceUp;
         if (toTop) insertCard(p, Zone.Security, detached, "top");
