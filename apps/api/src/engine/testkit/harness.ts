@@ -170,8 +170,8 @@ export interface SetupEngineOptions {
  * `autoOrderTriggers` keeps the engine's offered order for a simultaneous-trigger prompt —
  * all on a microtask so a chain of prompts resolves without a manual respondDecision per step.
  */
-/** Alias -> what it names. Resolution is by id at call time, never by captured object. */
-type AliasTable = Map<string, { kind: "permanent" | "instance"; id: string }>;
+/** Alias -> its stable card identity and, for a seeded field card, original permanent identity. */
+type AliasTable = Map<string, { kind: "permanent" | "instance"; id: string; instanceId?: string }>;
 
 function cardOf(spec: CardSpec): { card: string; as?: string; faceUp?: boolean } {
   return typeof spec === "string" ? { card: spec } : spec;
@@ -196,7 +196,13 @@ function buildPermanent(spec: PermanentSpec | string, seat: Seat, aliases: Alias
   permanent.enterFieldTurnCount = resolved.enteredThisTurn === true ? 0 : ESTABLISHED_TURN;
   for (const under of resolved.under ?? []) permanent.stack.push(buildInstance(under, seat, true, aliases));
   for (const linked of resolved.linked ?? []) permanent.linked.push(buildInstance(linked, seat, true, aliases));
-  if (resolved.as !== undefined) aliases.set(resolved.as, { kind: "permanent", id: permanent.permanentId });
+  if (resolved.as !== undefined) {
+    aliases.set(resolved.as, {
+      kind: "permanent",
+      id: permanent.permanentId,
+      instanceId: permanent.topCard!.instanceId,
+    });
+  }
   return permanent;
 }
 
@@ -217,7 +223,11 @@ function layBoard(state: GameState, board: BoardSpec, aliases: AliasTable): void
     for (const [key, zone, faceUp] of LOOSE_ZONES) {
       const cards = spec[key] as CardSpec[] | undefined;
       if (cards === undefined) continue;
-      fillZone(player, zone, cards.map((card) => buildInstance(card, seat, faceUp, aliases)));
+      fillZone(
+        player,
+        zone,
+        cards.map((card) => buildInstance(card, seat, faceUp, aliases)),
+      );
     }
 
     if (spec.security !== undefined) {
@@ -258,10 +268,7 @@ function isBoardSpec(value: BoardSpec | SetupEngineOptions | undefined): value i
  */
 export function setupEngine(board?: BoardSpec, opts?: SetupEngineOptions): EngineSetup;
 export function setupEngine(opts?: SetupEngineOptions): EngineSetup;
-export function setupEngine(
-  boardOrOpts?: BoardSpec | SetupEngineOptions,
-  maybeOpts?: SetupEngineOptions,
-): EngineSetup {
+export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeOpts?: SetupEngineOptions): EngineSetup {
   const board = isBoardSpec(boardOrOpts) ? boardOrOpts : undefined;
   const opts = isBoardSpec(boardOrOpts) ? maybeOpts : (boardOrOpts as SetupEngineOptions | undefined);
   const state = new GameState();
@@ -323,16 +330,13 @@ export function setupEngine(
         // collapse the selection to empty: Array.prototype.slice treats a NaN end as 0.
         const rawMax = req.options?.max;
         const cap = typeof rawMax === "number" && Number.isFinite(rawMax) ? rawMax : ordered.length;
-        const visibleCardIds = new Map(
-          (req.options?.visibleCards ?? []).map((card) => [card.instanceId, card.cardId]),
-        );
+        const visibleCardIds = new Map((req.options?.visibleCards ?? []).map((card) => [card.instanceId, card.cardId]));
         const ids: string[] = [];
         const selectedCardIds = new Set<string>();
         for (const instanceId of ordered) {
           if (ids.length >= cap) break;
           const cardId = visibleCardIds.get(instanceId);
-          if (req.options?.distinctCardIds === true &&
-            (cardId === undefined || selectedCardIds.has(cardId))) continue;
+          if (req.options?.distinctCardIds === true && (cardId === undefined || selectedCardIds.has(cardId))) continue;
           ids.push(instanceId);
           if (cardId !== undefined) selectedCardIds.add(cardId);
         }
@@ -379,11 +383,10 @@ export function setupEngine(
   // tests regress. A test that needs an arranged board to behave like a played one awaits
   // `ready()` once its arrangement is complete.
 
-  const lookup = (alias: string, kind: "permanent" | "instance") => {
+  const lookup = (alias: string) => {
     const entry = aliases.get(alias);
     expect(entry, `alias "${alias}" is not declared in the Board Spec`).toBeDefined();
-    expect(entry?.kind, `alias "${alias}" names a ${entry?.kind}, not a ${kind}`).toBe(kind);
-    return entry as { kind: "permanent" | "instance"; id: string };
+    return entry as { kind: "permanent" | "instance"; id: string; instanceId?: string };
   };
 
   const setup: EngineSetup = {
@@ -392,13 +395,17 @@ export function setupEngine(
     events,
     decisions,
     perm(alias) {
-      const { id } = lookup(alias, "permanent");
-      const found = findPermanentById(state, id);
-      expect(found, `permanent "${alias}" (${id}) is no longer on the board`).toBeDefined();
+      const entry = lookup(alias);
+      const found =
+        entry.kind === "permanent"
+          ? findPermanentById(state, entry.id)
+          : findPermanentContainingInstance(state, entry.id);
+      expect(found, `permanent for "${alias}" (${entry.id}) is no longer on the board`).toBeDefined();
       return found as Permanent;
     },
     inst(alias) {
-      const { id } = lookup(alias, "instance");
+      const entry = lookup(alias);
+      const id = entry.kind === "instance" ? entry.id : entry.instanceId!;
       const found = findInstanceById(state, id);
       expect(found, `card "${alias}" (${id}) is no longer in the match`).toBeDefined();
       return found as CardInstance;
@@ -450,6 +457,21 @@ function findInstanceById(state: GameState, instanceId: string): CardInstance | 
   return undefined;
 }
 
+function findPermanentContainingInstance(state: GameState, instanceId: string): Permanent | undefined {
+  for (const player of state.players) {
+    for (const permanent of [...player.battleArea, ...(player.breeding === undefined ? [] : [player.breeding])]) {
+      if (
+        permanent.topCard?.instanceId === instanceId ||
+        permanent.stack.some((card) => card.instanceId === instanceId) ||
+        permanent.linked.some((card) => card.instanceId === instanceId)
+      ) {
+        return permanent;
+      }
+    }
+  }
+  return undefined;
+}
+
 /**
  * Tick the microtask queue until a predicate holds (bounded). Omit the predicate (or pass
  * `() => false`) to just flush pending microtasks for `maxTicks` iterations.
@@ -472,9 +494,7 @@ export async function settle(predicate: () => boolean = () => false, maxTicks = 
 }
 
 export function findPermanent(s: EngineSetup, seat: Seat, cardId: string): Permanent {
-  const permanent = (s.state.players[seat] as PlayerState).battleArea.find(
-    (p) => p.topCard?.cardId === cardId,
-  );
+  const permanent = (s.state.players[seat] as PlayerState).battleArea.find((p) => p.topCard?.cardId === cardId);
   expect(permanent, `permanent ${cardId} on seat ${seat}`).toBeDefined();
   return permanent as Permanent;
 }
@@ -486,9 +506,7 @@ export function findPermanent(s: EngineSetup, seat: Seat, cardId: string): Perma
  * interpreter branch.
  */
 export function assertNoLoudGap(s: EngineSetup): void {
-  const gap = s.events.find(
-    (e) => e.kind === "actionRejected" && "reason" in e && /Unsupported effect/.test(e.reason),
-  );
+  const gap = s.events.find((e) => e.kind === "actionRejected" && "reason" in e && /Unsupported effect/.test(e.reason));
   expect(gap && "reason" in gap ? gap.reason : undefined).toBeUndefined();
 }
 
