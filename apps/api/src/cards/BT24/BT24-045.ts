@@ -55,6 +55,8 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing 1 card in your hand",
           },
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "Restrict",
@@ -96,6 +98,8 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing 1 card in your hand",
           },
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "Restrict",
@@ -143,6 +147,7 @@ export const compiled: CompiledCard = {
                 or: [{ namesExact: ["Titamon"] }, { nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] }],
               },
               from: ["trash"],
+              payCost: true,
               reduceCost: 1,
               optional: true,
             },
