@@ -1,4 +1,6 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST13-04.js";
 
@@ -45,12 +47,13 @@ describe("ST13-04 Duramon", () => {
     } }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("red-material"));
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST13-06"));
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("ST13-06");
     expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["ST13-04", "ST13-05", "ST13-14", "ST13-06"]),
+      expect.arrayContaining(["ST13-04", "ST13-05", "ST13-14"]),
     );
   });
 
@@ -64,8 +67,8 @@ describe("ST13-04 Duramon", () => {
     } }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
-    await settle(() => s.state.turnSeat === 1);
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
+    await settle();
 
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("non-dna").instanceId)).toBe(true);
