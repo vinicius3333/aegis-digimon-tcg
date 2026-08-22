@@ -11,6 +11,12 @@ describe("BT26-103 compiled fidelity", () => {
     const card = getCompiledCard("BT26-103");
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
+    expect(card?.keywords).toEqual([
+      expect.objectContaining({ keyword: "Piercing" }),
+      expect.objectContaining({ keyword: "Reboot" }),
+      expect.objectContaining({ keyword: "Blocker" }),
+      expect.objectContaining({ keyword: "Succession" }),
+    ]);
     expect(card?.effects?.[0]).toMatchObject({ trigger: "WhenDigivolving", frequency: "OncePerTurn", sharedUseKey: "BT26-103/trash-recover" });
     expect(card?.effects?.[1]).toMatchObject({ trigger: "Counter", frequency: "OncePerTurn", sharedUseKey: "BT26-103/trash-recover" });
     expect(card?.effects?.[2]?.actions).toMatchObject([{ kind: "GrantStatic", grant: "effects", duration: "permanent" }]);

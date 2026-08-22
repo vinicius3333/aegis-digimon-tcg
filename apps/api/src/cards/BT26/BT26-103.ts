@@ -8,6 +8,12 @@ const jupitermon = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ toke
 const recovery = [{ kind: "SecurityManipulation", op: "trashTop", controller: "mine", amount: 1 }, { kind: "SecurityManipulation", op: "placeFromDeck", controller: "mine", source: "deck", amount: 2 }];
 
 export const compiled: CompiledCard = {
+  keywords: [
+    { keyword: "Piercing", raw: "＜Piercing＞" },
+    { keyword: "Reboot", raw: "＜Reboot＞" },
+    { keyword: "Blocker", raw: "＜Blocker＞" },
+    { keyword: "Succession", raw: "＜Succession ([Jupitermon])＞" },
+  ],
   effects: [
     { trigger: "WhenDigivolving", frequency: "OncePerTurn", sharedUseKey: "BT26-103/trash-recover", actions: recovery },
     { trigger: "Counter", frequency: "OncePerTurn", sharedUseKey: "BT26-103/trash-recover", actions: recovery },
