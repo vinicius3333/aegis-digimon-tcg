@@ -99,6 +99,10 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
+          fireCondition: {
+            kind: "triggerRemovedSecuritySeat",
+            seat: "opponent",
+          },
           actions: [
             {
               kind: "Delete",
@@ -122,16 +126,21 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
-          sourceFilter: {
-            controller: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [
-              {
-                tokens: ["Reptile", "Dragonkin"],
-                match: "trait",
-              },
-            ],
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Reptile", "Dragonkin"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 10000,
+            upTo: true,
           },
+          affectsAll: true,
           actions: [],
           cost: {
             kind: "deleteOwn",
@@ -154,9 +163,14 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Owen Dreadnought", "Lamiamon"],
+      namesExact: ["Lamiamon"],
       cost: 6,
       isAlternate: true,
+      controllerControls: {
+        kind: ["Tamer"],
+        namesExact: ["Owen Dreadnought"],
+        min: 1,
+      },
     },
   ],
 };
