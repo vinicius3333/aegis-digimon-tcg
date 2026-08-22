@@ -1,3 +1,4 @@
+import { getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -8,5 +9,8 @@ describe("BT8-061 Thundermon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT8-061", as: "thundermon" }] } });
     await s.ready();
     expect(observe(s.engine).grantedNames(s.perm("thundermon"))).toContain("mamemon");
+    expect(getCompiledCard("BT8-061")?.effects.find(effect => effect.trigger === "Rule")).toMatchObject({
+      actions: [{ kind: "GrantStatic", grant: "name", tokens: ["Mamemon"] }],
+    });
   });
 });
