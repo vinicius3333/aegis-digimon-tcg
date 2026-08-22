@@ -1,6 +1,8 @@
 // @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registerCard } from "../../engine/effects/registry.js";
+
+const cardId = "BT20-056";
 
 const recoveryAndBreed = (trigger: "OnPlay" | "WhenDigivolving") => ({
   trigger,
@@ -212,4 +214,4 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard("BT20-056", compiled);
+registerCard(module);
