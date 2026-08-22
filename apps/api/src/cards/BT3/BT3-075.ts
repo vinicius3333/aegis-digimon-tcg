@@ -8,7 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   "effects": [
     {
-      "trigger": "Static",
+      "trigger": "AllTurns",
       "actions": [],
       "keywords": [
         {
@@ -28,10 +28,9 @@ const compiled: CompiledCard = {
               "kind": [
                 "Digimon"
               ],
-              "keywords": [
-                "Blocker"
-              ]
+              "keywords": ["Blocker"]
             },
+            "orFilters": [{ "controller": "mine", "kind": ["Digimon"], "stackKeywords": ["Blocker"] }],
             "count": "all"
           },
           "restriction": "beDeleted",
