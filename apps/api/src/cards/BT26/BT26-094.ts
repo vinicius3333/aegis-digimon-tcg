@@ -21,7 +21,6 @@ export const compiled: CompiledCard = {
       { kind: "SubTrigger", event: "whenHandTrashed", fireCondition: { kind: "triggerHandTrashedSeat", seat: "opponent" }, actions: executeReaction, raw: "When your opponent's hand is trashed from, by suspending this Tamer, 1 of your DATA SQUAD Digimon gains Execute for the turn." },
       { kind: "SubTrigger", event: "whenDigivolutionTrashed", sourceFilter: { controller: "mine", kind: ["Tamer"], byEffect: true }, hostFilter: { isSelfRef: true }, actions: executeReaction, raw: "When effects trash cards from under this Tamer, by suspending this Tamer, 1 of your DATA SQUAD Digimon gains Execute for the turn." },
     ] },
-    { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", target: self, from: ["security"], payCost: false }] },
   ],
   coverage: "full",
   residual: [],

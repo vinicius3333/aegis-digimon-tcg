@@ -1,14 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { getCompiledCard } from "@aegis/shared";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "./BT26-094.js";
+import { compiled } from "./BT26-094.js";
 import "../index.js";
 
 describe("BT26-094 compiled fidelity", () => {
   it("distinguishes opponent-hand trash from this Tamer's under-stack trash", () => {
-    const card = getCompiledCard("BT26-094");
+    const card = compiled;
     expect(card?.coverage).toBe("full");
     expect(card?.effects?.find((effect) => effect.trigger === "StartOfYourMainPhase")?.actions).toMatchObject([
       { kind: "PlaceUnder", faceDown: true },
@@ -26,9 +25,6 @@ describe("BT26-094 compiled fidelity", () => {
         { kind: "GainKeyword", keyword: { keyword: "Execute" }, duration: "untilEachTurnEnd" },
       ]);
     }
-    expect(card?.effects?.find((effect) => effect.trigger === "Security")?.actions).toMatchObject([
-      { kind: "PlayWithoutCost", payCost: false },
-    ]);
   });
 
   it("places a DATA SQUAD card under itself, draws, and gains memory at main-phase start", async () => {
