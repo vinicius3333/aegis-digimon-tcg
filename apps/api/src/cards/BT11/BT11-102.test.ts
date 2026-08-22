@@ -1,24 +1,55 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
-import module from "./BT11-102.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT11-102.js";
 
 describe("BT11-102 High Mega Blaster", () => {
-  it("registers distinct main and security suspension effects", () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT11-102", as: "option" }] } });
-    const card = s.inst("option");
-    const source: CardSource = {
-      instanceId: card.instanceId,
-      cardId: card.cardId,
-      ownerSeat: 0,
-      definition: getCardDefinition(card.cardId)!,
-      permanent: () => undefined,
-      isOnBattleArea: () => false,
-      isOwnersTurn: () => true,
-      hasColor: () => true,
-    };
-    expect(module.effectsForTiming(EffectTiming.OnUseOption, source)).toHaveLength(1);
-    expect(module.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+  it("suspends exactly two opponent Digimon at or below the chosen Insect's DP", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT11-058", as: "insect" }], hand: [{ card: "BT11-102", as: "option" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "low", dp: 3000 },
+            { card: "BT1-011", as: "eligible", dp: 12000 },
+            { card: "BT1-012", as: "tooLarge", dp: 13000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("low").isSuspended && s.perm("eligible").isSuspended);
+
+    expect(s.perm("low").isSuspended).toBe(true);
+    expect(s.perm("eligible").isSuspended).toBe(true);
+    expect(s.perm("tooLarge").isSuspended).toBe(false);
+    expect(s.perm("tooLarge").isSuspended).toBe(false);
+  });
+
+  it("Security suspends two opponent Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT11-102", as: "option", faceUp: true }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "first" },
+            { card: "BT1-011", as: "second" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    await settle(() => s.perm("first").isSuspended && s.perm("second").isSuspended);
+
+    expect(s.perm("first").isSuspended).toBe(true);
+    expect(s.perm("second").isSuspended).toBe(true);
   });
 });

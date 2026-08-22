@@ -126,8 +126,8 @@ describe("BT15-092 Revelation of Light — [Main] play-from-security (use-option
     const secKinds = (security!.actions ?? []).map((a) => (a as { kind?: string }).kind);
     expect(secKinds).toContain("ModifyDP");
     expect(secKinds).toContain("ModifySecurityDP");
-    const staticEff = (BT15_092.effects ?? []).find((e) => e.trigger === "Static");
-    expect(staticEff).toBeDefined(); // the whenSecurityRemoved trash-trigger clause is preserved
+    const discardEff = (BT15_092.effects ?? []).find((e) => e.trigger === "OnDiscardSecurity");
+    expect(discardEff).toBeDefined(); // the direct security-trash clause is preserved
   });
 
   it("plays a yellow Lv.4-or-lower Digimon from security for free (as authored)", async () => {

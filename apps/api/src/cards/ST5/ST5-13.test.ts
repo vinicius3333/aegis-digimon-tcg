@@ -6,6 +6,7 @@ import { effectsOf } from "../../engine/effects/collect.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./ST5-13.js";
 
 interface CardEffectTestSeam {
@@ -14,6 +15,10 @@ interface CardEffectTestSeam {
 }
 
 describe("ST5-13 BlitzGreymon", () => {
+  it("is fully represented with Security Attack and Digi-Burst cost", () => {
+    expect(runtimeCompiledCard("ST5-13")).toMatchObject({ coverage: "full", residual: [], effects: [{ trigger: "Static", keywords: [{ keyword: "SecurityAttack", amount: 1 }] }, { trigger: "Main", keywords: [{ keyword: "DigiBurst", amount: 2 }], actions: [{ kind: "ModifyDP", amount: 4000, duration: "untilOpponentTurnEnd", cost: { kind: "trash", target: { count: 2 } } }] }] });
+  });
+
   it("has Security Attack +1 and Digi-Bursts 2 to give +4000 DP", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "ST5-13", under: ["ST5-03", "ST5-08"], as: "blitz" }, { card: "ST5-03", as: "target" }] } }, { autoSelectCards: true });
     await s.ready();

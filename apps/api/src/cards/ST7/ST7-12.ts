@@ -1,5 +1,22 @@
-import { registerCard } from "../../engine/effects/registry.js";
-import { st7Module } from "./_handwritten.js";
-const module = st7Module("ST7-12");
-registerCard(module);
-export default module;
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all", totalDpCap: 8000 },
+        },
+      ],
+    },
+    { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard("ST7-12", compiled);

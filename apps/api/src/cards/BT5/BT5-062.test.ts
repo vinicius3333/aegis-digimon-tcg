@@ -9,6 +9,7 @@ describe("BT5-062 Mekanorimon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).hasKeyword(s.perm("mekanori"), "Blocker")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("mekanori"), "attack")).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("mekanori").permanentId, target: { kind: "player" } }).ok).toBe(false);
   });
 
   it("unsuspends after deleting an opponent's Digimon in battle and surviving", async () => {

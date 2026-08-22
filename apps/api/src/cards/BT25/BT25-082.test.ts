@@ -123,7 +123,7 @@ describe("BT25-082 BlackGatomon", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  it("inherited cost places the chosen trait card at true bottom, draws only after payment, and is OPT", async () => {
+  it("does not add an unprinted inherited draw effect", async () => {
     const s = setupEngine(
       {
         0: {
@@ -151,13 +151,8 @@ describe("BT25-082 BlackGatomon", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("host"), {
       attackerPermanentId: s.perm("host").permanentId,
     });
-    expect(s.perm("host").stack.map((c) => c.instanceId)).toEqual([
-      s.inst("cost").instanceId,
-      s.inst("source").instanceId,
-      s.inst("old").instanceId,
-    ]);
-    expect(s.perm("host").stack[0]!.faceUp).toBe(true);
-    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(s.perm("host").stack.map((c) => c.instanceId)).toEqual([s.inst("source").instanceId, s.inst("old").instanceId]);
+    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).not.toContain(s.inst("drawn").instanceId);
     await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("host"), {
       attackerPermanentId: s.perm("host").permanentId,
     });

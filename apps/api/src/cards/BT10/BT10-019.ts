@@ -1,11 +1,6 @@
 // @ts-nocheck
-import { EffectTiming, isDigimon, isTamer } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { onPlay, onDeletion, whenAttacking } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
-import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
+import { getCompiledCard, type CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
  * BT10-019 — MetalGreymon (BT10, Blue Lv.5 Digimon).
@@ -21,6 +16,7 @@ import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
  *   traits and your opponent has 2 or more Digimon in play, unsuspend this Digimon.
  */
 const cardId = "BT10-019";
+const compiled = getCompiledCard(cardId) as CompiledCard;
 
 function hasBlueFlare(def: { types?: string[] }): boolean {
   const types = def.types as string[] | undefined;
@@ -57,17 +53,16 @@ const module: EffectModule = {
           optional: false,
           canActivate: (ctx: any) => {
             const owner = ctx.game.player(source.ownerSeat);
-            return owner.deck.length >= 1 || (
-              hasKirihaAonuma(ctx, source) &&
-              owner.trash.some((c: any) => isMetalGreymonCard(ctx.game.definitionOf(c)))
+            return (
+              owner.deck.length >= 1 ||
+              (hasKirihaAonuma(ctx, source) &&
+                owner.trash.some((c: any) => isMetalGreymonCard(ctx.game.definitionOf(c))))
             );
           },
           resolve: async (ctx: any) => {
             const owner = ctx.game.player(source.ownerSeat);
             const hasKiriha = hasKirihaAonuma(ctx, source);
-            const hasMetalInTrash = owner.trash.some((c: any) =>
-              isMetalGreymonCard(ctx.game.definitionOf(c)),
-            );
+            const hasMetalInTrash = owner.trash.some((c: any) => isMetalGreymonCard(ctx.game.definitionOf(c)));
             const hasDeck = owner.deck.length >= 1;
             const instead = hasKiriha && hasMetalInTrash;
 
@@ -78,10 +73,7 @@ const module: EffectModule = {
             // do. Asked unconditionally on `instead` (independent of `hasDeck`) so the
             // choice is offered even when the default reveal branch also has work to do.
             const fromLibrary = instead
-              ? !(await ctx.ask.optional(
-                  ctx,
-                  "Return 1 [MetalGreymon] from your trash to your hand instead?",
-                ))
+              ? !(await ctx.ask.optional(ctx, "Return 1 [MetalGreymon] from your trash to your hand instead?"))
               : true;
 
             if (fromLibrary) {
@@ -111,9 +103,7 @@ const module: EffectModule = {
                 await ctx.fx.returnToHand(selected);
               }
 
-              let rest = revealed
-                .filter((c: any) => !selected.includes(c.instanceId))
-                .map((c: any) => c.instanceId);
+              let rest = revealed.filter((c: any) => !selected.includes(c.instanceId)).map((c: any) => c.instanceId);
 
               if (rest.length > 1 && ctx.ask.orderCards !== undefined) {
                 rest = await ctx.ask.orderCards(ctx, {
@@ -210,9 +200,10 @@ const module: EffectModule = {
             const topDef = ctx.game.definitionOf(me.topCard);
             if (!hasBlueFlare(topDef)) return false;
             const opp = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
-            return opp.battleArea.filter(
-              (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
-            ).length >= 2;
+            return (
+              opp.battleArea.filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)))
+                .length >= 2
+            );
           },
           resolve: async (ctx) => {
             const me = source.permanent();
@@ -228,5 +219,5 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
-export default module;
+export { compiled };
+registerIrCard("BT10-019", compiled);

@@ -83,11 +83,13 @@ const module: EffectModule = {
               const chosenId =
                 lowest.length === 1
                   ? lowest[0]!.permanentId
-                  : (await ctx.ask.chooseTargets(ctx, {
-                      candidates: lowest.map((p) => p.permanentId),
-                      min: 1,
-                      max: 1,
-                    }))[0];
+                  : (
+                      await ctx.ask.chooseTargets(ctx, {
+                        candidates: lowest.map((p) => p.permanentId),
+                        min: 1,
+                        max: 1,
+                      })
+                    )[0];
               if (chosenId !== undefined) await ctx.fx.deletePermanent([chosenId]);
             }
 

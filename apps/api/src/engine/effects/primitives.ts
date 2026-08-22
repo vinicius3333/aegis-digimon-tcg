@@ -25,6 +25,7 @@ import {
   applyOverflow,
   extractCardAt,
   extractPermanentAt,
+  findPermanentInState,
   insertCard,
   placePermanent as appendPermanent,
   takeBottom,
@@ -400,8 +401,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   };
 
   /** Whether the engine is currently re-firing persistent effects (see PrimitivesEngine). */
-  const continuousPass = (): boolean =>
-    (engine.inContinuousPass?.() ?? false) && !(engine.inResolvingWindow?.() ?? false);
+  const continuousPass = (): boolean => engine.inContinuousPass?.() ?? false;
   /** `{ continuous: true }` while re-firing persistent effects, else undefined. */
   const continuousOpt = (): { continuous: boolean } | undefined =>
     continuousPass() ? { continuous: true } : undefined;
@@ -453,8 +453,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // An effect Draw is an effect-driven hand addition ("when an effect adds cards to
       // your opponent's hand"/"...your hand"). The normal draw-phase draw routes through
       // GameEngine.drawCards, not this fx.draw, so it does not fire here.
-      await engine.fireSubTrigger?.("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: seat });
-      await engine.fireSubTrigger?.("whenEffectAddsToHand", { effectAddedToHandSeat: seat });
+      const addedToHand = { instanceIds: drawn.map((c) => c.instanceId) };
+      await engine.fireSubTrigger?.("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: seat, addedToHand });
+      await engine.fireSubTrigger?.("whenEffectAddsToHand", { effectAddedToHandSeat: seat, addedToHand });
     }
     return drawn;
   };
@@ -562,10 +563,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const changeEvoCost = (
     filter: (m: EvoCostMatch) => boolean,
     delta: number,
-    opts?: { setFixed?: boolean; once?: boolean; onConsume?: (match: EvoCostMatch) => void },
+    opts?: { setFixed?: boolean; once?: boolean; continuous?: boolean; onConsume?: (match: EvoCostMatch) => void },
   ): void => {
     ledger.addEvoCostAdjustment(filter, delta, opts?.setFixed ?? false, {
-      ...(continuousOpt() ?? {}),
+      ...(opts?.continuous === true ? { continuous: true } : (continuousOpt() ?? {})),
       once: opts?.once,
       onConsume: opts?.onConsume,
     });
@@ -698,7 +699,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       costDelta?: number;
       suppressOnPlayEffects?: boolean;
       effectSourceCardId?: string;
+      playedByDecode?: boolean;
       digiXrosMaterialInstanceIds?: string[];
+      hostPermanentIds?: Record<string, string>;
     },
   ): Promise<Permanent[]> => {
     const created: Permanent[] = [];
@@ -737,7 +740,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         if (engine.memory.maxCostFor(ownerPlayer.seat) < cost) continue;
         if (cost > 0) engine.memory.pay(ownerPlayer.seat, cost, "playCard");
       }
-      const instance = removeLooseInstance(state, instanceId);
+      // Preserve the resolved host when moving stack material.  A material selected from
+      // the breeding stack must be detached from that exact permanent before the new
+      // permanent is placed; falling back to the global loose lookup can otherwise retain
+      // stale breeding material when the same instance id is observed through another view.
+      const resolvedHostPermanentId =
+        hostOfStackInstance(state, instanceId)?.hostPermanentId ?? opts?.hostPermanentIds?.[instanceId];
+      const instance = removeLooseInstance(state, instanceId, true, resolvedHostPermanentId);
       if (instance === undefined) continue;
       instance.faceUp = true;
       const permanent = placePermanent(engine, ownerPlayer, instance, definition, opts?.suspended ?? false);
@@ -797,6 +806,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
               ...(opts?.effectSourceCardId !== undefined
                 ? { playedByEffectSourceCardId: opts.effectSourceCardId }
                 : {}),
+              ...(opts?.playedByDecode === true ? { playedByDecode: true } : {}),
             },
           );
         }
@@ -816,6 +826,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         subjectPermanentIds: created.map((permanent) => permanent.permanentId),
         playedByEffect: true,
         ...(opts?.effectSourceCardId !== undefined ? { playedByEffectSourceCardId: opts.effectSourceCardId } : {}),
+        ...(opts?.playedByDecode === true ? { playedByDecode: true } : {}),
         ...(playedLevel !== undefined ? { playedLevel } : {}),
         ...(playedPlayCost !== undefined ? { playedPlayCost } : {}),
         ...(playedFromZone !== undefined ? { playedFromZone } : {}),
@@ -907,6 +918,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       costDelta?: number;
       costOverride?: number;
       useAlternateCost?: boolean;
+      ignoreLevel?: boolean;
+      virtualBase?: { level: number; colors: CardColor[] };
       ignoreRequirements?: boolean;
       beforeWhenDigivolving?: () => Promise<void>;
     },
@@ -931,7 +944,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // color+level gate; without it the base must still satisfy a printed EvoCost (a costOverride
       // alone keeps the requirement — BT7-051).
       let baseCost: number | undefined;
-      if (opts.ignoreRequirements) {
+      if (opts.ignoreRequirements || opts.ignoreLevel) {
         // Ignoring the color/level gate does not waive the card's printed digivolution
         // cost. Effects such as BT26-066 still say "with the cost reduced by 2" and
         // therefore need a real printed baseline. A fixed-cost effect supplies
@@ -947,7 +960,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         // and the digivolve then no-opped silently after the controller had already chosen it.
         // `runDigivolve`'s candidate filter already offers alternate-path bases; this is the
         // authoritative gate it claims to mirror, so the two must agree.
-        const baseDef = requireCardDefinition(permanent.topCard.cardId);
+        const actualBaseDef = requireCardDefinition(permanent.topCard.cardId);
+        const baseDef = opts.virtualBase === undefined
+          ? actualBaseDef
+          : { ...actualBaseDef, level: opts.virtualBase.level, colors: opts.virtualBase.colors };
         const printed = matchingDigivolveCost(definition, baseDef);
         const baseGranted = engine.baseGrantedDigivolve?.(seat, permanent, definition);
         const alternate = matchingAlternateDigivolutionRequirement(definition, baseDef);
@@ -1314,6 +1330,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const def = requireCardDefinition(newTop.cardId);
     permanent.baseDP = def.kinds.includes(CardKind.Digimon) ? def.dp : 0;
     ledger.recomputeDP(state, permanentId);
+    // The promoted card is now the permanent's active top card. Re-derive its static
+    // keywords/effects before the deletion-prevention window continues (BT8 Armor Purge
+    // chains must expose the promoted card's own Armor Purge immediately).
+    await engine.recomputeContinuousEffects?.();
     // <Overflow> (CR §4-18): the old top card just left the battle area for trash — a genuine
     // leave, distinct from the permanent as a whole (which is NOT being deleted).
     applyOverflow(engine.memory, [oldTop], state.turnSeat);
@@ -1374,6 +1394,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       subjectPermanentId: permanentId,
       addedDigivolutionCardInstanceIds: [oldTop.instanceId],
       addedDigivolutionCardsPosition: "bottom",
+      placedOwnTopAtStackBottom: true,
     });
     return true;
   };
@@ -1902,6 +1923,34 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     return moved;
   };
 
+  /** Trash the complete breeding stack without firing deletion windows. */
+  const trashBreedingPermanent = async (seat: Seat, opts?: { byEffectSeat?: Seat }): Promise<CardInstance[]> => {
+    const owner = player(seat);
+    const permanent = owner.breeding;
+    if (permanent?.topCard === undefined || isRestricted(permanent.permanentId, "beTrashed")) return [];
+    owner.breeding = undefined;
+    dropPermanentLedgers(permanent.permanentId);
+    const moved = [permanent.topCard, ...permanent.stack, ...permanent.linked];
+    for (const card of moved) {
+      card.faceUp = true;
+      insertCard(player(card.ownerSeat), Zone.Trash, card);
+    }
+    applyOverflow(engine.memory, moved, state.turnSeat);
+    engine.emit({
+      kind: "cardsMoved",
+      instanceIds: moved.map((card) => card.instanceId),
+      from: Zone.Breeding,
+      to: Zone.Trash,
+    });
+    if (opts?.byEffectSeat !== undefined) {
+      await engine.fireSubTrigger?.("whenTrashedByEffect", {
+        trashedByEffectPermanentId: permanent.permanentId,
+        byEffectSeat: opts.byEffectSeat,
+      });
+    }
+    return moved;
+  };
+
   /**
    * Trash digivolution-stack cards of `hostPermanentId` BY AN EFFECT (the producing site for
    * the whenDigivolutionTrashed SubTrigger; KB P-004 Q4113). Moves the cards via `trash`, then
@@ -1938,10 +1987,6 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // face state because it also serves loose face-up zones, so normalize this specific
     // stack-to-trash route before publishing its watcher events.
     for (const card of moved) card.faceUp = true;
-    ledger.dropSourceInstances(
-      state,
-      moved.map((card) => card.instanceId),
-    );
     if (moved.length > 0 && engine.fireSubTrigger) {
       // Digi-Burst trashes all chosen sources simultaneously. Notify its self-card watchers in
       // one batch before any per-card fire can trigger a continuous recompute and tear down the
@@ -1992,6 +2037,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         });
       }
     }
+    ledger.dropSourceInstances(
+      state,
+      moved.map((card) => card.instanceId),
+    );
     return moved;
   };
 
@@ -2050,11 +2099,6 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       from: "various",
       to: Zone.Trash,
     });
-    ledger.dropSourceInstances(
-      state,
-      moved.map((card) => card.instanceId),
-    );
-
     if (engine.fireSubTrigger) {
       const byHost = new Map<string, typeof validated>();
       for (const entry of validated) {
@@ -2099,6 +2143,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         }
       }
     }
+    ledger.dropSourceInstances(
+      state,
+      moved.map((card) => card.instanceId),
+    );
     return moved;
   };
 
@@ -2456,7 +2504,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // Default-safe: the consult returns empty unless a matching prevent-replacement is active.
     let toDelete = permanentIds;
     if (engine.consultLeavePrevention) {
-      const prevented = await engine.consultLeavePrevention(permanentIds, cause, engine.controllerSeat());
+      // A nested effect may be resolving for the non-turn player (for example an
+      // opponent's When Digivolving effect).  The turn seat is only the fallback;
+      // leave-cause gates such as "other than by your effects" must see the effect
+      // resolution owner that was pushed by the interpreter.
+      const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
+      const prevented = await engine.consultLeavePrevention(permanentIds, cause, resolvingSeat);
       if (prevented.size > 0) toDelete = permanentIds.filter((id) => !prevented.has(id));
     }
     // ＜Evade＞ keyword: when this Digimon would be deleted by an effect, you MAY suspend
@@ -2518,7 +2571,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           if (decoyCostPermanentIds.has(permanentId)) continue;
           const perm = access.permanentById(permanentId);
           if (perm === undefined || perm.topCard === undefined) continue;
-          const resolvingSeat = engine.controllerSeat();
+          const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
           if (resolvingSeat === perm.controllerSeat) continue; // must be an OPPONENT's effect
           const targetDef = requireCardDefinition(perm.topCard.cardId);
           const holders = access
@@ -2663,7 +2716,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         if (!continuous.hasKeyword(permanentId, "Scapegoat")) continue;
         const perm = access.permanentById(permanentId);
         if (perm === undefined) continue;
-        if (cause === "byEffect" && engine.controllerSeat() === perm.controllerSeat) continue;
+        const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
+        if (cause === "byEffect" && resolvingSeat === perm.controllerSeat) continue;
         const candidates = access
           .battleAreaPermanents(perm.controllerSeat)
           .filter((p) => p.permanentId !== permanentId && p.topCard !== undefined && access.isBattleAreaDigimon(p));
@@ -2689,17 +2743,15 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // can resolve and gate on the deleted card's live traits/controller before it leaves the
     // field. The body (e.g. draw) runs immediately; OnDestroyedAnyone (System A) follows below.
     if (engine.fireSubTrigger) {
-      const deletedByDpZero =
-        cause === "byRule" &&
-        toDelete.length > 0 &&
-        toDelete.every((permanentId) => access.permanentById(permanentId)?.currentDP === 0);
       for (const permanentId of toDelete) {
-        if (access.permanentById(permanentId)?.topCard === undefined) continue;
+        const deleted = access.permanentById(permanentId);
+        if (deleted?.topCard === undefined) continue;
         await engine.fireSubTrigger("onDeletionOf", {
           deletedPermanentId: permanentId,
           deletedPermanentIds: toDelete,
+          deletedTopCardId: access.permanentById(permanentId)?.topCard?.cardId,
           removalCause: cause,
-          deletedByDpZero,
+          deletedByDpZero: cause === "byRule" && deleted.currentDP === 0,
         });
         // whenLeavesPlay is the superset event (delete + bounce); deletion is one path.
         await engine.fireSubTrigger("whenLeavesPlay", { deletedPermanentId: permanentId });
@@ -2712,6 +2764,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     }
     const allMoved: string[] = [];
     const allStackInstanceIds: string[] = [];
+    const deletedByDpZero =
+      cause === "byRule" && toDelete.some((permanentId) => access.permanentById(permanentId)?.currentDP === 0);
+    const deletedByDpZeroInstanceIds = toDelete
+      .map((permanentId) => {
+        const permanent = access.permanentById(permanentId);
+        return cause === "byRule" && permanent?.currentDP === 0 ? permanent.topCard?.instanceId : undefined;
+      })
+      .filter((instanceId): instanceId is string => instanceId !== undefined);
     // The deleted COUNT = permanents that ACTUALLY left the field. A prevented (leave-prevention)
     // or immune permanent never enters `toDelete` / moves nothing, contributing 0 — the result a
     // gating "if this effect didn't delete" Condition reads (KB BT23-069 Q5338).
@@ -2774,7 +2834,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         const perm = access.permanentById(permanentId);
         if (perm === undefined || perm.topCard === undefined) return undefined;
         if (!continuous.hasKeyword(permanentId, "Partition")) return undefined;
-        if (cause === "byEffect" && engine.controllerSeat() === perm.controllerSeat) return undefined;
+        const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
+        if (cause === "byEffect" && resolvingSeat === perm.controllerSeat) return undefined;
         const spec = partitionSpecOf(perm.topCard.cardId);
         if (spec === undefined) return undefined;
         const remaining = [...perm.stack];
@@ -2846,6 +2907,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         deletedPermanentId: allMoved[0],
         deletedTopCardId: topCardIdsByPermanent.find((cardId) => cardId !== undefined),
         deletedEffectiveColorsByInstanceId,
+        deletedByDpZero,
+        deletedByDpZeroInstanceIds,
         // The actually-deleted card set: the [On Deletion] trigger gate (builders.onDeletion)
         // admits only these instances as candidates at this window.
         deletedInstanceIds: allMoved,
@@ -3193,8 +3256,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       if (opts?.silent !== true) {
         const recipientSeats = new Set(movedToHand.map((c) => c.ownerSeat));
         for (const seat of recipientSeats) {
-          await engine.fireSubTrigger?.("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: seat });
-          await engine.fireSubTrigger?.("whenEffectAddsToHand", { effectAddedToHandSeat: seat });
+          const addedToHand = { instanceIds: movedToHand.filter((c) => c.ownerSeat === seat).map((c) => c.instanceId) };
+          await engine.fireSubTrigger?.("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: seat, addedToHand });
+          await engine.fireSubTrigger?.("whenEffectAddsToHand", { effectAddedToHandSeat: seat, addedToHand });
         }
         const trashReturned = movedToHand.filter((c) => trashOriginIds.has(c.instanceId));
         if (trashReturned.length > 0) {
@@ -3498,18 +3562,24 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
             (candidate) => candidate.permanentId === permanent!.permanentId,
           );
           if (index >= 0) {
-            battleOwner.battleArea.splice(index, 1);
+            extractPermanentAt(battleOwner, index);
             dropPermanentLedgers(permanent.permanentId);
           }
         } else {
           permanent.topCard = promoted;
           const promotedDefinition = requireCardDefinition(promoted.cardId);
           permanent.baseDP = promotedDefinition.kinds.includes(CardKind.Digimon) ? promotedDefinition.dp : 0;
+          dropPermanentLedgers(permanent.permanentId);
           ledger.recomputeDP(state, permanent.permanentId);
+          // The promoted card is now the active top card. Recompute printed keywords and
+          // continuous effects before the next deletion/prevention window (BT9-044's
+          // security redirect can promote a Digimon with Armor Purge, such as BT8-038).
+          await engine.recomputeContinuousEffects?.();
         }
         detached.faceUp = faceUp;
         if (toTop) insertCard(p, Zone.Security, detached, "top");
         else insertCard(p, Zone.Security, detached);
+        ledger.dropSourceInstances(state, [detached.instanceId]);
         added.push(detached);
         continue;
       }
@@ -4138,6 +4208,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     opts?: {
       withoutSuspending?: boolean;
       attackPlayer?: boolean;
+      attackPlayerOnly?: boolean;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
     },
@@ -4176,7 +4247,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       canAttackTarget(access, controllerSeat, attacker, playerTarget, continuous) === null
         ? [PLAYER]
         : []),
-      ...legalEnemyIds,
+      ...(opts?.attackPlayerOnly === true ? [] : legalEnemyIds),
     ];
     const chosen = await engine.ask.selectInstances(
       controllerSeat,
@@ -4318,7 +4389,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
 
   const modifySecurityDp: Primitives["modifySecurityDp"] = (seat, delta, opts): void => {
     engine.securityDp?.add(seat, delta, {
-      continuous: opts?.continuous === true || engine.inContinuousPass?.() === true,
+      continuous: opts?.continuous ?? engine.inContinuousPass?.() === true,
       duration: opts?.duration,
     });
   };
@@ -4406,6 +4477,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     placeAsTopFromEggDeck,
     link,
     trash,
+    trashBreedingPermanent,
     trashDigivolutionCards,
     trashDigivolutionCardsAtomic,
     canTrashDigivolutionCard,
@@ -4574,7 +4646,21 @@ function locateInSecurity(state: GameState, instanceId: string): LocatedInZone |
  * from your trash"). The one verb that must NOT pull from trash is `trash` itself (it
  * moves cards INTO trash), so it passes `false`; every other caller wants the full set.
  */
-function removeLooseInstance(state: GameState, instanceId: string, includeTrash = true): CardInstance | undefined {
+function removeLooseInstance(
+  state: GameState,
+  instanceId: string,
+  includeTrash = true,
+  hostPermanentId?: string,
+): CardInstance | undefined {
+  if (hostPermanentId !== undefined) {
+    const host = findPermanentInState(state, hostPermanentId);
+    if (host !== undefined) {
+      const fromStack = spliceById(host.stack, instanceId);
+      if (fromStack) return fromStack;
+      const fromLinked = spliceById(host.linked, instanceId);
+      if (fromLinked) return fromLinked;
+    }
+  }
   for (const owner of state.players) {
     // See the matching note in peekLooseInstance: a resolving Option's own effect is allowed
     // to move it out of the transient `resolvingOption` slot into a real area (§9-1-5's

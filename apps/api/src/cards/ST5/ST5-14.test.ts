@@ -3,10 +3,15 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./ST5-03.js";
 import "./ST5-14.js";
 
 describe("ST5-14 Tai Kamiya", () => {
+  it("retains full IR coverage for the blocker watcher and security play", () => {
+    expect(runtimeCompiledCard("ST5-14")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("suspends to unsuspend a Digimon after using Blocker", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine({ 0: { battleArea: [{ card: "ST5-14", as: "tai" }, { card: "ST5-03", as: "blocker" }, { card: "ST5-08", as: "other", suspended: true }] }, 1: { battleArea: [{ card: "ST5-08", as: "attacker" }] } }, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds });

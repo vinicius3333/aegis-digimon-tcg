@@ -11,119 +11,115 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //     in the hand with the digivolution cost reduced by 3.
 // [Security] Activate this card's [Main] effect.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": ["Puppet"],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Puppet"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": ["LIBERATOR"],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["LIBERATOR"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
+          rest: "deckBottom",
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
       // [Your Turn] When any of your [Mirai Kinosaki]s are played, <Delay>
       // The Delay action gates the Digivolve: when Mirai Kinosaki is played, the player
       // gains the Delay option; during their main phase they may activate the digivolve.
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            nameOrTrait: [
               {
-                "tokens": ["Mirai Kinosaki"],
-                "match": "name"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "Delay",
-              "keyword": {
-                "keyword": "Delay",
-                "raw": "＜Delay＞"
+                tokens: ["Mirai Kinosaki"],
+                match: "name",
               },
-              "actions": [
-                {
-                  "kind": "Digivolve",
-                  "target": {
-                    "filter": {
-                      "controller": "mine",
-                      "kind": ["Digimon"]
-                    },
-                    "count": 1
-                  },
-                  "into": {
-                    "controllerDefault": "mine",
-                    "levelComparison": {
-                      "op": "lte",
-                      "value": 6
-                    },
-                    "nameOrTrait": [
-                      {
-                        "tokens": ["LIBERATOR"],
-                        "match": "trait"
-                      }
-                    ]
-                  },
-                  "from": ["hand"],
-                  "reduceCost": 3,
-                  "optional": true
-                }
-              ]
-            }
-          ]
-        }
-      ]
+            ],
+          },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: { isSelfRef: true },
+                count: 1,
+                isSelf: true,
+              },
+              keyword: {
+                keyword: "Delay",
+                raw: "＜Delay＞",
+              },
+              duration: "permanent",
+            },
+          ],
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Main",
+      keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "Digivolve",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          into: {
+            controllerDefault: "mine",
+            levelComparison: { op: "lte", value: 6 },
+            nameOrTrait: [{ tokens: ["LIBERATOR"], match: "trait" }],
+          },
+          from: ["hand"],
+          reduceCost: 3,
+          optional: true,
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "ActivateMain",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-229", compiled);

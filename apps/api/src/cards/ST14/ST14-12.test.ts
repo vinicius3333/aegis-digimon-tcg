@@ -24,7 +24,7 @@ describe("ST14-12 Rivals' Barrage", () => {
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "ST14-12"));
     const barrage = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "ST14-12")!;
     barrage.enterFieldTurnCount = 4294967295;
-    await advance(s.engine).fire(EffectTiming.OnUseOption, barrage);
+    await advance(s.engine).fire(EffectTiming.OnDeclaration, barrage);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "ST14-12")).toBe(false);
     expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "ST14-02")).toBe(true);
     expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "ST14-12")).toBe(true);

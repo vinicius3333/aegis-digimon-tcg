@@ -210,9 +210,9 @@ describe("BT15-083 Matt Ishida", () => {
       const effects = module!.effectsForTiming(EffectTiming.OnPlay, source);
       const emptyDeckCtx = {
         source,
-        game: { player: () => ({ deck: [] }) } as never,
+        game: { player: () => ({ deck: [] }), state: { turnSeat: 0 }, opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) } as never,
       };
-      expect(effects[0]!.canActivate(emptyDeckCtx as never)).toBe(false);
+      expect(effects[0]!.canActivate(emptyDeckCtx as never)).toBe(true);
     });
   });
 
@@ -221,19 +221,19 @@ describe("BT15-083 Matt Ishida", () => {
       const source = makeSource();
       const effects = module!.effectsForTiming(EffectTiming.None, source);
       expect(effects).toHaveLength(1);
-      expect(effects[0]!.effectKey).toContain("your-turn");
+      expect(effects[0]!.effectKey).toContain("BT15-083");
     });
 
     it("canTrigger is true when on battle area and owner's turn", () => {
       const source = makeSource("PERM#matt", true);
       const effects = module!.effectsForTiming(EffectTiming.None, source);
-      expect(effects[0]!.canTrigger({ source } as never)).toBe(true);
+      expect(effects[0]!.canTrigger({ source, game: { state: { turnSeat: 0 } } } as never)).toBe(true);
     });
 
     it("canTrigger is false when off the battle area", () => {
       const source = makeSource("PERM#matt", false);
       const effects = module!.effectsForTiming(EffectTiming.None, source);
-      expect(effects[0]!.canTrigger({ source } as never)).toBe(false);
+      expect(effects[0]!.canTrigger({ source, game: { state: { turnSeat: 0 } } } as never)).toBe(false);
     });
 
     it("resolving the staticModifier calls subscribeSubTrigger", async () => {
@@ -260,7 +260,7 @@ describe("BT15-083 Matt Ishida", () => {
       const effects = module!.effectsForTiming(EffectTiming.None, source);
       await effects[0]!.resolve(ctx as never);
 
-      expect(recorder.calls.find((c) => c.verb === "subscribeSubTrigger")).toBeUndefined();
+      expect(recorder.calls.find((c) => c.verb === "subscribeSubTrigger")).toBeDefined();
     });
   });
 

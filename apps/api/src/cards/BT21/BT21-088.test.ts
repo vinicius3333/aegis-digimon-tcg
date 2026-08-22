@@ -11,19 +11,36 @@ describe("BT21-088 Tagiru Akashi", () => {
       abortOnDecline: true,
       cost: { kind: "place" },
     });
-    expect(
-      (start?.actions[0] as { cost?: { target?: { filter?: { keywords?: string[]; nameOrTrait?: unknown } } } })?.cost
-        ?.target?.filter,
-    ).toMatchObject({ keywords: ["Save"], nameOrTrait: [{ tokens: ["Hero"], match: "trait" }] });
+    expect(start?.actions[0]).toMatchObject({
+      cost: {
+        target: {
+          filter: { keywords: ["Save"] },
+          orFilters: [{ nameOrTrait: [{ tokens: ["Hero"], match: "trait" }] }],
+        },
+        underFilter: { controller: "mine", kind: ["Tamer"] },
+      },
+    });
     expect(start?.actions[1]).toMatchObject({ kind: "GainMemory", amount: 1 });
     const yourTurn = compiled.effects.find((entry) => entry.trigger === "YourTurn");
     expect(yourTurn?.actions[0]).toMatchObject({
       event: "wouldDigivolve",
       sourceFilter: { kind: ["Digimon"] },
-      into: { kind: ["Digimon"], keywords: ["Save"] },
+      into: {
+        kind: ["Digimon"],
+        keywords: ["Save"],
+        orFilters: [{ nameOrTrait: [{ tokens: ["Hero"], match: "trait" }] }],
+      },
     });
     const reduction = (yourTurn?.actions[0] as { actions?: unknown[] } | undefined)?.actions?.[0];
-    expect(reduction).toMatchObject({ kind: "Replacement", mode: "reduceCost", amount: 1, cost: { kind: "suspend" } });
+    expect(reduction).toMatchObject({
+      kind: "Replacement",
+      mode: "reduceCost",
+      amount: 1,
+      cost: { kind: "suspend" },
+      additionalCosts: [{ kind: "place", destination: "digivolutionStack", position: "bottom", host: "triggerSource" }],
+    });
     expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "Security", isSecurity: true }));
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });

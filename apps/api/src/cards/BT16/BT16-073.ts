@@ -6,60 +6,62 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 2
+          kind: "Draw",
+          controller: "mine",
+          amount: 2,
         },
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
             },
-            "count": 2
-          }
-        }
+            count: 2,
+          },
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Retaliation",
-          "raw": "＜Retaliation＞"
-        }
-      ]
+          keyword: "Retaliation",
+          raw: "＜Retaliation＞",
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [
+      trigger: "OnDeletion",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "cardType": "Tamer",
-              "textContains": "[Myotismon]",
-              "notSameNameAs": {
-                "filter": {
-                  "cardType": "Tamer",
-                  "controller": "mine"
-                }
-              }
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              cardType: "Tamer",
+              textContains: "[Myotismon]",
+              notSameNameAs: {
+                filter: {
+                  cardType: "Tamer",
+                  controller: "mine",
+                },
+              },
             },
-            "count": 1,
-            "location": "trash",
-            "controller": "mine"
+            count: 1,
+            location: "trash",
+            controller: "mine",
           },
-          "payCost": false
-        }
-      ]
-    }
+          payCost: false,
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT16-073", compiled);

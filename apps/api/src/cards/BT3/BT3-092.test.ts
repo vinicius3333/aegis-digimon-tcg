@@ -19,10 +19,7 @@ describe("BT3-092 MaloMyotismon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).hasPierce(s.perm("maloMyotismon"))).toBe(true);
 
-    await advance(s.engine).verb.deletePermanent([
-      s.perm("mine").permanentId,
-      s.perm("theirs").permanentId,
-    ]);
+    await advance(s.engine).verb.deletePermanent([s.perm("mine").permanentId, s.perm("theirs").permanentId]);
 
     expect(s.state.memory).toBe(2);
   });

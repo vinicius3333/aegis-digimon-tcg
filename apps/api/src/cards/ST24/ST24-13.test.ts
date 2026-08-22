@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -24,13 +25,20 @@ function primitivesOf(s: EngineSetup): Primitives {
 }
 
 function hasKeyword(s: EngineSetup, permanentId: string, keyword: string): boolean {
-  return (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } }).continuous.hasKeyword(
-    permanentId,
-    keyword,
-  );
+  return (
+    s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } }
+  ).continuous.hasKeyword(permanentId, keyword);
 }
 
 describe("ST24-13 Marcus & Thomas — whenDigivolutionCardTrashed from THIS Tamer → suspend, Jamming", () => {
+  it("continues to conditional memory gain when optional placement is declined", () => {
+    const card = runtimeCompiledCard("ST24-13");
+    const onPlay = card?.effects.find((entry) => entry.trigger === "OnPlay");
+    expect(onPlay?.actions[0]).toMatchObject({ kind: "PlaceUnder", optional: true });
+    expect(onPlay?.actions[0]).not.toHaveProperty("abortOnDecline");
+    expect(onPlay?.actions[1]).toMatchObject({ kind: "GainMemory", amount: 1 });
+  });
+
   it("suspends the Tamer and grants Jamming to a DATA SQUAD Digimon when a card under this Tamer is trashed", async () => {
     const s = setupEngine(
       {
@@ -68,7 +76,13 @@ describe("ST24-13 Marcus & Thomas — whenDigivolutionCardTrashed from THIS Tame
   });
 
   it("on play places the deck top face down and gains memory when an opponent has a Digimon", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "ST24-13", as: "tamer" }], deck: [{ card: "BT1-001", as: "deckTop" }] }, 1: { battleArea: [{ card: "BT1-009", as: "opponent" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "ST24-13", as: "tamer" }], deck: [{ card: "BT1-001", as: "deckTop" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 0;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.memory === 1);

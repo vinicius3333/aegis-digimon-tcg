@@ -15,8 +15,7 @@ const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "opponent",
-              "kind": ["Digimon"],
-              "suspended": true
+              "kind": ["Digimon"]
             },
             "count": 1,
             "sameTarget": true
@@ -31,7 +30,8 @@ const compiled: CompiledCard = {
                 "Digimon"
               ]
             },
-            "count": 1
+            "count": 1,
+            "sameTarget": true
           },
           "restriction": "unsuspend",
           "duration": "untilOpponentTurnEnd",

@@ -38,6 +38,7 @@ export const compiled: CompiledCard = {
             "per": 1,
             "filter": {
               "controller": "mine",
+              "zone": "battleArea",
               "suspended": true,
               "kind": [
                 "Digimon"
@@ -68,6 +69,7 @@ export const compiled: CompiledCard = {
             "per": 1,
             "filter": {
               "controller": "mine",
+              "zone": "battleArea",
               "suspended": true,
               "kind": [
                 "Digimon"

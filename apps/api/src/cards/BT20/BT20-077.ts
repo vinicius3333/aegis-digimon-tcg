@@ -13,7 +13,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    This is a ceiling-lowering (negative raise) on the dpThreshold of the play action.
 //    Using mode:"lowerCeiling", costType:"dpThreshold", scaling per trash count.
 // 3. AllTurns: adds Rush and Blocker keywords in addition to +2000 DP.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Counter",

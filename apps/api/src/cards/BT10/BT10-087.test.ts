@@ -10,12 +10,7 @@ describe("BT10-087 Taiki Kudo", () => {
       {
         0: {
           hand: [{ card: "BT10-087", as: "taiki" }],
-          deck: [
-            { card: "BT10-007", as: "xrosA" },
-            { card: "BT10-008", as: "xrosB" },
-            "BT1-010",
-            "BT1-011",
-          ],
+          deck: [{ card: "BT10-007", as: "xrosA" }, { card: "BT10-008", as: "xrosB" }, "BT1-010", "BT1-011"],
         },
       },
       { autoSelectCards: true },
@@ -23,7 +18,11 @@ describe("BT10-087 Taiki Kudo", () => {
     s.state.memory = 3;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("taiki").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("taiki").instanceId && p.stack.length === 1));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (p) => p.topCard.instanceId === s.inst("taiki").instanceId && p.stack.length === 1,
+      ),
+    );
 
     const taiki = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("taiki").instanceId)!;
     const selectedIds = new Set([s.inst("xrosA").instanceId, s.inst("xrosB").instanceId]);
@@ -53,24 +52,27 @@ describe("BT10-087 Taiki Kudo", () => {
     s.state.memory = 7;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("metalGreymon").instanceId,
-      digiXros: {
-        materialInstanceIds: [s.inst("greymon").instanceId, s.inst("mailbirdramon").instanceId],
-        expanderPermanentIds: [s.perm("taiki").permanentId],
-      },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard.cardId === "BT10-024" && permanent.stack.length === 2,
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("metalGreymon").instanceId,
+        digiXros: {
+          materialInstanceIds: [s.inst("greymon").instanceId, s.inst("mailbirdramon").instanceId],
+          expanderPermanentIds: [s.perm("taiki").permanentId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.cardId === "BT10-024" && permanent.stack.length === 2,
+      ),
+    );
 
     const metalGreymon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT10-024")!;
     expect(s.perm("taiki").isSuspended).toBe(true);
-    expect(metalGreymon.stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining([
-      s.inst("greymon").instanceId,
-      s.inst("mailbirdramon").instanceId,
-    ]));
+    expect(metalGreymon.stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("greymon").instanceId, s.inst("mailbirdramon").instanceId]),
+    );
     expect(s.perm("otherTamer").stack).toHaveLength(0);
     expect(s.state.memory).toBe(4);
   });
@@ -87,14 +89,16 @@ describe("BT10-087 Taiki Kudo", () => {
     });
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("metalGreymon").instanceId,
-      digiXros: {
-        materialInstanceIds: [s.inst("greymon").instanceId],
-        expanderPermanentIds: [s.perm("taiki").permanentId],
-      },
-    })).toEqual({ ok: false, reason: "invalid-expander" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("metalGreymon").instanceId,
+        digiXros: {
+          materialInstanceIds: [s.inst("greymon").instanceId],
+          expanderPermanentIds: [s.perm("taiki").permanentId],
+        },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-expander" });
   });
 
   it("plays itself from security without paying its memory cost", async () => {

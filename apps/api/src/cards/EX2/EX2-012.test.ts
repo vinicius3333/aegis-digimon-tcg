@@ -8,6 +8,7 @@ import type {
   Primitives,
 } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "./EX2-012.js";
 
 // A3 for EX2-012 (Megidramon):
@@ -175,6 +176,17 @@ describe("EX2-012 Megidramon", () => {
 
   it("is registered on import", () => {
     expect(module).toBeDefined();
+  });
+
+  it("registers full compiled IR for every printed clause", () => {
+    const compiled = registeredCompiledCards.get("EX2-012");
+    expect(compiled?.coverage).toBe("full");
+    expect(compiled?.residual).toEqual([]);
+    expect(compiled?.effects.find((effect) => effect.trigger === "OnDeletion")?.actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "PlayWithoutCost", from: ["hand", "trash"] }),
+      ]),
+    );
   });
 
   it("produces 1 WhenDigivolving effect", () => {

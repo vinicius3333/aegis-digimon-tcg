@@ -27,4 +27,58 @@ describe("ST19-10 ExTyrannomon", () => {
     expect(observe(s.engine).hasKeyword(p, "Armor Purge")).toBe(true);
     expect(observe(s.engine).hasKeyword(p, "Barrier")).toBe(true);
   });
+
+  it("plays through the printed DigiXros -2 recipe with a named and Puppet Lv.4 material", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-016", as: "tyranno", dp: 5000 },
+          { card: "ST19-07", as: "puppet", dp: 5000 },
+        ],
+        hand: [{ card: "ST19-10", as: "exty" }],
+      },
+    });
+    s.state.memory = 5;
+    const tyrannoInstanceId = s.perm("tyranno").topCard.instanceId;
+    const puppetInstanceId = s.perm("puppet").topCard.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("exty").instanceId,
+        digiXros: {
+          materialInstanceIds: [tyrannoInstanceId, puppetInstanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await s.ready();
+    const exty = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "ST19-10");
+    expect(exty).toBeDefined();
+    expect(exty?.stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([tyrannoInstanceId, puppetInstanceId]),
+    );
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("rejects a lower-level Puppet as the Lv.4 DigiXros material", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX3-060", as: "tyranno", dp: 5000 },
+          { card: "ST19-04", as: "lowPuppet", dp: 2000 },
+        ],
+        hand: [{ card: "ST19-10", as: "exty" }],
+      },
+    });
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("exty").instanceId,
+        digiXros: {
+          materialInstanceIds: [s.perm("tyranno").topCard.instanceId, s.perm("lowPuppet").topCard.instanceId],
+        },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("exty").instanceId)).toBe(true);
+  });
 });

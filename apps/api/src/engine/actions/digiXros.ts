@@ -321,7 +321,7 @@ function resolveMaterial(player: PlayerState, instanceId: string): ResolvedMater
   for (const perm of player.battleArea) {
     if (perm.topCard?.instanceId === instanceId) {
       const def = definitionOf(perm.topCard.cardId);
-      if (!isDigimon(def) || perm.inBreeding) return undefined;
+      if (perm.inBreeding) return undefined;
       return { instanceId, source: "field", definition: def, fieldPermanentId: perm.permanentId };
     }
   }
@@ -348,9 +348,11 @@ function resolveMaterial(player: PlayerState, instanceId: string): ResolvedMater
  * DigiXros matching (the "also treated as [X] for a DigiXros" grant, KB Q3068/Q3105/Q3119).
  */
 function materialMatchesSlot(def: CardDefinition, slot: DigiXrosMaterial, digiXrosNames?: string[]): boolean {
-  // DigiXros materials are Digimon cards. A trait-only recipe must not accidentally accept an
-  // Option/Tamer that happens to carry the same trait (EX3-014 and Four Great Dragons Options).
-  if (!isDigimon(def)) return false;
+  // Named DigiXros slots may explicitly name non-Digimon cards (BT19-102 names a Tamer).
+  // Unnamed/trait-only slots stay Digimon-only so unrelated Tamers and Options cannot leak in.
+  if (!isDigimon(def) && !(slot.names?.some((name) => def.nameEn.toLowerCase() === name.toLowerCase()) ?? false)) {
+    return false;
+  }
   if (slot.names && slot.names.length > 0) {
     const allNames = digiXrosNames && digiXrosNames.length > 0 ? [def.nameEn, ...digiXrosNames] : [def.nameEn];
     // Plain DigiXros recipe slots are printed card names (`[Greymon]`), not

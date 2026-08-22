@@ -2,9 +2,7 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-IR override (AUTO-GENERATED header removed so the generator preserves this file). The
-// runtime record/compiler cannot emit the use-option-without-cost kind nor the whenOptionUsed token
-// watcher; it left the [When Digivolving] use-option tail and the [Your Turn] token clause as a
-// RawUnparsed residual + an empty [Your Turn] effect. Both are folded into the IR below.
+// The hand-authored IR preserves the use-option lifecycle and whenOptionUsed watcher.
 //
 // BT19-040 Sakuyamon — KB authority (node tools/kb/query.mjs card BT19-040):
 //   Q5469: the "when you use an Option card" effect activates AFTER the used Option's [Main] effect.
@@ -18,71 +16,63 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   the single-color/!prohibited eligibility SERVER-SIDE (08-05 path); filter.playCostLte:5
 //   encodes the printed "cost of 5 or less" cap explicitly (runtime-effect review BT19-040 finding).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 2
+          kind: "Draw",
+          controller: "mine",
+          amount: 2,
         },
         {
-          "kind": "UseOptionWithoutCost",
-          "filter": {
-            "controller": "mine",
-            "kind": [
-              "Option"
-            ],
-            "playCostLte": 5
+          kind: "UseOptionWithoutCost",
+          filter: {
+            controller: "mine",
+            kind: ["Option"],
+            playCostLte: 5,
           },
-          "payCost": false,
-          "from": [
-            "hand"
-          ],
-          "optional": true,
-          "raw": "you may use 1 single-color Option card with a cost of 5 or less from your hand without paying the cost"
-        }
-      ]
+          payCost: false,
+          from: ["hand"],
+          optional: true,
+          raw: "you may use 1 single-color Option card with a cost of 5 or less from your hand without paying the cost",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOptionUsed",
-          "fireCondition": {
-            "kind": "triggerOptionCostAtLeast",
-            "value": 2,
-            "raw": "when you use an Option card with a cost of 2 or more"
+          kind: "SubTrigger",
+          event: "whenOptionUsed",
+          fireCondition: {
+            kind: "triggerOptionCostAtLeast",
+            value: 2,
+            raw: "when you use an Option card with a cost of 2 or more",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "PlayToken",
-              "tokens": [
-                "Pipe Fox"
-              ],
-              "count": 1,
-              "payCost": false,
-              "raw": "play 1 [Pipe Fox] Token (Digimon/Yellow/6000 DP/<Blocker>)"
-            }
+              kind: "PlayToken",
+              tokens: ["Pipe Fox"],
+              count: 1,
+              payCost: false,
+              raw: "play 1 [Pipe Fox] Token (Digimon/Yellow/6000 DP/<Blocker>)",
+            },
           ],
-          "raw": "[Your Turn][Once Per Turn] When you use an Option card with a cost of 2 or more, play 1 [Pipe Fox] Token"
-        }
+          raw: "[Your Turn][Once Per Turn] When you use an Option card with a cost of 2 or more, play 1 [Pipe Fox] Token",
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Sakuyamon: Maid Mode"
-      ],
-      "cost": 1,
-      "isAlternate": true
-    }
+      names: ["Sakuyamon: Maid Mode"],
+      cost: 1,
+      isAlternate: true,
+    },
   ],
 };
 

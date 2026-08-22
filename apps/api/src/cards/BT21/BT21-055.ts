@@ -46,6 +46,14 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             isSelfRef: true,
           },
+          hostFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              { tokens: ["Mineral"], match: "trait" },
+              { tokens: ["Rock"], match: "trait", orPrevious: true },
+            ],
+          },
           actions: [
             {
               kind: "Delete",

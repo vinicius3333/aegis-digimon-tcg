@@ -6,162 +6,159 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
-      ]
-    },
-    {
-      "trigger": "StartOfYourTurn",
-      "actions": [
-        {
-          "kind": "SetMemory",
-          "value": 3,
-          "condition": {
-            "kind": "memoryAtMost",
-            "value": 2,
-            "controller": "mine"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "MindLink",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "trait": [
-                "Pulsemon"
-              ]
-            },
-            "count": 1,
-            "upTo": false
-          }
+          payCost: false,
         },
-        {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "underFilter": {
-            "filter": {
-              "kind": [
-                "Digimon"
-              ],
-              "controller": "mine"
-            },
-            "count": 1
-          }
-        }
       ],
-      "keywords": [
-        {
-          "keyword": "Mind Link",
-          "raw": "＜Mind Link＞"
-        }
-      ]
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "StartOfYourTurn",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
+          kind: "SetMemory",
+          value: 3,
+          condition: {
+            kind: "memoryAtMost",
+            value: 2,
+            controller: "mine",
           },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "Blocker",
-              "raw": "＜Blocker＞"
-            }
-          },
-          "while": {
-            "kind": "selfTopHasText", "filter": {"nameOrTrait": [{"tokens": ["Pulsemon"], "match": "text"}]},
-            "raw": "this Digimon has [Pulsemon] in its text"
-          }
         },
-        {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "effect": {
-            "kind": "keyword",
-            "keyword": {
-              "keyword": "Barrier",
-              "raw": "＜Barrier＞"
-            }
-          },
-          "while": {
-            "kind": "selfTopHasText", "filter": {"nameOrTrait": [{"tokens": ["Pulsemon"], "match": "text"}]},
-            "raw": "this Digimon has [Pulsemon] in its text"
-          }
-        }
       ],
-      "isInherited": true
     },
     {
-      "trigger": "EndOfAllTurns",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "MindLink",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Hacker Judge"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Pulsemon"],
+                  match: "text",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
+            upTo: false,
           },
-          "from": [
-            "digivolutionCards"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+        },
+        {
+          kind: "PlaceUnder",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          underFilter: {
+            filter: {
+              kind: ["Digimon"],
+              controller: "mine",
+            },
+            count: 1,
+          },
+        },
       ],
-      "isInherited": true
-    }
+      keywords: [
+        {
+          keyword: "Mind Link",
+          raw: "＜Mind Link＞",
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Blocker",
+              raw: "＜Blocker＞",
+            },
+          },
+          while: {
+            kind: "selfTopHasText",
+            filter: { nameOrTrait: [{ tokens: ["Pulsemon"], match: "text" }] },
+            raw: "this Digimon has [Pulsemon] in its text",
+          },
+        },
+        {
+          kind: "Aura",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Barrier",
+              raw: "＜Barrier＞",
+            },
+          },
+          while: {
+            kind: "selfTopHasText",
+            filter: { nameOrTrait: [{ tokens: ["Pulsemon"], match: "text" }] },
+            raw: "this Digimon has [Pulsemon] in its text",
+          },
+        },
+      ],
+      isInherited: true,
+    },
+    {
+      trigger: "EndOfAllTurns",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Hacker Judge"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT16-086", compiled);

@@ -11,6 +11,12 @@ describe("BT12-060 ChuuChuumon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
   });
 
+  it("does not give Blocker to a host without Save in its text", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT12-060"] }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(false);
+  });
+
   it("Saves itself under a Tamer on deletion", async () => {
     const s = setupEngine(
       {

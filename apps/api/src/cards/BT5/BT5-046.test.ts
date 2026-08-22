@@ -14,4 +14,14 @@ describe("BT5-046 Terriermon Assistant", () => {
     expect(s.perm("terrier").stack).toHaveLength(0);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT5-047")).toBe(true);
   });
+
+  it("bottoms a revealed non-green card after paying Digi-Burst", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-046", as: "terrier", under: ["BT1-009"] }], deck: ["BT1-010"] } }, { autoSelectCards: true });
+    const source = (s.engine as any).cardSourceOf(s.perm("terrier").topCard!);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT5-046/"))!.effectKey;
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: s.perm("terrier").topCard!.instanceId, effectKey })).toEqual({ ok: true });
+    await settle(() => s.perm("terrier").stack.length === 0 && s.state.players[0]!.deck.length === 0);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.perm("terrier").stack).toHaveLength(0);
+  });
 });

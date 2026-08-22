@@ -8,109 +8,96 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [When Digivolving] <Draw 1>, then trash 1 from hand.
 // (inherited) [When Attacking][Once Per Turn] <Draw 1>, then trash 1 from hand.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Gabumon"
-                      ],
-                      "match": "nameExact"
-                    }
-                  ]
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Gabumon"],
+                  match: "nameExact",
+                },
+              ],
             },
-            "orFilters": [
+            orFilters: [
               {
-                  "controller": "mine",
-                  "kind": [
-                    "Tamer"
-                  ],
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Matt Ishida"
-                      ],
-                      "match": "name"
-                    }
-                  ]
-              }
+                controller: "mine",
+                kind: ["Tamer"],
+                nameOrTrait: [
+                  {
+                    tokens: ["Matt Ishida"],
+                    match: "name",
+                  },
+                ],
+              },
             ],
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
         },
-        {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
-        },
-        {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
-            },
-            "count": 1
-          }
-        }
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+        },
+        {
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+        },
+        {
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
+            },
+            count: 1,
+          },
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 3,
-      "names": [
-        "Gabumon"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      level: 3,
+      names: ["Gabumon"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("ST16-08", compiled);

@@ -1,84 +1,124 @@
-import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import "./BT13-112.js";
+import { describe, expect, it } from "vitest";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./BT13-112.js";
+import "./BT13-007.js";
+import "./BT13-040.js";
+import "./BT13-111.js";
 
-// A3 for BT13-112 Omnimon (BT13, White Lv.7 Digimon).
-//
-// Primary observable: the [On Play] and [When Digivolving] effects are registered as real
-// EffectModule effects (not IR stubs). Previously, the IR had a Modal with one branch being
-// a RawUnparsed (the "play Royal Knights from breeding" option) — this branch was inert.
-// The hand-written module provides both branches:
-//   (a) Delete 1 opponent's Digimon (fully addressable).
-//   (b) Play Royal Knight Digimon from breeding digivolution cards using playInstances
-//       (now implemented — playInstances can reach digivolution stack cards).
-//
-// FAILS-WHEN-REVERTED: if the hand-written EffectModule is removed and the IR stub is
-// restored, EffectTiming.OnPlay returns 0 real effects from the EffectModule registry
-// (registerIrCard vs registerCard).
-
-function fakeDefinition(over: Partial<CardDefinition> = {}): CardDefinition {
-  return {
-    cardId: "BT13-112",
-    set: "BT13",
-    nameEn: "Omnimon",
-    kinds: ["Digimon"] as never,
-    colors: ["White"] as never,
-    playCost: 15,
-    dp: 15000,
-    evoCosts: [],
-    maxCountInDeck: 4,
-    ...over,
-  };
-}
-
-function makeSource(): CardSource {
-  return {
-    instanceId: "INST#OMNIMON",
-    cardId: "BT13-112",
-    ownerSeat: 0 as Seat,
-    definition: fakeDefinition(),
-    permanent: () => undefined,
-    isOnBattleArea: () => true,
-    isOwnersTurn: () => true,
-    hasColor: () => false,
-  };
-}
-
-describe("BT13-112 Omnimon — [On Play][When Digivolving] delete or play Royal Knights", () => {
-  const module = getEffectModule("BT13-112");
-
-  it("registers on import", () => {
-    expect(module, "BT13-112 must self-register on import").toBeDefined();
+describe("BT13-112 Omnimon", () => {
+  it("has complete compiled coverage and no residual gaps", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects.length).toBeGreaterThan(0);
   });
 
-  it("[On Play] is a real effect at OnPlay (not inert IR stub)", () => {
-    const source = makeSource();
-    const effects = module!.effectsForTiming(EffectTiming.OnPlay, source);
-    // Previously the IR registered via registerIrCard (not registerCard), so
-    // getEffectModule returned undefined. The hand-written module returns 1 real effect.
-    expect(effects).toHaveLength(1);
-    expect(effects[0]!.effectKey).toBe("BT13-112/on-play");
+  it("loads the compiled implementation into a live permanent", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-112", as: "card" }] } });
+    await s.ready();
+    expect(s.perm("card").topCard?.cardId).toBe("BT13-112");
   });
 
-  it("[On Play] is optional (player may decline both branches)", () => {
-    const source = makeSource();
-    const effects = module!.effectsForTiming(EffectTiming.OnPlay, source);
-    expect(effects[0]!.optional).toBe(true);
+  it("offers the printed modal choice and can delete any opposing Digimon", async () => {
+    const onPlay = compiled.effects.find((entry) => entry.trigger === "OnPlay");
+    expect(onPlay?.actions[0]).toMatchObject({
+      kind: "Modal",
+      optional: true,
+      choose: 1,
+      options: [
+        [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } }],
+        [
+          expect.objectContaining({ kind: "PlayWithoutCost", bindResultAs: "playedRoyalKnights" }),
+          expect.objectContaining({
+            kind: "Delete",
+            condition: { kind: "bindingExists", ref: "playedRoyalKnights" },
+            target: { filter: { controller: "mine", zone: "breeding" }, count: 1 },
+          }),
+          expect.objectContaining({
+            kind: "GainKeyword",
+            target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
+          }),
+        ],
+      ],
+    });
+
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT13-112", as: "omnimon" }] }, 1: { battleArea: [{ card: "BT1-009", as: "target" }] } },
+      { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 0, autoSelectCards: true },
+    );
+    s.state.memory = 14;
+    const targetId = s.perm("target").topCard!.instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === targetId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === targetId)).toBe(false);
   });
 
-  it("[When Digivolving] is a real effect at WhenDigivolving", () => {
-    const source = makeSource();
-    const effects = module!.effectsForTiming(EffectTiming.WhenDigivolving, source);
-    expect(effects).toHaveLength(1);
-    expect(effects[0]!.effectKey).toBe("BT13-112/when-digivolving");
-    expect(effects[0]!.optional).toBe(true);
+  it("plays one of each distinct Royal Knight name from breeding, then trashes the breeding Digimon and grants Rush", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT13-112", as: "omnimon" }],
+          breeding: { card: "BT13-007", as: "drasil", under: ["BT13-040", "BT13-111", "BT13-040"] },
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1, autoSelectCards: true },
+    );
+    s.state.memory = 14;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT13-007"));
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.state.players[0]!.breeding?.topCard).toBeUndefined();
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-007")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-040")).toBe(true);
+    expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "BT13-040").length).toBe(1);
+    expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "BT13-111").length).toBe(1);
+    for (const permanent of s.state.players[0]!.battleArea.filter((p) =>
+      ["BT13-040", "BT13-111"].includes(p.topCard?.cardId ?? ""),
+    )) {
+      expect(observe(s.engine).hasKeyword(permanent, "Rush")).toBe(true);
+    }
   });
 
-  it("no effects at SecuritySkill (not a security card)", () => {
-    const source = makeSource();
-    const effects = module!.effectsForTiming(EffectTiming.SecuritySkill, source);
-    expect(effects).toHaveLength(0);
+  it("allows declining the optional modal effect", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT13-112", as: "omnimon" }] }, 1: { battleArea: [{ card: "BT1-009", as: "target" }] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 14;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-112"));
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-009")).toBe(true);
+  });
+
+  it("fires the same modal when legally digivolving from a level-6 red Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-111", as: "base" }], hand: [{ card: "BT13-112", as: "omnimon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 0, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    const targetId = s.perm("target").topCard!.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("omnimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === targetId));
+
+    expect(s.perm("base").stack.some((card) => card.cardId === "BT13-111")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetId)).toBe(true);
   });
 });

@@ -1,12 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectDuration, EffectTiming, type CardInstance, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
-import type {
-  DecisionApi,
-  EffectContext,
-  GameAccess,
-  Primitives,
-} from "../../engine/effects/EffectContext.js";
+import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import "./EX4-030.js";
 
@@ -16,8 +11,6 @@ import "./EX4-030.js";
 //   [Your Turn][Once Per Turn] whenOptionUsed (cost ≥2) → play 1 Taomon or Lv.4-or-lower
 //     Blue/Yellow Digimon from digivolution stack without cost.
 //
-// FAILS-WHEN-REVERTED: IR has [When Digivolving] as RawUnparsed → no useOptionFromHand call.
-
 const OPTION_3_ID = "BT1-OPTION-3";
 const OPTION_7_ID = "BT1-OPTION-7";
 const TAOMON_ID = "EX4-028";
@@ -162,15 +155,20 @@ function makeCtx(
 }
 
 describe("EX4-030 Kuzuhamon", () => {
-  const module = getEffectModule("EX4-030");
-
-  it("is registered on import", () => {
-    expect(module).toBeDefined();
+  it("registers full residual-free IR", () => {
+    expect(getEffectModule("EX4-030")).toBeDefined();
+    expect(runtimeCompiledCard("EX4-030")).toMatchObject({ coverage: "full", residual: [] });
   });
 
-  it("produces 2 None effects (name grant + watcher install)", () => {
-    const source = makeSource();
-    expect(module!.effectsForTiming(EffectTiming.None, source)).toHaveLength(2);
+  it("uses one optional hand Option costing 5 or less when digivolving", () => {
+    const effect = runtimeCompiledCard("EX4-030")?.effects?.find((entry) => entry.trigger === "WhenDigivolving");
+    expect(effect?.actions?.[0]).toMatchObject({
+      kind: "UseOptionWithoutCost",
+      filter: { kind: ["Option"], playCostLte: 5 },
+      payCost: false,
+      from: ["hand"],
+      optional: true,
+    });
   });
 
   it("produces 1 WhenDigivolving effect", () => {
@@ -191,7 +189,7 @@ describe("EX4-030 Kuzuhamon", () => {
     expect(nameCalls).toHaveLength(1);
     expect(nameCalls[0]!.args[1]).toBe("name");
     expect(nameCalls[0]!.args[2]).toContain("Sakuyamon");
-    expect(nameCalls[0]!.args[3]).toBe(EffectDuration.UntilEachTurnEnd);
+    expect(nameCalls[0]!.args[3]).toBe(EffectDuration.Permanent);
   });
 
   it("[Static] installs whenOptionUsed watcher via subscribeSubTrigger", async () => {
@@ -203,7 +201,6 @@ describe("EX4-030 Kuzuhamon", () => {
     // The second effect installs the watcher
     await effects[1]!.resolve(ctx);
 
-    // FAILS-WHEN-REVERTED: IR has this clause; test verifies the hand-written module installs it too
     const watcherCalls = recorder.calls.filter((c) => c.verb === "subscribeSubTrigger");
     expect(watcherCalls).toHaveLength(1);
     expect((watcherCalls[0]!.args[0] as { event: string }).event).toBe("whenOptionUsed");
@@ -219,7 +216,6 @@ describe("EX4-030 Kuzuhamon", () => {
     expect(effects[0]!.canActivate(ctx)).toBe(true);
     await effects[0]!.resolve(ctx);
 
-    // FAILS-WHEN-REVERTED: IR has WhenDigivolving as RawUnparsed → no useOptionFromHand call
     const useCalls = recorder.calls.filter((c) => c.verb === "useOptionFromHand");
     expect(useCalls).toHaveLength(1);
     // args[0] is the ctx passed through to useOptionFromHand; the instanceId is args[1].
@@ -255,14 +251,16 @@ describe("EX4-030 Kuzuhamon", () => {
     const effects = module!.effectsForTiming(EffectTiming.None, source);
     await effects[1]!.resolve(ctx); // installs the watcher
 
-    // The subscribeSubTrigger call captures the watcher; extract and invoke it
+    // The subscribeSubTrigger call captures the public IR watcher.
     const subTriggerCall = recorder.calls.find((c) => c.verb === "subscribeSubTrigger");
-    const install = subTriggerCall!.args[0] as { run: (ctx: EffectContext) => Promise<void>; matches: (ctx: EffectContext) => boolean };
+    const install = subTriggerCall!.args[0] as {
+      run: (ctx: EffectContext) => Promise<void>;
+      matches: (ctx: EffectContext) => boolean;
+    };
 
     expect(install.matches(ctx)).toBe(true);
     await install.run(ctx);
 
-    // FAILS-WHEN-REVERTED: no playInstances call from this clause in the old IR
     const playCalls = recorder.calls.filter((c) => c.verb === "playInstances");
     expect(playCalls).toHaveLength(1);
     expect((playCalls[0]!.args[0] as string[]).includes("taomon-1")).toBe(true);

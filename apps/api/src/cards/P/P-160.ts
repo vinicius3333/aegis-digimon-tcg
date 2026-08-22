@@ -68,7 +68,7 @@ const compiled: CompiledCard = {
                   "tokens": [
                     "X Antibody"
                   ],
-                  "match": "name"
+                  "match": "trait"
                 }
               ]
             },
@@ -97,6 +97,7 @@ const compiled: CompiledCard = {
       "names": [
         "Tyrannomon"
       ],
+      "excludeTraits": ["X Antibody"],
       "cost": 0,
       "isAlternate": true
     }

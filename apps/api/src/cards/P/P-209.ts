@@ -16,170 +16,151 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   rest of the sequence). Suspend and Restrict are mandatory once the cost is paid.
 // [All Turns] whenHandTrashed fires when cards are trashed from hand — controller:"mine" scoped.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Alliance",
-          "raw": "＜Alliance＞"
-        }
-      ]
+          keyword: "Alliance",
+          raw: "＜Alliance＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
           // "By trash 1 card in your hand" — optional cost that gates the whole effect.
           // KB Q5401: must perform the trash; if not, Suspend and Restrict do not activate.
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true,
-          "abortOnDecline": true,
-          "raw": "By trashing 1 card in your hand"
+          optional: true,
+          abortOnDecline: true,
+          raw: "By trashing 1 card in your hand",
         },
         {
           // Mandatory suspend (executes only if trash cost was paid).
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
           // "Then" — mandatory restrict once suspend resolves.
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "unsuspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true,
-          "abortOnDecline": true,
-          "raw": "By trashing 1 card in your hand"
+          optional: true,
+          abortOnDecline: true,
+          raw: "By trashing 1 card in your hand",
         },
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Restrict",
+          target: {
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "restriction": "unsuspend",
-          "duration": "untilOpponentTurnEnd"
-        }
-      ]
+          restriction: "unsuspend",
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
       // [All Turns][Once Per Turn] When your hand is trashed from (cards from hand are trashed),
       // you may play 1 level 4 or lower [Demon] card from trash without paying the cost.
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenHandTrashed",
-          "sourceFilter": {
-            "controller": "mine"
+          kind: "SubTrigger",
+          event: "whenHandTrashed",
+          sourceFilter: {
+            controller: "mine",
           },
-          "actions": [
+          actions: [
             {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "levelComparison": {
-                    "op": "lte",
-                    "value": 4
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  levelComparison: {
+                    op: "lte",
+                    value: 4,
                   },
-                  "nameOrTrait": [
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Demon"
-                      ],
-                      "match": "trait"
-                    }
-                  ]
+                      tokens: ["Demon"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "from": [
-                "trash"
-              ],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
+              from: ["trash"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 5,
-      "traits": [
-        "Demon",
-        "TS"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["Demon", "TS"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("P-209", compiled);

@@ -1,25 +1,78 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { setupEngine } from "../../engine/testkit/harness.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import module from "./BT11-105.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./BT11-105.js";
+import "./BT11-061.js";
+
 describe("BT11-105 Fusionize", () => {
-  it("registers a dedicated optional security reveal effect", () => {
-    const s = setupEngine({ 0: { security: [{ card: "BT11-105", as: "fusionize" }] } });
-    const card = s.inst("fusionize");
-    const source: CardSource = {
-      instanceId: card.instanceId,
-      cardId: card.cardId,
-      ownerSeat: 0,
-      definition: getCardDefinition(card.cardId)!,
-      permanent: () => undefined,
-      isOnBattleArea: () => false,
-      isOwnersTurn: () => true,
-      hasColor: () => true,
-    };
-    const effects = module.effectsForTiming(EffectTiming.SecuritySkill, source);
-    expect(effects).toHaveLength(1);
-    expect(effects[0]?.isSecurity).toBe(true);
-    expect(effects[0]?.optional).toBe(true);
+  it("places Vemmon under the host and digivolves into Destromon from the trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-065", as: "host" }],
+          hand: [{ card: "BT11-105", as: "option" }],
+          trash: ["BT11-061", "BT11-070"],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").topCard?.cardId === "BT11-070");
+
+    expect(s.perm("host").topCard?.cardId).toBe("BT11-070");
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toContain("BT11-061");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).not.toContain("BT11-061");
+  });
+
+  it("Q2133: places Vemmon even when no Destromon or Galacticmon is in the trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-065", as: "host" }],
+          hand: [{ card: "BT11-105", as: "option" }],
+          trash: ["BT11-061"],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 0;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").stack.some(({ cardId }) => cardId === "BT11-061"));
+
+    expect(s.perm("host").topCard?.cardId).toBe("BT11-065");
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toContain("BT11-061");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).not.toContain("BT11-061");
+  });
+
+  it("Security reveals three cards, plays Vemmon, and trashes the rest", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT11-105", as: "option", faceUp: true }],
+          deck: [{ card: "BT11-061", as: "vemmon" }, "BT1-001", "BT1-002"],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true, autoAcceptOptional: true },
+    );
+    const optionId = s.inst("option").instanceId;
+    const vemmonId = s.inst("vemmon").instanceId;
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === vemmonId));
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === vemmonId)).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT1-001", "BT1-002"]),
+    );
+    expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 });

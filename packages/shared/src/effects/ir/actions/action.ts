@@ -1,6 +1,7 @@
 // The closed `Action` union.
 
 import type {
+  AddDPFromTrashedCardAction,
   AddDPFromSuspendedCostAction,
   AddToHandSelfAction,
   GainKeywordAction,
@@ -35,6 +36,7 @@ import type {
   CannotIgnoreDigivolutionRequirementsAction,
   DeDigivolveAction,
   DigivolveAction,
+  DigivolveViaPlacementAction,
   PlaceUnderAction,
   TrashDigivolutionAction,
   WaiveColorRequirementAction,
@@ -63,6 +65,7 @@ import type {
   DelayedDeletePlayedAction,
   DeleteAction,
   DeleteBudgetAction,
+  DeleteByStackColorBudgetAction,
   DeleteByDPBudgetAction,
   DeleteLevelBudgetAction,
   DeletePerColorAction,
@@ -97,7 +100,13 @@ import type {
   RestrictUnsuspendedDigivolveAction,
   StackTrashLockAction,
 } from "./restrictions.js";
-import type { RevealAction, RevealAddAction, SearchAction, SearchSecurityAction } from "./reveal.js";
+import type {
+  HandRevealAddAction,
+  RevealAction,
+  RevealAddAction,
+  SearchAction,
+  SearchSecurityAction,
+} from "./reveal.js";
 import type {
   DisableSecurityEffectAction,
   ModifySecurityDPAction,
@@ -113,6 +122,7 @@ import type {
   DisableTimingEffectAction,
   GrantAuraToOpponentsAction,
   GrantStaticAction,
+  DynamicDigivolutionNamesAction,
 } from "./statics.js";
 import type { SubTriggerAction } from "./subTrigger.js";
 import type {
@@ -124,6 +134,7 @@ import type {
 } from "./xrosLink.js";
 
 export type Action =
+  | DynamicDigivolutionNamesAction
   | DrawAction
   | GainMemoryAction
   | SetMemoryAction
@@ -147,7 +158,9 @@ export type Action =
   | MovePermanentAction
   | HatchAction
   | ModifyDPAction
+  | AddDPFromTrashedCardAction
   | AddDPFromSuspendedCostAction
+  | AddDPFromTrashedCardAction
   | SetBaseDPAction
   | GainKeywordAction
   | PlayWithoutCostAction
@@ -162,11 +175,13 @@ export type Action =
   | DigiXrosMaterialZoneExpansionAction
   | AllowDigiXrosMaterialsFromTrashAction
   | RevealAddAction
+  | HandRevealAddAction
   | RevealAction
   | SearchAction
   | SearchSecurityAction
   | DeDigivolveAction
   | DigivolveAction
+  | DigivolveViaPlacementAction
   | AttackAction
   | BattleAction
   | PlaceUnderAction

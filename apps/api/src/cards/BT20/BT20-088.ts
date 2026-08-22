@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "StartOfYourMainPhase",
@@ -17,9 +17,10 @@ const compiled: CompiledCard = {
             "kind": "opponentHas",
             "filter": {
               "controllerDefault": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+                "kind": [
+                  "Digimon"
+                ],
+                "zone": "battleArea"
             },
             "raw": "your opponent has a Digimon"
           }
@@ -54,7 +55,8 @@ const compiled: CompiledCard = {
                   "controller": "mine",
                   "kind": [
                     "Digimon"
-                  ]
+                  ],
+                  "zone": "battleArea"
                 },
                 "count": 1
               },

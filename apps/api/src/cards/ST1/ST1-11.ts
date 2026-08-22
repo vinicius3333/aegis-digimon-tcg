@@ -1,28 +1,23 @@
-import { EffectDuration, EffectTiming } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "ST1-11";
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing, source) {
-    if (timing !== EffectTiming.None) return [];
-    return [
-      staticModifier({
-        source,
-        effectKey: `${cardId}/security-attack`,
-        description: "[Your Turn] Security Attack +1 for every 2 digivolution cards.",
-        when: () => source.isOwnersTurn(),
-        resolve: async (ctx) => {
-          const self = source.permanent();
-          if (!self) return;
-          const amount = Math.floor(self.stack.length / 2);
-          if (amount) ctx.fx.grantKeyword(self.permanentId, "SecurityAttack", EffectDuration.Permanent, amount);
+export const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
+          duration: "permanent",
+          scaling: { per: 2, filter: {}, unit: "digivolutionCards" },
         },
-      }),
-    ];
-  },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
-registerCard(module);
-export default module;
+
+registerIrCard("ST1-11", compiled);

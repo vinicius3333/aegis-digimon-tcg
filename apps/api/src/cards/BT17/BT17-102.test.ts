@@ -1,19 +1,17 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { module } from "./BT17-102.js";
+import { compiled } from "./BT17-102.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "../index.js";
+import "./index.js";
 
 // A3 for BT17-102 (Greymon, White Lv.4):
 //   [When Digivolving] If this Digimon's name is [Koromon], it gains +3000 DP for the
 //     turn. Then, delete 1 of your opponent's Digimon with as much or less DP as this
 //     Digimon. (KB Q4713: delete fires even if Koromon condition is not met)
-//   [All Turns] RESIDUAL — dynamic name grant, no engine primitive.
+//   [All Turns] gains the names of level 3 and lower cards in its stack.
 //   [On Deletion] You may play 1 Tamer with [Tai Kamiya] or [Kari Kamiya] in its name
 //     from your hand without paying cost, OR hatch in your breeding area.
 //
-// FAILS-WHEN-REVERTED: the declarative effect record had all clauses as RawUnparsed no-ops.
 // Test: [When Digivolving] deletes an opponent Digimon with DP ≤ Greymon's DP (5000).
 
 const GREYMON = "BT17-102";
@@ -22,8 +20,7 @@ const AGUMON_LV3 = "BT1-010";
 
 describe("BT17-102 Greymon — [When Digivolving] delete opponent Digimon (KB Q4713)", () => {
   it("keeps the delete clause independent from the Koromon-only DP boost", () => {
-    const effect = module.effectsForTiming(EffectTiming.WhenDigivolving, {} as any)[0] as any;
-    expect(effect.description).toContain("delete 1 of your opponent's Digimon");
+    expect(compiled.effects?.[0]).toMatchObject({ trigger: "WhenDigivolving", actions: expect.arrayContaining([expect.objectContaining({ kind: "Delete" })]) });
   });
 
   it("[When Digivolving] deletes 1 opponent Digimon with DP ≤ Greymon's 5000 DP", async () => {

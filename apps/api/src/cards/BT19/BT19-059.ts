@@ -6,41 +6,41 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Retaliation",
-          "raw": "＜Retaliation＞"
-        }
-      ]
+          keyword: "Retaliation",
+          raw: "＜Retaliation＞",
+        },
+      ],
     },
     {
-      "trigger": "OnDeletion",
-      "actions": [],
-      "keywords": [
+      trigger: "OnDeletion",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Save",
-          "raw": "＜Save＞"
-        }
-      ]
+          keyword: "Save",
+          raw: "＜Save＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Reboot",
-          "raw": "＜Reboot＞"
-        }
-      ]
-    }
+          keyword: "Reboot",
+          raw: "＜Reboot＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT19-059", compiled);

@@ -16,7 +16,7 @@ import "./BT8-031.js";
  * the grant install with no effect, so attacking never trashes any digivolution card.
  */
 
-describe('A3 BT8-031 — granted "[When Attacking] Trash the bottom digivolution card of this Digimon."', () => {
+describe('BT8-031 FrosVelgrmon — granted "[When Attacking] Trash the bottom digivolution card of this Digimon."', () => {
   it("POSITIVE: attacking with the granted opponent Digimon trashes its own bottom digivolution card", async () => {
     const s = setupEngine(
       {

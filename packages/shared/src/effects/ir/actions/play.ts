@@ -8,6 +8,7 @@ import type { ActionBase } from "./base.js";
 
 export interface PlayWithoutCostAction extends ActionBase {
   kind: "PlayWithoutCost";
+  playedByDecode?: boolean;
   /** What is played; `isSelf` for "play this card". */
   target: Target;
   /** "from your hand or trash", "from security". */
@@ -18,6 +19,8 @@ export interface PlayWithoutCostAction extends ActionBase {
    * standalone CostModifier, and floored at 0. Ignored for a free play.
    */
   reduceCostBy?: number;
+  /** Dynamic paid-cost reduction, commonly sourced from a prior action's named count. */
+  reduceCostByScaling?: Scaling;
   /**
    * Source the played cards from the SOURCE permanent's OWN stack, not every permanent's
    * (BT22-007; KB Q4858/Q4859/Q4860 "play 3 or as many as possible"). `target.count` caps how
@@ -120,6 +123,8 @@ export interface PlayFromZoneAction extends ActionBase {
   kind: "PlayFromZone";
   target: Target;
   from: ZoneRef[];
+  /** Allow optional DigiXros material selection from these loose zones before the play. */
+  digiXrosMaterialsFrom?: ZoneRef[];
   /** Floored at 0, default 0. Ignored when `payCost` is false. */
   costReduction?: number;
   /**

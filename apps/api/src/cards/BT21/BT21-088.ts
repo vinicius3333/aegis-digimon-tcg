@@ -22,15 +22,20 @@ export const compiled: CompiledCard = {
                 controller: "mine",
                 kind: ["Digimon"],
                 keywords: ["Save"],
-                nameOrTrait: [
-                  {
-                    tokens: ["Hero"],
-                    match: "trait",
-                  },
-                ],
               },
+              orFilters: [
+                {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["Hero"], match: "trait" }],
+                },
+              ],
               count: 1,
               from: ["hand"],
+            },
+            underFilter: {
+              controller: "mine",
+              kind: ["Tamer"],
             },
             raw: "By placing 1 Digimon card with ＜Save＞ in its text or the [Hero] trait from your hand under this Tamer",
           },
@@ -59,12 +64,7 @@ export const compiled: CompiledCard = {
             controllerDefault: "mine",
             kind: ["Digimon"],
             keywords: ["Save"],
-            nameOrTrait: [
-              {
-                tokens: ["Hero"],
-                match: "trait",
-              },
-            ],
+            orFilters: [{ nameOrTrait: [{ tokens: ["Hero"], match: "trait" }] }],
           },
           actions: [
             {
@@ -84,6 +84,20 @@ export const compiled: CompiledCard = {
                 },
                 raw: "by suspending this Tamer and placing 1 card from under your Tamers as any of their bottom digivolution card",
               },
+              additionalCosts: [
+                {
+                  kind: "place",
+                  target: {
+                    filter: { zone: "underTamers", controller: "mine" },
+                    count: 1,
+                    from: ["underTamers"],
+                  },
+                  destination: "digivolutionStack",
+                  position: "bottom",
+                  host: "triggerSource",
+                  raw: "placing 1 card from under your Tamers as any of their bottom digivolution card",
+                },
+              ],
               optional: true,
               abortOnDecline: true,
             },

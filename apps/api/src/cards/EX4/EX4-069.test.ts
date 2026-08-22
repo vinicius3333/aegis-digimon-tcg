@@ -9,6 +9,7 @@ import {
   type Seat,
 } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./EX4-069.js";
@@ -29,6 +30,10 @@ const definition = (id: string, cost: number): CardDefinition => ({
 });
 
 describe("EX4-069 Gaia Reactor", () => {
+  it("is represented by full residual-free IR", () => {
+    expect(runtimeCompiledCard("EX4-069")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("deletes every Digimon except one highest-play-cost Digimon per player", async () => {
     const self = {
       permanentId: "self",
@@ -109,7 +114,7 @@ describe("EX4-069 Gaia Reactor", () => {
     };
     const effect = getEffectModule("EX4-069")!.effectsForTiming(EffectTiming.OnUseOption, source)[0]!;
     await effect.resolve({ source, trigger: {}, game, fx, ask } as unknown as EffectContext);
-    expect(deleted).toEqual([["ownLow", "oppLow"]]);
+    expect(deleted).toEqual([["ownLow"], ["oppLow"]]);
   });
 
   it("runs the same deletion effect when revealed in security", async () => {
@@ -173,7 +178,7 @@ describe("EX4-069 Gaia Reactor", () => {
       ask: {
         optional: async () => true,
         chooseOption: async () => 0,
-        chooseTargets: async (_ctx, options) => [options.candidates[0]!],
+        chooseTargets: async (_ctx: unknown, options: { candidates: string[] }) => [options.candidates[0]!],
         selectCards: async () => [],
         selectPermanents: async () => [],
       },

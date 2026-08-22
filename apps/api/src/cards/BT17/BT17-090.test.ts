@@ -1,27 +1,13 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import "../index.js";
-
-// A3 for BT17-090 (Tomonori Ryusenji, Tamer):
-//   [End of Opponent's Turn][Once Per Turn] If this Tamer is suspended, 1 of your
-//     Digimon with a Tamer card in its digivolution cards may digivolve into a Digimon
-//     card with [Dex] or [DeathX] in its name from your trash without paying the cost.
-//   [Security] Play this card without paying the cost.
-//
-// FAILS-WHEN-REVERTED: the declarative effect record had both clauses as RawUnparsed no-ops.
-// Test proves [Security] plays the Tamer from security when a security check hits it,
-// which is the simplest guaranteed-observable outcome (no timing window dependency).
+import { compiled } from "./BT17-090.js";
 
 const TOMONORI = "BT17-090";
 const SECURITY_DIGIMON = "AD1-001"; // attacker with enough DP to force a security check
 
 describe("BT17-090 Tomonori Ryusenji — [Security] play self", () => {
   it("installs the Your Turn Tamer-stack watcher", () => {
-    const effect = getEffectModule(TOMONORI)!.effectsForTiming(EffectTiming.None, {} as any)[0] as any;
-    expect(effect).toBeDefined();
-    expect(effect.description).toContain("places a Tamer card");
+    expect(compiled.effects?.[0]).toMatchObject({ trigger: "YourTurn", actions: [{ kind: "SubTrigger", event: "onAddDigivolutionCards", addedDigivolutionCardFilter: { kind: ["Tamer"] } }] });
   });
 
   it("[Security] plays this Tamer to the battle area when hit as a security card", async () => {
@@ -50,5 +36,12 @@ describe("BT17-090 Tomonori Ryusenji — [Security] play self", () => {
     expect(inBattleArea).toBe(true);
     // And not in trash (was not trashed — it was played).
     expect(p0?.trash.some((c) => c.instanceId === tamerId)).toBe(false);
+  });
+
+  it("records complete compiled coverage for the Tamer-stack watcher", async () => {
+    const { runtimeCompiledCard } = await import("../../engine/effects/interpreter.js");
+    const compiled = runtimeCompiledCard(TOMONORI)!;
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });

@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { module as soloogarmonModule } from "./BT20-071.js";
 import "../index.js";
 
 // A3 for BT20-071 (Soloogarmon — Purple Lv.6 Digimon).
@@ -22,6 +24,13 @@ const AGUMON = "BT1-010";
 const KOROMON = "BT1-001";
 
 describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP", () => {
+  it("registers the inherited option-security suppression and main tamer-triggered deletion", () => {
+    const staticEffects = soloogarmonModule.effectsForTiming(EffectTiming.None, { ownerSeat: 0, permanent: () => undefined } as never);
+    expect(staticEffects).toHaveLength(2);
+    expect(staticEffects[0]?.description).toContain("doesn't activate [Security]");
+    expect(staticEffects[1]?.description).toContain("delete 1 of your opponent's Digimon");
+  });
+
   it("[When Digivolving] by trashing 1 hand card, a Digimon gets +3000 DP for the turn", async () => {
     const s = setupEngine(
       {

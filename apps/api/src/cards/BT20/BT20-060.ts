@@ -11,7 +11,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //
 // KB Q4398: DP hits 0 doesn't delete until all processing resolves.
 // KB Q4399: Security effect takes precedence on simultaneous trigger.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Counter",
@@ -46,9 +46,10 @@ const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "opponent",
-              "zone": "security"
+            "zone": "security"
             },
-            "count": 1
+            "count": 1,
+            "fromTop": true
           },
           "condition": {
             "kind": "isDnaDigivolving",
@@ -99,9 +100,10 @@ const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "opponent",
-              "zone": "security"
+            "zone": "security"
             },
-            "count": 1
+            "count": 1,
+            "fromTop": true
           },
           "condition": {
             "kind": "isDnaDigivolving",

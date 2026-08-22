@@ -2,9 +2,14 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./ST5-15.js";
 
 describe("ST5-15 Laser Eye", () => {
+  it("is fully represented as up-to-two De-Digivolve 1 with the level boundary", () => {
+    expect(runtimeCompiledCard("ST5-15")).toMatchObject({ coverage: "full", residual: [], effects: [{ trigger: "Main", actions: [{ kind: "DeDigivolve", amount: 1, stopAtLevel: 3, target: { count: 2, upTo: true } }] }, { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] }] });
+  });
+
   it("De-Digivolves up to 2 opposing Digimon", async () => {
     const s = setupEngine({ 0: { battleArea: ["ST5-03"], hand: [{ card: "ST5-15", as: "option" }] }, 1: { battleArea: [{ card: "ST5-12", under: [{ card: "ST5-09", as: "base1" }], as: "first" }, { card: "ST5-13", under: [{ card: "ST5-09", as: "base2" }], as: "second" }] } }, { autoSelectCards: true });
     s.state.memory = 5;

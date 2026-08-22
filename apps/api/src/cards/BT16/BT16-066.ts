@@ -6,91 +6,91 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "opponent",
+              zone: "hand",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "optional": true,
-          "controller": "opponent"
+          optional: true,
+          controller: "opponent",
         },
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "ifThisEffectDidNotAct",
-            "raw": "they didn't"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "zone": "hand"
-            },
-            "count": 1
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "ifThisEffectDidNotAct",
+            raw: "they didn't",
           },
-          "optional": true,
-          "controller": "opponent"
         },
-        {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "ifThisEffectDidNotAct",
-            "raw": "they didn't"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenAttacking",
-      "actions": [
-        {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
-        },
-        {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
-            },
-            "count": 1
-          }
-        }
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "opponent",
+              zone: "hand",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          optional: true,
+          controller: "opponent",
+        },
+        {
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "ifThisEffectDidNotAct",
+            raw: "they didn't",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+        },
+        {
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
+            },
+            count: 1,
+          },
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Syakomon"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      names: ["Syakomon"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT16-066", compiled);

@@ -32,4 +32,11 @@ describe("BT5-079 BlackWarGrowlmon", () => {
     expect(s.perm("host").isSuspended).toBe(false);
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
   });
+
+  it("does not unsuspend when no other Digimon can be deleted", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-081", as: "host", under: ["BT5-079"] }] }, 1: { security: ["BT1-009"] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]?.security.length === 0);
+    expect(s.perm("host").isSuspended).toBe(true);
+  });
 });

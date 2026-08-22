@@ -20,5 +20,18 @@ describe("BT21-072 Arresterdramon Superior Mode", () => {
         ],
       }),
     );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "YourTurn",
+        isInherited: true,
+        actions: [expect.objectContaining({ kind: "ModifyDP", amount: 2000, duration: "permanent" })],
+      }),
+    );
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 4, texts: ["Save"], cost: 3, isAlternate: true },
+      { traits: ["Hero"], cost: 3, isAlternate: true, level: 4 },
+    ]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });

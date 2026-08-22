@@ -23,7 +23,7 @@ describe("BT11-057 Titamon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
     expect(
@@ -40,6 +40,6 @@ describe("BT11-057 Titamon", () => {
     );
     expect(s.state.players[1]!.battleArea.every(({ isSuspended }) => isSuspended)).toBe(true);
     expect(s.state.memory).toBe(6); // printed evolution cost is 7: 10 - 7 + 3 suspended
-    expect(observe(s.engine).hasKeyword(s.perm("base"), "Piercing")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("base"))).toBe(true);
   });
 });

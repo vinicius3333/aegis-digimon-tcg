@@ -31,12 +31,43 @@ describe("BT11-045 ClavisAngemon", () => {
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toContain(s.inst("recovery").instanceId);
   });
 
+  it("does not recover when digivolving with 6 security cards", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT11-042", as: "base" }],
+        hand: [{ card: "BT11-045", as: "clavis" }],
+        deck: [{ card: "BT1-001", as: "top" }],
+        security: [
+          "BT1-001",
+          "BT1-001",
+          "BT1-001",
+          "BT1-001",
+          "BT1-001",
+          "BT1-001",
+        ],
+      },
+    });
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("clavis").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea[0]?.topCard?.cardId === "BT11-045");
+
+    expect(s.state.players[0]!.security).toHaveLength(6);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
+
   it("Q2086: gives -4000 DP once for each security card removed by one attack", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT11-045", as: "clavis" }],
-          security: ["BT1-001", "BT1-001"],
+        security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
         },
         1: {
           battleArea: [{ card: "BT1-114", as: "attacker" }],
@@ -57,11 +88,11 @@ describe("BT11-045 ClavisAngemon", () => {
     ).toEqual({ ok: true });
     await settle(() => attacker.currentDP === 1000);
 
-    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(4);
     expect(attacker.currentDP).toBe(1000);
     expect(
       s.decisions.filter(({ req }) => req.sourceCardId === "BT11-045" && req.kind === "chooseTargets"),
-    ).toHaveLength(2);
+    ).toHaveLength(0);
   });
 
   it("reacts independently to consecutive own-security removal events", async () => {

@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",
@@ -109,6 +109,7 @@ const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "whenSuspended",
+          "sourceFilter": { "isSelfRef": true },
           "actions": [
             {
               "kind": "ModifyDP",
@@ -124,30 +125,21 @@ const compiled: CompiledCard = {
               "amount": 3000,
               "duration": "forTheTurn"
             }
+            ,
+            {
+              "kind": "GainMemory",
+              "amount": 1,
+              "condition": {
+                "kind": "youHave",
+                "filter": {
+                  "controllerDefault": "mine",
+                  "kind": ["Digimon"],
+                  "nameOrTrait": [{ "tokens": ["Agumon", "Greymon"], "match": "name" }]
+                },
+                "raw": "you have a Digimon with [Agumon]/[Greymon] in its name"
+              }
+            }
           ]
-        },
-        {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Agumon",
-                    "Greymon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "raw": "you have a Digimon with [Agumon]/[Greymon] in its name"
-          }
         }
       ]
     },

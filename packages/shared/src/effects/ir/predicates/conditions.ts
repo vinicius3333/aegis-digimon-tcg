@@ -32,6 +32,7 @@ export interface Condition {
     | "lastTargetCanTrashDigivolution" // the previous target still has stack cards and is not level 3 (EX5-055)
     | "triggerRevealedFromDeck" // the source card is among the cards this effect revealed from a deck
     | "triggerRevealedMatchesFilter" // any card in the current reveal window matches `filter`
+    | "triggerAllRevealedMatchFilter"
     | "triggerAttackBy" // the current attack was declared through the named attack mechanic
     | "allYoursMatchFilter" // every permanent you control in the battle area matches `filter`
     | "breedingAreaEmpty"
@@ -46,7 +47,7 @@ export interface Condition {
     | "selfDigivolutionStackDistinctColorCount"
     | "selfTopHasText" // `filter.nameOrTrait` vs the SOURCE top card's name/trait/effect text (EX11-070)
     | "selfDigivolutionCountAtLeast" // source stack size >= `value` (BT22-007; KB Q4858)
-    | "selfLinkCountAtLeast" // source linked-card count >= `value`
+    | "selfDigivolutionCountExactly" // source stack size equals `value`
     | "selfDigivolutionStackCountAtLeast" // stack cards matching `filter.nameOrTrait` >= `count` (BT11-065)
     | "selfDigivolutionStackHasSameLevelPair" // 2 or more SOURCE stack cards share a level (BT23-102)
     | "selfIsSuspended" // EX3-042, EX8-043
@@ -58,6 +59,7 @@ export interface Condition {
     // Effect-result bindings written during THIS resolution; see EffectContext.lastDeleteCount /
     // lastDigivolveResult / lastOptionUsed.
     | "ifThisEffectDidNotDelete" // an immune or prevented target counts as not deleted (KB BT23-069 Q5338)
+    | "ifThisEffectDidNotDeleteChosenTarget" // a chosen protected target satisfies an otherwise branch
     | "ifThisEffectDidNotSuspend"
     | "ifThisEffectUsed" // an Option-use happened this resolution (KB EX8-037 Q4737)
     | "ifThisEffectDigivolved" // KB BT19-084 Q3146-Q3150
@@ -66,17 +68,23 @@ export interface Condition {
     | "ifOpponentDeclined"
     // SubTrigger fire-time payload gates; only meaningful inside a watcher body.
     | "triggerSecurityIsYours"
+    | "triggerSecurityIsOpponents"
     | "triggerAddedSecurityHasTrait" // whenAddSecurity: a just-added card matches `filter`
     | "triggerByYourEffect" // whenDigivolutionTrashed: byEffectSeat === ownerSeat (KB P-004 "when YOU trash")
+    | "triggerByYourDigimonEffect" // whenEffectAddsToHand: your Digimon effect added cards to hand
     | "triggerEnteredByEffect" // entered play BY an effect, not a manual play/digivolve (BT25-084). A When Attacking entry never sets it.
     | "triggerPlayedOrDigivolvedByEffect" // either a whenPlayed effect event or an effect-driven digivolve (BT25-077)
     | "selfEnteredByEffect" // the live source permanent's current top entered by an effect (BT25-080)
     | "triggerPlayedByEffectSource" // the exact card named by `sourceCardId` drove the play
+    | "triggerPlayedByDecode" // the play was caused by an explicit Decode replacement payload
+    | "lastSuspendedIsMine" // the preceding Suspend action actually suspended one of your permanents
     | "triggerOptionCostAtLeast" // the Option's ORIGINAL use cost, not a reduced one (BT19-040; KB Q5471-Q5473)
+    | "triggerOptionMatchesFilter" // the used Option's printed definition matches `filter`
     | "triggerSubjectHasColor" // evaluated POST-digivolve (BT25-026; KB Q6290/Q6291)
     | "triggerSubjectMatchesFilter" // non-color subject gates; later "then" branches still run (BT21-061)
     | "triggerDigivolvedSameLevel" // BT9-092
     | "triggerDeletedLevelAtLeast"
+    | "triggerDeletedStackMatchesFilter"
     | "triggerAttackerIsSelf"
     | "triggerAttackerMatchesFilter"
     | "triggerDefenderIsSelf"
@@ -84,6 +92,7 @@ export interface Condition {
     | "triggerRemovedSecuritySeat"
     | "triggerHandTrashedSeat"
     | "triggerRemovalCause"
+    | "triggerDeletedByDpZero"
     | "noTamerInDigivolution"
     | "selfHasNoDigivolutionCards" // played directly, not digivolved into (BT19-101). Off-field source => false.
     | "selfHadDigivolutionCards" // the stack the source held when it was deleted, still readable once it left the field

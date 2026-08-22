@@ -50,7 +50,7 @@ describe("BT8/BT9 Armor Rush interactions", () => {
 
   it("chains Magnamon X prevention into Magnamon's Armor Purge", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT9-044", as: "stack", under: ["BT1-027", "BT8-038"] }] },
+      0: { battleArea: [{ card: "BT9-044", as: "stack", under: ["BT1-027", "BT8-038"] }], trash: ["BT1-027"] },
     }, { autoAcceptOptional: true, autoSelectCards: true });
     const permanentId = s.perm("stack").permanentId;
 
@@ -69,6 +69,7 @@ describe("BT8/BT9 Armor Rush interactions", () => {
       0: {
         battleArea: [{ card: "BT9-044", as: "armor", under: ["BT8-021", "BT8-038"] }],
         security: ["BT1-001"],
+        trash: ["BT8-021"],
       },
       // A plain attacker: BT4-114 AncientGarurumon unsuspends itself with its own
       // [When Attacking] clause, which would mask the post-attack suspension asserted below.

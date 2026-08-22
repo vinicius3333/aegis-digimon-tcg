@@ -85,12 +85,7 @@ const module: EffectModule = {
             });
             if (chosen.length === 0) return;
 
-            ctx.fx.grantKeyword(
-              chosen[0]!,
-              "SecurityAttack",
-              EffectDuration.UntilOpponentTurnEnd,
-              -1,
-            );
+            ctx.fx.grantKeyword(chosen[0]!, "SecurityAttack", EffectDuration.UntilOpponentTurnEnd, -1);
           },
         },
       ];
@@ -145,8 +140,7 @@ const module: EffectModule = {
               sourcePermanentId: self.permanentId,
               once: false,
               description: `${cardId}: when effect removes from own security → suspend self, grant SecurityAttack-1`,
-              matches: (subCtx) =>
-                subCtx.trigger.removedFromSecuritySeat === source.ownerSeat,
+              matches: (subCtx) => subCtx.trigger.removedFromSecuritySeat === source.ownerSeat,
               run: async (subCtx) => {
                 // Guard: Tamer must still be on the battle area.
                 if (!subCtx.source.isOnBattleArea()) return;
@@ -174,12 +168,7 @@ const module: EffectModule = {
                 });
                 if (chosen.length === 0) return;
 
-                subCtx.fx.grantKeyword(
-                  chosen[0]!,
-                  "SecurityAttack",
-                  EffectDuration.UntilOpponentTurnEnd,
-                  -1,
-                );
+                subCtx.fx.grantKeyword(chosen[0]!, "SecurityAttack", EffectDuration.UntilOpponentTurnEnd, -1);
               },
             });
           },

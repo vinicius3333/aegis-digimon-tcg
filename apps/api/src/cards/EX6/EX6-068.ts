@@ -13,10 +13,7 @@ function hasAngelArchangel(def: CardDefinition): boolean {
 }
 
 function isThreeGreatAngelsDigimon(def: CardDefinition): boolean {
-  return (
-    isDigimon(def) &&
-    (def.types ?? []).some((t) => t === "Three Great Angels" || t === "ThreeGreatAngels")
-  );
+  return isDigimon(def) && (def.types ?? []).some((t) => t === "Three Great Angels" || t === "ThreeGreatAngels");
 }
 
 const module: EffectModule = {
@@ -51,20 +48,24 @@ const module: EffectModule = {
               await ctx.fx.placeOptionAsPermanent(source.instanceId);
             }
           },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security-play`,
-          description: "[Security] Play this card as a battle-area permanent.",
-          resolve: async (ctx) => {
-            if (ctx.fx.placeOptionAsPermanent) {
-              await ctx.fx.placeOptionAsPermanent(source.instanceId);
-            }
+          from: ["hand"],
+          toTop: false,
+          optional: true,
+        },
+        { kind: "PlaceInBattleAreaSelf" },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          delayArmedIntrinsic: true,
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Angel", "Archangel", "Three Great Angels"], match: "trait" }],
           },
         }),
       ];
@@ -100,9 +101,7 @@ const module: EffectModule = {
                 if (subject.controllerSeat !== ownerSeat) return false;
                 const def = subCtx.game.definitionOf(subject.topCard);
                 if (!isDigimon(def)) return false;
-                return (def.types ?? []).some(
-                  (t) => t === "Angel" || t === "Archangel",
-                );
+                return (def.types ?? []).some((t) => t === "Angel" || t === "Archangel");
               },
               run: async (subCtx) => {
                 const currentSelf = subCtx.game.permanentById(self.permanentId);
@@ -111,9 +110,7 @@ const module: EffectModule = {
                 const owner = subCtx.game.player(ownerSeat);
                 const security = [...owner.security];
                 if (security.length === 0) return;
-                const qualifying = security.filter((c) =>
-                  isThreeGreatAngelsDigimon(subCtx.game.definitionOf(c)),
-                );
+                const qualifying = security.filter((c) => isThreeGreatAngelsDigimon(subCtx.game.definitionOf(c)));
                 if (qualifying.length === 0) return;
                 const chosen = await subCtx.ask.selectCards(subCtx, {
                   candidates: qualifying.map((c) => c.instanceId),
@@ -136,6 +133,4 @@ const module: EffectModule = {
     return [];
   },
 };
-
-registerCard(module);
-export default module;
+registerIrCard("EX6-068", compiled);

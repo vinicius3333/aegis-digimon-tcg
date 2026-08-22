@@ -31,7 +31,8 @@ const compiled: CompiledCard = {
             "protections": [
               "dpReduction",
               "deDigivolve"
-            ]
+            ],
+            "from": "opponent"
           },
           "duration": "untilOpponentTurnEnd"
         }
@@ -64,7 +65,8 @@ const compiled: CompiledCard = {
             "protections": [
               "dpReduction",
               "deDigivolve"
-            ]
+            ],
+            "from": "opponent"
           },
           "duration": "untilOpponentTurnEnd"
         }

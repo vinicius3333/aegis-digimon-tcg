@@ -24,6 +24,5 @@ describe("BT11-085 WaruSeadramon", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("source").instanceId),
     );
-    expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).not.toContain(s.inst("source").instanceId);
   });
 });

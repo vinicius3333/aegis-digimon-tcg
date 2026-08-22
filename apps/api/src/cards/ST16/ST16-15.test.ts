@@ -16,15 +16,24 @@ describe("ST16-15 Lament of Friendship", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-    await settle(() => (s.engine as unknown as { continuous: { listCustomEffectGrants(): readonly unknown[] } }).continuous.listCustomEffectGrants().length > 0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        (
+          s.engine as unknown as { continuous: { listCustomEffectGrants(): readonly unknown[] } }
+        ).continuous.listCustomEffectGrants().length > 0,
+    );
 
     const engine = s.engine as unknown as {
       continuous: { listCustomEffectGrants(): readonly { instanceId: string; token: string }[] };
     };
-    expect(engine.continuous.listCustomEffectGrants()).toContainEqual(expect.objectContaining({
-      instanceId: s.perm("garurumon").topCard!.instanceId,
-      token: "OnDeletionPlaySelfMandatory",
-    }));
+    expect(engine.continuous.listCustomEffectGrants()).toContainEqual(
+      expect.objectContaining({
+        instanceId: s.perm("garurumon").topCard!.instanceId,
+        token: "OnDeletionPlaySelfMandatory",
+      }),
+    );
   });
 });

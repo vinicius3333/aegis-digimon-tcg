@@ -7,4 +7,9 @@ describe("BT5-023 Gesomon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("gesomon").currentDP).toBe(s.perm("gesomon").baseDP);
   });
+
+  it("is registered with complete, residual-free runtime coverage", () => {
+    expect(getEffectModule("BT5-023")).toBeDefined();
+    expect(runtimeCompiledCard("BT5-023")).toMatchObject({ effects: [], coverage: "full", residual: [] });
+  });
 });

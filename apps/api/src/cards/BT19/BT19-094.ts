@@ -5,122 +5,114 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Hand-authored IR correction: model the trash-trigger branch outcome and the
 // Main delete-until-security-count clause with structured result conditions.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOneOfYoursDigivolves",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: {
+            controllerDefault: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Lucemon (X Antibody)"
-                ],
-                "match": "name"
-              }
-            ]
+                tokens: ["Lucemon (X Antibody)"],
+                match: "name",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "SecurityManipulation",
-              "op": "trashTop",
-              "controller": "opponent",
-              "optionalFor": "opponent",
-              "amount": 1,
-              "bindResultAs": "opponentSecurityTrashedBySeventh",
-              "cost": {
-                "kind": "return",
-                "target": {
-                  "filter": {
-                    "zone": "trash",
-                    "controller": "mine",
-                    "isSelfRef": true
+              kind: "SecurityManipulation",
+              op: "trashTop",
+              controller: "opponent",
+              optionalFor: "opponent",
+              amount: 1,
+              bindResultAs: "opponentSecurityTrashedBySeventh",
+              cost: {
+                kind: "return",
+                target: {
+                  filter: {
+                    zone: "trash",
+                    controller: "mine",
+                    isSelfRef: true,
                   },
-                  "count": 1,
-                  "isSelf": true
+                  count: 1,
+                  isSelf: true,
                 },
-                "raw": "by returning this card from the trash to the bottom of the deck"
-              }
+                raw: "by returning this card from the trash to the bottom of the deck",
+              },
             },
             {
-              "kind": "SecurityManipulation",
-              "op": "addTop",
-              "controller": "mine",
-              "source": "deck",
-              "amount": 1,
-              "condition": {
-                "kind": "bindingEmpty",
-                "ref": "opponentSecurityTrashedBySeventh"
-              }
-            }
+              kind: "SecurityManipulation",
+              op: "addTop",
+              controller: "mine",
+              source: "deck",
+              amount: 1,
+              condition: {
+                kind: "bindingEmpty",
+                ref: "opponentSecurityTrashedBySeventh",
+              },
+            },
           ],
-          "raw": "whenOneOfYoursDigivolves"
-        }
+          raw: "whenOneOfYoursDigivolves",
+        },
       ],
-      "isFromTrash": true
+      isFromTrash: true,
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "DeleteUntilCount",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "DeleteUntilCount",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "untilCountSource": "mineSecurityCount"
+          untilCountSource: "mineSecurityCount",
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "addTop",
-          "controller": "mine",
-          "source": "deck",
-          "amount": 1,
-          "condition": {
-            "kind": "ifThisEffectActed"
-          }
-        }
-      ]
+          kind: "SecurityManipulation",
+          op: "addTop",
+          controller: "mine",
+          source: "deck",
+          amount: 1,
+          condition: {
+            kind: "ifThisEffectActed",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Lucemon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Lucemon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT19-094", compiled);

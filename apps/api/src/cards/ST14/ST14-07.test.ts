@@ -18,10 +18,11 @@ describe("ST14-07 Baalmon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("baalmon"));
+    await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("baalmon").permanentId]);
 
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "ST14-08")).toBe(true);
@@ -33,5 +34,12 @@ describe("ST14-07 Baalmon", () => {
     const baseDp = s.perm("host").currentDP;
     await s.ready();
     expect(s.perm("host").currentDP).toBe(baseDp + 2000);
+  });
+
+  it("does not use a Wizard in the stack to qualify a non-Wizard host", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "ST14-05", as: "host", under: ["ST14-07"] }] } });
+    const baseDp = s.perm("host").currentDP;
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(baseDp);
   });
 });

@@ -1,8 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { EffectTiming } from "@aegis/shared";
+import { getEffectModule } from "../../engine/effects/registry.js";
 import "./BT12-109.js";
 
 describe("BT12-109 Overflowing Power", () => {
+  it("registers its printed Security add-to-hand effect", () => {
+    const module = getEffectModule("BT12-109");
+    const source = { instanceId: "source-109", cardId: "BT12-109", ownerSeat: 0, isOnBattleArea: () => false } as never;
+    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+  });
+
   it("waives its color requirement with a Hunter Tamer and digivolves from under that Tamer", async () => {
     const s = setupEngine({
       0: {

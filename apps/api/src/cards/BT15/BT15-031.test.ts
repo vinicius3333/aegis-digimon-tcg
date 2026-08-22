@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./BT15-031.js";
 
 describe("BT15-031", () => {
+  it("retains inherited Blocker", () => expect(compiled.effects?.[4]).toMatchObject({ trigger: "Static", isInherited: true, keywords: [{ keyword: "Blocker" }] }));
   it("returns an opposing level 5 or lower Digimon on play and when attacking", () => {
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "OnPlay", actions: [{ kind: "Return", to: "hand", target: { filter: { levelComparison: { op: "lte", value: 5 } } } }] });
     expect(compiled.effects?.[1]).toMatchObject({ trigger: "WhenAttacking", actions: [{ kind: "Return", to: "hand" }] });

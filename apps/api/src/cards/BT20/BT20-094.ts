@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Main",
@@ -34,7 +34,7 @@ const compiled: CompiledCard = {
           ],
           "payCost": true,
           "optional": true,
-          "costReduction": 5,
+          "reduceCostBy": 5,
           "raw": "play 1 [Free] trait Digimon card from your trash with the play cost reduced by 5"
         },
         {
@@ -66,25 +66,22 @@ const compiled: CompiledCard = {
             }
           ]
         },
+      ]
+    },
+    {
+      "trigger": "Main",
+      "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
+      "actions": [
         {
           "kind": "PlayWithoutCost",
           "target": {
             "filter": {
               "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Imperialdramon: Dragon Mode"
-                  ],
-                  "match": "name"
-                }
-              ]
+              "nameOrTrait": [{ "tokens": ["Imperialdramon: Dragon Mode"], "match": "name" }]
             },
             "count": 1
           },
-          "from": [
-            "digivolutionCards"
-          ],
+          "from": ["digivolutionCards"],
           "payCost": false,
           "optional": true
         }

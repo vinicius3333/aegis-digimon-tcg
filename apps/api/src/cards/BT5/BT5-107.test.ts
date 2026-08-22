@@ -16,6 +16,15 @@ describe("BT5-107 Revive From the Darkness!", () => {
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 
+  it("does not play a purple Digimon above level 5", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-071", as: "cost" }], hand: [{ card: "BT5-107", as: "option" }], trash: [{ card: "BT5-080", as: "tooHigh" }] } }, { autoSelectCards: true, autoAcceptOptional: true });
+    s.state.memory = 6;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("tooHigh").instanceId)).toBe(true);
+  });
+
   it("adds itself to hand from security", async () => {
     const s = setupEngine({ 0: { security: [{ card: "BT5-107", as: "securityOption", faceUp: true }] } });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));

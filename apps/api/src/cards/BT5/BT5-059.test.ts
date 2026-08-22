@@ -16,4 +16,16 @@ describe("BT5-059 Keramon", () => {
     await settle(() => added.every((id) => player.hand.some((card) => card.instanceId === id)));
     expect(player.deck).toHaveLength(3);
   });
+
+  it("adds the available category when only one eligible category is revealed", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT5-059", as: "source" }], deck: [
+      { card: "BT5-063", as: "unidentified" }, "BT5-060", "BT5-061", "BT5-062", "BT5-064",
+    ] } }, { autoSelectCards: true });
+    const player = s.state.players[0] as PlayerState;
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    await settle(() => player.hand.some((card) => card.instanceId === s.inst("unidentified").instanceId));
+    expect(player.hand.some((card) => card.instanceId === s.inst("unidentified").instanceId)).toBe(true);
+    expect(player.deck).toHaveLength(4);
+  });
 });

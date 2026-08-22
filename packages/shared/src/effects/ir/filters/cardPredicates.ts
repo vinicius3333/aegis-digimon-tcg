@@ -53,6 +53,8 @@ export interface CardPredicates {
    * filters evaluated while the cards are still in hand/deck (RestrictPlay, EX7-014).
    */
   dpAtMost?: number;
+  /** Runtime bonus added to the printed-DP ceiling for hand/deck candidates. */
+  dpAtMostScaling?: Scaling;
   playCostLte?: number;
   /** "with a play/use cost of N or more" (EX9-068). */
   playCostGte?: number;

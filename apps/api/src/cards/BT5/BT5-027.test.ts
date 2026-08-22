@@ -7,4 +7,9 @@ describe("BT5-027 MarineDevimon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("marineDevimon").currentDP).toBe(s.perm("marineDevimon").baseDP);
   });
+
+  it("is registered with complete, residual-free runtime coverage", () => {
+    expect(getEffectModule("BT5-027")).toBeDefined();
+    expect(runtimeCompiledCard("BT5-027")).toMatchObject({ effects: [], coverage: "full", residual: [] });
+  });
 });

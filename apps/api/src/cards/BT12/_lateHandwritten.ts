@@ -2,12 +2,14 @@ import {
   CardKind,
   EffectDuration,
   EffectTiming,
+  filterToDistinctColors,
   isDigimon,
   isTamer,
   type CardDefinition,
   type CardInstance,
   type Permanent,
 } from "@aegis/shared";
+import { cardHasTrait } from "../../engine/cards/cardData.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
@@ -51,6 +53,15 @@ function text(definition: CardDefinition): string {
 
 function hasText(definition: CardDefinition, token: string): boolean {
   return text(definition).toLowerCase().includes(token.toLowerCase());
+}
+
+function sourcePermanent(ctx: EffectContext, source: CardSource): Permanent | undefined {
+  return (
+    source.permanent() ??
+    ctx.game.player(source.ownerSeat).battleArea.find(
+      (permanent) => permanent.topCard?.instanceId === source.instanceId,
+    )
+  );
 }
 
 function myPermanents(
@@ -136,10 +147,15 @@ async function revealSave(ctx: EffectContext, source: CardSource, count: number,
     candidates: eligible.map(({ instanceId }) => instanceId),
     min: 0,
     max: Math.min(max, eligible.length),
+    differentColors: true,
     visibleCards: revealed.map(({ instanceId, cardId }) => ({ instanceId, cardId })),
   });
-  if (selected.length > 0) await ctx.fx.returnToHand(selected);
-  const rest = revealed.map(({ instanceId }) => instanceId).filter((id) => !selected.includes(id));
+  const selectedCards = eligible.filter(({ instanceId }) => selected.includes(instanceId));
+  const legalSelected = filterToDistinctColors(selectedCards, (card) => ctx.game.definitionOf(card).colors).map(
+    ({ instanceId }) => instanceId,
+  );
+  if (legalSelected.length > 0) await ctx.fx.returnToHand(legalSelected);
+  const rest = revealed.map(({ instanceId }) => instanceId).filter((id) => !legalSelected.includes(id));
   if (rest.length > 0) await ctx.fx.returnToDeck(rest, { toTop: false });
 }
 
@@ -147,7 +163,7 @@ async function placeSaveFromHand(ctx: EffectContext, source: CardSource): Promis
   const cards = ctx.game
     .player(source.ownerSeat)
     .hand.filter((card) => isDigimon(ctx.game.definitionOf(card)) && hasText(ctx.game.definitionOf(card), "save"));
-  const picked = await chooseCard(ctx, cards, true);
+  const picked = await chooseCard(ctx, cards);
   const self = source.permanent();
   if (picked === undefined || self === undefined) return false;
   return (await ctx.fx.placeUnder(self.permanentId, [picked])).length === 1;
@@ -159,7 +175,6 @@ function saveTamerStart(cardId: string, source: CardSource, result: "draw" | "me
     effectKey: `${cardId}/start-main`,
     description:
       "[Start of Your Main Phase] Place a Save Digimon from hand under this Tamer to apply this card's effect.",
-    optional: true,
     resolve: async (ctx) => {
       if (!(await placeSaveFromHand(ctx, source))) return;
       if (result === "draw") await ctx.fx.draw(source.ownerSeat, 1);
@@ -204,8 +219,6 @@ function saveTamerDigivolveReducer(cardId: string, source: CardSource): Effect {
             cards.push(...permanent.stack);
           }
           if (self.isSuspended || cards.length === 0) return false;
-          if (!(await runtimeCtx.ask.optional(runtimeCtx, "Pay the Tamer's cost to reduce digivolution by 1?")))
-            return false;
           const picked = await chooseCard(runtimeCtx, cards);
           if (!picked || runtimeCtx.fx.payActivationCost?.(self.permanentId, "suspend") !== true) return false;
           return (await runtimeCtx.fx.placeUnder(target.permanentId, [picked])).length === 1;
@@ -269,7 +282,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                     ctx,
                     ctx.game
                       .player(source.ownerSeat)
-                      .trash.filter((item) => hasText(ctx.game.definitionOf(item), "x antibody")),
+                      .trash.filter((item) => cardHasTrait(ctx.game.definitionOf(item), "X Antibody")),
                     true,
                   );
                   if (card) await ctx.fx.returnToHand([card]);
@@ -285,7 +298,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                   const enhanced = self?.stack.some(
                     (item) =>
                       ctx.game.definitionOf(item).nameEn.includes("Baalmon") ||
-                      hasText(ctx.game.definitionOf(item), "x antibody"),
+                      cardHasTrait(ctx.game.definitionOf(item), "X Antibody"),
                   );
                   if (enhanced) {
                     const id = await choosePermanent(
@@ -315,7 +328,8 @@ export function lateBt12Module(cardId: string): EffectModule {
                   return (
                     source.isOwnersTurn() &&
                     top !== undefined &&
-                    (hasText(ctx.game.definitionOf(top), "wizard") || hasText(ctx.game.definitionOf(top), "demon lord"))
+                    (cardHasTrait(ctx.game.definitionOf(top), "Wizard") ||
+                      cardHasTrait(ctx.game.definitionOf(top), "Demon Lord"))
                   );
                 },
                 resolve: async (ctx) => {
@@ -357,7 +371,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                     ctx,
                     pool.filter(
                       (item) =>
-                        isDigimon(ctx.game.definitionOf(item)) && hasText(ctx.game.definitionOf(item), "xros heart"),
+                        isDigimon(ctx.game.definitionOf(item)) && cardHasTrait(ctx.game.definitionOf(item), "Xros Heart"),
                     ),
                     true,
                   );
@@ -402,7 +416,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                     ?.stack.some(
                       (item) =>
                         ctx.game.definitionOf(item).nameEn.includes("Beelzemon") ||
-                        hasText(ctx.game.definitionOf(item), "x antibody"),
+                        cardHasTrait(ctx.game.definitionOf(item), "X Antibody"),
                     ) ?? false,
                 resolve: async (ctx) => {
                   const amount = Math.floor(ctx.game.player(source.ownerSeat).trash.length / 10);
@@ -544,6 +558,10 @@ export function lateBt12Module(cardId: string): EffectModule {
                   const trash = ctx.game.player(source.ownerSeat).trash;
                   const growlmon = trash.find((card) => ctx.game.definitionOf(card).nameEn === "Growlmon");
                   const warGrowlmon = trash.find((card) => ctx.game.definitionOf(card).nameEn === "WarGrowlmon");
+                  const self = source.permanent();
+                  if (!growlmon || !warGrowlmon || !self) return;
+                  if (!ctx.fx.relocatePermanent(guilmon, self.permanentId)) return;
+                  await ctx.fx.placeUnder(guilmon, [growlmon.instanceId, warGrowlmon.instanceId]);
                   const gallantmon = await chooseCard(
                     ctx,
                     ctx.game
@@ -555,13 +573,10 @@ export function lateBt12Module(cardId: string): EffectModule {
                       ),
                     true,
                   );
-                  const self = source.permanent();
-                  if (!growlmon || !warGrowlmon || !gallantmon || !self) return;
-                  if (!ctx.fx.relocatePermanent(guilmon, self.permanentId)) return;
-                  await ctx.fx.placeUnder(guilmon, [growlmon.instanceId, warGrowlmon.instanceId]);
+                  if (!gallantmon) return;
                   const evolved = await ctx.fx.digivolveFromInstance(guilmon, gallantmon, {
                     payCost: true,
-                    ignoreRequirements: true,
+                    ignoreLevel: true,
                   });
                   if (evolved) ctx.fx.modifyDP(evolved.permanentId, 2000, EffectDuration.UntilEachTurnEnd);
                 },
@@ -667,6 +682,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                   const top = subject?.topCard;
                   return (
                     self?.isSuspended === false &&
+                    ctx.trigger.entryCause === "digivolve" &&
                     subject?.controllerSeat === source.ownerSeat &&
                     top !== undefined &&
                     (ctx.game.definitionOf(top).nameEn.includes("Greymon") ||
@@ -720,7 +736,6 @@ export function lateBt12Module(cardId: string): EffectModule {
                         (item) =>
                           isDigimon(ctx.game.definitionOf(item)) && hasText(ctx.game.definitionOf(item), "save"),
                       ),
-                    true,
                   );
                   if (card) await ctx.fx.placeUnder(self.permanentId, [card]);
                 },
@@ -748,7 +763,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                   const hunter = await chooseCard(
                     ctx,
                     revealed.filter(
-                      (card) => card.instanceId !== save && hasText(ctx.game.definitionOf(card), "hunter"),
+                      (card) => card.instanceId !== save && cardHasTrait(ctx.game.definitionOf(card), "Hunter"),
                     ),
                     true,
                   );
@@ -799,15 +814,23 @@ export function lateBt12Module(cardId: string): EffectModule {
                   if (target) await ctx.fx.deletePermanent([target], "byEffect");
                   const hybrid = await choosePermanent(
                     ctx,
-                    myPermanents(ctx, source, (definition) => isDigimon(definition) && hasText(definition, "hybrid")),
+                    myPermanents(
+                      ctx,
+                      source,
+                      (definition) =>
+                        isDigimon(definition) &&
+                        cardHasTrait(definition, "Hybrid"),
+                    ),
                   );
                   if (hybrid) {
-                    ctx.fx.modifyDP(hybrid, 3000, EffectDuration.UntilEachTurnEnd);
-                    await ctx.fx.forceAttack(hybrid, { attackPlayer: true });
+                    await ctx.fx.modifyDP(hybrid, 3000, EffectDuration.UntilEachTurnEnd);
+                    if (await ctx.ask.optional(ctx, "Attack a player with this Digimon?"))
+                      await ctx.fx.forceAttack(hybrid, { attackPlayer: true, attackPlayerOnly: true });
                   }
                 },
               }),
             ];
+          if (timing === EffectTiming.SecuritySkill) return [_deleteByDp(cardId, source, 6000, true)];
           return [];
         }
         case "BT12-100": {
@@ -817,7 +840,8 @@ export function lateBt12Module(cardId: string): EffectModule {
             const shoutmon = myPermanents(ctx, source, (d) => d.nameEn.includes("Shoutmon X7: Superior Mode"))[0];
             if (shoutmon) {
               await ctx.fx.unsuspend([shoutmon.permanentId]);
-              await ctx.fx.forceAttack(shoutmon.permanentId, { attackPlayer: true });
+              if (await ctx.ask.optional(ctx, "Attack a player with this Digimon?"))
+                await ctx.fx.forceAttack(shoutmon.permanentId, { attackPlayer: true, attackPlayerOnly: true });
             }
           };
           if (timing === EffectTiming.OnUseOption)
@@ -829,6 +853,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                 resolve,
               }),
             ];
+          if (timing === EffectTiming.SecuritySkill) return [_deleteByDp(cardId, source, Infinity, true)];
           return [];
         }
         case "BT12-101": {
@@ -854,7 +879,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                     isDigimon(d) &&
                     (d.level ?? Infinity) <= 4 &&
                     d.colors.includes("Blue" as never) &&
-                    hasText(d, "free")
+                    cardHasTrait(d, "Free")
                   );
                 }),
                 true,
@@ -926,15 +951,15 @@ export function lateBt12Module(cardId: string): EffectModule {
                 effectKey: `${cardId}/hunter-color-waiver`,
                 description: "A Hunter Tamer waives this Option's color requirement.",
                 when: (ctx) =>
-                  myPermanents(ctx, source, (definition) => isTamer(definition) && hasText(definition, "hunter"))
+                  myPermanents(ctx, source, (definition) => isTamer(definition) && cardHasTrait(definition, "Hunter"))
                     .length > 0,
                 resolve: async (ctx) => ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.Permanent),
               }),
             ];
           const resolve = async (ctx: EffectContext) => {
             const first = await choosePermanent(ctx, opposingDigimon(ctx, source));
-            if (first) ctx.fx.modifyDP(first, -4000, EffectDuration.UntilEachTurnEnd);
-            if (myPermanents(ctx, source, (d, p) => isDigimon(d) && p.stack.length >= 4).length) {
+            if (first) await ctx.fx.modifyDP(first, -4000, EffectDuration.UntilEachTurnEnd);
+            if (myPermanents(ctx, source, (d, p) => isDigimon(d) && p.stack.length - 1 >= 4).length) {
               const second = await choosePermanent(ctx, opposingDigimon(ctx, source));
               if (second) ctx.fx.grantKeyword(second, "SecurityAttack", EffectDuration.UntilEachTurnEnd, -1);
             }
@@ -968,7 +993,7 @@ export function lateBt12Module(cardId: string): EffectModule {
             const candidates = opposingDigimon(ctx, source);
             const targets = await ctx.ask.chooseTargets(ctx, {
               candidates: candidates.map(({ permanentId }) => permanentId),
-              min: 0,
+              min: Math.min(3, candidates.length),
               max: Math.min(3, candidates.length),
             });
             for (const target of targets) ctx.fx.modifyDP(target, -2000 * tamers, EffectDuration.UntilEachTurnEnd);
@@ -1006,7 +1031,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                     isDigimon(d) &&
                     (d.level ?? Infinity) <= 4 &&
                     d.colors.includes("Green" as never) &&
-                    hasText(d, "free")
+                    cardHasTrait(d, "Free")
                   );
                 }),
                 true,
@@ -1033,12 +1058,12 @@ export function lateBt12Module(cardId: string): EffectModule {
                 effectKey: `${cardId}/hunter-color-waiver`,
                 description: "A Hunter Tamer waives this Option's color requirement.",
                 when: (ctx) =>
-                  myPermanents(ctx, source, (definition) => isTamer(definition) && hasText(definition, "hunter"))
+                  myPermanents(ctx, source, (definition) => isTamer(definition) && cardHasTrait(definition, "Hunter"))
                     .length > 0,
                 resolve: async (ctx) => ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.Permanent),
               }),
             ];
-          const resolve = async (ctx: EffectContext) => {
+          const suspendOpponents = async (ctx: EffectContext) => {
             const ids = ctx.game
               .player(ctx.game.opponentOf(source.ownerSeat))
               .battleArea.filter(
@@ -1048,7 +1073,21 @@ export function lateBt12Module(cardId: string): EffectModule {
               )
               .map(({ permanentId }) => permanentId);
             if (ids.length) await ctx.fx.suspend(ids, { byEffectSeat: source.ownerSeat });
-            for (const id of ids) ctx.fx.restrict(id, "unsuspend", EffectDuration.UntilOwnerActivePhase);
+          };
+          const resolve = async (ctx: EffectContext) => {
+            await suspendOpponents(ctx);
+            ctx.fx.restrictPlayer?.(
+              ctx.game.opponentOf(source.ownerSeat),
+              "unsuspend",
+              EffectDuration.UntilOwnerActivePhase,
+              (permanentId) => {
+                const permanent = ctx.game.permanentById(permanentId);
+                return (
+                  permanent?.topCard !== undefined &&
+                  (isDigimon(ctx.game.definitionOf(permanent.topCard)) || isTamer(ctx.game.definitionOf(permanent.topCard)))
+                );
+              },
+            );
           };
           if (timing === EffectTiming.OnUseOption)
             return [
@@ -1057,6 +1096,15 @@ export function lateBt12Module(cardId: string): EffectModule {
                 effectKey: `${cardId}/main`,
                 description: "Suspend all opposing Digimon and Tamers and prevent their next unsuspend.",
                 resolve,
+              }),
+            ];
+          if (timing === EffectTiming.SecuritySkill)
+            return [
+              security({
+                source,
+                effectKey: `${cardId}/security-suspend`,
+                description: "[Security] Suspend all opposing Digimon and Tamers.",
+                resolve: suspendOpponents,
               }),
             ];
           return [];
@@ -1081,6 +1129,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                 },
               }),
             ];
+          if (timing === EffectTiming.SecuritySkill) return [_addSelfSecurity(source, cardId)];
           return [];
         }
         case "BT12-108": {
@@ -1094,7 +1143,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                   myPermanents(
                     ctx,
                     source,
-                    (definition) => isDigimon(definition) && definition.level === 6 && hasText(definition, "machine"),
+                    (definition) => isDigimon(definition) && definition.level === 6 && cardHasTrait(definition, "Machine"),
                   ).length > 0,
                 resolve: async (ctx) => ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.Permanent),
               }),
@@ -1108,7 +1157,11 @@ export function lateBt12Module(cardId: string): EffectModule {
                 resolve: async (ctx) => {
                   const own = await choosePermanent(
                     ctx,
-                    myPermanents(ctx, source, (d) => isDigimon(d) && (hasText(d, "machine") || hasText(d, "cyborg"))),
+                    myPermanents(
+                      ctx,
+                      source,
+                      (d) => isDigimon(d) && (cardHasTrait(d, "Machine") || cardHasTrait(d, "Cyborg")),
+                    ),
                   );
                   const ownPermanent = own ? ctx.game.permanentById(own) : undefined;
                   if (!ownPermanent) return;
@@ -1118,6 +1171,37 @@ export function lateBt12Module(cardId: string): EffectModule {
                   );
                   if (target) await ctx.fx.deletePermanent([target], "byEffect");
                   await ctx.fx.deletePermanent([ownPermanent.permanentId], "byEffect");
+                },
+              }),
+            ];
+          if (timing === EffectTiming.SecuritySkill)
+            return [
+              security({
+                source,
+                effectKey: `${cardId}/security-delete`,
+                description: "[Security] Trash a Machine/Cyborg card from hand, then delete an opposing Digimon.",
+                resolve: async (ctx) => {
+                  const card = await chooseCard(
+                    ctx,
+                    ctx.game.player(source.ownerSeat).hand.filter((item) => {
+                      const definition = ctx.game.definitionOf(item);
+                      return cardHasTrait(definition, "Machine") || cardHasTrait(definition, "Cyborg");
+                    }),
+                  );
+                  if (!card) return;
+                  const discarded = ctx.game.definitionOf(
+                    ctx.game.player(source.ownerSeat).hand.find((item) => item.instanceId === card)!,
+                  );
+                  await ctx.fx.trash([card], { byEffectSeat: source.ownerSeat });
+                  const target = await choosePermanent(
+                    ctx,
+                    opposingDigimon(
+                      ctx,
+                      source,
+                      (definition) => (definition.playCost ?? Infinity) <= (discarded.playCost ?? Infinity),
+                    ),
+                  );
+                  if (target) await ctx.fx.deletePermanent([target], "byEffect");
                 },
               }),
             ];
@@ -1131,7 +1215,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                 effectKey: `${cardId}/hunter-color-waiver`,
                 description: "A Hunter Tamer waives this Option's color requirement.",
                 when: (ctx) =>
-                  myPermanents(ctx, source, (definition) => isTamer(definition) && hasText(definition, "hunter"))
+                  myPermanents(ctx, source, (definition) => isTamer(definition) && cardHasTrait(definition, "Hunter"))
                     .length > 0,
                 resolve: async (ctx) => ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.Permanent),
               }),
@@ -1159,6 +1243,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                 },
               }),
             ];
+          if (timing === EffectTiming.SecuritySkill) return [_addSelfSecurity(source, cardId)];
           return [];
         }
         case "BT12-110": {
@@ -1172,6 +1257,15 @@ export function lateBt12Module(cardId: string): EffectModule {
                 source,
                 effectKey: `${cardId}/main`,
                 description: "Delete an opposing Digimon with the lowest level.",
+                resolve,
+              }),
+            ];
+          if (timing === EffectTiming.SecuritySkill)
+            return [
+              security({
+                source,
+                effectKey: `${cardId}/security-activate-main`,
+                description: "[Security] Activate this card's [Main] effect.",
                 resolve,
               }),
             ];
@@ -1211,6 +1305,42 @@ export function lateBt12Module(cardId: string): EffectModule {
           return [];
         }
         case "BT12-111": {
+          if (timing === EffectTiming.None)
+            return [
+              staticModifier({
+                source,
+                effectKey: `${cardId}/opponent-action-watcher`,
+                description: "During the opponent's turn, trash 5 sources after an opponent attacks or digivolves.",
+                resolve: async (ctx) => {
+                  const self = sourcePermanent(ctx, source);
+                  if (!self) return;
+                  ctx.fx.subscribeSubTrigger({
+                    event: "whenOpponentAttacks",
+                    sourcePermanentId: self.permanentId,
+                    once: false,
+                    description: `${cardId}: opponent attacks → trash 5 sources and return Tamers`,
+                    matches: (subCtx) => subCtx.source.isOnBattleArea() && !subCtx.source.isOwnersTurn(),
+                    run: async (subCtx) => {
+                      const current = sourcePermanent(subCtx, source);
+                      if (!current || current.stack.length < 5) return;
+                      const cost = current.stack.slice(-5).map(({ instanceId }) => instanceId);
+                      const moved = await subCtx.fx.trashDigivolutionCards(current.permanentId, cost, {
+                        byEffectSeat: source.ownerSeat,
+                      });
+                      if (moved.length !== 5) return;
+                      const tops = [];
+                      for (const player of subCtx.game.state.players) {
+                        for (const permanent of player.battleArea) {
+                          if (permanent.topCard !== undefined && isTamer(subCtx.game.definitionOf(permanent.topCard)))
+                            tops.push(permanent.topCard.instanceId);
+                        }
+                      }
+                      if (tops.length) await subCtx.fx.returnToHand(tops);
+                    },
+                  });
+                },
+              }),
+            ];
           if (timing === EffectTiming.OnPlay || timing === EffectTiming.WhenDigivolving)
             return [
               (timing === EffectTiming.OnPlay ? onPlay : whenDigivolving)({
@@ -1221,13 +1351,17 @@ export function lateBt12Module(cardId: string): EffectModule {
                 resolve: async (ctx) => {
                   const target = await choosePermanent(ctx, opposingDigimon(ctx, source));
                   if (target) await ctx.fx.deletePermanent([target], "byEffect");
-                  const self = source.permanent();
+                  const self =
+                    source.permanent() ??
+                    ctx.game.player(source.ownerSeat).battleArea.find(
+                      (permanent) => permanent.topCard?.instanceId === source.instanceId,
+                    );
                   if (!self) return;
                   const cards = ctx.game
                     .player(source.ownerSeat)
                     .trash.filter(
                       (item) =>
-                        isDigimon(ctx.game.definitionOf(item)) && hasText(ctx.game.definitionOf(item), "bagra army"),
+                        isDigimon(ctx.game.definitionOf(item)) && cardHasTrait(ctx.game.definitionOf(item), "Bagra Army"),
                     );
                   const selected = await ctx.ask.selectCards(ctx, {
                     candidates: cards.map(({ instanceId }) => instanceId),
@@ -1242,7 +1376,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                 },
               }),
             ];
-          if (timing === EffectTiming.OnUseAttack || timing === EffectTiming.OnEnterFieldAnyone)
+          if (timing === EffectTiming.OnEnterFieldAnyone)
             return [
               turnTiming({
                 source,
@@ -1262,9 +1396,9 @@ export function lateBt12Module(cardId: string): EffectModule {
                     : undefined;
                   return subject?.controllerSeat === ctx.game.opponentOf(source.ownerSeat);
                 },
-                canActivate: () => (source.permanent()?.stack.length ?? 0) >= 5,
+                canActivate: (ctx) => (sourcePermanent(ctx, source)?.stack.length ?? 0) >= 5,
                 resolve: async (ctx) => {
-                  const self = source.permanent();
+                  const self = sourcePermanent(ctx, source);
                   if (!self || self.stack.length < 5) return;
                   const cost = self.stack.slice(-5).map(({ instanceId }) => instanceId);
                   const moved = await ctx.fx.trashDigivolutionCards(self.permanentId, cost, {

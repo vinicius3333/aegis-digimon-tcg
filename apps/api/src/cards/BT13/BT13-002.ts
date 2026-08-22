@@ -28,6 +28,7 @@ const compiled: CompiledCard = {
             "filter": {
               "controllerDefault": "mine",
               "excludeSelf": true,
+              "zone": "battleArea",
               "kind": [
                 "Digimon"
               ]

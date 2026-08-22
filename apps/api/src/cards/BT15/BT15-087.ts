@@ -25,11 +25,6 @@ import { registerCard } from "../../engine/effects/registry.js";
  * KB rulings (binding):
  *   Q2585: the [End of All Turns] inherited effect can play Shuu Yulin itself.
  *
- * Residuals:
- *   ＜TeamWork＞ keyword requires combat-phase wiring (suspend side Digimon, add its DP)
- *   beyond what grantKeyword alone provides — the keyword grant is correct but the
- *   TeamWork combat resolution is not fully wired in the engine. The ＜Reboot＞ grant
- *   and the keyword themselves are fully implemented here.
  */
 const cardId = "BT15-087";
 
@@ -48,8 +43,9 @@ function hasTamerInStack(perm: Permanent, ctx: EffectContext): boolean {
 }
 
 function mindLinkTargets(ctx: EffectContext, ownerSeat: Seat): string[] {
-  return ctx.game.player(ownerSeat).battleArea
-    .filter((p) => {
+  return ctx.game
+    .player(ownerSeat)
+    .battleArea.filter((p) => {
       if (p.topCard === undefined || p.inBreeding) return false;
       return hasXAntibodyOrDigiPolice(p, ctx) && !hasTamerInStack(p, ctx);
     })
@@ -166,10 +162,7 @@ const module: EffectModule = {
 
             const candidates: CardInstance[] = host.stack.filter((c) => {
               const def = ctx.game.definitionOf(c);
-              return (
-                def.nameEn === "Shuu Yulin" &&
-                (def.kinds as string[]).includes(CardKind.Tamer as string)
-              );
+              return def.nameEn === "Shuu Yulin" && (def.kinds as string[]).includes(CardKind.Tamer as string);
             });
             if (candidates.length === 0) return;
 

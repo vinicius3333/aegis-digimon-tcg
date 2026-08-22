@@ -18,7 +18,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //    optional:true removed from that action (only the PlayWithoutCost is optional).
 // KB Q4905 confirms the AllTurns triggers simultaneously with other leave-prevention
 // effects and the player chooses activation order.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Main",

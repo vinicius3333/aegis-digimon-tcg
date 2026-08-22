@@ -9,6 +9,7 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Security",
+      timing: "endOfBattle",
       actions: [
         {
           kind: "PlayWithoutCost",

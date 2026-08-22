@@ -1,7 +1,4 @@
 // @ts-nocheck
-// HAND-FIXED IR for BT21-099 — do not regenerate.
-// Main PlaceUnder: added from:["hand","trash"] (text: "from your hand or trash").
-// Digivolve 'into' zone restriction is a residual interpreter gap.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {

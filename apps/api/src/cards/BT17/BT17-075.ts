@@ -24,7 +24,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // determined by scaling (floor(tamerCount/2)). The interpreter's DeDigivolve accepts
 // a target count:1 and should repeat based on scaling. Use count:"scaling" with
 // the per:2 Tamer filter.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",

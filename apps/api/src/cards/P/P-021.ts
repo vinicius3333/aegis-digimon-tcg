@@ -26,7 +26,6 @@ import { registerCard } from "../../engine/effects/registry.js";
 //   Q4130: if you have a [Mimi Tachikawa] in play, you CAN use this effect to play
 //     a [Palmon] from your hand without paying its memory cost.
 //
-// Residual: none — fully implemented.
 const cardId = "P-021";
 
 const isMimiTachikawa = (name: string): boolean => name === "Mimi Tachikawa";

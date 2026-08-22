@@ -17,154 +17,137 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // PlaceInBattleAreaSelf is mandatory (not optional) — "Then, place this card".
 // <Delay> pattern: SubTrigger grants Delay; separate Main+[Delay] trigger holds the payload.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "WaiveColorRequirement",
-          "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-          "condition": {
-            "kind": "youHave",
-            "filter": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["Maquinamon"], "match": "text" }] },
-            "raw": "you have a card w/[Maquinamon] in text"
-          }
-        }
-      ]
+          kind: "WaiveColorRequirement",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          condition: {
+            kind: "youHave",
+            filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Maquinamon"], match: "text" }] },
+            raw: "you have a card w/[Maquinamon] in text",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Maquinamon"
-                  ],
-                  "match": "nameExact"
+                  tokens: ["Maquinamon"],
+                  match: "nameExact",
                 },
                 {
-                  "tokens": [
-                    "Unchained"
-                  ],
-                  "match": "nameExact"
-                }
-              ]
+                  tokens: ["Unchained"],
+                  match: "nameExact",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Unchained"
-                ],
-                "match": "nameExact"
-              }
-            ]
-          },
-          "actions": [
-            {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
-                },
-                "count": 1,
-                "isSelf": true
+                tokens: ["Unchained"],
+                match: "nameExact",
               },
-              "keyword": {
-                "keyword": "Delay",
-                "raw": "＜Delay＞"
-              },
-              "duration": "permanent"
-            }
-          ],
-          "raw": "When any of your [Unchained] are played, grant this card <Delay>"
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "actions": [
-        {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
             ],
-            "levelComparison": {
-              "op": "lte",
-              "value": 6
-            },
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Maquinamon"
-                ],
-                "match": "text"
-              }
-            ]
           },
-          "payCost": false,
-          "from": [
-            "hand"
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
+                },
+                count: 1,
+                isSelf: true,
+              },
+              keyword: {
+                keyword: "Delay",
+                raw: "＜Delay＞",
+              },
+              duration: "permanent",
+            },
           ],
-          "optional": true
-        }
+          raw: "When any of your [Unchained] are played, grant this card <Delay>",
+        },
       ],
-      "keywords": [
-        {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ]
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "Digivolve",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            levelComparison: {
+              op: "lte",
+              value: 6,
+            },
+            nameOrTrait: [
+              {
+                tokens: ["Maquinamon"],
+                match: "text",
+              },
+            ],
+          },
+          payCost: false,
+          from: ["hand"],
+          optional: true,
+        },
       ],
-      "isSecurity": true
-    }
+      keywords: [
+        {
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "ActivateMain",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("P-237", compiled);

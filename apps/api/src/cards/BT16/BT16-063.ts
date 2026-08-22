@@ -6,106 +6,101 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "trait",
-          "tokens": [
-            "Angel"
-          ]
-        }
+          grant: "trait",
+          tokens: ["Angel"],
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Partition",
-          "raw": "＜Partition (black Lv.4 & yellow Lv.4)＞"
-        }
-      ]
+          keyword: "Partition",
+          raw: "＜Partition (black Lv.4 & yellow Lv.4)＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "immuneToOpponentDigimonEffects",
-          "tokens": [],
-          "duration": "untilOpponentTurnEnd"
+          grant: "immuneToOpponentDigimonEffects",
+          tokens: [],
+          duration: "untilOpponentTurnEnd",
         },
         {
-          "kind": "SecurityManipulation",
-          "op": "placeAsSecurity",
-          "controller": "opponent",
-          "source": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "level": {
-                "lte": {
-                  "kind": "chooseEitherSecurityCount"
-                }
-              }
+          kind: "SecurityManipulation",
+          op: "placeAsSecurity",
+          controller: "opponent",
+          source: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              zone: "battleArea",
+              level: {
+                lte: {
+                  kind: "chooseEitherSecurityCount",
+                },
+              },
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "security"
-          ],
-          "toTop": false,
-          "condition": {
-            "kind": "isDnaDigivolving",
-            "raw": "DNA digivolving"
-          }
-        }
-      ]
+          from: ["battleArea"],
+          toTop: false,
+          condition: {
+            kind: "isDnaDigivolving",
+            raw: "DNA digivolving",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Partition",
-          "raw": "＜Partition (black Lv.4 & yellow Lv.4)＞"
-        }
-      ]
-    }
+          keyword: "Partition",
+          raw: "＜Partition (black Lv.4 & yellow Lv.4)＞",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "dnaDigivolveRequirement": [
+  coverage: "full",
+  residual: [],
+  dnaDigivolveRequirement: [
     {
-      "cost": 0,
-      "materials": [
+      cost: 0,
+      materials: [
         {
-          "color": "Black",
-          "level": 4
+          color: "Black",
+          level: 4,
         },
         {
-          "color": "Yellow",
-          "level": 4
-        }
-      ]
-    }
-  ]
+          color: "Yellow",
+          level: 4,
+        },
+      ],
+    },
+  ],
 };
 
 registerIrCard("BT16-063", compiled);

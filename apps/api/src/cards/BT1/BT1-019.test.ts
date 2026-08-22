@@ -38,4 +38,20 @@ describe("BT1-019 DarkTyrannomon", () => {
     expect(s.perm("base")).toMatchObject({ baseDP: 6000, currentDP: 6000 });
     expect(s.state.players[0]!.hand[0]!.instanceId).toBe(s.inst("drawn").instanceId);
   });
+
+  it("rejects digivolving from a green level 3", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-064", as: "base" }],
+        hand: [{ card: "BT1-019", as: "darkTyrannomon" }],
+      },
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("darkTyrannomon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
 });

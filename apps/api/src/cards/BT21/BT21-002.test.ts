@@ -15,4 +15,29 @@ describe("BT21-002 compiled implementation", () => {
       for (const action of effect.actions ?? []) expect(typeof action.kind).toBe("string");
     }
   });
+
+  it("draws once per turn only for a Gammamon-text or Hero Digimon", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "WhenAttacking",
+        isInherited: true,
+        frequency: "OncePerTurn",
+        actions: [
+          {
+            kind: "Draw",
+            controller: "mine",
+            amount: 1,
+            condition: {
+              kind: "anyOf",
+              conditions: [
+                { kind: "selfTopHasText", filter: { nameOrTrait: [{ tokens: ["Gammamon"], match: "text" }] } },
+                { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["Hero"], match: "trait" }] } },
+              ],
+              raw: "this Digimon has [Gammamon] in its text or the [Hero] trait",
+            },
+          },
+        ],
+      }),
+    ]);
+  });
 });

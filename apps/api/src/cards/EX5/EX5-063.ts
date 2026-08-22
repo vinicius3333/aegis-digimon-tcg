@@ -8,21 +8,13 @@ import { onPlay, staticModifier, turnTiming, whenDigivolving } from "../../engin
 import { registerCard } from "../../engine/effects/registry.js";
 
 // Leviamon (EX5-063, Purple Lv.6 Digimon).
-//
-// Hand-written override of the declarative effect record: the IR could not express
-//   (a) the highest-/lowest-level target selection for the deletions,
-//   (b) the conditional gate on only the FIRST deletion (KB Q3666), or
-//   (c) "gain 1 memory per opponent Digimon deleted" (KB Q6037/Q6038).
-// KB (authoritative): no errata; the bound rulings below shape this port.
+// This hand-written module implements the level-extreme deletion, conditional first deletion,
+// and per-opponent-Digimon memory gain specified by the card and its rulings.
 const cardId = "EX5-063";
 
 // --- opponent battle-area Digimon (source IsPermanentExistsOnOpponentBattleAreaDigimon) ---
 
-const isOpponentBattleAreaDigimon = (
-  ctx: EffectContext,
-  source: CardSource,
-  permanent: Permanent,
-): boolean => {
+const isOpponentBattleAreaDigimon = (ctx: EffectContext, source: CardSource, permanent: Permanent): boolean => {
   const opponent = ctx.game.opponentOf(source.ownerSeat);
   if (permanent.controllerSeat !== opponent || permanent.topCard === undefined) return false;
   return isDigimon(ctx.game.definitionOf(permanent.topCard));
@@ -93,11 +85,7 @@ const opponentHasAtLeastAsManyUnits = (ctx: EffectContext, source: CardSource): 
 // Ask the controller to delete 1 opponent Digimon at the given level extreme
 // by the candidate's top-card instance id. Re-evaluated against current state, so the
 // "lowest" pass sees the board left by the "highest" pass.
-const deleteOneAtExtreme = async (
-  ctx: EffectContext,
-  source: CardSource,
-  extreme: "max" | "min",
-): Promise<void> => {
+const deleteOneAtExtreme = async (ctx: EffectContext, source: CardSource, extreme: "max" | "min"): Promise<void> => {
   const candidates = opponentDigimonsAtExtremeLevel(ctx, source, extreme);
   if (candidates.length === 0) return;
   const byTopCard = new Map<string, Permanent>(
@@ -130,8 +118,7 @@ const deleteHighestThenLowest = async (ctx: EffectContext, source: CardSource): 
 const deletionCanActivate = (ctx: EffectContext, source: CardSource): boolean => {
   if (!source.isOnBattleArea()) return false;
   const gatedHighestAvailable =
-    opponentHasAtLeastAsManyUnits(ctx, source) &&
-    opponentDigimonsAtExtremeLevel(ctx, source, "max").length > 0;
+    opponentHasAtLeastAsManyUnits(ctx, source) && opponentDigimonsAtExtremeLevel(ctx, source, "max").length > 0;
   const lowestAvailable = opponentDigimonsAtExtremeLevel(ctx, source, "min").length > 0;
   return gatedHighestAvailable || lowestAvailable;
 };
@@ -213,8 +200,7 @@ const module: EffectModule = {
           effectKey: `${cardId}/all-turns-memory-per-deletion`,
           description: "[All Turns] When an opponent's Digimon is deleted, gain 1 memory for each Digimon.",
           optional: false,
-          when: (ctx) =>
-            ctx.source.isOnBattleArea() && opponentDeletedDigimonCount(ctx, source) > 0,
+          when: (ctx) => ctx.source.isOnBattleArea() && opponentDeletedDigimonCount(ctx, source) > 0,
           resolve: async (ctx) => {
             const count = opponentDeletedDigimonCount(ctx, source);
             if (count > 0) ctx.fx.gainMemoryForSeat(source.ownerSeat, count);

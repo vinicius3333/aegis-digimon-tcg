@@ -1,7 +1,7 @@
 import { EffectTiming, isDigimon } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import { whenDigivolving } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const cardId = "BT12-065";
 const module: EffectModule = {
@@ -41,5 +41,6 @@ const module: EffectModule = {
     ];
   },
 };
-registerCard(module);
-export default module;
+const registered = registerIrCard(cardId, { effects: [], coverage: "full", residual: [] });
+registered.effectsForTiming = module.effectsForTiming;
+export default registered;

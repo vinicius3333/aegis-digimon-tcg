@@ -6,117 +6,129 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Armor Purge",
-          "raw": "＜Armor Purge＞"
-        }
-      ]
+          keyword: "Armor Purge",
+          raw: "＜Armor Purge＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": "all"
-          }
+            count: "all",
+          },
         },
         {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "Attack",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "withoutSuspending": false,
-          "optional": true
-        }
-      ]
+          withoutSuspending: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Aura",
+          target: {
+            filter: {
+              controller: "opponent",
+              suspended: true,
+              kind: ["Digimon"],
             },
-            "count": "all"
+            count: "all",
           },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": -4000
+          effect: {
+            kind: "modifyDP",
+            amount: -4000,
           },
-          "while": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "filter": {
-              "nameOrTrait": [
+          while: {
+            kind: "selfDigivolutionStackHasTrait",
+            filter: {
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Rapidmon",
-                    "X Antibody"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Rapidmon", "X Antibody"],
+                  match: "name",
+                },
+              ],
             },
-            "raw": "[Rapidmon] or [X Antibody] is in this Digimon's digivolution cards"
-          }
-        }
-      ]
+            raw: "[Rapidmon] or [X Antibody] is in this Digimon's digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon"
-            ]
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainMemory",
-              "amount": 2
-            }
-          ]
-        }
+              kind: "GainMemory",
+              amount: 2,
+              condition: {
+                kind: "triggerRemovalCause",
+                removalCause: "byBattle",
+              },
+            },
+          ],
+        },
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
+            deleteCause: "dpReachedZero",
+          },
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 2,
+              condition: {
+                kind: "triggerRemovalCause",
+                removalCause: "byRule",
+              },
+            },
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Rapidmon"
-      ],
-      "cost": 4,
-      "isAlternate": true
-    }
-  ]
+      names: ["Rapidmon"],
+      cost: 4,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT16-101", compiled);

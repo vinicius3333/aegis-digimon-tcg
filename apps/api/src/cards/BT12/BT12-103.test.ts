@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-103.js";
 
 describe("BT12-103 handwritten module", () => {
@@ -17,5 +19,47 @@ describe("BT12-103 handwritten module", () => {
       permanent: () => undefined,
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnUseOption, source).length).toBeGreaterThan(0);
+    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
   });
+});
+
+it("reduces an opposing Digimon by 4000 DP for the turn", async () => {
+  const s = setupEngine({
+    0: { hand: [{ card: "BT12-103", as: "option" }], battleArea: [{ card: "BT12-033", as: "yellow" }] },
+    1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }], security: ["BT1-009"] },
+  }, { autoAcceptOptional: true, autoSelectCards: true });
+  await s.ready();
+  s.state.memory = 2;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+  await settle(() => s.perm("target").currentDP === 1000);
+  expect(s.perm("target").currentDP).toBe(1000);
+});
+
+it("gates Security Attack -1 on four or more digivolution cards", async () => {
+  const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
+  const card = runtimeCompiledCard("BT12-103")!;
+  const reduction = card.effects.find((effect) => effect.trigger === "Main")?.actions[1];
+  expect(reduction).toMatchObject({
+    kind: "GainKeyword",
+    condition: {
+      kind: "youHave",
+      filter: { zone: "battleArea", kind: ["Digimon"], digivolutionCardsAtLeast: 4 },
+    },
+  });
+});
+
+it("activates its Main deletion effect from security", async () => {
+  const s = setupEngine({
+    0: {
+      security: [{ card: "BT12-103", as: "option", faceUp: true }],
+      battleArea: [{ card: "BT12-091", as: "hunter" }],
+    },
+    1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }] },
+  }, { autoSelectCards: true });
+  await s.ready();
+
+  await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+  await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+  expect(s.perm("target").currentDP).toBe(1000);
 });

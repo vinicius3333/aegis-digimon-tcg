@@ -85,7 +85,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
   const isPlainMain = (e: CardEffect): boolean =>
     e.trigger === "Main" && !e.isSecurity && !(e.keywords ?? []).some((kw) => kw.keyword === "Delay");
   // Pre-bucket effects by their target EffectTiming so effectsForTiming is O(1).
-  const byTiming = new Map<EffectTiming, { effect: CardEffect; build: (o: BuilderOptions) => Effect }[]>();
+  const byTiming = new Map<EffectTiming, { effect: CardEffect; build: (o: BuilderOptions) => Effect; isOptionPlayBody: boolean }[]>();
   let index = 0;
   for (const effect of effects) {
     // The intrinsic keyword is consumed by GameEngine.payDigisorption through the side registry;
@@ -99,7 +99,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
     const build = builderForTrigger(effect);
     for (const timing of timings) {
       const list = byTiming.get(timing) ?? [];
-      list.push({ effect, build });
+      list.push({ effect, build, isOptionPlayBody });
       byTiming.set(timing, list);
     }
     index++;
@@ -111,7 +111,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
     effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
       const entries = byTiming.get(timing);
       if (entries === undefined) return [];
-      return entries.map(({ effect, build }, i) => {
+      return entries.map(({ effect, build, isOptionPlayBody }, i) => {
         // ＜Delay＞ universal semantics: a Delay-keyworded [Main] clause is
         // routed here to OnDeclaration (timingForTrigger), where it becomes a "you may, by
         // trashing this card in your battle area, [payload]" activatable that "can't activate
@@ -123,7 +123,8 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         // ledger entry — the UseTracker keys on (instanceId, effectKey), so a stable key shared by
         // each clause collapses them to a single [Once Per Turn] limit (BT25-084's OP/WD/WA share).
         const effectKey =
-          effect.sharedUseKey !== undefined ? `${cardId}/${effect.sharedUseKey}` : `${cardId}/ir-${timing}-${i}`;
+          effect.effectKey ??
+          (effect.sharedUseKey !== undefined ? `${cardId}/${effect.sharedUseKey}` : `${cardId}/ir-${timing}-${i}`);
         const isDelay = (effect.keywords ?? []).some((kw) => kw.keyword === "Delay");
         // The trash-to-activate Delay semantics apply to [Main] effects (routed to
         // OnDeclaration, below) AND to continuous-window triggers like AllTurns
@@ -235,6 +236,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         return build({
           source,
           irTrigger: effect.trigger,
+          attackScope: effect.attackScope,
           effectKey,
           description: describeEffect(effect),
           optional: effect.optional ?? false,
@@ -242,6 +244,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
           isLinked: effect.isLinked ?? false,
           isFromTrash: effect.isFromTrash,
           isFromHand: effect.isFromHand,
+          isOptionPlayBody,
           continuousPriority: readsSelfKeyword(effect) ? 1 : 0,
           // isSecurity is set by the `security` builder itself, not via options.
           maxPerTurn: effect.frequency === "OncePerTurn" ? 1 : effect.frequency === "TwicePerTurn" ? 2 : -1,
@@ -269,8 +272,12 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
  * mask a genuine conflict between two distinct IR cards. `registerCard` still throws
  * for a hand-written double-port that does not go through this bulk path.
  */
-export function registerIrCard(cardId: string, compiled: CompiledCard): EffectModule {
+export function registerIrCard(cardId: string, compiled: CompiledCard, legacyModule?: EffectModule): EffectModule {
   registeredCompiledCards.set(cardId, compiled);
+  if (legacyModule !== undefined) {
+    registerCard(legacyModule);
+    return legacyModule;
+  }
   const existing = getEffectModule(cardId);
   const previousIrModule = registeredIrModules.get(cardId);
   // Registry precedence belongs to the concrete module, not merely to the fact that IR for

@@ -1,13 +1,8 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition, Seat } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { activated, turnTiming, security } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import { getCompiledCard, type CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "EX6-070";
+const generated = getCompiledCard("EX6-070")!;
 
 function hasLilithmon(def: CardDefinition): boolean {
   return def.nameEn.toLowerCase().includes("lilithmon");
@@ -34,7 +29,7 @@ const module: EffectModule = {
           effectKey: `${cardId}/main-grant-delete-and-place`,
           description:
             "[Main] Until the end of your opponent's turn, 1 of their Digimon gains " +
-            "\"[End of Your Turn] Delete this Digimon.\" Then, place this card in the battle area.",
+            '"[End of Your Turn] Delete this Digimon." Then, place this card in the battle area.',
           optional: false,
           resolve: async (ctx) => {
             const opponent = ctx.game.opponentOf(source.ownerSeat);
@@ -160,5 +155,4 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
-export default module;
+registerIrCard("EX6-070", compiled);
