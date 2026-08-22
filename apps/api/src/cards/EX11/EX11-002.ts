@@ -3,38 +3,38 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "GrantCanAttackUnsuspended",
-          "target": {
-            "filter": {
-              "isSelfRef": true,
-              "nameOrTrait": [{ "tokens": ["Ice-Snow"], "match": "trait" }]
+          kind: "GrantCanAttackUnsuspended",
+          target: {
+            filter: {
+              isSelfRef: true,
+              nameOrTrait: [{ tokens: ["Ice-Snow"], match: "trait" }],
             },
-            "count": 1,
-            "isSelf": true,
-            "noDigivolutionCards": true
+            count: 1,
+            isSelf: true,
+            noDigivolutionCards: true,
           },
-          "duration": "permanent",
-          "condition": {
-            "kind": "opponentHasNone",
-            "filter": {
-              "controllerDefault": "opponent",
-              "kind": ["Digimon"],
-              "noDigivolutionCards": false
+          duration: "permanent",
+          condition: {
+            kind: "opponentHasNone",
+            filter: {
+              controllerDefault: "opponent",
+              kind: ["Digimon"],
+              noDigivolutionCards: false,
             },
-            "raw": "your opponent has no Digimon with digivolution cards"
-          }
-        }
+            raw: "your opponent has no Digimon with digivolution cards",
+          },
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX11-002", compiled);

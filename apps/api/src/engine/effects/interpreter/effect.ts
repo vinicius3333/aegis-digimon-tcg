@@ -462,8 +462,7 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
   const outerRestrictions = ctxWithSelections.effectRestrictions;
   ctxWithSelections.effectRestrictions = new Set(ctx.effectRestrictions ?? []);
   ctxWithSelections.activeTiming = effect.trigger;
-  const sourceDefinition =
-    ctx.source.definition ?? ctx.game.definitionOf({ cardId: ctx.source.cardId } as never);
+  const sourceDefinition = ctx.source.definition ?? ctx.game.definitionOf({ cardId: ctx.source.cardId } as never);
   ctxWithSelections.activeEffectText = effect.isInherited
     ? sourceDefinition?.inheritedEffectText
     : effect.isSecurity

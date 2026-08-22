@@ -3,34 +3,34 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenAddSecurity",
-          "fireCondition": {
-            "kind": "allOf",
-            "conditions": [
-              { "kind": "triggerSecurityIsYours" },
+          kind: "SubTrigger",
+          event: "whenAddSecurity",
+          fireCondition: {
+            kind: "allOf",
+            conditions: [
+              { kind: "triggerSecurityIsYours" },
               {
-                "kind": "triggerAddedSecurityHasTrait",
-                "filter": {
-                  "nameOrTrait": [{ "tokens": ["Royal Base"], "match": "trait" }]
-                }
-              }
-            ]
+                kind: "triggerAddedSecurityHasTrait",
+                filter: {
+                  nameOrTrait: [{ tokens: ["Royal Base"], match: "trait" }],
+                },
+              },
+            ],
           },
-          "actions": [{ "kind": "Draw", "controller": "mine", "amount": 1 }]
-        }
+          actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 export default registerIrCard("EX11-003", compiled);
