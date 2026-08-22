@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-069.js";
 
 describe("BT26-069 Dobermon", () => {
@@ -11,5 +14,17 @@ describe("BT26-069 Dobermon", () => {
       expect.objectContaining({ trigger: "YourTurn", isInherited: true, actions: [{ kind: "SubTrigger", event: "whenHandTrashed", frequency: "OncePerTurn", actions: [expect.objectContaining({ kind: "Digivolve", from: ["trash"], payCost: true, costDelta: -1, optional: true })] }] }),
     ]));
     expect(JSON.stringify(compiled)).not.toContain("ignoreRequirements");
+  });
+
+  it("trashes a hand card to delete a level-4-or-lower Digimon on play", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT26-069", as: "dobermon" }], hand: [{ card: "BT1-001", as: "cost" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+    }, { autoSelectCards: true });
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("dobermon"));
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
