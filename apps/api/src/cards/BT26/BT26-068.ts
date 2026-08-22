@@ -39,6 +39,14 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "WhenAttacking",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        { kind: "Draw", controller: "mine", amount: 1, cost: { kind: "trash", target: { filter: ownHand, count: 1 } } },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
