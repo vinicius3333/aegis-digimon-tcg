@@ -31,14 +31,14 @@ describe("P-043 Kudamon", () => {
     s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    await settle(() => s.state.pendingDecision?.kind === "optional");
     const decision = s.decisions.at(-1)!.req;
-    expect(decision.options?.candidateInstanceIds).toEqual([s.inst("kent").instanceId]);
+    expect(decision.kind).toBe("optional");
 
     expect(s.engine.applyIntent(0, {
       type: "respondDecision",
       decisionId: decision.decisionId,
-      response: { kind: "selectCards", instanceIds: [] },
+      response: { kind: "optional", accept: false },
     })).toEqual({ ok: true });
     await settle();
 

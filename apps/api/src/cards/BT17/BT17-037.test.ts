@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-037.js";
+import "./index.js";
 
 describe("BT17-037 RizeGreymon", () => {
   it("gains DP and Piercing with a suspended Tamer", () => {
@@ -14,5 +18,46 @@ describe("BT17-037 RizeGreymon", () => {
 
   it("once per turn places Marcus Damon from trash on top of security after a red or yellow Tamer is deleted", () => {
     expect(compiled.effects.find((entry) => entry.isInherited)).toMatchObject({ frequency: "OncePerTurn", actions: [{ event: "onDeletionOf", sourceFilter: { controller: "mine", kind: ["Tamer"], colors: ["Red", "Yellow"] }, actions: [{ kind: "SecurityManipulation", op: "placeAsSecurity", from: ["trash"], toTop: true }] }] });
+  });
+
+  it("suspends a yellow Tamer on digivolution, reduces DP, and enables its aura", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT17-034", as: "base" }, { card: "BT1-087", as: "tamer" }],
+        hand: [{ card: "BT17-037", as: "rize" }],
+      },
+      1: { battleArea: [{ card: "BT1-020", dp: 6000, as: "target" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("rize").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 3000);
+
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.perm("base").currentDP).toBe(10000);
+  });
+
+  it("places the deleted Marcus Damon itself on top of security", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT17-040", under: ["BT17-037"], as: "host" },
+          { card: "BT12-092", as: "marcus" },
+        ],
+        security: ["BT1-001"],
+      },
+    }, { autoSelectCards: true });
+    const marcusId = s.perm("marcus").topCard!.instanceId;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("marcus").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.security[0]?.instanceId === marcusId);
+
+    expect(s.state.players[0]!.security[0]?.faceUp).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === marcusId)).toBe(false);
   });
 });

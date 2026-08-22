@@ -226,7 +226,16 @@ export async function runUseOptionWithoutCost(
 
   // Cost cap: honor playCostLte from the resolved filter; fall back to 5 (historical EX8-037 default).
   const exactCosts = filter?.playCostOneOf ?? [];
-  const costCap = filter?.playCostLte ?? (exactCosts.length > 0 ? Math.max(...exactCosts) : 5);
+  const attackerLevelCap =
+    filter?.playCostLteAttackerLevel === true
+      ? (() => {
+          const attackerId = ctx.trigger.attackerPermanentId;
+          const attacker = attackerId === undefined ? undefined : ctx.game.permanentById(attackerId);
+          return attacker?.topCard === undefined ? undefined : ctx.game.definitionOf(attacker.topCard).level;
+        })()
+      : undefined;
+  const costCap =
+    attackerLevelCap ?? filter?.playCostLte ?? (exactCosts.length > 0 ? Math.max(...exactCosts) : 5);
   // Server-side eligibility: a single-color Option within the cost cap matching the filter, not
   // under a CanNotPlayThisOption play restriction.
   const candidates: string[] = [];
@@ -236,7 +245,7 @@ export async function runUseOptionWithoutCost(
       const def = ctx.game.definitionOf({ cardId: cand.cardId } as never);
       if (filter !== undefined && !definitionMatches(filter, def)) continue;
       if (!def.kinds.includes(CardKind.Option)) continue;
-      if (def.colors !== undefined && def.colors.length !== 1) continue;
+      if (action.allowMultiColor !== true && def.colors !== undefined && def.colors.length !== 1) continue;
       if (def.playCost > costCap) continue;
       if (ctx.fx.isPlayProhibited?.(seat, cand.cardId, "play") === true) continue;
       candidates.push(cand.instanceId);
@@ -260,17 +269,13 @@ export async function runUseOptionWithoutCost(
     .flatMap((z) => looseCardsInZone(ctx, seat, z as ZoneRef))
     .find((c) => c.instanceId === chosenId);
 
-  // Pay cost before running the effect (mirrors normal Option use flow). The ORIGINAL printed
-  // cost is used for the whenOptionUsed watcher gate (KB Q5471-Q5473), not the reduced value.
-  if (action.payCost === true && chosenCard !== undefined) {
-    const chosenDef = ctx.game.definitionOf({ cardId: chosenCard.cardId } as never);
-    const dynamicReduction =
-      action.reduceCostByOpponentMemory === true
-        ? Math.max(0, new MemoryGauge(ctx.game.state).memoryFor(ctx.game.opponentOf(seat)))
-        : 0;
-    const reducedCost = Math.max(0, chosenDef.playCost - (action.reduceCostBy ?? 0) - dynamicReduction);
-    if (reducedCost > 0) ctx.fx.gainMemory(-reducedCost);
-  }
+  // The shared use verb owns payment so play-cost restrictions and insufficient-memory checks
+  // run exactly once. Fold both printed reductions into its signed cost delta.
+  const dynamicReduction =
+    action.reduceCostByOpponentMemory === true
+      ? Math.max(0, new MemoryGauge(ctx.game.state).memoryFor(ctx.game.opponentOf(seat)))
+      : 0;
+  const totalReduction = (action.reduceCostBy ?? 0) + dynamicReduction;
 
   // Effect resolution + lifecycle (trash the Option, fire whenOptionUsed) both now live behind
   // `ctx.fx.useOptionFromHand` (primitives.ts), which resolves the chosen card's registered
@@ -283,7 +288,7 @@ export async function runUseOptionWithoutCost(
   const usedCost = chosenCard ? ctx.game.definitionOf({ cardId: chosenCard.cardId } as never).playCost : undefined;
   await ctx.fx.useOptionFromHand(ctx, chosenId, usedCost, {
     payCost: action.payCost,
-    ...(action.reduceCostBy !== undefined ? { costDelta: -action.reduceCostBy } : {}),
+    ...(totalReduction > 0 ? { costDelta: totalReduction } : {}),
   });
   ctx.lastOptionUsed = true;
   ctx.lastOptionUsedInstanceId = chosenId;

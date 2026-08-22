@@ -1,21 +1,61 @@
-import type { CardDefinition } from "@aegis/shared";
-import { EffectTiming } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import { staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
-const cardId = "LM-004";
-const hasJellymonText = (d: CardDefinition) => d.effectText?.includes("Jellymon") || d.inheritedEffectText?.includes("Jellymon");
-const module: EffectModule = { cardId, effectsForTiming(timing: EffectTiming, source: CardSource) {
-  if (timing !== EffectTiming.None) return [];
-  return [staticModifier({ source, effectKey: `${cardId}/inherited-hand-jellymon-trash-unsuspend`, description: "When a card with [Jellymon] in its text is trashed from your hand, unsuspend this Digimon.", isInherited: true, maxPerTurn: 1, resolve: async (ctx) => {
-    const host = source.permanent(); if (host === undefined) return;
-    ctx.fx.subscribeSubTrigger({ event: "whenHandTrashed", sourcePermanentId: host.permanentId, once: false, oncePerTurnKey: `${cardId}/inherited-hand-jellymon-trash-unsuspend`, matches: (subCtx) => {
-      if (subCtx.trigger?.handTrashedSeat !== source.ownerSeat) return false;
-      const id = subCtx.trigger.trashedFromHandInstanceId; const card = subCtx.game.player(source.ownerSeat).trash.find((entry) => entry.instanceId === id);
-      return card !== undefined && hasJellymonText(subCtx.game.definitionOf(card));
-    }, run: async (subCtx) => { const current = subCtx.source.permanent(); if (current !== undefined) await subCtx.fx.unsuspend([current.permanentId]); } });
-  } })];
-} };
-registerCard(module);
-export default module;
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const self = { filter: { isSelfRef: true }, count: 1, isSelf: true } as const;
+const trashTwoBlue = {
+  kind: "trash" as const,
+  target: { filter: { zone: "hand" as const, controller: "mine" as const, colors: ["Blue" as const] }, count: 2 },
+  raw: "By trashing 2 blue cards in your hand",
+};
+const entranceActions = [
+  {
+    kind: "Unsuspend" as const,
+    target: { filter: { controller: "mine" as const, kind: ["Digimon" as const], suspended: true }, count: 1 },
+    cost: trashTwoBlue,
+    optional: true,
+    abortOnDecline: true,
+  },
+  {
+    kind: "Unsuspend" as const,
+    target: {
+      filter: {
+        controller: "mine" as const,
+        kind: ["Tamer" as const],
+        suspended: true,
+        nameOrTrait: [{ tokens: ["Kiyoshiro Higashimitarai"], match: "name" as const }],
+      },
+      count: 1,
+    },
+  },
+  {
+    kind: "GainKeyword" as const,
+    target: self,
+    keyword: { keyword: "Blocker" as const, raw: "＜Blocker＞" },
+    duration: "untilOpponentTurnEnd" as const,
+  },
+];
+
+export const compiled: CompiledCard = {
+  effects: [
+    { trigger: "OnPlay", actions: entranceActions },
+    { trigger: "WhenDigivolving", actions: entranceActions },
+    {
+      trigger: "AllTurns",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenTrashedFromHand",
+          raw: "when a card with Jellymon in its text is trashed from your hand",
+          sourceFilter: { nameOrTrait: [{ tokens: ["Jellymon"], match: "text" }] },
+          actions: [{ kind: "Unsuspend", target: self, optional: true }],
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard("LM-004", compiled);

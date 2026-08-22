@@ -16,13 +16,19 @@ describe("P-074 Boutmon", () => {
     );
     s.state.memory = 1;
     await s.ready();
+    await s.engine.recomputeContinuousEffects();
 
     expect(s.engine.applyIntent(0, {
       type: "digivolve",
       permanentId: s.perm("boutmon").permanentId,
       instanceId: s.inst("venusmon").instanceId,
     })).toEqual({ ok: true });
-    await settle(() => s.perm("boutmon").topCard.cardId === "BT10-042");
+    await settle(() =>
+      s.perm("boutmon").topCard.cardId === "BT10-042" &&
+      s.state.players[0]!.security.length === 0 &&
+      s.state.memory === 0,
+      2_000,
+    );
 
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.memory).toBe(0);
@@ -48,7 +54,7 @@ describe("P-074 Boutmon", () => {
       permanentId: s.perm("boutmon").permanentId,
       instanceId: s.inst("venusmon").instanceId,
     })).toEqual({ ok: true });
-    await settle(() => s.perm("boutmon").topCard.cardId === "BT10-042");
+    await settle(() => s.perm("boutmon").topCard.cardId === "BT10-042" && s.state.memory === 0, 2_000);
 
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.memory).toBe(0);

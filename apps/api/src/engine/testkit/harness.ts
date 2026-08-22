@@ -523,7 +523,7 @@ export function makeSecurityState(securityCards: CardInstance[], attackerPermane
 }
 
 /** A face-down security card owned by `seat`. */
-export function makeSecurityCard(seat: Seat, n: number, cardId = "OPTION-X"): CardInstance {
+export function makeSecurityCard(seat: Seat, n: number, cardId = "BT1-001"): CardInstance {
   const card = new CardInstance();
   card.instanceId = `sec-${seat}-${n}`;
   card.cardId = cardId;

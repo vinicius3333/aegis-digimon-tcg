@@ -269,6 +269,8 @@ export interface DigivolveDeps {
   draw(state: GameState, seat: Seat, n: number): Promise<CardInstance[]>;
   /** Reapply duration-scoped DP modifiers after the evolving top changes its printed base DP. */
   recomputeDP?(state: GameState, permanentId: string): void;
+  /** Move duration-scoped effects granted to the Digimon onto its new top card. */
+  reanchorGrantedEffects?(priorTopInstanceId: string, newTopInstanceId: string): void;
   /**
    * Fire the When Digivolving timing for the just-digivolved permanent through the
    * effect stack (subsystem: effect-stack-resolution). Async because resolution may
@@ -684,6 +686,7 @@ export async function applyDigivolve(
     return { ok: false, reason: "card-not-in-zone" };
   }
   const priorTop = pushDigivolution(permanent, evolving);
+  deps.reanchorGrantedEffects?.(priorTop.instanceId, evolving.instanceId);
   // A manually declared digivolution replaces the current top's entry provenance; an
   // effect-driven digivolution uses the separate primitive seam and marks it afterward.
   permanent.enteredByEffect = false;

@@ -19,8 +19,7 @@ export const compiled: CompiledCard = {
               "controllerDefault": "opponent",
               "kind": [
                 "Digimon"
-              ],
-              "nameOrTrait": [{ "tokens": ["Renamon"], "match": "name" }]
+              ]
             },
             "raw": "your opponent has a Digimon"
           }

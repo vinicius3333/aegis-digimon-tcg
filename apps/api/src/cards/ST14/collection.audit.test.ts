@@ -34,19 +34,19 @@ describe("ST14 collection audit ledger", () => {
   });
 
   it("preserves exact ST14 targeting, source, and requirement boundaries", () => {
-    const impmon = getCompiledCard("ST14-02")!;
-    const digivolve = nodesWithKey(impmon, "kind").find((node) => node.kind === "Digivolve")!;
+    const impmon = runtimeCompiledCard("ST14-02")!;
+    const digivolve = nodesWithKey(impmon, "kind").find((node) => node.kind === "Digivolve" && node.into !== undefined)!;
     expect((digivolve.into as { nameOrTrait?: unknown }).nameOrTrait).toEqual([
       { tokens: ["Beelzemon"], match: "nameExact" },
     ]);
     expect(digivolve.from).toEqual(["trash"]);
     expect(digivolve.ignoreRequirements).toBe(true);
 
-    const blast = getCompiledCard("ST14-10")!;
-    expect(nodesWithKey(blast, "event").some((node) => node.event === "onDiscardLibrary")).toBe(true);
+    const blast = runtimeCompiledCard("ST14-10")!;
+    expect(nodesWithKey(blast, "event").some((node) => node.event === "whenTrashedFromDeck")).toBe(true);
     expect(nodesWithKey(blast, "event").some((node) => node.event === "onRevealFromDeck")).toBe(false);
 
-    const barrage = getCompiledCard("ST14-12")!;
+    const barrage = runtimeCompiledCard("ST14-12")!;
     const delay = nodesWithKey(barrage, "kind").find((node) => node.kind === "Delete")!;
     expect(delay).toBeDefined();
   });

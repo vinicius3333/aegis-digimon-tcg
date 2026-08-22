@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT11-084.js";
@@ -26,5 +27,27 @@ describe("BT11-084 BlueMeramon", () => {
     await settle(() => s.state.players[0]!.trash.length === 2);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Retaliation")).toBe(true);
+  });
+
+  it("inherits memory gain only for an effect-played Digimon and only once per turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT11-083", as: "host", under: ["BT11-084"] },
+          { card: "BT11-079", as: "played" },
+        ],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    const payload = { subjectPermanentId: s.perm("played").permanentId };
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", payload);
+    expect(s.state.memory).toBe(0);
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", { ...payload, playedByEffect: true });
+    await advance(s.engine).fireSubTrigger("whenPlayed", { ...payload, playedByEffect: true });
+
+    expect(s.state.memory).toBe(1);
   });
 });

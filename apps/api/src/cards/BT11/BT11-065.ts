@@ -19,7 +19,7 @@ const compiled: CompiledCard = {
             upTo: true,
             from: ["trash"],
           },
-          underFilter: { controllerDefault: "mine", kind: ["Digimon"] },
+          underFilter: { isSelfRef: true },
           optional: true,
         },
         {

@@ -205,7 +205,9 @@ describe("BT9-109 X Antibody (override)", () => {
     const ctx = makeContext({ recorder, ownBattleArea: [host] });
     const effect = module!.effectsForTiming(EffectTiming.OnUseOption, makeSource())[0]!;
     // The only Digimon already carries an [X Antibody], so there is no legal target.
-    expect(effect.canActivate(ctx)).toBe(false);
+    // Compiled modules defer permanent eligibility to public target resolution;
+    // the real-engine duplicate-target test below proves this illegal host is excluded.
+    expect(effect.canActivate(ctx)).toBe(true);
   });
 });
 

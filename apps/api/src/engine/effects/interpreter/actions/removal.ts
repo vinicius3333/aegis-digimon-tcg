@@ -57,6 +57,14 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           },
         };
       }
+      if (action.totalDpCapScaling && target.totalDpCap !== undefined) {
+        target = {
+          ...target,
+          totalDpCap:
+            target.totalDpCap +
+            scaleFactor(ctx, action.totalDpCapScaling) * action.totalDpCapScaling.amount,
+        };
+      }
       target = raiseDeletionDpCap(ctx, target);
       if (action.playCostCeiling !== undefined) {
         const ceiling = action.playCostCeiling;
@@ -697,10 +705,13 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // "At the next end of your opponent's turn, delete it" after a PlayWithoutCost branch.
       // The target is the permanent(s) just created by the prior play action in this same
       // effect resolution, not the card currently resolving the effect.
+      const playedIds = ctx.lastPlayedPermanentIds ?? [];
       const permanentIds =
-        action.target === undefined || action.target.isSelf || action.target.filter?.isSelfRef === true
-          ? (ctx.lastPlayedPermanentIds ?? [])
-          : await resolvePermanentTargets(ctx, action.target);
+        playedIds.length > 0 && (action.target === undefined || action.target.isSelf || action.target.filter?.isSelfRef)
+          ? playedIds
+          : action.target === undefined
+            ? []
+            : await resolvePermanentTargets(ctx, action.target);
       for (const permanentId of permanentIds) {
         if (action.timing === "endOfOpponentTurn") {
           ctx.fx.delayedDeletePlayed?.(permanentId, "endOfOpponentTurn");

@@ -17,4 +17,10 @@ describe("BT9-016 WarGreymon (X Antibody)", () => {
     await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("war"));
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
+
+  it("recognizes the exact WarGreymon card name in its stack", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT9-016", as: "war", under: ["BT1-025"] }] }, 1: { battleArea: [{ card: "BT8-084", as: "target", dp: 11000 }] } }, { autoSelectCards: true });
+    await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("war"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
 });

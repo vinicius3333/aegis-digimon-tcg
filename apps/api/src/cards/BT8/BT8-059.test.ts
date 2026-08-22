@@ -17,4 +17,23 @@ describe("BT8-059 Kokuwamon", () => {
     expect(s.perm("fury").topCard.cardId).toBe("BT8-081");
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("rasenmon").instanceId)).toBe(true);
   });
+
+  it("also prevents its owner from ignoring digivolution requirements", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT8-059", as: "kokuwamon" }, { card: "BT8-081", as: "fury" }],
+        hand: [{ card: "BT7-040", as: "rasenmon" }],
+        security: ["BT8-034"],
+      },
+      1: { security: ["BT8-035"] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("fury").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.events.some(event => event.kind === "combatResolved"));
+
+    expect(s.perm("fury").topCard.cardId).toBe("BT8-081");
+    expect(s.state.players[0]!.hand.some(card => card.instanceId === s.inst("rasenmon").instanceId)).toBe(true);
+  });
 });

@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
         kind: "Replacement",
         event: "wouldDigivolve",
         sourceFilter: { controller: "mine", kind: ["Digimon"] },
+        into: { nameOrTrait: [{ tokens: ["RustTyrannomon"], match: "name" }] },
         actions: [{
           kind: "Replacement",
           event: "wouldDigivolve",
@@ -28,6 +29,7 @@ const compiled: CompiledCard = {
       actions: [{
         kind: "SubTrigger",
         event: "whenDeletesInBattle",
+        sourceFilter: { isSelfRef: true },
         actions: [{ kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } }],
       }],
       frequency: "OncePerTurn",

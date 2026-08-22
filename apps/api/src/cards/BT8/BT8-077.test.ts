@@ -18,4 +18,27 @@ describe("BT8-077 BlackGatomon", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Retaliation")).toBe(true);
   });
+
+  it("deletes the opposing Digimon when its host loses a battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT8-079", as: "host", under: ["BT8-077"], dp: 5000 }] },
+      1: { battleArea: [{ card: "BT2-047", as: "defender", dp: 15000, suspended: true }] },
+    });
+    const hostId = s.perm("host").permanentId;
+    const defenderId = s.perm("defender").permanentId;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: hostId,
+      target: { kind: "digimon", permanentId: defenderId },
+    })).toEqual({ ok: true });
+    await settle(() =>
+      !s.state.players[0]!.battleArea.some(permanent => permanent.permanentId === hostId) &&
+      !s.state.players[1]!.battleArea.some(permanent => permanent.permanentId === defenderId)
+    );
+
+    expect(s.state.players[0]!.trash.some(card => card.cardId === "BT8-077")).toBe(true);
+    expect(s.state.players[1]!.trash.some(card => card.cardId === "BT2-047")).toBe(true);
+  });
 });

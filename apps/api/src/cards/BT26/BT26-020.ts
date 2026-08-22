@@ -6,6 +6,6 @@ export const compiled: CompiledCard = { effects: [
     { kind: "Draw", controller: "mine", amount: 1 },
     { kind: "Restrict", target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } }, restriction: "attackOrBlock", duration: "untilOpponentTurnEnd" },
   ] },
-  { trigger: "None", isInherited: true, actions: [{ kind: "GainKeyword", keyword: { keyword: "Evade" }, duration: "permanent" }] },
+  { trigger: "Static", isInherited: true, actions: [], keywords: [{ keyword: "Evade", raw: "＜Evade＞" }] },
 ], coverage: "full", residual: [] };
 registerIrCard("BT26-020", compiled);

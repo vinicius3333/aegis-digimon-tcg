@@ -199,6 +199,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     }
     case "youHaveNone":
       return cond.filter ? countMatching(ctx, { controller: "mine", ...cond.filter }) === 0 : false;
+    case "noFaceUpSecurity":
+      return ctx.game.player(mine).security.every((card) => card.faceUp !== true);
     case "ifOpponentDeclined":
       return ctx.lastOpponentDeclined === true;
     case "opponentHasNone":
@@ -225,6 +227,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return ctx.game.player(mine).security.length >= (cond.value ?? 0);
     case "securityAtMost":
       return ctx.game.player(mine).security.length <= (cond.value ?? 0);
+    case "faceUpSecurityAtMost":
+      return ctx.game.player(mine).security.filter((card) => card.faceUp === true).length <= (cond.value ?? 0);
     case "securityAtMostSelfFaceDownDigivolutionCards": {
       // EX9-029 / KB Q4783: "you have as many or fewer security cards as this Digimon has
       // face-down digivolution cards". An off-field source has an empty stack (0), not "always
@@ -583,6 +587,10 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const self = ctx.source.permanent();
       return (self?.stack.length ?? 0) >= (cond.value ?? 0);
     }
+    case "selfLinkCountAtLeast": {
+      const self = ctx.source.permanent();
+      return (self?.linked.length ?? 0) >= (cond.value ?? 0);
+    }
     case "selfDigivolutionCountExactly": {
       const self = ctx.source.permanent();
       return (self?.stack.length ?? 0) === (cond.value ?? 0);
@@ -790,6 +798,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const seat = cond.seat === "opponent" ? opp : mine;
       return ctx.trigger.removedFromSecuritySeat === seat;
     }
+    case "triggerSecurityRemovedByEffect":
+      return ctx.trigger.securityRemovedByEffect === true;
     case "triggerHandTrashedSeat": {
       const seat = cond.seat === "opponent" ? opp : mine;
       return ctx.trigger.handTrashedSeat === seat;

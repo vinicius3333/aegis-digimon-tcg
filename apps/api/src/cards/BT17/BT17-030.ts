@@ -13,11 +13,6 @@ export const compiled: CompiledCard = {
         {
           "kind": "GainMemory",
           "amount": 1,
-          "condition": {
-            "kind": "securityAtLeast",
-            "value": 3,
-            "raw": "you have 3 or more security cards"
-          },
           "cost": {
             "kind": "place",
             "target": {
@@ -44,22 +39,38 @@ export const compiled: CompiledCard = {
             "host": "self"
           },
           "optional": true,
-          "abortOnDecline": true
-        },
+          "abortOnDecline": true,
+          "condition": {
+            "kind": "securityAtLeast",
+            "value": 3,
+            "raw": "you have 3 or more security cards"
+          }
+        }
+      ]
+    },
+    {
+      "trigger": "StartOfYourMainPhase",
+      "actions": [
         {
           "kind": "SecurityManipulation",
           "op": "addTop",
           "controller": "mine",
           "source": "deck",
           "amount": 1,
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "mine",
-            "zone": "security",
-            "op": "lte",
-            "value": 2,
-            "raw": "you have 2 or fewer security cards"
-          }
+          "cost": {
+            "kind": "place",
+            "target": {
+              "filter": { "zone": "hand", "controller": "mine", "nameOrTrait": [{ "tokens": ["Leon Alexander"], "match": "name" }] },
+              "count": 1,
+              "from": ["hand"]
+            },
+            "destination": "digivolutionStack",
+            "position": "bottom",
+            "host": "self"
+          },
+          "optional": true,
+          "abortOnDecline": true,
+          "condition": { "kind": "zoneCount", "seat": "mine", "zone": "security", "op": "lte", "value": 2 }
         }
       ]
     },

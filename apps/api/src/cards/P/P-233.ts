@@ -1,128 +1,74 @@
-import { EffectTiming } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { onPlay, security, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "P-233";
-
-function hasTrait(def: CardDefinition, trait: string): boolean {
-  return (def.types ?? []).some((t) => t === trait);
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnEnterFieldAnyone) {
-      return [
-        onPlay({
-          source,
-          effectKey: `${cardId}/on-play`,
-          description:
-            "[On Play] Reveal the top 3 cards of your deck. Add 1 [Game] trait card and 1 " +
-            "[Invincible]/[Life]/[Entertainment] trait card among them to the hand. Return the " +
-            "rest to the bottom of the deck.",
-          canActivate: (ctx) => ctx.source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-            const deckCards = Array.from(owner.deck).slice(0, 3);
-            if (deckCards.length === 0) return;
-            const gameCards = deckCards.filter((c) => hasTrait(ctx.game.definitionOf(c), "Game"));
-            const otherCards = deckCards.filter((c) => {
-              const def = ctx.game.definitionOf(c);
-              return hasTrait(def, "Invincible") || hasTrait(def, "Life") || hasTrait(def, "Entertainment");
-            });
-            const added: string[] = [];
-            if (gameCards.length > 0) {
-              const chosen = await ctx.ask.selectCards(ctx, {
-                candidates: gameCards.map((c) => c.instanceId),
-                min: 0,
-                max: 1,
-              });
-              added.push(...chosen);
-            }
-            if (otherCards.length > 0) {
-              const remaining = otherCards.filter((c) => !added.includes(c.instanceId));
-              if (remaining.length > 0) {
-                const chosen = await ctx.ask.selectCards(ctx, {
-                  candidates: remaining.map((c) => c.instanceId),
-                  min: 0,
-                  max: 1,
-                });
-                added.push(...chosen);
-              }
-            }
-            const rest = deckCards.filter((c) => !added.includes(c.instanceId));
-            if (rest.length > 0) {
-              await ctx.fx.returnToDeck(
-                rest.map((c) => c.instanceId),
-                { toTop: false },
-              );
-            }
+const compiled: CompiledCard = {
+  effects: [
+    {
+      effectKey: "P-233/on-play",
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
+            {
+              filter: { nameOrTrait: [{ tokens: ["Game"], match: "trait" }] },
+              count: 1,
+              to: "hand",
+            },
+            {
+              filter: { nameOrTrait: [{ tokens: ["Invincible", "Life", "Entertainment"], match: "trait" }] },
+              count: 1,
+              to: "hand",
+            },
+          ],
+          rest: "deckBottom",
+        },
+      ],
+    },
+    {
+      effectKey: "P-233/linked-trigger",
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinked",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          linkedCardFilter: {
+            nameOrTrait: [{ tokens: ["Game", "Life", "Entertainment"], match: "trait" }],
           },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/linked-trigger`,
-          description:
-            "[Your Turn] When any of your Digimon get linked to a [Game]/[Life]/[Entertainment] " +
-            "trait card, by suspending this Tamer, gain 1 memory.",
-          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "whenLinked",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              description: `${cardId}: When linked, suspend to gain memory.`,
-              matches: (subCtx) => {
-                if (!subCtx.source.isOnBattleArea() || !subCtx.source.isOwnersTurn()) return false;
-                const subjectId = subCtx.trigger?.subjectPermanentId;
-                if (subjectId === undefined) return false;
-                const host = subCtx.game.permanentById(subjectId);
-                if (host === undefined) return false;
-                return host.linked.some((c) => {
-                  const def = subCtx.game.definitionOf(c);
-                  return hasTrait(def, "Game") || hasTrait(def, "Life") || hasTrait(def, "Entertainment");
-                });
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 1,
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                raw: "by suspending this Tamer",
               },
-              run: async (subCtx) => {
-                const selfPerm = subCtx.source.permanent();
-                if (selfPerm === undefined || selfPerm.isSuspended) return;
-                const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
-                if (!paid) return;
-                subCtx.fx.gainMemory(1);
-              },
-            });
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security`,
-          description: "[Security] Play this card without paying the cost.",
-          resolve: async (ctx) => {
-            await ctx.fx.playFromSecurity(source.instanceId, { payCost: false });
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      effectKey: "P-233/security",
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("P-233", compiled);

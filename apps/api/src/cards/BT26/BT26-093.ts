@@ -18,7 +18,7 @@ const startCost = {
 };
 const attackBody = [
   { kind: "Suspend", target: self },
-  { kind: "PlaceUnder", fromDeckTop: true, target: self, faceDown: true },
+  { kind: "PlaceUnder", fromDeckTop: true, target: { filter: {}, count: 1 }, faceDown: true },
   { kind: "GainKeyword", target: beatbreak, keyword: { keyword: "Collision" }, duration: "untilEachTurnEnd" },
   { kind: "GainKeyword", target: beatbreak, keyword: { keyword: "Blocker" }, duration: "untilEachTurnEnd" },
 ];

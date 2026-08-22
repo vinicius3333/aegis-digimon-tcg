@@ -543,6 +543,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // protocol for a DP change — the schema delta (currentDP) is the source of truth.
   };
 
+  const restoreDpReductions: Primitives["restoreDpReductions"] = (permanentId): void => {
+    ledger.restoreDpReductions(state, permanentId);
+  };
+
   const setBaseDP = (permanentId: string, value: number, duration: EffectDuration): void => {
     const before = access.permanentById(permanentId);
     if (before === undefined) return; // no such battle-area permanent; nothing to override
@@ -760,7 +764,24 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       }
       created.push(permanent);
       if ((opts?.digiXrosMaterialInstanceIds?.length ?? 0) > 0) {
-        await placeUnder(permanent.permanentId, opts!.digiXrosMaterialInstanceIds!);
+        for (const materialInstanceId of opts!.digiXrosMaterialInstanceIds!) {
+          let fieldMaterial: Permanent | undefined;
+          for (const candidatePlayer of state.players) {
+            fieldMaterial = candidatePlayer.battleArea.find(
+              (candidatePermanent) => candidatePermanent.topCard?.instanceId === materialInstanceId,
+            );
+            if (fieldMaterial !== undefined) break;
+          }
+          if (fieldMaterial !== undefined && fieldMaterial.permanentId !== permanent.permanentId) {
+            await relocatePermanentByEffect(permanent.permanentId, fieldMaterial.permanentId, {
+              belowTop: false,
+              faceUp: true,
+              shedOwnCards: true,
+            });
+          } else {
+            await placeUnder(permanent.permanentId, [materialInstanceId]);
+          }
+        }
       }
       engine.emit({
         kind: "cardPlayed",
@@ -1031,8 +1052,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     if (instance === undefined) return undefined;
     instance.faceUp = true;
     const carriedSuspended = permanent.isSuspended;
-    permanent.stack.push(permanent.topCard);
+    const priorTop = permanent.topCard;
+    permanent.stack.push(priorTop);
     permanent.topCard = instance;
+    continuous.reanchorCustomEffectGrants(priorTop.instanceId, instance.instanceId);
     const dp = definition.kinds.includes(CardKind.Digimon) ? definition.dp : 0;
     permanent.baseDP = dp;
     permanent.currentDP = dp;
@@ -1226,8 +1249,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     if (instance === undefined) return undefined;
     instance.faceUp = true;
     const carriedSuspended = permanent.isSuspended;
-    permanent.stack.push(permanent.topCard);
+    const priorTop = permanent.topCard;
+    permanent.stack.push(priorTop);
     permanent.topCard = instance;
+    continuous.reanchorCustomEffectGrants(priorTop.instanceId, instance.instanceId);
     const dp = definition.dp;
     permanent.baseDP = dp;
     permanent.currentDP = dp;
@@ -1405,6 +1430,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       addedDigivolutionCardInstanceIds: [oldTop.instanceId],
       addedDigivolutionCardsPosition: "bottom",
       placedOwnTopAtStackBottom: true,
+      ...(effectSeatStack.at(-1) !== undefined ? { byEffectSeat: effectSeatStack.at(-1) } : {}),
     });
     return true;
   };
@@ -1445,6 +1471,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         subjectPermanentId: targetPermanentId,
         addedDigivolutionCardInstanceIds: placed.map((card) => card.instanceId),
         addedDigivolutionCardsPosition: opts?.belowTop ? "bottom" : "top",
+        ...(effectSeatStack.at(-1) !== undefined ? { byEffectSeat: effectSeatStack.at(-1) } : {}),
       });
     }
     return placed;
@@ -1462,6 +1489,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       subjectPermanentId: targetPermanentId,
       addedDigivolutionCardInstanceIds: [card.instanceId],
       addedDigivolutionCardsPosition: "top",
+      ...(effectSeatStack.at(-1) !== undefined ? { byEffectSeat: effectSeatStack.at(-1) } : {}),
     });
     return card;
   };
@@ -1612,6 +1640,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       await engine.fireSubTrigger?.("onAddDigivolutionCards", {
         subjectPermanentId: destPermanentId,
         addedDigivolutionCardInstanceIds: movedCardIds,
+        ...(effectSeatStack.at(-1) !== undefined ? { byEffectSeat: effectSeatStack.at(-1) } : {}),
       });
     }
     return moved;
@@ -2428,7 +2457,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // Generic removal watchers (BT4-088) care that a card left security regardless of
       // whether it was checked or removed by an effect. Security checks already fire this
       // event at their own movement seam; effect-driven trash must reach the same bus too.
-      await engine.fireSubTrigger?.("whenSecurityRemoved", { removedFromSecuritySeat: seat });
+      await engine.fireSubTrigger?.("whenSecurityRemoved", {
+        removedFromSecuritySeat: seat,
+        securityRemovedByEffect: true,
+      });
       await engine.fireSubTrigger?.("whenCardTrashedFromSecurity", {
         removedFromSecuritySeat: seat,
         trashedFromSecurityInstanceIds: moved.map((c) => c.instanceId),
@@ -4340,7 +4372,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // it. Never inherit the engine-global continuous flag merely because its async
     // installation overlaps a recompute; otherwise a subsequent digivolution clears it
     // before its boundary fires (P-030/Q4141).
-    subTriggers.subscribe({ ...sub, ...(sub.once ? {} : continuousOpt()) });
+    subTriggers.subscribe({ ...(sub.once ? {} : continuousOpt()), ...sub });
 
   const subscribeReplacement: Primitives["subscribeReplacement"] = (sub) =>
     subTriggers.subscribeReplacement({ ...sub, ...continuousOpt() });
@@ -4476,6 +4508,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     setMemory,
     setTurnEndMinMemory: (seat: Seat, minimum: number) => engine.memory.setTurnEndMinMemory?.(seat, minimum),
     modifyDP,
+    restoreDpReductions,
     setBaseDP,
     playFromHand,
     playFromSecurity,

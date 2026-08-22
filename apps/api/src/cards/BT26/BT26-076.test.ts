@@ -10,9 +10,7 @@ describe("BT26-076 Crowmon", () => {
     expect(compiled.digivolutionRequirement).toEqual([
       { level: 4, traits: ["DATA SQUAD"], cost: 3, isAlternate: true },
     ]);
-    expect(compiled.effects).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
+    expect(compiled.effects.find((effect) => effect.trigger === "WhenDigivolving")).toMatchObject({
           trigger: "WhenDigivolving",
           actions: [
             expect.objectContaining({
@@ -28,16 +26,15 @@ describe("BT26-076 Crowmon", () => {
               cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine" },
             }),
           ],
-        }),
-        expect.objectContaining({
+        });
+    expect(compiled.effects.find((effect) => effect.trigger === "YourTurn")).toMatchObject({
           trigger: "YourTurn",
-          actions: expect.arrayContaining([
-            expect.objectContaining({ kind: "SubTrigger", event: "whenHandTrashed", frequency: "OncePerTurn" }),
-            expect.objectContaining({ kind: "SubTrigger", event: "whenDigivolutionTrashed", frequency: "OncePerTurn" }),
-          ]),
-        }),
-      ]),
-    );
+          frequency: "OncePerTurn",
+          actions: [
+            expect.objectContaining({ kind: "SubTrigger", event: "whenHandTrashed" }),
+            expect.objectContaining({ kind: "SubTrigger", event: "whenDigivolutionTrashed" }),
+          ],
+        });
   });
 
   it("publicly deletes a level 4 opponent Digimon and trashes a face-down Tamer card", async () => {

@@ -16,5 +16,12 @@ describe("BT8-049 Namakemon", () => {
     expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: s.perm("namakemon").topCard.instanceId, effectKey })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("green").instanceId));
     expect(s.perm("namakemon").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.perm("namakemon").topCard.instanceId,
+      effectKey,
+    })).not.toEqual({ ok: true });
   });
 });

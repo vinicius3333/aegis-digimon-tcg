@@ -6,7 +6,8 @@ import { compiled } from "./BT17-026.js";
 
 describe("BT17-026", () => {
   it("digivolves a Koji Tamer by placing Lobomon and KendoGarurumon from trash for cost 3", () => {
-    expect(compiled.effects?.[0]).toMatchObject({ trigger: "Main", isFromHand: true, actions: [{ kind: "Digivolve", costOverride: 3, ignoreRequirements: true, additionalCosts: [{ kind: "place" }] }] });
+    expect(compiled.effects?.[0]).toMatchObject({ trigger: "Main", isFromHand: true, actions: [{ kind: "Digivolve", target: { filter: { nameOrTrait: [{ tokens: ["Koji Minamoto"], match: "name" }] } }, costOverride: 3, asLevel: 4, asColors: ["Blue"], additionalCosts: [{ kind: "place" }] }] });
+    expect(compiled.effects?.[0]?.actions?.[0]).not.toHaveProperty("ignoreRequirements");
   });
 
   it("returns a Hybrid card from its stack to suspend an opposing Digimon or Tamer", () => {

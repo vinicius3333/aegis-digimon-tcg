@@ -49,13 +49,13 @@ describe("BT26-084 compiled behavior", () => {
     });
     expect(yourTurn.actions[0].actions[0].add[0]).toMatchObject({
       to: "play",
-      costDelta: -3,
+      costDelta: 3,
       optional: true,
       filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] },
     });
     expect(yourTurn.actions[0].actions[0].add[1]).toMatchObject({
       to: "useOption",
-      costDelta: -3,
+      costDelta: 3,
       optional: true,
       filter: { kind: ["Option"], nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] },
     });
@@ -66,10 +66,10 @@ describe("BT26-084 compiled behavior", () => {
       {
         0: {
           battleArea: [{ card: "BT26-084", as: "copipemon", linked: [{ card: "BT26-102", as: "pad" }] }],
-          deck: ["BT26-010", "BT1-001", "BT1-002"],
+          deck: ["BT26-010", "BT1-009", "BT1-010"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
 
     await advance(s.engine).fireSubTrigger("whenLinked", {
@@ -77,6 +77,6 @@ describe("BT26-084 compiled behavior", () => {
     });
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT26-010")).toBe(true);
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
   });
 });

@@ -20,6 +20,7 @@ export interface Condition {
     | "memoryAtMost"
     | "securityAtLeast"
     | "securityAtMost"
+    | "faceUpSecurityAtMost"
     | "handAtMost"
     | "handAtLeast"
     | "isYourTurn"
@@ -49,6 +50,7 @@ export interface Condition {
     | "selfDigivolutionStackDistinctColorCount"
     | "selfTopHasText" // `filter.nameOrTrait` vs the SOURCE top card's name/trait/effect text (EX11-070)
     | "selfDigivolutionCountAtLeast" // source stack size >= `value` (BT22-007; KB Q4858)
+    | "selfLinkCountAtLeast" // source linked-card count >= `value` (BT26-086)
     | "selfDigivolutionCountExactly" // source stack size equals `value`
     | "selfDigivolutionStackCountAtLeast" // stack cards matching `filter.nameOrTrait` >= `count` (BT11-065)
     | "selfDigivolutionStackHasSameLevelPair" // 2 or more SOURCE stack cards share a level (BT23-102)
@@ -92,11 +94,13 @@ export interface Condition {
     | "triggerDefenderIsSelf"
     | "triggerDefenderMatchesFilter" // the originally declared defender, before Blocker redirection
     | "triggerRemovedSecuritySeat"
+    | "triggerSecurityRemovedByEffect"
     | "triggerHandTrashedSeat"
     | "triggerRemovalCause"
     | "triggerDeletedByDpZero"
     | "triggerIsFirstDeletedPermanent"
     | "noTamerInDigivolution"
+    | "noFaceUpSecurity"
     | "selfHasNoDigivolutionCards" // played directly, not digivolved into (BT19-101). Off-field source => false.
     | "selfHadDigivolutionCards" // the stack the source held when it was deleted, still readable once it left the field
     | "notEnteredThisTurn" // the ＜Delay＞ option gate: enterFieldTurnCount differs from turnCount

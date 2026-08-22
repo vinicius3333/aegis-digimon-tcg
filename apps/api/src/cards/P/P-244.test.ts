@@ -1,8 +1,32 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./P-244.js";
+import { compiled } from "./P-244.js";
 
 describe("P-244 Unique Emblem: Ragnarok Attainer", () => {
+  it("delays on an effect-added Vemmon card and uses normal reduced-cost digivolution requirements", () => {
+    expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")).toMatchObject({
+      keywords: [{ keyword: "Delay" }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onAddDigivolutionCards",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          addedDigivolutionCardFilter: { nameOrTrait: [{ tokens: ["Vemmon"], match: "text" }] },
+          actions: [
+            {
+              kind: "Digivolve",
+              from: ["hand", "trash"],
+              reduceCost: 3,
+              payCost: true,
+              optional: true,
+            },
+          ],
+        },
+      ],
+    });
+    expect(JSON.stringify(compiled)).not.toContain("ignoreRequirements");
+  });
+
   it("uses from hand, plays a qualifying Vemmon/Zenith, and places itself", async () => {
     const s = setupEngine(
       {

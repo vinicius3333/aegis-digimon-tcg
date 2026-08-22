@@ -62,7 +62,8 @@ export type SecurityOp =
   | "revealTop" // stays in security, face up
   | "revealBottom"
   | "lookAndMayAddToHand" // look, optionally take, then run the matching branch (BT9-034)
-  | "moveTopToBottom";
+  | "moveTopToBottom"
+  | "revealAllChooseToDeckTopShuffleRest";
 
 export interface SecurityManipulationAction extends ActionBase {
   kind: "SecurityManipulation";

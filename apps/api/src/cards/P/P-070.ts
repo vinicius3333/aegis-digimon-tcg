@@ -1,59 +1,53 @@
-import { EffectTiming, isDigimon, CardColor } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { security } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "P-070";
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security`,
-          description:
-            "[Security] Reveal the top card of your deck. If it's a black Digimon with a play " +
-            "cost of 4 or less, you may play it without paying the cost. Otherwise, add it to " +
-            "your hand. Then, add this card to your hand.",
-          resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-            const topCard = Array.from(owner.deck)[0];
-            let played = false;
-            if (topCard !== undefined) {
-              const def = ctx.game.definitionOf(topCard);
-              const eligible =
-                isDigimon(def) &&
-                def.colors.includes(CardColor.Black) &&
-                (def.playCost ?? 99) <= 4;
-              if (eligible) {
-                const willPlay = await ctx.ask.optional(
-                  ctx,
-                  `Play ${def.nameEn} without paying the cost?`,
-                );
-                if (willPlay) {
-                  await ctx.fx.playInstances([topCard.instanceId], { payCost: false });
-                  played = !Array.from(owner.deck).some(
-                    (card) => card.instanceId === topCard.instanceId,
-                  );
-                }
-              }
-              if (!played) await ctx.fx.returnToHand([topCard.instanceId]);
-            }
-
-            // The final "Then" is unconditional (KB Q4846), including an empty deck.
-            await ctx.fx.returnToHand([source.instanceId]);
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+// KB Q4171: declining the eligible free play adds that revealed card to hand.
+// KB Q4846-Q4847: adding this Security card to hand is an unconditional final process.
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Security",
+      timing: "endOfBattle",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSecurityBattleEnded",
+          once: true,
+          raw: "at the end of the battle",
+          actions: [
+            {
+              kind: "RevealAdd",
+              revealCount: 1,
+              add: [
+                {
+                  filter: {
+                    controllerDefault: "mine",
+                    kind: ["Digimon"],
+                    colors: ["Black"],
+                    playCostLte: 4,
+                  },
+                  count: 1,
+                  to: "play",
+                  optional: true,
+                },
+                {
+                  filter: { controllerDefault: "mine" },
+                  count: "all",
+                  to: "hand",
+                },
+              ],
+              rest: "deckBottom",
+            },
+            { kind: "AddToHandSelf" },
+          ],
+        },
+      ],
+      isSecurity: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("P-070", compiled);

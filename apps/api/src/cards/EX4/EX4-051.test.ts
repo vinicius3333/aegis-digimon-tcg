@@ -162,9 +162,7 @@ describe("EX4-051 BlitzGreymon", () => {
       fx: { deDigivolve: (id: string) => calls.push(id) } as unknown as Primitives,
       ask: {
         chooseOption: async () => 0,
-        chooseTargets: async () => {
-          throw new Error("must not request an incomplete target set");
-        },
+        chooseTargets: async () => [],
         selectCards: async () => [],
         selectPermanents: async () => [],
         optional: async () => true,

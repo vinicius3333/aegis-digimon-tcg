@@ -38,7 +38,6 @@ const compiled: CompiledCard = {
           "asColors": [
             "Red"
           ],
-          "ignoreRequirements": true,
           "cost": {
             "kind": "place",
             "target": {

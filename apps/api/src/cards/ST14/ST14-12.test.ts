@@ -29,4 +29,17 @@ describe("ST14-12 Rivals' Barrage", () => {
     expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "ST14-02")).toBe(true);
     expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "ST14-12")).toBe(true);
   });
+
+  it("deletes an opponent's highest-level Digimon in security", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "ST14-12", as: "security-barrage" }] },
+      1: { battleArea: [
+        { card: "BT1-009", as: "level3" },
+        { card: "BT1-015", as: "level4" },
+      ] },
+    }, { autoSelectCards: true });
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security-barrage"));
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT1-009");
+  });
 });

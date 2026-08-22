@@ -63,7 +63,6 @@ const compiled: CompiledCard = {
           },
           "amount": -3000,
           "duration": "untilOpponentTurnEnd",
-          "optional": true,
           "scaling": {
             "per": 1,
             "filter": {
@@ -119,7 +118,6 @@ const compiled: CompiledCard = {
           },
           "amount": -3000,
           "duration": "untilOpponentTurnEnd",
-          "optional": true,
           "scaling": {
             "per": 1,
             "filter": {
@@ -161,13 +159,13 @@ const compiled: CompiledCard = {
                   "controller": "opponent",
                   "kind": [
                     "Digimon"
-                  ]
+                  ],
+                  "dp": {
+                    "op": "lte",
+                    "relativeToSource": true
+                  }
                 },
                 "count": 1
-              },
-              "condition": {
-                "kind": "lastTargetDpAtMostSelf",
-                "raw": "target has as much or less DP as this Digimon (ShineGreymon)"
               },
               "optional": true
             }
@@ -195,13 +193,13 @@ const compiled: CompiledCard = {
                   "controller": "opponent",
                   "kind": [
                     "Digimon"
-                  ]
+                  ],
+                  "dp": {
+                    "op": "lte",
+                    "relativeToSource": true
+                  }
                 },
                 "count": 1
-              },
-              "condition": {
-                "kind": "lastTargetDpAtMostSelf",
-                "raw": "target has as much or less DP as this Digimon (ShineGreymon)"
               },
               "optional": true
             }

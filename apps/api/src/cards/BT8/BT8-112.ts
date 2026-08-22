@@ -50,7 +50,6 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldDigivolve",
-          sourceFilter: { isSelfRef: true },
           into: { cardId: "BT8-112" },
           actions: [
             {

@@ -10,10 +10,10 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Delete",
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, forceSelection: true },
           scaling: {
             per: 1,
-            filter: { controllerDefault: "mine", kind: ["Digimon"], traits: ["Mega"] },
+            filter: { controllerDefault: "mine", kind: ["Digimon"], forms: ["Mega"] },
             unit: "digivolutionCards",
           },
         },
@@ -28,7 +28,7 @@ const compiled: CompiledCard = {
     {
       trigger: "StartOfYourTurn",
       actions: [
-        { kind: "Trash", target: { filter: { zone: "digivolutionCards", isSelfRef: true }, count: 1, isSelf: true } },
+        { kind: "Trash", target: { filter: { zone: "digivolutionCards", isSelfRef: true, position: "top" }, count: 1, isSelf: true } },
         { kind: "Trash", target: { filter: { zone: "security", controller: "opponent", position: "top" }, count: 1 }, condition: { kind: "ifThisEffectActed", raw: "you do" } },
       ],
     },

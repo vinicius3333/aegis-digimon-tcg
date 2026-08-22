@@ -60,20 +60,33 @@ const compiled: CompiledCard = {
       "trigger": "AllTurns",
       "actions": [
         {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levels": [
-                3
-              ]
-            },
-            "count": 1
+          "kind": "SubTrigger",
+          "event": "whenDigivolutionTrashed",
+          "sourceFilter": {
+            "controller": "opponent",
+            "kind": [
+              "Digimon"
+            ]
           },
-          "to": "hand"
+          "once": true,
+          "actions": [
+            {
+              "kind": "Return",
+              "target": {
+                "filter": {
+                  "controller": "opponent",
+                  "kind": [
+                    "Digimon"
+                  ],
+                  "levels": [
+                    3
+                  ]
+                },
+                "count": 1
+              },
+              "to": "hand"
+            },
+          ]
         }
       ],
       "isInherited": true,

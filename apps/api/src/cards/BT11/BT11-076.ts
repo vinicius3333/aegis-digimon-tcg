@@ -8,7 +8,15 @@ const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [{
         kind: "Delete",
-        target: { filter: { controller: "opponent", unsuspended: true, kind: ["Digimon"] }, count: 1 },
+        target: {
+          filter: {
+            controller: "opponent",
+            unsuspended: true,
+            kind: ["Digimon"],
+            levelComparison: { op: "lte", relativeTo: "lastDeleted" },
+          },
+          count: 1,
+        },
         cost: {
           kind: "deleteOwn",
           target: { filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"] }, count: 1 },
@@ -22,7 +30,7 @@ const compiled: CompiledCard = {
       actions: [{
         kind: "SubTrigger",
         event: "whenPlayed",
-        sourceFilter: { controllerDefault: "mine", kind: ["Digimon"] },
+        sourceFilter: { controllerDefault: "mine", kind: ["Digimon"], byEffect: true },
         actions: [{ kind: "GainMemory", amount: 1 }],
       }],
       isInherited: true,

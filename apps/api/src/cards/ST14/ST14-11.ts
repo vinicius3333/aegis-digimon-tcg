@@ -56,33 +56,30 @@ const compiled: CompiledCard = {
               "Purple"
             ]
           },
+          "cost": {
+            "kind": "suspend",
+            "target": {
+              "filter": { "isSelfRef": true },
+              "count": 1,
+              "isSelf": true
+            },
+            "raw": "suspend this Tamer"
+          },
+          "additionalCost": {
+            "kind": "return",
+            "target": {
+              "filter": { "zone": "hand", "controller": "mine" },
+              "count": 1
+            },
+            "to": "deckTop",
+            "raw": "return 1 card from your hand to your deck"
+          },
+          "optional": true,
+          "raw": "suspend this Tamer and return 1 card from your hand to your deck to gain 1 memory",
           "actions": [
             {
               "kind": "GainMemory",
-              "amount": 1,
-              "cost": {
-                "kind": "suspend",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
-                  },
-                  "count": 1,
-                  "isSelf": true
-                },
-                "raw": "by suspending this Tamer and return 1 card from your hand to your deck"
-              },
-              "optional": true
-            },
-            {
-              "kind": "Return",
-              "target": {
-                "filter": {
-                  "zone": "hand",
-                  "controller": "mine"
-                },
-                "count": 1
-              },
-              "to": "deckTop"
+              "amount": 1
             }
           ]
         }

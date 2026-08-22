@@ -10,6 +10,7 @@ import {
   digivolveCostStatic,
   inTrash,
   onAddHand,
+  onDiscardSecurity,
   onDeletion,
   onPlay,
   security,
@@ -23,6 +24,7 @@ import {
 import type { BuilderOptions } from "../builders.js";
 import { canAttemptDnaDigivolve } from "./actions/dna.js";
 import { canAttemptDigivolve } from "./actions/digivolve.js";
+import { canAttemptLink } from "./actions/link.js";
 import { evaluateCondition } from "./conditions.js";
 import { canPayCost } from "./costs.js";
 import { installEffectRunner, runAction } from "./dispatch.js";
@@ -51,7 +53,7 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
   ) {
     return EffectTiming.None;
   }
-  if (effect.isSecurity) return EffectTiming.SecuritySkill;
+  if (effect.isSecurity && effect.trigger === "Security") return EffectTiming.SecuritySkill;
   // A printed [Your Turn] clause whose payload is an effect-driven digivolution is a
   // player-declared ability, not a continuous modifier. Keep the turn ownership guard from
   // the original trigger, but surface it in the Main-phase activation window so the player can
@@ -77,6 +79,8 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
       return EffectTiming.OnBlockAnyone;
     case "OnDeletion":
       return EffectTiming.OnDestroyedAnyone;
+    case "OnDiscardSecurity":
+      return EffectTiming.OnDiscardSecurity;
     case "EndOfAttack":
       return EffectTiming.OnEndAttack;
     case "WhenBattleDeleteOpponent":
@@ -298,6 +302,8 @@ export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) =>
       return whenAttacking;
     case "OnDeletion":
       return onDeletion;
+    case "OnDiscardSecurity":
+      return onDiscardSecurity;
     case "whenTrashedFromBattleArea":
       return whenTrashedFromBattleArea;
     case "Main":
@@ -448,7 +454,7 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
   const outerRestrictions = ctxWithSelections.effectRestrictions;
   ctxWithSelections.effectRestrictions = new Set(ctx.effectRestrictions ?? []);
   const sourceDefinition = ctx.source.definition ?? ctx.game.definitionOf({ cardId: ctx.source.cardId } as never);
-  ctxWithSelections.activeTiming = effect.timingOverride ?? effect.trigger;
+  ctxWithSelections.activeTiming = effect.timingOverride ?? ctx.activeTiming ?? effect.trigger;
   ctxWithSelections.activeEffectText =
     effect.description ??
     (effect.isInherited
@@ -554,9 +560,12 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
   // condition/cost is impossible (BT10-025). Mirror runEffect's ordered abort semantics here.
   const leadingAction = relevantActions[0];
   if (leadingAction?.abortOnDecline === true && isGated(leadingAction)) {
-    const intrinsicPossible = leadingAction.kind === "Digivolve"
-      ? canAttemptDigivolve(ctx, leadingAction)
-      : leadingAction.kind !== "DnaDigivolve" || canAttemptDnaDigivolve(ctx, leadingAction);
+    const intrinsicPossible =
+      leadingAction.kind === "Digivolve"
+        ? canAttemptDigivolve(ctx, leadingAction)
+        : leadingAction.kind === "DnaDigivolve"
+          ? canAttemptDnaDigivolve(ctx, leadingAction)
+          : leadingAction.kind !== "Link" || canAttemptLink(ctx, leadingAction);
     const conditionMet =
       leadingAction.condition === undefined ||
       (leadingAction.condition.kind !== "raw" && evaluateCondition(ctx, leadingAction.condition));
@@ -567,9 +576,12 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
   const ungatedCount = relevantActions.length - gatedActions.length;
   if (gatedActions.length === 0 || ungatedCount > 0) return true;
   return gatedActions.some((action) => {
-    const intrinsicPossible = action.kind === "Digivolve"
-      ? canAttemptDigivolve(ctx, action)
-      : action.kind !== "DnaDigivolve" || canAttemptDnaDigivolve(ctx, action);
+    const intrinsicPossible =
+      action.kind === "Digivolve"
+        ? canAttemptDigivolve(ctx, action)
+        : action.kind === "DnaDigivolve"
+          ? canAttemptDnaDigivolve(ctx, action)
+          : action.kind !== "Link" || canAttemptLink(ctx, action);
     const conditionMet =
       action.condition === undefined || (action.condition.kind !== "raw" && evaluateCondition(ctx, action.condition));
     const costPayable = action.cost === undefined || canPayCost(ctx, action.cost);

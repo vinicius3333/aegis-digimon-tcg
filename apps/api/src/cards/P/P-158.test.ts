@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import { EffectTiming } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./P-158.js";
 
 describe("P-158 Jeri (Fake)", () => {
@@ -42,9 +41,15 @@ describe("P-158 Jeri (Fake)", () => {
   });
 
   it("registers Main return-and-play and Security self-play timings", () => {
-    const module = getEffectModule("P-158")!;
-    const source = { ownerSeat: 0 } as never;
-    expect(module.effectsForTiming(EffectTiming.OnDeclaration, source)).toHaveLength(1);
-    expect(module.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+    const compiled = runtimeCompiledCard("P-158")!;
+    expect(compiled.effects.find((effect) => effect.trigger === "Main")?.actions[0]).toMatchObject({
+      kind: "PlayWithoutCost",
+      cost: { kind: "return", to: "deckBottom", target: { isSelf: true } },
+      playCostCeiling: { base: 3, unit: "digivolutionCardsOfFiltered" },
+    });
+    expect(compiled.effects.find((effect) => effect.trigger === "Security")?.actions[0]).toMatchObject({
+      kind: "PlayWithoutCost",
+      payCost: false,
+    });
   });
 });

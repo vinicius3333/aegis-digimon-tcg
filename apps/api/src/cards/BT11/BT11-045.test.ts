@@ -88,7 +88,9 @@ describe("BT11-045 ClavisAngemon", () => {
     ).toEqual({ ok: true });
     await settle(() => attacker.currentDP === 1000);
 
-    expect(s.state.players[0]!.security).toHaveLength(4);
+    // The attacker is deleted during the second check, so only two of its
+    // three potential checks remove security cards.
+    expect(s.state.players[0]!.security).toHaveLength(3);
     expect(attacker.currentDP).toBe(1000);
     expect(
       s.decisions.filter(({ req }) => req.sourceCardId === "BT11-045" && req.kind === "chooseTargets"),

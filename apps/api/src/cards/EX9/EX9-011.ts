@@ -60,11 +60,11 @@ export const compiled: CompiledCard = {
               "controller": "opponent",
               "kind": [
                 "Digimon"
-              ],
-              "faceDown": true
+              ]
             },
-            "count": 5000,
-            "upTo": true
+            "count": "all",
+            "upTo": true,
+            "totalDpCap": 5000
           },
           "cost": {
             "kind": "place",
@@ -88,23 +88,14 @@ export const compiled: CompiledCard = {
             "faceDown": true
           },
           "optional": true,
-          "abortOnDecline": true
-        },
-        {
-          "kind": "CostModifier",
-          "mode": "raiseCeiling",
-          "costType": "dp",
-          "amount": 2000,
-          "scaling": {
+          "abortOnDecline": true,
+          "totalDpCapScaling": {
             "per": 1,
             "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
               "faceDown": true
             },
-            "unit": "digivolutionCards"
+            "unit": "selfFaceDownDigivolutionCards",
+            "amount": 2000
           }
         }
       ]
@@ -121,8 +112,9 @@ export const compiled: CompiledCard = {
                 "Digimon"
               ]
             },
-            "count": 5000,
-            "upTo": true
+            "count": "all",
+            "upTo": true,
+            "totalDpCap": 5000
           },
           "cost": {
             "kind": "place",
@@ -146,22 +138,14 @@ export const compiled: CompiledCard = {
             "faceDown": true
           },
           "optional": true,
-          "abortOnDecline": true
-        },
-        {
-          "kind": "CostModifier",
-          "mode": "raiseCeiling",
-          "costType": "dp",
-          "amount": 2000,
-          "scaling": {
+          "abortOnDecline": true,
+          "totalDpCapScaling": {
             "per": 1,
             "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+              "faceDown": true
             },
-            "unit": "digivolutionCards"
+            "unit": "selfFaceDownDigivolutionCards",
+            "amount": 2000
           }
         }
       ]

@@ -209,7 +209,7 @@ describe("BT25-058 Callismon", () => {
         attackerPermanentId: s.perm("tsBase").permanentId,
         target: { kind: "player" },
       }),
-    ).toMatchObject({ ok: false, reason: "decision-pending" });
+    ).toEqual({ ok: true });
     await settle(() => false, 80);
     expect(s.perm("suspendTarget").isSuspended).toBe(false);
   });

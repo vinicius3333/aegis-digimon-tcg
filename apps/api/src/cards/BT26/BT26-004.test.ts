@@ -90,6 +90,28 @@ describe("BT26-004 Pagumon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(2);
   });
 
+  it("does not pay the hand-card cost or draw without an own Glowing Dawn Tamer", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-009", as: "attacker", under: [CARD_ID] },
+          { card: "BT1-089", as: "plainTamer" },
+        ],
+        hand: [{ card: "BT1-010", as: "cost" }],
+        deck: [{ card: "BT1-011", as: "notDrawn" }],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("attacker"), {
+      attackerPermanentId: s.perm("attacker").permanentId,
+    });
+
+    expect(s.perm("plainTamer").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("cost").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("notDrawn").instanceId]);
+  });
+
   it("is compiled as a face-down placement cost under a Glowing Dawn Tamer", () => {
     const action = compiled.effects[0]!.actions[0]! as any;
     expect(compiled).toMatchObject({

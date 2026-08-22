@@ -14,6 +14,7 @@ import {
   allowsDigiXrosMaterialsFromTrash,
   registerIrCard,
   permanentMatchesFilter,
+  runtimeCompiledCard,
 } from "./interpreter.js";
 import { materialsSatisfyRecipe, validateDigiXros } from "../actions/digiXros.js";
 import type { DigiXrosIntent } from "../actions/digiXros.js";
@@ -34,6 +35,9 @@ import { matchingAlternateDigivolutionRequirement } from "../cards/cardData.js";
 // Side-effect import: registers BT19-038 in the global effect module registry so
 // gatherTriggeredEffects can find its WhenDigivolving effect in the CAP-A4 tests.
 import "../../cards/BT19/BT19-038.js";
+import "../../cards/BT19/BT19-097.js";
+import "../../cards/LM/LM-031.js";
+import "../../cards/LM/LM-032.js";
 
 /**
  * Behavioral coverage for the Phase-2 runtime-effect engine capabilities (2026-06-17 pilot batch).
@@ -10454,24 +10458,9 @@ describe("CAP-E14 regression: no compiled card carries a bare self-GainKeyword(D
   });
 
   it("LM-031, LM-032 and BT19-097's own card modules (what actually executes) are clean", async () => {
-    // These three module files embed the exact compiled IR literal that `registerIrCard`
-    // registers at boot (`const compiled: CompiledCard = {...}`, not exported) — read it off
-    // disk rather than importing, so this reads the SAME source the interpreter runs without
-    // needing a test-only export.
-    const fs = await import("node:fs");
-    const { fileURLToPath } = await import("node:url");
-    const cardsDir = fileURLToPath(new URL("../../cards", import.meta.url));
-    for (const [set, id] of [
-      ["LM", "LM-031"],
-      ["LM", "LM-032"],
-      ["BT19", "BT19-097"],
-    ]) {
-      const src = fs.readFileSync(`${cardsDir}/${set}/${id}.ts`, "utf8");
-      const m = /const compiled: CompiledCard = (\{[\s\S]*\});\s*\n\s*registerIrCard/.exec(src);
-      if (m === null) throw new Error(`${id}: could not locate the compiled IR literal`);
-      const compiled = Function(`"use strict"; return (${m[1]!});`)() as {
-        effects: Array<{ actions?: unknown[] }>;
-      };
+    for (const id of ["LM-031", "LM-032", "BT19-097"]) {
+      const compiled = runtimeCompiledCard(id);
+      if (compiled === undefined) throw new Error(`${id}: compiled IR was not registered`);
       expect(hasBareDelaySelfGrantWithoutArmedConsumer(compiled.effects), id).toBe(false);
     }
   });

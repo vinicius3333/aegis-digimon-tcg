@@ -15,7 +15,7 @@ describe("BT11-063 Geremon", () => {
         0: {
           hand: [
             { card: "BT11-063", as: "geremon" },
-            { card: "BT2-056", as: "discard" },
+            { card: "BT11-063", as: "discard" },
           ],
           deck: ["BT1-009", "BT1-010"],
         },
@@ -44,6 +44,31 @@ describe("BT11-063 Geremon", () => {
     });
     await settle();
     expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
+
+  it("may decline even when an eligible card is available", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT11-063", as: "geremon" },
+            { card: "BT2-056", as: "eligible" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("geremon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("eligible").instanceId);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 });

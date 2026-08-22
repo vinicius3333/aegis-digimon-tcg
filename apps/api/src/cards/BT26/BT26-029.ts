@@ -14,7 +14,7 @@ const protection = [
   },
   {
     kind: "Restrict",
-    target: { filter: { boundRef: "protectedDigimon" }, count: 1 },
+    target: { fromSelectionRef: "protectedDigimon" },
     restriction: "dpImmune",
     duration: "untilOpponentTurnEnd",
     byOpponentEffectsOnly: true,
@@ -22,22 +22,30 @@ const protection = [
   },
   {
     kind: "StackTrashLock",
-    target: { filter: { boundRef: "protectedDigimon" }, count: 1 },
+    target: { fromSelectionRef: "protectedDigimon" },
     duration: "untilOpponentTurnEnd",
+    condition: { kind: "namedCountAtLeast", countSource: "trashedSecurity", count: 1 },
+  },
+  {
+    kind: "Restrict",
+    target: { fromSelectionRef: "protectedDigimon" },
+    restriction: "returnToHandOrDeck",
+    duration: "untilOpponentTurnEnd",
+    byOpponentEffectsOnly: true,
     condition: { kind: "namedCountAtLeast", countSource: "trashedSecurity", count: 1 },
   },
 ];
 
 export const compiled: CompiledCard = {
-  keywords: [
-    { keyword: "Decode", raw: "＜Decode ([Aegiomon])＞" },
-    { keyword: "Ascension", raw: "＜Ascension＞" },
-  ],
   effects: [
     { trigger: "OnPlay", actions: protection },
     { trigger: "WhenDigivolving", actions: protection },
     {
       trigger: "Static",
+      keywords: [
+        { keyword: "Decode", raw: "＜Decode ([Aegiomon])＞" },
+        { keyword: "Ascension", raw: "＜Ascension＞" },
+      ],
       actions: [
         {
           kind: "Replacement",
@@ -60,6 +68,7 @@ export const compiled: CompiledCard = {
               },
               fromOwnDigivolutionStack: true,
               payCost: false,
+              playedByDecode: true,
               optional: true,
             },
           ],
@@ -101,19 +110,6 @@ export const compiled: CompiledCard = {
             { kind: "ModifyDP", target: { filter: opponentDigimon, count: 3 }, amount: -5000, duration: "forTheTurn" },
           ],
           raw: "When your security stack is removed by an effect, 3 opponent Digimon get -5000 DP for the turn.",
-        },
-      ],
-    },
-    {
-      trigger: "AllTurns",
-      isInherited: true,
-      frequency: "OncePerTurn",
-      actions: [
-        {
-          kind: "SubTrigger",
-          event: "whenSecurityRemoved",
-          fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "mine" },
-          actions: [{ kind: "DeDigivolve", target: { filter: opponentDigimon, count: 1 }, amount: 1 }],
         },
       ],
     },

@@ -8,6 +8,12 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          kind: "GainKeyword",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          keyword: { keyword: "Blitz", raw: "＜Blitz＞" },
+          duration: "forTheTurn",
+        },
+        {
           kind: "Delete",
           target: {
             filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 20 },
@@ -22,13 +28,6 @@ const compiled: CompiledCard = {
           controller: "opponent",
           amount: 1,
           scaling: { per: 4, unit: "digivolutionCards" },
-          condition: { kind: "isDnaDigivolving", raw: "When DNA digivolving" },
-        },
-        {
-          kind: "GainKeyword",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          keyword: { keyword: "Blitz", raw: "＜Blitz＞" },
-          duration: "untilEachTurnEnd",
           condition: { kind: "isDnaDigivolving", raw: "When DNA digivolving" },
         },
       ],

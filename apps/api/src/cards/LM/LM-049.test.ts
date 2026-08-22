@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type CompiledCard, type Seat } from "@aegis/shared";
-import { irCardModule } from "../../engine/effects/interpreter.js";
+import { irCardModule, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-049.js";
 
@@ -167,6 +167,10 @@ const COMPILED: CompiledCard = {
 };
 
 describe("LM-049 Midnight Memory Boost! — hand-corrected IR", () => {
+  it("registers only complete compiled IR", () => {
+    expect(runtimeCompiledCard("LM-049")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("Security effect has isSecurity flag and resolves to placeOptionAsPermanent", async () => {
     const module = irCardModule("LM-049", COMPILED);
     const source = makeSource("INST#LM049", "LM-049");

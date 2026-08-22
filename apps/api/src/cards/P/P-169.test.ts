@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { type AttackTarget } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
 // A3 for P-169 (Close, Black Tamer) — its [Security] clause: "Play this card without
@@ -38,5 +39,26 @@ describe("P-169 [Security] play this card without paying the cost", () => {
     const secCard = s.inst("secCard");
     expect(p0.security.some((c) => c.instanceId === secCard.instanceId)).toBe(false);
     expect(s.state.memory).toBe(0); // played for free, no memory cost paid
+  });
+});
+
+describe("P-169 [All Turns] digivolution-trash reaction", () => {
+  it("Q4277 filters the affected host, not the identity of the trashed source card", () => {
+    const effect = runtimeCompiledCard("P-169")!.effects.find((entry) => entry.trigger === "AllTurns")!;
+    expect(effect.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenDigivolutionTrashed",
+      sourceFilter: {
+        controller: "mine",
+        kind: ["Digimon"],
+        nameOrTrait: [{ tokens: ["Mineral", "Rock"], match: "trait" }],
+      },
+      actions: [{
+        kind: "PlaceUnder",
+        target: { filter: { zone: "trash", nameOrTrait: [{ tokens: ["Mineral", "Rock"] }] } },
+        underFilter: { controller: "mine", kind: ["Digimon"] },
+        cost: { kind: "suspend", target: { isSelf: true } },
+      }],
+    });
   });
 });

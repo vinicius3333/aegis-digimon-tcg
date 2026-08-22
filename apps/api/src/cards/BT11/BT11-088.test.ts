@@ -158,6 +158,8 @@ describe("BT11-088 Bagramon [On Play] conditional effect", () => {
 
     expect(p1.trash.some((c) => c.instanceId === oppHandCard.instanceId)).toBe(true);
     expect(p1.hand.some((c) => c.instanceId === oppHandCard.instanceId)).toBe(false);
+    expect(p1.battleArea).toHaveLength(1);
+    expect(p1.battleArea[0]!.permanentId).toBe(oppDigimon.permanentId);
 
     // Bagramon on the battle area.
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT11-088")).toBe(true);
@@ -172,6 +174,8 @@ describe("BT11-088 Bagramon [On Play] conditional effect", () => {
     const oppDigimon1 = perm("AD1-001", 1, 3000);
     const oppDigimon2 = perm("BT1-038", 1, 5000);
     p1.battleArea.push(oppDigimon1, oppDigimon2);
+    const handCard = inst("BT1-001", 1);
+    p1.hand.push(handCard);
 
     const bagramon = inst("BT11-088", 0);
     p0.hand.push(bagramon);
@@ -195,5 +199,7 @@ describe("BT11-088 Bagramon [On Play] conditional effect", () => {
     const opponentDigimonHasStack = p1.battleArea.some((p) => p.stack.length > 0);
 
     expect(opponentLostDigimon && opponentDigimonHasStack).toBe(true);
+    expect(p1.hand.some((card) => card.instanceId === handCard.instanceId)).toBe(true);
+    expect(p1.trash.some((card) => card.instanceId === handCard.instanceId)).toBe(false);
   });
 });

@@ -23,4 +23,68 @@ describe("BT26-014 Darumamon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT26-013");
   });
+
+  it("deletes an opposing Digimon at the exact 7000 DP boundary when digivolving", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-013", as: "base" }],
+        hand: [{ card: "BT26-014", as: "self" }],
+        deck: ["BT1-009"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT26-012", as: "low", dp: 7000 },
+          { card: "BT26-013", as: "high", dp: 8000 },
+        ],
+      },
+    }, { autoSelectCards: true });
+    const highId = s.perm("high").topCard.instanceId;
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("self").instanceId,
+      useAlternateCost: true,
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.perm("base").topCard.cardId).toBe("BT26-014");
+    expect(s.state.players[1]!.battleArea[0]!.topCard.instanceId).toBe(highId);
+  });
+
+  it("Q6969 returns itself from trash, then continues to play an eligible TB Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-014", as: "self" }],
+        hand: [{ card: "BT26-013", as: "played" }],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const selfId = s.perm("self").topCard.instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("self").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("played").instanceId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(selfId);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === selfId)).toBe(false);
+  });
+
+  it("inherits the optional On Deletion play from a real evolution stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "BT26-014", as: "source" }] }],
+        hand: [{ card: "BT26-013", as: "played" }],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const hostId = s.perm("host").topCard.instanceId;
+    const sourceId = s.perm("host").stack.find((card) => card.cardId === "BT26-014")!.instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("played").instanceId));
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining([
+      hostId,
+      sourceId,
+    ]));
+  });
 });

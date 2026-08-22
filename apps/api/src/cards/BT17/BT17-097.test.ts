@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-097.js";
+import "./index.js";
 
 describe("BT17-097 Return to the Primogenitor", () => {
   it("keeps the Main digivolution requirement and places the Option afterward", () => {
@@ -41,5 +43,16 @@ describe("BT17-097 Return to the Primogenitor", () => {
         { kind: "PlaceInBattleAreaSelf" },
       ],
     });
+  });
+
+  it("places itself after the optional Main evolution is declined", async () => {
+    const s = setupEngine({ 0: { battleArea: ["BT17-019", "BT17-030"], hand: [{ card: "BT17-097", as: "option" }] } }, { autoDeclineOptional: true });
+    s.state.memory = 2;
+    const optionId = s.inst("option").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId)).toBe(true);
   });
 });

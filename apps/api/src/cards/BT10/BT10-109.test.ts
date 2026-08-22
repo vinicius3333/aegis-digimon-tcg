@@ -11,7 +11,9 @@ describe("BT10-109 Reinforcement Plug-In O", () => {
         0: {
           battleArea: ["BT10-087", { card: "BT10-085", as: "chosen", dp: 4000 }],
           hand: [{ card: "BT10-109", as: "option" }],
+          deck: ["BT1-001", "BT1-002"],
         },
+        1: { deck: ["BT1-003", "BT1-004"] },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -24,9 +26,29 @@ describe("BT10-109 Reinforcement Plug-In O", () => {
     })).toEqual({ ok: true });
     await settle(() => s.perm("chosen").currentDP === 7000);
 
-    s.state.turnSeat = 1;
-    await s.engine.recomputeContinuousEffects();
+    await advance(s.engine).runTurn(0);
     expect(s.perm("chosen").currentDP).toBe(7000);
+
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("chosen").currentDP).toBe(4000);
+  });
+
+  it("does not waive its white color requirement without a Tamer", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT10-083", as: "target" }],
+        hand: [{ card: "BT10-109", as: "option" }],
+      },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, {
+      type: "playCard",
+      instanceId: s.inst("option").instanceId,
+    }).ok).toBe(false);
   });
 
   it("Security gains 1 memory and returns itself to hand", async () => {

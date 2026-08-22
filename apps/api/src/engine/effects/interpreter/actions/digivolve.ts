@@ -10,7 +10,7 @@ import { unsupported } from "../errors.js";
 import { scaleFactor } from "../scaling.js";
 import { LooseCandidate, candidateLooseInstances, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
-import type { Action, Filter, Target, ZoneRef } from "@aegis/shared";
+import type { Action, CardColor, Filter, Target, ZoneRef } from "@aegis/shared";
 
 /**
  * Effect-driven digivolve ("this Digimon may digivolve into [X] in the hand without
@@ -52,9 +52,13 @@ function legalIntoCandidates(
   enforceRequirements: boolean,
   digivolutionCostMax?: number,
   ignoreLevel = false,
+  virtualBase?: { level: number; colors: CardColor[] },
 ): LooseCandidate[] {
   const base = ctx.game.permanentById(basePermanentId);
-  const baseDef = base?.topCard ? ctx.game.definitionOf(base.topCard) : undefined;
+  const actualBaseDef = base?.topCard ? ctx.game.definitionOf(base.topCard) : undefined;
+  const baseDef = actualBaseDef === undefined || virtualBase === undefined
+    ? actualBaseDef
+    : { ...actualBaseDef, level: virtualBase.level, colors: virtualBase.colors };
   // Only filter when the base carries a level: a level-less base satisfies no level-gated
   // requirement (Q4242), and the requirement match is meaningless without it.
   //
@@ -134,7 +138,9 @@ export function canAttemptDigivolve(ctx: EffectContext, action: Extract<Action, 
         enforceRequirements,
         intoTarget.filter.digivolutionCostMax,
         ignoreLevel,
-      ).length > 0
+        action.virtualBase,
+      )
+        .length > 0
     );
   };
 
@@ -223,6 +229,7 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
       !ignoreRequirements,
       intoTarget.filter.digivolutionCostMax,
       ignoreLevel,
+      action.virtualBase,
     );
     if (candidates.length === 0) return;
     const chosen = action.optional
@@ -242,6 +249,7 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
       useAlternateCost: action.useAlternateCost,
       ignoreLevel,
       ignoreRequirements,
+      virtualBase: action.virtualBase,
     });
     if (result !== undefined) {
       ctx.lastDigivolveResult = true;
@@ -335,6 +343,7 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
       enforceRequirements,
       intoTarget?.filter.digivolutionCostMax,
       ignoreLevel,
+      action.virtualBase,
     );
   };
   // A base with no legal card to digivolve into must not be offered as a digivolve target:
@@ -406,6 +415,7 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
       useAlternateCost,
       ignoreLevel,
       ignoreRequirements,
+      virtualBase: action.virtualBase,
     });
     if (result !== undefined) {
       ctx.lastDigivolveResult = true;

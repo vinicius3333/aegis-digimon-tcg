@@ -98,11 +98,13 @@ describe("BT26-010 Roleplaymon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").linked.length === 1);
-    await settle(() => observe(s.engine).hasKeyword(s.perm("host"), "Progress"));
+    await settle(() =>
+      observe(s.engine).hasKeyword(s.perm("host"), "Progress") && observe(s.engine).hasPierce(s.perm("host")),
+    );
     expect(s.state.memory).toBe(0);
     expect(s.perm("host").linked[0]).toMatchObject({ instanceId: s.inst("link").instanceId, faceUp: true });
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Progress")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Piercing")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
 
     const wrong = setupEngine({
       0: { battleArea: [{ card: "BT1-010", as: "plain" }], hand: [{ card: CARD_ID, as: "link" }] },
@@ -124,12 +126,12 @@ describe("BT26-010 Roleplaymon", () => {
     });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Progress")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Piercing")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
     await advance(s.engine).verb.trash([s.inst("link").instanceId]);
     await advance(s.engine).recompute();
     expect(s.perm("host").linked).toHaveLength(0);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Progress")).toBe(false);
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Piercing")).toBe(false);
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(false);
   });
 
   it("when attacking trashes an eligible Game card, then draws exactly 2", async () => {
@@ -153,6 +155,41 @@ describe("BT26-010 Roleplaymon", () => {
       s.inst("two").instanceId,
     ]);
     expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
+
+  it.each([
+    ["Open", "BT26-086"],
+    ["Seven Code", "BT26-019"],
+  ])("accepts the %s trait as the attack cost", async (_trait, costCard) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: CARD_ID, as: "roleplay" }],
+        hand: [{ card: costCard, as: "cost" }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+    }, { autoSelectCards: true });
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("roleplay"));
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
+
+  it("does not trash or draw when the hand has no Game, Open, or Seven Code card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: CARD_ID, as: "roleplay" }],
+        hand: [{ card: "BT1-009", as: "unrelated" }],
+        deck: ["BT1-010", "BT1-011"],
+      },
+    });
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("roleplay"));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("unrelated").instanceId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
   it("encodes the exact hand cost, inherited draw, and linked keywords", () => {

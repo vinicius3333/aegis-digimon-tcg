@@ -124,16 +124,8 @@ export const compiled: CompiledCard = {
           "from": [
             "hand"
           ],
-          "costReduction": 3,
+          "reduceCostBy": 3,
           "payCost": true,
-          "optional": true
-        },
-        {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "mode": "reduceCost",
-          "amount": 3,
-          "raw": "play 1 black or red [TS] trait Digimon card from your hand with the play cost reduced by 3",
           "optional": true
         }
       ]

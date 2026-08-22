@@ -286,6 +286,14 @@ export class ModifierLedger {
     return sum;
   }
 
+  /** Remove active DP reductions when an effect makes that Digimon immune to DP reduction. */
+  restoreDpReductions(state: GameState, permanentId: string): void {
+    this.dpModifiers = this.dpModifiers.filter((modifier) =>
+      modifier.permanentId !== permanentId || modifier.delta >= 0
+    );
+    this.recomputeDP(state, permanentId);
+  }
+
   /**
    * Record an absolute base-DP override on `permanentId` for `duration` and
    * immediately recompute that permanent's `currentDP`. Each override carries a

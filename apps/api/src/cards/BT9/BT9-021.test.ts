@@ -18,6 +18,15 @@ describe("BT9-021 Jellymon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
   });
 
+  it("does not draw for an opponent's blue Tamer", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT9-021", as: "jellymon" }], deck: [{ card: "BT1-001", as: "drawn" }] },
+      1: { battleArea: [{ card: "BT9-086", as: "tamer" }] },
+    });
+    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("tamer").permanentId });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(false);
+  });
+
   it("as an inherited effect returns an opposing level 3 after an effect adds to hand", async () => {
     const s = setupEngine(
       {
@@ -44,7 +53,7 @@ describe("BT9-021 Jellymon", () => {
     });
     const targetId = s.perm("target").topCard!.instanceId;
     await advance(s.engine).verb.returnToHand([s.inst("added").instanceId]);
-    expect(s.state.players[1]!.hand.some((card) => card.instanceId === targetId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === targetId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === targetId)).toBe(false);
   });
 });

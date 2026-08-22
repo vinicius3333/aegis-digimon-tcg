@@ -18,8 +18,8 @@ describe("P-033 Sunarizamon", () => {
     await s.ready();
     await s.engine.recomputeContinuousEffects();
 
-    expect(observe(s.engine).hasKeyword(s.perm("largeBlack"), "Piercing")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("smallBlack"), "Piercing")).toBe(false);
+    expect(observe(s.engine).hasPierce(s.perm("largeBlack"))).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("smallBlack"))).toBe(false);
   });
 
   it("grants Security Attack +1 while inherited by a 13000 DP black Digimon", async () => {
@@ -65,7 +65,11 @@ describe("P-033 Sunarizamon", () => {
       attackerPermanentId: s.perm("attacker").permanentId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
-    await settle(() => false, 200);
+    await settle(() =>
+      s.perm("attacker").topCard.cardId === "BT2-064" &&
+      observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack") === 0,
+      2_000,
+    );
 
     expect(s.perm("attacker").topCard.cardId).toBe("BT2-064");
     expect(s.perm("attacker").currentDP).toBe(12_000);

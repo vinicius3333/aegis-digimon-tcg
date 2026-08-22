@@ -39,7 +39,10 @@ export const compiled: CompiledCard = {
                 }
               },
               "count": 1,
-              "to": "placeUnder"
+              "to": "placeUnder",
+              "underFilter": {
+                "isSelfRef": true
+              }
             }
           ],
           "rest": "trash"
@@ -68,7 +71,10 @@ export const compiled: CompiledCard = {
                 }
               },
               "count": 1,
-              "to": "placeUnder"
+              "to": "placeUnder",
+              "underFilter": {
+                "isSelfRef": true
+              }
             }
           ],
           "rest": "trash"
@@ -97,7 +103,11 @@ export const compiled: CompiledCard = {
                   ],
                   "match": "trait"
                 }
-              ]
+              ],
+              "zone": "digivolutionCards",
+              "hostFilter": {
+                "isSelfRef": true
+              }
             },
             "count": 1
           },

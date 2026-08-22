@@ -30,14 +30,18 @@ const linkingEffect = [
     sourceFilter: { isSelfRef: true },
     actions: [
       {
+        kind: "SelectBind",
+        target: { filter: opponentDigimon, count: 1, bindAs: "medicmonLinkedTarget" },
+      },
+      {
         kind: "Restrict",
-        target: { filter: opponentDigimon, count: 1 },
+        target: { fromSelectionRef: "medicmonLinkedTarget" },
         restriction: "cannotActivateWhenDigivolving",
         duration: "untilOpponentTurnEnd",
       },
       {
         kind: "ModifyDP",
-        target: { filter: opponentDigimon, count: 1 },
+        target: { fromSelectionRef: "medicmonLinkedTarget" },
         amount: -3000,
         duration: "untilOpponentTurnEnd",
       },
@@ -65,6 +69,7 @@ export const compiled: CompiledCard = {
   assemblyRequirement: [
     { reduceCost: 2, materials: [{ traits: ["Life", "System", "Seven Code"], level: 3, count: 1 }] },
   ],
+  linkRequirement: [{ traits: ["Appmon"], cost: 3 }],
 };
 
 registerIrCard("BT26-028", compiled);

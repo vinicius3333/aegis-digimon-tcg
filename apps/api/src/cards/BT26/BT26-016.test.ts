@@ -52,8 +52,9 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
           {
             kind: "Replacement",
             event: "wouldLeavePlay",
+            mode: "prevent",
             sourceFilter: { isSelfRef: true },
-            actions: [{ kind: "Prevent", cost: { kind: "return" } }],
+            cost: { kind: "return" },
           },
         ],
       },
@@ -108,6 +109,57 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
     expect(s.state.players[0]!.security[0]).toMatchObject({ cardId: "BT1-011", faceUp: false });
   });
 
+  it("Q6976 does not partially return 2 trash cards or recover when the exact cost cannot be paid", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "holy" }],
+          trash: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+          deck: [{ card: "BT1-011", as: "notRecovered" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("holy"));
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining([
+      s.inst("first").instanceId,
+      s.inst("second").instanceId,
+    ]));
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("notRecovered").instanceId]);
+  });
+
+  it("Q6980 counts a Digi-Egg returned to its Egg Deck toward the three-card recovery cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "holy" }],
+          trash: [
+            { card: "BT26-001", as: "egg" },
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+          deck: [{ card: "BT1-011", as: "recovery" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("holy"));
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId));
+
+    expect(s.state.players[0]!.eggDeck.map((card) => card.instanceId)).toContain(s.inst("egg").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(expect.arrayContaining([
+      s.inst("first").instanceId,
+      s.inst("second").instanceId,
+    ]));
+  });
+
   it("publishes printed Piercing and Engage and spends one security to prevent a real deletion", async () => {
     const s = setupEngine(
       {
@@ -122,7 +174,7 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
     await s.ready();
     expect([...s.perm("holy").keywords]).toEqual(expect.arrayContaining(["Piercing", "Engage"]));
 
-    expect(await primitives(s).deletePermanent([s.perm("holy").permanentId], "byEffect")).toBe(0);
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("holy").permanentId], "byEffect")).toBe(0);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.deck.at(-1)).toMatchObject({ cardId: "BT1-009", faceUp: false });

@@ -1,21 +1,38 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./P-168.js";
 
 describe("P-168 Yao Qinglan", () => {
-  it("registers Start of Main memory gain and Security self-play", () => {
-    const module = getEffectModule("P-168")!;
-    const source = { ownerSeat: 0, isOnBattleArea: () => true, isOwnersTurn: () => true } as never;
-    expect(module.effectsForTiming(EffectTiming.OnStartMainPhase, source)).toHaveLength(1);
-    expect(module.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+  it("gains memory at start of main only when the opponent has a Digimon", () => {
+    const effect = runtimeCompiledCard("P-168")!.effects.find(
+      (entry) => entry.trigger === "StartOfYourMainPhase",
+    );
+    expect(effect?.actions[0]).toMatchObject({
+      kind: "GainMemory",
+      amount: 1,
+      condition: { kind: "opponentHas", filter: { kind: ["Digimon"] } },
+    });
   });
 
-  it("registers the Your Turn digivolution-card watcher with suspension activation", () => {
-    const module = getEffectModule("P-168")!;
-    const source = { ownerSeat: 0, isOnBattleArea: () => true, isOwnersTurn: () => true, permanent: () => ({ permanentId: "tamer" }) } as never;
-    const effects = module.effectsForTiming(EffectTiming.None, source);
-    expect(effects).toHaveLength(1);
-    expect(effects[0]!.description).toContain("reduced by 1");
+  it("suspends to evolve the exact Aqua or Sea Animal trigger subject without bypassing requirements", () => {
+    const effect = runtimeCompiledCard("P-168")!.effects.find((entry) => entry.trigger === "YourTurn")!;
+    const subTrigger = effect.actions[0];
+    expect(subTrigger).toMatchObject({
+      kind: "SubTrigger",
+      event: "onAddDigivolutionCards",
+      sourceFilter: { controller: "mine", kind: ["Digimon"] },
+      actions: [
+        {
+          kind: "Digivolve",
+          target: { sourceRef: "triggerSubject" },
+          from: ["hand"],
+          payCost: true,
+          reduceCost: 1,
+          optional: true,
+          cost: { kind: "suspend", target: { isSelf: true } },
+        },
+      ],
+    });
+    expect(JSON.stringify(subTrigger)).not.toContain("ignoreRequirements");
   });
 });

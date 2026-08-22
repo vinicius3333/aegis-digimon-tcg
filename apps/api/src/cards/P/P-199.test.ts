@@ -12,8 +12,9 @@ describe("P-199 Dan Yuki", () => {
         hand: [{ card: "BT24-019", as: "ts" }],
       },
       1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
-    });
+    }, { autoAcceptOptional: true });
     s.state.memory = 6;
+    await s.ready();
     await advance(s.engine).fireForPermanent(EffectTiming.OnStartMainPhase, s.perm("dan"));
 
     expect(
@@ -22,7 +23,11 @@ describe("P-199 Dan Yuki", () => {
         instanceId: s.inst("ts").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("dan").isSuspended);
+    await settle(() =>
+      s.perm("dan").isSuspended &&
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT24-019") &&
+      s.state.memory === 4
+    );
 
     expect(s.perm("dan").isSuspended).toBe(true);
     expect(s.state.memory).toBe(4);

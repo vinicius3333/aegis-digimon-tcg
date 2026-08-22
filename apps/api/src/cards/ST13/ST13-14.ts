@@ -17,6 +17,7 @@ const compiled: CompiledCard = {
           "sourceFilter": {
             "isSelfRef": true
           },
+          "bySourceController": "mine",
           "actions": [
             {
               "kind": "GrantStatic",

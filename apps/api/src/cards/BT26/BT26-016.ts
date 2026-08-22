@@ -56,19 +56,14 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          mode: "prevent",
           sourceFilter: { isSelfRef: true },
-          actions: [
-            {
-              kind: "Prevent",
-              optional: true,
-              abortOnDecline: true,
-              cost: {
-                kind: "return",
-                target: { filter: { zone: "security", controllerDefault: "mine" }, count: 1 },
-                to: "deckBottom",
-              },
-            },
-          ],
+          optional: true,
+          cost: {
+            kind: "return",
+            target: { filter: { zone: "security", controllerDefault: "mine" }, count: 1 },
+            to: "deckBottom",
+          },
         },
       ],
     },

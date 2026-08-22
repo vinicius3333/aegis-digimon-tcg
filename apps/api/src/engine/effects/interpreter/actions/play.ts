@@ -113,7 +113,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           const played = await ctx.fx.playInstances([self.instanceId], {
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
-            ...(action.reduceCostBy !== undefined ? { costDelta: -action.reduceCostBy } : {}),
+            ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
           });
           ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);
         } else {
@@ -125,7 +125,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           const played = await ctx.fx.playInstances([self.instanceId], {
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
-            ...(action.reduceCostBy !== undefined ? { costDelta: -action.reduceCostBy } : {}),
+            ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
           });
           ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);
         }
@@ -152,6 +152,8 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         if (chosenOwn.length > 0) {
           const played = await ctx.fx.playInstances(chosenOwn, {
             payCost: action.payCost,
+            ...(action.playedByDecode === true ? { playedByDecode: true } : {}),
+            hostPermanentIds: Object.fromEntries(chosenOwn.map((instanceId) => [instanceId, self.permanentId])),
             ...(action.suspended === true ? { suspended: true } : {}),
             ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
           });
@@ -352,7 +354,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             candidate === undefined ? undefined : ctx.game.definitionOf({ cardId: candidate.cardId } as never).playCost;
           await ctx.fx.useOptionFromHand(ctx, optionId, usedCost, {
             payCost: action.payCost,
-            ...(action.reduceCostBy !== undefined ? { costDelta: -action.reduceCostBy } : {}),
+            ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
           });
         }
         const permanentIds = chosen.filter((instanceId) => !optionIds.includes(instanceId));
@@ -441,14 +443,32 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           const requirement = chosenCard === undefined ? undefined : digiXrosRequirementFor(chosenCard.cardId)?.[0];
           if (requirement !== undefined) {
             const materialCandidates = action.digiXrosMaterialsFrom
-              .flatMap((zone) => looseCardsInZone(ctx, ctx.source.ownerSeat, zone))
+              .flatMap((zone) =>
+                zone === "battleArea"
+                  ? Array.from(ctx.game.player(ctx.source.ownerSeat).battleArea).flatMap((permanent) =>
+                      permanent.inBreeding || permanent.topCard === undefined
+                        ? []
+                        : [{
+                            instanceId: permanent.topCard.instanceId,
+                            cardId: permanent.topCard.cardId,
+                            ownerSeat: permanent.topCard.ownerSeat,
+                            hostPermanentId: permanent.permanentId,
+                          }],
+                    )
+                  : looseCardsInZone(ctx, ctx.source.ownerSeat, zone),
+              )
               .filter((card) => card.instanceId !== pfzChosen[0]);
             const selected = await ctx.ask.selectCards(ctx, {
               candidates: materialCandidates.map((card) => card.instanceId),
               min: 0,
               max: requirement.materials.length,
             });
-            const selectedDefinitions = selected.map((id) => ctx.game.definitionOf(materialCandidates.find((card) => card.instanceId === id)!));
+            const selectedDefinitions = selected.map((id) => {
+              const definition = ctx.game.definitionOf(materialCandidates.find((card) => card.instanceId === id)!);
+              return id === ctx.source.instanceId && action.digiXrosSourceMaterialName !== undefined
+                ? { ...definition, nameEn: action.digiXrosSourceMaterialName }
+                : definition;
+            });
             if (materialsSatisfyRecipe(selectedDefinitions, requirement.materials)) digiXrosMaterialInstanceIds = selected;
           }
         }

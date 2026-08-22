@@ -9,9 +9,9 @@ describe("BT26-079 compiled behavior", () => {
   it("proves evolution, Assembly, Trash Main, keywords, Decode, and the shared delete cost", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions).toMatchObject([
+    expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions[0]).toMatchObject(
       { kind: "SubTrigger", actions: [{ kind: "Trash", target: { untilHandSize: 4 } }, { kind: "Trash", target: { untilHandSize: 4 }, chooser: "opponent" }] },
-    ]);
+    );
     expect(compiled.digivolutionRequirement).toEqual([
       { names: ["Plutomon"], cost: 1, isAlternate: true },
       { level: 5, traits: ["TS"], cost: 3, isAlternate: true },

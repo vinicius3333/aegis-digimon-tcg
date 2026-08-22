@@ -146,6 +146,29 @@ describe("BT11-097 Crimson Flare [Main]", () => {
     );
   });
 
+  it("does not activate the On Deletion rider without a red Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-010", as: "biyomon" }],
+          hand: [{ card: "BT11-097", as: "crimsonFlare" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, {
+      type: "playCard",
+      instanceId: s.inst("crimsonFlare").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("biyomon").permanentId)).toBe(true);
+  });
+
   it("calls deletePermanent on the chosen opponent Digimon with ≤8000 DP", async () => {
     const deletedIds: string[] = [];
     const oppDigimon = fakePerm("opp-a", 8000, 1 as Seat);

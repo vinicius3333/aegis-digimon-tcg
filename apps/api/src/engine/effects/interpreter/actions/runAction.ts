@@ -43,6 +43,15 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   } else {
     ctx.lastActionConditionMatched = true;
   }
+  if (action.kind === "Delete" && action.cost !== undefined && (await resolvePermanentTargets(ctx, action.target)).length === 0) {
+    return action.abortOnDecline === true;
+  }
+  if (action.kind === "Return" && action.cost !== undefined && (await resolvePermanentTargets(ctx, action.target)).length === 0) {
+    return action.abortOnDecline === true;
+  }
+  if (action.kind === "PlaceUnder" && action.cost !== undefined && !canAttemptPlaceUnder(ctx, action)) {
+    return action.abortOnDecline === true;
+  }
   // Bind a SelectBind target before paying a cost that refers to that selected host.
   if (action.kind === "SelectBind" && action.target.bindAs !== undefined && action.cost?.kind === "trash") {
     const boundTo =
@@ -95,6 +104,13 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     if (action.kind === "Hatch") {
       const owner = ctx.game.player(ctx.source.ownerSeat);
       if (owner.breeding !== undefined || owner.eggDeck.length === 0) return false;
+    }
+    if (
+      action.kind === "SecurityManipulation" &&
+      action.op === "toHand" &&
+      ctx.game.player(ctx.source.ownerSeat).security.length === 0
+    ) {
+      return false;
     }
     // Do not offer an optional play when no legal loose card exists. Besides avoiding a
     // meaningless UI prompt, this is required for nested entry windows: Nokia played from
@@ -272,7 +288,9 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   const isBudgetScaling = action.kind !== "RawUnparsed" && action.scaling?.budgetAdd !== undefined;
   // targetColors is resolved after the action's permanent target is selected; it intentionally
   // has no board-wide scaleFactor. Do not let the generic zero guard abort it before dispatch.
-  const isPerTargetScaling = action.scaling?.unit === "targetColors";
+  const isPerTargetScaling =
+    action.scaling?.unit === "targetColors" ||
+    action.scaling?.unit === "targetFaceDownDigivolutionCards";
   if (
     scale !== undefined &&
     scale === 0 &&
@@ -333,6 +351,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "PlayPerLevel":
       return await runPlayAction(ctx, action, scope);
     case "Restrict":
+    case "DeclareCategoryImmunity":
     case "RestrictUnsuspendedDigivolve":
     case "RestrictDigivolveInto":
     case "MinDpFloor":
@@ -344,7 +363,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "GrantImmunity":
     case "ArmSuspendRestriction":
     case "DisableTimingEffect":
-      return await runRestrictionAction(ctx, action);
+      return await runRestrictionAction(ctx, action, scope);
     case "Aura":
     case "GrantAuraToOpponents":
     case "WaiveColorRequirement":

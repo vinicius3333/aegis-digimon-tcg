@@ -35,4 +35,15 @@ describe("ST14-08 Beelzemon", () => {
     });
     expect(s.state.memory).toBe(1);
   });
+
+  it("scales the memory gain for every full 10 cards in trash", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST14-08", as: "beel" }], trash: Array.from({ length: 20 }, () => "BT1-009") },
+    });
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("onDiscardLibrary", {
+      addedToHand: { instanceIds: ["mill"], byEffect: { ownerSeat: 0, isDigimonEffect: false } },
+    });
+    expect(s.state.memory).toBe(2);
+  });
 });

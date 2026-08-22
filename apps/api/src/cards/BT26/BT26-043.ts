@@ -18,7 +18,7 @@ const setup = [
     target: opponentTarget,
     restriction: "unsuspend",
     duration: "untilOpponentTurnEnd",
-    scaling: { unit: "faceDownDigivolutionCards", per: 1 },
+    scaling: { unit: "selfFaceDownDigivolutionCards", per: 1 },
   },
 ];
 export const compiled: CompiledCard = {

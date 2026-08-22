@@ -30,6 +30,7 @@ export type EnforcedRestriction =
   | "attack"
   | "attackPlayers"
   | "cantAttackDigimon"
+  | "attackOnlySuspendedDigimon"
   | "block"
   | "cantBeBlocked"
   | "cantBeBlockedByNoDigivolution"
@@ -289,6 +290,8 @@ export interface TriggerInfo {
    * its own controller's stack rather than the opponent's.
    */
   removedFromSecuritySeat?: Seat;
+  /** True when an effect, rather than a security check, removed the card. */
+  securityRemovedByEffect?: boolean;
   /** Card instances just trashed from a security stack. */
   trashedFromSecurityInstanceIds?: string[];
   /**
@@ -573,6 +576,8 @@ export interface Primitives {
     duration: EffectDuration,
     opts?: { continuous?: boolean; sourceInstanceId?: string },
   ): void;
+  /** Restore DP already reduced before a newly gained reduction immunity takes effect (Q1990). */
+  restoreDpReductions(permanentId: string): void;
   /**
    * Override a permanent's ORIGINAL/base DP to an absolute value for `duration`
    * (the "treated as having N DP" family). Replaces the base DP that signed

@@ -47,4 +47,29 @@ describe("BT10-018 Gaossmon", () => {
       instanceId: s.inst("greymon").instanceId,
     })).toEqual({ ok: true });
   });
+
+  it("may decline the play and never offers cards outside the exact level and trait filter", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-018", as: "gaossmon" }],
+          hand: [
+            { card: "BT10-019", as: "eligible" },
+            { card: "BT10-018", as: "wrongLevel" },
+            { card: "BT10-030", as: "wrongTrait" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+
+    await advance(s.engine).verb.deletePermanent([s.perm("gaossmon").permanentId]);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("eligible").instanceId,
+      s.inst("wrongLevel").instanceId,
+      s.inst("wrongTrait").instanceId,
+    ]);
+  });
 });

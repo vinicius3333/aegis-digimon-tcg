@@ -93,4 +93,20 @@ describe("BT26-007 Swipemon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("noLink").instanceId);
   });
 
+  it("may decline without paying memory or moving the Seven Code card from hand", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT21-009", as: "host", under: [CARD_ID] }],
+        hand: [{ card: "BT26-010", as: "candidate" }],
+      },
+    }, { autoDeclineOptional: true, autoSelectCards: true });
+    s.state.memory = 1;
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("host").linked).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("candidate").instanceId]);
+  });
+
 });

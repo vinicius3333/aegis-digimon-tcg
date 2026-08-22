@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const titan = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] };
 const titanCard = { controller: "mine", levelLte: 4, nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] };
 const titanDigimon = { ...titan, levelLte: 4 };
-const noFaceUpSecurity = { kind: "securityAtMost", controller: "mine", value: 0 };
+const noFaceUpSecurity = { kind: "faceUpSecurityAtMost", controller: "mine", value: 0 };
 
 export const compiled: CompiledCard = {
   effects: [
@@ -39,7 +39,10 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
-              nameOrTrait: [{ tokens: ["Plutomon", "Titamon"], match: "name" }],
+              nameOrTrait: [
+                { tokens: ["Plutomon"], match: "name" },
+                { tokens: ["Titamon"], match: "name" },
+              ],
             },
           },
         },

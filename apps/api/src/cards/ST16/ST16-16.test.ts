@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST16-16.js";
 
@@ -24,6 +26,26 @@ describe("ST16-16 Baldy Blow", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST16-11"));
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["ST16-12"]);
+  });
+
+  it("activates the same level-5 deletion effect from security", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "ST16-16", as: "baldyBlow", faceUp: true }] },
+        1: {
+          battleArea: [
+            { card: "ST16-11", as: "levelFive" },
+            { card: "ST16-12", as: "levelSix" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("baldyBlow"));
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST16-11"));
 
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["ST16-12"]);

@@ -54,7 +54,16 @@ const compiled: CompiledCard = {
     }
   ],
   "coverage": "full",
-  "residual": []
+  "residual": [],
+  "digivolutionRequirement": [
+    {
+      "names": [
+        "Armadillomon"
+      ],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ]
 };
 
 registerIrCard("BT8-023", compiled);

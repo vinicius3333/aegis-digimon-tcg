@@ -38,6 +38,8 @@ export interface ReplacementAction extends ActionBase {
   amount?: number;
   /** Remove a successful digivolution-cost reduction after the payment is calculated. */
   consumeOnActivate?: boolean;
+  /** Use the number of cards/resources actually paid as this replacement's cost reduction. */
+  amountFromPaidCost?: boolean;
   /**
    * Mutually exclusive reduceCost amounts the controller chooses between, never summed — for
    * text offering a base reduction plus a conditional larger one "instead" (EX6-006; KB Q3700
@@ -83,6 +85,15 @@ export interface ReplacementAction extends ActionBase {
    * consumes the grant and trashes the source before the payload runs.
    */
   requiresDelayArmed?: true;
+  /**
+   * Play a matching card from this Digimon's digivolution cards or its owner's trash, then
+   * relocate this Digimon beneath the played permanent. The relocation is part of the active
+   * leave replacement, so it must not open a second leave-prevention window.
+   */
+  playAndRelocateSourceUnder?: {
+    filter: Filter;
+    from: ("trash" | "digivolutionCards")[];
+  };
   raw: string;
 }
 

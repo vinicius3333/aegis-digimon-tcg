@@ -12,4 +12,36 @@ describe("BT8-068 BanchoMamemon", () => {
     expect(s.state.players[0]!.battleArea.some(permanent => permanent.topCard?.instanceId === s.inst("second").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some(card => card.instanceId === s.inst("rest").instanceId)).toBe(true);
   });
+
+  it("checks one additional security while another Mamemon is in play", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT8-068", as: "bancho" }, { card: "BT6-064", as: "mamemon" }] },
+      1: { security: ["BT1-009", "BT1-010"] },
+    });
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("bancho").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("does not gain the additional security check without another Mamemon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT8-068", as: "bancho" }] },
+      1: { security: ["BT1-009", "BT1-010"] },
+    });
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("bancho").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
 });

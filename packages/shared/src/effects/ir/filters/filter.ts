@@ -41,6 +41,8 @@ export interface Target {
   untilHandSize?: number;
   /** "up to N" rather than exactly N. */
   upTo?: boolean;
+  /** Minimum number that must be selected after an optional effect is activated. */
+  minimum?: number;
   /** Allow selecting zero when an outer optional effect already owns the decline choice. */
   allowZero?: boolean;
   /** "this Digimon", "this card". */
