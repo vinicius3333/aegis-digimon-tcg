@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT24_034 } from "./BT24-034.js";
 import "../index.js";
@@ -39,19 +39,36 @@ describe("BT24-034 Aegiomon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-034", as: "aegiomon" }],
-          security: [{ card: "BT1-001", as: "cost" }],
+          security: [{ card: "BT1-009", as: "cost" }],
           hand: [{ card: "BT24-083", as: "tamer" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: false },
+      { autoSelectCards: false },
     );
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("aegiomon"));
+    const resolution = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("aegiomon"));
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    const payPrompt = s.decisions.find(({ req }) => req.kind === "optional")!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: payPrompt.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 2);
+    const playPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[1]!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: playPrompt.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await resolution;
 
     expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
-      expect.arrayContaining([s.inst("cost").instanceId, s.inst("tamer").instanceId]),
-    );
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-009");
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
 
@@ -64,7 +81,7 @@ describe("BT24-034 Aegiomon", () => {
             { card: "BT24-034", as: "aegiomon" },
             { card: "BT24-083", as: "existing" },
           ],
-          security: [{ card: "BT1-001", as: "cost" }],
+          security: [{ card: "BT1-009", as: "cost" }],
           hand: [
             { card: "BT24-083", as: "duplicate" },
             { card: "BT24-085", as: "different" },
@@ -73,14 +90,12 @@ describe("BT24-034 Aegiomon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.inst("duplicate").instanceId, s.inst("different").instanceId);
+    preferred.push(s.inst("different").instanceId);
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("aegiomon"));
 
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
-      s.inst("different").instanceId,
-    );
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("duplicate").instanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT24-085");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT24-083");
   });
 
   it("allows Dan Yuki beside Dan Yuki & Kanan Yuki because the names differ (Q6713)", async () => {
@@ -91,7 +106,7 @@ describe("BT24-034 Aegiomon", () => {
             { card: "BT24-034", as: "aegiomon" },
             { card: "BT24-085", as: "combined" },
           ],
-          security: [{ card: "BT1-001", as: "cost" }],
+          security: [{ card: "BT1-009", as: "cost" }],
           hand: [{ card: "BT25-086", as: "dan" }],
         },
       },
@@ -118,5 +133,50 @@ describe("BT24-034 Aegiomon", () => {
 
     expect(observe(s.engine).hasKeyword(s.perm("aegiomon"), "Barrier")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
+  });
+
+  it("pays security and plays a TS Tamer in the When Moving window", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-034", as: "aegiomon" }],
+          security: [{ card: "BT1-009", as: "cost" }],
+          hand: [{ card: "BT24-083", as: "tamer" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnMove, s.perm("aegiomon"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("tamer").instanceId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+  });
+
+  it.each([
+    ["exact Elecmon", "BT1-028", 0],
+    ["level 3 TS", "BT24-009", 1],
+  ])("digivolves from %s for cost 2", async (_label, baseCard, alternateRequirementIndex) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: baseCard, as: "base" }],
+        hand: [{ card: "BT24-034", as: "aegiomon" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("aegiomon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("aegiomon").instanceId);
+
+    expect(s.state.memory).toBe(3);
   });
 });

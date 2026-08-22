@@ -123,6 +123,8 @@ export interface CardPredicates {
     tokens: string[];
     match: "name" | "nameExact" | "trait" | "traitContains" | "text" | "any";
   }[];
+  /** Candidate's effective name must differ from every Tamer the controller has in play. */
+  excludeSameNameAsOwnTamers?: boolean;
   /** "a non-Token Digimon" / ＜Save＞'s "not a Token" guard. */
   excludeToken?: boolean;
   /** "your Tokens or Digimon with [Puppet]". */
