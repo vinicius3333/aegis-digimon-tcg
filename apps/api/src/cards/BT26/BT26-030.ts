@@ -8,7 +8,7 @@ const eligibleSecurityCard = { controllerDefault: "mine", kind: ["Digimon", "Tam
 ] };
 const handTrash = { controller: "mine", zone: "hand" };
 const grantExecute = { kind: "GainKeyword", target: { filter: iliad, count: 1 }, keyword: { keyword: "Execute" }, duration: "untilEachTurnEnd", cost: { kind: "trash", target: { filter: handTrash, count: 1 } }, optional: false, abortOnDecline: true };
-const grantAscension = { kind: "GainKeyword", target: { filter: iliad, count: 1 }, keyword: { keyword: "Ascension" }, duration: "untilEachTurnEnd", condition: { kind: "ifThisEffectActed" } };
+const grantAscension = { kind: "GainKeyword", target: { filter: iliad, count: 1 }, keyword: { keyword: "Ascension" }, duration: "untilEachTurnEnd" };
 
 export const compiled: CompiledCard = {
   effects: [
