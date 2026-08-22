@@ -27,14 +27,6 @@ export const compiled: CompiledCard = {
         { kind: "PlaceUnder", target: { filter: aegiochusmon, count: 1 }, underFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Jupitermon"], match: "name" }] }, position: "top", optional: true, condition: { kind: "ifThisEffectDigivolved" } },
       ],
     },
-    {
-      trigger: "Security",
-      isSecurity: true,
-      actions: [
-        { kind: "PlayWithoutCost", target: { filter: securityPlayable, count: 1 }, from: ["hand", "trash"], payCost: false, optional: true },
-        { kind: "AddToHandSelf" },
-      ],
-    },
   ],
   coverage: "full",
   residual: [],
