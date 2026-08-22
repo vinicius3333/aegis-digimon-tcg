@@ -6,7 +6,22 @@ describe("ST21-05", () => {
   it("matches the Adventure Tamer play clause", () => {
     expect(getCardDefinition("ST21-05")?.effectText).toContain("1 or fewer Tamers");
     const a = runtimeCompiledCard("ST21-05")?.effects.find(x => x.trigger === "WhenDigivolving")?.actions[0];
-    expect(a).toMatchObject({ kind: "PlayWithoutCost", from: ["hand"], payCost: false, optional: true, condition: { kind: "youHave" } });
+    expect(a).toMatchObject({
+      kind: "PlayWithoutCost",
+      from: ["hand"],
+      payCost: false,
+      optional: true,
+      target: {
+        filter: { kind: ["Tamer"], nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }] },
+        count: 1,
+      },
+      condition: {
+        kind: "permanentCount",
+        filter: { kind: ["Tamer"] },
+        op: "lte",
+        value: 1,
+      },
+    });
   });
   it("gives exactly one opposing Digimon minus 2000 DP once per turn", () => {
     const e = runtimeCompiledCard("ST21-05")?.effects.find(x => x.trigger === "WhenAttacking");
