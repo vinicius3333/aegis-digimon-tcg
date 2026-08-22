@@ -74,7 +74,7 @@ const compiled: CompiledCard = {
           },
           "actions": [
             {
-              "kind": "PlayWithoutCost",
+              "kind": "PlayFromZone",
               "target": {
                 "filter": {
                   "controller": "mine",
@@ -100,6 +100,9 @@ const compiled: CompiledCard = {
               "from": [
                 "digivolutionCards"
               ],
+              "digiXrosMaterialsFrom": [
+                "battleArea"
+              ],
               "payCost": false,
               "optional": true
             }
@@ -114,7 +117,13 @@ const compiled: CompiledCard = {
           "kind": "ModifyDP",
           "target": {
             "filter": {
-              "isSelfRef": true
+              "isSelfRef": true,
+              "nameOrTrait": [
+                {
+                  "tokens": ["Blue Flare", "Xros Heart"],
+                  "match": "trait"
+                }
+              ]
             },
             "count": 1,
             "isSelf": true
@@ -123,22 +132,8 @@ const compiled: CompiledCard = {
           "duration": "permanent",
           "scaling": {
             "per": 1,
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Blue Flare",
-                    "Xros Heart"
-                  ],
-                  "match": "trait"
-                }
-              ]
-            },
-            "unit": "colors"
+            "filter": {},
+            "unit": "digivolutionCardColors"
           }
         }
       ],
