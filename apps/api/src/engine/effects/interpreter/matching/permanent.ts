@@ -392,7 +392,13 @@ export function permanentMatchesFilter(
   // Unsuspended-state filter ("opponent has no unsuspended Digimon") — live state.
   if (filter.unsuspended && permanent.isSuspended) return false;
   if (filter.sameOrientationAsSource) {
-    const sourcePermanent = source?.permanent();
+    // In an attack window, the trigger's attacker is the authoritative live "this Digimon"
+    // identity. Prefer it over a possibly stale/conferred CardSource, while retaining the
+    // source lookup for non-attack effect contexts that use this predicate.
+    const relativePermanentId = ctx.trigger.attackerPermanentId ?? ctx.trigger.subjectPermanentId;
+    const sourcePermanent = relativePermanentId !== undefined
+      ? ctx.game.permanentById(relativePermanentId)
+      : source?.permanent();
     if (sourcePermanent === undefined || permanent.isSuspended !== sourcePermanent.isSuspended) return false;
   }
 
