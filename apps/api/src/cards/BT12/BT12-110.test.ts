@@ -52,4 +52,27 @@ describe("BT12-110 handwritten module", () => {
     expect(s.state.players[0]!.deck.some(({ cardId }) => cardId === "BT12-110")).toBe(true);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT1-015"]);
   });
+
+  it("deletes the opposing Digimon with the lowest level from Main", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT12-110", as: "cluster" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "lowest" }, { card: "BT1-015", as: "higher" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+    s.state.memory = 7;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cluster").instanceId })).toEqual({ ok: true });
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT1-015"]);
+  });
+
+  it("activates the same lowest-level deletion from security", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT12-110", as: "cluster", faceUp: true }] },
+      1: { battleArea: [{ card: "BT1-009", as: "lowest" }, { card: "BT1-015", as: "higher" }] },
+    }, { autoSelectCards: true });
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("cluster"));
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT1-015"]);
+  });
 });
