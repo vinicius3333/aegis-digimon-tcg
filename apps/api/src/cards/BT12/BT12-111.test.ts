@@ -52,6 +52,7 @@ describe("BT12-111 handwritten module", () => {
               card: "BT12-111",
               as: "source",
               under: ["BT12-111", "BT12-111", "BT12-111", "BT12-111", "BT12-111", "BT12-111"],
+              suspended: true,
             },
             { card: "BT12-092", as: "tamer" },
           ],
@@ -62,9 +63,11 @@ describe("BT12-111 handwritten module", () => {
     );
     await s.ready();
     s.state.turnSeat = 1;
-    await advance(s.engine).fireSubTrigger("whenOpponentAttacks", {
+    expect(s.engine.applyIntent(1, {
+      type: "attack",
       attackerPermanentId: s.perm("attacker").permanentId,
-    });
+      target: { kind: "permanent", permanentId: s.perm("source").permanentId },
+    })).toEqual({ ok: true });
     await settle(() => s.perm("source").stack.length === 1 && s.state.players[0]!.hand.length === 1);
     expect(s.perm("source").stack).toHaveLength(1);
     expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT12-092")).toBe(true);
