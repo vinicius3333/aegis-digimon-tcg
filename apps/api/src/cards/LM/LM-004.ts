@@ -46,6 +46,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenTrashedFromHand",
+          raw: "when a card with Jellymon in its text is trashed from your hand",
           sourceFilter: { nameOrTrait: [{ tokens: ["Jellymon"], match: "text" }] },
           actions: [{ kind: "Unsuspend", target: self, optional: true }],
         },

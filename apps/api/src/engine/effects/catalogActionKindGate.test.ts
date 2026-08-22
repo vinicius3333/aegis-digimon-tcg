@@ -92,6 +92,7 @@ const IMPLEMENTED_ACTION_KINDS = {
   RepeatPerCount: true,
   Replacement: true,
   Restrict: true,
+  DeclareCategoryImmunity: true,
   RestrictCostReduction: true,
   RestrictDigivolveInto: true,
   RestrictMemoryGain: true,
