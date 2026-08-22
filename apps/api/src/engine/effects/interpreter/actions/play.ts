@@ -57,10 +57,10 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
     case "PlayWithoutCost": {
       // Bind "the Digimon this effect played" from whichever branch resolves the play, so a later
       // action (e.g. BT16-015's Delete with dp.valueFrom) can reference exactly what was played.
-      const bindPlayWithoutCost = () => {
-        if (action.bindResultAs && ctx.lastPlayedPermanentIds && ctx.lastPlayedPermanentIds.length > 0) {
+      const bindPlayWithoutCost = (playedPermanentIds = ctx.lastPlayedPermanentIds) => {
+        if (action.bindResultAs && playedPermanentIds && playedPermanentIds.length > 0) {
           ctx.boundPlayed ??= new Map();
-          ctx.boundPlayed.set(action.bindResultAs, new Set(ctx.lastPlayedPermanentIds));
+          ctx.boundPlayed.set(action.bindResultAs, new Set(playedPermanentIds));
         }
       };
       // ＜Delay＞-armed gate: if the action is marked requiresDelayArmed, the source permanent
@@ -323,7 +323,9 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                 ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
               })
             : [];
-        ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);
+        const playedPermanentIds = (played ?? []).map((p) => p.permanentId);
+        ctx.lastPlayedPermanentIds = playedPermanentIds;
+        bindPlayWithoutCost(playedPermanentIds);
       } else {
         ctx.lastPlayedPermanentIds = [];
       }
