@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./BT10-082.js";
 
 describe("BT10-082 Beelzemon", () => {
@@ -39,5 +41,56 @@ describe("BT10-082 Beelzemon", () => {
 
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(originalDeck);
     expect(s.state.players[1]!.battleArea[0]!.permanentId).toBe(s.perm("level5").permanentId);
+  });
+
+  it("uses its Xros Heart evolution requirement and resolves the same mill and deletion timing", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT10-012", as: "xrosHeartBase" }],
+        hand: [{ card: "BT10-082", as: "evolving" }],
+        deck: ["BT1-001", "BT1-002", "BT1-003"],
+        trash: Array.from({ length: 7 }, () => "BT1-004"),
+      },
+      1: { battleArea: [{ card: "BT1-015", as: "level4" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("xrosHeartBase").permanentId,
+      instanceId: s.inst("evolving").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("xrosHeartBase").topCard.instanceId === s.inst("evolving").instanceId);
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[0]!.trash).toHaveLength(10);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("gains scaled end-of-attack memory from the inherited effect only once per turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT10-083", as: "host", under: ["BT10-082"] }],
+        trash: Array.from({ length: 20 }, () => "BT1-004"),
+      },
+      1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
+    });
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("host").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.memory).toBe(2);
+
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("host").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.memory).toBe(2);
   });
 });
