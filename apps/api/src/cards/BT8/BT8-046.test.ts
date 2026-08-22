@@ -17,7 +17,7 @@ describe("BT8-046 Terriermon", () => {
 
   it("may add a revealed Gargomon card and bottoms every other revealed card", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT8-046", as: "source" }], deck: [
-      { card: "BT8-047", as: "gargomon" }, "BT8-048", "BT8-049", "BT8-050", "BT8-051",
+      { card: "BT3-048", as: "gargomon" }, "BT8-048", "BT8-049", "BT8-050", "BT8-051",
     ] } }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 3;
 

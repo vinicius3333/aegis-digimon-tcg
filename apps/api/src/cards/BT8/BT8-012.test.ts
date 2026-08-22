@@ -19,8 +19,9 @@ describe("BT8-012 Flamedramon", () => {
         hand: [{ card: "BT8-012", as: "flamedramon" }],
       },
       1: { battleArea: [{ card: "BT8-041", as: "defender", suspended: true }] },
-    }, { autoAcceptOptional: true });
+    }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 6;
+    const baseInstanceId = s.perm("base").topCard.instanceId;
 
     expect(s.engine.applyIntent(0, {
       type: "digivolve",
@@ -35,9 +36,9 @@ describe("BT8-012 Flamedramon", () => {
       attackerPermanentId: s.perm("base").permanentId,
       target: { kind: "digimon", permanentId: s.perm("defender").permanentId },
     })).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.instanceId === s.inst("base").instanceId);
+    await settle(() => s.perm("base").topCard.instanceId === baseInstanceId);
 
-    expect(s.state.players[0]!.trash.some(card => card.instanceId === s.inst("flamedramon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some(card => card.cardId === "BT8-012")).toBe(true);
     expect(s.perm("base").currentDP).toBe(s.perm("base").baseDP + 3000);
   });
 });

@@ -18,8 +18,9 @@ describe("BT8-048 Shurimon", () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT8-009", as: "hawkmon" }], hand: [{ card: "BT8-048", as: "shurimon" }] },
       1: { battleArea: [{ card: "BT2-047", as: "defender", dp: 15000, suspended: true }] },
-    }, { autoAcceptOptional: true });
+    }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 4;
+    const hawkmonId = s.perm("hawkmon").topCard.instanceId;
 
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("hawkmon").permanentId, instanceId: s.inst("shurimon").instanceId })).toEqual({ ok: true });
     await settle();
@@ -28,8 +29,8 @@ describe("BT8-048 Shurimon", () => {
       attackerPermanentId: s.perm("hawkmon").permanentId,
       target: { kind: "digimon", permanentId: s.perm("defender").permanentId },
     })).toEqual({ ok: true });
-    await settle(() => s.perm("hawkmon").topCard.instanceId === s.inst("hawkmon").instanceId);
+    await settle(() => s.perm("hawkmon").topCard.instanceId === hawkmonId);
 
-    expect(s.state.players[0]!.trash.some(card => card.instanceId === s.inst("shurimon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some(card => card.cardId === "BT8-048")).toBe(true);
   });
 });

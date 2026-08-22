@@ -27,7 +27,7 @@ describe("BT8-008 Gammamon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
-  it("draws twice when Canoweissmon grants a second copy of the red-Tamer effect", async () => {
+  it("gains Gammamon's non-inherited red-Tamer effect from Canoweissmon", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT10-011", as: "canoweiss", under: ["BT10-011", "BT8-008"] }],
@@ -40,7 +40,8 @@ describe("BT8-008 Gammamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hiro").instanceId })).toEqual({ ok: true });
     await settle();
 
-    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.hand[0]!.cardId).toBe("BT8-033");
   });
 
   it("does not delete when the host is below 6000 DP or the target is above 3000 DP", async () => {

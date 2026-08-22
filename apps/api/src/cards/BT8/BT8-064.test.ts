@@ -18,7 +18,7 @@ describe("BT8-064 Greymon", () => {
         security: ["BT8-034"],
       },
       1: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
-    }, { autoAcceptOptional: true });
+    }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.turnSeat = 1;
     await s.ready();
     const attackerId = s.perm("attacker").permanentId;
@@ -28,6 +28,11 @@ describe("BT8-064 Greymon", () => {
       attackerPermanentId: attackerId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
+    await settle(() => s.events.some(event => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, {
+      type: "declareBlock",
+      blockerPermanentId: s.perm("host").permanentId,
+    })).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some(permanent => permanent.permanentId === attackerId));
 
     expect(s.state.players[0]!.security).toHaveLength(1);
@@ -35,7 +40,7 @@ describe("BT8-064 Greymon", () => {
   });
 
   it("does not grant Blocker without a red Digimon in play", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT8-067", as: "host", under: ["BT8-064"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT8-069", as: "host", under: ["BT8-064"] }] } });
     s.state.turnSeat = 1;
     await s.ready();
 

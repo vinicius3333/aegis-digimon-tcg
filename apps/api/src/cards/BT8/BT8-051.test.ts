@@ -21,6 +21,7 @@ describe("BT8-051 Digmon", () => {
       1: { battleArea: [{ card: "BT2-047", as: "defender", dp: 15000, suspended: true }] },
     }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 4;
+    const armadillomonId = s.perm("armadillomon").topCard.instanceId;
 
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("armadillomon").permanentId, instanceId: s.inst("digmon").instanceId })).toEqual({ ok: true });
     await settle();
@@ -31,7 +32,7 @@ describe("BT8-051 Digmon", () => {
       attackerPermanentId: s.perm("armadillomon").permanentId,
       target: { kind: "digimon", permanentId: s.perm("defender").permanentId },
     })).toEqual({ ok: true });
-    await settle(() => s.perm("armadillomon").topCard.instanceId === s.inst("armadillomon").instanceId);
+    await settle(() => s.perm("armadillomon").topCard.instanceId === armadillomonId);
 
     expect(s.state.players[0]!.trash.some(card => card.instanceId === s.inst("digmon").instanceId)).toBe(true);
   });

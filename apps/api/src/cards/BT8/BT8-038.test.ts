@@ -19,10 +19,11 @@ describe("BT8-038 Magnamon", () => {
         trash: ["BT8-023"],
       },
       1: { battleArea: [{ card: "BT8-041", as: "defender", suspended: true }] },
-    }, { autoAcceptOptional: true });
+    }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 6;
+    const veemonInstanceId = s.perm("veemon").topCard.instanceId;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("veemon").permanentId, instanceId: s.inst("magnamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("veemon").permanentId, instanceId: s.inst("magnamon").instanceId, useAlternateCost: true })).toEqual({ ok: true });
     await settle();
     expect(s.state.memory).toBe(3);
     expect(s.perm("veemon").currentDP).toBe(9000);
@@ -32,9 +33,9 @@ describe("BT8-038 Magnamon", () => {
       attackerPermanentId: s.perm("veemon").permanentId,
       target: { kind: "digimon", permanentId: s.perm("defender").permanentId },
     })).toEqual({ ok: true });
-    await settle(() => s.perm("veemon").topCard.instanceId === s.inst("veemon").instanceId);
+    await settle(() => s.perm("veemon").topCard.instanceId === veemonInstanceId);
 
-    expect(s.state.players[0]!.trash.some(card => card.instanceId === s.inst("magnamon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some(card => card.cardId === "BT8-038")).toBe(true);
     expect(s.perm("veemon").currentDP).toBe(s.perm("veemon").baseDP + 2000);
   });
 });

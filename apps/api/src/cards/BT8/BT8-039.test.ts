@@ -17,10 +17,12 @@ describe("BT8-039 Rapidmon", () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT8-046", as: "terriermon" }], hand: [{ card: "BT8-039", as: "rapidmon" }] },
       1: { battleArea: [{ card: "BT8-041", as: "defender", dp: 15000, suspended: true }] },
-    }, { autoAcceptOptional: true });
+    }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 6;
+    const terriermonInstanceId = s.perm("terriermon").topCard.instanceId;
+    const rapidmonInstanceId = s.inst("rapidmon").instanceId;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("terriermon").permanentId, instanceId: s.inst("rapidmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("terriermon").permanentId, instanceId: s.inst("rapidmon").instanceId, useAlternateCost: true })).toEqual({ ok: true });
     await settle();
     expect(s.state.memory).toBe(3);
 
@@ -29,9 +31,9 @@ describe("BT8-039 Rapidmon", () => {
       attackerPermanentId: s.perm("terriermon").permanentId,
       target: { kind: "digimon", permanentId: s.perm("defender").permanentId },
     })).toEqual({ ok: true });
-    await settle(() => s.perm("terriermon").topCard.instanceId === s.inst("terriermon").instanceId);
+    await settle(() => s.perm("terriermon").topCard.instanceId === terriermonInstanceId);
 
-    expect(s.state.players[0]!.trash.some(card => card.instanceId === s.inst("rapidmon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some(card => card.instanceId === rapidmonInstanceId)).toBe(true);
   });
 
   it("does not apply the exact-name special cost to Terriermon Assistant", async () => {

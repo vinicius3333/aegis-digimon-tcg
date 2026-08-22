@@ -18,7 +18,7 @@ describe("BT8-063 Ginryumon", () => {
         security: ["BT8-034"],
       },
       1: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
-    }, { autoAcceptOptional: true });
+    }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.turnSeat = 1;
     await s.ready();
     const attackerId = s.perm("attacker").permanentId;
@@ -27,6 +27,11 @@ describe("BT8-063 Ginryumon", () => {
       type: "attack",
       attackerPermanentId: attackerId,
       target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.events.some(event => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, {
+      type: "declareBlock",
+      blockerPermanentId: s.perm("host").permanentId,
     })).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some(permanent => permanent.permanentId === attackerId));
 

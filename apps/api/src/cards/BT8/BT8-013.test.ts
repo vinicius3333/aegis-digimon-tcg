@@ -23,8 +23,16 @@ describe("BT8-013 BetelGammamon", () => {
     s.state.memory = 1;
 
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
-    await settle(() => observe(s.engine).hasKeyword(s.perm("base"), "Blitz"));
+    await settle(() => s.state.pendingDecision?.kind === "optional");
     expect(s.state.memory).toBe(-1);
+    const blitzDecision = s.state.pendingDecision!;
+    expect(JSON.parse(blitzDecision.payloadJson)).toMatchObject({ promptKey: "activateBlitz" });
+    expect(s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: blitzDecision.decisionId,
+      response: { kind: "optional", accept: true },
+    })).toEqual({ ok: true });
+    await settle(() => s.engine.hasAcceptedBlitzAttack(s.perm("base").permanentId));
 
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("base").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);

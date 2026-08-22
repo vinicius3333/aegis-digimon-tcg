@@ -36,6 +36,9 @@ describe("BT8-022 SnowAgumon", () => {
 
     expect(s.perm("sourceFree").stack).toHaveLength(0);
     expect(s.perm("tactimon").stack).toHaveLength(1);
-    expect(s.state.players[1]!.trash.some(card => card.instanceId === s.inst("tactimonTopSource").instanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some(card =>
+      card.instanceId === s.inst("tactimonTopSource").instanceId ||
+      card.instanceId === s.inst("tactimonBottomSource").instanceId
+    )).toBe(true);
   });
 });

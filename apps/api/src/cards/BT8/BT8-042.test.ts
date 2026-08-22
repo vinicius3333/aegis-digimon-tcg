@@ -17,19 +17,20 @@ describe("BT8-042 Shakkoumon", () => {
       0: {
         battleArea: [{ card: "BT8-039", as: "yellowMaterial" }, { card: "BT8-026", as: "blueMaterial" }],
         hand: [{ card: "BT8-042", as: "shakkoumon" }],
-        deck: ["BT8-034"],
+        deck: ["BT8-034", "BT8-037"],
         security: ["BT8-035", "BT8-036"],
       },
       1: { battleArea: [{ card: "BT1-010", as: "levelThree" }] },
     }, { autoSelectCards: true });
     s.state.memory = 2;
+    const levelThreeInstanceId = s.perm("levelThree").topCard.instanceId;
 
     expect(s.engine.applyIntent(0, {
       type: "dnaDigivolve",
       materialPermanentIds: [s.perm("yellowMaterial").permanentId, s.perm("blueMaterial").permanentId],
       instanceId: s.inst("shakkoumon").instanceId,
     })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.hand.some(card => card.instanceId === s.inst("levelThree").instanceId));
+    await settle(() => s.state.players[1]!.hand.some(card => card.instanceId === levelThreeInstanceId));
 
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.security).toHaveLength(3);

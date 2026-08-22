@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT8-019.js";
+import "./BT8-012.js";
 
 describe("BT8-019 Zhuqiaomon", () => {
   it("keeps itself and the opponent's chosen Digimon, deletes all others and gains memory per deletion", async () => {
@@ -13,7 +14,7 @@ describe("BT8-019 Zhuqiaomon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("spared").topCard?.cardId).toBe("BT1-010");
     expect(s.state.memory).toBe(2);
-    expect(observe(s.engine).keywordAmount(s.perm("base"), "SecurityAttack")).toBe(2);
+    expect(observe(s.engine).keywordAmount(s.perm("base"), "SecurityAttack")).toBe(3);
   });
 
   it("Q1703 has the opponent choose which of their Digimon survives", async () => {
@@ -76,14 +77,16 @@ describe("BT8-019 Zhuqiaomon", () => {
         breeding: { card: "BT8-034", as: "opponentBreeding" },
       },
     }, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred });
-    preferred.push(s.perm("spared").permanentId);
+    preferred.push(s.perm("spared").permanentId, s.perm("armor").topCard.instanceId);
     s.state.memory = 6;
+    const ownBreedingId = s.state.players[0]!.breeding!.topCard.instanceId;
+    const opponentBreedingId = s.state.players[1]!.breeding!.topCard.instanceId;
 
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
     await settle();
 
-    expect(s.state.players[0]!.breeding?.topCard.instanceId).toBe(s.inst("ownBreeding").instanceId);
-    expect(s.state.players[1]!.breeding?.topCard.instanceId).toBe(s.inst("opponentBreeding").instanceId);
+    expect(s.state.players[0]!.breeding?.topCard.instanceId).toBe(ownBreedingId);
+    expect(s.state.players[1]!.breeding?.topCard.instanceId).toBe(opponentBreedingId);
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
     expect(s.perm("armor").topCard.cardId).toBe("BT8-008");
     expect(s.state.memory).toBe(2);

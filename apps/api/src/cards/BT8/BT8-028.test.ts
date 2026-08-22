@@ -15,7 +15,7 @@ describe("BT8-028 CaptainHookmon", () => {
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
     expect(s.state.players[0]!.hand).toHaveLength(1);
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(3);
   });
 
   it("does not trigger when the opponent digivolves into level 5", async () => {

@@ -21,7 +21,7 @@ describe("BT8-024 Angemon", () => {
     const s = setupEngine({ 0: {
       battleArea: [{ card: "BT8-024", as: "base" }],
       hand: [{ card: "BT8-042", as: "evolving" }],
-      deck: [{ card: "BT8-033", as: "wouldRecover" }],
+      deck: ["BT8-033", { card: "BT8-034", as: "wouldRecover" }],
       security: ["BT8-034", "BT8-035", "BT8-036", "BT8-037"],
     } });
     s.state.memory = 5;

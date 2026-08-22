@@ -26,6 +26,10 @@ describe("BT8-026 Halsemon", () => {
       ] },
     }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 5;
+    const hawkmonId = s.perm("hawkmon").topCard.instanceId;
+    const defenderPermanentId = s.perm("defender").permanentId;
+    const levelThreePermanentId = s.perm("levelThree").permanentId;
+    const halsemonInstanceId = s.inst("halsemon").instanceId;
 
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("hawkmon").permanentId, instanceId: s.inst("halsemon").instanceId })).toEqual({ ok: true });
     await settle();
@@ -36,10 +40,10 @@ describe("BT8-026 Halsemon", () => {
       attackerPermanentId: s.perm("hawkmon").permanentId,
       target: { kind: "digimon", permanentId: s.perm("defender").permanentId },
     })).toEqual({ ok: true });
-    await settle(() => s.perm("hawkmon").topCard.instanceId === s.inst("hawkmon").instanceId);
+    await settle(() => s.perm("hawkmon").topCard.instanceId === hawkmonId);
 
-    expect(s.state.players[1]!.battleArea.some(permanent => permanent.permanentId === s.perm("defender").permanentId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.some(permanent => permanent.permanentId === s.perm("levelThree").permanentId)).toBe(false);
-    expect(s.state.players[0]!.trash.some(card => card.instanceId === s.inst("halsemon").instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some(permanent => permanent.permanentId === defenderPermanentId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some(permanent => permanent.permanentId === levelThreePermanentId)).toBe(false);
+    expect(s.state.players[0]!.trash.some(card => card.instanceId === halsemonInstanceId)).toBe(true);
   });
 });
