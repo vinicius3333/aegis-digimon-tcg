@@ -11,7 +11,6 @@ const suspend = { kind: "Suspend", target: { filter: anyDigimon, count: 1 }, opt
 const inheritedDigivolve = {
   kind: "SubTrigger",
   event: "whenBattleWon",
-  frequency: "OncePerTurn",
   actions: [
     {
       kind: "Digivolve",
@@ -29,6 +28,7 @@ export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: [suspend] },
     { trigger: "WhenMoving", actions: [suspend] },
+    { trigger: "YourTurn", isInherited: true, frequency: "OncePerTurn", actions: [inheritedDigivolve] },
   ],
   coverage: "full",
   residual: [],
