@@ -7,7 +7,7 @@ const handCost = {
   zone: "hand",
   nameOrTrait: [
     { tokens: ["Game"], match: "trait" },
-    { tokens: ["Open"], match: "trait" },
+    { tokens: ["Open", "Open (App Name)"], match: "trait" },
     { tokens: ["Seven Code"], match: "trait" },
   ],
 };

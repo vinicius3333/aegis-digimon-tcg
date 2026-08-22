@@ -98,11 +98,13 @@ describe("BT26-010 Roleplaymon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").linked.length === 1);
-    await settle(() => observe(s.engine).hasKeyword(s.perm("host"), "Progress"));
+    await settle(() =>
+      observe(s.engine).hasKeyword(s.perm("host"), "Progress") && observe(s.engine).hasPierce(s.perm("host")),
+    );
     expect(s.state.memory).toBe(0);
     expect(s.perm("host").linked[0]).toMatchObject({ instanceId: s.inst("link").instanceId, faceUp: true });
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Progress")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Piercing")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
 
     const wrong = setupEngine({
       0: { battleArea: [{ card: "BT1-010", as: "plain" }], hand: [{ card: CARD_ID, as: "link" }] },
@@ -124,12 +126,12 @@ describe("BT26-010 Roleplaymon", () => {
     });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Progress")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Piercing")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
     await advance(s.engine).verb.trash([s.inst("link").instanceId]);
     await advance(s.engine).recompute();
     expect(s.perm("host").linked).toHaveLength(0);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Progress")).toBe(false);
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Piercing")).toBe(false);
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(false);
   });
 
   it("when attacking trashes an eligible Game card, then draws exactly 2", async () => {
