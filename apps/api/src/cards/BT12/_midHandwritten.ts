@@ -486,7 +486,7 @@ export function midBt12Module(cardId: string): EffectModule {
                   return (
                     source.isOwnersTurn() &&
                     top !== undefined &&
-                      (ctx.game.definitionOf(top).nameEn.includes("Imperialdramon") ||
+                    (ctx.game.definitionOf(top).nameEn.includes("Imperialdramon") ||
                       cardHasTrait(ctx.game.definitionOf(top), "Free"))
                   );
                 },
