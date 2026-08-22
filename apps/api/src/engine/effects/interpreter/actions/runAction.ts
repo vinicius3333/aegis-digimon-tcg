@@ -45,9 +45,10 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   }
   // Bind a SelectBind target before paying a cost that refers to that selected host.
   if (action.kind === "SelectBind" && action.target.bindAs !== undefined && action.cost?.kind === "trash") {
-    const boundTo = action.cost.target?.filter !== undefined && "boundTo" in action.cost.target.filter
-      ? action.cost.target.filter.boundTo
-      : undefined;
+    const boundTo =
+      action.cost.target?.filter !== undefined && "boundTo" in action.cost.target.filter
+        ? action.cost.target.filter.boundTo
+        : undefined;
     if (boundTo === action.target.bindAs && ctx.selections?.get(boundTo) === undefined) {
       const ids = await resolvePermanentTargets(ctx, action.target);
       if (ids.length === 0) return action.abortOnDecline === true;
@@ -369,6 +370,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "SearchSecurity":
     case "Reveal":
     case "RevealAdd":
+    case "HandRevealAdd":
     case "RevealChooseDeleteBudget":
       return await runRevealAction(ctx, action);
     default: {
