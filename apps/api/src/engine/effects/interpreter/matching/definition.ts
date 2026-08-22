@@ -74,7 +74,11 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   if (filter.not && definitionMatches(filter.not, def)) return false;
   if (filter.kind && filter.kind.length > 0) {
     const wanted = filter.kind.map((k) => KIND_MAP[k]);
-    if (!wanted.some((k) => def.kinds.includes(k))) return false;
+    // Tokens are Digimon permanents for target/cost resolution even though their
+    // synthetic definitions carry the Token kind rather than the printed
+    // Digimon kind.  `allowTokens` is the explicit IR opt-in for that rule.
+    const tokenAsDigimon = filter.allowTokens === true && def.isToken === true && wanted.includes(CardKind.Digimon);
+    if (!tokenAsDigimon && !wanted.some((k) => def.kinds.includes(k))) return false;
   }
   if (filter.hasDnaDigivolutionRequirement === true) {
     const compiled = def.cardId !== undefined ? runtimeCompiledCard(def.cardId) : undefined;
