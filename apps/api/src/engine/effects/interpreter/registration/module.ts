@@ -85,7 +85,10 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
   const isPlainMain = (e: CardEffect): boolean =>
     e.trigger === "Main" && !e.isSecurity && !(e.keywords ?? []).some((kw) => kw.keyword === "Delay");
   // Pre-bucket effects by their target EffectTiming so effectsForTiming is O(1).
-  const byTiming = new Map<EffectTiming, { effect: CardEffect; build: (o: BuilderOptions) => Effect; isOptionPlayBody: boolean }[]>();
+  const byTiming = new Map<
+    EffectTiming,
+    { effect: CardEffect; build: (o: BuilderOptions) => Effect; isOptionPlayBody: boolean }[]
+  >();
   let index = 0;
   for (const effect of effects) {
     // The intrinsic keyword is consumed by GameEngine.payDigisorption through the side registry;

@@ -2,6 +2,7 @@ import type { Client } from "colyseus";
 import {
   CardKind,
   GameState,
+  Permanent,
   PlayerState,
   Permanent,
   EffectTiming,
@@ -428,25 +429,28 @@ export class GameEngine {
   ) {
     // TODO(effect-framework): import "../cards" is done at boot for side-effect
     //   registration; wire the registry into the resolution path here.
-    this.continuous = new ContinuousEffectLedger((permanentId) => {
-      for (const player of this.state.players) {
-        const permanent = player.battleArea.find((candidate) => candidate.permanentId === permanentId);
-        if (permanent !== undefined) {
-          const definition = lookupDefinition(permanent.topCard.cardId);
-          if (definition !== undefined && isDigimon(definition)) return permanent.controllerSeat;
+    this.continuous = new ContinuousEffectLedger(
+      (permanentId) => {
+        for (const player of this.state.players) {
+          const permanent = player.battleArea.find((candidate) => candidate.permanentId === permanentId);
+          if (permanent !== undefined) {
+            const definition = lookupDefinition(permanent.topCard.cardId);
+            if (definition !== undefined && isDigimon(definition)) return permanent.controllerSeat;
+          }
         }
-      }
-      return undefined;
-    }, (permanentId) => {
-      for (const player of this.state.players) {
-        const permanent = player.battleArea.find((candidate) => candidate.permanentId === permanentId);
-        if (permanent !== undefined) {
-          const definition = lookupDefinition(permanent.topCard.cardId);
-          return printedKeywordsOf(definition?.effectText);
+        return undefined;
+      },
+      (permanentId) => {
+        for (const player of this.state.players) {
+          const permanent = player.battleArea.find((candidate) => candidate.permanentId === permanentId);
+          if (permanent !== undefined) {
+            const definition = lookupDefinition(permanent.topCard.cardId);
+            return printedKeywordsOf(definition?.effectText);
+          }
         }
-      }
-      return [];
-    });
+        return [];
+      },
+    );
     this.memory = new MemoryGauge(this.state, this.hooks.emit, (seat, opts) => {
       const kinds = opts.isTamerEffect ? [CardKind.Tamer] : [CardKind.Digimon];
       return this.continuous.canGainMemoryFromEffect(seat, {
@@ -829,7 +833,9 @@ export class GameEngine {
           this.buildEffectContext(this.cardSourceOf(srcPerm.topCard!), { deletedPermanentId: leavingId }),
         buildInstanceContext: (sourceInstanceId, leavingId) => {
           const instance = this.findLooseInstance(sourceInstanceId);
-          return instance === undefined ? undefined : this.buildEffectContext(this.cardSourceOf(instance), { deletedPermanentId: leavingId });
+          return instance === undefined
+            ? undefined
+            : this.buildEffectContext(this.cardSourceOf(instance), { deletedPermanentId: leavingId });
         },
         turnSeat: this.state.turnSeat,
         // Once-per-turn prevention ledger (＜Barrier＞), keyed in the shared per-turn UseTracker

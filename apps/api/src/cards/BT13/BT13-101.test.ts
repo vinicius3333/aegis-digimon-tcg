@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-101.js";
 
 describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
@@ -43,5 +46,15 @@ describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
         { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
       ],
     });
+  });
+
+  it("plays PawnChessmon from hand through its on-play effect", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT13-101", as: "tamers" }], hand: [{ card: "BT13-035", as: "pawn" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("tamers"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-035"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT13-035")).toBe(true);
   });
 });

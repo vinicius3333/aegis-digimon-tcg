@@ -1,6 +1,5 @@
 // @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 
 /**
  * BT10-019 — MetalGreymon (BT10, Blue Lv.5 Digimon).
@@ -219,4 +218,4 @@ const module: EffectModule = {
 };
 
 export { compiled };
-registerIrCard("BT10-019", compiled);
+registerIrCard(cardId, runtimeCompiledCard(cardId)!, module);
