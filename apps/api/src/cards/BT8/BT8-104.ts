@@ -1,9 +1,4 @@
 // @ts-nocheck
-// HAND-FIXED IR for BT8-104 — do not regenerate.
-// Main: removed spurious Trash action (the De-Digivolve parenthetical is part of that
-// keyword, not a separate action). PlaceUnder: added from:["hand"], corrected underFilter
-// to mine black X-Antibody Digimon (was opponent's), added position:bottom. Added Delete
-// gated on PlaceUnder.
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
