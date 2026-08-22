@@ -60,11 +60,11 @@ describe("BT24-033 Salamon", () => {
     expect(s.state.memory).toBe(3);
   });
 
-  it("grants inherited Barrier and evolves from a non-yellow level-2 TS egg for 0", async () => {
+  it("grants inherited Barrier and uses the level-2 TS alternate evolution for cost 0", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT24-034", as: "host", under: ["BT24-033"] }],
-        breeding: { card: "BT24-001", as: "egg" },
+        breeding: { card: "BT24-003", as: "egg" },
         hand: [{ card: "BT24-033", as: "salamon" }],
       },
     });
@@ -77,6 +77,8 @@ describe("BT24-033 Salamon", () => {
         type: "digivolve",
         permanentId: s.perm("egg").permanentId,
         instanceId: s.inst("salamon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("egg").topCard.instanceId === s.inst("salamon").instanceId);
