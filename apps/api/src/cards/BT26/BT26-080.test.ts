@@ -51,7 +51,7 @@ describe("BT26-080 compiled behavior", () => {
       { autoSelectCards: true },
     );
 
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenAttacking, s.perm("source"), {
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("source"), {
       attackerPermanentId: s.perm("source").permanentId,
     });
 
