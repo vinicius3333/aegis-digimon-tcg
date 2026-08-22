@@ -7,6 +7,7 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
+      actions: [],
       keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }],
     },
     {
@@ -39,8 +40,26 @@ const compiled: CompiledCard = {
       trigger: "OnDeletion",
       optional: true,
       actions: [
-        { kind: "PlayWithoutCost", target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Wormmon"], match: "nameExact" }] }, count: 1 }, from: ["trash"], payCost: false, optional: true },
-        { kind: "PlayWithoutCost", target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Veemon"], match: "nameExact" }] }, count: 1 }, from: ["trash"], payCost: false, optional: true },
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Wormmon"], match: "nameExact" }] },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Veemon"], match: "nameExact" }] },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
       ],
     },
   ],
