@@ -3,6 +3,7 @@ import "./ST1-01.js";
 import "./ST1-02.js";
 import "./ST1-03.js";
 import "./ST1-04.js";
+import "./ST1-05.js";
 import "./ST1-06.js";
 import "./ST1-07.js";
 import "./ST1-08.js";
