@@ -26,7 +26,13 @@ describe("BT24-026 Hyogamon", () => {
   it("retains the once-per-turn trash-triggered Titamon digivolution", () => {
     const inherited = compiled.effects.find((effect) => effect.trigger === "YourTurn") as any;
     const action = inherited.actions[0].actions[0];
-    expect(action).toMatchObject({ kind: "Digivolve", from: ["trash"], reduceCost: 1, optional: true });
+    expect(action).toMatchObject({
+      kind: "Digivolve",
+      from: ["trash"],
+      payCost: true,
+      reduceCost: 1,
+      optional: true,
+    });
     expect(action.into.nameOrTrait).toEqual([
       { tokens: ["Titamon"], match: "name" },
       { tokens: ["Titan"], match: "trait" },
@@ -40,13 +46,13 @@ describe("BT24-026 Hyogamon", () => {
         hand: [
           { card: "BT24-026", as: "first" },
           { card: "BT24-026", as: "second" },
-          "BT1-001",
-          "BT1-002",
-          "BT1-003",
-          "BT1-004",
-          "BT1-005",
+          "BT1-009",
+          "BT1-010",
+          "BT1-011",
+          "BT1-012",
+          "BT1-013",
         ],
-        deck: ["BT1-006", "BT1-007"],
+        deck: ["BT1-014", "BT1-015"],
       },
     });
     await s.ready();
@@ -59,6 +65,7 @@ describe("BT24-026 Hyogamon", () => {
   });
 
   it("pays the hand-trash cost and grants both keywords to the same eligible Digimon", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -67,11 +74,13 @@ describe("BT24-026 Hyogamon", () => {
             { card: "BT24-042", as: "eligible" },
             { card: "BT1-009", as: "ineligible" },
           ],
-          hand: [{ card: "BT1-001", as: "cost" }],
+          hand: [{ card: "BT1-009", as: "cost" }],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("eligible").permanentId);
+    s.state.memory = 5;
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("hyogamon"));
@@ -89,8 +98,8 @@ describe("BT24-026 Hyogamon", () => {
         0: {
           battleArea: [{ card: "BT24-026", as: "hyogamon" }],
           hand: [
-            { card: "BT1-001", as: "firstCost" },
-            { card: "BT1-002", as: "secondCost" },
+            { card: "BT1-009", as: "firstCost" },
+            { card: "BT1-010", as: "secondCost" },
           ],
         },
       },
@@ -110,10 +119,10 @@ describe("BT24-026 Hyogamon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-026"] }],
-          hand: [{ card: "BT1-001", as: "ownCost" }],
+          hand: [{ card: "BT1-009", as: "ownCost" }],
           trash: [{ card: "P-209", as: "titamon" }],
         },
-        1: { hand: [{ card: "BT1-002", as: "opponentCost" }] },
+        1: { hand: [{ card: "BT1-010", as: "opponentCost" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
