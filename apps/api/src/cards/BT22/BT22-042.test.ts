@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-042.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT22-042 Nyabootmon", () => {
   it("plays a level 4-or-lower Puppet and scales the mandatory DP reduction", () => {

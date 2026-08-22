@@ -1394,6 +1394,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       subjectPermanentId: permanentId,
       addedDigivolutionCardInstanceIds: [oldTop.instanceId],
       addedDigivolutionCardsPosition: "bottom",
+      placedOwnTopAtStackBottom: true,
     });
     return true;
   };

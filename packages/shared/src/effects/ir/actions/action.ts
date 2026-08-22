@@ -2,7 +2,6 @@
 
 import type {
   AddDPFromSuspendedCostAction,
-  AddDPFromTrashedCardAction,
   AddToHandSelfAction,
   GainKeywordAction,
   HandManipulationAction,

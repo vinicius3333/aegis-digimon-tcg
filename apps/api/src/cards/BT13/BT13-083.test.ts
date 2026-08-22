@@ -1,4 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-083.js";
 
 describe("BT13-083 Gizmon: AT", () => {
@@ -46,5 +49,24 @@ describe("BT13-083 Gizmon: AT", () => {
         },
       },
     });
+  });
+
+  it("draws two cards and trashes two cards from hand on play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-083", as: "gizmon" }],
+          deck: ["BT1-001", "BT1-002"],
+          hand: ["BT1-003", "BT1-004"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("gizmon"));
+    await settle(() => s.state.players[0]!.trash.length === 2);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-003", "BT1-004"]),
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-001", "BT1-002"]));
   });
 });

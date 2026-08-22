@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT17-001–010 targeted audit regressions", () => {
   it("BT17-002 draws only when a Digimon is played from a stack", async () => {

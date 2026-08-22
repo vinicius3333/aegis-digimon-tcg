@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-085.js";
 
 describe("BT13-085 Crowmon", () => {
@@ -27,5 +29,20 @@ describe("BT13-085 Crowmon", () => {
         raw: "deleted outside of a battle",
       },
     });
+  });
+
+  it("plays a level 4 or lower purple Digimon from trash when the inherited host is deleted", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", under: ["BT13-085"], as: "host" }],
+          trash: [{ card: "BT13-083", as: "rescue" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-083"));
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-083")).toBe(true);
   });
 });
