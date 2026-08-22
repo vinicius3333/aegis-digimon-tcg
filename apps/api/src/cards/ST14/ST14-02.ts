@@ -25,7 +25,7 @@ const compiled: CompiledCard = {
                   "tokens": [
                     "Beelzemon"
                   ],
-                  "match": "name"
+                  "match": "nameExact"
                 }
               ]
             },

@@ -9,7 +9,7 @@ const compiled: CompiledCard = {
       kind: "TrashTopDeck",
       controller: "mine",
       amount: 2,
-      condition: { kind: "raw", raw: "this Digimon has [Wizard] or [Demon Lord] in its traits" },
+      condition: { kind: "selfDigivolutionStackHasTrait", nameOrTrait: [{ tokens: ["Wizard", "Demon Lord"], match: "trait" }] },
     }],
     isInherited: true,
     frequency: "OncePerTurn",
