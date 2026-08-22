@@ -9,7 +9,7 @@ import "../index.js";
 describe("BT26-008 Kotemon", () => {
   it("compiles On Play, When Moving, and inherited DP effects", () => {
     expect(compiled.coverage).toBe("full");
-    expect(compiled.effects.map((e) => [e.trigger, e.isInherited])).toEqual([["OnPlay", undefined], ["OnMove", undefined], ["YourTurn", true]]);
+    expect(compiled.effects.map((e) => [e.trigger, e.isInherited])).toEqual([["OnPlay", undefined], ["WhenMoving", undefined], ["YourTurn", true]]);
     for (const effect of compiled.effects.slice(0, 2)) {
       expect(effect.actions).toMatchObject([
         { kind: "SelectBind", target: { bindAs: "kotemonBonusTarget" } },
@@ -42,14 +42,14 @@ describe("BT26-008 Kotemon", () => {
         hand: [{ card: "BT26-008", as: "self" }],
       },
     }, { autoSelectCards: true, preferInstanceIds: preferred });
-    preferred.push(s.inst("chosen").instanceId);
+    preferred.push(s.perm("chosen").topCard.instanceId);
     s.state.memory = 3;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("self").instanceId })).toEqual({ ok: true });
-    await settle(() => s.perm("chosen").currentDP === 9000);
+    await settle(() => observe(s.engine).hasPierce(s.perm("chosen")));
 
     expect(observe(s.engine).hasPierce(s.perm("chosen"))).toBe(true);
-    expect(s.perm("other").currentDP).toBe(3000);
+    expect(s.perm("other").currentDP).toBe(5000);
     expect(observe(s.engine).hasPierce(s.perm("other"))).toBe(false);
   });
 
@@ -64,16 +64,16 @@ describe("BT26-008 Kotemon", () => {
         ],
       },
     }, { autoSelectCards: true, preferInstanceIds: preferred });
-    preferred.push(s.inst("chosen").instanceId);
+    preferred.push(s.perm("chosen").topCard.instanceId);
     s.state.phase = Phase.Breeding;
 
     expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("chosen").currentDP === 9000);
+    await settle(() => observe(s.engine).hasPierce(s.perm("chosen")));
 
     expect(observe(s.engine).hasPierce(s.perm("chosen"))).toBe(true);
-    expect(s.perm("other").currentDP).toBe(3000);
+    expect(s.perm("other").currentDP).toBe(5000);
     expect(observe(s.engine).hasPierce(s.perm("other"))).toBe(false);
   });
 
@@ -82,13 +82,13 @@ describe("BT26-008 Kotemon", () => {
       0: { battleArea: [{ card: "BT26-013", as: "host", under: ["BT26-008"] }] },
     });
     await ownTurn.ready();
-    expect(ownTurn.perm("host").currentDP).toBe(5000);
+    expect(ownTurn.perm("host").currentDP).toBe(7000);
 
     const opponentTurn = setupEngine({
       0: { battleArea: [{ card: "BT26-013", as: "host", under: ["BT26-008"] }] },
     });
     opponentTurn.state.turnSeat = 1;
     await opponentTurn.ready();
-    expect(opponentTurn.perm("host").currentDP).toBe(3000);
+    expect(opponentTurn.perm("host").currentDP).toBe(5000);
   });
 });

@@ -11,7 +11,7 @@ const bonusActions = [
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: bonusActions },
-    { trigger: "OnMove", actions: bonusActions },
+    { trigger: "WhenMoving", actions: bonusActions },
     { trigger: "YourTurn", isInherited: true, actions: [{ kind: "ModifyDP", amount: 2000, duration: "forTheTurn", target: { isSelf: true } }] },
   ],
   coverage: "full",
