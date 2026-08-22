@@ -59,7 +59,7 @@ describe("BT26-068 Devimon", () => {
       event: "whenEffectAddsToOpponentHand",
       actions: [{ kind: "Trash", chooser: "opponent", cost: { kind: "trash", target: { filter: { controllerDefault: "mine", zone: "hand" }, count: 1 } } }],
     });
-    expect(compiled.effects?.[3]).toMatchObject({ trigger: "WhenAttacking", isInherited: true, frequency: "OncePerTurn" });
+    expect(compiled.effects?.[3]).toMatchObject({ trigger: "OnAllyAttack", isInherited: true, frequency: "OncePerTurn" });
   });
 
   it("carries the exact Lv.3 [TS] alternate evolution path and accepts it from a non-purple base", async () => {

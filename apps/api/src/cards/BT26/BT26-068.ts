@@ -36,7 +36,7 @@ export const compiled: CompiledCard = {
       }],
     },
     {
-      trigger: "WhenAttacking",
+      trigger: "OnAllyAttack",
       isInherited: true,
       frequency: "OncePerTurn",
       actions: [
