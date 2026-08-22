@@ -1,171 +1,69 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { onPlay, whenDigivolving, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "LM-017";
-
-function hasGammamonInText(def: CardDefinition): boolean {
-  return def.effectText?.includes("Gammamon") === true || def.inheritedEffectText?.includes("Gammamon") === true;
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnEnterFieldAnyone) {
-      return [
-        onPlay({
-          source,
-          effectKey: `${cardId}/on-play`,
-          description:
-            "[On Play] Trash 1 card in your hand. Then, you may place 1 card with [Gammamon] " +
-            "in its text from your trash under any of your Tamers.",
-          canActivate: (ctx) => ctx.source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-            if (owner.hand.length > 0) {
-              const chosen = await ctx.ask.selectCards(ctx, {
-                candidates: Array.from(owner.hand).map((c) => c.instanceId),
-                min: 1,
-                max: 1,
-              });
-              if (chosen.length > 0) {
-                ctx.fx.trash(chosen);
-              }
-            }
-            const gammas = Array.from(owner.trash).filter((c) => {
-              return hasGammamonInText(ctx.game.definitionOf(c));
-            });
-            if (gammas.length > 0) {
-              if (source.permanent() !== undefined) {
-                const chosen = await ctx.ask.selectCards(ctx, {
-                  candidates: gammas.map((c) => c.instanceId),
-                  min: 0,
-                  max: 1,
-                });
-                if (chosen.length > 0) {
-                  await ctx.fx.placeUnder(source.permanent()!.permanentId, chosen);
-                }
-              }
-            }
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.WhenDigivolving) {
-      return [
-        whenDigivolving({
-          source,
-          effectKey: `${cardId}/when-digivolving`,
-          description:
-            "[When Digivolving] Trash 1 card in your hand. Then, you may place 1 card with " +
-            "[Gammamon] in its text from your trash under any of your Tamers.",
-          canActivate: (ctx) => ctx.source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-            if (owner.hand.length > 0) {
-              const chosen = await ctx.ask.selectCards(ctx, {
-                candidates: Array.from(owner.hand).map((c) => c.instanceId),
-                min: 1,
-                max: 1,
-              });
-              if (chosen.length > 0) {
-                ctx.fx.trash(chosen);
-              }
-            }
-            const gammas = Array.from(owner.trash).filter((c) => {
-              return hasGammamonInText(ctx.game.definitionOf(c));
-            });
-            if (gammas.length > 0) {
-              if (source.permanent() !== undefined) {
-                const chosen = await ctx.ask.selectCards(ctx, {
-                  candidates: gammas.map((c) => c.instanceId),
-                  min: 0,
-                  max: 1,
-                });
-                if (chosen.length > 0) {
-                  await ctx.fx.placeUnder(source.permanent()!.permanentId, chosen);
-                }
-              }
-            }
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/digivolution-trigger`,
-          description:
-            "[All Turns] [Once Per Turn] When an effect adds digivolution cards under this Digimon, " +
-            "by deleting 1 level 4 or lower Digimon you have in play, you may play 1 level 4 or " +
-            "lower Digimon from your trash without paying the cost.",
-          maxPerTurn: 1,
-          when: (_ctx) => source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            const ownerSeat = source.ownerSeat;
-            ctx.fx.subscribeSubTrigger({
-              event: "onAddDigivolutionCards",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              oncePerTiming: true,
-              description: `${cardId}: When digivolution cards added, delete lv4- to play lv4- from trash.`,
-              matches: (subCtx) => {
-                if (!subCtx.source.isOnBattleArea()) return false;
-                return true;
-              },
-              run: async (subCtx) => {
-                const currentSelf = subCtx.game.permanentById(self.permanentId);
-                if (currentSelf === undefined) return;
-                const owner = subCtx.game.player(ownerSeat);
-                const sacrificeTargets = Array.from(owner.battleArea)
-                  .filter((p) => {
-                    if (p.topCard === undefined) return false;
-                    const def = subCtx.game.definitionOf(p.topCard);
-                    return isDigimon(def) && (def.level ?? 99) <= 4;
-                  })
-                  .map((p) => p.permanentId);
-                if (sacrificeTargets.length === 0) return;
-                const trashTargets = Array.from(owner.trash)
-                  .filter((c) => {
-                    const def = subCtx.game.definitionOf(c);
-                    return isDigimon(def) && (def.level ?? 99) <= 4;
-                  })
-                  .map((c) => c.instanceId);
-                if (trashTargets.length === 0) return;
-                const sacrifice = await subCtx.ask.chooseTargets(subCtx, {
-                  candidates: sacrificeTargets,
-                  min: 1,
-                  max: 1,
-                });
-                if (sacrifice.length === 0) return;
-                await subCtx.fx.deletePermanent(sacrifice, "byEffect");
-                const toPlay = await subCtx.ask.selectCards(subCtx, {
-                  candidates: trashTargets,
-                  min: 0,
-                  max: 1,
-                });
-                if (toPlay.length > 0) {
-                  await subCtx.fx.playInstances(toPlay, { payCost: false });
-                }
-              },
-            });
-          },
-        }),
-      ];
-    }
-
-    return [];
+const levelFourOrLower = { kind: ["Digimon" as const], levelComparison: { op: "lte" as const, value: 4 } };
+const entranceActions = [
+  {
+    kind: "Trash" as const,
+    target: { filter: { controller: "mine" as const, zone: "hand" as const }, count: 1 },
   },
+  {
+    kind: "PlaceUnder" as const,
+    target: {
+      filter: {
+        zone: "trash" as const,
+        controller: "mine" as const,
+        nameOrTrait: [{ tokens: ["Gammamon"], match: "text" as const }],
+      },
+      count: 1,
+      from: ["trash" as const],
+    },
+    optional: true,
+  },
+];
+
+export const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Counter",
+      actions: [],
+      isFromHand: true,
+      keywords: [{ keyword: "BlastDigivolve", raw: "＜Blast Digivolve＞" }],
+    },
+    { trigger: "OnPlay", actions: entranceActions },
+    { trigger: "WhenDigivolving", actions: entranceActions },
+    {
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onAddDigivolutionCards",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: { ...levelFourOrLower, zone: "trash", controller: "mine" },
+                count: 1,
+              },
+              from: ["trash"],
+              payCost: false,
+              optional: true,
+              abortOnDecline: true,
+              cost: {
+                kind: "deleteOwn",
+                target: { filter: { ...levelFourOrLower, controller: "mine" }, count: 1 },
+                raw: "by deleting 1 level 4 or lower Digimon",
+              },
+            },
+          ],
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("LM-017", compiled);
