@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
-import "../index.js";
+import "./index.js";
 
 // A3 for BT22-093 (Ami Aiba) — [Start of Your Main Phase]:
 //   "If your opponent has a Digimon, gain 1 memory."

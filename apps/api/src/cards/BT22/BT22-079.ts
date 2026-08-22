@@ -103,4 +103,4 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard(cardId, module);
+registerIrCard("BT22-079", module);
