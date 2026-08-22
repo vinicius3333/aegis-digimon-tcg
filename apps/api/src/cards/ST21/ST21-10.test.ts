@@ -72,7 +72,7 @@ describe("ST21-10", () => {
     const source = s.perm("gabumon");
     const [effect] = observe(s.engine).activatableEffects(source) as { effectKey: string; description: string }[];
     expect(effect).toBeDefined();
-    expect(effect.description).toContain("MetalGarurumon");
+    expect(effect.description).toContain("[YourTurn] Digivolve");
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
