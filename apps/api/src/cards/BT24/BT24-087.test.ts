@@ -164,12 +164,14 @@ describe("BT24-087 Rei Katsura public behavior", () => {
       subjectPermanentId: s.perm("fuser").permanentId,
     });
     await settle(() => s.perm("fuser").topCard.instanceId === s.inst("fusion").instanceId);
-
     expect(s.perm("rei").isSuspended).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((instance) => instance.instanceId)).toContain(s.inst("drawn").instanceId);
     expect(s.state.players[0]!.trash.map((instance) => instance.instanceId)).toContain(s.inst("discard").instanceId);
-    expect(s.perm("fuser").stack.map((instance) => instance.cardId)).toContain(DOCMON);
+    // Biomon's own [When Digivolving] then free-links Docmon from the new stack; its
+    // one-card link capacity trashes the previous Medicmon link.
+    expect(s.perm("fuser").linked.map((instance) => instance.cardId)).toContain(DOCMON);
+    expect(s.state.players[0]!.trash.map((instance) => instance.cardId)).toContain(MEDICMON);
   });
 
   it("does not trigger when an opponent's Digimon gets linked", async () => {
