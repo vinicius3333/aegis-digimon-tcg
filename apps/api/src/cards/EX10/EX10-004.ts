@@ -99,4 +99,4 @@ const module: EffectModule = {
 };
 
 registerCard(module);
-export default compiled;
+export default module;
