@@ -30,6 +30,7 @@ export type EnforcedRestriction =
   | "attack"
   | "attackPlayers"
   | "cantAttackDigimon"
+  | "attackOnlySuspendedDigimon"
   | "block"
   | "cantBeBlocked"
   | "cantBeBlockedByNoDigivolution"

@@ -6,6 +6,15 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
+  "digivolutionRequirement": [
+    {
+      "namesExact": [
+        "Hawkmon"
+      ],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ],
   "effects": [
     {
       "trigger": "Static",

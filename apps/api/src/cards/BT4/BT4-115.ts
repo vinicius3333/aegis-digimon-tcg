@@ -50,13 +50,13 @@ const compiled: CompiledCard = {
       "trigger": "AllTurns",
       "actions": [
         {
-          "kind": "Restrict",
-          "on": "digivolveTarget",
-          "filter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
+          "kind": "RestrictDigivolveInto",
+          "target": {
+            "filter": { "isSelfRef": true },
+            "count": 1,
+            "isSelf": true
+          },
+          "into": {
             "nameOrTrait": [
               {
                 "tokens": [
@@ -65,7 +65,8 @@ const compiled: CompiledCard = {
                 "match": "name"
               }
             ]
-          }
+          },
+          "duration": "permanent"
         }
       ]
     }

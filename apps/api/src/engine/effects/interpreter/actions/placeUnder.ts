@@ -460,6 +460,13 @@ export async function runTrashDigivolution(
   const permanentIds = ctx.fx.redirectDigivolutionTrashHosts
     ? await ctx.fx.redirectDigivolutionTrashHosts(resolvedIds)
     : resolvedIds;
+  // Check the supply only after replacement chooses the actual host. Q2007 explicitly
+  // permits SnowAgumon to choose a source-free Digimon and have Tactimon supply the
+  // digivolution card instead; checking the original host would suppress that window.
+  if (minimum !== undefined && permanentIds.some((id) => (ctx.game.permanentById(id)?.stack.length ?? 0) < minimum)) {
+    ctx.lastEffectActed = false;
+    return false;
+  }
   // An optional fixed-count action that gates the rest of its effect is an atomic
   // activation cost (for example BT5-111: "by trashing 2 ... end the attack").
   // If any selected host cannot supply the printed count, do not partially trash its

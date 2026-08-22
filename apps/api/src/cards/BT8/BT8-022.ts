@@ -17,8 +17,7 @@ const compiled: CompiledCard = {
               "controller": "opponent",
               "kind": [
                 "Digimon"
-              ],
-              "digivolutionCards": "hasAny"
+              ]
             },
             "count": 1
           },

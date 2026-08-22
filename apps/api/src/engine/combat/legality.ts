@@ -217,6 +217,9 @@ export function canAttackTarget(
     if (reader?.hasRestriction(attacker.permanentId, "attackPlayers")) {
       return "illegal-target";
     }
+    if (reader?.hasRestriction(attacker.permanentId, "attackOnlySuspendedDigimon")) {
+      return "illegal-target";
+    }
     // canAttackPlayerCondition): a ＜Vortex＞ attack targets an opponent's DIGIMON only. A player
     // target is legal ONLY when a VortexCanAttackPlayers grant relaxes it for this attacker
     // (EX11-062, KB Q5920). A NON-Vortex (normal) attack is unaffected — players stay
@@ -251,6 +254,9 @@ export function canAttackTarget(
     return "illegal-target";
   }
   if (!defender.isSuspended) {
+    if (reader?.hasRestriction(attacker.permanentId, "attackOnlySuspendedDigimon")) {
+      return "illegal-target";
+    }
     // Base rule: only suspended Digimon may be attacked — UNLESS the attacker carries a
     // "can also attack unsuspended Digimon" grant (rule implementation,
     // e.g. ST12-08), or this is a ＜Vortex＞ declaration (Comprehensive Rules §16-33-1:
