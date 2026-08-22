@@ -43,6 +43,10 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digiXrosRequirement: [{
+    materials: [{ names: ["MadLeomon"] }, { traits: ["Bagra Army"] }],
+    count: 2,
+  }],
 };
 
 registerIrCard("BT11-081", compiled);
