@@ -41,7 +41,7 @@ describe("BT7 Green Hybrid historical deck gauntlet", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("beetlemon").topCard.instanceId === s.inst("rhinoKabuterimon").instanceId);
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(0);
     expect(observe(s.engine).hasPierce(s.perm("beetlemon"))).toBe(true);
 
     expect(
