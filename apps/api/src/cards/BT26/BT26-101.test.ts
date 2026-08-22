@@ -7,6 +7,18 @@ describe("BT26-101 compiled fidelity", () => {
     const card = compiled;
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
+    expect(card?.effects?.find((effect) => effect.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+          target: { filter: { playCostLte: 4, nameOrTrait: [{ tokens: ["TS"], match: "trait" }] } },
+        },
+      ],
+    });
     expect(card?.effects?.[0]?.actions).toMatchObject([
       { kind: "GainKeyword", keyword: { keyword: "Blocker" } },
       { kind: "ModifyDP", amount: 3000 },
