@@ -5,33 +5,41 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   "effects": [
     {
-      "trigger": "Static",
+      "trigger": "AllTurns",
       "actions": [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          }
-        },
-        {
-          "kind": "CostModifier",
-          "mode": "raiseCeiling",
-          "costType": "level",
-          "amount": 1,
-          "scaling": {
-            "per": 10,
-            "filter": {
-              "zone": "trash",
-              "controller": "mine"
-            },
-            "unit": "trash"
-          }
+          "kind": "SubTrigger",
+          "event": "whenTrashedFromDeck",
+          "sourceFilter": {
+            "isSelfRef": true
+          },
+          "actions": [
+            {
+              "kind": "Delete",
+              "target": {
+                "filter": {
+                  "controller": "opponent",
+                  "kind": [
+                    "Digimon"
+                  ],
+                  "levelComparison": {
+                    "op": "lte",
+                    "value": 3
+                  }
+                },
+                "count": 1
+              },
+              "scaling": {
+                "per": 10,
+                "filter": {
+                  "zone": "trash",
+                  "controller": "mine"
+                },
+                "unit": "trash",
+                "levelCeilingAdd": 1
+              }
+            }
+          ]
         }
       ]
     },
