@@ -1025,8 +1025,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     if (instance === undefined) return undefined;
     instance.faceUp = true;
     const carriedSuspended = permanent.isSuspended;
-    permanent.stack.push(permanent.topCard);
+    const priorTop = permanent.topCard;
+    permanent.stack.push(priorTop);
     permanent.topCard = instance;
+    continuous.reanchorCustomEffectGrants(priorTop.instanceId, instance.instanceId);
     const dp = definition.kinds.includes(CardKind.Digimon) ? definition.dp : 0;
     permanent.baseDP = dp;
     permanent.currentDP = dp;
@@ -1220,8 +1222,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     if (instance === undefined) return undefined;
     instance.faceUp = true;
     const carriedSuspended = permanent.isSuspended;
-    permanent.stack.push(permanent.topCard);
+    const priorTop = permanent.topCard;
+    permanent.stack.push(priorTop);
     permanent.topCard = instance;
+    continuous.reanchorCustomEffectGrants(priorTop.instanceId, instance.instanceId);
     const dp = definition.dp;
     permanent.baseDP = dp;
     permanent.currentDP = dp;

@@ -1181,6 +1181,8 @@ export class GameEngine {
       maxAffordable: mem.maxAffordable,
       payMemory: mem.payMemory,
       recomputeDP: (state, permanentId) => this.modifiers.recomputeDP(state, permanentId),
+      reanchorGrantedEffects: (priorTopInstanceId, newTopInstanceId) =>
+        this.continuous.reanchorCustomEffectGrants(priorTopInstanceId, newTopInstanceId),
       // Apply active continuous digivolution-cost modifiers (changeEvoCost) to the
       // printed evolve cost: a `fixed` adjustment sets an absolute cost, otherwise the
       // delta sums; floored at 0 (Official Rule Manual: a cost can't go below 0).
