@@ -4152,7 +4152,12 @@ export class GameEngine {
     }
     this.mainPhase.checkTurnEnd();
     const mainSeat = this.mainPhase.seat;
-    if (this.mainPhase.isOpen && mainSeat !== undefined && !this.hasAnyMainPhaseAction(mainSeat)) {
+    if (
+      this.mainPhase.isOpen &&
+      mainSeat !== undefined &&
+      mainSeat === this.state.turnSeat &&
+      !this.hasAnyMainPhaseAction(mainSeat)
+    ) {
       this.mainPhase.endPhaseRequested(mainSeat);
     }
   }
