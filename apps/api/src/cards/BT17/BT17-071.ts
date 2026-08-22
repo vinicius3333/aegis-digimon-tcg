@@ -107,6 +107,10 @@ export const compiled: CompiledCard = {
       "names": [
         "Darcmon"
       ],
+      "minNameStackCount": 1,
+      "minNameStackNames": [
+        "HippoGryphonmon"
+      ],
       "cost": 4,
       "isAlternate": true
     }
