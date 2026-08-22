@@ -46,6 +46,8 @@ export interface BoardPredicates {
    * card id (KB Q1023). An off-field source matches nothing. Usually paired with `excludeSelf`.
    */
   isSameName?: boolean;
+  /** Shares the live top-card name of a permanent selected earlier in this resolution. */
+  sameNameAsSelection?: string;
   /**
    * Loose-candidate only: face-down OR carrying the trait (EX9-073). Reads the live `faceUp`
    * flag, so `candidateLooseInstances` honors it and `definitionMatches` cannot.

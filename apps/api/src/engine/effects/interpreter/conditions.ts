@@ -21,7 +21,7 @@ import {
 import { countMatching } from "./scaling.js";
 import { findLooseCandidateByInstance } from "./targeting/loose.js";
 import { candidatePermanents } from "./targeting/permanents.js";
-import { CardColor, CardKind, getCardDefinition, requireCardDefinition } from "@aegis/shared";
+import { CardColor, CardKind, getCardDefinition, isDigimon, requireCardDefinition } from "@aegis/shared";
 import type { Condition, Filter } from "@aegis/shared";
 
 /** Evaluate a parsed Condition. An unrecognized ("raw") condition is treated as
@@ -118,7 +118,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
             permanentMatchesFilter(ctx, permanent, { ...cond.filter, controller: "mine" }, ctx.source),
         );
     case "breedingAreaEmpty":
-      return ctx.game.player(mine).breeding === undefined;
+      return ctx.game.player(mine).breeding === undefined && ctx.game.player(mine).eggDeck.length > 0;
     case "digivolutionCountCompare": {
       const ids = ctx.lastResolvedPermanentIds ?? [];
       const target = ids.length === 1 ? ctx.game.permanentById(ids[0]!) : undefined;
@@ -169,6 +169,21 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const count = countMatching(ctx, { controller: "mine", ...matchingFilter });
       if (countMax !== undefined) return count <= countMax;
       return count >= (cond.count ?? 1);
+    }
+    case "youHaveGreenLevelAtLeastInBattle":
+      return ctx.game.player(mine).battleArea.some((permanent) => {
+        const top = permanent.topCard;
+        if (top === undefined) return false;
+        const definition = ctx.game.definitionOf(top);
+        return isDigimon(definition) && definition.colors.includes(CardColor.Green) && (definition.level ?? 0) >= (cond.value ?? 5);
+      });
+    case "breedingActionAvailable": {
+      const player = ctx.game.player(mine);
+      if (player.breeding === undefined) return player.eggDeck.length > 0;
+      const top = player.breeding.topCard;
+      if (top === undefined) return false;
+      const definition = ctx.game.definitionOf(top);
+      return isDigimon(definition) && (definition.level ?? 0) >= 3;
     }
     case "opponentHas": {
       const threshold = cond.countMin ?? cond.count ?? 1;
@@ -777,6 +792,11 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return ctx.trigger.removalCause === cond.removalCause;
     case "triggerDeletedByDpZero":
       return ctx.trigger.deletedByDpZero === true;
+    case "triggerIsFirstDeletedPermanent": {
+      const subject = ctx.trigger.deletedPermanentId;
+      const deleted = ctx.trigger.deletedPermanentIds ?? [];
+      return subject !== undefined && deleted[0] === subject;
+    }
     case "triggerSourceNotDeletedAtSameTiming": {
       // whenDeletesInBattle fireCondition: the trigger source (the attacker that deleted the
       // opponent's Digimon) must NOT have been deleted at the same timing. The combat controller

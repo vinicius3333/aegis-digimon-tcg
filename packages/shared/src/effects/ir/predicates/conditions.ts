@@ -11,6 +11,8 @@ export interface Condition {
   kind:
     | "true" // for Aura records whose target filter already carries the condition
     | "youHave"
+    | "youHaveGreenLevelAtLeastInBattle"
+    | "breedingActionAvailable"
     | "opponentHas"
     | "youHaveNone"
     | "opponentHasNone"
@@ -93,6 +95,7 @@ export interface Condition {
     | "triggerHandTrashedSeat"
     | "triggerRemovalCause"
     | "triggerDeletedByDpZero"
+    | "triggerIsFirstDeletedPermanent"
     | "noTamerInDigivolution"
     | "selfHasNoDigivolutionCards" // played directly, not digivolved into (BT19-101). Off-field source => false.
     | "selfHadDigivolutionCards" // the stack the source held when it was deleted, still readable once it left the field
