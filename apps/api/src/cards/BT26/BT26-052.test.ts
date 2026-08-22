@@ -1,14 +1,16 @@
 import { describe, expect, it } from "vitest";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-052.js";
 import "../index.js";
 
 describe("BT26-052 Pristimon", () => {
   it("contains both independent reveal slots and inherited Reboot", () => {
+    expect(digivolutionRequirementsFor("BT26-052")).toContainEqual({ level: 2, traits: ["Glowing Dawn"], cost: 0, isAlternate: true });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects[0]?.actions[0]).toMatchObject({ kind: "RevealAdd", revealCount: 3, rest: "deckBottom", add: [{ count: 1 }, { count: 1 }] });
-    expect(compiled.effects[1]).toMatchObject({ trigger: "None", isInherited: true, actions: [{ kind: "GainKeyword", keyword: { keyword: "Reboot" } }] });
+    expect(compiled.effects[1]).toMatchObject({ trigger: "None", isInherited: true, actions: [{ kind: "GainKeyword", keyword: { keyword: "Reboot" }, duration: "permanent" }] });
   });
 
   it("adds one Glowing Dawn card and one black BEATBREAK card, bottoming the rest", async () => {

@@ -8,10 +8,11 @@ export const compiled: CompiledCard = {
       { filter: { nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }] }, count: 1, to: "hand" },
       { filter: { colors: ["Black"], nameOrTrait: [{ tokens: ["BEATBREAK"], match: "trait" }] }, count: 1, to: "hand" },
     ], rest: "deckBottom" }] },
-    { trigger: "None", isInherited: true, actions: [{ kind: "GainKeyword", keyword: { keyword: "Reboot" }, duration: "turn" }] },
+    { trigger: "None", isInherited: true, actions: [{ kind: "GainKeyword", keyword: { keyword: "Reboot" }, duration: "permanent" }] },
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ level: 2, traits: ["Glowing Dawn"], cost: 0, isAlternate: true }],
 };
 
 registerIrCard("BT26-052", compiled);
