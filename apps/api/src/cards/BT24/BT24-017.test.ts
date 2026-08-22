@@ -1,5 +1,9 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT24-017.js";
+import "../index.js";
 
 describe("BT24-017 Medusamon", () => {
   it("deletes the lowest-DP Digimon, pays the exact two-card trash cost, and scales DP", () => {
@@ -24,5 +28,37 @@ describe("BT24-017 Medusamon", () => {
         }),
       ]),
     );
+  });
+
+  it("deletes the lowest opposing Digimon and returns two opposing trash cards for tokens", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-017", as: "source", dp: 11000 }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowest", dp: 3000 },
+            { card: "BT1-009", as: "higher", dp: 5000 },
+          ],
+          trash: ["BT1-001", "BT1-001"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle(
+      () => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("lowest").permanentId),
+    );
+
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("lowest").permanentId),
+    ).toBe(false);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("higher").permanentId),
+    ).toBe(true);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(
+      s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId.startsWith("TOKEN-")),
+    ).toHaveLength(2);
   });
 });
