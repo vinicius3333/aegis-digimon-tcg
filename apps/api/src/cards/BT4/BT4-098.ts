@@ -41,7 +41,7 @@ export const compiled: CompiledCard = {
           kind: "GainKeyword",
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
           keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
-          duration: "untilOwnerTurnEnd",
+          duration: "untilYourTurnEnd",
         },
         {
           kind: "SubTrigger",
