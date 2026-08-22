@@ -43,13 +43,18 @@ describe("BT24-038 Biomon", () => {
     );
     preferred.push(s.inst("noLink").instanceId, s.inst("eligible").instanceId, s.perm("target").topCard.instanceId);
     await s.ready();
+    const targetPermanentId = s.perm("target").permanentId;
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("biomon"));
-    await settle(() => s.perm("biomon").linked.some((card) => card.instanceId === s.inst("eligible").instanceId));
+    await settle(
+      () =>
+        s.perm("biomon").linked.some((card) => card.instanceId === s.inst("eligible").instanceId) &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetPermanentId),
+    );
 
     expect(s.perm("biomon").linked.map((card) => card.instanceId)).toEqual([s.inst("eligible").instanceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("noLink").instanceId);
-    expect(s.perm("target").currentDP).toBe(3000);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
   it("free-links only from Biomon's own digivolution cards", async () => {
@@ -66,7 +71,7 @@ describe("BT24-038 Biomon", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("biomon"));
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("biomon"));
 
     expect(s.perm("biomon").linked.map((card) => card.instanceId)).toContain(s.inst("ownSource").instanceId);
     expect(s.perm("other").stack.map((card) => card.instanceId)).toContain(s.inst("otherSource").instanceId);
@@ -96,7 +101,11 @@ describe("BT24-038 Biomon", () => {
         targetPermanentId: s.perm("host").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("biomon").instanceId));
+    await settle(
+      () =>
+        s.perm("host").linked.some((card) => card.instanceId === s.inst("biomon").instanceId) &&
+        s.perm("target").currentDP === 3000,
+    );
 
     expect(s.state.memory).toBe(2);
     expect(s.perm("host").currentDP).toBe(hostDp + 4000);
@@ -108,5 +117,23 @@ describe("BT24-038 Biomon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT24-038", as: "biomon" }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("biomon"), "Fortitude")).toBe(true);
+  });
+
+  it("replays itself through Fortitude when deleted with a digivolution card", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-038", as: "biomon", under: [{ card: "BT24-035", as: "source" }] }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+    const biomonInstanceId = s.perm("biomon").topCard.instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("biomon").permanentId], "byEffect")).toBe(1);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === biomonInstanceId),
+    );
+
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT24-035");
   });
 });
