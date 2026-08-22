@@ -33,7 +33,10 @@ describe("BT13-112 Omnimon", () => {
             condition: { kind: "bindingExists", ref: "playedRoyalKnights" },
             target: { filter: { controller: "mine", zone: "breeding" }, count: 1 },
           }),
-          expect.objectContaining({ kind: "GainKeyword" }),
+          expect.objectContaining({
+            kind: "GainKeyword",
+            target: { filter: { boundRef: "playedRoyalKnights" }, count: "all" },
+          }),
         ],
       ],
     });
@@ -73,7 +76,9 @@ describe("BT13-112 Omnimon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-040")).toBe(true);
     expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "BT13-040").length).toBe(1);
     expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "BT13-111").length).toBe(1);
-    for (const permanent of s.state.players[0]!.battleArea) {
+    for (const permanent of s.state.players[0]!.battleArea.filter((p) =>
+      ["BT13-040", "BT13-111"].includes(p.topCard?.cardId ?? ""),
+    )) {
       expect(observe(s.engine).hasKeyword(permanent, "Rush")).toBe(true);
     }
   });

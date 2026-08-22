@@ -70,14 +70,13 @@ export const compiled: CompiledCard = {
         {
           kind: "GainKeyword",
           target: {
-            bindReference: "playedDigimon",
+            filter: { boundRef: "playedDigimon" },
           },
           keyword: {
             keyword: "Rush",
             raw: "＜Rush＞",
           },
           duration: "forTheTurn",
-          filter: { boundRef: "playedDigimon" },
         },
       ],
       keywords: [
