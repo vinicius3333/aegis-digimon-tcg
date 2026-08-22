@@ -34,6 +34,7 @@ describe("BT10 DarkKnightmon / Nene / Immortal Ruler deck gauntlet", () => {
       },
       {
         autoAcceptOptional: true,
+        autoSelectCards: false,
         autoOrderCards: true,
         autoOrderTriggers: true,
         preferInstanceIds: preferred,
