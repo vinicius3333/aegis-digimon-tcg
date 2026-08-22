@@ -213,6 +213,10 @@ export async function runSecurityManipulation(
                     cardId: card.cardId,
                   })),
                 });
+        for (const instanceId of chosen) {
+          const card = visibleSecurity.find(({ instanceId: candidateId }) => candidateId === instanceId);
+          if (card !== undefined) ctx.fx.revealCard(seat, card.cardId, ctx.source.cardId);
+        }
         moved = await ctx.fx.securityToHand(seat, amount, { instanceIds: chosen });
       } else {
         moved = await ctx.fx.securityToHand(seat, amount, { fromTop: action.toTop ?? true });
