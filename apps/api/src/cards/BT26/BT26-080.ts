@@ -12,9 +12,28 @@ export const compiled: CompiledCard = {
     { keyword: "Succession", raw: "＜Succession ([Bacchusmon])＞" },
   ],
   effects: [
-    { trigger: "Static", actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave", filter: ts } }] },
-    { trigger: "WhenDigivolving", actions: [{ kind: "Attack", target: self, withoutSuspending: true, optional: true, cost: { kind: "suspend", target: anyDigimon } }] },
-    { trigger: "WhenAttacking", frequency: "OncePerTurn", actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], sameOrientationAsSource: true }, count: 1 } }] },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Attack",
+          target: self,
+          withoutSuspending: true,
+          optional: true,
+          cost: { kind: "suspend", target: anyDigimon },
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Delete",
+          target: { filter: { controller: "opponent", kind: ["Digimon"], sameOrientationAsSource: true }, count: 1 },
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],

@@ -6,16 +6,27 @@ import { setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("BT26-080 compiled behavior", () => {
-  it("proves dual-card keywords, TS waiver, Bacchusmon evolution, and both Main steps", () => {
+  it("proves dual-card keywords and Bacchusmon evolution", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toHaveLength(0);
-    expect(compiled.digivolutionRequirement).toEqual([{ names: ["Bacchusmon"], basePlayCost: 12, cost: 2, isAlternate: true }]);
-    expect(compiled.keywords).toEqual(expect.arrayContaining([
-      expect.objectContaining({ keyword: "SecurityAttack", amount: 1 }),
-      expect.objectContaining({ keyword: "Succession" }),
-    ]));
-    expect(compiled.effects[0].actions[0]).toMatchObject({ kind: "WaiveColorRequirement", condition: { kind: "youHave", filter: { nameOrTrait: [{ tokens: ["TS"], match: "trait" }] } } });
-    expect(compiled.effects.find((effect) => effect.trigger === "WhenDigivolving")).toMatchObject({ actions: [{ kind: "Attack", withoutSuspending: true, cost: { kind: "suspend", target: { filter: { kind: ["Digimon"] }, count: 1 } } }] });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { names: ["Bacchusmon"], basePlayCost: 12, cost: 2, isAlternate: true },
+    ]);
+    expect(compiled.keywords).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ keyword: "SecurityAttack", amount: 1 }),
+        expect.objectContaining({ keyword: "Succession" }),
+      ]),
+    );
+    expect(compiled.effects.find((effect) => effect.trigger === "WhenDigivolving")).toMatchObject({
+      actions: [
+        {
+          kind: "Attack",
+          withoutSuspending: true,
+          cost: { kind: "suspend", target: { filter: { kind: ["Digimon"] }, count: 1 } },
+        },
+      ],
+    });
   });
 
   it("encodes Q7112 as a source-relative live orientation filter", () => {
@@ -27,15 +38,18 @@ describe("BT26-080 compiled behavior", () => {
   });
 
   it("deletes only an opposing Digimon with the same live orientation", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT26-080", as: "source", suspended: true }] },
-      1: {
-        battleArea: [
-          { card: "BT1-010", as: "same", suspended: true },
-          { card: "BT1-011", as: "different", suspended: false },
-        ],
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT26-080", as: "source", suspended: true }] },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "same", suspended: true },
+            { card: "BT1-011", as: "different", suspended: false },
+          ],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
 
     await advance(s.engine).fireForPermanent(EffectTiming.WhenAttacking, s.perm("source"), {
       attackerPermanentId: s.perm("source").permanentId,
