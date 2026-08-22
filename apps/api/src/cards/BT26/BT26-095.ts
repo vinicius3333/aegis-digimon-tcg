@@ -15,7 +15,6 @@ export const compiled: CompiledCard = {
   effects: [
     { trigger: "StartOfYourMainPhase", actions: [startCost, { kind: "Draw", controller: "mine", amount: 1 }, { kind: "GainMemory", amount: 1 }] },
     { trigger: "AllTurns", actions: [{ kind: "SubTrigger", event: "onDeletionOf", sourceFilter: { kind: ["Digimon"] }, actions: deletionBody, raw: "When any Digimon are deleted, by suspending this Tamer, ＜Draw 1＞ and trash 1 card in your hand. After, place 1 [BEATBREAK] trait non-Digi-Egg card from your trash face down under this Tamer." }] },
-    { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", target: self, from: ["security"], payCost: false }] },
   ],
   coverage: "full",
   residual: [],
