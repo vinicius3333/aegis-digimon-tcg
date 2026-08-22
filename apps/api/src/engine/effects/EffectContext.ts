@@ -472,6 +472,8 @@ export interface GameAccess {
   effectiveKinds?(permanentId: string): import("@aegis/shared").CardKind[];
   /** Effective printed-plus-granted colors used by Option color requirements. */
   effectiveColors?(permanent: Permanent): import("@aegis/shared").CardColor[];
+  /** Current DP including active continuous modifiers during effect recomputation. */
+  effectiveDP?(permanentId: string): number;
   /** Whether a loose card currently ignores its printed color requirement. */
   colorRequirementWaived?(instanceId: string): boolean;
   /** Server-authoritative live keyword/mechanic lookup for the source permanent. */
@@ -903,7 +905,7 @@ export interface Primitives {
   changeEvoCost(
     filter: (m: EvoCostMatch) => boolean,
     delta: number,
-    opts?: { setFixed?: boolean; once?: boolean; onConsume?: (match: EvoCostMatch) => void },
+    opts?: { setFixed?: boolean; once?: boolean; continuous?: boolean; onConsume?: (match: EvoCostMatch) => void },
   ): void;
   /**
    * Record a continuous play/use-cost modification ("reduce the play cost of your

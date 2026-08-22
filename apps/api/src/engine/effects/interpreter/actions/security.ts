@@ -26,13 +26,19 @@ export async function runRecoverByTrashingMostSecurity(
 }
 
 export async function runRecover(ctx: EffectContext, action: Extract<Action, { kind: "Recover" }>): Promise<void> {
+  const baseAmount = action.amount ?? 1;
+  const amount = action.scaling === undefined
+    ? baseAmount
+    : action.scaling.bonus !== undefined
+      ? baseAmount + action.scaling.bonus * scaleFactor(ctx, action.scaling)
+      : baseAmount * scaleFactor(ctx, action.scaling);
   const seat = ctx.source.ownerSeat;
   if (action.untilSecurityCount === undefined) {
-    await ctx.fx.recoverToSecurity(seat, action.amount ?? 1);
+    await ctx.fx.recoverToSecurity(seat, Math.max(0, amount));
     return;
   }
   while (ctx.game.player(seat).security.length < action.untilSecurityCount) {
-    const moved = await ctx.fx.recoverToSecurity(seat, action.amount ?? 1);
+    const moved = await ctx.fx.recoverToSecurity(seat, Math.max(0, amount));
     if (moved.length === 0) break;
   }
 }

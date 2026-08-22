@@ -528,13 +528,19 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const sp = ctx.source.permanent();
       return sp !== undefined && sp.isSuspended !== true;
     }
-    case "selfDpAtLeast":
-      return (ctx.source.permanent()?.currentDP ?? -1) >= (cond.value ?? 0);
+    case "selfDpAtLeast": {
+      const self = ctx.source.permanent();
+      return (ctx.game.effectiveDP?.(self?.permanentId ?? "") ?? self?.currentDP ?? -1) >= (cond.value ?? 0);
+    }
     case "selfDigivolutionCountAtLeast": {
       // "If this Digimon has N or more digivolution cards" — the SOURCE permanent's stack size
       // (BT22-007 "10 or more digivolution cards", KB Q4858). An off-field source => 0 => false.
       const self = ctx.source.permanent();
       return (self?.stack.length ?? 0) >= (cond.value ?? 0);
+    }
+    case "selfDigivolutionCountExactly": {
+      const self = ctx.source.permanent();
+      return (self?.stack.length ?? 0) === (cond.value ?? 0);
     }
     case "selfDigivolutionStackCountAtLeast": {
       // "If N or more cards matching [filter] are in THIS Digimon's digivolution cards" (BT11-065
@@ -686,6 +692,16 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const cardId = ctx.trigger.deletedTopCardId;
       const definition = cardId !== undefined ? getCardDefinition(cardId) : undefined;
       return definition !== undefined && (definition.level ?? -1) >= (cond.value ?? 0);
+    }
+    case "triggerDeletedStackMatchesFilter": {
+      const filter = cond.filter;
+      if (filter === undefined) return false;
+      const ids = ctx.trigger.deletedWasStackInstanceIds ?? [];
+      const trash = ctx.game.player(ctx.source.ownerSeat).trash;
+      return ids.some((id) => {
+        const card = trash.find((candidate) => candidate.instanceId === id);
+        return card !== undefined && definitionMatches(filter, ctx.game.definitionOf(card));
+      });
     }
     case "triggerAttackerIsSelf":
       return ctx.source.permanent()?.permanentId === ctx.trigger.attackerPermanentId;

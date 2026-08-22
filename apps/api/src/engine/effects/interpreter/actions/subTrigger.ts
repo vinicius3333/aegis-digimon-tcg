@@ -638,9 +638,19 @@ export async function runSubTrigger(
     trashedDigivolutionTopGate,
   ].filter((g): g is (subCtx: EffectContext) => boolean => g !== undefined);
   const matches = gates.length === 0 ? undefined : (subCtx: EffectContext): boolean => gates.every((g) => g(subCtx));
+  // Inherited effects that trigger when their own source card is discarded from a
+  // digivolution stack must keep that card as the watcher source. The host permanent
+  // remains on the field, but the source card moves to trash before the event fires;
+  // anchoring the watcher to the host would make `isSelfRef` compare against the host's
+  // top card and silently skip the inherited effect (BT7 Digi-Burst cards).
+  const discardedSelfSource =
+    sourceFilter?.isSelfRef === true &&
+    (event === "onDigiBurstCardDiscarded" ||
+      event === "onDigivolutionCardsDiscardedBatch" ||
+      event === "onDigivolutionCardDiscarded");
   ctx.fx.subscribeSubTrigger({
     event,
-    sourcePermanentId: anchorPermanentId,
+    ...(discardedSelfSource ? {} : { sourcePermanentId: anchorPermanentId }),
     ...(playerScoped
       ? { activationContext: ctx }
       : action.on !== undefined

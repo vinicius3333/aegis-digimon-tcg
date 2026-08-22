@@ -562,10 +562,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   const changeEvoCost = (
     filter: (m: EvoCostMatch) => boolean,
     delta: number,
-    opts?: { setFixed?: boolean; once?: boolean; onConsume?: (match: EvoCostMatch) => void },
+    opts?: { setFixed?: boolean; once?: boolean; continuous?: boolean; onConsume?: (match: EvoCostMatch) => void },
   ): void => {
     ledger.addEvoCostAdjustment(filter, delta, opts?.setFixed ?? false, {
-      ...(continuousOpt() ?? {}),
+      ...(opts?.continuous === true ? { continuous: true } : continuousOpt() ?? {}),
       once: opts?.once,
       onConsume: opts?.onConsume,
     });

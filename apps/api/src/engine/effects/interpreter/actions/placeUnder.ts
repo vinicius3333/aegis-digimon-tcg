@@ -194,7 +194,7 @@ export async function runPlaceUnder(
     hostId = self.permanentId;
   }
   if (hostId === undefined) return;
-  let chosen = await pickLoose(ctx, action.target, candidates);
+  let chosen = await pickLoose(ctx, action.target, candidates, undefined, ctx.ask, candidates.map((candidate) => candidate.instanceId));
   if (action.order === "any" && chosen.length > 1 && ctx.ask.orderCards !== undefined) {
     chosen = await ctx.ask.orderCards(ctx, {
       candidates: chosen,
@@ -210,7 +210,8 @@ export async function runPlaceUnder(
   // The placeUnder primitive records them as material cards in the host's stack (belowTop as
   // the DigiXros convention; the flag is structural metadata for the DigiXros system to read).
   if (chosen.length > 0) {
-    await ctx.fx.placeUnder(hostId, chosen, { belowTop: action.position !== "bottom", faceUp: action.faceDown !== true });
+    const placementIds = action.position === "bottom" && action.order === "any" ? [...chosen].reverse() : chosen;
+    await ctx.fx.placeUnder(hostId, placementIds, { belowTop: action.position !== "bottom", faceUp: action.faceDown !== true });
   }
   if (action.bindHostAs && chosen.length > 0) {
     ctx.boundPlayed ??= new Map();
@@ -409,6 +410,10 @@ export async function runTrashDigivolution(
     }
   }
   ctx.lastEffectActed = totalTrashed > 0;
+  if (action.trackCount !== undefined) {
+    ctx.namedCounts ??= new Map();
+    ctx.namedCounts.set(action.trackCount, totalTrashed);
+  }
   if (amount === "all") return totalTrashed > 0;
   return totalTrashed === amount * permanentIds.length;
 }

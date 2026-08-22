@@ -309,6 +309,20 @@ export const staticModifier = (opts: BuilderOptions): Effect => {
             ? { oncePerTurnKey: sub.oncePerTurnKey ?? autoKey }
             : {}),
         }),
+      changeEvoCost: (
+        filter: Parameters<EffectContext["fx"]["changeEvoCost"]>[0],
+        delta: number,
+        changeOpts: Parameters<EffectContext["fx"]["changeEvoCost"]>[2],
+      ) =>
+        ctx.fx.changeEvoCost(filter, delta, {
+          ...changeOpts,
+          continuous: true,
+        }),
+      modifyDP: (permanentId, delta, duration, modifyOpts) =>
+        ctx.fx.modifyDP(permanentId, delta, duration, {
+          ...modifyOpts,
+          continuous: true,
+        }),
       subscribeReplacement: (replacement: Parameters<EffectContext["fx"]["subscribeReplacement"]>[0]) =>
         ctx.fx.subscribeReplacement({
           ...replacement,
@@ -322,7 +336,19 @@ export const staticModifier = (opts: BuilderOptions): Effect => {
   return build({ ...opts, resolve: scopedResolve }, {});
 };
 
-export const digivolveCostStatic = (opts: BuilderOptions): Effect => build(opts, { baseGuard: () => true });
+export const digivolveCostStatic = (opts: BuilderOptions): Effect => {
+  const resolve = (ctx: EffectContext) => opts.resolve({
+    ...ctx,
+    fx: {
+      ...ctx.fx,
+      changeEvoCost: (filter, delta, changeOpts) => ctx.fx.changeEvoCost(filter, delta, {
+        ...changeOpts,
+        continuous: true,
+      }),
+    },
+  });
+  return build({ ...opts, resolve }, { baseGuard: () => true });
+};
 
 /**
  * Static modifier whose source must still be in hand. This is used by printed clauses that

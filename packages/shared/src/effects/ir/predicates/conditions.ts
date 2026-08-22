@@ -46,6 +46,7 @@ export interface Condition {
     | "selfDigivolutionStackDistinctColorCount"
     | "selfTopHasText" // `filter.nameOrTrait` vs the SOURCE top card's name/trait/effect text (EX11-070)
     | "selfDigivolutionCountAtLeast" // source stack size >= `value` (BT22-007; KB Q4858)
+    | "selfDigivolutionCountExactly" // source stack size equals `value`
     | "selfDigivolutionStackCountAtLeast" // stack cards matching `filter.nameOrTrait` >= `count` (BT11-065)
     | "selfDigivolutionStackHasSameLevelPair" // 2 or more SOURCE stack cards share a level (BT23-102)
     | "selfIsSuspended" // EX3-042, EX8-043
@@ -77,6 +78,7 @@ export interface Condition {
     | "triggerSubjectMatchesFilter" // non-color subject gates; later "then" branches still run (BT21-061)
     | "triggerDigivolvedSameLevel" // BT9-092
     | "triggerDeletedLevelAtLeast"
+    | "triggerDeletedStackMatchesFilter"
     | "triggerAttackerIsSelf"
     | "triggerAttackerMatchesFilter"
     | "triggerDefenderIsSelf"

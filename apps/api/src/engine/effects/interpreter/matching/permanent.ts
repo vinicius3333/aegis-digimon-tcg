@@ -171,7 +171,8 @@ export function permanentMatchesFilter(
   // or another producing action via `bindResultAs`). An unbound or empty ref matches nothing.
   if (filter.boundRef !== undefined) {
     const bound = ctx.boundPlayed?.get(filter.boundRef);
-    if (!bound || !bound.has(permanent.permanentId)) return false;
+    const selected = ctx.selections?.get(filter.boundRef);
+    if (!bound?.has(permanent.permanentId) && selected !== permanent.permanentId) return false;
   }
   if (
     typeof filter.playCost === "object" &&
