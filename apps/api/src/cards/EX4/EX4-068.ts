@@ -25,8 +25,7 @@ const compiled: CompiledCard = {
         {
           kind: "RepeatPerCount",
           countSource: "distinctOwnDigimonColors",
-          countFilter: { controller: "mine", kind: ["Digimon"] },
-          countUnit: "colors",
+          countScaling: { per: 1, filter: { controller: "mine", kind: ["Digimon"] }, unit: "colors" },
           action: {
             kind: "ModifyDP",
             target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
