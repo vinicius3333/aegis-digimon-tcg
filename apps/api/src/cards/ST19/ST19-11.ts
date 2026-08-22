@@ -89,13 +89,14 @@ const compiled: CompiledCard = {
           cost: {
             kind: "deleteOwn",
             target: {
-              filter: { controller: "mine", excludeSelf: true },
+              filter: {
+                controller: "mine",
+                excludeSelf: true,
+                kind: ["Digimon"],
+                allowTokens: true,
+                nameOrTrait: [{ tokens: ["Puppet"], match: "trait" }],
+              },
               count: 1,
-              orFilters: [
-                { kind: ["Digimon"], isToken: true },
-                { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Familiar Token"], match: "name" }] },
-                { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Puppet"], match: "trait" }] },
-              ],
             },
             raw: "by deleting 1 of your Tokens or 1 of your other Digimon with the [Puppet] trait, prevent it from leaving",
           },
