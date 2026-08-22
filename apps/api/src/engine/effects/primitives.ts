@@ -1327,6 +1327,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const def = requireCardDefinition(newTop.cardId);
     permanent.baseDP = def.kinds.includes(CardKind.Digimon) ? def.dp : 0;
     ledger.recomputeDP(state, permanentId);
+    // The promoted card is now the permanent's active top card. Re-derive its static
+    // keywords/effects before the deletion-prevention window continues (BT8 Armor Purge
+    // chains must expose the promoted card's own Armor Purge immediately).
+    await engine.recomputeContinuousEffects?.();
     // <Overflow> (CR §4-18): the old top card just left the battle area for trash — a genuine
     // leave, distinct from the permanent as a whole (which is NOT being deleted).
     applyOverflow(engine.memory, [oldTop], state.turnSeat);
@@ -3556,6 +3560,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           permanent.baseDP = promotedDefinition.kinds.includes(CardKind.Digimon) ? promotedDefinition.dp : 0;
           dropPermanentLedgers(permanent.permanentId);
           ledger.recomputeDP(state, permanent.permanentId);
+          // The promoted card is now the active top card. Recompute printed keywords and
+          // continuous effects before the next deletion/prevention window (BT9-044's
+          // security redirect can promote a Digimon with Armor Purge, such as BT8-038).
+          await engine.recomputeContinuousEffects?.();
         }
         detached.faceUp = faceUp;
         if (toTop) insertCard(p, Zone.Security, detached, "top");

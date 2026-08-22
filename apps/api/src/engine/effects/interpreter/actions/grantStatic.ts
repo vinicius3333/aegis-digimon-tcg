@@ -79,6 +79,21 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
         }
         return false;
       }
+      // BT8-040: the preceding optional Trash action grants this Digimon every printed
+      // color of the card actually trashed, for the turn. The effect-result binding is
+      // intentionally read from the current resolution context, so a declined or
+      // unsuccessful trash grants nothing.
+      if (action.grant === "colorFromLastTrashed") {
+        const trashed = ctx.lastTrashedCards ?? [];
+        const grantDuration = toDuration(action.duration ?? "forTheTurn");
+        for (const record of trashed) {
+          const colors = ctx.game.definitionOf({ cardId: record.cardId } as never).colors;
+          for (const id of ids) {
+            for (const color of colors) ctx.fx.addColorGrant(id, color, grantDuration);
+          }
+        }
+        return false;
+      }
       if (action.grant === "kinds") {
         const wantedKinds = (action.tokens ?? []).map((t) => t as CardKind);
         if (wantedKinds.length === 0) {

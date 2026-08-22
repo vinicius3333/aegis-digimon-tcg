@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT8-065.js";
+import { compiled } from "./BT8-065.js";
 
 describe("BT8-065 CatchMamemon", () => {
   it("returns Mamemon cards from hand and trash to deck top and de-digivolves after returning at least 3", async () => {
@@ -11,5 +11,12 @@ describe("BT8-065 CatchMamemon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(3);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.perm("target").topCard?.cardId).toBe("BT1-015");
+  });
+
+  it("uses the printed Mamemon name filter rather than a trait filter", () => {
+    expect(compiled?.effects[0]?.actions[0]).toMatchObject({
+      kind: "Return",
+      target: { filter: { nameOrTrait: [{ match: "name", tokens: ["Mamemon"] }] } },
+    });
   });
 });

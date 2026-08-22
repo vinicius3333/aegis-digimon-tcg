@@ -378,6 +378,14 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       if (deletedColors !== undefined) {
         return compareNumber(new Set(deletedColors).size, cond.op, cond.value ?? 0);
       }
+      const self = ctx.source.permanent();
+      if (self !== undefined && ctx.game.effectiveColors !== undefined) {
+        return compareNumber(
+          new Set(ctx.game.effectiveColors(self)).size,
+          cond.op,
+          cond.value ?? 0,
+        );
+      }
       const def = sourceTopDefinition(ctx);
       if (def === undefined) return false;
       const permanent = ctx.source.permanent();

@@ -78,9 +78,7 @@ const compiled: CompiledCard = {
               "target": {
                 "filter": {
                   "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
+                  "kind": ["Digimon"]
                 },
                 "count": 1,
                 "bindAs": "unsuspendedTarget"
@@ -89,8 +87,8 @@ const compiled: CompiledCard = {
             {
               "kind": "ModifyDP",
               "target": {
-                "filter": {},
-                "count": 1,
+              "filter": {},
+              "count": 1,
                 "fromSelectionRef": "unsuspendedTarget"
               },
               "amount": 3000,

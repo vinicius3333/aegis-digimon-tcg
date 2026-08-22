@@ -198,6 +198,29 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         ctx.lastDeleteCount = 0;
         return false;
       }
+      if ((action as { chooseTargets?: boolean }).chooseTargets === true) {
+        const picked = await ctx.ask.selectPermanents(ctx, {
+          candidates: candidates.map((candidate) => candidate.permanentId),
+          min: 0,
+          max: candidates.length,
+          maxTotalPlayCost: effectiveBudget,
+        });
+        const costs = new Map(candidates.map((candidate) => [
+          candidate.permanentId,
+          candidate.topCard === undefined ? 0 : (ctx.game.definitionOf(candidate.topCard).playCost ?? 0),
+        ]));
+        const selected: string[] = [];
+        let spent = 0;
+        for (const id of picked) {
+          const cost = costs.get(id);
+          if (cost !== undefined && spent + cost <= effectiveBudget) {
+            selected.push(id);
+            spent += cost;
+          }
+        }
+        ctx.lastDeleteCount = selected.length > 0 ? await ctx.fx.deletePermanent(selected) : 0;
+        return false;
+      }
       // Sort ascending by printed play cost
       const byCost = candidates
         .map((p) => {
@@ -353,7 +376,13 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           }
         } else {
           const candidates = candidateLooseInstances(ctx, action.target, ["hand"]);
-          chosen = await pickLoose(ctx, action.target, candidates, undefined, asker);
+          chosen = await pickLoose(
+            ctx,
+            action.optional === true ? { ...action.target, upTo: true } : action.target,
+            candidates,
+            undefined,
+            asker,
+          );
         }
         const moved = chosen.length > 0 ? await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat }) : [];
         ctx.lastTrashedCards = moved.map((card) => ({

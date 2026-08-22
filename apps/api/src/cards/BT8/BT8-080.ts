@@ -63,6 +63,7 @@ const compiled: CompiledCard = {
             "trash"
           ],
           "payCost": false,
+          "suspended": true,
           "condition": {
             "kind": "selfHasNameContaining",
             "names": ["Myotismon"],

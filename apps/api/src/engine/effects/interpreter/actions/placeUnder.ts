@@ -372,6 +372,12 @@ export async function runTrashDigivolution(
 ): Promise<boolean> {
   const amount = action.amount ?? 1;
   const fromTop = action.fromTop ?? true;
+  const isDigiBurst = /Digi-?Burst/i.test(action.raw ?? "");
+  const trashOptions = {
+    byEffectSeat: ctx.source.ownerSeat,
+    byEffectCardId: ctx.source.cardId,
+    ...(isDigiBurst ? { isDigiBurst: true } : {}),
+  };
 
   // "acrossDigimon": pool all digivolution cards from every matching permanent and let
   // the controller pick `amount` from the combined pool (EX12-035 "any 4 digivolution
@@ -422,7 +428,7 @@ export async function runTrashDigivolution(
       byHost.set(entry.permanentId, bucket);
     }
     for (const [pid, ids] of byHost) {
-      if (ids.length > 0) await ctx.fx.trashDigivolutionCards(pid, ids, { byEffectSeat: ctx.source.ownerSeat });
+      if (ids.length > 0) await ctx.fx.trashDigivolutionCards(pid, ids, trashOptions);
     }
     ctx.lastEffectActed = chosen.length > 0;
     return amount === "all" ? chosen.length > 0 : chosen.length === amount;
@@ -488,7 +494,7 @@ export async function runTrashDigivolution(
       }
     }
     if (ids.length > 0) {
-      await ctx.fx.trashDigivolutionCards(pid, ids, { byEffectSeat: ctx.source.ownerSeat });
+      await ctx.fx.trashDigivolutionCards(pid, ids, trashOptions);
       totalTrashed += ids.length;
     }
   }
