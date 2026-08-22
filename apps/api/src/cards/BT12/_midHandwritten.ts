@@ -150,7 +150,7 @@ async function inheritedMinusDp(ctx: EffectContext, source: CardSource, amount =
 }
 
 function saveHost(ctx: EffectContext, source: CardSource): boolean {
-  const top = source.permanent()?.topCard;
+  const top = sourcePermanent(ctx, source)?.topCard;
   return top !== undefined && contains(ctx.game.definitionOf(top), "save");
 }
 
@@ -192,7 +192,7 @@ function inheritedSaveDp(cardId: string, source: CardSource): Effect {
     isInherited: true,
     when: (ctx) => source.isOwnersTurn() && saveHost(ctx, source),
     resolve: async (ctx) => {
-      const host = source.permanent();
+      const host = sourcePermanent(ctx, source);
       if (host) ctx.fx.modifyDP(host.permanentId, 2000, EffectDuration.Permanent);
     },
   });
