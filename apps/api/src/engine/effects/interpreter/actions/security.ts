@@ -544,6 +544,10 @@ export async function runSecurityAction(ctx: EffectContext, action: Action, scop
       return false;
     }
     case "DisableSecurityEffect": {
+      if ((action as { scope?: string }).scope === "seat") {
+        ctx.fx.disableSecurityEffectsForSeat(ctx.source.ownerSeat, action.sourceKind, toDuration(action.duration));
+        return false;
+      }
       // `card.PermanentOfThisCard()`. Resolve the target (normally the source itself) and
       // record the security-effect disable; the security-check loop consults it per flip.
       const ids = await resolvePermanentTargets(ctx, action.target);

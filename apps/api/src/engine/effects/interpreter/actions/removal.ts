@@ -544,7 +544,10 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
               });
         if (picked.length === 0) return false;
         const pickedCard = candidates.find((card) => card.instanceId === picked[0]);
-        const moved = await ctx.fx.returnToHand(picked);
+        const moved =
+          action.to === "hand"
+            ? await ctx.fx.returnToHand(picked)
+            : await ctx.fx.returnToDeck(picked, { toTop: action.to === "deckTop" });
         const level = pickedCard === undefined ? undefined : ctx.game.definitionOf(pickedCard).level;
         if (action.storeAs !== undefined && level !== undefined) {
           ctx.namedCounts ??= new Map();

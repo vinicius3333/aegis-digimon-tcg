@@ -38,10 +38,10 @@ const compiled: CompiledCard = {
         },
         {
           kind: "DisableSecurityEffect",
-          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
+          target: self,
           sourceKind: "any",
           duration: "forTheTurn",
-          condition: { kind: "bindingExists", ref: "returnedDragonMode" },
+          scope: "seat",
         },
       ],
     },
