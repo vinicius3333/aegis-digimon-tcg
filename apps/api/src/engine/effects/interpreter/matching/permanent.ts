@@ -379,7 +379,12 @@ export function permanentMatchesFilter(
     if (bound === undefined || def.level === undefined || def.level !== bound) return false;
   }
   if (filter.playCostLteTriggerSource === true) {
-    const bound = ctx.trigger.playedPlayCost;
+    const triggerPermanentId = ctx.trigger.suspendedPermanentId ?? ctx.trigger.subjectPermanentId;
+    const triggerPermanent =
+      triggerPermanentId === undefined ? undefined : ctx.game.permanentById(triggerPermanentId);
+    const triggerDefinition =
+      triggerPermanent?.topCard === undefined ? undefined : ctx.game.definitionOf(triggerPermanent.topCard);
+    const bound = ctx.trigger.playedPlayCost ?? triggerDefinition?.playCost;
     if (bound === undefined || def.playCost > bound) return false;
     const { playCostLteTriggerSource: _bound, ...rest } = filter;
     filter = rest;
