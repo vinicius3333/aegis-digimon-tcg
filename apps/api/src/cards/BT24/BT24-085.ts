@@ -14,7 +14,10 @@ const tsDigimon = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ token
 
 export const compiled: CompiledCard = {
   effects: [
-    { trigger: "StartOfYourMainPhase", actions: [{ kind: "GainMemory", amount: 1, condition: { kind: "memoryAtMost", value: 4 } }] },
+    {
+      trigger: "StartOfYourMainPhase",
+      actions: [{ kind: "GainMemory", amount: 1, condition: { kind: "memoryAtMost", value: 4 } }],
+    },
     {
       trigger: "EndOfYourTurn",
       actions: [
