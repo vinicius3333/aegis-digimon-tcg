@@ -78,7 +78,8 @@ const compiled: CompiledCard = {
     {
       "trigger": "Static",
       "actions": [],
-      "isInherited": true
+      "isInherited": true,
+      "keywords": [{ "keyword": "Piercing", "raw": "＜Piercing＞" }]
     }
   ],
   "coverage": "full",
