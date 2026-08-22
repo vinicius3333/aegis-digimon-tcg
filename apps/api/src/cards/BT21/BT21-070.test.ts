@@ -72,7 +72,9 @@ describe("BT21-070 Gossipmon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gossipmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gossipmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("appmon").instanceId));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("appmon").instanceId)).toBe(true);
