@@ -7,5 +7,5 @@ export const compiled: CompiledCard = { effects: [
   { trigger: "OnPlay", actions: [revealAdd] },
   { trigger: "OnMove", actions: [revealAdd] },
   { trigger: "WhenAttacking", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "Suspend", target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } }, optional: true }] },
-], coverage: "full", residual: [] };
+], coverage: "full", residual: [], digivolutionRequirement: [{ level: 2, traits: ["DATA SQUAD"], cost: 0, isAlternate: true }] };
 registerIrCard("BT26-036", compiled);

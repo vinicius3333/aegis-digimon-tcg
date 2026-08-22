@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-036.js";
@@ -7,6 +7,7 @@ import "../index.js";
 
 describe("BT26-036 Lalamon", () => {
   it("compiles the two reveal windows and inherited once-per-turn suspension", () => {
+    expect(digivolutionRequirementsFor("BT26-036")).toContainEqual({ level: 2, traits: ["DATA SQUAD"], cost: 0, isAlternate: true });
     expect(compiled.coverage).toBe("full");
     expect(compiled.effects.map((e) => e.trigger)).toEqual(["OnPlay", "OnMove", "WhenAttacking"]);
     expect(compiled.effects[2]).toMatchObject({ isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "Suspend" }] });
