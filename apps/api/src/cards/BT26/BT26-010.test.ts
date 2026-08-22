@@ -155,6 +155,41 @@ describe("BT26-010 Roleplaymon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 
+  it.each([
+    ["Open", "BT26-086"],
+    ["Seven Code", "BT26-019"],
+  ])("accepts the %s trait as the attack cost", async (_trait, costCard) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: CARD_ID, as: "roleplay" }],
+        hand: [{ card: costCard, as: "cost" }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+    }, { autoSelectCards: true });
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("roleplay"));
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
+
+  it("does not trash or draw when the hand has no Game, Open, or Seven Code card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: CARD_ID, as: "roleplay" }],
+        hand: [{ card: "BT1-009", as: "unrelated" }],
+        deck: ["BT1-010", "BT1-011"],
+      },
+    });
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("roleplay"));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("unrelated").instanceId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+  });
+
   it("encodes the exact hand cost, inherited draw, and linked keywords", () => {
     expect(compiled.effects).toMatchObject([
       { trigger: "WhenAttacking", actions: [{ kind: "Draw", amount: 2, cost: { kind: "trash", target: { filter: { zone: "hand" }, count: 1 } } }] },
