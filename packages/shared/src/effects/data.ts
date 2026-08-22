@@ -317,10 +317,10 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     { names: ["Luminamon"], cost: 2, isAlternate: true },
     {
       names: ["Nene Amano"],
-      minNameStackCount: 1,
-      minNameStackNames: ["Shademon"],
       cost: 3,
       isAlternate: true,
+      minNameStackCount: 1,
+      minNameStackNames: ["Shademon"],
     },
   ],
   // EX12-032 prints two Lv.4 alternate paths: Garurumon in name, or NSo/VB trait.
@@ -936,8 +936,8 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
   // BT19-102: [Nene Amano] is a Tamer material and the second slot accepts either named Digimon.
   "BT19-102": [
     {
-      materials: [{ names: ["Nene Amano"] }, { names: ["Luminamon", "Shademon"] }],
       count: 1,
+      materials: [{ names: ["Nene Amano"] }, { names: ["Luminamon", "Shademon"] }],
     },
   ],
   // EX12-029: the printed slot is one Lv.5-or-lower Digimon with [Gokuumon] in its text
