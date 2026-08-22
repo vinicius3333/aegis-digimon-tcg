@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCompiledCard } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -18,6 +18,15 @@ describe("BT12-047 handwritten module", () => {
       permanent: () => undefined,
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnPlay, source).length).toBeGreaterThan(0);
+    expect(getCompiledCard("BT12-047")?.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          trigger: "EndOfYourTurn",
+          isInherited: true,
+          actions: [expect.objectContaining({ kind: "DnaDigivolve", optional: true, payCost: true })],
+        }),
+      ]),
+    );
   });
 });
 
