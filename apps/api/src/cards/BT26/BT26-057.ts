@@ -9,7 +9,7 @@ const immuneAndDp = [
 ];
 const unsuspend = { kind: "Unsuspend", target: self, optional: true };
 export const compiled: CompiledCard = { effects: [
-  { trigger: "WhenDigivolving", actions: [{ kind: "TrashDigivolution", target: { filter: { controller: "mine", zone: "digivolutionCards", faceDown: true, underKind: ["Tamer"] }, count: 1 }, amount: 1, optional: true }, ...immuneAndDp] },
+  { trigger: "WhenDigivolving", actions: [{ kind: "TrashDigivolution", target: { filter: { controller: "mine", zone: "digivolutionCards", faceDown: true, underKind: ["Tamer"] }, count: 1 }, amount: 1, fromTop: false, optional: true }, ...immuneAndDp] },
   { trigger: "AllTurns", frequency: "OncePerTurn", actions: [
     { kind: "SubTrigger", event: "whenAttackTargetSwitched", actions: [unsuspend] },
     { kind: "SubTrigger", event: "whenDigivolutionTrashed", sourceFilter: { controller: "mine", kind: ["Tamer"], byEffect: true }, actions: [unsuspend] },
@@ -19,6 +19,6 @@ export const compiled: CompiledCard = { effects: [
     { kind: "DeDigivolve", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, amount: 1 },
     { kind: "GainTriggeredEffect", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, gainedTrigger: "StartOfYourMainPhase", gainedActions: [{ kind: "Attack", target: self }], duration: "untilOpponentTurnEnd" },
   ] },
-], coverage: "full", residual: [] };
+], coverage: "full", residual: [], digivolutionRequirement: [{ level: 4, traits: ["Glowing Dawn"], cost: 3, isAlternate: true }] };
 registerIrCard("BT26-057", compiled);
 export default compiled;
