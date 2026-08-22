@@ -34,4 +34,20 @@ describe("BT12-088 handwritten module", () => {
     await advance(high.engine).fire(EffectTiming.OnStartTurn, high.perm("takuya"));
     expect(high.state.memory).toBe(3);
   });
+
+  it("gains 2 memory once when an inherited host with 10000 or more DP checks security", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT12-017", as: "host", under: ["BT12-088"] }] },
+      1: { security: ["BT1-009", "BT1-010"] },
+    });
+    await s.ready();
+    s.state.memory = 0;
+    await advance(s.engine).fire(EffectTiming.OnLoseSecurity, s.perm("host"), {
+      attackerPermanentId: s.perm("host").permanentId,
+    });
+    await advance(s.engine).fire(EffectTiming.OnLoseSecurity, s.perm("host"), {
+      attackerPermanentId: s.perm("host").permanentId,
+    });
+    expect(s.state.memory).toBe(2);
+  });
 });
