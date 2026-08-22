@@ -19,6 +19,6 @@ export const compiled: CompiledCard = { effects: [
     { kind: "Restrict", target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"], suspended: true }, count: "all" }, restriction: "digivolve", duration: "untilOpponentTurnEnd" },
     { kind: "Restrict", target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"], suspended: true }, count: "all" }, restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
   ] },
-], coverage: "full", residual: [] };
+], coverage: "full", residual: [], digivolutionRequirement: [{ level: 6, traits: ["DATA SQUAD"], cost: 5, isAlternate: true }] };
 registerIrCard("BT26-050", compiled);
 export default compiled;
