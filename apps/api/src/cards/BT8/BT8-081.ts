@@ -82,7 +82,6 @@ const compiled: CompiledCard = {
                   "kind": ["Digimon"]
                 },
                 "count": 1,
-                "isSelf": true,
                 "bindAs": "unsuspendedTarget"
               }
             },
