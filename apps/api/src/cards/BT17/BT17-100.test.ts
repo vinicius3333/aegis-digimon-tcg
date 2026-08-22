@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
-import "../index.js";
+import "./index.js";
 
 // A3 for BT17-100 (Doomsday Clock, Black Option):
 //   [Security] Add this card to the hand.

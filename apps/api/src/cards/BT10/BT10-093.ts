@@ -1,6 +1,6 @@
 // @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
-import { registerCard } from "../../engine/effects/registry.js";
+import { getCompiledCard, type CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
  * BT10-093 — Yuu Amano (BT10, Purple Tamer).
@@ -15,6 +15,7 @@ import { registerCard } from "../../engine/effects/registry.js";
  *   [Security] Play this card without paying its memory cost.
  */
 const cardId = "BT10-093";
+const compiled = getCompiledCard(cardId) as CompiledCard;
 
 function isPurple(def: { colors?: string[] }): boolean {
   return (def.colors as CardColor[] | undefined)?.includes(CardColor.Purple) ?? false;
@@ -86,4 +87,4 @@ export const module: EffectModule = {
   },
 };
 
-registerCard(module);
+registerIrCard("BT10-093", compiled);

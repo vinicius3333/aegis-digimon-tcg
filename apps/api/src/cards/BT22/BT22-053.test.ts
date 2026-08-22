@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-053.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT22-053 Keramon", () => {
   it("reveals three cards and adds Arata plus an Unidentified or CS card", () => {

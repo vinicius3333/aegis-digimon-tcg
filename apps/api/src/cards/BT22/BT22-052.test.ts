@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-052.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT22-052 Leopardmon", () => {
   it("plays a small Digimon and grants Blocker to all level 3+ Digimon", () => {

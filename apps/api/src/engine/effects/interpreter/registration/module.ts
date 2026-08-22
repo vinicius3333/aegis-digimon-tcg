@@ -54,7 +54,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
     (e) =>
       e.isInherited !== true &&
       ((e.keywords ?? []).some((k) => k.keyword === "Training") ||
-        (e.actions ?? []).some(
+        e.actions.some(
           (a) =>
             a.kind === "GainKeyword" &&
             (a as { keyword?: { keyword?: string } }).keyword?.keyword === "Training" &&
@@ -286,7 +286,7 @@ export function registerIrCard(cardId: string, compiled: CompiledCard, legacyMod
   // preserve it in both cases.
   if (existing !== undefined && existing !== previousIrModule) return existing;
   if (existing !== undefined) unregisterCard(cardId);
-  const module = legacyModule ?? irCardModule(cardId, compiled);
+  const module = irCardModule(cardId, compiled);
   registerCard(module);
   registeredIrModules.set(cardId, module);
   return module;

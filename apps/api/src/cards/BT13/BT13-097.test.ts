@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-097.js";
 
 describe("BT13-097 Thomas H. Norstein", () => {
@@ -43,5 +46,12 @@ describe("BT13-097 Thomas H. Norstein", () => {
         { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
       ],
     });
+  });
+
+  it("sets memory to three at the start of turn when below the threshold", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-097", as: "thomas" }] } });
+    s.state.memory = 1;
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("thomas"));
+    expect(s.state.memory).toBe(3);
   });
 });

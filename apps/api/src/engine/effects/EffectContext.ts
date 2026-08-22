@@ -266,6 +266,8 @@ export interface TriggerInfo {
   addedDigivolutionCardInstanceIds?: string[];
   /** Stack position used by an effect placing cards under a Digimon. */
   addedDigivolutionCardsPosition?: "top" | "bottom";
+  /** True when an effect rotated the host's own top card to the bottom of its stack. */
+  placedOwnTopAtStackBottom?: boolean;
   /** Printed card id selected as the destination of an imminent digivolution. */
   digivolvingIntoCardId?: string;
   /** Printed level of the permanent's top card immediately before a digivolution. */

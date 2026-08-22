@@ -67,7 +67,7 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   // spelling inside `orFilters` (notably BT25-085's dual Option clause).
   // Normalize those fields here so an unsupported field cannot accidentally
   // turn an OR branch into an unconstrained match.
-  const legacy = filter as Filter & { cardType?: string; trait?: string[] };
+  const legacy = filter as Filter & { cardType?: string; trait?: string | string[] };
   if (legacy.cardType !== undefined && !def.kinds.some((kind) => String(kind) === legacy.cardType)) return false;
   if (legacy.trait !== undefined) {
     const traits = Array.isArray(legacy.trait) ? legacy.trait : [legacy.trait];
