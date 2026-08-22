@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-011.js";
+import "../index.js";
 
 describe("BT21-011 compiled implementation", () => {
   it("exposes complete effect coverage with no residual clauses", () => {
@@ -61,5 +64,13 @@ describe("BT21-011 compiled implementation", () => {
         ],
       }),
     ]);
+  });
+
+  it("grants inherited Rush to a Xros Heart Digimon", () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-016", as: "shoutmon", under: ["BT21-011"] }] },
+    });
+
+    expect(observe(s.engine).hasKeyword(s.perm("shoutmon"), "Rush")).toBe(true);
   });
 });
