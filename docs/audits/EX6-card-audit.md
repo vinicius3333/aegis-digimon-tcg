@@ -95,7 +95,7 @@ invented.
 | EX6-013 | Xiquemon | full | none found | ae18e9a249dc | d12284d8aa8f | NR |
 | EX6-012 | Biyomon | full | none found | 0c809eaa69eb | 0c4dfe7c3b3e | NR |
 | EX6-011 | RagnaLoardmon | full | none found | 84c94de1251b | 365664ea2d10 | NR |
-| EX6-010 | Durandamon | direct | none found | 76ffb2964316 | f9ab018d11a3 | NR |
+| EX6-010 | Durandamon | full | none found | 03ea699a4de7 | f9ab018d11a3 | NR |
 | EX6-009 | Duramon | full | none found | 7f04440ebd8 | 315e3ed371e5 | NR |
 | EX6-008 | ZubaEagermon | full | none found | 02fef374f15b | 4dc5a77dfda7 | NR |
 | EX6-007 | Zubamon | full | none found | a5fccf1da91c | 7972b60002a3 | NR |
@@ -121,7 +121,7 @@ EX6-001 was migrated from its legacy hand-written module to typed IR. Its
 exact added-card `[Legend-Arms]` filter, with complete coverage and a public
 IR evidence test.
 
-EX6-061 and EX6-063 were likewise migrated to `registerIrCard` because their
+EX6-010, EX6-061, and EX6-063 were likewise migrated to `registerIrCard` because their
 committed IR already has complete coverage and matches the direct-module
 clause inventory. The remaining legacy direct modules are retained while
 their IR entries still expose unsupported primitives; replacing those modules
