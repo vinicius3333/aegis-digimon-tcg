@@ -15,7 +15,7 @@ const playFromSecurity = { kind: "PlayWithoutCost", target: self, from: ["securi
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "Security", isSecurity: true, actions: [playFromSecurity] },
-    { trigger: "EndOfOpponentsTurn", actions: [playFromSecurity] },
+    { trigger: "EndOfOpponentsTurn", isSecurity: true, actions: [playFromSecurity] },
     { trigger: "WhenDigivolving", actions: [altCostDelete] },
     { trigger: "EndOfAttack", actions: [altCostDelete] },
     { trigger: "OnDeletion", actions: [

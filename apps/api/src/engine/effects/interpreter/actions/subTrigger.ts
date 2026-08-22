@@ -295,8 +295,9 @@ export async function runSubTrigger(
   const handTrashedGate =
     event === "whenHandTrashed"
       ? (subCtx: EffectContext): boolean =>
-          subCtx.trigger?.handTrashedSeat === subCtx.source.ownerSeat &&
-          (subCtx.trigger?.byEffectSeat === undefined || subCtx.trigger.byEffectSeat === subCtx.source.ownerSeat)
+          action.fireCondition?.kind === "triggerHandTrashedSeat" ||
+          (subCtx.trigger?.handTrashedSeat === subCtx.source.ownerSeat &&
+            (subCtx.trigger?.byEffectSeat === undefined || subCtx.trigger.byEffectSeat === subCtx.source.ownerSeat))
       : undefined;
   // "When THIS Digimon's attack target is switched" is host-scoped, which the IR marks with a
   // self-referencing sourceFilter. The event bus broadcasts every switch to every watcher, so
@@ -427,13 +428,13 @@ export async function runSubTrigger(
           });
         }
       : undefined;
-  // `whenEffectAddsToDeck` ("[Your Turn] when your effects add to decks", BT26-015): mirrors
-  // whenEffectAddsToHand one zone over, fired from returnToDeck's seam (effectAddedToDeckSeat).
-  // "Mine" direction by the same convention (the recipient deck's owner matching the watcher).
+  // `whenEffectAddsToDeck` ("when your effects add to decks", BT26-001/BT26-015) is scoped to
+  // the controller of the effect, not to the owner of the recipient deck. Q6948 explicitly
+  // includes cards added to the opponent's deck by one of your effects.
   const effectAddsToDeckGate =
     event === "whenEffectAddsToDeck"
       ? (subCtx: EffectContext): boolean => {
-          const seat = subCtx.trigger?.effectAddedToDeckSeat;
+          const seat = subCtx.trigger?.effectAddedToDeckBySeat;
           return seat !== undefined && seat === subCtx.source.ownerSeat;
         }
       : undefined;
@@ -822,15 +823,27 @@ export async function runSubTrigger(
             subCtx,
             action.raw ?? activationCost?.raw ?? "Activate this triggered effect?",
           );
-          if (!yes) return;
+          if (!yes) {
+            subCtx.oncePerTurnActivationDeclined = true;
+            return;
+          }
         }
         if (activationCostOptions.length > 0) {
-          if (!(await payOneCostOption(subCtx, activationCostOptions))) return;
+          if (!(await payOneCostOption(subCtx, activationCostOptions))) {
+            subCtx.oncePerTurnActivationDeclined = true;
+            return;
+          }
         } else if (activationCost !== undefined) {
-          if (!(await payCost(subCtx, activationCost))) return;
+          if (!(await payCost(subCtx, activationCost))) {
+            subCtx.oncePerTurnActivationDeclined = true;
+            return;
+          }
         }
         for (const cost of additionalCosts) {
-          if (!(await payCost(subCtx, cost))) return;
+          if (!(await payCost(subCtx, cost))) {
+            subCtx.oncePerTurnActivationDeclined = true;
+            return;
+          }
         }
       }
       for (const a of action.actions) {

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-071.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT26-071 Flarerizamon", () => {
@@ -17,5 +18,13 @@ describe("BT26-071 Flarerizamon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT26-071");
     expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT26-021");
+  });
+  it("grants inherited Raid to its evolution host", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT26-072", as: "host", under: ["BT26-071"] }] },
+    });
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Raid")).toBe(true);
   });
 });

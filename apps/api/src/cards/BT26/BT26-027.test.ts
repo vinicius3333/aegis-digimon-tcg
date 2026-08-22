@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-027.js";
@@ -44,5 +46,83 @@ describe("BT26-027 Petermon", () => {
 
     expect(s.perm("cost").isSuspended).toBe(true);
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-2);
+  });
+
+  it("resolves again at the start of the opponent's main phase and expires at that turn end", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-027", as: "petermon" },
+            { card: "BT26-024", as: "cost" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("cost").permanentId);
+    s.state.turnSeat = 1;
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("petermon"));
+
+    expect(s.perm("cost").isSuspended).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-2);
+    advance(s.engine).ledgers.continuous.sweep(s.state, "eachTurnEnd", 1);
+    expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(0);
+  });
+
+  it("grants inherited Barrier only while Petermon is under another Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT26-027", as: "top" },
+          { card: "BT26-028", as: "host", under: [{ card: "BT26-027", as: "source" }] },
+        ],
+      },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("top"), "Barrier")).toBe(false);
+  });
+
+  it("uses the exact level-3 WG cost-2 evolution and rejects a near-match", async () => {
+    expect(digivolutionRequirementsFor("BT26-027")).toContainEqual({
+      level: 3,
+      traits: ["WG"],
+      cost: 2,
+      isAlternate: true,
+    });
+    const legal = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-024", as: "base" }],
+        hand: [{ card: "BT26-027", as: "petermon" }],
+        deck: ["BT1-009"],
+      },
+    });
+    legal.state.memory = 2;
+    expect(legal.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: legal.perm("base").permanentId,
+      instanceId: legal.inst("petermon").instanceId,
+      useAlternateCost: true,
+    })).toEqual({ ok: true });
+    await settle(() => legal.perm("base").topCard.cardId === "BT26-027");
+    expect(legal.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "base" }],
+        hand: [{ card: "BT26-027", as: "petermon" }],
+      },
+    });
+    invalid.state.memory = 2;
+    expect(invalid.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: invalid.perm("base").permanentId,
+      instanceId: invalid.inst("petermon").instanceId,
+      useAlternateCost: true,
+    })).toEqual(expect.objectContaining({ ok: false }));
   });
 });

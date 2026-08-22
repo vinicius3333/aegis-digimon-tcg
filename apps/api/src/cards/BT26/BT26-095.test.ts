@@ -46,4 +46,25 @@ describe("BT26-095 compiled fidelity", () => {
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.perm("reina").stack.some((card) => card.cardId === "ST23-08")).toBe(true);
   });
+
+  it("reacts to a Digimon deletion with draw, discard, and face-down BEATBREAK placement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-095", as: "reina" }],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+          trash: [{ card: "ST23-08", as: "beatbreak" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
+
+    expect(s.perm("reina").isSuspended).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+    expect(s.perm("reina").stack[0]).toMatchObject({ instanceId: s.inst("beatbreak").instanceId, faceUp: false });
+  });
 });

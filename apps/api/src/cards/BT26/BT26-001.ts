@@ -12,7 +12,7 @@ export const compiled: CompiledCard = {
       event: "whenEffectAddsToDeck",
       actions: [{
         kind: "Digivolve",
-        target: { filter: { isSelfRef: true }, count: 1 },
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
         from: ["hand"],
         into: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }] },
         payCost: true,

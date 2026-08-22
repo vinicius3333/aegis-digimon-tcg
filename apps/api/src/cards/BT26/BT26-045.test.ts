@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { digivolutionRequirementsFor } from "@aegis/shared";
 import { compiled } from "./BT26-045.js";
 import "../index.js";
@@ -24,6 +25,8 @@ describe("BT26-045 GranKuwagamon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT26-045", as: "granKuwagamon" }] } });
     await s.ready();
 
-    expect(s.perm("granKuwagamon").keywords).toEqual(expect.arrayContaining(["Alliance", "Piercing", "Vortex"]));
+    expect(observe(s.engine).hasKeyword(s.perm("granKuwagamon"), "Alliance")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("granKuwagamon"))).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("granKuwagamon"), "Vortex")).toBe(true);
   });
 });

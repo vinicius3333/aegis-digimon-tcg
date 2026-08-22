@@ -152,6 +152,8 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         if (chosenOwn.length > 0) {
           const played = await ctx.fx.playInstances(chosenOwn, {
             payCost: action.payCost,
+            ...(action.playedByDecode === true ? { playedByDecode: true } : {}),
+            hostPermanentIds: Object.fromEntries(chosenOwn.map((instanceId) => [instanceId, self.permanentId])),
             ...(action.suspended === true ? { suspended: true } : {}),
             ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
           });

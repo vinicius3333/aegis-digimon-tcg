@@ -11,7 +11,7 @@ describe("BT26-086 compiled behavior", () => {
     expect(compiled.assemblyRequirement).toEqual([
       { reduceCost: 7, materials: [{ traits: ["Seven Code"], count: 7, differentNames: true }] },
     ]);
-    expect(compiled.keywords).toEqual(
+    expect(compiled.effects.find((effect) => effect.trigger === "Static")?.keywords).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ keyword: "Rush" }),
         expect.objectContaining({ keyword: "Reboot" }),
@@ -26,11 +26,11 @@ describe("BT26-086 compiled behavior", () => {
           from: ["digivolutionCards"],
           payCost: false,
           optional: true,
-          target: {
+          target: expect.objectContaining({
             count: 7,
             upTo: true,
-            filter: { hasLinkRequirement: true, nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] },
-          },
+            filter: expect.objectContaining({ hasLinkRequirement: true, nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] }),
+          }),
         }),
         expect.objectContaining({ kind: "Attack", withoutSuspending: true, optional: true }),
       ]);
@@ -88,6 +88,9 @@ describe("BT26-086 compiled behavior", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
+    s.perm("dantemon").linked.push(...s.state.players[0]!.trash.splice(0));
+    expect(s.perm("dantemon").linked).toHaveLength(7);
 
     await advance(s.engine).fireSubTrigger("whenLinked", {
       subjectPermanentId: s.perm("dantemon").permanentId,

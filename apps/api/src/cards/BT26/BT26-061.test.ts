@@ -17,4 +17,25 @@ describe("BT26-061 Chiropmon", () => {
     expect(s.state.players[0]!.hand.map((c) => c.cardId).sort()).toEqual(["BT25-035", "BT25-079"]);
     expect(s.state.players[0]!.deck.map((c) => c.cardId)).toEqual(["BT1-009"]);
   });
+  it("draws and then trashes for its inherited attack effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-064", as: "host", under: ["BT26-061"] }],
+          deck: [{ card: "AD1-001", as: "drawn" }],
+        },
+        1: { security: ["AD1-002"] },
+      },
+      { autoSelectCards: true },
+    );
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("host").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("drawn").instanceId));
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
 });

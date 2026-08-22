@@ -1,4 +1,6 @@
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-020.js";
@@ -7,7 +9,7 @@ describe("BT26-020 ShellNumemon", () => {
   it("compiles draw and same-target attack/block restriction plus inherited Evade", () => {
     expect(compiled.coverage).toBe("full"); expect(compiled.residual).toEqual([]);
     expect(compiled.effects[0]?.actions).toMatchObject([{ kind: "Draw" }, { kind: "Restrict", restriction: "attackOrBlock" }]);
-    expect(compiled.effects[1]).toMatchObject({ trigger: "None", isInherited: true, actions: [{ kind: "GainKeyword", keyword: { keyword: "Evade" } }] });
+    expect(compiled.effects[1]).toMatchObject({ trigger: "Static", isInherited: true, actions: [], keywords: [{ keyword: "Evade" }] });
   });
   it("draws and restricts exactly one opposing Digimon from attacking or blocking", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT26-020", as: "shell" }], deck: [{ card: "BT1-001", as: "drawn" }] }, 1: { battleArea: [{ card: "BT1-009", as: "first" }, { card: "BT1-010", as: "second" }] } }, { autoSelectCards: true });
@@ -18,5 +20,65 @@ describe("BT26-020 ShellNumemon", () => {
     const locked = [s.perm("first"), s.perm("second")].filter((p) => observe(s.engine).isRestricted(p, "attack"));
     expect(locked).toHaveLength(1);
     expect(observe(s.engine).isRestricted(locked[0]!, "block")).toBe(true);
+
+    advance(s.engine).ledgers.continuous.sweep(s.state, "eachTurnEnd", 0);
+    expect(observe(s.engine).isRestricted(locked[0]!, "attack")).toBe(true);
+    advance(s.engine).ledgers.continuous.sweep(s.state, "eachTurnEnd", 1);
+    expect(observe(s.engine).isRestricted(locked[0]!, "attack")).toBe(false);
+    expect(observe(s.engine).isRestricted(locked[0]!, "block")).toBe(false);
+  });
+
+  it("uses the exact level-3 DS cost-2 evolution path and rejects a near-match", async () => {
+    expect(digivolutionRequirementsFor("BT26-020")).toContainEqual({
+      level: 3,
+      traits: ["DS"],
+      cost: 2,
+      isAlternate: true,
+    });
+    const legal = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-018", as: "dsBase" }],
+        hand: [{ card: "BT26-020", as: "shell" }],
+        deck: ["BT1-009"],
+      },
+    });
+    legal.state.memory = 2;
+    expect(legal.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: legal.perm("dsBase").permanentId,
+      instanceId: legal.inst("shell").instanceId,
+      useAlternateCost: true,
+    })).toEqual({ ok: true });
+    await settle(() => legal.perm("dsBase").topCard.cardId === "BT26-020");
+    expect(legal.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-009", as: "plainBase" }],
+        hand: [{ card: "BT26-020", as: "shell" }],
+      },
+    });
+    invalid.state.memory = 2;
+    expect(invalid.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: invalid.perm("plainBase").permanentId,
+      instanceId: invalid.inst("shell").instanceId,
+      useAlternateCost: true,
+    })).toEqual(expect.objectContaining({ ok: false }));
+    expect(invalid.state.memory).toBe(2);
+  });
+
+  it("grants inherited Evade only while ShellNumemon is in a host's evolution stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT26-020", as: "top" },
+          { card: "BT1-009", as: "host", under: [{ card: "BT26-020", as: "source" }] },
+        ],
+      },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Evade")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("top"), "Evade")).toBe(false);
   });
 });

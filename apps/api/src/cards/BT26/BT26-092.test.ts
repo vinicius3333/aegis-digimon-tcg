@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./BT26-092.js";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 describe("BT26-092 Shota Kuroi", () => {
   it("compiles the start-main TS cost and draw/memory benefit", () => {
@@ -51,5 +51,32 @@ describe("BT26-092 Shota Kuroi", () => {
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT26-008")).toBe(true);
+  });
+  it("returns a TS Tamer to redirect an opponent attack into a TS Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-092", as: "shota" },
+            { card: "BT26-080", as: "defender" },
+          ],
+          security: ["BT1-001"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-009"));
+
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT26-092");
   });
 });

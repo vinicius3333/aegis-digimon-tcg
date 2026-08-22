@@ -108,7 +108,11 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
       const ctx = {
         source: cardSource,
         trigger: {},
-        game: { player: () => ({ hand }), opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat },
+        game: {
+          player: () => ({ hand }),
+          opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
+          definitionOf: (card: { cardId: string }) => def(card.cardId, [CardKind.Digimon]),
+        },
         ask: {
           selectCards: vi.fn(async (_ctx, opts: { candidates: string[]; min: number; max: number }) => {
             expect(opts).toMatchObject({ candidates: ["kept", "drawn"], min: 1, max: 1 });
@@ -269,7 +273,7 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
 
     expect(effect.canActivate(ctx)).toBe(true);
     await effect.resolve(ctx);
-    expect(useOptionFromHand).toHaveBeenCalledWith(ctx, "new-option", 3, expect.objectContaining({ payCost: true, costDelta: -2 }));
-    expect(ctx.fx.gainMemory).toHaveBeenCalledWith(-1);
+    expect(useOptionFromHand).toHaveBeenCalledWith(expect.any(Object), "new-option", 3, expect.objectContaining({ payCost: true, costDelta: 2 }));
+    expect(ctx.fx.gainMemory).not.toHaveBeenCalled();
   });
 });

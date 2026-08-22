@@ -245,7 +245,7 @@ export async function runUseOptionWithoutCost(
       const def = ctx.game.definitionOf({ cardId: cand.cardId } as never);
       if (filter !== undefined && !definitionMatches(filter, def)) continue;
       if (!def.kinds.includes(CardKind.Option)) continue;
-      if (def.colors !== undefined && def.colors.length !== 1) continue;
+      if (action.allowMultiColor !== true && def.colors !== undefined && def.colors.length !== 1) continue;
       if (def.playCost > costCap) continue;
       if (ctx.fx.isPlayProhibited?.(seat, cand.cardId, "play") === true) continue;
       candidates.push(cand.instanceId);
@@ -269,18 +269,13 @@ export async function runUseOptionWithoutCost(
     .flatMap((z) => looseCardsInZone(ctx, seat, z as ZoneRef))
     .find((c) => c.instanceId === chosenId);
 
-  // Pay the reduced cost here, then ask the lifecycle primitive to resolve the Option without
-  // charging it a second time. The ORIGINAL printed cost is still passed separately for the
-  // whenOptionUsed watcher gate (KB Q5471-Q5473), not the reduced value.
-  if (action.payCost === true && chosenCard !== undefined) {
-    const chosenDef = ctx.game.definitionOf({ cardId: chosenCard.cardId } as never);
-    const dynamicReduction =
-      action.reduceCostByOpponentMemory === true
-        ? Math.max(0, new MemoryGauge(ctx.game.state).memoryFor(ctx.game.opponentOf(seat)))
-        : 0;
-    const reducedCost = Math.max(0, chosenDef.playCost - (action.reduceCostBy ?? 0) - dynamicReduction);
-    if (reducedCost > 0) ctx.fx.gainMemory(-reducedCost);
-  }
+  // The shared use verb owns payment so play-cost restrictions and insufficient-memory checks
+  // run exactly once. Fold both printed reductions into its signed cost delta.
+  const dynamicReduction =
+    action.reduceCostByOpponentMemory === true
+      ? Math.max(0, new MemoryGauge(ctx.game.state).memoryFor(ctx.game.opponentOf(seat)))
+      : 0;
+  const totalReduction = (action.reduceCostBy ?? 0) + dynamicReduction;
 
   // Effect resolution + lifecycle (trash the Option, fire whenOptionUsed) both now live behind
   // `ctx.fx.useOptionFromHand` (primitives.ts), which resolves the chosen card's registered
@@ -292,7 +287,8 @@ export async function runUseOptionWithoutCost(
   // (BT19-040; KB Q5471-Q5473 read the cost itself, not the paid/reduced value).
   const usedCost = chosenCard ? ctx.game.definitionOf({ cardId: chosenCard.cardId } as never).playCost : undefined;
   await ctx.fx.useOptionFromHand(ctx, chosenId, usedCost, {
-    payCost: false,
+    payCost: action.payCost,
+    ...(totalReduction > 0 ? { costDelta: totalReduction } : {}),
   });
   ctx.lastOptionUsed = true;
   ctx.lastOptionUsedInstanceId = chosenId;

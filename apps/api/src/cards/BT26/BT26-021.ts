@@ -15,8 +15,8 @@ const inheritedAttack = {
   target: { filter: opponentDigimon, count: 1 },
   amount: 2,
   fromTop: false,
-  cost: { kind: "trash", target: { filter: { controllerDefault: "mine", zone: "hand" }, count: 1 } },
 };
+const inheritedCost = { kind: "trash", target: { filter: { controllerDefault: "mine", zone: "hand" }, count: 1 } };
 
 const lockAttackTarget = {
   kind: "Restrict",
@@ -31,6 +31,7 @@ export const compiled: CompiledCard = {
     { trigger: "WhenDigivolving", actions: [lockAttackTarget] },
     {
       trigger: "Main",
+      effectKey: "BT26-021/main-play-ts-tamer-from-trash",
       frequency: "OncePerTurn",
       actions: [
         {
@@ -47,7 +48,7 @@ export const compiled: CompiledCard = {
       trigger: "AllTurns",
       isInherited: true,
       frequency: "OncePerTurn",
-      actions: [{ kind: "SubTrigger", event: "whenAttacking", actions: [inheritedAttack] }],
+      actions: [{ kind: "SubTrigger", event: "whenAttacking", cost: inheritedCost, actions: [inheritedAttack] }],
     },
   ],
   coverage: "full",

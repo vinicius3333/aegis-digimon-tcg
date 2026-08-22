@@ -770,10 +770,21 @@ export async function payCost(
           bucket.push(id);
           byHost.set(entry.hostPermanentId, bucket);
         }
-        for (const [hostId, ids] of byHost) {
-          await ctx.fx.trashDigivolutionCards(hostId, ids, { byEffectSeat: ctx.source.ownerSeat });
+        if (loose.length === 0) {
+          const selections = [...byHost].flatMap(([hostPermanentId, instanceIds]) =>
+            instanceIds.map((instanceId) => ({ hostPermanentId, instanceId })),
+          );
+          const moved = await ctx.fx.trashDigivolutionCardsAtomic(selections, n, {
+            byEffectSeat: ctx.source.ownerSeat,
+          });
+          if (moved.length !== n) return false;
+        } else {
+          if (chosen.some((instanceId) => ctx.fx.canTrashDigivolutionCard?.(instanceId) === false)) return false;
+          for (const [hostId, ids] of byHost) {
+            await ctx.fx.trashDigivolutionCards(hostId, ids, { byEffectSeat: ctx.source.ownerSeat });
+          }
+          await ctx.fx.trash(loose, { byEffectSeat: ctx.source.ownerSeat });
         }
-        if (loose.length > 0) await ctx.fx.trash(loose, { byEffectSeat: ctx.source.ownerSeat });
         if (out) out.paidCount = chosen.length;
         return true;
       }
@@ -824,17 +835,17 @@ export async function payCost(
           const allowZero = (cost.target as Target & { allowZero?: boolean }).allowZero === true;
           const chosen = await ctx.ask.selectCards(ctx, { candidates: candidateIds, min: allowZero ? 0 : 1, max: cap });
           if (chosen.length < 1) return false;
-          await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
-          if (out) out.paidCount = chosen.length;
-          return true;
+          const moved = await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
+          if (out) out.paidCount = moved.length;
+          return moved.length >= 1;
         }
         const want = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
         if (candidates.length < want) return false;
         const chosen = await pickLoose(ctx, { ...handTarget, count: want }, candidates);
         if (chosen.length < want) return false;
-        await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
-        if (out) out.paidCount = chosen.length;
-        return true;
+        const moved = await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
+        if (out) out.paidCount = moved.length;
+        return moved.length === want;
       }
       // A security-/hand-/trash-resident effect can pay "by trashing this card" while its
       // source is a loose instance rather than a permanent (ST22-10's face-up security
@@ -931,6 +942,16 @@ export async function payCost(
         } else {
           await ctx.fx.returnToHand(chosen);
         }
+        if (out) out.paidCount = chosen.length;
+        return true;
+      }
+      if (cost.target.filter.zone === "security") {
+        const candidates = candidateLooseInstances(ctx, cost.target, ["security"]);
+        const n = cost.target.count === "all" ? candidates.length : cost.target.count;
+        if (n <= 0 || candidates.length < n) return false;
+        const chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
+        if (chosen.length < n) return false;
+        await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
         if (out) out.paidCount = chosen.length;
         return true;
       }

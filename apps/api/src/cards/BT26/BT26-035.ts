@@ -11,6 +11,7 @@ const suspend = { kind: "Suspend", target: { filter: anyDigimon, count: 1 }, opt
 const inheritedDigivolve = {
   kind: "SubTrigger",
   event: "whenBattleWon",
+  sourceFilter: { isSelfRef: true },
   actions: [
     {
       kind: "Digivolve",

@@ -2444,7 +2444,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // Generic removal watchers (BT4-088) care that a card left security regardless of
       // whether it was checked or removed by an effect. Security checks already fire this
       // event at their own movement seam; effect-driven trash must reach the same bus too.
-      await engine.fireSubTrigger?.("whenSecurityRemoved", { removedFromSecuritySeat: seat });
+      await engine.fireSubTrigger?.("whenSecurityRemoved", {
+        removedFromSecuritySeat: seat,
+        securityRemovedByEffect: true,
+      });
       await engine.fireSubTrigger?.("whenCardTrashedFromSecurity", {
         removedFromSecuritySeat: seat,
         trashedFromSecurityInstanceIds: moved.map((c) => c.instanceId),

@@ -76,6 +76,45 @@ describe("BT26-009 Hyokomon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 
+  it("accepts the alternative Shaman-trait cost while rejecting an unrelated hand card", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-009", as: "hyokomon" }],
+        hand: [
+          { card: "BT26-032", as: "shaman" },
+          { card: "BT1-009", as: "unrelated" },
+        ],
+        deck: [{ card: "BT1-010", as: "drawn" }],
+      },
+    }, { autoSelectCards: true, preferInstanceIds: preferred });
+    preferred.push(s.inst("shaman").instanceId);
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("hyokomon"));
+
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("shaman").instanceId]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("unrelated").instanceId, s.inst("drawn").instanceId]),
+    );
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("does not draw or gain memory when no hand card can pay the start-main cost", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-009", as: "hyokomon" }],
+        hand: [{ card: "BT1-009", as: "unrelated" }],
+        deck: [{ card: "BT1-010", as: "notDrawn" }],
+      },
+    });
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("hyokomon"));
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("unrelated").instanceId]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("notDrawn").instanceId]);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("inherited attack draws first, then at exactly 6 returns one hand card face-down to deck bottom", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

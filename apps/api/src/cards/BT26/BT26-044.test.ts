@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT26-044.js";
 import "../index.js";
 
@@ -30,5 +31,27 @@ describe("BT26-044 Lilamon", () => {
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
     expect(s.perm("target").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
+  });
+
+  it("reacts to an opponent suspension with the reduced-cost DATA SQUAD digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-044", as: "lilamon" }],
+          hand: [{ card: "BT26-049", as: "rosemon" }],
+        },
+        1: { battleArea: [{ card: "BT5-022", as: "opponent", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenSuspended", {
+      suspendedPermanentId: s.perm("opponent").permanentId,
+    });
+    await settle(() => s.perm("lilamon").topCard.cardId === "BT26-049");
+
+    expect(s.state.memory).toBe(0);
   });
 });

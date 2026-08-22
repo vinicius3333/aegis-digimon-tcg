@@ -332,9 +332,11 @@ export async function runPlaceUnder(
  * existing resolver-specific handling.
  */
 export function canAttemptPlaceUnder(ctx: EffectContext, action: Extract<Action, { kind: "PlaceUnder" }>): boolean {
+  if (action.fromDeckTop === true) {
+    return ctx.source.permanent() !== undefined && ctx.game.player(ctx.source.ownerSeat).deck.length > 0;
+  }
   if (
     action.fromEggDeck === true ||
-    action.fromDeckTop === true ||
     action.targetIsPermanent === true ||
     action.target?.isSelf === true ||
     action.target?.filter?.isSelfRef === true

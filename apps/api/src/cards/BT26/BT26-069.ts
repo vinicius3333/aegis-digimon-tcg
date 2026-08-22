@@ -55,7 +55,14 @@ export const compiled: CompiledCard = {
           actions: [
             {
               kind: "Digivolve",
-              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              target: {
+                filter: {
+                  isSelfRef: true,
+                  nameOrTrait: [{ tokens: ["Titan"], match: "trait" }],
+                },
+                count: 1,
+                isSelf: true,
+              },
               into: titanTrash,
               from: ["trash"],
               payCost: true,

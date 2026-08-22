@@ -27,9 +27,9 @@ describe("BT26-078 compiled behavior", () => {
       { tokens: ["Titan"], match: "trait" },
     ] }, fireCondition: { kind: "allOf", conditions: [{ kind: "isYourTurn" }, { kind: "memoryAtLeast", value: 5, controller: "opponent" }] } }] });
     expect(effect.actions[0].actions).toEqual([
-      expect.objectContaining({ kind: "Return", to: "deckBottom", target: { isSelf: true }, optional: true }),
-      expect.objectContaining({ kind: "GainKeyword", target: { sourceRef: "triggerSubject" }, keyword: { keyword: "Rush" }, duration: "untilEachTurnEnd" }),
-      expect.objectContaining({ kind: "GainKeyword", target: { sourceRef: "triggerSubject" }, keyword: { keyword: "Execute" }, duration: "untilEachTurnEnd" }),
+      expect.objectContaining({ kind: "Return", to: "deckBottom", target: expect.objectContaining({ isSelf: true }), optional: true }),
+      expect.objectContaining({ kind: "GainKeyword", target: expect.objectContaining({ sourceRef: "triggerSubject" }), keyword: { keyword: "Rush" }, duration: "untilEachTurnEnd" }),
+      expect.objectContaining({ kind: "GainKeyword", target: expect.objectContaining({ sourceRef: "triggerSubject" }), keyword: { keyword: "Execute" }, duration: "untilEachTurnEnd" }),
     ]);
   });
 

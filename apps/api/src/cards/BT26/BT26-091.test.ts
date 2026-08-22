@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-091.js";
 import "../index.js";
 
@@ -24,12 +24,12 @@ describe("BT26-091 compiled fidelity", () => {
         expect.objectContaining({
           kind: "SubTrigger",
           event: "whenSuspended",
-          sourceFilter: { controller: "opponent" },
+          sourceFilter: expect.objectContaining({ controller: "opponent" }),
         }),
         expect.objectContaining({
           kind: "SubTrigger",
           event: "whenDigivolutionTrashed",
-          hostFilter: { isSelfRef: true },
+          hostFilter: expect.objectContaining({ isSelfRef: true }),
         }),
       ]),
     );
@@ -62,5 +62,31 @@ describe("BT26-091 compiled fidelity", () => {
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.perm("yoshino").stack.some((card) => card.cardId === "ST24-08")).toBe(true);
+  });
+
+  it("suspends itself to reactively digivolve for one less when an opponent card suspends", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-091", as: "yoshino" },
+            { card: "BT26-039", as: "base" },
+          ],
+          hand: [{ card: "BT26-044", as: "lilamon" }],
+        },
+        1: { battleArea: [{ card: "BT5-022", as: "opponent", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenSuspended", {
+      suspendedPermanentId: s.perm("opponent").permanentId,
+    });
+    await settle(() => s.perm("base").topCard.cardId === "BT26-044");
+
+    expect(s.perm("yoshino").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(0);
   });
 });

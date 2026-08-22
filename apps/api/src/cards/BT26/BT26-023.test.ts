@@ -2,25 +2,25 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-023.js";
 import "../index.js";
 
 describe("BT26-023 Mojyamon", () => {
   it("encodes the printed evolution, Training/Jamming, and face-down hand cost", () => {
     expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["DM"], cost: 2, isAlternate: true }]);
-    expect(compiled.keywords).toEqual(
+    expect(compiled.effects.find((effect) => effect.trigger === "Static")?.keywords).toEqual(
       expect.arrayContaining([
         expect.objectContaining({ keyword: "Training" }),
         expect.objectContaining({ keyword: "Jamming" }),
       ]),
     );
-    expect(compiled.effects).toMatchObject([
-      {
-        trigger: "OnPlay",
-        actions: [{ kind: "Return", to: "deckBottom", cost: { kind: "place", position: "bottom", faceDown: true } }],
-      },
-      { trigger: "WhenAttacking", actions: [{ kind: "Return", to: "deckBottom" }] },
-    ]);
+    expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")).toMatchObject({
+      actions: [{ kind: "Return", to: "deckBottom", cost: { kind: "place", position: "bottom", faceDown: true } }],
+    });
+    expect(compiled.effects.find((effect) => effect.trigger === "WhenAttacking" && !effect.isInherited)).toMatchObject({
+      actions: [{ kind: "Return", to: "deckBottom" }],
+    });
   });
 
   it("uses the exact level-3 DM alternate evolution for cost 2", async () => {
@@ -173,6 +173,12 @@ describe("BT26-023 Mojyamon", () => {
     const empty = setupEngine({ 0: { battleArea: [{ card: "BT26-023", as: "mojyamon" }] } });
     await advance(empty.engine).fire(EffectTiming.OnDeclaration, empty.perm("mojyamon"));
     expect(empty.perm("mojyamon").isSuspended).toBe(false);
+  });
+
+  it("publishes Jamming while Mojyamon is the top card", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT26-023", as: "mojyamon" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("mojyamon"), "Jamming")).toBe(true);
   });
 
   it("inherited When Attacking draws at 7 cards and not at 8", async () => {

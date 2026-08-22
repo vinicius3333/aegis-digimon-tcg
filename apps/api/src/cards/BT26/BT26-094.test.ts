@@ -3,6 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-094.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT26-094 compiled fidelity", () => {
@@ -59,5 +60,22 @@ describe("BT26-094 compiled fidelity", () => {
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.perm("keenan").stack.some((card) => card.cardId === "ST24-08")).toBe(true);
+  });
+
+  it("suspends itself and grants Execute when the opponent's hand is trashed from", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT26-094", as: "keenan" },
+          { card: "BT26-039", as: "dataSquad" },
+        ],
+      },
+    }, { autoSelectCards: true });
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 1, byEffectSeat: 0 });
+
+    expect(s.perm("keenan").isSuspended).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("dataSquad"), "Execute")).toBe(true);
   });
 });
