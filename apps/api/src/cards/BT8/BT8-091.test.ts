@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT8-091.js";
 
@@ -128,5 +130,11 @@ describe("BT8-091 Willis", () => {
     expect(s.perm("willis").isSuspended).toBe(true);
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("plays itself from a face-up Security check without memory cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT8-091", as: "securityWillis", faceUp: true }] } });
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityWillis"));
+    expect(s.state.players[0]!.battleArea.some(permanent => permanent.topCard.instanceId === s.inst("securityWillis").instanceId)).toBe(true);
   });
 });
