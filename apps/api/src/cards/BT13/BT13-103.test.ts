@@ -64,13 +64,16 @@ describe("BT13-103 Akihiro Kurata", () => {
         0: {
           battleArea: [{ card: "BT13-103", as: "akihiro" }],
           deck: [{ card: "BT1-001", as: "drawn" }],
-          hand: [{ card: "BT1-002", as: "discard" }],
+          hand: [
+            { card: "BT1-002", as: "discard" },
+            { card: "BT1-003", as: "keep" },
+          ],
         },
       },
       { autoDeclineOptional: true },
     );
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("akihiro"));
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-002");
+    expect(s.state.players[0]!.trash).toHaveLength(1);
   });
 });
