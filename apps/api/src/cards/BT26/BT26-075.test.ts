@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-075.js";
 
 describe("BT26-075 compiled behavior", () => {
@@ -22,5 +25,24 @@ describe("BT26-075 compiled behavior", () => {
       expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Execute" } }),
       expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Ascension" } }),
     ]);
+  });
+
+  it("publicly pays the Tamer cost and plays a Glowing Dawn card from trash on deletion", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT26-075", as: "scourge" },
+          { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] },
+        ],
+        trash: [{ card: "BT26-052", as: "glowingDawn" }],
+        deck: ["BT1-001", "BT1-002", "BT1-003"],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnDestroyedAnyone, s.perm("scourge"));
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("scourge").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-052");
+    expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).not.toContain("BT1-010");
   });
 });

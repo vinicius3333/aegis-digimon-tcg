@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "../index.js";
 import { compiled } from "./EX8-021.js";
 
 describe("EX8-021", () => {
@@ -11,7 +10,7 @@ describe("EX8-021", () => {
       frequency: "OncePerTurn",
       actions: [{ kind: "GainMemory", amount: 1 }],
     });
-    expect(compiled.effects?.find((entry) => entry.isInherited)?.keywords).toContainEqual({
+    expect(compiled.effects?.find((entry) => entry.keywords !== undefined)?.keywords).toContainEqual({
       keyword: "Jamming",
       raw: "＜Jamming＞",
     });

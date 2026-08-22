@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-098.js";
 import "../index.js";
 
@@ -53,5 +56,21 @@ describe("BT26-098 compiled fidelity", () => {
       ignoreRequirements: true,
       optional: true,
     });
+  });
+
+  it("publicly plays a Lalamon from hand and adds itself to hand from security", async () => {
+    const s = setupEngine({
+      0: {
+        security: [{ card: "BT26-098", as: "option", faceUp: true }],
+        hand: [{ card: "BT26-036", as: "lalamon" }],
+        battleArea: [{ card: "BT26-036", as: "existingLalamon" }],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "BT26-036")).toHaveLength(2);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT26-098");
   });
 });

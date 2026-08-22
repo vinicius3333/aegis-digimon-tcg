@@ -84,6 +84,7 @@ export async function runHandRevealAdd(
  * (BT1-078 KB Q931/Q932).
  */
 export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, { kind: "RevealAdd" }>): Promise<void> {
+  ctx.lastEffectActed = false;
   const seat = ctx.source.ownerSeat;
   if (action.trackCount !== undefined) {
     ctx.namedCounts ??= new Map();
@@ -101,7 +102,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
   const toHand: string[] = [];
   const toTrash: string[] = [];
   const toPlay: { instanceId: string; costDelta?: number }[] = [];
-  const toUseOption: { instanceId: string; costDelta?: number }[] = [];
+  const toUseOption: { instanceId: string; costDelta?: number; payCost?: boolean }[] = [];
   const toDigivolve: { instanceId: string; target?: Target; payCost?: boolean }[] = [];
   const toSecurity: { instanceId: string; toTop: boolean; faceDown: boolean }[] = [];
   const toPlaceUnder: { instanceId: string; underFilter?: import("@aegis/shared").Filter; faceDown?: boolean }[] = [];
@@ -292,7 +293,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         disposition = choices[picked] ?? disposition;
       }
       if (disposition.to === "play") toPlay.push({ instanceId: c.instanceId, costDelta: spec.costDelta });
-      else if (disposition.to === "useOption") toUseOption.push({ instanceId: c.instanceId, costDelta: spec.costDelta });
+      else if (disposition.to === "useOption") toUseOption.push({ instanceId: c.instanceId, costDelta: spec.costDelta, payCost: spec.payCost });
       else if (disposition.to === "trash") toTrash.push(c.instanceId);
       else if (disposition.to === "digivolve")
         toDigivolve.push({ instanceId: c.instanceId, target: spec.digivolveTarget });
@@ -364,8 +365,9 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     await ctx.fx.returnToHand(optionIds, { silent: true });
     for (const entry of toUseOption) {
       const card = ctx.game.definitionOf({ cardId: revealed.find((item) => item.instanceId === entry.instanceId)!.cardId } as never);
-      await ctx.fx.useOptionFromHand(ctx, entry.instanceId, card.playCost, { payCost: true, costDelta: entry.costDelta });
+      await ctx.fx.useOptionFromHand(ctx, entry.instanceId, card.playCost, { payCost: entry.payCost !== false, costDelta: entry.costDelta });
     }
+    ctx.lastEffectActed = toUseOption.length > 0;
   }
   // "place N [X] as the bottom digivolution card of one of your [Y] Digimon"
   if (toPlaceUnder.length > 0) {

@@ -26,14 +26,14 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       const targetIds = await resolvePermanentTargets(ctx, action.target);
       const cards = targetIds.flatMap((id) => {
         const permanent = ctx.game.permanentById(id);
-        return permanent === undefined ? [] : permanent.stack.slice(-action.cardsPerTarget);
+        return permanent === undefined ? [] : Array.from(permanent.stack).slice(-action.cardsPerTarget);
       });
       if (cards.length === 0) return false;
       let ordered = cards.map((card) => card.instanceId);
       if (action.order === "any" && ordered.length > 1 && ctx.ask.orderCards !== undefined) {
         ordered = await ctx.ask.orderCards(ctx, { candidates: ordered, destination: "deckTop" });
       }
-      await ctx.fx.returnToDeck([...ordered].reverse(), { toTop: true });
+      await ctx.fx.returnToDeck([...ordered].reverse(), { toTop: true, byEffectSeat: ctx.source.ownerSeat, byEffectCardId: ctx.source.cardId });
       ctx.lastEffectActed = true;
       return false;
     }
@@ -614,6 +614,10 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         if (action.bindResultAs) {
           ctx.boundPlayed ??= new Map();
           ctx.boundPlayed.set(action.bindResultAs, new Set(moved.map((card) => card.instanceId)));
+          if (moved.length > 0) {
+            ctx.selections ??= new Map();
+            ctx.selections.set(action.bindResultAs, moved[0]!.instanceId);
+          }
         }
         if (action.trackCount !== undefined) {
           if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
@@ -645,6 +649,16 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
         ctx.namedCounts.set(action.trackCount, moved.length);
       }
+      return false;
+    }
+    case "ReturnToEggDeck": {
+      const zones = action.from ?? (action.target.filter.zone !== undefined ? [action.target.filter.zone] : ["trash"]);
+      const candidates = candidateLooseInstances(ctx, action.target, zones);
+      const count = action.target.count === "all" ? candidates.length : (action.target.count ?? 1);
+      if (count <= 0 || candidates.length < count || ctx.fx.returnToEggDeck === undefined) return false;
+      const chosen = await pickLoose(ctx, { ...action.target, count }, candidates);
+      if (chosen.length !== count) return false;
+      await ctx.fx.returnToEggDeck(chosen);
       return false;
     }
     case "DeletionMaxDpModifier": {

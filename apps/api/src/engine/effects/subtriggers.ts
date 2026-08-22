@@ -30,9 +30,9 @@ export interface SubTriggerSubscription {
   sourcePermanentId?: string;
   /**
    * Anchor for a hand/trash-resident source with no live Permanent. See
-   * {@link SubTriggerInstall.sourceInstanceId}. Mutually exclusive with
-   * `sourcePermanentId` in practice — the engine's context builder tries the
-   * permanent anchor first and falls back to this only when it is absent.
+   * {@link SubTriggerInstall.sourceInstanceId}. When both are present, the
+   * permanent anchors the subscription lifecycle while the instance preserves
+   * the printed source card (including an inherited card in a stack).
    */
   sourceInstanceId?: string;
   /**
@@ -124,8 +124,6 @@ export interface ReplacementSubscriptionBase {
   id: number;
   event: ReplacementEventName;
   sourcePermanentId?: string;
-  /** Anchor for a card-resident replacement whose source is in hand/trash. */
-  sourceInstanceId?: string;
   /** Stable key used to consume a persistent replacement at most once in a turn. */
   oncePerTurnKey?: string;
   /**
@@ -151,7 +149,6 @@ export interface ReplacementSubscriptionBase {
 export interface ReplacementSubscriptionReduceCost extends ReplacementSubscriptionBase {
   mode: "reduceCost";
   amount?: number;
-  amountForInto?: (def: CardDefinition) => number;
   /**
    * For mode "reduceCost" + event "wouldDigivolve": predicate gating the reduction to only
    * when the card being digivolved INTO satisfies this check. Absent ⇒ applies to all targets.
@@ -327,15 +324,12 @@ export class SubTriggerRegistry {
           `permanent/instance or retain the activating resolution context.`,
       );
     }
-    const existing = this.subs.find(
-      (candidate) =>
-        candidate.event === sub.event &&
-        candidate.sourcePermanentId === sub.sourcePermanentId &&
-        candidate.sourceInstanceId === sub.sourceInstanceId &&
-        candidate.oncePerTurnKey === sub.oncePerTurnKey &&
-        candidate.description === sub.description,
-    );
-    if (existing !== undefined) return existing.id;
+    if (sub.oncePerTurnKey !== undefined) {
+      const existing = this.subs.find(
+        (candidate) => candidate.event === sub.event && candidate.oncePerTurnKey === sub.oncePerTurnKey,
+      );
+      if (existing !== undefined) return existing.id;
+    }
     const id = this.seq++;
     this.subs.push({ ...sub, id });
     return id;

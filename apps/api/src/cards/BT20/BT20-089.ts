@@ -4,6 +4,20 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const cardId = "BT20-089";
 const EIJI_NAGASUMI = "Eiji Nagasumi";
+const qualifying = {
+  controller: "mine" as const,
+  kind: ["Digimon" as const],
+  nameOrTrait: [
+    { match: "text" as const, tokens: ["Pulsemon"] },
+    { match: "trait" as const, tokens: ["SoC", "SEEKERS"] },
+  ],
+  hasTamerCards: false,
+};
+const mindLink = {
+  kind: "MindLink" as const,
+  target: { filter: qualifying, count: 1 },
+  optional: true,
+};
 
 function hasPulsemonText(def: CardDefinition): boolean {
   const hay = [def.nameEn ?? "", def.effectText ?? "", def.inheritedEffectText ?? "", ...(def.types ?? [])].join(" ");

@@ -2,7 +2,6 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "../index.js";
 import { compiled } from "./BT13-109.js";
 
 async function resolveMain(s: ReturnType<typeof setupEngine>, optionId: string): Promise<void> {

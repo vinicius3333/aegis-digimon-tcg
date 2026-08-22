@@ -3,17 +3,18 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
+  cardId: "BT3-102",
   effects: [
     {
       trigger: "Main",
       actions: [
-        { kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 },
+        { kind: "SecurityManipulation", op: "trashTop", controller: "opponent", optionalFor: "opponent", amount: 1 },
         {
           kind: "SecurityManipulation",
           op: "addTop",
           controller: "mine",
           source: "deck",
-          condition: { kind: "raw", raw: "they don't" },
+          condition: { kind: "opponentDeclinedTrash", raw: "if they don't" },
           amount: 1,
         },
       ],

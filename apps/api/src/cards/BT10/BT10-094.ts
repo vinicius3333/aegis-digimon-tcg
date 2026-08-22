@@ -1,5 +1,5 @@
 // @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import { getCompiledCard, type CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 import { getCompiledCard } from "@aegis/shared";
 
@@ -21,6 +21,7 @@ import { getCompiledCard } from "@aegis/shared";
  *     - Optional: select and play 1 Gammamon from hand or trash without cost.
  */
 const cardId = "BT10-094";
+const compiled = getCompiledCard(cardId) as CompiledCard;
 
 function isGammamon(def: CardDefinition): boolean {
   if (!(def.kinds as string[]).includes(CardKind.Digimon as string)) return false;
@@ -144,4 +145,4 @@ const module: EffectModule = {
 
 const compiled = getCompiledCard("BT10-094")!;
 export { compiled };
-registerIrCard("BT10-094", compiled);
+registerIrCard("BT10-094", compiled, module);

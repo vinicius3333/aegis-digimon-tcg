@@ -53,9 +53,9 @@ describe("EX12-041 Thundermon", () => {
         effectKey: mainEffectKey(s),
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === s.inst("option").instanceId));
 
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
     expect(s.state.memory).toBe(0);
   });
 

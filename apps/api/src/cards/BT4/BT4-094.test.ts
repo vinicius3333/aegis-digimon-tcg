@@ -22,6 +22,18 @@ describe("BT4-094 Tai Kamiya", () => {
     expect(s.perm("purple").currentDP).toBe(s.perm("purple").baseDP + 1000);
   });
 
+  it("does not grant the DP aura at 4 security", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT4-094", as: "tai" }, { card: "BT1-009", as: "digimon" }],
+        security: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+      },
+    });
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.perm("digimon").currentDP).toBe(s.perm("digimon").baseDP);
+  });
+
   it("suspends to gain memory when an opposing Digimon is deleted at 0 DP", async () => {
     const s = setupEngine(
       {

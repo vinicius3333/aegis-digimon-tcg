@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-093.js";
-import "../index.js";
 
 describe("BT21-093 [Main] on-play body fires on a real playCard (not dead)", () => {
   it("deletes the opponent's highest-DP Digimon and lands in the battle area", async () => {

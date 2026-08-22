@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { compiled } from "./EX5-065.js";
 import "./EX5-065.js";
 
 describe("EX5-065 Sayo & Koh", () => {
@@ -16,8 +17,9 @@ describe("EX5-065 Sayo & Koh", () => {
       hasColor: () => true,
     } as never;
     const module = getEffectModule("EX5-065")!;
-    expect(module.effectsForTiming(EffectTiming.OnEnterFieldAnyone, source)[0]?.description).toContain("gain 1 memory");
-    expect(module.effectsForTiming(EffectTiming.OnStartTurn, source)[0]?.description).toContain("DNA Digivolve");
+    const watcher = compiled.effects.find((effect) => effect.trigger === "YourTurn");
+    expect(watcher?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "onAddDigivolutionCards" });
+    expect(module.effectsForTiming(EffectTiming.OnStartTurn, source)[0]?.description).toContain("DNA digivolve");
   });
   it("registers the mandatory security play effect", () => {
     const source = {

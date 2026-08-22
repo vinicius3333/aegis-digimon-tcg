@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-041.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT22-041 Kentaurosmon", () => {
   it("gates the play-cost reduction on total security, places a yellow hand card on top, and trashes top security to unsuspend", () => {

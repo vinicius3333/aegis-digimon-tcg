@@ -7,6 +7,7 @@ import { runAction } from "../dispatch.js";
 import { scaleFactor } from "../scaling.js";
 import { candidateLooseInstances } from "../targeting/loose.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
+import { permanentMatchesFilter } from "../matching/permanent.js";
 import type { Action, CardEffect, Condition, Cost, Permanent, Scaling, ZoneRef } from "@aegis/shared";
 
 /**
@@ -250,6 +251,7 @@ export function wouldBePlayedSelfReducersFor(cardId: string): WouldBePlayedSelfR
 export interface WouldDigivolveSelfReducer {
   cost?: Cost;
   scaling?: Scaling;
+  sourceFilter?: import("@aegis/shared").Filter;
   amount: number;
   raw: string;
 }
@@ -260,6 +262,7 @@ const VERIFIED_DIGIVOLVE_SELF_REDUCER_CARDS = new Set([
   "EX3-054", // return up to 5 [D-Brigade] cards from trash to deck top -> -1 each (KB Q3423)
   "BT22-038", // -1 for each face-down digivolution card on the Ver.1 base (KB Q4884/Q5196)
   "BT8-112", // return a white level 7 from trash to the deck bottom -> -4
+  "BT3-111", // Paildramon/Dinobeemon would digivolve into this card -> -2 (KB card ruling)
 ]);
 
 export function collectWouldDigivolveSelfReducers(cardId: string, effects: readonly CardEffect[]): void {
@@ -273,12 +276,12 @@ export function collectWouldDigivolveSelfReducers(cardId: string, effects: reado
           action.kind === "Replacement" &&
           action.event === "wouldDigivolve" &&
           action.mode === "reduceCost" &&
-          (action.cost !== undefined || action.scaling !== undefined) &&
           typeof action.amount === "number"
         ) {
           reducers.push({
             ...(action.cost !== undefined ? { cost: action.cost } : {}),
             ...(action.scaling !== undefined ? { scaling: action.scaling } : {}),
+            ...(outer.sourceFilter !== undefined ? { sourceFilter: outer.sourceFilter } : {}),
             amount: action.amount,
             raw: action.cost?.raw ?? action.raw ?? "Reduce the digivolution cost.",
           });
@@ -310,6 +313,9 @@ export function potentialWouldDigivolveSelfReduction(
   reducer: WouldDigivolveSelfReducer,
   target?: Permanent,
 ): number {
+  if (reducer.sourceFilter !== undefined && (target === undefined || !permanentMatchesFilter(ctx, target, reducer.sourceFilter, ctx.source))) {
+    return 0;
+  }
   const scale = digivolveReducerScale(ctx, reducer, target);
   if (reducer.cost === undefined) return Math.max(0, reducer.amount * scale);
   if (reducer.cost.target?.upTo !== true || typeof reducer.cost.target.count !== "number") {

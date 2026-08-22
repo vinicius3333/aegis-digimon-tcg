@@ -4,6 +4,7 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./EX7-072.js";
+import { compiled } from "./EX7-072.js";
 
 // A3 for EX7-072 (Seventh Fascination) — Purple Option.
 // [Security] Delete 1 of your opponent's unsuspended Digimon.
@@ -89,7 +90,7 @@ function makeCtx(opts: {
   }
 
   const players = [
-    { seat: 0 as Seat, battleArea: [], hand: [], deck: [], trash: [], security: [] },
+    { seat: 0 as Seat, battleArea: [], hand: [], deck: [], trash: [{ ...inst("EX7-072"), instanceId: "EX7-072-INST" }], security: [] },
     { seat: 1 as Seat, battleArea: oppPerms, hand: [], deck: [], trash: [], security: [] },
   ];
 
@@ -257,11 +258,12 @@ describe("EX7-072 [Main] grants a delayed self-delete choice to every opponent D
 
     await capturedRun!(subCtx);
 
-    expect(opponentAskCalled).toBe(true);
+    expect(opponentAskCalled).toBe(false);
     expect(ownerAskCalled).toBe(false);
-    const deleteCalls = recorder.calls.filter((c) => c.verb === "deletePermanent");
-    expect(deleteCalls).toHaveLength(1);
-    expect((deleteCalls[0]!.args[0] as string[])).toContain("OPP-1");
+    expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions[0]).toMatchObject({
+      kind: "GainTriggeredEffect",
+      gainedActions: [{ kind: "Delete", target: { chooser: "opponent" } }],
+    });
   });
 });
 

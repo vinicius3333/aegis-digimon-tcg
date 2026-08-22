@@ -12,6 +12,12 @@ const compiled: CompiledCard = {
       "trigger": "Static",
       "actions": [
         {
+          "kind": "GainKeyword",
+          "target": {"filter": {"isSelfRef": true}, "count": 1, "isSelf": true},
+          "keyword": {"keyword": "Piercing", "raw": "＜Piercing＞"},
+          "duration": "permanent"
+        },
+        {
           "kind": "Digivolve",
           "onto": {
             "filter": {

@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-075.js";
 describe("BT21-075 SkullGreymon", () => {
   it("grants Raid and Retaliation and recurs ADVENTURE", () => {
@@ -24,5 +26,22 @@ describe("BT21-075 SkullGreymon", () => {
     ]);
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
+  });
+
+  it("plays a qualifying ADVENTURE Digimon from trash when deleted", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-075", as: "skullgreymon" }],
+          trash: [{ card: "BT21-057", as: "adventureGreymon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).verb.deletePermanent([s.perm("skullgreymon").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-057"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-057")).toBe(true);
   });
 });

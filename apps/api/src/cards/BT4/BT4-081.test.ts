@@ -16,4 +16,23 @@ describe("BT4-081 Devimon", () => {
     expect(s.perm("devimon").stack).toHaveLength(0);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
   });
+
+  it("does not delete an opposing level 4 Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT4-081", as: "devimon", under: ["BT4-077", "BT1-009"] }] },
+      1: { battleArea: [{ card: "BT4-083", as: "target" }] },
+    }, { autoSelectCards: true });
+    const source = (s.engine as any).cardSourceOf(s.perm("devimon").topCard!);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT4-081/"))!.effectKey;
+
+    expect(s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.perm("devimon").topCard!.instanceId,
+      effectKey,
+    })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.perm("devimon").stack).toHaveLength(2);
+  });
 });

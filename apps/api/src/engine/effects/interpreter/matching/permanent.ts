@@ -154,6 +154,12 @@ export function permanentMatchesFilter(
   // in breeding (BT2-088 Q1038).
   if (filter.zone === "battleArea" && permanent.inBreeding) return false;
   if (filter.zone === "breeding" && !permanent.inBreeding) return false;
+  const stackKeywords = (filter as Filter & { stackKeywords?: string[] }).stackKeywords;
+  if (stackKeywords !== undefined) {
+    if (!stackKeywords.every((keyword) => permanent.stack.some((card) => textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, keyword)))) return false;
+    const { stackKeywords: _omit, ...withoutStackKeywords } = filter as Filter & { stackKeywords?: string[] };
+    filter = withoutStackKeywords;
+  }
   if (filter.excludeSelf || filter.isSelfRef === false) {
     const self = source.permanent();
     if (self !== undefined && self.permanentId === permanent.permanentId) {
@@ -415,6 +421,7 @@ export function permanentMatchesFilter(
   if ((filter.digivolutionCards === "none" || filter.digivolutionCards === "hasNone") && permanent.stack.length > 0)
     return false;
   if (filter.digivolutionCards === "hasAny" && permanent.stack.length === 0) return false;
+  if (filter.digivolutionCards === "hasFaceDown" && !permanent.stack.some((card) => !card.faceUp)) return false;
   // "WITH digivolution cards" alias (BT17-098): at least one card under the top.
   if (filter.hasDigivolutionCards === true && permanent.stack.length === 0) return false;
 
@@ -562,7 +569,10 @@ export function permanentMatchesFilter(
   if (filter.keywords && filter.keywords.length > 0) {
     const granted = new Set((ctx.fx.grantedKeywords?.(permanent.permanentId) ?? []).map((g) => g.keyword));
     const hasKeyword = (kw: string): boolean =>
-      ctx.game.hasKeyword?.(permanent.permanentId, kw) === true || granted.has(kw) || textHasKeyword(def, kw);
+      ctx.game.hasKeyword?.(permanent.permanentId, kw) === true ||
+      granted.has(kw) ||
+      textHasKeyword(def, kw) ||
+      permanent.stack.some((card) => textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, kw));
     if (!filter.keywords.every(hasKeyword)) return false;
     const { keywords: _omit, ...rest } = filter;
     return definitionMatches(rest, def);
@@ -570,7 +580,10 @@ export function permanentMatchesFilter(
   if (filter.excludeKeywords && filter.excludeKeywords.length > 0) {
     const granted = new Set((ctx.fx.grantedKeywords?.(permanent.permanentId) ?? []).map((g) => g.keyword));
     const hasKeyword = (kw: string): boolean =>
-      ctx.game.hasKeyword?.(permanent.permanentId, kw) === true || granted.has(kw) || textHasKeyword(def, kw);
+      ctx.game.hasKeyword?.(permanent.permanentId, kw) === true ||
+      granted.has(kw) ||
+      textHasKeyword(def, kw) ||
+      permanent.stack.some((card) => textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, kw));
     if (filter.excludeKeywords.some(hasKeyword)) return false;
     const { excludeKeywords: _omit, ...rest } = filter;
     return definitionMatches(rest, def);

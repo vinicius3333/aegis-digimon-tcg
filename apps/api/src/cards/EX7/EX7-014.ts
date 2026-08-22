@@ -1,136 +1,27 @@
-import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { onPlay, whenDigivolving, whenAttacking, staticModifier } from "../../engine/effects/builders.js";
-import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "EX7-014";
-
-async function deleteLowestDP(
-  ctx: Parameters<NonNullable<Parameters<typeof onPlay>[0]["resolve"]>>[0],
-  source: CardSource,
-): Promise<void> {
-  const opponent = ctx.game.opponentOf(source.ownerSeat);
-  const oppDigimon = Array.from(ctx.game.player(opponent).battleArea)
-    .filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)));
-  if (oppDigimon.length === 0) return;
-  oppDigimon.sort((a, b) => {
-    return a.currentDP - b.currentDP;
-  });
-  const lowest = oppDigimon.filter((p) => {
-    return p.currentDP === oppDigimon[0]!.currentDP;
-  });
-  const candidates = lowest.map((p) => p.permanentId);
-  const chosen = await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 });
-  if (chosen.length > 0) {
-    await ctx.fx.deletePermanent(chosen);
-  }
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnEnterFieldAnyone) {
-      return [
-        onPlay({
-          source,
-          effectKey: `${cardId}/on-play-delete-lowest-dp`,
-          description: "[On Play] Delete 1 of your opponent's Digimon with the lowest DP.",
-          canActivate: (ctx) => ctx.source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            await deleteLowestDP(ctx, source);
-          },
-        }),
-        whenDigivolving({
-          source,
-          effectKey: `${cardId}/when-digivolving-restrict-play`,
-          description:
-            "[When Digivolving] Your opponent can't play or move Digimon with 6000 DP or " +
-            "less until the end of their turn.",
-          canActivate: (ctx) => ctx.source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const opponent = ctx.game.opponentOf(source.ownerSeat);
-            ctx.fx.restrictPlay(
-              opponent,
-              source.ownerSeat,
-              { kinds: ["Digimon"], dpAtMost: 6000 },
-              "playOrMove",
-              EffectDuration.UntilOwnerTurnEnd,
-            );
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.OnAllyAttack) {
-      return [
-        whenAttacking({
-          source,
-          effectKey: `${cardId}/when-attacking-delete-lowest-dp`,
-          description: "[When Attacking] Delete 1 of your opponent's Digimon with the lowest DP.",
-          canActivate: (ctx) => ctx.source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            await deleteLowestDP(ctx, source);
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/leave-play-from-hand`,
-          description:
-            "[All Turns] [Once Per Turn] When this Digimon would leave the battle area other " +
-            "than by one of your effects, you may play 1 [Machine Dragon]/[Sky Dragon] trait " +
-            "Digimon card from your hand without paying the cost.",
-          maxPerTurn: 1,
-          when: (_ctx) => source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            const ownerSeat = source.ownerSeat;
-            ctx.fx.subscribeReplacement({
-              event: "wouldLeavePlay",
-              sourcePermanentId: self.permanentId,
-              mode: "prevent",
-              oncePerTurnKey: `${cardId}/leave-replacement`,
-              description: `${cardId}: Play 1 Machine Dragon/Sky Dragon from hand when leaving.`,
-              protects: (_subCtx, leavingId) => leavingId === self.permanentId,
-              causeAllows: (_cause, resolvingSeat) =>
-                !(_cause === "byEffect" && resolvingSeat === ownerSeat),
-              preventCheck: async (subCtx) => {
-                const currentSelf = subCtx.game.permanentById(self.permanentId);
-                if (currentSelf === undefined) return false;
-                const owner = subCtx.game.player(ownerSeat);
-                const qualifying = Array.from(owner.hand).filter((c) => {
-                  const def = subCtx.game.definitionOf(c);
-                  if (!isDigimon(def)) return false;
-                  return (def.types ?? []).some(
-                    (t) => t === "Machine Dragon" || t === "Sky Dragon",
-                  );
-                });
-                if (qualifying.length === 0) return false;
-                const chosen = await subCtx.ask.selectCards(subCtx, {
-                  candidates: qualifying.map((c) => c.instanceId),
-                  min: 0,
-                  max: 1,
-                });
-                if (chosen.length === 0) return false;
-                await subCtx.fx.playInstances(chosen, { payCost: false });
-                return true;
-              },
-            });
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+export const compiled: CompiledCard = {
+  effects: [
+    { trigger: "OnPlay", actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestDP" }, count: 1 } }] },
+    { trigger: "WhenAttacking", actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestDP" }, count: 1 } }] },
+    { trigger: "WhenDigivolving", actions: [{ kind: "Restrict", target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } }, count: 0 }, restriction: "playOrMove", duration: "untilOpponentTurnEnd" }] },
+    {
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      actions: [{
+        kind: "Replacement",
+        event: "wouldLeavePlay",
+        sourceFilter: { isSelfRef: true },
+        leaveCause: "otherThanYourEffect",
+        actions: [{ kind: "PlayWithoutCost", target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Machine Dragon", "Sky Dragon"], match: "trait" }] }, count: 1 }, from: ["hand"], payCost: false, optional: true }],
+        raw: "When this Digimon would leave battle area other than by one of your effects, you may play 1 Machine Dragon or Sky Dragon Digimon from your hand without paying the cost",
+      }],
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
-registerIrCard(cardId, runtimeCompiledCard(cardId)!, module);
-export default module;
+registerIrCard("EX7-014", compiled);

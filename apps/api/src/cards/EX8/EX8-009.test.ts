@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
-import "../index.js";
+import "./index.js";
 import { compiled } from "./EX8-009.js";
 
 describe("EX8-009", () => {

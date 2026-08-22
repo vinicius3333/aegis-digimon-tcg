@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
-import "../index.js";
+import "./index.js";
 import { compiled } from "./EX8-005.js";
 
 function primitivesOf(s: EngineSetup): Primitives {

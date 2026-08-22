@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-051.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT22-051 Okuwamon", () => {
   it("returns the lowest-DP suspended opponent Digimon only with a same-level stack pair", () => {

@@ -1,6 +1,5 @@
 // @ts-nocheck
-import { getCompiledCard } from "@aegis/shared";
-import type { CompiledCard } from "@aegis/shared";
+import { getCompiledCard, type CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
@@ -16,6 +15,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
  *   [Security] Play this card without paying its memory cost.
  */
 const cardId = "BT10-093";
+const compiled = getCompiledCard(cardId) as CompiledCard;
 
 function isPurple(def: { colors?: string[] }): boolean {
   return (def.colors as CardColor[] | undefined)?.includes(CardColor.Purple) ?? false;
@@ -87,5 +87,4 @@ export const module: EffectModule = {
   },
 };
 
-const compiled = getCompiledCard("BT10-093")!;
-registerIrCard("BT10-093", compiled);
+registerIrCard("BT10-093", compiled, module);

@@ -21,7 +21,7 @@ describe("BT4-095 Yoshino Fujieda", () => {
     s.state.memory = 3;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("yoshino").instanceId })).toEqual({ ok: true });
-    await settle(() => player.eggDeck.some((card) => card.instanceId === returnedEggId));
+    await settle(() => player.eggDeck.length === 2);
 
     expect(player.trash).toHaveLength(0);
     expect(player.deck).toHaveLength(0);
@@ -29,6 +29,24 @@ describe("BT4-095 Yoshino Fujieda", () => {
       s.inst("existingEgg").instanceId,
       returnedEggId,
     ]);
+  });
+
+  it("does not move a non-Digi-Egg card from trash", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT4-095", as: "yoshino" }],
+        eggDeck: [{ card: "BT1-007", as: "existingEgg" }],
+        trash: [{ card: "BT4-016", as: "nonEgg" }],
+      },
+    }, { autoSelectCards: true });
+    const player = s.state.players[0] as PlayerState;
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("yoshino").instanceId })).toEqual({ ok: true });
+    await settle(() => player.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("yoshino").instanceId));
+
+    expect(player.trash.map((card) => card.instanceId)).toEqual([s.inst("nonEgg").instanceId]);
+    expect(player.eggDeck.map((card) => card.instanceId)).toEqual([s.inst("existingEgg").instanceId]);
   });
 
   it("suspends to reduce a Digi-Burst digivolution cost by 1", async () => {

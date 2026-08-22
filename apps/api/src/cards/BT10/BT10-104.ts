@@ -1,5 +1,5 @@
 // @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import { getCompiledCard, type CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 import { getCompiledCard } from "@aegis/shared";
 
@@ -28,6 +28,7 @@ import { getCompiledCard } from "@aegis/shared";
  *
  */
 const cardId = "BT10-104";
+const compiled = getCompiledCard(cardId) as CompiledCard;
 
 function hasNeneAmanoInPlay(ctx: EffectContext, ownerSeat: 0 | 1): boolean {
   return Array.from(ctx.game.player(ownerSeat).battleArea).some((p) => {
@@ -154,4 +155,4 @@ const module: EffectModule = {
 
 const compiled = getCompiledCard("BT10-104")!;
 export { compiled };
-registerIrCard("BT10-104", compiled);
+registerIrCard("BT10-104", compiled, module);

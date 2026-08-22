@@ -3,20 +3,144 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  effects: [
-    { trigger: "StartOfYourTurn", actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } }] },
+  "effects": [
     {
-      trigger: "YourTurn",
-      actions: [{ kind: "SubTrigger", event: "whenPlayed", sourceFilter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Eosmon"], match: "name" }] }, actions: [{ kind: "RevealAdd", revealCount: 3, add: [{ filter: { controllerDefault: "mine", kind: ["Tamer"] }, count: 1, to: "hand", orFilters: [{ kind: "Digimon", nameOrTrait: [{ tokens: ["Eosmon"], match: "name" }] }] }], rest: "deckBottomAnyOrder", cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, raw: "by suspending this Tamer" }, optional: true }] }],
+      "trigger": "StartOfYourTurn",
+      "actions": [
+        {
+          "kind": "SetMemory",
+          "value": 3,
+          "condition": {
+            "kind": "memoryAtMost",
+            "value": 2
+          }
+        }
+      ]
     },
     {
-      trigger: "OpponentsTurn",
-      actions: [{ kind: "Aura", target: { filter: { controller: "opponent", kind: ["Tamer"] }, count: 1 }, effect: { kind: "restriction", restriction: "unsuspend" }, while: { kind: "youHave", filter: { zone: "battleArea", controllerDefault: "mine", nameOrTrait: [{ tokens: ["Eosmon"], match: "name" }] }, raw: "you have an [Eosmon] in play" } }],
+      "trigger": "YourTurn",
+      "actions": [
+        {
+          "kind": "SubTrigger",
+          "event": "whenPlayed",
+          "sourceFilter": {
+            "controllerDefault": "mine",
+            "nameOrTrait": [
+              {
+                "tokens": [
+                  "Eosmon"
+                  ],
+                "match": "name"
+              }
+            ]
+          },
+          "actions": [
+            {
+              "kind": "RevealAdd",
+              "revealCount": 3,
+              "add": [
+                {
+                "filter": {
+                  "controllerDefault": "mine",
+                  "kind": [
+                    "Tamer"
+                  ]
+                },
+                "orFilters": [
+                  {
+                    "controllerDefault": "mine",
+                    "kind": [
+                      "Digimon"
+                    ],
+                    "nameOrTrait": [
+                      {
+                        "tokens": [
+                          "Eosmon"
+                        ],
+                        "match": "name"
+                      }
+                    ]
+                  }
+                ],
+                  "count": 3,
+                  "upTo": true,
+                  "to": "hand"
+                }
+              ],
+              "rest": "deckBottom",
+              "cost": {
+                "kind": "suspend",
+                "target": {
+                  "filter": {
+                    "isSelfRef": true
+                  },
+                  "count": 1,
+                  "isSelf": true
+                }
+              },
+              "optional": true
+            }
+          ]
+        }
+      ]
     },
-    { trigger: "Security", actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }], isSecurity: true },
+    {
+      "trigger": "OpponentsTurn",
+      "actions": [
+        {
+          "kind": "Aura",
+          "target": {
+            "filter": {
+              "controller": "opponent",
+              "kind": [
+                "Tamer"
+              ]
+            },
+            "count": "all"
+          },
+          "effect": {
+            "kind": "restriction",
+            "restriction": "unsuspend"
+          },
+          "while": {
+            "kind": "youHave",
+            "filter": {
+              "zone": "battleArea",
+              "controllerDefault": "mine",
+              "nameOrTrait": [
+                {
+                  "tokens": [
+                    "Eosmon"
+                  ],
+                  "match": "name"
+                }
+              ]
+            },
+            "raw": "you have an [Eosmon] in play"
+          }
+        }
+      ]
+    },
+    {
+      "trigger": "Security",
+      "actions": [
+        {
+          "kind": "PlayWithoutCost",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          },
+          "payCost": false
+        }
+      ],
+      "isSecurity": true
+    }
   ],
-  coverage: "full",
-  residual: [],
+  "coverage": "full",
+  "residual": []
 };
 
 registerIrCard("BT6-092", compiled);

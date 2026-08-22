@@ -4,6 +4,8 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT19-098.js";
 
 // A3 for BT19-098 (King Device — Purple Option). Covers every hand-written clause:
@@ -34,20 +36,6 @@ let seq = 0;
 function makeInstance(cardId: string, seat: Seat): CardInstance {
   seq += 1;
   return { instanceId: `inst-${seq}`, cardId, ownerSeat: seat, faceUp: true } as unknown as CardInstance;
-}
-
-function makePermanent(cardId: string, seat: Seat): Permanent {
-  return {
-    permanentId: `perm-${cardId}`,
-    controllerSeat: seat,
-    topCard: makeInstance(cardId, seat),
-    stack: [] as never,
-    linked: [] as never,
-    baseDP: 0,
-    currentDP: 0,
-    isSuspended: false,
-    inBreeding: false,
-  } as unknown as Permanent;
 }
 
 const SELF_INSTANCE = "SELF-OPT";
@@ -113,7 +101,6 @@ function makeContext(opts: {
 }
 
 const deviceDef: Partial<CardDefinition> = { kinds: ["Option"] as never, types: ["Device"] as never, playCost: 2 };
-const deviceCost4Def: Partial<CardDefinition> = { kinds: ["Option"] as never, types: ["Device"] as never, playCost: 4 };
 
 describe("BT19-098 King Device", () => {
   const module = getEffectModule("BT19-098");
@@ -138,38 +125,39 @@ describe("BT19-098 King Device", () => {
     });
   });
 
-  it("[OnDestroyed] places 1 [Device] cost<=3 Option from trash (ignores cost-4 Device)", async () => {
-    const source = makeSource();
-    const recorder: Recorder = { calls: [] };
-    const dev = makeInstance("DEV2", 0 as Seat);
-    const dev4 = makeInstance("DEV4", 0 as Seat);
-    const defs = new Map<string, Partial<CardDefinition>>([
-      ["DEV2", deviceDef],
-      ["DEV4", deviceCost4Def],
-    ]);
-    const ctx = makeContext({
-      recorder,
-      source,
-      trash: [dev, dev4],
-      defs,
-      trigger: { deletedInstanceIds: [SELF_INSTANCE] },
+  it("uses the effect-trash watcher, not generic deletion", () => {
+    const compiled = runtimeCompiledCard("BT19-098")!;
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenTrashedByEffect",
+          sourceFilter: { isSelfRef: true, zone: "battleArea" },
+        },
+      ],
     });
-    const [effect] = module!.effectsForTiming(EffectTiming.OnDestroyedAnyone, source);
-    expect(effect!.canActivate(ctx)).toBe(true);
-    expect(effect!.canTrigger(ctx)).toBe(true);
-    await effect!.resolve(ctx);
-
-    const place = recorder.calls.filter((c) => c.verb === "placeOptionAsPermanent");
-    expect(place).toHaveLength(1);
-    expect(place[0]!.args[0]).toBe(dev.instanceId);
   });
 
-  it("[OnDestroyed] does not collect when the source is not in the deleted set", () => {
-    const source = makeSource();
-    const recorder: Recorder = { calls: [] };
-    const ctx = makeContext({ recorder, source, trigger: { deletedInstanceIds: ["someone-else"] } });
-    const [effect] = module!.effectsForTiming(EffectTiming.OnDestroyedAnyone, source);
-    expect(effect!.canTrigger(ctx)).toBe(false);
+  it("returns a qualifying Device when King Device is effect-trashed from the battle area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-088", as: "purpleSource" }],
+          hand: [{ card: "BT19-098", as: "king" }],
+          trash: ["BT19-095"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT19-098"));
+    const king = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT19-098");
+    expect(king).toBeDefined();
+    await advance(s.engine).verb.deletePermanent([king!.permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT19-095"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT19-095")).toBe(true);
   });
 
   it("[Main] places 1 [Device] cost<=3 Option from trash, then places THIS card", async () => {
@@ -214,5 +202,10 @@ describe("BT19-098 King Device", () => {
     const ret = recorder.calls.filter((c) => c.verb === "returnToHand");
     expect(ret).toHaveLength(1);
     expect(ret[0]!.args[0] as string[]).toContain(SELF_INSTANCE);
+
+    const compiled = runtimeCompiledCard("BT19-098");
+    expect(compiled?.effects.find((entry) => entry.trigger === "Security")?.actions[0]).toMatchObject({
+      target: { optional: true },
+    });
   });
 });

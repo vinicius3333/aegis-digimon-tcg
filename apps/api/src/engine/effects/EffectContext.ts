@@ -266,6 +266,8 @@ export interface TriggerInfo {
   addedDigivolutionCardInstanceIds?: string[];
   /** Stack position used by an effect placing cards under a Digimon. */
   addedDigivolutionCardsPosition?: "top" | "bottom";
+  /** True when an effect rotated the host's own top card to the bottom of its stack. */
+  placedOwnTopAtStackBottom?: boolean;
   /** Printed card id selected as the destination of an imminent digivolution. */
   digivolvingIntoCardId?: string;
   /** Printed level of the permanent's top card immediately before a digivolution. */
@@ -891,7 +893,7 @@ export interface Primitives {
    * bounce too, not just deletion); a prevented permanent is left in play.
    */
   returnToHand(instanceIds: string[], opts?: { silent?: boolean; byEffectSeat?: Seat }): Promise<CardInstance[]>;
-  returnToDeck(instanceIds: string[], opts?: { toTop?: boolean; byEffectSeat?: Seat }): Promise<CardInstance[]>;
+  returnToDeck(instanceIds: string[], opts?: { toTop?: boolean; byEffectSeat?: Seat; byEffectCardId?: string }): Promise<CardInstance[]>;
   /** Return loose cards to the bottom of their owners' Digi-Egg decks, face-down. */
   returnToEggDeck?(instanceIds: string[]): Promise<CardInstance[]>;
   reveal(seat: Seat, n: number): Promise<CardInstance[]>;
@@ -1148,7 +1150,7 @@ export interface Primitives {
     targetPermanentId: string,
     stackInstanceId: string,
     duration: EffectDuration,
-    opts?: { trigger?: string },
+    opts?: { trigger?: string; inheritedOnly?: boolean },
   ): void;
 
   // --- security-stack manipulation -------------------------------------------
@@ -1347,11 +1349,11 @@ export interface SubTriggerInstall {
   /**
    * Anchor for a watcher installed by a card that is NOT a live battle-area Permanent —
    * a hand- or trash-resident source ("when this card is trashed from the hand", a
-   * `[Trash]` continuous reaction). Absent when `sourcePermanentId` is set (the two are
-   * mutually exclusive in practice: a permanent-anchored watcher never needs this
-   * fallback). The engine resolves it against the loose CardInstance wherever it
-   * currently sits (hand/trash/security), binding `ctx.source` from it instead of
-   * requiring a Permanent. See `SubTriggerRegistry.subscribe`'s loud-failure guard: a
+   * `[Trash]` continuous reaction). When paired with `sourcePermanentId`, it preserves
+   * the exact printed source card while the permanent id anchors lifecycle. Otherwise,
+   * the engine resolves it against the loose CardInstance wherever it currently sits
+   * (hand/trash/security), binding `ctx.source` from it instead of requiring a Permanent.
+   * See `SubTriggerRegistry.subscribe`'s loud-failure guard: a
    * watcher with a `matches` predicate and NEITHER anchor can never fire and is now a
    * hard error at install time, not a silent no-op.
    */

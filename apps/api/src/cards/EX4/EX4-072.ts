@@ -1,33 +1,46 @@
-import { EffectTiming, EffectDuration, isDigimon, isTamer, type CompiledCard } from "@aegis/shared";
+import { EffectTiming, EffectDuration, isDigimon, isTamer } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { security } from "../../engine/effects/builders.js";
-import { compiledEffects } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
-const compiled: CompiledCard = {
-  effects: [
-    {
-      trigger: "Static",
-      actions: [
-        { kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "name", tokens: ["Plug-In"] },
-        { kind: "WaiveColorRequirement", condition: { kind: "youHave", filter: { controllerDefault: "mine", kind: ["Tamer"] } } },
-      ],
-    },
-    {
-      trigger: "Main",
-      actions: [
-        {
-          kind: "Digivolve",
-          target: { filter: { controllerDefault: "mine", kind: ["Digimon"], levels: [6], nameOrTrait: [{ tokens: ["Gallantmon", "Sakuyamon", "MegaGargomon"], match: "name" }] }, count: 1, upTo: true, bindAs: "chosenBase" },
-          into: { controllerDefault: "mine", kind: ["Digimon"], levels: [6] },
-          from: ["hand"],
-          payCost: false,
-          ignoreRequirements: true,
-          nameIncludesDigivolvingTarget: true,
-          differentNameFromDigivolvingTarget: true,
-          optional: true,
+/**
+ * EX4-072 — X Antibody PF (EX4, White Option).
+ *
+ * Rule: This card is also treated as [Plug-In] in name.
+ * Static: Ignore color requirements if you have a Tamer in play.
+ * [Main] Choose 1 of your Lv.6 Gallantmon/Sakuyamon/MegaGargomon. From hand,
+ *   ignoring digivolution requirements and without paying cost, it may digivolve
+ *   into a Lv.6 Digimon with a different name that includes the chosen name.
+ * [Security] Return 1 Digimon from trash to hand + add this card to hand.
+ */
+const cardId = "EX4-072";
+
+const VALID_NAMES = new Set(["Gallantmon", "Sakuyamon", "MegaGargomon"]);
+
+const module: EffectModule = {
+  cardId,
+  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
+    const out: Effect[] = [];
+
+    // Static: rename + ignore color requirement.
+    if (timing === EffectTiming.None) {
+      out.push({
+        effectKey: `${cardId}/static-name-and-color`,
+        description: "This card is also treated as [Plug-In]. Ignore color requirements if you have a Tamer.",
+        optional: false,
+        isInherited: false,
+        isSecurity: false,
+        isLinked: false,
+        maxPerTurn: -1,
+        canTrigger: () => true,
+        canActivate: () => true,
+        resolve: async (ctx) => {
+          const mine = ctx.game.player(source.ownerSeat).battleArea;
+          if (mine.some((p) => p.topCard !== undefined && isTamer(ctx.game.definitionOf(p.topCard)))) {
+            ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.UntilEachTurnEnd);
+          }
         },
       });
     }
@@ -49,7 +62,7 @@ const compiled: CompiledCard = {
           return mine.some((p) => {
             if (p.topCard === undefined) return false;
             const def = ctx.game.definitionOf(p.topCard);
-            return isDigimon(def) && def.level === 6 && [...VALID_NAMES].some((name) => def.nameEn.includes(name));
+            return isDigimon(def) && [...VALID_NAMES].some((name) => def.nameEn.includes(name));
           });
         },
         resolve: async (ctx) => {
@@ -58,7 +71,7 @@ const compiled: CompiledCard = {
             .filter((p) => {
               if (p.topCard === undefined) return false;
               const def = ctx.game.definitionOf(p.topCard);
-              return isDigimon(def) && def.level === 6 && [...VALID_NAMES].some((name) => def.nameEn.includes(name));
+              return isDigimon(def) && [...VALID_NAMES].some((name) => def.nameEn.includes(name));
             })
             .map((p) => p.permanentId);
           if (candidates.length === 0) return;
@@ -113,20 +126,5 @@ const compiled: CompiledCard = {
   },
 };
 
-const compiled = JSON.parse(JSON.stringify(compiledEffects[cardId]!)) as CompiledCard;
-const main = compiled.effects.find((effect) => effect.trigger === "Main");
-if (main?.actions[0]?.kind === "RawUnparsed") {
-  main.actions[0] = {
-    kind: "Digivolve",
-    target: { filter: { controller: "mine", kind: ["Digimon"], levelComparison: { op: "eq", value: 6 } }, count: 1 },
-    into: { zone: "hand", controller: "mine", kind: ["Digimon"], levelComparison: { op: "eq", value: 6 } },
-    from: ["hand"],
-    payCost: false,
-    ignoreRequirements: true,
-    optional: true,
-  };
-}
-compiled.coverage = "full";
-compiled.residual = [];
-registerIrCard(cardId, compiled);
+registerCard(module);
 export default module;

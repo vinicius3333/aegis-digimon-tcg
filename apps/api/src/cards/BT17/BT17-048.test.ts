@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "../index.js";
+import "./index.js";
 
 // A3 for BT17-048 (Argomon, Green Lv.5):
 //   [On Deletion] If 4+ [Argomon] in trash, may play 1 Lv.6 [Argomon] from hand for free.

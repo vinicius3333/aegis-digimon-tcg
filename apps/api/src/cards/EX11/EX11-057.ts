@@ -1,6 +1,10 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming, isDigimon } from "@aegis/shared";
+import type { CardDefinition } from "@aegis/shared";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import { onPlay, turnTiming, security, staticModifier } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "EX11-057";
 
@@ -129,42 +133,5 @@ const module: EffectModule = {
   },
 };
 
-const compiled: CompiledCard = {
-  effects: [
-    {
-      trigger: "StartOfYourMainPhase",
-      actions: [{ kind: "GainMemory", amount: 1, condition: { kind: "opponentHas", filter: { controllerDefault: "opponent", kind: ["Digimon"] }, raw: "your opponent has a Digimon" } }]
-    },
-    {
-      trigger: "OnPlay",
-      actions: [
-        {
-          kind: "TrashDigivolution",
-          target: { filter: opponentDigimon, count: 1 },
-          amount: 1,
-          scaling: { per: 1, filter: iceSnowDigimon, unit: "cards" }
-        }
-      ]
-    },
-    {
-      trigger: "AllTurns",
-      actions: [
-        {
-          kind: "SubTrigger",
-          event: "whenDigivolutionTrashed",
-          sourceFilter: opponentDigimon,
-          actions: [{ kind: "GainMemory", amount: 1, cost: suspendCost, optional: true, abortOnDecline: true }]
-        }
-      ]
-    },
-    {
-      trigger: "Security",
-      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
-      isSecurity: true
-    }
-  ],
-  coverage: "full",
-  residual: []
-};
-
-registerIrCard("EX11-057", compiled);
+registerCard(module);
+export default module;
