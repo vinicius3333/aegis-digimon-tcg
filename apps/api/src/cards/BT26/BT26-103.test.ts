@@ -1,14 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { getCompiledCard } from "@aegis/shared";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "./BT26-103.js";
+import { compiled } from "./BT26-103.js";
 import "../index.js";
 
 describe("BT26-103 compiled fidelity", () => {
   it("shares the Counter/When Digivolving recovery budget and security-removal penalty while exposing Succession seam", () => {
-    const card = getCompiledCard("BT26-103");
+    const card = compiled;
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
     expect(card?.keywords).toEqual([
