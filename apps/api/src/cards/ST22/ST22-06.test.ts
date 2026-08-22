@@ -73,7 +73,7 @@ describe("ST22-06 Sakuyamon: Maid Mode", () => {
         },
         1: {
           security: [
-            { card: "ST22-10", as: "mandala" },
+            { card: "ST22-10", as: "mandala", faceUp: true },
             { card: "BT1-091", as: "mustRemain" },
           ],
           battleArea: [

@@ -814,6 +814,12 @@ export class GameEngine {
         permanentById: (id) => this.access.permanentById(id),
         buildContext: (srcPerm, leavingId) =>
           this.buildEffectContext(this.cardSourceOf(srcPerm.topCard!), { deletedPermanentId: leavingId }),
+        buildInstanceContext: (sourceInstanceId, leavingId) => {
+          const sourceInstance = this.findLooseInstance(sourceInstanceId);
+          return sourceInstance === undefined
+            ? undefined
+            : this.buildEffectContext(this.cardSourceOf(sourceInstance), { deletedPermanentId: leavingId });
+        },
         turnSeat: this.state.turnSeat,
         // Once-per-turn prevention ledger (＜Barrier＞), keyed in the shared per-turn UseTracker
         // (reset at each turn start alongside every other Once-Per-Turn limit).
