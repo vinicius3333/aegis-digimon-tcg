@@ -1,7 +1,11 @@
 // @ts-nocheck
-import { getCompiledCard, type CompiledCard } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming, getCompiledCard, type CardDefinition, type CardInstance, type CompiledCard } from "@aegis/shared";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import type { EffectContext } from "../../engine/effects/EffectContext.js";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import { activated, security } from "../../engine/effects/builders.js";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-import { getCompiledCard } from "@aegis/shared";
 
 /**
  * BT10-094 — Breaclaw (BT10, Red Option).
@@ -143,6 +147,5 @@ const module: EffectModule = {
   },
 };
 
-const compiled = getCompiledCard("BT10-094")!;
 export { compiled };
 registerIrCard("BT10-094", compiled, module);

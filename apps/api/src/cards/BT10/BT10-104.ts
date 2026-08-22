@@ -1,7 +1,12 @@
 // @ts-nocheck
-import { getCompiledCard, type CompiledCard } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming, digiXrosRequirementFor, getCompiledCard, type CardDefinition, type CompiledCard } from "@aegis/shared";
+import { materialsSatisfyRecipe } from "../../engine/actions/digiXros.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import type { EffectContext } from "../../engine/effects/EffectContext.js";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import { activated, colorWaiverStatic, security } from "../../engine/effects/builders.js";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-import { getCompiledCard } from "@aegis/shared";
 
 /**
  * BT10-104 — Immortal Ruler (BT10, Black Option).
@@ -153,6 +158,5 @@ const module: EffectModule = {
   },
 };
 
-const compiled = getCompiledCard("BT10-104")!;
 export { compiled };
 registerIrCard("BT10-104", compiled, module);
