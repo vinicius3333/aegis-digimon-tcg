@@ -199,5 +199,19 @@ describe("BT26-018 public engine behavior", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("dsEgg").stack.map((card) => card.cardId)).toEqual(["EX8-002"]);
+
+    const invalid = setupEngine({
+      0: {
+        breeding: { card: "BT26-001", as: "nonDsEgg" },
+        hand: [{ card: CARD_ID, as: "sangomon" }],
+      },
+    });
+    expect(invalid.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: invalid.perm("nonDsEgg").permanentId,
+      instanceId: invalid.inst("sangomon").instanceId,
+      useAlternateCost: true,
+    })).toEqual(expect.objectContaining({ ok: false }));
+    expect(invalid.perm("nonDsEgg").topCard.cardId).toBe("BT26-001");
   });
 });
