@@ -1,78 +1,70 @@
-import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { activated, security } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard, Target } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const cardId = "BT21-096";
-
-function marcusCandidates(ctx: EffectContext, source: CardSource): string[] {
-  return ctx.game
-    .player(source.ownerSeat)
-    .battleArea.filter((p) => p.topCard !== undefined && ctx.game.definitionOf(p.topCard).nameEn === "Marcus Damon")
-    .map((p) => p.permanentId);
-}
-
-export const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnUseOption) {
-      return [
-        activated({
-          source,
-          effectKey: `${cardId}/main`,
-          description:
-            "[Main] For the turn, 1 of your [Marcus Damon]s is also treated as a 12000 DP Digimon, " +
-            "can't digivolve, and gains ＜Rush＞. Then, that Digimon may attack your opponent's Digimon.",
-          optional: false,
-          canActivate: (ctx) => marcusCandidates(ctx, source).length > 0,
-          resolve: async (ctx) => {
-            const candidates = marcusCandidates(ctx, source);
-            if (candidates.length === 0) return;
-            const chosen = await ctx.ask.selectPermanents(ctx, { candidates, min: 1, max: 1 });
-            const id = chosen[0];
-            if (id === undefined) return;
-            ctx.fx.grantKind?.(id, [CardKind.Digimon], EffectDuration.UntilEachTurnEnd);
-            ctx.fx.setBaseDP(id, 12000, EffectDuration.UntilEachTurnEnd);
-            ctx.fx.restrict(id, "digivolve", EffectDuration.UntilEachTurnEnd);
-            ctx.fx.grantKeyword(id, "Rush", EffectDuration.UntilEachTurnEnd);
-            ctx.fx.grantCanAttackUnsuspended?.(id, EffectDuration.UntilEachTurnEnd);
-            await ctx.fx.forceAttack(id, { attackPlayer: false });
-          },
-        }),
-      ];
-    }
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security`,
-          description:
-            "[Security] You may play 1 [Marcus Damon] from your hand or trash without paying the cost, then add this card to your hand.",
-          optional: false,
-          resolve: async (ctx) => {
-            const player = ctx.game.player(source.ownerSeat);
-            const candidates = [...player.hand, ...player.trash].filter(
-              (card) => ctx.game.definitionOf(card).nameEn === "Marcus Damon",
-            );
-            if (candidates.length > 0) {
-              const chosen = await ctx.ask.selectCards(ctx, {
-                candidates: candidates.map((card) => card.instanceId),
-                min: 0,
-                max: 1,
-              });
-              if (chosen.length > 0) await ctx.fx.playInstances(chosen, { payCost: false });
-            }
-            await ctx.fx.returnToHand([source.instanceId]);
-          },
-        }),
-      ];
-    }
-    return [];
+const marcusSelection: Target = {
+  filter: {
+    controller: "mine",
+    kind: ["Tamer"],
+    nameOrTrait: [{ tokens: ["Marcus Damon"], match: "name" }],
   },
+  count: 1,
+  bindAs: "chosenMarcus",
+};
+const chosenMarcus: Target = { filter: {}, count: 1, fromSelectionRef: "chosenMarcus" };
+
+export const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Main",
+      actions: [
+        { kind: "SelectBind", target: marcusSelection },
+        {
+          kind: "GrantStatic",
+          target: chosenMarcus,
+          grant: "kind",
+          tokens: ["Digimon"],
+          staticEffect: { kind: "SetBaseDP", value: 12000 },
+          duration: "forTheTurn",
+        },
+        { kind: "Restrict", target: chosenMarcus, restriction: "digivolve", duration: "forTheTurn" },
+        {
+          kind: "GainKeyword",
+          target: chosenMarcus,
+          keyword: { keyword: "Rush", raw: "＜Rush＞" },
+          duration: "forTheTurn",
+        },
+        { kind: "GrantCanAttackUnsuspended", target: chosenMarcus, duration: "forTheTurn" },
+        {
+          kind: "Attack",
+          target: chosenMarcus,
+          withoutSuspending: false,
+          attackPlayer: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: { controller: "mine", nameOrTrait: [{ tokens: ["Marcus Damon"], match: "name" }] },
+            count: 1,
+          },
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
+        { kind: "AddToHandSelf" },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
-registerCard(module);
-export default module;
+registerIrCard(cardId, compiled);

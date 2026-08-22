@@ -2,6 +2,15 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./BT21-057.js";
 
 describe("BT21-057 Greymon", () => {
+  it("preserves both alternate Digivolution requirements and complete coverage", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 3, names: ["Agumon"], cost: 2, isAlternate: true },
+      { traits: ["ADVENTURE"], cost: 2, isAlternate: true, level: 3 },
+    ]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual ?? []).toEqual([]);
+  });
+
   it("grants the opponent's Digimon the printed conditional start-of-main attack", () => {
     const triggers = compiled.effects.filter((entry) => ["OnPlay", "WhenDigivolving"].includes(entry.trigger));
 

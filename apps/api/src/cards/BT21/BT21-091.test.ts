@@ -29,8 +29,13 @@ describe("BT21-091 Spirit Evolution!", () => {
       expect.objectContaining({
         trigger: "Security",
         isSecurity: true,
-        actions: expect.arrayContaining([expect.objectContaining({ kind: "AddToHandSelf" })]),
+        actions: expect.arrayContaining([
+          expect.objectContaining({ kind: "PlayWithoutCost", from: ["hand", "trash"], optional: true }),
+          expect.objectContaining({ kind: "AddToHandSelf" }),
+        ]),
       }),
     );
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });

@@ -37,5 +37,8 @@ describe("BT21-101 Gaiamon", () => {
       },
       abortOnDecline: true,
     });
+    expect(compiled.appFusionRequirement).toEqual([{ names: ["Globemon", "Charismon"], cost: 0 }]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });

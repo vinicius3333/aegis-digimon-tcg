@@ -15,4 +15,40 @@ describe("BT21-007 compiled implementation", () => {
       for (const action of effect.actions ?? []) expect(typeof action.kind).toBe("string");
     }
   });
+
+  it("optionally returns one Reptile or Dragonkin Digimon from trash and grants +2000 DP on your turn", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "OnPlay",
+        actions: [
+          {
+            kind: "Return",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Reptile", "Dragonkin"], match: "trait" }],
+              },
+              count: 1,
+            },
+            to: "hand",
+            optional: true,
+          },
+        ],
+      }),
+      expect.objectContaining({
+        trigger: "YourTurn",
+        isInherited: true,
+        actions: [
+          {
+            kind: "ModifyDP",
+            amount: 2000,
+            duration: "permanent",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          },
+        ],
+      }),
+    ]);
+  });
 });

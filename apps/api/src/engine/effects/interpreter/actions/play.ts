@@ -304,6 +304,8 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
               .filter((instanceId, index, all) => all.indexOf(instanceId) === index)
           : undefined;
       const chosen = await pickLoose(ctx, playCostAdjustedTarget, candidates, undefined, ctx.ask, visibleZoneIds);
+      const costReduction =
+        action.reduceCostByScaling === undefined ? action.reduceCostBy : scaleFactor(ctx, action.reduceCostByScaling);
       if (chosen.length > 0) {
         // Options are USED, not played as permanents. `playInstances` intentionally rejects
         // Option definitions, so routing every PlayWithoutCost target through it silently
@@ -332,7 +334,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                 breeding: action.breeding,
                 suspended: action.suspended,
                 effectSourceCardId: ctx.source.cardId,
-                ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
+                ...(costReduction !== undefined ? { costDelta: costReduction } : {}),
                 ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
               })
             : [];

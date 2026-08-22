@@ -15,4 +15,41 @@ describe("BT21-019 compiled implementation", () => {
       for (const action of effect.actions ?? []) expect(typeof action.kind).toBe("string");
     }
   });
+
+  it("plays Hiro Amanokawa on digivolution when you have at most one Tamer and grants inherited DP", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "WhenDigivolving",
+        actions: [
+          {
+            kind: "PlayWithoutCost",
+            target: {
+              filter: { controller: "mine", nameOrTrait: [{ tokens: ["Hiro Amanokawa"], match: "name" }] },
+              count: 1,
+            },
+            from: ["hand"],
+            payCost: false,
+            condition: {
+              kind: "youHave",
+              filter: { controllerDefault: "mine", kind: ["Tamer"] },
+              raw: "you have 1 or fewer Tamers",
+            },
+            optional: true,
+          },
+        ],
+      }),
+      expect.objectContaining({
+        trigger: "YourTurn",
+        isInherited: true,
+        actions: [
+          {
+            kind: "ModifyDP",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            amount: 2000,
+            duration: "permanent",
+          },
+        ],
+      }),
+    ]);
+  });
 });

@@ -15,4 +15,34 @@ describe("BT21-018 compiled implementation", () => {
       for (const action of effect.actions ?? []) expect(typeof action.kind).toBe("string");
     }
   });
+
+  it("preserves Rush, Raid, and the once-per-turn attack after linking", () => {
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "Rush", raw: "＜Rush＞" }] }),
+    );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "Raid", raw: "＜Raid＞" }] }),
+    );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "YourTurn",
+        frequency: "OncePerTurn",
+        actions: [
+          {
+            kind: "SubTrigger",
+            event: "whenLinked",
+            actions: [
+              {
+                kind: "Attack",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                withoutSuspending: false,
+                optional: true,
+              },
+            ],
+          },
+        ],
+      }),
+    );
+    expect(compiled.appFusionRequirement).toEqual([{ names: ["Gatchmon", "Navimon", "Tweetmon"], cost: 0 }]);
+  });
 });

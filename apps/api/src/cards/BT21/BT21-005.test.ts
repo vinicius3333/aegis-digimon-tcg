@@ -15,4 +15,17 @@ describe("BT21-005 compiled implementation", () => {
       for (const action of effect.actions ?? []) expect(typeof action.kind).toBe("string");
     }
   });
+
+  it("draws once per turn when this Digimon gets linked", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "YourTurn",
+        isInherited: true,
+        frequency: "OncePerTurn",
+        actions: [
+          { kind: "SubTrigger", event: "whenLinked", actions: [{ kind: "Draw", controller: "mine", amount: 1 }] },
+        ],
+      }),
+    ]);
+  });
 });
