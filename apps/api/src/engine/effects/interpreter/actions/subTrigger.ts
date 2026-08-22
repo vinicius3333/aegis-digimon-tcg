@@ -845,7 +845,7 @@ export async function runGainTriggeredEffect(
     ctx.fx.subscribeSubTrigger({
       event,
       sourcePermanentId: targetPermanentId,
-      once: false,
+      once: action.once ?? false,
       ...(matches ? { matches } : {}),
       ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
       description: action.raw ?? `GainTriggeredEffect(${action.gainedTrigger}) on ${targetPermanentId}`,

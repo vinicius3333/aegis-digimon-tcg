@@ -10,7 +10,7 @@ const reduction = {
   duration: "forTheTurn",
   scaling: { per: 1, filter: { controller: "mine", kind: ["Digimon"] }, unit: "cards" },
 };
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",

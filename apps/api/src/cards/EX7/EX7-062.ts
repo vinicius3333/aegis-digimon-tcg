@@ -3,7 +3,7 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const evilTraits = [{ tokens: ["Evil", "Dark Dragon", "Evil Dragon"], match: "trait" }];
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",

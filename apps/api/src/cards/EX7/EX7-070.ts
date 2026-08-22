@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const lowestCost = { filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestPlayCost" }, count: 1 };
 const anyOpponentDigimon = { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 };
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",

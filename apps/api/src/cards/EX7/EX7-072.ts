@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "YourTurn",
@@ -15,7 +15,7 @@ const compiled: CompiledCard = {
           kind: "ActivateMain",
           optional: true,
           abortOnDecline: true,
-          cost: { kind: "return", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, to: "deckBottom", raw: "by returning this card to the bottom of the deck" },
+          cost: { kind: "return", target: { filter: { zone: "trash", isSelfRef: true }, count: 1 }, to: "deckBottom", raw: "by returning this card to the bottom of the deck" },
         }],
         raw: "When your Digimon digivolves into Lilithmon (X Antibody), return this card to the bottom of the deck to activate its Main effect",
       }],
@@ -23,12 +23,11 @@ const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [{
-        kind: "GainEffect",
+        kind: "GainTriggeredEffect",
+        once: true,
         target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
-        grant: {
-          trigger: "EndOfYourTurn",
-          actions: [{ kind: "Delete", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 } }],
-        },
+        gainedTrigger: "endOfOpponentTurn",
+        gainedActions: [{ kind: "Delete", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1, chooser: "opponent" } }],
         duration: "untilOpponentTurnEnd",
       }],
     },

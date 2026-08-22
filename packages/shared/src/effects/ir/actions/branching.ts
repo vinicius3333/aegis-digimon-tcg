@@ -21,6 +21,8 @@ export interface GainTriggeredEffectAction extends ActionBase {
   gainedTrigger: string;
   gainedActions: Action[];
   duration: EffectDurationRef;
+  /** Unsubscribe after the first matching trigger. */
+  once?: boolean;
 }
 
 /** Legacy compiler spelling for a timed trigger grant (EX5-048). */

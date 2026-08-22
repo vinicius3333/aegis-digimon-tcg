@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestDP" }, count: 1 } }] },
     { trigger: "WhenAttacking", actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestDP" }, count: 1 } }] },
