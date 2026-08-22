@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "../index.js";
+import "./index.js";
 import { compiled } from "./EX4-006.js";
 
 describe("EX4-006 Guilmon", () => {

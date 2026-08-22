@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-013.js";
-import "../index.js";
+import "./index.js";
 
 describe("EX4-013 MedievalGallantmon", () => {
   it("plays from security without cost and schedules a return to hand at end of turn", () => {

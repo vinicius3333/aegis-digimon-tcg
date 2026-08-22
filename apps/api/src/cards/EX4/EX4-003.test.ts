@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-003.js";
-import "../index.js";
+import "./index.js";
 
 describe("EX4-003 Tsunomon", () => {
   it("draws once per turn when another one of your Digimon digivolves", () => {

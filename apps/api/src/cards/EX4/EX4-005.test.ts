@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-005.js";
-import "../index.js";
+import "./index.js";
 
 describe("EX4-005 Agumon", () => {
   it("gains memory at the start of the main phase with a red or yellow Tamer", () => {

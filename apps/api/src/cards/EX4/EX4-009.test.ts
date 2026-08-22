@@ -4,7 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX4-009.js";
-import "../index.js";
+import "./index.js";
 
 describe("EX4-009 RizeGreymon", () => {
   it("reduces one opponent Digimon and all opponent security Digimon by 4000 on digivolving", () => {

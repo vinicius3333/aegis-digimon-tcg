@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-016.js";
-import "../index.js";
+import "./index.js";
 
 describe("EX4-016 Greymon", () => {
   it("reveals three and adds Kiriha plus a blue or black card", () => {

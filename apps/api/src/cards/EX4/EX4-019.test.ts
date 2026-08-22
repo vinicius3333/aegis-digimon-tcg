@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-019.js";
-import "../index.js";
+import "./index.js";
 
 describe("EX4-019 MachGaogamon", () => {
   it("returns an opposing Digimon of level four or lower", () => {

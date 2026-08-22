@@ -4,7 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX4-020.js";
-import "../index.js";
+import "./index.js";
 
 describe("EX4-020 MetalGreymon", () => {
   it("gains Rush and trashes up to two opposing Digimon while DigiXrosing", () => {

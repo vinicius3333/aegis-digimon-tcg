@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-011.js";
-import "../index.js";
+import "./index.js";
 
 describe("EX4-011 ChaosGallantmon", () => {
   it("can be played from trash at end of turn by deleting a Gallantmon Digimon with digivolution cards", () => {

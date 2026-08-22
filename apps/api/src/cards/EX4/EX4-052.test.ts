@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-052.js";
-import "../index.js";
+import "./index.js";
 
 describe("EX4-052 Fake Agumon Expert", () => {
   it("once per turn draws two after an opponent Digimon is deleted by trashing a same-level hand card", () => {

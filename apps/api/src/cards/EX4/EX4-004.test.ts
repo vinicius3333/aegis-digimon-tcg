@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-004.js";
-import "../index.js";
+import "./index.js";
 
 describe("EX4-004 Pinamon", () => {
   it("gains 1 memory when deleted outside of battle", () => {

@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-010.js";
-import "../index.js";
+import "./index.js";
 
 describe("EX4-010 BlackWarGrowlmon", () => {
   it("trashes three cards from both decks, then uses the combined-trash DP ceiling", () => {

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import "../index.js";
+import "./index.js";
 
 // A3 for EX4-062 (Nene Amano & Kiriha Aonuma) — DigiXros source-zone expander:
 //   "by suspending this Tamer, you may place DigiXros materials from your trash and from under your

@@ -111,54 +111,53 @@ const module: EffectModule = {
     if (timing === EffectTiming.OnLeaveFieldAnyone) {
       return [
         {
-          kind: "Delete",
-          target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 8000 } }, count: 1 },
+          effectKey: `${cardId}/leave-play`,
+          description:
+            "[All Turns] When this Digimon would leave the battle area other than by one of your effects, play 1 [BlitzGreymon] and 1 [CresGarurumon] from this Digimon's digivolution cards without paying the costs. Then, place this Digimon at the bottom of your security stack face down.",
+          optional: false,
+          isInherited: false,
+          isSecurity: false,
+          isLinked: false,
+          maxPerTurn: -1,
+          canTrigger: (ctx) => ctx.source.isOnBattleArea(),
+          canActivate: () => true,
+          resolve: async (ctx) => {
+            const self = source.permanent();
+            if (!self) return;
+
+            const blitzCands = self.stack
+              .filter((c) => ctx.game.definitionOf(c).nameEn === "BlitzGreymon")
+              .map((c) => c.instanceId);
+            const cresCands = self.stack
+              .filter((c) => ctx.game.definitionOf(c).nameEn === "CresGarurumon")
+              .map((c) => c.instanceId);
+
+            const toPlay: string[] = [];
+
+            if (blitzCands.length > 0) {
+              const chosen = await ctx.ask.selectCards(ctx, { candidates: blitzCands, min: 1, max: 1 });
+              toPlay.push(...chosen);
+            }
+
+            if (cresCands.length > 0) {
+              const chosen = await ctx.ask.selectCards(ctx, { candidates: cresCands, min: 1, max: 1 });
+              toPlay.push(...chosen);
+            }
+
+            if (toPlay.length > 0) {
+              await ctx.fx.playInstances(toPlay, { payCost: false });
+            }
+
+            if (ctx.source.isOnBattleArea()) {
+              await ctx.fx.addSecurity(source.ownerSeat, [self.permanentId], { toTop: false, faceUp: false });
+            }
+          },
         },
-        {
-          kind: "Return",
-          target: { filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "gte", value: 6 } }, count: 1 },
-          to: "deckBottom",
-        },
-      ],
-    },
-    {
-      trigger: "AllTurns",
-      actions: [
-        {
-          kind: "Replacement",
-          event: "wouldLeavePlay",
-          leaveCause: "otherThanYourEffect",
-          sourceFilter: { isSelfRef: true },
-          actions: [
-            {
-              kind: "PlayWithoutCost",
-              target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["BlitzGreymon"], match: "nameExact" }] }, count: 1 },
-              from: ["digivolutionCards"],
-              payCost: false,
-              optional: true,
-            },
-            {
-              kind: "PlayWithoutCost",
-              target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["CresGarurumon"], match: "nameExact" }] }, count: 1 },
-              from: ["digivolutionCards"],
-              payCost: false,
-              optional: true,
-            },
-            {
-              kind: "SecurityManipulation",
-              op: "addBottom",
-              controller: "mine",
-              amount: 1,
-              source: "this",
-              faceDown: true,
-            },
-          ],
-        },
-      ],
-    },
-  ],
-  coverage: "full",
-  residual: [],
+      ];
+    }
+
+    return [];
+  },
 };
 
 registerIrCard(cardId, compiled);

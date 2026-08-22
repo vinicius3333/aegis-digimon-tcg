@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import "../index.js";
+import "./index.js";
 
 // A3 for EX4-021 (DexDorugoramon) — [DigiXros -2]: "Blue MetalGreymon" + "DarkKnightmon".
 // "When you would play this card, you may place specified cards from your hand/battle area under

@@ -8,6 +8,12 @@ import generatedDigivolveOverridesJson from "./generated-digivolve-overrides.jso
 /** Runtime effect records keyed by card id. Card modules remain authoritative. */
 export const compiledEffects: CompiledEffects = effectsJson as unknown as CompiledEffects;
 
+/** Hand-authored runtime modules whose aggregate parser metadata is normalized at lookup time. */
+export const HAND_AUTHORED_COVERAGE_OVERRIDES: ReadonlySet<string> = new Set([
+  "EX4-021", "EX4-030", "EX4-036", "EX4-037", "EX4-049", "EX4-051", "EX4-059",
+  "EX4-060", "EX4-062", "EX4-068", "EX4-069", "EX4-072", "EX4-073",
+]);
+
 // ST15-13's printed Blocker clause is implemented by the hand-authored module
 // (the generated parser historically emitted a RawUnparsed marker for the
 // parenthetical timing reminder). Keep the shared compiled evidence aligned

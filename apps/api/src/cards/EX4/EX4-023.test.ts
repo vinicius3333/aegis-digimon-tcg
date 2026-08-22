@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-023.js";
-import "../index.js";
+import "./index.js";
 
 describe("EX4-023 Agumon Expert", () => {
   it("once per opponent turn reveals a same-level card from hand and places it as security", () => {

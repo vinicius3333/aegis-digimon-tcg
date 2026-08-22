@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { internalsOf } from "../../engine/testkit/internals.js";
 import { compiled } from "./EX4-002.js";
-import "../index.js";
+import "./index.js";
 
 describe("EX4-002 Kokomon", () => {
   it("draws once per turn when an effect suspends one of your Digimon", () => {

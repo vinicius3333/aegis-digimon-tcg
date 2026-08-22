@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-008.js";
-import "../index.js";
+import "./index.js";
 
 describe("EX4-008 BlackGrowlmon", () => {
   it("trashes the top two cards of both decks before an optional trash-to-hand return", () => {

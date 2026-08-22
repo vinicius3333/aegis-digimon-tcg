@@ -3,7 +3,6 @@
 import type {
   AddDPFromTrashedCardAction,
   AddDPFromSuspendedCostAction,
-  AddDPFromTrashedCardAction,
   AddToHandSelfAction,
   GainKeywordAction,
   HandManipulationAction,
@@ -159,7 +158,6 @@ export type Action =
   | MovePermanentAction
   | HatchAction
   | ModifyDPAction
-  | AddDPFromTrashedCardAction
   | AddDPFromSuspendedCostAction
   | AddDPFromTrashedCardAction
   | SetBaseDPAction

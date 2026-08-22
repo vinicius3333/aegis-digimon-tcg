@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./EX4-022.js";
-import "../index.js";
+import "./index.js";
 
 describe("EX4-022 ZeedGarurumon", () => {
   it("returns an opposing level four or lower Digimon", () => {

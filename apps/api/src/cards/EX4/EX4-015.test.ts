@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-015.js";
-import "../index.js";
+import "./index.js";
 
 describe("EX4-015 Gaomon", () => {
   it("draws one card for each player on play", () => {

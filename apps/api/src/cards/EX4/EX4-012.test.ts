@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-012.js";
-import "../index.js";
+import "./index.js";
 
 describe("EX4-012 VictoryGreymon", () => {
   it("raises the DP deletion ceiling by 2000 per opponent Digimon", () => {
