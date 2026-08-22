@@ -49,4 +49,13 @@ describe("BT12-097 handwritten module", () => {
     expect(s.perm("ryoma").stack).toHaveLength(2);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT12-008");
   });
+
+  it("plays Ryoma from security without paying its memory cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT12-097", as: "ryoma", faceUp: true }] } });
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("ryoma"));
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT12-097")).toBe(true);
+  });
 });
