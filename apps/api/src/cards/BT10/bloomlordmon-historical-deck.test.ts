@@ -19,7 +19,7 @@ describe("BT10 BloomLordmon historical deck gauntlet", () => {
         },
         1: {
           battleArea: [{ card: "BT1-016", as: "battleTarget", suspended: true, dp: 3000 }],
-          security: ["BT1-009", "BT1-010"],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
@@ -79,7 +79,7 @@ describe("BT10 BloomLordmon historical deck gauntlet", () => {
     await settle(
       () =>
         s.state.players[1]!.battleArea.length === 0 &&
-        s.state.players[1]!.security.length === 0 &&
+        s.state.players[1]!.security.length === 1 &&
         !observe(s.engine).isAttacking(),
     );
 
@@ -88,6 +88,6 @@ describe("BT10 BloomLordmon historical deck gauntlet", () => {
     // continuous threshold before Piercing performs its security checks.
     expect(s.perm("ajatarmon").currentDP).toBe(14000);
     expect(observe(s.engine).keywordAmount(s.perm("ajatarmon"), "SecurityAttack")).toBe(1);
-    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });
