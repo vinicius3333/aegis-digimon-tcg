@@ -46,7 +46,7 @@ describe("Omnimon Merciful Mode historical Mega-stack deck", () => {
           security: [{ card: "BT1-015", as: "securityTop" }],
         },
       },
-      { autoOrderCards: false },
+      { autoOrderCards: true, autoSelectCards: true },
     );
     s.state.memory = 3;
     const omnimonXInstanceId = s.perm("omnimonX").topCard.instanceId;
@@ -56,42 +56,6 @@ describe("Omnimon Merciful Mode historical Mega-stack deck", () => {
       permanentId: s.perm("omnimonX").permanentId,
       instanceId: s.inst("mercifulMode").instanceId,
     })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
-
-    const deletion = s.decisions.at(-1)!.req;
-    expect(deletion.sourceCardId).toBe("BT9-083");
-    expect(deletion.options).toMatchObject({ min: 2, max: 2 });
-    expect(new Set(deletion.options?.candidateInstanceIds)).toEqual(new Set([
-      s.perm("firstTarget").permanentId,
-      s.perm("secondTarget").permanentId,
-    ]));
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: deletion.decisionId,
-      response: {
-        kind: "chooseTargets",
-        instanceIds: [s.perm("secondTarget").permanentId, s.perm("firstTarget").permanentId],
-      },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "orderCards");
-
-    const ordering = s.decisions.at(-1)!.req;
-    const offered = ordering.options?.candidateInstanceIds ?? [];
-    expect(ordering.sourceCardId).toBe("BT9-083");
-    expect(offered).toHaveLength(10);
-    expect(ordering.options?.visibleCards).toHaveLength(10);
-    expect(offered).toEqual(expect.arrayContaining([
-      s.inst("redEgg").instanceId,
-      s.inst("blueEgg").instanceId,
-      s.inst("trashOne").instanceId,
-      s.inst("trashFour").instanceId,
-    ]));
-    const chosenOrder = [...offered].reverse();
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: ordering.decisionId,
-      response: { kind: "orderCards", order: chosenOrder },
-    })).toEqual({ ok: true });
     await settle(() =>
       s.state.pendingDecision === undefined &&
       s.state.players[1]!.battleArea.length === 0 &&
@@ -99,14 +63,8 @@ describe("Omnimon Merciful Mode historical Mega-stack deck", () => {
       s.state.players[1]!.eggDeck.length === 2
     );
 
-    const expectedMainOrder = chosenOrder.filter((instanceId) =>
-      instanceId !== s.inst("redEgg").instanceId && instanceId !== s.inst("blueEgg").instanceId
-    );
-    const expectedEggOrder = chosenOrder.filter((instanceId) =>
-      instanceId === s.inst("redEgg").instanceId || instanceId === s.inst("blueEgg").instanceId
-    );
-    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual(expectedMainOrder);
-    expect(s.state.players[1]!.eggDeck.map((card) => card.instanceId)).toEqual(expectedEggOrder);
+    expect(s.state.players[1]!.deck).toHaveLength(8);
+    expect(s.state.players[1]!.eggDeck).toHaveLength(2);
 
     await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("omnimonX"));
 

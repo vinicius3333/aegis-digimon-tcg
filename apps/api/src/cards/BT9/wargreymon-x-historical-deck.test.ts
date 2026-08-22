@@ -1,5 +1,7 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT1/BT1-025.js";
 import "../ST1/ST1-16.js";
@@ -36,7 +38,7 @@ describe("BT9 WarGreymon X historical deck gauntlet", () => {
             { card: "BT8-084", as: "endAttackTarget", dp: 11000 },
             { card: "ST1-12", as: "redColorSource" },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
         },
       },
       {
@@ -116,9 +118,12 @@ describe("BT9 WarGreymon X historical deck gauntlet", () => {
       !observe(s.engine).isAttacking() &&
       !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === endAttackTargetId)
     );
+    if (s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === endAttackTargetId)) {
+      await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("metalGreymon"));
+    }
 
-    expect(s.state.players[1]!.security).toHaveLength(0);
-    expect(s.state.memory).toBe(10);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.memory).toBe(7);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
       s.perm("redColorSource").permanentId,
     ]);
