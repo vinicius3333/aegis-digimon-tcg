@@ -155,7 +155,7 @@ describe("BT25-101 Divine Arms Version Ω", () => {
               as: "vulcanus",
               linked: [
                 { card: CARD_ID, as: "divineArms" },
-                { card: "BT26-010", as: "piercingLink" },
+                { card: "BT25-100", as: "piercingLink" },
               ],
             },
           ],
