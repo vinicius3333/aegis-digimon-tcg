@@ -31,7 +31,11 @@ describe("BT13-106 Odin's Breath", () => {
   it("applies the DP reduction and Security Attack -1 to every opposing Digimon at six total security", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT13-106", as: "option" }], security: ["BT1-001", "BT1-001", "BT1-001"] },
+        0: {
+          battleArea: [{ card: "BT13-036", as: "yellowDigimon" }],
+          hand: [{ card: "BT13-106", as: "option" }],
+          security: ["BT1-001", "BT1-001", "BT1-001"],
+        },
         1: {
           battleArea: [
             { card: "BT13-111", as: "first" },
@@ -62,7 +66,11 @@ describe("BT13-106 Odin's Breath", () => {
   it("activates Main when an effect directly trashes it from security", async () => {
     const s = setupEngine(
       {
-        0: { security: [{ card: "BT13-106", as: "option", faceUp: true }], hand: [] },
+        0: {
+          battleArea: [{ card: "BT13-036", as: "yellowDigimon" }],
+          security: [{ card: "BT13-106", as: "option", faceUp: true }],
+          hand: [],
+        },
         1: { battleArea: [{ card: "BT13-111", as: "target" }], security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"] },
       },
       { autoSelectCards: true },
