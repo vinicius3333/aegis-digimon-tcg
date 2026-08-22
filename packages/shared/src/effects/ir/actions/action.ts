@@ -127,6 +127,7 @@ import type {
 export type Action =
   | DrawAction
   | GainMemoryAction
+  | GainMemoryForDeletedDigimonsAction
   | SetMemoryAction
   | SetTurnEndMemoryAction
   | DeleteAction

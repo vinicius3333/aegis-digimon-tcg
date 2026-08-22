@@ -76,6 +76,8 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
       return EffectTiming.OnBlockAnyone;
     case "OnDeletion":
       return EffectTiming.OnDestroyedAnyone;
+    case "OnDestroyedAnyone":
+      return EffectTiming.OnDestroyedAnyone;
     case "EndOfAttack":
       return EffectTiming.OnEndAttack;
     case "WhenBattleDeleteOpponent":

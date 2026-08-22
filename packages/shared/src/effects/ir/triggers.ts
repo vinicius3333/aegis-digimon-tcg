@@ -12,6 +12,8 @@ export type EffectTrigger =
   | "WhenDigivolving"
   | "WhenAttacking"
   | "OnDeletion"
+  /** Internal reactive deletion bus for effects watching any permanent's deletion. */
+  | "OnDestroyedAnyone"
   | "EndOfAttack"
   | "AllTurns"
   | "YourTurn"
