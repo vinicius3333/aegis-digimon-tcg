@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-064.js";
 import "../index.js";
 
 describe("BT26-064 DemiDevimon", () => {
   it("compiles the two reveal slots and inherited once-per-turn draw/trash", () => {
+    expect(digivolutionRequirementsFor("BT26-064")).toContainEqual({ level: 2, traits: ["TS"], cost: 0, isAlternate: true });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects[0]?.actions[0]).toMatchObject({ kind: "RevealAdd", revealCount: 3, add: [{ count: 1 }, { count: 1 }], rest: "deckBottom" });

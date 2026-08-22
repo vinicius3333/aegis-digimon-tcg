@@ -10,5 +10,5 @@ export const compiled: CompiledCard = { effects: [
     { kind: "Draw", controller: "mine", amount: 1 },
     { kind: "Trash", target: { count: 1, filter: { controller: "mine", zone: "hand" } }, optional: false },
   ] },
-], coverage: "full", residual: [] };
+], coverage: "full", residual: [], digivolutionRequirement: [{ level: 2, traits: ["TS"], cost: 0, isAlternate: true }] };
 registerIrCard("BT26-064", compiled);
