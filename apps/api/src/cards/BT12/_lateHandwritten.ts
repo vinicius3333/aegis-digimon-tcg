@@ -1128,6 +1128,38 @@ export function lateBt12Module(cardId: string): EffectModule {
                 },
               }),
             ];
+          if (timing === EffectTiming.SecuritySkill)
+            return [
+              security({
+                source,
+                effectKey: `${cardId}/security-delete`,
+                description: "[Security] Trash a Machine/Cyborg card from hand, then delete an opposing Digimon.",
+                resolve: async (ctx) => {
+                  const card = await chooseCard(
+                    ctx,
+                    ctx.game.player(source.ownerSeat).hand.filter((item) => {
+                      const definition = ctx.game.definitionOf(item);
+                      return hasText(definition, "machine") || hasText(definition, "cyborg");
+                    }),
+                    true,
+                  );
+                  if (!card) return;
+                  const discarded = ctx.game.definitionOf(
+                    ctx.game.player(source.ownerSeat).hand.find((item) => item.instanceId === card)!,
+                  );
+                  await ctx.fx.trash([card], { byEffectSeat: source.ownerSeat });
+                  const target = await choosePermanent(
+                    ctx,
+                    opposingDigimon(
+                      ctx,
+                      source,
+                      (definition) => (definition.playCost ?? Infinity) <= (discarded.playCost ?? Infinity),
+                    ),
+                  );
+                  if (target) await ctx.fx.deletePermanent([target], "byEffect");
+                },
+              }),
+            ];
           return [];
         }
         case "BT12-109": {
