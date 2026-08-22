@@ -9,7 +9,6 @@ export const compiled: CompiledCard = {
   effects: [
     { trigger: "StartOfYourMainPhase", actions: [{ kind: "GainMemory", amount: 1, condition: { kind: "memoryAtMost", controller: "mine", value: 4, raw: "you have 4 or less memory" } }] },
     { trigger: "EndOfYourTurn", actions: [{ kind: "UseOptionWithoutCost", target: { filter: tsOption, count: 1 }, from: ["hand"], payCost: true, reduceCostByOpponentMemory: true, optional: true, cost: { kind: "suspend", target: self }, raw: "For each point of memory your opponent has, reduce this effect's paid cost by 1." }] },
-    { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", target: self, from: ["security"], payCost: false }] },
   ],
   coverage: "full",
   residual: [],
