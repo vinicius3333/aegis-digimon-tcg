@@ -254,7 +254,13 @@ export async function runSubTrigger(
   // has no subject sourceFilter; gate purely on the trashed hand being the watcher controller's own.
   const handTrashedGate =
     event === "whenHandTrashed"
-      ? (subCtx: EffectContext): boolean => subCtx.trigger?.handTrashedSeat === subCtx.source.ownerSeat
+      ? (subCtx: EffectContext): boolean => {
+          const expectedSeat =
+            action.handTrashedController === "opponent"
+              ? subCtx.game.opponentOf(subCtx.source.ownerSeat)
+              : subCtx.source.ownerSeat;
+          return subCtx.trigger?.handTrashedSeat === expectedSeat;
+        }
       : undefined;
   // "When THIS Digimon's attack target is switched" is host-scoped, which the IR marks with a
   // self-referencing sourceFilter. The event bus broadcasts every switch to every watcher, so
@@ -810,7 +816,7 @@ export async function runGainTriggeredEffect(
     const grantedPermanentBattleDeleteGate =
       event === "whenDeletesInBattle"
         ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === targetPermanentId
-      : undefined;
+        : undefined;
     const whenDeletesInBattleSelfGate =
       event === "whenDeletesInBattle" && sourceFilter?.isSelfRef === true && anchorPermanentId !== undefined
         ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === anchorPermanentId

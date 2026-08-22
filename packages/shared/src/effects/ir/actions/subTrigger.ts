@@ -72,6 +72,8 @@ export type SubTriggerEvent =
 export interface SubTriggerAction extends ActionBase {
   kind: "SubTrigger";
   event: SubTriggerEvent;
+  /** For whenHandTrashed, select whose hand must have been trashed. Defaults to mine. */
+  handTrashedController?: "mine" | "opponent";
   /**
    * Keep the watcher at activating-player scope instead of anchoring it to the source permanent,
    * so it still affects permanents entering later after the source leaves play (BT10-016 Q1945).
