@@ -7,7 +7,7 @@ describe("EX8-012", () => {
   it("registers the draw/trash digivolving effect", () =>
     expect(compiled.effects.find((entry) => entry.trigger === "WhenDigivolving")?.actions.slice(0, 2)).toHaveLength(2));
   it("registers the once-per-turn inherited opponent-deletion memory effect", () =>
-    expect(compiled.effects.find((entry) => entry.isInherited)).toMatchObject({ trigger: "YourTurn", frequency: "OncePerTurn" });
+    expect(compiled.effects.find((entry) => entry.isInherited)).toMatchObject({ trigger: "YourTurn", frequency: "OncePerTurn" }));
   it("keeps the conditional Guilmon recovery branch attached to digivolution", () => {
     expect(compiled.effects[0]?.actions[2]).toMatchObject({ kind: "GainTriggeredEffect", gainedTrigger: "OnDeletion", duration: "untilOpponentTurnEnd" });
   });
