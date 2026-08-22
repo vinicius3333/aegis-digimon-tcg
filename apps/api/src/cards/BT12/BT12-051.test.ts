@@ -32,6 +32,17 @@ it("plays one named Tamer from hand without paying its cost", async () => {
   expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-091")).toBe(true);
 });
 
+it("does not play an unrelated Tamer from hand", async () => {
+  const s = setupEngine({
+    0: { battleArea: [{ card: "BT12-051", as: "yasha" }], hand: [{ card: "BT12-094", as: "unrelated" }] },
+  }, { autoAcceptOptional: true, autoSelectCards: true });
+  await s.ready();
+  await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("yasha"));
+  await settle(() => s.state.pendingDecision === undefined);
+  expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("unrelated").instanceId)).toBe(true);
+  expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("unrelated").instanceId)).toBe(false);
+});
+
 it("saves a deleted Save Digimon under one of its Tamers", async () => {
   const s = setupEngine({
     0: {
@@ -43,4 +54,10 @@ it("saves a deleted Save Digimon under one of its Tamers", async () => {
   await advance(s.engine).verb.deletePermanent([s.perm("yasha").permanentId], "byEffect");
   await settle(() => s.perm("airu").stack.some(({ cardId }) => cardId === "BT12-008"));
   expect(s.perm("airu").stack.some(({ cardId }) => cardId === "BT12-008")).toBe(true);
+});
+
+it("gives a Save-text inherited host 2000 DP during its controller's turn", async () => {
+  const s = setupEngine({ 0: { battleArea: [{ card: "BT12-011", as: "host", under: ["BT12-051"] }] } });
+  await s.ready();
+  expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 2000);
 });
