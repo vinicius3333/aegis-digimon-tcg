@@ -35,7 +35,7 @@ describe("BT26-041 Hudiemon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hudiemon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.security.length === 1);
+    await settle(() => s.state.players.some((player) => player.battleArea.some((permanent) => permanent.isSuspended)));
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "AD1-001")).toBe(true);
     expect(s.state.players[0]!.security[0]!.cardId).toBe("AD1-002");
     expect(s.state.players.some((player) => player.battleArea.some((permanent) => permanent.isSuspended))).toBe(true);
