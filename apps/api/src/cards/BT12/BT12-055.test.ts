@@ -71,3 +71,14 @@ it("suspends an opponent and gains 3000 DP during DNA digivolution", async () =>
   expect(s.perm("dino").currentDP).toBe(before + 3000);
   expect(s.perm("target").isSuspended).toBe(true);
 });
+
+it("trashes one opposing security card for a qualifying inherited host once per turn", async () => {
+  const s = setupEngine({
+    0: { battleArea: [{ card: "BT12-022", as: "host", under: ["BT12-055"] }] },
+    1: { security: ["BT1-009", "BT1-010"] },
+  });
+  await s.ready();
+  await advance(s.engine).fire(EffectTiming.OnBattleDeleteOpponent, s.perm("host"));
+  await advance(s.engine).fire(EffectTiming.OnBattleDeleteOpponent, s.perm("host"));
+  expect(s.state.players[1]!.security).toHaveLength(1);
+});
