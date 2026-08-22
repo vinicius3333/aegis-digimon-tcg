@@ -55,6 +55,15 @@ function hasText(definition: CardDefinition, token: string): boolean {
   return text(definition).toLowerCase().includes(token.toLowerCase());
 }
 
+function sourcePermanent(ctx: EffectContext, source: CardSource): Permanent | undefined {
+  return (
+    source.permanent() ??
+    ctx.game.player(source.ownerSeat).battleArea.find(
+      (permanent) => permanent.topCard?.instanceId === source.instanceId,
+    )
+  );
+}
+
 function myPermanents(
   ctx: EffectContext,
   source: CardSource,
@@ -1351,9 +1360,9 @@ export function lateBt12Module(cardId: string): EffectModule {
                     : undefined;
                   return subject?.controllerSeat === ctx.game.opponentOf(source.ownerSeat);
                 },
-                canActivate: () => (source.permanent()?.stack.length ?? 0) >= 5,
+                canActivate: (ctx) => (sourcePermanent(ctx, source)?.stack.length ?? 0) >= 5,
                 resolve: async (ctx) => {
-                  const self = source.permanent();
+                  const self = sourcePermanent(ctx, source);
                   if (!self || self.stack.length < 5) return;
                   const cost = self.stack.slice(-5).map(({ instanceId }) => instanceId);
                   const moved = await ctx.fx.trashDigivolutionCards(self.permanentId, cost, {
