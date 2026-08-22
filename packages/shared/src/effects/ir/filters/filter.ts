@@ -39,6 +39,8 @@ export interface Target {
   untilHandSize?: number;
   /** "up to N" rather than exactly N. */
   upTo?: boolean;
+  /** Minimum selected permanents for an aggregate-budget clause. */
+  minimum?: number;
   /** "this Digimon", "this card". */
   isSelf?: boolean;
   /**
