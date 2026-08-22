@@ -24,8 +24,32 @@ export const compiled: CompiledCard = {
           }
         },
         {
-          "kind": "RawUnparsed",
-          "text": "missing-primitive(unaudited): 1 of your Digimon may digivolve into [Belphemon: Sleep Mode] from your trash without paying the cost"
+          "kind": "Digivolve",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ]
+            },
+            "count": 1
+          },
+          "into": {
+            "controllerDefault": "mine",
+            "nameOrTrait": [
+              {
+                "tokens": [
+                  "Belphemon: Sleep Mode"
+                ],
+                "match": "name"
+              }
+            ]
+          },
+          "from": [
+            "trash"
+          ],
+          "payCost": false,
+          "optional": true
         }
       ]
     },
