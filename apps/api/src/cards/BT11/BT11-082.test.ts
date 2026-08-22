@@ -22,7 +22,7 @@ describe("BT11-082 Tuwarmon", () => {
   it("digivolves from Damemon for the printed alternate cost of 1", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT10-070", as: "damemon" }],
+        battleArea: [{ card: "BT10-075", as: "damemon" }],
         hand: [{ card: "BT11-082", as: "tuwarmon" }],
       },
     });
@@ -65,16 +65,17 @@ describe("BT11-082 Tuwarmon", () => {
       {
         0: {
           battleArea: [{ card: "BT11-082", as: "tuwarmon" }],
-          trash: [{ card: "BT10-070", as: "damemon" }],
+          trash: [{ card: "BT10-075", as: "damemon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
     await advance(s.engine).verb.deletePermanent([s.perm("tuwarmon").permanentId]);
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT10-070"));
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT10-075"));
 
-    expect(s.perm("damemon").isSuspended).toBe(true);
+    const playedDamemon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "BT10-075");
+    expect(playedDamemon?.isSuspended).toBe(true);
   });
 
   it("gains 1 memory when inherited and trashed by an effect on the opponent's turn", async () => {

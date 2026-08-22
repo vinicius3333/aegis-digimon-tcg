@@ -6,7 +6,7 @@ const trashTarget = {
   filter: {
     controller: "mine",
     kind: ["Digimon"],
-    orFilters: [
+    or: [
       { colors: ["Purple"], levelComparison: { op: "lte", value: 4 } },
       { nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }], levelComparison: { op: "lte", value: 4 } },
     ],
@@ -18,7 +18,7 @@ const gainTarget = {
   filter: {
     controller: "mine",
     kind: ["Digimon"],
-    orFilters: [{ nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }] }, { keywords: ["Retaliation"] }],
+    or: [{ nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }] }, { keywords: ["Retaliation"] }],
   },
   count: "all",
 };

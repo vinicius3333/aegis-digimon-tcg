@@ -29,7 +29,7 @@ const compiled: CompiledCard = {
       trigger: "OpponentsTurn",
       actions: [{
         kind: "SubTrigger",
-        event: "onDigivolutionCardDiscarded",
+        event: "onDigivolutionCardsDiscardedBatch",
         sourceFilter: { isSelfRef: true },
         actions: [{ kind: "GainMemory", amount: 1 }],
       }],

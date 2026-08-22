@@ -32,7 +32,8 @@ describe("BT11-086 Mervamon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 3);
 
     expect(s.state.memory).toBe(2);
-    expect(s.perm("merva").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("material").instanceId);
+    const playedMerva = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "BT11-086")!;
+    expect(playedMerva.stack.map(({ instanceId }) => instanceId)).toContain(s.inst("material").instanceId);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(
       expect.arrayContaining(["BT11-086", "BT11-079", "BT2-074"]),
     );

@@ -54,7 +54,7 @@ describe("BT11-077 Chikurimon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const chikurimonId = s.inst("chikurimon").instanceId;
+    const chikurimonId = s.perm("chikurimon").topCard.instanceId;
 
     await advance(s.engine).verb.deletePermanent([s.perm("chikurimon").permanentId]);
     await settle(() => s.perm("tamer").stack.some(({ instanceId }) => instanceId === chikurimonId));

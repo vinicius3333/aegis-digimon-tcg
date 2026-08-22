@@ -34,7 +34,7 @@ describe("BT11-096 Magma Bomb", () => {
   it("pays the full option cost without a red Tamer", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT11-096", as: "option" }] },
+        0: { battleArea: ["BT1-009"], hand: [{ card: "BT11-096", as: "option" }] },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 2000 }] },
       },
       { autoSelectCards: true },

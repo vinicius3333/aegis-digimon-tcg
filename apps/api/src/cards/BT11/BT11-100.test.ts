@@ -31,7 +31,7 @@ describe("BT11-100 Megalo Spark", () => {
   it("pays full cost without a yellow Tamer while retaining the opponent-turn duration", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT11-100", as: "option" }] },
+        0: { battleArea: ["BT11-042"], hand: [{ card: "BT11-100", as: "option" }] },
         1: { battleArea: [{ card: "BT1-081", as: "target", dp: 10000 }] },
       },
       { autoSelectCards: true },

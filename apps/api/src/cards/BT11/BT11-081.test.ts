@@ -26,10 +26,13 @@ describe("BT11-081 MadLeomon: Armed Mode", () => {
       instanceId: s.inst("armed-mode").instanceId,
       digiXros: { materialInstanceIds: [s.inst("madleomon").instanceId, s.inst("bagra-army").instanceId] },
     })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT11-081"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard, stack }) => topCard?.cardId === "BT11-081" && stack.length === 2),
+    );
 
     expect(s.state.memory).toBe(8);
-    expect(s.perm("armed-mode").stack.map(({ cardId }) => cardId)).toEqual(
+    const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "BT11-081")!;
+    expect(played.stack.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT10-077", "BT11-082"]),
     );
   });
@@ -63,7 +66,7 @@ describe("BT11-081 MadLeomon: Armed Mode", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const cardId = s.inst("madleo").instanceId;
+    const cardId = s.perm("madleo").topCard.instanceId;
 
     await advance(s.engine).verb.deletePermanent([s.perm("madleo").permanentId]);
     await settle(() => s.perm("tamer").stack.some(({ instanceId }) => instanceId === cardId));

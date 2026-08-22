@@ -1,7 +1,8 @@
 import { digiXrosRequirementFor, EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { observe, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./BT11-071.js";
 describe("BT11-071 MusouKnightmon", () => {
   it("publishes its two-slot DigiXros recipe and permanent rule names", async () => {
@@ -33,10 +34,13 @@ describe("BT11-071 MusouKnightmon", () => {
       instanceId: s.inst("musou").instanceId,
       digiXros: { materialInstanceIds: [s.inst("darkKnightmon").instanceId, s.inst("tuwarmon").instanceId] },
     })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT11-071"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard, stack }) => topCard?.cardId === "BT11-071" && stack.length === 2),
+    );
 
     expect(s.state.memory).toBe(4);
-    expect(s.perm("musou").stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT10-066", "BT11-082"]));
+    const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "BT11-071")!;
+    expect(played.stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT10-066", "BT11-082"]));
   });
 
   it("places an eligible card from trash as its top source", async () => {
