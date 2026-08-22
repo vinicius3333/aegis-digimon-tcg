@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { compiled } from "./BT17-101.js";
-import "../index.js";
+import "./index.js";
 
 // A3 for BT17-101 (Fenriloogamon: Takemikazuchi, Purple Lv.7):
 //   [When Digivolving] 1 of your opponent's Digimon gets -16000 DP for the turn. If DNA
