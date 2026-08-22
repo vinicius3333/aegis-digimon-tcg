@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "./BT10-023.js";
 describe("BT10-023 Thetismon", () => {
   it("draws 2 when its controller has 6 or fewer cards in hand", async () => {
@@ -66,5 +67,16 @@ describe("BT10-023 Thetismon", () => {
 
     expect(s.perm("thetismon").isSuspended).toBe(true);
     expect(s.state.players[0]!.trash).toHaveLength(2);
+  });
+
+  it("does not unsuspend when it has only 7 cards in hand", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT10-023", as: "thetismon", suspended: true }], hand: Array.from({ length: 7 }, () => "BT1-001") },
+    });
+
+    await advance(s.engine).fire("WhenAttacking" as never, s.perm("thetismon"));
+
+    expect(s.perm("thetismon").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(7);
   });
 });
