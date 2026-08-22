@@ -29,7 +29,7 @@ describe("ST19-15 Noble Family Arts", () => {
   it("applies only the base -6000 reduction below the three-Digimon threshold", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "ST19-15", as: "arts" }] },
+        0: { hand: [{ card: "ST19-15", as: "arts" }], battleArea: [{ card: "BT1-009" }] },
         1: { battleArea: [{ card: "AD1-001", as: "target", dp: 13000 }] },
       },
       { autoSelectCards: true },

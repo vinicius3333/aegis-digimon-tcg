@@ -46,6 +46,7 @@ describe("ST19-11 Chaperomon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 20;
+    s.state.turnSeat = 1;
     expect(
       s.engine.applyIntent(1, {
         type: "digivolve",

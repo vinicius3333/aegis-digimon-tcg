@@ -36,6 +36,7 @@ describe("ST19-14 Arisa Kinosaki", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
     s.state.memory = 5;
     expect(
       s.engine.applyIntent(0, {
@@ -67,11 +68,14 @@ describe("ST19-14 Arisa Kinosaki", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 20;
+    await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("puppet").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST19-07"));
-    expect(observe(s.engine).hasKeyword(s.perm("puppet"), "Rush")).toBe(false);
+    const puppet = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "ST19-07");
+    expect(puppet).toBeDefined();
+    expect(observe(s.engine).hasKeyword(puppet!, "Rush")).toBe(false);
     expect(s.perm("arisa").isSuspended).toBe(false);
   });
 });

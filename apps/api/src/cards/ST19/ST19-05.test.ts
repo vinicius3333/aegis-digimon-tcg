@@ -22,6 +22,7 @@ describe("ST19-05 PawnChessmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("pawn"), "Blocker")).toBe(true);
     expect(
       s.engine.applyIntent(0, {

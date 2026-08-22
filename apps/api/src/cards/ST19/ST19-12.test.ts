@@ -56,6 +56,7 @@ describe("ST19-12 Familiar Token", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
+    await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("cendrill"), "Blocker")).toBe(true);
     s.state.turnSeat = 0;
     const turn = s.engine.runOneTurn();

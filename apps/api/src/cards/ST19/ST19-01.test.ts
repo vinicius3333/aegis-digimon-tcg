@@ -84,7 +84,10 @@ describe("ST19-01 Kyaromon", () => {
         }),
       ).toEqual({ ok: true });
       await settle(() => s.perm("attacker").isSuspended);
-      if (i === 0) await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
+      if (i === 0) {
+        await advance(s.engine).verb.unsuspend([s.perm("attacker").permanentId]);
+        s.state.phase = "Main" as never;
+      }
     }
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("first").instanceId]);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("second").instanceId]);

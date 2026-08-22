@@ -42,6 +42,8 @@ describe("ST19-02 ＜Barrier＞ is once per turn", () => {
     );
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
 
+    s.state.phase = "Main" as never;
+
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
