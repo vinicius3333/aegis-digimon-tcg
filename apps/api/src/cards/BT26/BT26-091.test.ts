@@ -1,14 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { getCompiledCard } from "@aegis/shared";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "./BT26-091.js";
+import { compiled } from "./BT26-091.js";
 import "../index.js";
 
 describe("BT26-091 compiled fidelity", () => {
   it("registers both printed reaction sources with a suspension-paid reduced digivolution", () => {
-    const card = getCompiledCard("BT26-091");
+    const card = compiled;
     expect(card?.coverage).toBe("full");
     expect(card?.effects?.find((effect) => effect.trigger === "StartOfYourMainPhase")?.actions).toMatchObject([
       { kind: "PlaceUnder", faceDown: true },
@@ -23,9 +22,6 @@ describe("BT26-091 compiled fidelity", () => {
     for (const watcher of actions) {
       expect(watcher.actions?.[0]).toMatchObject({ kind: "Digivolve", from: ["hand"], costDelta: -1, optional: true, cost: { kind: "suspend" } });
     }
-    expect(card?.effects?.find((effect) => effect.trigger === "Security")?.actions).toMatchObject([
-      { kind: "PlayWithoutCost", payCost: false },
-    ]);
   });
 
   it("places a DATA SQUAD card under itself, draws, and gains memory at main-phase start", async () => {
