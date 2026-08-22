@@ -6,7 +6,8 @@ describe("BT26-049 Rosemon", () => {
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "WhenDigivolving", frequency: "OncePerTurn", actions: [{ kind: "Suspend", target: { count: 2, upTo: true } }] });
     expect(compiled.effects?.[1]).toMatchObject({ trigger: "WhenAttacking", sharedUseKey: "bt26-049-suspend" });
     expect(compiled.effects?.[2]).toMatchObject({ trigger: "AllTurns", frequency: "OncePerTurn", actions: [
-      { kind: "SubTrigger", event: "whenSuspended" }, { kind: "SubTrigger", event: "whenDigivolutionTrashed" },
+      { kind: "SubTrigger", event: "whenSuspended", actions: [{ kind: "PlayWithoutCost", playCostCeiling: { base: 3, raise: 1, per: 1, unit: "cards" }, target: { filter: { kind: ["Digimon", "Tamer", "Option"] } } }] },
+      { kind: "SubTrigger", event: "whenDigivolutionTrashed", actions: [{ kind: "PlayWithoutCost", playCostCeiling: { base: 3, raise: 1, per: 1, unit: "cards" } }] },
     ] });
   });
 });
