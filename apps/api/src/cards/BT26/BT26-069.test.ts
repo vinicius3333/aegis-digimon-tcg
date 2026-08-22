@@ -17,10 +17,12 @@ describe("BT26-069 Dobermon", () => {
   });
 
   it("trashes a hand card to delete a level-4-or-lower Digimon on play", async () => {
+    const preferred: string[] = [];
     const s = setupEngine({
       0: { battleArea: [{ card: "BT26-069", as: "dobermon" }], hand: [{ card: "BT1-001", as: "cost" }] },
       1: { battleArea: [{ card: "BT1-009", as: "target" }] },
-    }, { autoSelectCards: true });
+    }, { autoSelectCards: true, preferInstanceIds: preferred });
+    preferred.push(s.perm("target").topCard.instanceId);
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("dobermon"));
 
