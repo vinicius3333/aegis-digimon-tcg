@@ -18,7 +18,7 @@ describe("ST14-07 Baalmon", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("baalmon"));
