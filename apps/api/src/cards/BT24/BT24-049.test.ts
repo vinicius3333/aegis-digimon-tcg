@@ -24,21 +24,79 @@ describe("BT24-049 Parrotmon", () => {
     expect((inherited?.actions?.[0] as any).event).toBe("whenDeletesInBattle");
   });
 
-  it("exposes Fortitude but does not bounce after a normal play", async () => {
+  it("exposes Fortitude but does not bounce through a normal public play", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT24-049", as: "parrotmon" }] },
+        0: { hand: [{ card: "BT24-049", as: "parrotmon" }] },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 7;
     await s.ready();
 
-    expect(observe(s.engine).hasKeyword(s.perm("parrotmon"), "Fortitude")).toBe(true);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("parrotmon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("parrotmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").isSuspended);
 
+    const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT24-049")!;
+    expect(observe(s.engine).hasKeyword(played, "Fortitude")).toBe(true);
     expect(s.perm("target").isSuspended).toBe(true);
     expect(s.state.players[1]!.hand).toHaveLength(0);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("replays itself through Fortitude after deletion with a digivolution card", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT24-049", as: "parrotmon", under: ["BT24-047"] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const instanceId = s.inst("parrotmon").instanceId;
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("parrotmon").permanentId], "byEffect")).toBe(1);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId),
+    );
+
+    const replayed = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === instanceId);
+    expect(replayed).toBeDefined();
+    expect(replayed?.stack).toHaveLength(0);
+  });
+
+  it.each([
+    ["normal green requirement", "BT24-047", false],
+    ["alternate TS requirement", "BT24-035", true],
+  ])("digivolves for 3 through the %s", async (_label, baseCard, useAlternateCost) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: baseCard, as: "base" }],
+          hand: [{ card: "BT24-049", as: "parrotmon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("parrotmon").instanceId,
+        ...(useAlternateCost ? { useAlternateCost: true, alternateRequirementIndex: 0 } : {}),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("parrotmon").instanceId);
+    await settle(() => s.perm("target").isSuspended);
+
+    expect(s.state.memory).toBe(2);
   });
 
   it("returns the lowest-DP suspended Digimon when played by an effect", async () => {
