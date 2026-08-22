@@ -84,7 +84,11 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
         (cost.target.filter.faceDown !== undefined || cost.target.filter.position !== undefined)))
   ) {
     if (cost.target.filter.isSelfRef === true) {
-      const self = ctx.source.permanent();
+      const self =
+        ctx.source.permanent() ??
+        (ctx.trigger.attackerPermanentId !== undefined
+          ? ctx.game.permanentById(ctx.trigger.attackerPermanentId)
+          : undefined);
       if (self === undefined) return false;
       const candidates = self.stack.filter((card) => cost.target!.filter.faceDown !== true || !card.faceUp);
       const required = cost.target.count === "all" ? candidates.length : cost.target.count;
@@ -133,7 +137,7 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     // not on loose cards from hand. Keep this in sync with payCost's dedicated
     // placeOwnTopAtStackBottom route below so an available cost is actually
     // offered to the controller.
-    if (cost.raw && /bottom digivolution card/i.test(cost.raw) && /top\s+(?:stacked\s+)?card/i.test(cost.raw)) {
+    if (cost.raw && /bottom digivolution card/i.test(cost.raw) && /\btop\s+(?:stacked\s+)?card/i.test(cost.raw)) {
       const selfPerm = ctx.source.permanent();
       return selfPerm !== undefined && selfPerm.stack.length > 0;
     }
@@ -160,7 +164,10 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     if (cost.host !== null && typeof cost.host === "object") {
       return candidatePermanents(ctx, { filter: cost.host.filter, count: cost.host.count }).length > 0;
     }
-    return ctx.source.permanent() !== undefined;
+    return (
+      ctx.source.permanent() !== undefined ||
+      (ctx.trigger.attackerPermanentId !== undefined && ctx.game.permanentById(ctx.trigger.attackerPermanentId) !== undefined)
+    );
   }
   return true;
 }
@@ -913,7 +920,7 @@ export async function payCost(
     case "place": {
       // BT22-043/044 self-restack: "By placing this [CS] Digimon's top stacked card as its
       // bottom digivolution card" rotates the SOURCE permanent's OWN top card to the bottom of
-      if (cost.raw && /bottom digivolution card/i.test(cost.raw) && /top\s+(?:stacked\s+)?card/i.test(cost.raw)) {
+      if (cost.raw && /bottom digivolution card/i.test(cost.raw) && /\btop\s+(?:stacked\s+)?card/i.test(cost.raw)) {
         const selfPerm = ctx.source.permanent();
         if (selfPerm === undefined) return false;
         const rotated = await ctx.fx.placeOwnTopAtStackBottom(selfPerm.permanentId);
@@ -961,7 +968,11 @@ export async function payCost(
                 ? destIds[0]
                 : (await ctx.ask.chooseTargets(ctx, { candidates: destIds, min: 1, max: 1 }))[0];
           } else {
-            const selfPerm = ctx.source.permanent();
+            const selfPerm =
+              ctx.source.permanent() ??
+              (ctx.trigger.attackerPermanentId !== undefined
+                ? ctx.game.permanentById(ctx.trigger.attackerPermanentId)
+                : undefined);
             if (selfPerm === undefined) return false;
             hostPermId = selfPerm.permanentId;
           }
@@ -976,9 +987,9 @@ export async function payCost(
             });
           }
           if (out) out.paidCount = sourceIds.length;
-          return true;
-        }
-        const srcZones: ZoneRef[] = (cost.target.from?.length ?? 0) > 0 ? (cost.target.from as ZoneRef[]) : ["hand"];
+        return true;
+      }
+      const srcZones: ZoneRef[] = (cost.target.from?.length ?? 0) > 0 ? (cost.target.from as ZoneRef[]) : ["hand"];
         const srcCandidates = candidateLooseInstances(ctx, cost.target, srcZones);
         const visibleSourceIds = srcZones.every((zone) => zone === "hand" || zone === "trash")
           ? seatsForController(ctx, cost.target.filter).flatMap((seat) =>
@@ -1096,7 +1107,11 @@ export async function payCost(
                 ? candidates[0]
                 : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
           } else {
-            const selfPerm = ctx.source.permanent();
+            const selfPerm =
+              ctx.source.permanent() ??
+              (ctx.trigger.attackerPermanentId !== undefined
+                ? ctx.game.permanentById(ctx.trigger.attackerPermanentId)
+                : undefined);
             if (selfPerm === undefined) return false;
             hostPermId = selfPerm.permanentId;
           }
@@ -1106,10 +1121,21 @@ export async function payCost(
           ctx.selections ??= new Map();
           ctx.selections.set(cost.bindHostAs, hostPermId);
         }
+        let orderedPicked = picked;
+        if (picked.length > 1 && /in any order/i.test(cost.raw ?? "") && ctx.ask.orderCards !== undefined) {
+          orderedPicked = await ctx.ask.orderCards(ctx, {
+            candidates: picked,
+            visibleCards: picked.map((instanceId) => {
+              const card = srcCandidates.find((candidate) => candidate.instanceId === instanceId);
+              return { instanceId, cardId: card?.cardId ?? "" };
+            }),
+            destination: "stackBottom",
+          });
+        }
         if (cost.position === "choice") {
           // "top or bottom" — prompt the controller per placed card via the shared
           // binary-choice helper ctx.ask.chooseOption (index 0 = top, 1 = bottom).
-          for (const instanceId of picked) {
+          for (const instanceId of orderedPicked) {
             const idx = await ctx.ask.chooseOption(ctx, ["top", "bottom"]);
             await ctx.fx.placeUnder(hostPermId, [instanceId], {
               belowTop: idx === 0,
@@ -1117,12 +1143,12 @@ export async function payCost(
             });
           }
         } else {
-          await ctx.fx.placeUnder(hostPermId, picked, {
+          await ctx.fx.placeUnder(hostPermId, orderedPicked, {
             belowTop: cost.position !== "bottom",
             faceUp: cost.faceDown !== true,
           });
         }
-        if (cost.storeAs !== undefined && picked.length > 0) {
+        if (cost.storeAs !== undefined && orderedPicked.length > 0) {
           const pickedCard = srcCandidates.find((c) => c.instanceId === picked[0]);
           const def = pickedCard !== undefined ? ctx.game.definitionOf(pickedCard as never) : undefined;
           const level = def?.level;
@@ -1140,7 +1166,11 @@ export async function payCost(
       // cost.underFilter when set ("under one of your Tamers"); absent, uses the source
       // permanent itself. Exotic variants (BT24-040, BT9-044, BT23-073) still lack a
       // derivable destination when neither underFilter nor a battle-area source exists.
-      const self = ctx.source.permanent();
+      const self =
+        ctx.source.permanent() ??
+        (ctx.trigger.attackerPermanentId !== undefined
+          ? ctx.game.permanentById(ctx.trigger.attackerPermanentId)
+          : undefined);
       if (!cost.target) return false;
       const zones: ZoneRef[] = (cost.target.from?.length ?? 0) > 0 ? (cost.target.from as ZoneRef[]) : ["hand"];
       const candidates = candidateLooseInstances(ctx, cost.target, zones);
@@ -1189,7 +1219,18 @@ export async function payCost(
         }
       }
       if (hostId === undefined) return false;
-      await ctx.fx.placeUnder(hostId, chosen, { belowTop: false, faceUp: cost.faceDown !== true });
+      let orderedChosen = chosen;
+      if (chosen.length > 1 && /in any order/i.test(cost.raw ?? "") && ctx.ask.orderCards !== undefined) {
+        orderedChosen = await ctx.ask.orderCards(ctx, {
+          candidates: chosen,
+          visibleCards: chosen.map((instanceId) => {
+            const card = candidates.find((candidate) => candidate.instanceId === instanceId);
+            return { instanceId, cardId: card?.cardId ?? "" };
+          }),
+          destination: "stackBottom",
+        });
+      }
+      await ctx.fx.placeUnder(hostId, [...orderedChosen].reverse(), { belowTop: false, faceUp: cost.faceDown !== true });
       if (cost.storeAs !== undefined && chosen.length > 0) {
         const pickedCard = candidates.find((c) => c.instanceId === chosen[0]);
         const level = pickedCard !== undefined ? ctx.game.definitionOf(pickedCard as never).level : undefined;

@@ -107,7 +107,7 @@ const compiled: CompiledCard = {
       trigger: "YourTurn",
       frequency: "OncePerTurn",
       actions: [{ kind: "SubTrigger", event: "whenHandTrashed", sourceFilter: { controller: "mine" }, actions: [
-        { kind: "Unsuspend", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 }, optional: true },
+        { kind: "Unsuspend", target: { filter: { controller: "mine", kind: ["Digimon"], excludeSelf: true }, count: 1 }, optional: true },
       ] }],
     },
   ],

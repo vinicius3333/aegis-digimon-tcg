@@ -352,7 +352,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
   if (toPlaceUnder.length > 0) {
   for (const { instanceId, underFilter, faceDown } of toPlaceUnder) {
       const candidates = ctx.game.player(seat).battleArea.filter((p) => {
-        if (!p.topCard || !isDigimon(ctx.game.definitionOf(p.topCard))) return false;
+        if (!p.topCard || (underFilter === undefined && !isDigimon(ctx.game.definitionOf(p.topCard)))) return false;
         return underFilter === undefined || permanentMatchesFilter(ctx, p, underFilter, ctx.source);
       });
       if (candidates.length === 0) {

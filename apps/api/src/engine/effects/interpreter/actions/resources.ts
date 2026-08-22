@@ -6,7 +6,7 @@ import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { countMatching } from "../scaling.js";
 import { candidateLooseInstances, pickLoose } from "../targeting/loose.js";
-import { resolvePermanentTargets } from "../targeting/permanents.js";
+import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardKind, isTamer } from "@aegis/shared";
 import type { Action, CardDefinition, Permanent, Seat, Target } from "@aegis/shared";
 
@@ -116,6 +116,25 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
         const chosen = await pickLoose(ctx, trashTarget, candidates);
         if (chosen.length === 0) return false;
         await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
+        const delta = action.amount.kind === "fixed" ? action.amount.value : 0;
+        ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, delta);
+        return false;
+      }
+      if (payment.kind === "trashDigivolution") {
+        const hosts = candidatePermanents(ctx, payment.target)
+          .filter((permanent) => permanent.stack.length >= payment.minimum)
+          .map((permanent) => permanent.permanentId);
+        if (hosts.length === 0 || !(await ctx.ask.optional(ctx, "Trash digivolution cards to reduce the play cost"))) return false;
+        const chosenHosts = hosts.length === 1 ? hosts : await ctx.ask.chooseTargets(ctx, { candidates: hosts, min: 1, max: 1 });
+        const host = chosenHosts[0] === undefined ? undefined : ctx.game.permanentById(chosenHosts[0]);
+        if (host === undefined || host.stack.length < payment.minimum) return false;
+        const max = host.stack.length;
+        const count = max === payment.minimum
+          ? payment.minimum
+          : payment.minimum + (await ctx.ask.chooseOption(ctx, Array.from({ length: max - payment.minimum + 1 }, (_, i) => `Trash ${payment.minimum + i}`)));
+        const ids = host.stack.slice(0, count).map((card) => card.instanceId);
+        const moved = await ctx.fx.trashDigivolutionCards(host.permanentId, ids, { byEffectSeat: ctx.source.ownerSeat });
+        if (moved.length !== count) return false;
         const delta = action.amount.kind === "fixed" ? action.amount.value : 0;
         ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, delta);
         return false;

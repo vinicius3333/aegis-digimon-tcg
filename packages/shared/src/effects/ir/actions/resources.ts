@@ -135,6 +135,12 @@ export interface ReducePlayCostAction extends ActionBase {
         /** "By deleting 1 of your play-cost-≤11 [Negamon] Digimon" (BT25-076). */
         kind: "sacrificePermanent";
         target: Target;
+      }
+    | {
+        /** "By trashing 7 or more digivolution cards from the bottom of a Mother D-Reaper" (EX2-055). */
+        kind: "trashDigivolution";
+        target: Target;
+        minimum: number;
       };
   amount: { kind: "fixed"; value: number } | { kind: "deletedSacrificePlayCost" };
 }

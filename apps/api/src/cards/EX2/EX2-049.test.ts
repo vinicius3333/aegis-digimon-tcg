@@ -33,7 +33,7 @@ describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Rea
       s.engine.applyIntent(0, {
         type: "activateEffect",
         sourceInstanceId: searcher.topCard!.instanceId,
-        effectKey: "EX2-049/main-reveal-5-place-searcher",
+        effectKey: "EX2-049/ir-27-0",
       }),
     ).toEqual({ ok: true });
 
@@ -71,7 +71,15 @@ describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Rea
     expect(s.engine.applyIntent(0, {
       type: "activateEffect",
       sourceInstanceId: s.perm("source").topCard.instanceId,
-      effectKey: "EX2-049/main-reveal-5-place-searcher",
+      effectKey: "EX2-049/ir-27-0",
+    })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const activation = s.decisions.at(-1)!.req;
+    expect(activation.kind).toBe("optional");
+    expect(s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: activation.decisionId,
+      response: { kind: "optional", accept: true },
     })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
 

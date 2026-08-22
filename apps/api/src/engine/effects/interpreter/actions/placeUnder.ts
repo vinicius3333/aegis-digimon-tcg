@@ -46,6 +46,9 @@ export async function runPlaceUnder(
         }
       }
     }
+    if (action.mixedSources.hand) {
+      for (const card of owner.hand) if (matches(card)) candidates.push({ instanceId: card.instanceId });
+    }
     if (action.mixedSources.trash) for (const card of owner.trash) if (matches(card)) candidates.push({ instanceId: card.instanceId });
     const count = action.target.count === "all" ? candidates.length : Number(action.target.count ?? 1);
     if (candidates.length < count) return;
@@ -59,7 +62,7 @@ export async function runPlaceUnder(
     const ordered = orderedIds.map((id) => selected.find((candidate) => candidate.instanceId === id)).filter(Boolean) as typeof selected;
     for (const candidate of [...ordered].reverse()) {
       if (candidate.permanentId !== undefined) {
-        if (await ctx.fx.relocatePermanentByEffect?.(destinationId, candidate.permanentId, { belowTop: false, faceUp: true }) !== true) return;
+        if (await ctx.fx.relocatePermanentByEffect?.(destinationId, candidate.permanentId, { belowTop: false, faceUp: true, shedOwnCards: true }) !== true) return;
       } else if ((await ctx.fx.placeUnder(destinationId, [candidate.instanceId])).length !== 1) return;
     }
     if (action.trackCount !== undefined) ctx.namedCounts?.set(action.trackCount, count);
@@ -337,6 +340,7 @@ export async function runTrashDigivolution(
 ): Promise<boolean> {
   const amount = action.amount ?? 1;
   const fromTop = action.fromTop ?? true;
+  const minimum = action.minAmount ?? (typeof amount === "number" ? amount : undefined);
 
   // "acrossDigimon": pool all digivolution cards from every matching permanent and let
   // the controller pick `amount` from the combined pool (EX12-035 "any 4 digivolution
@@ -396,6 +400,10 @@ export async function runTrashDigivolution(
   // Default: single-target path — resolve 1 permanent, trash `amount` from its stack.
   const resolvedIds = await resolvePermanentTargets(ctx, action.target);
   if (resolvedIds.length === 0) {
+    ctx.lastEffectActed = false;
+    return false;
+  }
+  if (minimum !== undefined && resolvedIds.some((id) => (ctx.game.permanentById(id)?.stack.length ?? 0) < minimum)) {
     ctx.lastEffectActed = false;
     return false;
   }

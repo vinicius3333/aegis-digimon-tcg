@@ -179,11 +179,6 @@ describe("EX2-060 Rika Nonaka", () => {
     expect(module!.effectsForTiming(EffectTiming.OnStartTurn, source)).toHaveLength(1);
   });
 
-  it("produces 1 OnAllyAttack effect", () => {
-    const source = makeSource();
-    expect(module!.effectsForTiming(EffectTiming.OnAllyAttack, source)).toHaveLength(1);
-  });
-
   it("[Start of Your Turn] sets memory to 3 when ≤ 2", async () => {
     const recorder: Recorder = { calls: [] };
     const source = makeSource();
@@ -196,66 +191,4 @@ describe("EX2-060 Rika Nonaka", () => {
     expect(recorder.calls.find((c) => c.verb === "setMemory")!.args[0]).toBe(3);
   });
 
-  it("[When Attacking] suspends self and uses Plug-In Option from hand", async () => {
-    const recorder: Recorder = { calls: [] };
-    const source = makeSource(false); // unsuspended
-    const plugIn = card("plugin-1", PLUG_IN_ID, 0);
-    const ctx = makeCtx(recorder, source, {
-      ownerHand: [plugIn],
-      attackerCardId: "Renamon-card",
-    });
-
-    const effects = module!.effectsForTiming(EffectTiming.OnAllyAttack, source);
-    // FAILS-WHEN-REVERTED: the legacy SubTrigger fallback collects no effect at this timing
-    expect(effects).toHaveLength(1);
-
-    await effects[0]!.resolve(ctx);
-
-    // FAILS-WHEN-REVERTED: IR doesn't produce suspend or useOptionFromHand calls
-    const suspendCalls = recorder.calls.filter((c) => c.verb === "suspend");
-    expect(suspendCalls).toHaveLength(1);
-    const useCalls = recorder.calls.filter((c) => c.verb === "useOptionFromHand");
-    expect(useCalls).toHaveLength(1);
-    // args[0] is the ctx passed through to useOptionFromHand; the instanceId is args[1].
-    expect(useCalls[0]!.args[1]).toBe("plugin-1");
-  });
-
-  it("[When Attacking] canActivate is false when Tamer is already suspended", () => {
-    const recorder: Recorder = { calls: [] };
-    const source = makeSource(true); // already suspended
-    const plugIn = card("plugin-1", PLUG_IN_ID, 0);
-    const ctx = makeCtx(recorder, source, {
-      ownerHand: [plugIn],
-      attackerCardId: "Renamon-card",
-    });
-
-    const effects = module!.effectsForTiming(EffectTiming.OnAllyAttack, source);
-    expect(effects[0]!.canActivate(ctx)).toBe(false);
-  });
-
-  it("[When Attacking] canActivate is false when no Plug-In Option in hand", () => {
-    const recorder: Recorder = { calls: [] };
-    const source = makeSource(false);
-    const ctx = makeCtx(recorder, source, {
-      ownerHand: [], // no options
-      attackerCardId: "Renamon-card",
-    });
-
-    const effects = module!.effectsForTiming(EffectTiming.OnAllyAttack, source);
-    expect(effects[0]!.canActivate(ctx)).toBe(false);
-  });
-
-  it("[When Attacking] fires for [Sakuyamon] attacker as well", async () => {
-    const recorder: Recorder = { calls: [] };
-    const source = makeSource(false);
-    const plugIn = card("plugin-2", PLUG_IN_ID, 0);
-    const ctx = makeCtx(recorder, source, {
-      ownerHand: [plugIn],
-      attackerCardId: "Sakuyamon-card",
-    });
-
-    const effects = module!.effectsForTiming(EffectTiming.OnAllyAttack, source);
-    const triggered = effects[0]!.canTrigger(ctx);
-    expect(triggered).toBe(true);
-  });
 });

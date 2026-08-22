@@ -12,7 +12,7 @@ export interface HandManipulationAction extends ActionBase {
   kind: "HandManipulation";
   op: "trashVariable";
   controller?: Controller;
-  amount: number | "variable";
+  amount: number | "variable" | "untilFive";
   /** See `TrashAction.chooser` for the full rationale. */
   chooser?: "controller" | "opponent";
 }
