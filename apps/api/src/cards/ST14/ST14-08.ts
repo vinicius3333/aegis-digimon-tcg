@@ -20,20 +20,22 @@ const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "onDiscardLibrary",
-          "sourceFilter": { "controller": "mine" },
           "actions": [
             {
               "kind": "GainMemory",
-              "amount": 1
+              "amount": 1,
+              "scaling": {
+                "per": 10,
+                "filter": {
+                  "zone": "trash",
+                  "controller": "mine"
+                },
+                "unit": "trash"
+              }
             }
           ],
-          "scaling": {
-            "per": 10,
-            "filter": {
-              "zone": "trash",
-              "controller": "mine"
-            },
-            "unit": "trash"
+          "sourceFilter": {
+            "controller": "mine"
           }
         }
       ],
@@ -45,7 +47,6 @@ const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "onDiscardLibrary",
-          "sourceFilter": { "controller": "mine" },
           "actions": [
             {
               "kind": "GainKeyword",
@@ -63,7 +64,10 @@ const compiled: CompiledCard = {
               },
               "duration": "forTheTurn"
             }
-          ]
+          ],
+          "sourceFilter": {
+            "controller": "mine"
+          }
         }
       ],
       "frequency": "OncePerTurn"
