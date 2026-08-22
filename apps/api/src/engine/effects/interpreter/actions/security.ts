@@ -100,6 +100,22 @@ export async function runSecurityManipulation(
     }
   }
   switch (action.op) {
+    case "revealAllChooseToDeckTopShuffleRest": {
+      const security = ctx.game.player(seat).security;
+      if (security.length === 0) return;
+      const selected = await ctx.ask.selectCards(ctx, {
+        candidates: security.map((card) => card.instanceId),
+        min: 1,
+        max: 1,
+        visible: security.map((card) => card.instanceId),
+        visibleCards: security.map((card) => ({ instanceId: card.instanceId, cardId: card.cardId })),
+      });
+      if (selected.length === 0) return;
+      await ctx.fx.returnToDeck(selected, { toTop: true });
+      ctx.fx.shuffleSecurity(seat);
+      ctx.lastEffectActed = true;
+      return;
+    }
     case "moveTopToBottom": {
       const security = ctx.game.player(seat).security;
       if (security.length === 0) {

@@ -55,6 +55,14 @@ export interface RestrictAction extends ActionBase {
   byOpponentEffectsOnly?: boolean;
 }
 
+/** Declare a card category, reveal the opponent's top deck card, and gain matching immunity. */
+export interface DeclareCategoryImmunityAction extends ActionBase {
+  kind: "DeclareCategoryImmunity";
+  target: Target;
+  controller: "opponent";
+  duration: EffectDurationRef;
+}
+
 /**
  * Seat-level, state-sensitive prohibition: the restricted player's UNSUSPENDED Digimon can't
  * digivolve. Suspended Digimon stay legal, as do Tamers using a direct named Tamer requirement; a

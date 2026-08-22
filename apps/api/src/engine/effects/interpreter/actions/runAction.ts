@@ -333,6 +333,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "PlayPerLevel":
       return await runPlayAction(ctx, action, scope);
     case "Restrict":
+    case "DeclareCategoryImmunity":
     case "RestrictUnsuspendedDigivolve":
     case "RestrictDigivolveInto":
     case "MinDpFloor":
