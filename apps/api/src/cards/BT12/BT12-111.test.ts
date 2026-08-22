@@ -20,7 +20,7 @@ describe("BT12-111 handwritten module", () => {
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnPlay, source).length).toBeGreaterThan(0);
     expect(module!.effectsForTiming(EffectTiming.WhenDigivolving, source).length).toBeGreaterThan(0);
-    expect(module!.effectsForTiming(EffectTiming.OnAllyAttack, source).length).toBeGreaterThan(0);
+    expect(module!.effectsForTiming(EffectTiming.None, source).length).toBeGreaterThan(0);
     expect(module!.effectsForTiming(EffectTiming.OnEnterFieldAnyone, source).length).toBeGreaterThan(0);
   });
 

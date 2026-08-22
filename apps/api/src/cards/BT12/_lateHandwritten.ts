@@ -1305,6 +1305,42 @@ export function lateBt12Module(cardId: string): EffectModule {
           return [];
         }
         case "BT12-111": {
+          if (timing === EffectTiming.None)
+            return [
+              staticModifier({
+                source,
+                effectKey: `${cardId}/opponent-action-watcher`,
+                description: "During the opponent's turn, trash 5 sources after an opponent attacks or digivolves.",
+                resolve: async (ctx) => {
+                  const self = sourcePermanent(ctx, source);
+                  if (!self) return;
+                  ctx.fx.subscribeSubTrigger({
+                    event: "whenOpponentAttacks",
+                    sourcePermanentId: self.permanentId,
+                    once: false,
+                    description: `${cardId}: opponent attacks → trash 5 sources and return Tamers`,
+                    matches: (subCtx) => subCtx.source.isOnBattleArea() && !subCtx.source.isOwnersTurn(),
+                    run: async (subCtx) => {
+                      const current = sourcePermanent(subCtx, source);
+                      if (!current || current.stack.length < 5) return;
+                      const cost = current.stack.slice(-5).map(({ instanceId }) => instanceId);
+                      const moved = await subCtx.fx.trashDigivolutionCards(current.permanentId, cost, {
+                        byEffectSeat: source.ownerSeat,
+                      });
+                      if (moved.length !== 5) return;
+                      const tops = [];
+                      for (const player of subCtx.game.state.players) {
+                        for (const permanent of player.battleArea) {
+                          if (permanent.topCard !== undefined && isTamer(subCtx.game.definitionOf(permanent.topCard)))
+                            tops.push(permanent.topCard.instanceId);
+                        }
+                      }
+                      if (tops.length) await subCtx.fx.returnToHand(tops);
+                    },
+                  });
+                },
+              }),
+            ];
           if (timing === EffectTiming.OnPlay || timing === EffectTiming.WhenDigivolving)
             return [
               (timing === EffectTiming.OnPlay ? onPlay : whenDigivolving)({
@@ -1340,7 +1376,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                 },
               }),
             ];
-          if (timing === EffectTiming.OnAllyAttack || timing === EffectTiming.OnEnterFieldAnyone)
+          if (timing === EffectTiming.OnEnterFieldAnyone)
             return [
               turnTiming({
                 source,
