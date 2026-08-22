@@ -10,7 +10,7 @@ const inheritedDigivolve = { kind: "Digivolve", target: { filter: { isSelfRef: t
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "StartOfYourMainPhase", actions: [startDigivolve] },
-    { trigger: "YourTurn", isInherited: true, actions: [{ kind: "SubTrigger", event: "whenHandTrashed", sourceFilter: { isSelfRef: true }, actions: [inheritedDigivolve] }] },
+    { trigger: "YourTurn", isInherited: true, actions: [{ kind: "SubTrigger", event: "whenHandTrashed", sourceFilter: { isSelfRef: true }, frequency: "OncePerTurn", actions: [inheritedDigivolve] }] },
   ],
   coverage: "full",
   residual: [],
