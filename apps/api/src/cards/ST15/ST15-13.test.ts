@@ -45,6 +45,30 @@ describe("ST15-13 <Blocker> static keyword", () => {
 
     expect(ledgerOf(s).hasKeyword(s.perm("other").permanentId, "Blocker")).toBe(false);
   });
+
+  it("can use Blocker at block timing and switches the attack target", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", dp: 3000, as: "attacker" }] },
+      1: { battleArea: [{ card: HIANDROMON, dp: 12000, as: "blocker" }] },
+    });
+    const attacker = s.perm("attacker");
+    const blocker = s.perm("blocker");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blocker.permanentId })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
+    expect(blocker.isSuspended).toBe(true);
+  });
 });
 
 describe("ST15-13 [When Digivolving] delete opponent Digimon with play cost ≤ 8", () => {
