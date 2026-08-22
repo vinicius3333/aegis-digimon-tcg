@@ -26,7 +26,12 @@ const compiled: CompiledCard = {
           },
           "asLevel": 3,
           "from": "hand"
-        },
+        }
+      ]
+    },
+    {
+      "trigger": "AllTurns",
+      "actions": [
         {
           "kind": "Aura",
           "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
