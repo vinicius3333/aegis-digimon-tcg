@@ -14,4 +14,11 @@ describe("ST4-01 Motimon", () => {
     await s.ready();
     expect(s.perm("host").currentDP).toBe(7000);
   });
+
+  it("does not give the inherited bonus during the opponent's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "ST4-12", under: ["ST4-01"], as: "host" }] } });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(11000);
+  });
 });
