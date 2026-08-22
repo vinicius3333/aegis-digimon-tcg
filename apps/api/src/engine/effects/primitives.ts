@@ -1314,6 +1314,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const def = requireCardDefinition(newTop.cardId);
     permanent.baseDP = def.kinds.includes(CardKind.Digimon) ? def.dp : 0;
     ledger.recomputeDP(state, permanentId);
+    // The promoted card is now the permanent's active top card. Re-derive its static
+    // keywords/effects before the deletion-prevention window continues (BT8 Armor Purge
+    // chains must expose the promoted card's own Armor Purge immediately).
+    await engine.recomputeContinuousEffects?.();
     // <Overflow> (CR §4-18): the old top card just left the battle area for trash — a genuine
     // leave, distinct from the permanent as a whole (which is NOT being deleted).
     applyOverflow(engine.memory, [oldTop], state.turnSeat);
