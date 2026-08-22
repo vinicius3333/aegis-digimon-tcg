@@ -48,4 +48,31 @@ describe("ST19-05 PawnChessmon", () => {
       effectText: expect.stringContaining("＜Blocker＞"),
     });
   });
+
+  it("does not draw when the Puppet trash cost cannot be paid", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-001", as: "attacker", dp: 5000 }] },
+      1: {
+        battleArea: [{ card: "ST19-05", as: "pawn", dp: 1000, suspended: true }],
+        deck: [
+          { card: "BT1-010", as: "first" },
+          { card: "BT1-011", as: "second" },
+        ],
+      },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("pawn").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("pawn").permanentId));
+    expect(s.state.players[1]!.hand).toHaveLength(0);
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("first").instanceId,
+      s.inst("second").instanceId,
+    ]);
+  });
 });
