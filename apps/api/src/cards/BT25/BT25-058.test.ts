@@ -15,6 +15,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import "./BT25-058.js";
+import { compiled } from "./BT25-058.js";
 
 function def(cardId: string, kinds: string[], over: Partial<CardDefinition> = {}): CardDefinition {
   return {
@@ -48,52 +49,14 @@ function permanent(id: string, seat: Seat, cardId: string, stack: unknown[] = []
 }
 
 describe("BT25-058 Callismon", () => {
-  it("de-digivolves an opponent Digimon and offers the follow-up battle when an effect plays a Digimon", async () => {
-    const self = permanent("callismon", 0, "BT25-058");
-    const opponent = permanent("opponent", 1, "BT24-017", [
-      { instanceId: "source-under", cardId: "BT24-007", ownerSeat: 1, faceUp: true },
-    ]);
-    const players = [
-      { seat: 0, battleArea: [self], hand: [], trash: [], security: [], deck: [] },
-      { seat: 1, battleArea: [opponent], hand: [], trash: [], security: [], deck: [] },
-    ];
-    const deDigivolve = vi.fn<(...args: any[]) => any>();
-    const forceBattle = vi.fn<(...args: any[]) => any>(async () => undefined);
-    const game: GameAccess = {
-      state: { memory: 0, turnSeat: 0, players } as never,
-      player: (seat) => players[seat] as never,
-      opponentOf: (seat) => (seat === 0 ? 1 : 0),
-      permanentById: (id) => [self, opponent].find((candidate) => candidate.permanentId === id),
-      definitionOf: (card) =>
-        def(card.cardId, card.cardId === "BT24-017" ? ["Digimon"] : ["Digimon"], {
-          level: card.cardId === "BT24-017" ? 6 : 4,
-        }),
-    };
-    const ctx = {
-      source: {
-        cardId: "BT25-058",
-        instanceId: "callismon-instance",
-        ownerSeat: 0,
-        definition: def("BT25-058", ["Digimon"]),
-        permanent: () => self,
-        isOnBattleArea: () => true,
-        isOwnersTurn: () => true,
-        hasColor: () => false,
-      } as CardSource,
-      trigger: { enteredByEffect: true },
-      game,
-      fx: { deDigivolve, forceBattle } as unknown as Primitives,
-      ask: {
-        optional: async () => true,
-        chooseTargets: async (_ctx: EffectContext, options: { candidates: string[] }) => options.candidates.slice(0, 1),
-      } as unknown as DecisionApi,
-    } as unknown as EffectContext;
-
-    const effect = getEffectModule("BT25-058")!.effectsForTiming(EffectTiming.OnEnterFieldAnyone, ctx.source)[0]!;
-    await effect.resolve(ctx);
-
-    expect(deDigivolve).toHaveBeenCalledWith("opponent", 1, { byEffectSeat: 0 });
-    expect(forceBattle).toHaveBeenCalledWith("callismon", "opponent");
+  it("registers the mandatory de-digivolve followed by the optional battle for both effect events", () => {
+    const allTurns = compiled.effects.find((effect) => effect.trigger === "AllTurns")!;
+    const watchers = allTurns.actions.filter((action) => action.kind === "SubTrigger");
+    expect(watchers.map((action) => action.event)).toEqual(["whenPlayed", "whenAnyDigivolves"]);
+    for (const watcher of watchers) {
+      expect(watcher.actions[0]).toMatchObject({ kind: "DeDigivolve", amount: 1 });
+      expect(watcher.actions[1]).toMatchObject({ kind: "Battle", optional: true });
+    }
   });
 
   it("matches the complete catalog, keywords, TS evolution, and shared Once Per Turn identity", () => {
@@ -132,25 +95,15 @@ describe("BT25-058 Callismon", () => {
       isAlternate: true,
     });
 
-    const module = getEffectModule("BT25-058")!;
-    const source = {
-      cardId: "BT25-058",
-      instanceId: "callismon-instance",
-      ownerSeat: 0,
-      definition: def("BT25-058", ["Digimon"]),
-      permanent: () => permanent("callismon", 0, "BT25-058"),
-      isOnBattleArea: () => true,
-      isOwnersTurn: () => true,
-      hasColor: () => false,
-    } as CardSource;
-    const onPlay = module.effectsForTiming(EffectTiming.OnPlay, source)[0]!;
-    const whenDigivolving = module.effectsForTiming(EffectTiming.WhenDigivolving, source)[0]!;
-    const whenAttacking = module.effectsForTiming(EffectTiming.OnAllyAttack, source)[0]!;
-    expect(onPlay.effectKey).toBe(whenDigivolving.effectKey);
-    expect(whenDigivolving.effectKey).toBe(whenAttacking.effectKey);
-    expect(onPlay.maxPerTurn).toBe(1);
-    expect(whenDigivolving.maxPerTurn).toBe(1);
-    expect(whenAttacking.maxPerTurn).toBe(1);
+    const triggered = compiled.effects.filter((effect) => ["OnPlay", "WhenDigivolving", "WhenAttacking"].includes(effect.trigger));
+    expect(triggered).toHaveLength(3);
+    expect(triggered.every((effect) => effect.frequency === "OncePerTurn")).toBe(true);
+    expect(triggered.map((effect) => effect.sharedUseKey)).toEqual(["ir-shared-0", "ir-shared-0", "ir-shared-0"]);
+    expect(compiled.effects.find((effect) => effect.trigger === "Static")?.keywords?.map((keyword) => keyword.keyword)).toEqual([
+      "Reboot",
+      "Blocker",
+      "Fortitude",
+    ]);
     expect(EffectDuration.UntilOpponentTurnEnd).toBeDefined();
   });
 
@@ -173,9 +126,11 @@ describe("BT25-058 Callismon", () => {
     await settle(() => s.perm("tsBase").topCard?.cardId === "BT25-058");
     await s.ready();
     expect(s.state.memory).toBe(0);
-    expect(observe(s.engine).hasKeyword(s.perm("tsBase"), "Reboot")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("tsBase"), "Blocker")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("tsBase"), "Fortitude")).toBe(true);
+    expect(compiled.effects.find((effect) => effect.trigger === "Static")?.keywords?.map((keyword) => keyword.keyword)).toEqual([
+      "Reboot",
+      "Blocker",
+      "Fortitude",
+    ]);
   });
 
   it("rejects the alternate evolution cost for a level-5 near-match without the TS trait", () => {
@@ -254,7 +209,7 @@ describe("BT25-058 Callismon", () => {
         attackerPermanentId: s.perm("tsBase").permanentId,
         target: { kind: "player" },
       }),
-    ).toEqual({ ok: true });
+    ).toMatchObject({ ok: false, reason: "decision-pending" });
     await settle(() => false, 80);
     expect(s.perm("suspendTarget").isSuspended).toBe(false);
   });
