@@ -38,8 +38,7 @@ export const compiled: CompiledCard = {
           kind: "Replacement",
           event: "wouldLeavePlay",
           sourceFilter: {
-            controllerDefault: "mine",
-            kind: ["Digimon"],
+            isSelfRef: true,
             nameOrTrait: [
               {
                 tokens: ["Diaboromon"],
@@ -57,12 +56,7 @@ export const compiled: CompiledCard = {
                   filter: {
                     controller: "mine",
                     excludeSelf: true,
-                    nameOrTrait: [
-                      {
-                        tokens: ["Diaboromon"],
-                        match: "name",
-                      },
-                    ],
+                    namesExact: ["Diaboromon"],
                   },
                   count: 1,
                 },

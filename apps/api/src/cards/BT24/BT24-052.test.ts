@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT24_052 } from "./BT24-052.js";
+import "../index.js";
 
 describe("BT24-052 Keramon (X Antibody)", () => {
   it("plays a Diaboromon Token on both printed timings", () => {
@@ -20,5 +23,77 @@ describe("BT24-052 Keramon (X Antibody)", () => {
     expect(prevent.cost).toMatchObject({ kind: "deleteOwn", raw: "by deleting 1 of your other [Diaboromon]" });
     expect(prevent.optional).toBeUndefined();
     expect(prevent.abortOnDecline).toBeUndefined();
+  });
+
+  it("digivolves from Keramon for cost 0 and plays a Diaboromon Token", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-053", as: "keramon" }],
+          hand: [{ card: "BT24-052", as: "xAntibody" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("keramon").permanentId,
+        instanceId: s.inst("xAntibody").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("keramon").topCard.instanceId === s.inst("xAntibody").instanceId);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.isToken));
+
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.isToken)).toBe(true);
+  });
+
+  it("protects only its own Diaboromon-text host by deleting another exact Diaboromon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-065", as: "host", under: ["BT24-052"] },
+            { card: "BT17-059", as: "cost" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    const costId = s.perm("cost").permanentId;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([hostId], "effect");
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === costId)).toBe(false);
+  });
+
+  it("does not protect a neighboring Diaboromon-text Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-065", as: "host", under: ["BT24-052"] },
+            { card: "BT24-065", as: "neighbor" },
+            { card: "BT17-059", as: "cost" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const neighborId = s.perm("neighbor").permanentId;
+    const costId = s.perm("cost").permanentId;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([neighborId], "effect");
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === neighborId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === costId)).toBe(true);
   });
 });
