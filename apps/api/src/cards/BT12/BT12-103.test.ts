@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-103.js";
 
@@ -45,4 +46,16 @@ it("gates Security Attack -1 on four or more digivolution cards", async () => {
       filter: { zone: "battleArea", kind: ["Digimon"], digivolutionCardsAtLeast: 4 },
     },
   });
+});
+
+it("activates its Main deletion effect from security", async () => {
+  const s = setupEngine({
+    0: { security: [{ card: "BT12-103", as: "option", faceUp: true }] },
+    1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }] },
+  }, { autoSelectCards: true });
+  await s.ready();
+
+  await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+
+  expect(s.state.players[1]!.battleArea).toHaveLength(0);
 });
