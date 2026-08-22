@@ -21,8 +21,22 @@ it("encodes normal TS targeting, reduced trash Tamer play, and inherited bottom-
   expect(compiled.effects).toMatchObject([
     { trigger: "OnPlay", actions: [{ kind: "Restrict", restriction: "attackTargetChange" }] },
     { trigger: "WhenDigivolving", actions: [{ kind: "Restrict", restriction: "attackTargetChange" }] },
-    { trigger: "Main", frequency: "OncePerTurn", actions: [{ kind: "PlayWithoutCost", from: ["trash"], reduceCostBy: 2 }] },
-    { trigger: "AllTurns", isInherited: true, actions: [{ kind: "SubTrigger", event: "whenAttacking", actions: [{ kind: "TrashDigivolution", amount: 2, fromTop: false }] }] },
+    {
+      trigger: "Main",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "PlayWithoutCost", from: ["trash"], reduceCostBy: 2 }],
+    },
+    {
+      trigger: "AllTurns",
+      isInherited: true,
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          actions: [{ kind: "TrashDigivolution", amount: 2, fromTop: false }],
+        },
+      ],
+    },
   ]);
 });
 
@@ -72,6 +86,7 @@ describe("BT26-021 inherited watcher boundaries", () => {
       game: {
         player: (seat: Seat) => (seat === 0 ? { hand, battleArea: [] } : { hand: [], battleArea: [target] }),
         opponentOf: () => 1 as Seat,
+        permanentById: (permanentId: string) => (permanentId === target.permanentId ? target : undefined),
         definitionOf: () => definition(),
       },
       ask: { selectCards: async () => [] },
