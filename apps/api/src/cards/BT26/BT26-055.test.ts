@@ -17,12 +17,12 @@ describe("BT26-055 Giromon", () => {
 
   it("publicly trashes the opponent's top security when the inherited source leaves play", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT26-055", as: "giromon" }] },
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "BT26-055", as: "giromon" }] }] },
       1: { security: [{ card: "BT1-001", as: "security" }] },
     });
     await s.ready();
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("giromon").permanentId], "byEffect")).toBe(1);
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });
