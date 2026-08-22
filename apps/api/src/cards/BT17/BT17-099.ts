@@ -35,8 +35,7 @@ export const compiled: CompiledCard = {
           "optional": true
         },
         {
-          "kind": "PlaceInBattleAreaSelf",
-          "optional": true
+          "kind": "PlaceInBattleAreaSelf"
         }
       ]
     },
@@ -127,8 +126,7 @@ export const compiled: CompiledCard = {
           "optional": true
         },
         {
-          "kind": "PlaceInBattleAreaSelf",
-          "optional": true
+          "kind": "PlaceInBattleAreaSelf"
         }
       ],
       "isSecurity": true
