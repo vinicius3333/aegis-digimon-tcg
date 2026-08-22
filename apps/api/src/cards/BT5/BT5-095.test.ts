@@ -2,9 +2,14 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT5-095.js";
 
 describe("BT5-095 Transcendent Sword", () => {
+  it("has complete residual-free runtime coverage", () => {
+    expect(runtimeCompiledCard("BT5-095")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("uses the normal 11000-DP ceiling without Omnimon or qualifying Greymon", async () => {
     const s = setupEngine({ 0: { battleArea: ["BT5-007"], hand: [{ card: "BT5-095", as: "option" }] }, 1: { battleArea: [{ card: "BT5-046", as: "target", dp: 12000 }] } }, { autoSelectCards: true });
     s.state.memory = 9;
