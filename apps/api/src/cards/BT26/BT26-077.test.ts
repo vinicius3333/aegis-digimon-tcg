@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-077.js";
+import "../index.js";
 
 describe("BT26-077 compiled behavior", () => {
   it("proves the alternate evolution, intrinsic keywords, shared once-per-turn play, and highest-cost deletion", () => {
@@ -24,5 +28,16 @@ describe("BT26-077 compiled behavior", () => {
   it("raises the printed play-cost ceiling only for each face-down card in this stack", () => {
     const action = compiled.effects.find((effect) => effect.trigger === "OnPlay")!.actions[0];
     expect(action.playCostCeiling).toEqual({ base: 6, raise: 1, per: 1, filter: {}, unit: "selfFaceDownDigivolutionCards" });
+  });
+
+  it("publicly plays an eligible Ver.3 Digimon from trash on play", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT26-077", as: "reapermon" }], trash: [{ card: "BT26-040", as: "ver3" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("reapermon"));
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-040");
   });
 });
