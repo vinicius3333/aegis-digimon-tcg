@@ -226,7 +226,16 @@ describe("BT8-112 Imperialdramon Paladin Mode", () => {
     })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision !== undefined);
 
-    const reduction = s.decisions.at(-1)!.req;
+    const optional = s.decisions.at(-1)!.req;
+    expect(optional.kind).toBe("optional");
+    expect(s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: optional.decisionId,
+      response: { kind: "optional", accept: true },
+    })).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "selectCards"));
+
+    const reduction = s.decisions.find(({ req }) => req.kind === "selectCards")!.req;
     expect(reduction.kind).toBe("selectCards");
     expect(reduction.sourceCardId).toBe("BT8-112");
     expect(reduction.options?.min).toBe(0);
@@ -234,7 +243,7 @@ describe("BT8-112 Imperialdramon Paladin Mode", () => {
     expect(reduction.options?.candidateInstanceIds).toEqual([
       s.inst("whiteLevelSeven").instanceId,
     ]);
-    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
 
     const whiteLevelSevenId = s.inst("whiteLevelSeven").instanceId;
     expect(s.engine.applyIntent(0, {
@@ -264,7 +273,7 @@ describe("BT8-112 Imperialdramon Paladin Mode", () => {
     await settle(() => s.perm("base").topCard.cardId === "BT8-112" && s.state.memory === 0);
 
     expect(s.state.players[0]!.deck.some((card) => card.instanceId === whiteLevelSevenId)).toBe(true);
-    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
   });
 
   it("is registered on import", () => {
