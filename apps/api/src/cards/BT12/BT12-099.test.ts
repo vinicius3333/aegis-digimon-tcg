@@ -63,3 +63,20 @@ it("deletes a 6000 DP or lower Digimon and boosts a Hybrid by 3000", async () =>
   expect(s.state.players[1]!.battleArea).toHaveLength(0);
   expect(s.perm("hybrid").currentDP).toBe(s.perm("hybrid").baseDP + 3000);
 });
+
+it("allows the boosted eligible Hybrid to attack a player", async () => {
+  const s = setupEngine(
+    {
+      0: { hand: [{ card: "BT12-099", as: "option" }], battleArea: [{ card: "BT12-013", as: "hybrid" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  await s.ready();
+  s.state.memory = 4;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+  await settle(() => s.engine.combat.isAttacking);
+
+  expect(s.perm("hybrid").currentDP).toBe(s.perm("hybrid").baseDP + 3000);
+  expect(s.engine.combat.isAttacking).toBe(true);
+});
