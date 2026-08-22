@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-074.js";
 
 describe("EX4-074 ShineGreymon: Ruin Mode", () => {
@@ -9,5 +12,20 @@ describe("EX4-074 ShineGreymon: Ruin Mode", () => {
   it("at end of attack deletes itself and an opposing Digimon, adds security, and hatches with a Tamer", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "EndOfAttack")?.actions;
     expect(actions).toMatchObject([{ kind: "Delete", target: { isSelf: true } }, { kind: "Delete", target: { filter: { controller: "opponent" }, upTo: true } }, { kind: "SecurityManipulation", op: "placeFromDeck" }, { kind: "Hatch", condition: { kind: "youHave" } }]);
+  });
+
+  it("resolves the End of Attack deletion, security, and hatch sequence", async () => {
+    const s = setupEngine({
+      0: { deck: ["BT1-001"], security: ["BT1-001"], battleArea: [{ card: "EX4-074", as: "source" }, { card: "BT1-085", as: "tamer" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+    }, { autoSelectCards: true });
+    await s.engine.recomputeContinuousEffects();
+
+    await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("source"));
+    await settle(() => s.state.players[0]!.battleArea.every((perm) => perm.topCard?.cardId !== "EX4-074"));
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("source").instanceId)).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.breedingArea).toHaveLength(1);
   });
 });
