@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-111.js";
 
@@ -40,5 +41,32 @@ describe("BT12-111 handwritten module", () => {
     expect(s.state.players[0]!.battleArea[0]!.topCard!.instanceId).toBe(s.inst("source").instanceId);
     expect(stack).toHaveLength(1);
     expect(stack[0]!.instanceId).toBe(s.inst("saved").instanceId);
+  });
+
+  it("trashes exactly five sources and returns every Tamer after an opponent attacks", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT12-111",
+              as: "source",
+              under: ["BT12-111", "BT12-111", "BT12-111", "BT12-111", "BT12-111", "BT12-111"],
+            },
+            { card: "BT12-092", as: "tamer" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    await advance(s.engine).fireSubTrigger("whenOpponentAttacks", {
+      attackerPermanentId: s.perm("attacker").permanentId,
+    });
+    await settle(() => s.perm("source").stack.length === 1 && s.state.players[0]!.hand.length === 1);
+    expect(s.perm("source").stack).toHaveLength(1);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT12-092")).toBe(true);
   });
 });
