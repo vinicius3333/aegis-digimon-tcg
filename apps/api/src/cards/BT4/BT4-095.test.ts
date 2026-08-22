@@ -21,7 +21,7 @@ describe("BT4-095 Yoshino Fujieda", () => {
     s.state.memory = 3;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("yoshino").instanceId })).toEqual({ ok: true });
-    await settle(() => player.eggDeck.some((card) => card.instanceId === returnedEggId));
+    await settle(() => player.eggDeck.length === 2);
 
     expect(player.trash).toHaveLength(0);
     expect(player.deck).toHaveLength(0);

@@ -651,6 +651,16 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       }
       return false;
     }
+    case "ReturnToEggDeck": {
+      const zones = action.from ?? (action.target.filter.zone !== undefined ? [action.target.filter.zone] : ["trash"]);
+      const candidates = candidateLooseInstances(ctx, action.target, zones);
+      const count = action.target.count === "all" ? candidates.length : (action.target.count ?? 1);
+      if (count <= 0 || candidates.length < count || ctx.fx.returnToEggDeck === undefined) return false;
+      const chosen = await pickLoose(ctx, { ...action.target, count }, candidates);
+      if (chosen.length !== count) return false;
+      await ctx.fx.returnToEggDeck(chosen);
+      return false;
+    }
     case "DeletionMaxDpModifier": {
       // Producer side of the DP-deletion-maximum subsystem: record a continuous bonus the
       // Delete branch reads. Self-scoped to this source permanent, or owner-wide by seat.
