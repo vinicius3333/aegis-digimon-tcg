@@ -15,7 +15,10 @@ export const compiled: CompiledCard = {
         { kind: "Draw", controller: "mine", amount: 1, condition: { kind: "memoryAtLeast", value: 5 } },
       ],
     },
-    { trigger: "AllTurns", actions: [{ kind: "ModifyDP", target: { filter: tsDigimon, count: "all" }, amount: 1000, duration: "permanent" }] },
+    {
+      trigger: "AllTurns",
+      actions: [{ kind: "ModifyDP", target: { filter: tsDigimon, count: "all" }, amount: 1000, duration: "permanent" }],
+    },
     {
       trigger: "EndOfYourTurn",
       actions: [
@@ -23,7 +26,12 @@ export const compiled: CompiledCard = {
           kind: "ActivateForeignEffect",
           zone: "battleArea",
           fromTriggers: ["OnPlay", "WhenDigivolving"],
-          filter: { controller: "mine", zone: "battleArea", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Olympos XII"], match: "trait" }] },
+          filter: {
+            controller: "mine",
+            zone: "battleArea",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Olympos XII"], match: "trait" }],
+          },
           count: 1,
           cost: { kind: "suspend", target: self },
           optional: true,
