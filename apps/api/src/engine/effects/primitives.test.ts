@@ -2310,6 +2310,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     materialSave: true,
     minDpFloor: true,
     modifyDP: true,
+    restoreDpReductions: true,
     modifySecurityDp: true,
     movePermanentZone: true,
     payActivationCost: true,

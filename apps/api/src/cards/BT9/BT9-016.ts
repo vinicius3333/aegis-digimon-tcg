@@ -45,7 +45,7 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "condition": {
-            "kind": "selfDigivolutionStackHasTrait",
+            "kind": "selfDigivolutionStackMatchesFilter",
             "filter": {
               "nameOrTrait": [
                 {

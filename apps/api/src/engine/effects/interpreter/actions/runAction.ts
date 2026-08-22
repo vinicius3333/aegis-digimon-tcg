@@ -272,7 +272,9 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   const isBudgetScaling = action.kind !== "RawUnparsed" && action.scaling?.budgetAdd !== undefined;
   // targetColors is resolved after the action's permanent target is selected; it intentionally
   // has no board-wide scaleFactor. Do not let the generic zero guard abort it before dispatch.
-  const isPerTargetScaling = action.scaling?.unit === "targetColors";
+  const isPerTargetScaling =
+    action.scaling?.unit === "targetColors" ||
+    action.scaling?.unit === "targetFaceDownDigivolutionCards";
   if (
     scale !== undefined &&
     scale === 0 &&

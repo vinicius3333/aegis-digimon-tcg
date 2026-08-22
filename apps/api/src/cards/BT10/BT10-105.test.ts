@@ -6,6 +6,39 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./BT10-105.js";
 
 describe("BT10-105 Defense Plug-In C", () => {
+  it("waives its black color requirement only while its owner has a Tamer", async () => {
+    const withTamer = setupEngine(
+      {
+        0: {
+          battleArea: ["BT1-089", { card: "BT1-010", as: "target" }],
+          hand: [{ card: "BT10-105", as: "option" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    withTamer.state.memory = 5;
+    await withTamer.ready();
+
+    expect(withTamer.engine.applyIntent(0, {
+      type: "playCard",
+      instanceId: withTamer.inst("option").instanceId,
+    })).toEqual({ ok: true });
+
+    const withoutTamer = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-010", as: "target" }],
+        hand: [{ card: "BT10-105", as: "option" }],
+      },
+    });
+    withoutTamer.state.memory = 5;
+    await withoutTamer.ready();
+
+    expect(withoutTamer.engine.applyIntent(0, {
+      type: "playCard",
+      instanceId: withoutTamer.inst("option").instanceId,
+    }).ok).toBe(false);
+  });
+
   it("grants Blocker, Reboot, and opponent-effect deletion protection to the same chosen Digimon", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

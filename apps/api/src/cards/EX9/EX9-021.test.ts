@@ -4,12 +4,32 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { EffectTiming } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
-import "./EX9-021.js";
+import compiled from "./EX9-021.js";
 
 describe("EX9-021", () => {
   const source = { instanceId: "source", cardId: "EX9-021", ownerSeat: 0, definition: {}, permanent: () => undefined, isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true } as never;
-  it("registers the DNA digivolving protection and highest-level deletion effect", () => expect(getEffectModule("EX9-021")!.effectsForTiming(EffectTiming.OnEnterFieldAnyone, source)).toHaveLength(1));
+  it("registers the DNA digivolving protection and highest-level deletion effect", () => expect(getEffectModule("EX9-021")!.effectsForTiming(EffectTiming.WhenDigivolving, source)).toHaveLength(1));
   it("registers a once-per-turn end-of-attack effect", () => expect(getEffectModule("EX9-021")!.effectsForTiming(EffectTiming.OnEndAttack, source)[0]?.maxPerTurn).toBe(1));
+
+  it("encodes the complete behavior as compiled IR", () => {
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "WhenDigivolving",
+      actions: [
+        { kind: "Restrict", restriction: "beAffected", byOpponentEffectsOnly: true, condition: { kind: "isDnaDigivolving" } },
+        { kind: "Delete", target: { filter: { superlative: "highestLevel" }, count: "all" } },
+      ],
+    });
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "EndOfAttack",
+      optional: true,
+      actions: [
+        { kind: "PlayWithoutCost", fromOwnDigivolutionStack: true, bindResultAs: "firstPlayed" },
+        { kind: "PlayWithoutCost", fromOwnDigivolutionStack: true, bindResultAs: "secondPlayed" },
+        { kind: "SecurityManipulation", op: "addTop" },
+      ],
+    });
+  });
 
   it("DNA digivolving deletes every opposing highest-level Digimon and grants Digimon-effect immunity", async () => {
     const s = setupEngine({

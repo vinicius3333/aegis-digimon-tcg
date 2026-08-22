@@ -1,8 +1,9 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardDefinition, type CardInstance, type GameState, type Seat } from "@aegis/shared";
+import { EffectTiming, type CardDefinition, type CardInstance, type GameState, type PlayerState, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-046.js";
 
 // BT7-046 Beetlemon [When Digivolving]: Reveal the top 5 cards of your deck.
@@ -130,6 +131,44 @@ function makeContext(opts: {
 
 describe("BT7-046 Beetlemon [When Digivolving]", () => {
   const module = getEffectModule("BT7-046");
+
+  it("digivolves onto a green Tamer and resolves both reveal picks through public game state", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-089", as: "jp" }],
+          hand: [{ card: "BT7-046", as: "beetlemon" }],
+          deck: [
+            "BT7-007",
+            { card: "BT7-047", as: "hybrid" },
+            { card: "BT7-089", as: "searchedJp" },
+            "BT7-012",
+            "BT7-020",
+            "BT7-048",
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+    const hybridId = s.inst("hybrid").instanceId;
+    const jpId = s.inst("searchedJp").instanceId;
+    s.state.memory = 2;
+
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("jp").permanentId,
+      instanceId: s.inst("beetlemon").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => [hybridId, jpId].every((id) => player.hand.some((card) => card.instanceId === id)));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("jp").topCard.cardId).toBe("BT7-046");
+    expect(s.perm("jp").stack).toHaveLength(1);
+    expect(player.hand.some((card) => card.instanceId === hybridId)).toBe(true);
+    expect(player.hand.some((card) => card.instanceId === jpId)).toBe(true);
+    expect(player.deck).toHaveLength(3);
+  });
 
   it("registers on import", () => {
     expect(module, "BT7-046 must self-register on import").toBeDefined();

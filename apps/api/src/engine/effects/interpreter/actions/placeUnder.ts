@@ -381,7 +381,6 @@ export async function runTrashDigivolution(
 ): Promise<boolean> {
   const amount = action.amount ?? 1;
   const fromTop = action.fromTop ?? true;
-  const minimum = action.minAmount ?? (typeof amount === "number" ? amount : undefined);
   const isDigiBurst = /Digi-?Burst/i.test(action.raw ?? "");
   const trashOptions = {
     byEffectSeat: ctx.source.ownerSeat,
@@ -451,10 +450,6 @@ export async function runTrashDigivolution(
   // Default: single-target path — resolve 1 permanent, trash `amount` from its stack.
   const resolvedIds = await resolvePermanentTargets(ctx, action.target);
   if (resolvedIds.length === 0) {
-    ctx.lastEffectActed = false;
-    return false;
-  }
-  if (minimum !== undefined && resolvedIds.some((id) => (ctx.game.permanentById(id)?.stack.length ?? 0) < minimum)) {
     ctx.lastEffectActed = false;
     return false;
   }

@@ -27,11 +27,15 @@ const compiled: CompiledCard = {
           "asLevel": 3,
           "from": "hand"
         }
-      ],
-      "keywords": [
+      ]
+    },
+    {
+      "trigger": "AllTurns",
+      "actions": [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
+          "kind": "Aura",
+          "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+          "effect": { "kind": "keyword", "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" } }
         }
       ]
     }

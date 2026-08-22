@@ -3848,6 +3848,50 @@ describe("v4 IR actions (runtime record-v2 schema additions)", () => {
     expect(recorder.calls.filter((call) => call.verb === "gainMemory")).toHaveLength(0);
   });
 
+  it("TrashDigivolution mandatory effects trash as many cards as the target has", async () => {
+    const opponent = makeFakePermanent({
+      permanentId: "OPP#PARTIAL",
+      controllerSeat: 1 as Seat,
+      topCard: { instanceId: "OPP#top", cardId: "OPP-TOP", ownerSeat: 1, faceUp: true } as never,
+      stack: [{ instanceId: "ONLY-SOURCE", cardId: "SOURCE-1", ownerSeat: 1, faceUp: false }] as never,
+    });
+    const module = irCardModule("Z-TDG-PARTIAL", {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "WhenAttacking",
+          actions: [
+            {
+              kind: "TrashDigivolution",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+              amount: 2,
+              fromTop: false,
+            },
+          ],
+        },
+      ],
+    });
+    const source = makeSource({ cardId: "Z-TDG-PARTIAL" });
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source,
+      recorder,
+      opponentBattleArea: [opponent],
+      definitionOf: () => makeFakeDefinition({ kinds: ["Digimon"] as never }),
+    });
+    for (const effect of module.effectsForTiming(EffectTiming.OnUseAttack, source)) {
+      await effect.resolve(ctx);
+    }
+
+    const trashes = recorder.calls.filter((call) => call.verb === "trashDigivolutionCards");
+    expect(trashes).toHaveLength(1);
+    expect(trashes[0]!.args).toEqual(["OPP#PARTIAL", ["ONLY-SOURCE"], {
+      byEffectSeat: 0,
+      byEffectCardId: "Z-TDG-PARTIAL",
+    }]);
+  });
+
   it("TrashDigivolution: a redirect (BT10-084 Q2004) collapses the target onto the new host, re-clamping the count to ITS stack instead of the original's", async () => {
     // Original target: an opponent Digimon with 3 digivolution cards — the action asks to
     // trash the top 3. A redirect swaps the host for a 2-card Digimon; the SAME fromTop/amount

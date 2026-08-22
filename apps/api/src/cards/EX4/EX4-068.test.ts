@@ -35,7 +35,7 @@ describe("EX4-068 Heaven's Judgement", () => {
     expect(runtimeCompiledCard("EX4-068")).toMatchObject({ coverage: "full", residual: [] });
     expect(runtimeCompiledCard("EX4-068")?.effects?.[1]?.actions?.[0]).toMatchObject({
       kind: "RepeatPerCount",
-      countUnit: "colors",
+      countScaling: { unit: "colors" },
     });
   });
 

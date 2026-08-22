@@ -72,6 +72,8 @@ describe("EX4-037 BlackMegaGargomon", () => {
     const game = {
       state: { memory: 0, players, turnSeat: 0 as Seat } as unknown as GameState,
       player: (seat: Seat) => players[seat],
+      opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
+      permanentById: (id: string) => [self, first, second].find((permanent) => permanent.permanentId === id),
       definitionOf: (c: CardInstance) => defs.get(c.cardId)!,
     };
     const source: CardSource = {
@@ -92,14 +94,15 @@ describe("EX4-037 BlackMegaGargomon", () => {
     await effect.resolve({
       source,
       game,
+      trigger: {},
       ask: { chooseTargets: async () => ["first", "second"] },
       fx: { grantKeyword: (...args: unknown[]) => grants.push(args) },
     } as unknown as EffectContext);
-    expect(grants).toEqual([
-      ["first", "Blocker", expect.anything()],
-      ["first", "Reboot", expect.anything()],
-      ["second", "Blocker", expect.anything()],
-      ["second", "Reboot", expect.anything()],
+    expect(grants.map(([id, keyword]) => [id, keyword])).toEqual([
+      ["first", "Blocker"],
+      ["second", "Blocker"],
+      ["first", "Reboot"],
+      ["second", "Reboot"],
     ]);
   });
 });

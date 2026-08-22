@@ -1,6 +1,7 @@
 // Digivolving, de-digivolving, and moving cards into a digivolution stack.
 
 import type { EffectDurationRef } from "../durations.js";
+import type { CardColor } from "../../../schema/enums.js";
 import type { Filter, Target } from "../filters/filter.js";
 import type { ZoneRef } from "../filters/zones.js";
 import type { Scaling } from "../predicates/scaling.js";
@@ -70,6 +71,8 @@ export interface DigivolveAction extends ActionBase {
   costOverride?: number;
   /** Level to treat the digivolving Digimon as, for requirements. */
   asLevel?: number;
+  /** Printed virtual identity used to check evolution requirements (for example, a Tamer as a level 5 red Digimon). */
+  virtualBase?: { level: number; colors: CardColor[] };
   /** Alternative name for `ignoreReqs`. */
   ignoreRequirements?: boolean;
   /** Alternative name for `ignoreReqs`. */
