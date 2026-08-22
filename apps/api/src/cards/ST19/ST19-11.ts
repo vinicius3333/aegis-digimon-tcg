@@ -92,6 +92,7 @@ const compiled: CompiledCard = {
               filter: {
                 controller: "mine",
                 excludeSelf: true,
+                allowTokens: true,
                 orFilters: [
                   {
                     kind: ["Digimon"],

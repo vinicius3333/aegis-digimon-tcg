@@ -19,8 +19,8 @@ describe("ST19-02 ＜Barrier＞ is once per turn", () => {
       {
         0: {
           battleArea: [
-            { card: "AD1-001", as: "first", dp: 5000 },
-            { card: "AD1-001", as: "second", dp: 5000 },
+            { card: "BT1-009", as: "first", dp: 5000 },
+            { card: "BT1-009", as: "second", dp: 5000 },
           ],
         },
         1: {
