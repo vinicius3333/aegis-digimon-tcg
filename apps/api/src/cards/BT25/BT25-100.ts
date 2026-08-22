@@ -14,51 +14,14 @@ const compiled: CompiledCard = {
           kind: "GainKeyword",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           keyword: { keyword: "Collision", raw: "＜Collision＞" },
-          keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }],
           duration: "permanent",
         },
         {
-          kind: "ModifyDP",
+          kind: "GainKeyword",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          amount: 2000,
+          keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
           duration: "permanent",
         },
-      ],
-    },
-    {
-      trigger: "AllTurns",
-      actions: [
-        {
-          kind: "SubTrigger",
-          event: "whenLinked",
-          sourceFilter: { isSelfRef: true },
-          actions: [
-            {
-              kind: "GainKeyword",
-              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-              keyword: { keyword: "Collision", raw: "＜Collision＞" },
-              duration: "permanent",
-            },
-            {
-              kind: "GainKeyword",
-              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-              keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
-              duration: "permanent",
-            },
-            {
-              kind: "ModifyDP",
-              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-              amount: 2000,
-              duration: "permanent",
-            },
-          ],
-        },
-      ],
-    },
-    {
-      trigger: "Static",
-      isLinked: true,
-      actions: [
         {
           kind: "ModifyDP",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
