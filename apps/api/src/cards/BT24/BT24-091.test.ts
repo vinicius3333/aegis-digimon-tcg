@@ -99,16 +99,19 @@ describe("BT24-091 Tidal Stream", () => {
   });
 
   it("returns one lowest-level opponent when its linked host attacks", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT24-014", as: "host", linked: ["BT24-091"] }] },
-      1: {
-        battleArea: [
-          { card: "BT1-045", as: "low1" },
-          { card: "BT1-046", as: "low2" },
-          { card: "BT1-051", as: "high" },
-        ],
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-014", as: "host", linked: ["BT24-091"] }] },
+        1: {
+          battleArea: [
+            { card: "BT1-045", as: "low1" },
+            { card: "BT1-046", as: "low2" },
+            { card: "BT1-051", as: "high" },
+          ],
+        },
       },
-    });
+      { autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
