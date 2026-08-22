@@ -482,6 +482,8 @@ export class GameEngine {
               deletedPermanentId: trigger.deletedPermanentId,
               deletedTopCardId: trigger.deletedTopCardId,
               deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
+              deletedByDpZero: trigger.deletedByDpZero,
+              deletedByDpZeroInstanceIds: trigger.deletedByDpZeroInstanceIds,
               deletedInstanceIds: trigger.deletedInstanceIds,
               deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
               battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
@@ -499,6 +501,8 @@ export class GameEngine {
           deletedPermanentId: trigger.deletedPermanentId,
           deletedTopCardId: trigger.deletedTopCardId,
           deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
+          deletedByDpZero: trigger.deletedByDpZero,
+          deletedByDpZeroInstanceIds: trigger.deletedByDpZeroInstanceIds,
           deletedInstanceIds: trigger.deletedInstanceIds,
           deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
           battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
@@ -3439,11 +3443,11 @@ export class GameEngine {
       },
       securityCardDp: (card) => {
         const owner = card.ownerSeat;
-        return (lookupDefinition(card.cardId)?.dp ?? 0) + this.securityDp.deltaFor(owner);
+        const definition = lookupDefinition(card.cardId);
+        return (definition?.dp ?? 0) + this.securityDp.deltaForCard(owner, this.access.isDigimonCard(card));
       },
       isDigimon: (card) => {
         const result = this.access.isDigimonCard(card);
-        log("[securityCheck]", card.cardId, `isDigimon=${result} kinds=`, lookupDefinition(card.cardId)?.kinds);
         return result;
       },
       deletePermanents: async (permanentIds) => {

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import "./BT12-066.js";
 
 describe("BT12-066 Mercurymon", () => {
@@ -13,6 +15,17 @@ describe("BT12-066 Mercurymon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mercury").instanceId })).toEqual({
       ok: true,
     });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("ally"), "Blocker"));
+    expect(observe(s.engine).hasKeyword(s.perm("ally"), "Blocker")).toBe(true);
+  });
+
+  it("gives one of your Digimon Blocker when digivolving", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT1-009", as: "ally" }, { card: "BT12-066", as: "mercury" }] } },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("mercury"));
     await settle(() => observe(s.engine).hasKeyword(s.perm("ally"), "Blocker"));
     expect(observe(s.engine).hasKeyword(s.perm("ally"), "Blocker")).toBe(true);
   });

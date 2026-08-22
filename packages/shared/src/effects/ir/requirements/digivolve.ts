@@ -21,6 +21,8 @@ export interface DigivolutionRequirement {
   traits?: string[];
   /** Traits the source must NOT have (EX8-037). Any listed trait excludes the base. */
   excludeTraits?: string[];
+  /** At least one printed source color must match (for example, "yellow, green, or purple"). */
+  colors?: ("Red" | "Blue" | "Yellow" | "Green" | "White" | "Black" | "Purple")[];
   /** Text tokens the source must contain ("w/[Pulsemon] in text"). */
   texts?: string[];
   cost: number;

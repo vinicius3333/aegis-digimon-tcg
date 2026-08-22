@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-110.js";
 
 describe("BT12-110 handwritten module", () => {
@@ -19,6 +19,12 @@ describe("BT12-110 handwritten module", () => {
       permanent: () => undefined,
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnUseOption, source).length).toBeGreaterThan(0);
+  });
+
+  it("registers its printed Security activation", () => {
+    const module = getEffectModule("BT12-110");
+    const source = { instanceId: "source-110", cardId: "BT12-110", ownerSeat: 0, isOnBattleArea: () => false } as never;
+    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
   });
 
   it("activates from trash when Beelzemon (X Antibody) digivolves", async () => {
@@ -44,6 +50,30 @@ describe("BT12-110 handwritten module", () => {
 
     expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT12-110")).toBe(false);
     expect(s.state.players[0]!.deck.some(({ cardId }) => cardId === "BT12-110")).toBe(true);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT1-015"]);
+  });
+
+  it("deletes the opposing Digimon with the lowest level from Main", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT12-110", as: "cluster" }], battleArea: [{ card: "BT12-085", as: "purpleSource" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "lowest" }, { card: "BT1-015", as: "higher" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+    s.state.memory = 7;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cluster").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT1-015"]);
+  });
+
+  it("activates the same lowest-level deletion from security", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT12-110", as: "cluster", faceUp: true }] },
+      1: { battleArea: [{ card: "BT1-009", as: "lowest" }, { card: "BT1-015", as: "higher" }] },
+    }, { autoSelectCards: true });
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("cluster"));
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT1-015"]);
   });
 });

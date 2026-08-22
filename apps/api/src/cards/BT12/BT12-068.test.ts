@@ -38,4 +38,31 @@ describe("BT12-068 MetalGreymon", () => {
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-085"));
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-085")).toBe(true);
   });
+
+  it("plays at most one Tamer per turn from target-switch triggers", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-068", as: "metal" },
+            { card: "BT1-009", as: "attacker" },
+          ],
+          hand: [
+            { card: "BT1-085", as: "tai1" },
+            { card: "BT1-085", as: "tai2" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: s.perm("attacker").permanentId,
+    });
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: s.perm("attacker").permanentId,
+    });
+    await settle(() => s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "BT1-085").length === 1);
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard?.cardId === "BT1-085")).toHaveLength(1);
+  });
 });

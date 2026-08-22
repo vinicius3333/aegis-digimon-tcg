@@ -4,9 +4,10 @@ import type { Permanent } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives, DecisionApi } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import "./BT12-083.js";
 
-// A3 for BT12-083 (Machinedramon):
+// A3 for BT12-083 (Arresterdramon: Superior Mode):
 //   [End of Your Turn][Once Per Turn] If there are 4 or more digivolution cards under this
 //   Digimon, you may attack with this Digimon without suspending it.
 //
@@ -112,7 +113,30 @@ function makeCtx(opts: {
   } as unknown as EffectContext;
 }
 
-describe("BT12-083 Machinedramon [End of Your Turn]", () => {
+describe("BT12-083 Arresterdramon: Superior Mode [End of Your Turn]", () => {
+  it("registers the end-of-turn attack clause without a residual gap", async () => {
+    const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
+    const card = runtimeCompiledCard("BT12-083")!;
+    expect(card.coverage).toBe("full");
+    expect(card.residual).toEqual([]);
+    expect(JSON.stringify(card)).not.toContain("RawUnparsed");
+  });
+
+  it("counts distinct Tamer colors for the level ceiling", async () => {
+    const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
+    const card = runtimeCompiledCard("BT12-083")!;
+    const whenDigivolving = card.effects.find((effect) => effect.trigger === "WhenDigivolving");
+    expect(whenDigivolving?.actions[1]).toMatchObject({
+      kind: "CostModifier",
+      scaling: { per: 1, unit: "colors" },
+    });
+  });
+
+  it("limits the Save alternate evolution to red, black, or purple level 4 cards", () => {
+    expect(matchingAlternateDigivolutionRequirement("BT12-083", "BT12-011")?.cost).toBe(4);
+    expect(matchingAlternateDigivolutionRequirement("BT12-083", "BT12-037")).toBeUndefined();
+  });
+
   it("calls forceAttack(withoutSuspending: true) when stack has 4+ digivolution cards", async () => {
     const forceAttackCalls: ForceAttackCall[] = [];
     const selfPerm = makeStackedPerm(4); // exactly 4 cards
@@ -152,9 +176,9 @@ describe("BT12-083 Machinedramon [End of Your Turn]", () => {
     expect(forceAttackCalls).toHaveLength(0);
   });
 
-  it("[When Attacking] inherited draw effect is registered at OnAllyAttack timing", () => {
+  it("[When Attacking] inherited draw effect is registered at attack timing", () => {
     const mod = getEffectModule("BT12-083");
-    const effects = mod!.effectsForTiming(EffectTiming.OnAllyAttack, makeSource());
+    const effects = mod!.effectsForTiming(EffectTiming.OnUseAttack, makeSource());
     expect(effects.length).toBeGreaterThan(0);
     expect(effects[0]!.isInherited).toBe(true);
   });

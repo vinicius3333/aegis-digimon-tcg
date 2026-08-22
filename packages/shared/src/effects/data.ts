@@ -334,6 +334,10 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     { level: 5, traits: ["ME", "VB"], cost: 3, isAlternate: true },
   ],
   "EX12-037": [{ level: 6, traits: ["ME", "VB"], cost: 5, isAlternate: true }],
+  // BT12-081: Astamon's Save alternate path is restricted to yellow, green, or purple Lv.4 bases.
+  "BT12-081": [{ cost: 3, isAlternate: true, level: 4, texts: ["Save"], colors: ["Yellow", "Green", "Purple"] }],
+  // BT12-083: the Save alternate path is restricted to red, black, or purple Lv.4 bases.
+  "BT12-083": [{ cost: 4, isAlternate: true, level: 4, texts: ["Save"], colors: ["Red", "Black", "Purple"] }],
   // RB1-009: a Gammamon with a Gammamon-named digivolution card may evolve into this
   // card from hand for 3, ignoring the ordinary level/color requirement.
   "RB1-009": [

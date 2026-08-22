@@ -908,6 +908,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       costDelta?: number;
       costOverride?: number;
       useAlternateCost?: boolean;
+      ignoreLevel?: boolean;
+      virtualBase?: { level: number; colors: CardColor[] };
       ignoreRequirements?: boolean;
       beforeWhenDigivolving?: () => Promise<void>;
     },
@@ -932,7 +934,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // color+level gate; without it the base must still satisfy a printed EvoCost (a costOverride
       // alone keeps the requirement — BT7-051).
       let baseCost: number | undefined;
-      if (opts.ignoreRequirements) {
+      if (opts.ignoreRequirements || opts.ignoreLevel) {
         // Ignoring the color/level gate does not waive the card's printed digivolution
         // cost. Effects such as BT26-066 still say "with the cost reduced by 2" and
         // therefore need a real printed baseline. A fixed-cost effect supplies
@@ -948,7 +950,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         // and the digivolve then no-opped silently after the controller had already chosen it.
         // `runDigivolve`'s candidate filter already offers alternate-path bases; this is the
         // authoritative gate it claims to mirror, so the two must agree.
-        const baseDef = requireCardDefinition(permanent.topCard.cardId);
+        const actualBaseDef = requireCardDefinition(permanent.topCard.cardId);
+        const baseDef = opts.virtualBase === undefined
+          ? actualBaseDef
+          : { ...actualBaseDef, level: opts.virtualBase.level, colors: opts.virtualBase.colors };
         const printed = matchingDigivolveCost(definition, baseDef);
         const baseGranted = engine.baseGrantedDigivolve?.(seat, permanent, definition);
         const alternate = matchingAlternateDigivolutionRequirement(definition, baseDef);
@@ -2717,18 +2722,15 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // can resolve and gate on the deleted card's live traits/controller before it leaves the
     // field. The body (e.g. draw) runs immediately; OnDestroyedAnyone (System A) follows below.
     if (engine.fireSubTrigger) {
-      const deletedByDpZero =
-        cause === "byRule" &&
-        toDelete.length > 0 &&
-        toDelete.every((permanentId) => access.permanentById(permanentId)?.currentDP === 0);
       for (const permanentId of toDelete) {
-        if (access.permanentById(permanentId)?.topCard === undefined) continue;
+        const deleted = access.permanentById(permanentId);
+        if (deleted?.topCard === undefined) continue;
         await engine.fireSubTrigger("onDeletionOf", {
           deletedPermanentId: permanentId,
           deletedPermanentIds: toDelete,
           deletedTopCardId: access.permanentById(permanentId)?.topCard?.cardId,
           removalCause: cause,
-          deletedByDpZero,
+          deletedByDpZero: cause === "byRule" && deleted.currentDP === 0,
         });
         // whenLeavesPlay is the superset event (delete + bounce); deletion is one path.
         await engine.fireSubTrigger("whenLeavesPlay", { deletedPermanentId: permanentId });
@@ -2741,6 +2743,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     }
     const allMoved: string[] = [];
     const allStackInstanceIds: string[] = [];
+    const deletedByDpZero =
+      cause === "byRule" && toDelete.some((permanentId) => access.permanentById(permanentId)?.currentDP === 0);
+    const deletedByDpZeroInstanceIds = toDelete
+      .map((permanentId) => {
+        const permanent = access.permanentById(permanentId);
+        return cause === "byRule" && permanent?.currentDP === 0 ? permanent.topCard?.instanceId : undefined;
+      })
+      .filter((instanceId): instanceId is string => instanceId !== undefined);
     // The deleted COUNT = permanents that ACTUALLY left the field. A prevented (leave-prevention)
     // or immune permanent never enters `toDelete` / moves nothing, contributing 0 — the result a
     // gating "if this effect didn't delete" Condition reads (KB BT23-069 Q5338).
@@ -2875,6 +2885,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         deletedPermanentId: allMoved[0],
         deletedTopCardId: topCardIdsByPermanent.find((cardId) => cardId !== undefined),
         deletedEffectiveColorsByInstanceId,
+        deletedByDpZero,
+        deletedByDpZeroInstanceIds,
         // The actually-deleted card set: the [On Deletion] trigger gate (builders.onDeletion)
         // admits only these instances as candidates at this window.
         deletedInstanceIds: allMoved,
@@ -4168,6 +4180,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     opts?: {
       withoutSuspending?: boolean;
       attackPlayer?: boolean;
+      attackPlayerOnly?: boolean;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
     },
@@ -4206,7 +4219,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       canAttackTarget(access, controllerSeat, attacker, playerTarget, continuous) === null
         ? [PLAYER]
         : []),
-      ...legalEnemyIds,
+      ...(opts?.attackPlayerOnly === true ? [] : legalEnemyIds),
     ];
     const chosen = await engine.ask.selectInstances(
       controllerSeat,
@@ -4348,7 +4361,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
 
   const modifySecurityDp: Primitives["modifySecurityDp"] = (seat, delta, opts): void => {
     engine.securityDp?.add(seat, delta, {
-      continuous: opts?.continuous === true || engine.inContinuousPass?.() === true,
+      continuous: opts?.continuous ?? engine.inContinuousPass?.() === true,
       duration: opts?.duration,
     });
   };

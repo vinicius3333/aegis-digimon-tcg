@@ -4,7 +4,7 @@ import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import { activated, onDeletion } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const cardId = "BT12-015";
 const AGUNIMON = "Agunimon";
@@ -86,7 +86,7 @@ async function resolveHandMain(ctx: EffectContext, source: CardSource): Promise<
   await ctx.fx.digivolveFromInstance(hostPermanentId, source.instanceId, {
     payCost: true,
     costOverride: 3,
-    ignoreRequirements: true,
+    virtualBase: { level: 4, colors: ["Red"] },
   });
 }
 
@@ -129,5 +129,6 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
-export default module;
+const registered = registerIrCard(cardId, { effects: [], coverage: "full", residual: [] });
+registered.effectsForTiming = module.effectsForTiming;
+export default registered;

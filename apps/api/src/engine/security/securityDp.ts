@@ -26,6 +26,10 @@ export class SecurityDpLedger {
     );
   }
 
+  deltaForCard(seat: Seat, isDigimon: boolean): number {
+    return isDigimon ? this.deltaFor(seat) : 0;
+  }
+
   clearContinuous(): void {
     this.continuousBySeat.clear();
   }

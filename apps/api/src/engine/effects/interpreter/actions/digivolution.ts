@@ -25,7 +25,24 @@ export async function runDigivolutionAction(ctx: EffectContext, action: Action, 
       // four Tamer colors perform De-Digivolve 1 twice, with state checked between peels.
       const repeat = scale ?? 1;
       for (let i = 0; i < repeat; i++) {
-        const ids = await resolvePermanentTargets(ctx, action.target);
+        let target = action.target;
+        if (
+          scale !== undefined &&
+          action.scaling?.levelCeilingAdd !== undefined &&
+          target.filter.levelComparison?.value !== undefined
+        ) {
+          target = {
+            ...target,
+            filter: {
+              ...target.filter,
+              levelComparison: {
+                ...target.filter.levelComparison,
+                value: target.filter.levelComparison.value + scale * action.scaling.levelCeilingAdd,
+              },
+            },
+          };
+        }
+        const ids = await resolvePermanentTargets(ctx, target);
         // The trashing effect's seat gates EX11-070's stacked-trash-lock (KB Q5943).
         for (const id of ids)
           ctx.fx.deDigivolve(id, amount, { byEffectSeat: ctx.source.ownerSeat, stopAtLevel: action.stopAtLevel });

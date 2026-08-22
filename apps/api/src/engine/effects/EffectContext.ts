@@ -192,6 +192,8 @@ export interface TriggerInfo {
   removalCause?: RemovalCause;
   /** True when this simultaneous deletion batch is the rule check for Digimon at exactly 0 DP. */
   deletedByDpZero?: boolean;
+  /** Top-card instance IDs that individually reached exactly 0 DP in this deletion window. */
+  deletedByDpZeroInstanceIds?: string[];
   /** Security card currently being checked. */
   securityInstanceId?: string;
   /** Option permanent card instance that was trashed from the battle area. */
@@ -615,6 +617,10 @@ export interface Primitives {
       costOverride?: number;
       /** Choose a matching alternate digivolution requirement when printed and alternate paths both match. */
       useAlternateCost?: boolean;
+      /** Ignore only the level portion of the printed digivolution requirement. */
+      ignoreLevel?: boolean;
+      /** Temporarily evaluate the base as the printed virtual level/colors (e.g. a Tamer). */
+      virtualBase?: { level: number; colors: CardColor[] };
       ignoreRequirements?: boolean;
       beforeWhenDigivolving?: () => Promise<void>;
     },
@@ -1181,6 +1187,7 @@ export interface Primitives {
     opts?: {
       withoutSuspending?: boolean;
       attackPlayer?: boolean;
+      attackPlayerOnly?: boolean;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
     },
