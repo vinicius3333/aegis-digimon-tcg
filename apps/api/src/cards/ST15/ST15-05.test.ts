@@ -29,4 +29,19 @@ describe("ST15-05 ToyAgumon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.memory).toBe(5);
   });
+
+  it("does not lose memory when another Digimon attacks a player", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST15-05", as: "toy" }, { card: "BT1-009", as: "other" }] },
+      1: { security: ["BT1-010"] },
+    });
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("other").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.memory).toBe(5);
+  });
 });
