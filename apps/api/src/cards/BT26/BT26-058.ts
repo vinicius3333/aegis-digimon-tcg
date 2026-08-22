@@ -8,7 +8,7 @@ export const compiled: CompiledCard = { effects: [
   { trigger: "Static", keywords: [{ keyword: "Reboot", raw: "＜Reboot＞" }, { keyword: "Blocker", raw: "＜Blocker＞" }], actions: [] },
   { trigger: "WhenDigivolving", frequency: "OncePerTurn", sharedUseKey: "bt26-058-protect-cs", actions: [protect] },
   { trigger: "WhenAttacking", frequency: "OncePerTurn", sharedUseKey: "bt26-058-protect-cs", actions: [protect] },
-  { trigger: "AllTurns", actions: [{ kind: "Replacement", event: "wouldLeavePlay", sourceFilter: { isSelfRef: true }, actions: [{ kind: "Prevent", optional: true, abortOnDecline: true, cost: { kind: "placeOwnTopAtStackBottom", target: { filter: { isSelfRef: true }, count: 1 } } }] }] },
-], coverage: "full", residual: [] };
+  { trigger: "AllTurns", actions: [{ kind: "Replacement", event: "wouldLeavePlay", sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["CS"], match: "trait" }] }, actions: [{ kind: "Prevent", optional: true, abortOnDecline: true, cost: { kind: "placeOwnTopAtStackBottom", target: { filter: { isSelfRef: true }, count: 1 } } }] }] },
+], coverage: "full", residual: [], digivolutionRequirement: [{ level: 5, traits: ["CS"], cost: 3, isAlternate: true }] };
 registerIrCard("BT26-058", compiled);
 export default compiled;
