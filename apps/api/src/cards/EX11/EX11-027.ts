@@ -17,14 +17,34 @@ const compiled: CompiledCard = {
           "rest": "deckBottom"
         },
         {
-          "kind": "RawUnparsed",
-          "text": "missing-primitive(unaudited): link this Digimon or 1 [Maquinamon] in your hand to 1 of your other Digimon without paying the cost"
+          "kind": "Modal",
+          "choose": 1,
+          "optional": true,
+          "options": [
+            [
+              {
+                "kind": "Link",
+                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                "recipient": { "filter": { "controller": "mine", "kind": ["Digimon"], "excludeSelf": true }, "count": 1 },
+                "payCost": false
+              }
+            ],
+            [
+              {
+                "kind": "Link",
+                "target": { "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Maquinamon"], "match": "name" }] }, "count": 1 },
+                "from": ["hand"],
+                "recipient": { "filter": { "controller": "mine", "kind": ["Digimon"], "excludeSelf": true }, "count": 1 },
+                "payCost": false
+              }
+            ]
+          ]
         }
       ]
     }
   ],
-  "coverage": "partial",
-  "residual": ["missing-primitive(unaudited): link this Digimon or 1 [Maquinamon] in your hand to 1 of your other Digimon without paying the cost"]
+  "coverage": "full",
+  "residual": []
 };
 
 registerIrCard("EX11-027", compiled);
