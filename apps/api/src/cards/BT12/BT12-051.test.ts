@@ -28,19 +28,19 @@ it("plays one named Tamer from hand without paying its cost", async () => {
   }, { autoAcceptOptional: true, autoSelectCards: true });
   await s.ready();
   await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("yasha"));
-  await settle(() => s.perm("airu").isOnBattleArea());
-  expect(s.perm("airu").isOnBattleArea()).toBe(true);
+  await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-091"));
+  expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-091")).toBe(true);
 });
 
 it("saves a deleted Save Digimon under one of its Tamers", async () => {
   const s = setupEngine({
     0: {
       battleArea: [{ card: "BT12-051", as: "yasha" }, { card: "BT12-091", as: "airu" }],
-      trash: [{ card: "BT12-047", as: "saved" }],
+      trash: [{ card: "BT12-008", as: "saved" }],
     },
   }, { autoAcceptOptional: true, autoSelectCards: true });
   await s.ready();
   await advance(s.engine).verb.deletePermanent([s.perm("yasha").permanentId], "byEffect");
-  await settle(() => s.perm("airu").stack.some(({ cardId }) => cardId === "BT12-047"));
-  expect(s.perm("airu").stack.some(({ cardId }) => cardId === "BT12-047")).toBe(true);
+  await settle(() => s.perm("airu").stack.some(({ cardId }) => cardId === "BT12-008"));
+  expect(s.perm("airu").stack.some(({ cardId }) => cardId === "BT12-008")).toBe(true);
 });
