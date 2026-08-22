@@ -33,7 +33,7 @@ const compiled = {
             [
               {
                 kind: "DeDigivolve" as const,
-                target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 3 },
+                target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 3, forceSelection: true },
                 amount: 1,
               },
             ],
