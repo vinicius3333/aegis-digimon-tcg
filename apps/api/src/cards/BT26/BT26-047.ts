@@ -17,6 +17,6 @@ export const compiled: CompiledCard = { effects: [
   { trigger: "OnPlay", actions: [battle, ...suspendBuff] },
   { trigger: "WhenDigivolving", actions: [battle, ...suspendBuff] },
   { trigger: "StartOfYourMainPhase", actions: suspendBuff },
-], coverage: "full", residual: [] };
+], coverage: "full", residual: [], digivolutionRequirement: [{ level: 5, traits: ["Insectoid", "TS"], cost: 3, isAlternate: true }], assemblyRequirement: [{ reduceCost: 6, materials: [{ traits: ["Larva", "Insectoid", "Titan"], count: 4, differentLevels: true }] }] };
 registerIrCard("BT26-047", compiled);
 export default compiled;
