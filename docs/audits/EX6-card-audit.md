@@ -116,10 +116,14 @@ catalog-inconsistent “Kokuwamon” to “Sakuttomon”.
 
 ## Remaining blockers
 
-The permitted `pnpm typecheck` command was attempted, but stopped at the
-shared build because `tsc` is unavailable and `node_modules` is absent. No
-runtime, Vitest, or typecheck result is claimed. The ledger therefore
+The permitted `pnpm typecheck` command was run after an offline dependency
+install. The shared package and web package passed; the API package failed on
+pre-existing errors across BT18, BT20, BT25, EX4, EX7, EX8, EX9, LM, RB1,
+ST19, ST20, ST21, and shared engine files, with no EX6 diagnostic. No runtime
+or Vitest result is claimed. The ledger therefore
 intentionally leaves every score as NR, including cards whose static module
 reports `coverage: "full"`. Re-run the serial focused suite, affected engine
 suite, `pnpm typecheck`, and `git diff --check` in an environment with the
-workspace dependencies before assigning numeric scores.
+workspace dependencies before assigning numeric scores. The repository-wide
+card formatting check also reports pre-existing formatting differences across
+the full cards tree, so it was not used as EX6-specific evidence.
