@@ -466,9 +466,10 @@ describe("color -> colors (Tamer-onto digivolve base gate)", () => {
 describe("hasCardsUnder -> the digivolution-stack gates the engine reads (RB1-014)", () => {
   it("splits 'with cards under it' from 'without cards under it'", () => {
     assertKeysGone("RB1-014", ["hasCardsUnder"]);
-    const withCards = nodesWithKey(irOf("RB1-014"), "hasDigivolutionCards")[0] as Filter | undefined;
-    const withoutCards = nodesWithKey(irOf("RB1-014"), "digivolutionCards")[0] as Filter | undefined;
-    expect(withCards?.hasDigivolutionCards).toBe(true);
+    const stackFilters = nodesWithKey(irOf("RB1-014"), "digivolutionCards") as Filter[];
+    const withCards = stackFilters.find((filter) => filter.digivolutionCards === "hasAny");
+    const withoutCards = stackFilters.find((filter) => filter.digivolutionCards === "none");
+    expect(withCards?.digivolutionCards).toBe("hasAny");
     expect(withoutCards?.digivolutionCards).toBe("none");
 
     const bare = { permanentId: "BARE", seat: 1 as const, def: {} };
