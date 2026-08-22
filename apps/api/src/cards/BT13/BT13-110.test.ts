@@ -11,7 +11,7 @@ function activatableEffects(s: ReturnType<typeof setupEngine>, instanceId: strin
   (s.engine as unknown as { syncActivatableEffects(): void }).syncActivatableEffects();
   return JSON.parse(
     s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === instanceId)?.activatableEffectsJson ?? "[]",
-  ) as Array<{ instanceId: string; effectKey: string }>;
+  ) as Array<{ instanceId: string; effectKey: string; description?: string }>;
 }
 
 describe("BT13-110 Royal Knights of the Purge", () => {
@@ -51,7 +51,6 @@ describe("BT13-110 Royal Knights of the Purge", () => {
       payCost: false,
       optional: true,
       suppressOnPlayEffects: true,
-      requiresDelayArmed: true,
       bindResultAs: "playedDigimon",
       target: {
         filter: {
@@ -135,20 +134,24 @@ describe("BT13-110 Royal Knights of the Purge", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    s.state.turnCount += 1;
     const optionId = s.perm("option").topCard!.instanceId;
+    const materialId = s.perm("drasil").stack.find((card) => card.cardId === "BT13-040")!.instanceId;
     const entry = activatableEffects(s, optionId).find(
-      (effect) => effect.instanceId === optionId && effect.effectKey.toLowerCase().includes("delay"),
+      (effect) => effect.instanceId === optionId && effect.description?.toLowerCase().includes("delay"),
     );
     expect(entry).toBeDefined();
     expect(
       s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: optionId, effectKey: entry!.effectKey }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-040"));
+    await settle();
 
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-110")).toBe(true);
-    expect(s.perm("drasil").stack.some((card) => card.cardId === "BT13-040")).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-110")).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+    expect(s.state.players[0]!.breeding?.stack.some((card) => card.instanceId === materialId)).toBe(false);
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT13-040");
     expect(played).toBeDefined();
+    expect(played!.topCard!.instanceId).toBe(materialId);
     expect(observe(s.engine).hasKeyword(played!.permanentId, "Rush")).toBe(true);
   });
 
