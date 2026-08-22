@@ -1177,7 +1177,7 @@ export async function payCost(
   }
 }
 
-export async function payOneCostOption(ctx: EffectContext, costs: readonly Cost[]): Promise<boolean> {
+export async function payOneCostOption(ctx: EffectContext, costs: readonly Cost[], out?: { paidCount: number }): Promise<boolean> {
   if (costs.length === 0) return true;
   const index =
     costs.length === 1
@@ -1188,5 +1188,5 @@ export async function payOneCostOption(ctx: EffectContext, costs: readonly Cost[
         );
   const cost = costs[index];
   if (cost === undefined) return false;
-  return payCost(ctx, cost);
+  return payCost(ctx, cost, out);
 }

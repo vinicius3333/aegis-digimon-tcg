@@ -156,7 +156,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     action.kind !== "PlayPerLevel" &&
     (action.costOptions?.length ?? 0) > 0
   ) {
-    const paid = await payOneCostOption(ctx, action.costOptions as Cost[]);
+    const paid = await payOneCostOption(ctx, action.costOptions as Cost[], costPayment);
     if (!paid) return action.abortOnDecline === true;
   } else if (
     action.kind !== "RawUnparsed" &&
