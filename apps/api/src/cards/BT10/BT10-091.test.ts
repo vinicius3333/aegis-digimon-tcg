@@ -114,14 +114,9 @@ describe("BT10-091 Ruli Tsukiyono", () => {
     expect(suspendedAfterFirstAttack).toHaveLength(1);
     const decisionsAfterFirstAttack = s.decisions.length;
 
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("secondAttacker").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    await advance(s.engine).fireSubTrigger("whenAttacking", {
+      subjectPermanentId: s.perm("secondAttacker").permanentId,
+    });
 
     expect([s.perm("firstTarget"), s.perm("secondTarget")].filter(({ isSuspended }) => isSuspended)).toHaveLength(1);
     expect(s.decisions).toHaveLength(decisionsAfterFirstAttack);
