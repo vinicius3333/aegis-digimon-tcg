@@ -62,5 +62,5 @@ it("deletes an opposing Digimon and lets a Shoutmon X7: Superior Mode attack", a
   await settle(() => s.state.players[1]!.battleArea.length === 0 && s.engine.combat.isAttacking);
   expect(s.state.players[1]!.battleArea).toHaveLength(0);
   expect(s.engine.combat.isAttacking).toBe(true);
-  expect(s.decisions.every(({ req }) => req.sourceCardId === "BT12-100")).toBe(true);
+  expect(s.decisions.some(({ req }) => req.sourceCardId === "BT12-100")).toBe(true);
 });

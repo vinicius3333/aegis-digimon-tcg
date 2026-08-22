@@ -1,6 +1,8 @@
-import { getCompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { lateBt12Module } from "./_lateHandwritten.js";
 
-const module = registerIrCard("BT12-097", structuredClone(getCompiledCard("BT12-097")!));
+const module = lateBt12Module("BT12-097");
+const registered = registerIrCard("BT12-097", { effects: [], coverage: "full", residual: [] });
+registered.effectsForTiming = module.effectsForTiming;
 
-export default module;
+export default registered;
