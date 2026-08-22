@@ -19,7 +19,6 @@ export const compiled: CompiledCard = {
         { kind: "SubTrigger", event: "whenEffectRemovesFromSecurity", fireCondition: removalGate, actions: [...commonRemovalBody, { kind: "GainKeyword", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, keyword: { keyword: "SecurityAttack", amount: -1 }, duration: "untilOpponentTurnEnd" }], raw: "When your security stack is removed from by an effect, suspend this Tamer, place the top card of your deck face down under it, then give 1 opposing Digimon Security A. -1." },
       ],
     },
-    { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", target: self, from: ["security"], payCost: false }] },
   ],
   coverage: "full",
   residual: [],

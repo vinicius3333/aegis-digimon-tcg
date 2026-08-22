@@ -1,14 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { getCompiledCard } from "@aegis/shared";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "./BT26-089.js";
+import { compiled } from "./BT26-089.js";
 import "../index.js";
 
 describe("BT26-089 compiled fidelity", () => {
   it("separates check-driven and effect-driven security removal while sharing the placement cost", () => {
-    const card = getCompiledCard("BT26-089");
+    const card = compiled;
     expect(card?.coverage).toBe("full");
     expect(card?.effects?.find((effect) => effect.trigger === "StartOfYourMainPhase")?.actions).toMatchObject([
       { kind: "PlaceUnder", faceDown: true },
@@ -25,9 +24,6 @@ describe("BT26-089 compiled fidelity", () => {
       expect.objectContaining({ kind: "PlaceUnder", fromDeckTop: true, faceDown: true }),
       expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: -1 } }),
     ]));
-    expect(card?.effects?.find((effect) => effect.trigger === "Security")?.actions).toMatchObject([
-      { kind: "PlayWithoutCost", payCost: false },
-    ]);
   });
 
   it("places a BEATBREAK card under itself, draws, and gains memory at main-phase start", async () => {
