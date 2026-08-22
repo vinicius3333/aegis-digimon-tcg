@@ -9,8 +9,8 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlaceUnder",
-          target: { filter: { controller: "mine" }, count: 1 },
-          underFilter: { controllerDefault: "mine", kind: ["Tamer"] },
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          fromDeckTop: true,
           optional: true,
           faceDown: true,
           position: "bottom",
@@ -32,8 +32,8 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlaceUnder",
-          target: { filter: { controller: "mine" }, count: 1 },
-          underFilter: { controllerDefault: "mine", kind: ["Tamer"] },
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          fromDeckTop: true,
           optional: true,
           faceDown: true,
           position: "bottom",
