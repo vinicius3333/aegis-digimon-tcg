@@ -167,6 +167,10 @@ function makeCtx(
   };
 
   const fx: Partial<Primitives> = {
+    subscribeReplacement: (replacement) => {
+      recorder.calls.push({ verb: "subscribeReplacement", args: [replacement] });
+    },
+    redirectDigivolutionTrashHosts: async (ids) => ids,
     returnToDeck: async (...args) => {
       recorder.calls.push({ verb: "returnToDeck", args });
       // Return the moved instance ids as CardInstance stubs so callers see a non-empty result
@@ -277,12 +281,12 @@ describe("BT8-112 Imperialdramon Paladin Mode", () => {
     expect(module!.effectsForTiming(EffectTiming.WhenDigivolving, source)).toHaveLength(1);
   });
 
-  it("produces a OnAllyAttack (WhenAttacking) effect", () => {
+  it("produces an own-attack (WhenAttacking) effect", () => {
     const source = makeSource();
-    expect(module!.effectsForTiming(EffectTiming.OnAllyAttack, source)).toHaveLength(1);
+    expect(module!.effectsForTiming(EffectTiming.OnUseAttack, source)).toHaveLength(1);
   });
 
-  it("[BeforePayCost] calls changeEvoCost -4 when a white Lv7 Digimon is in trash", async () => {
+  it("[BeforePayCost] installs a -4 reduction when a white Lv7 Digimon is in trash", async () => {
     // FAILS-WHEN-REVERTED: IR has no BeforePayCost path
     const source = makeSource();
     const { ctx, recorder } = makeCtx(source, {
@@ -291,9 +295,9 @@ describe("BT8-112 Imperialdramon Paladin Mode", () => {
     const effects = module!.effectsForTiming(EffectTiming.BeforePayCost, source);
     await effects[0]!.resolve(ctx);
 
-    const evoCostCalls = recorder.calls.filter((c) => c.verb === "changeEvoCost");
-    expect(evoCostCalls).toHaveLength(1);
-    expect(evoCostCalls[0]!.args[1]).toBe(-4);
+    const reductions = recorder.calls.filter((c) => c.verb === "subscribeReplacement");
+    expect(reductions).toHaveLength(1);
+    expect((reductions[0]!.args[0] as { amount: number }).amount).toBe(4);
   });
 
   it("[BeforePayCost] does NOT call changeEvoCost when trash has no white Lv7", async () => {
@@ -304,8 +308,8 @@ describe("BT8-112 Imperialdramon Paladin Mode", () => {
     const effects = module!.effectsForTiming(EffectTiming.BeforePayCost, source);
     await effects[0]!.resolve(ctx);
 
-    const evoCostCalls = recorder.calls.filter((c) => c.verb === "changeEvoCost");
-    expect(evoCostCalls).toHaveLength(0);
+    const reductions = recorder.calls.filter((c) => c.verb === "subscribeReplacement");
+    expect(reductions).toHaveLength(1);
   });
 
   it("[When Digivolving] calls trashDigivolutionCards on opponent's Digimon with stack", async () => {
@@ -348,7 +352,7 @@ describe("BT8-112 Imperialdramon Paladin Mode", () => {
     const { ctx, recorder } = makeCtx(source, {
       diviStack: [card("divi-tc3", TWO_COLOR_CARD_ID, 0)],
     });
-    const effects = module!.effectsForTiming(EffectTiming.OnAllyAttack, source);
+    const effects = module!.effectsForTiming(EffectTiming.OnUseAttack, source);
     await effects[0]!.resolve(ctx);
 
     const trashDiviCalls = recorder.calls.filter((c) => c.verb === "trashDigivolutionCards");
