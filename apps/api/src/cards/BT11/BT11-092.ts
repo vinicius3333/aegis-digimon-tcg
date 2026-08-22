@@ -13,7 +13,7 @@ const compiled: CompiledCard = {
           optional: true,
           abortOnDecline: true,
         },
-        { kind: "Draw", controller: "mine", amount: 1, optional: true, abortOnDecline: true },
+        { kind: "Draw", controller: "mine", amount: 1 },
       ],
     },
     {
@@ -27,6 +27,7 @@ const compiled: CompiledCard = {
               kind: "RedirectAttack",
               target: { filter: { controller: "mine", kind: ["Digimon"], levels: [6], nameOrTrait: [{ tokens: ["Machine"], match: "trait" }] }, count: 1 },
               cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, raw: "by suspending this Tamer" },
+              condition: { kind: "attackTargetsPlayer" },
               optional: true,
               abortOnDecline: true,
             },

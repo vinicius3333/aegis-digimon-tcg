@@ -92,13 +92,9 @@ const compiled: CompiledCard = {
           "event": "whenOpponentAttacks",
           "actions": [
             {
-              "kind": "Trash",
-              "target": {
-                "filter": {
-                  "controller": "mine"
-                },
-                "count": 1
-              }
+              "kind": "TrashTopDeck",
+              "controller": "mine",
+              "amount": 1
             }
           ]
         }

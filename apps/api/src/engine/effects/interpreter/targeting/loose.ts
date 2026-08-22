@@ -5,7 +5,7 @@ import { definitionMatches, matchNameOrTrait } from "../matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { effectiveTargetCount } from "./permanents.js";
 import { filterToDistinctColors } from "@aegis/shared";
-import type { Seat, Target, ZoneRef } from "@aegis/shared";
+import type { Filter, Seat, Target, ZoneRef } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
 // Loose-card (hand/trash/security/deck/under-permanent) resolution
@@ -34,10 +34,17 @@ export interface LooseCandidate {
 export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef): LooseCandidate[] {
   const p = ctx.game.player(seat);
   const out: LooseCandidate[] = [];
-  const collect = (cards: ArrayLike<{ instanceId: string; cardId: string; ownerSeat: Seat }>): void => {
+  const collect = (
+    cards: ArrayLike<{ instanceId: string; cardId: string; ownerSeat: Seat; faceUp?: boolean }>,
+  ): void => {
     for (let i = 0; i < cards.length; i++) {
       const c = cards[i]!;
-      out.push({ instanceId: c.instanceId, cardId: c.cardId, ownerSeat: c.ownerSeat });
+      out.push({
+        instanceId: c.instanceId,
+        cardId: c.cardId,
+        ownerSeat: c.ownerSeat,
+        ...(c.faceUp !== undefined ? { faceUp: c.faceUp } : {}),
+      });
     }
   };
   switch (zone) {
@@ -167,6 +174,16 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
   const seats = [...seatSet];
   const seen = new Set<string>();
   const out: LooseCandidate[] = [];
+  const contextMatches = (filter: Filter, ownerSeat: Seat): boolean => {
+    const gate = filter.ownerTrashNameCountGte;
+    if (gate === undefined) return true;
+    const tokens = gate.tokens.map((token) => token.toLowerCase());
+    const matches = Array.from(ctx.game.player(ownerSeat).trash).filter((card) => {
+      const name = ctx.game.definitionOf(card).nameEn.toLowerCase();
+      return tokens.some((token) => name.includes(token));
+    }).length;
+    return matches >= gate.count;
+  };
   for (const seat of seats) {
     for (const zone of zones) {
       for (const cand of looseCardsInZone(ctx, seat, zone)) {
@@ -181,13 +198,22 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
           if (!hostIsSelf) continue;
         }
         const def = ctx.game.definitionOf({ cardId: cand.cardId } as never);
-        if (!allFilters.some((f) => definitionMatches(f, def))) continue;
+        if (!allFilters.some((f) => definitionMatches(f, def) && contextMatches(f, cand.ownerSeat))) continue;
         // hostFilter: when sourcing from digivolutionCards, gate on the host permanent's kind
         // (e.g. "from under your Tamers" — BT10-093), OR require the host to BE the source's
         // own permanent ("this Digimon's digivolution cards" — BT9-111, hostFilter.isSelfRef).
         // Resolve it from the matching OR branch as well; cards such as BT13-019 combine
         // trash and breeding-area digivolution-card sources in one target.
-        const matchedFilter = allFilters.find((filter) => definitionMatches(filter, def));
+        const matchedFilter = allFilters.find(
+          (filter) => definitionMatches(filter, def) && contextMatches(filter, cand.ownerSeat),
+        );
+        if (matchedFilter?.sameColorAsSelectionRef !== undefined) {
+          const referenceId = ctx.selections?.get(matchedFilter.sameColorAsSelectionRef);
+          const reference = referenceId === undefined ? undefined : ctx.game.permanentById(referenceId);
+          if (reference?.topCard === undefined) continue;
+          const referenceColors = ctx.game.effectiveColors?.(reference) ?? ctx.game.definitionOf(reference.topCard).colors;
+          if (!def.colors.some((color) => referenceColors.includes(color))) continue;
+        }
         if (matchedFilter?.faceUp === true && cand.faceUp !== true) continue;
         if (matchedFilter?.faceUp === false && cand.faceUp === true) continue;
         if (matchedFilter?.faceDown === true && cand.faceUp === true) continue;
@@ -280,6 +306,7 @@ export async function pickLoose(
   const requireDifferentColors = target.filter?.differentColors === true;
   const requireDistinctNames = target.filter?.distinctNames === true || target.distinctNames === true;
   const requireDistinctCardNumbers = target.distinctCardNumbers === true;
+  const requireDistinctLevels = target.distinctLevels === true;
   const requiredNamesExact = target.requiredNamesExact ?? [];
   const requiredNamesExactUpTo = target.requiredNamesExactUpTo ?? [];
   if (requiredNamesExact.length > 0) {
@@ -421,12 +448,48 @@ export async function pickLoose(
     }
     return chosen;
   }
+  if (requireDistinctLevels) {
+    const chosen: string[] = [];
+    const usedLevels = new Set<number>();
+    const distinctLevelCount = new Set(
+      candidates
+        .map((candidate) => ctx.game.definitionOf({ cardId: candidate.cardId } as never).level)
+        .filter((level): level is number => level !== undefined),
+    ).size;
+    const distinctWant = target.count === "all" ? distinctLevelCount : Math.min(want, distinctLevelCount);
+    if (!target.upTo && distinctLevelCount < want) return [];
+    while (chosen.length < distinctWant) {
+      const eligible = candidates.filter((candidate) => {
+        const level = ctx.game.definitionOf({ cardId: candidate.cardId } as never).level;
+        return level !== undefined && !usedLevels.has(level) && !chosen.includes(candidate.instanceId);
+      });
+      if (eligible.length === 0) break;
+      const picked = await asker.selectCards(ctx, {
+        candidates: eligible.map((candidate) => candidate.instanceId),
+        min: target.upTo ? 0 : 1,
+        max: 1,
+        visible,
+        visibleCards,
+      });
+      const instanceId = picked[0];
+      if (instanceId === undefined) break;
+      const candidate = eligible.find((item) => item.instanceId === instanceId);
+      if (candidate === undefined) break;
+      const level = ctx.game.definitionOf({ cardId: candidate.cardId } as never).level;
+      if (level === undefined) break;
+      usedLevels.add(level);
+      chosen.push(instanceId);
+    }
+    return chosen;
+  }
   if (target.count === "all" && cap === undefined && !requireDifferentColors)
     return candidates.map((c) => c.instanceId);
   if (candidates.length <= want && !target.upTo && !requireDifferentColors && target.forceSelection !== true)
     return candidates.slice(0, want).map((c) => c.instanceId);
   const ids = candidates.map((c) => c.instanceId);
-  const min = target.upTo ? 0 : Math.min(want, candidates.length);
+  const min = target.upTo
+    ? Math.min(target.minimum ?? 0, candidates.length)
+    : Math.min(want, candidates.length);
   const max = Math.min(want, candidates.length);
 
   let chosen = await asker.selectCards(ctx, {

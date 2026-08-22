@@ -1,82 +1,73 @@
-import { EffectDuration, EffectTiming, isDigiEgg, isTamer } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { whenAttacking, whenDigivolving } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "P-047";
-
-function nonDigiEggTrashIds(ctx: Parameters<Effect["resolve"]>[0], source: CardSource): string[] {
-  return Array.from(ctx.game.player(source.ownerSeat).trash)
-    .filter((card) => !isDigiEgg(ctx.game.definitionOf(card)))
-    .map((card) => card.instanceId);
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.WhenDigivolving) {
-      return [
-        whenDigivolving({
-          source,
-          effectKey: `${cardId}/when-digivolving`,
-          description:
-            "[When Digivolving] Trash the top 3 cards of your deck. Then, if you have a " +
-            "Tamer in play, this Digimon gets +3000 DP for the turn.",
-          resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-            const topCards = Array.from(owner.deck)
-              .slice(0, 3)
-              .map((card) => card.instanceId);
-            if (topCards.length > 0) await ctx.fx.trash(topCards);
-
-            const hasTamer = Array.from(owner.battleArea).some(
-              (permanent) =>
-                permanent.topCard !== undefined && isTamer(ctx.game.definitionOf(permanent.topCard)),
-            );
-            const self = source.permanent();
-            if (hasTamer && self !== undefined) {
-              ctx.fx.modifyDP(self.permanentId, 3000, EffectDuration.UntilEachTurnEnd);
-            }
+// KB Q4163: trash as many of the top 3 as possible, then still evaluate the Tamer gate.
+// KB Q4165: after paying the inherited return cost, the +2000 DP result is mandatory.
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "TrashTopDeck",
+          controller: "mine",
+          amount: 3,
+        },
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
           },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.OnUseAttack) {
-      return [
-        whenAttacking({
-          source,
-          effectKey: `${cardId}/inherited-when-attacking`,
-          description:
-            "[When Attacking] You may place 3 non-Digi-Egg cards from your trash at the " +
-            "bottom of your deck in any order to have this Digimon get +2000 DP for the turn.",
+          amount: 3000,
+          duration: "forTheTurn",
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+            },
+            raw: "you have a Tamer in play",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
+          },
+          amount: 2000,
+          duration: "forTheTurn",
+          cost: {
+            kind: "return",
+            target: {
+              filter: {
+                zone: "trash",
+                controller: "mine",
+                kind: ["Digimon", "Tamer", "Option"],
+              },
+              count: 3,
+            },
+            to: "deckBottom",
+            raw: "by placing 3 non-Digi-Egg cards from your trash at the bottom of your deck in any order",
+          },
           optional: true,
-          isInherited: true,
-          canActivate: (ctx) => nonDigiEggTrashIds(ctx, source).length >= 3,
-          resolve: async (ctx) => {
-            const candidates = nonDigiEggTrashIds(ctx, source);
-            const chosen = await ctx.ask.selectCards(ctx, {
-              candidates,
-              min: 3,
-              max: 3,
-            });
-            if (chosen.length !== 3) return;
-
-            await ctx.fx.returnToDeck(chosen, { toTop: false });
-            const recipientId = ctx.conferredToPermanentId ?? source.permanent()?.permanentId;
-            if (recipientId !== undefined) {
-              ctx.fx.modifyDP(recipientId, 2000, EffectDuration.UntilEachTurnEnd);
-            }
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+        },
+      ],
+      isInherited: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("P-047", compiled);

@@ -63,4 +63,34 @@ describe("ST22-06 Sakuyamon: Maid Mode", () => {
     expect(s.state.players[1]!.security.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-091")).toBe(true);
   });
+
+  it("does not trash security when the lowest-DP Digimon is prevented from leaving", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT1-090", as: "removed" }],
+          battleArea: [{ card: "ST22-06", as: "maid" }],
+        },
+        1: {
+          security: [
+            { card: "ST22-10", as: "mandala", faceUp: true },
+            { card: "BT1-091", as: "mustRemain" },
+          ],
+          battleArea: [
+            { card: "ST22-03", dp: 2000, as: "protectedLowest" },
+            { card: "BT1-010", dp: 6000, as: "high" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "ST22-10"));
+
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "ST22-03")).toBe(true);
+    expect(s.state.players[1]!.security.some((card) => card.cardId === "BT1-091")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-091")).toBe(false);
+  });
 });

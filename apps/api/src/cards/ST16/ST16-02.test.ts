@@ -31,7 +31,7 @@ describe("ST16-02 Elecmon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("elecmon").instanceId)).toBe(false);
   });
 
-  it("does not invent a trash target when the hand is empty after the draw", async () => {
+  it("trashes the drawn card when it is the only card in hand after play", async () => {
     const s = setupEngine({
       0: {
         hand: [{ card: CARD_ID, as: "elecmon" }],
@@ -42,9 +42,9 @@ describe("ST16-02 Elecmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("elecmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("drawn").instanceId));
 
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-002"]);
-    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-002"]);
   });
 });

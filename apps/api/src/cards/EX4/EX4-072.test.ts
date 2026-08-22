@@ -30,7 +30,8 @@ describe("EX4-072 Digital Translator", () => {
 
   it("accepts a level-six named variant such as Gallantmon X Antibody", () => {
     const sourceCard = { cardId: "EX4-072", instanceId: "option", ownerSeat: 0, faceUp: true } as CardInstance;
-    const chosen = { cardId: "VARIANT", instanceId: "chosen", ownerSeat: 0, faceUp: true } as CardInstance;
+    const chosen = { cardId: "BASE", instanceId: "chosen", ownerSeat: 0, faceUp: true } as CardInstance;
+    const evolution = { cardId: "VARIANT", instanceId: "evolution", ownerSeat: 0, faceUp: true } as CardInstance;
     const permanent = {
       permanentId: "chosen-perm",
       topCard: chosen,
@@ -55,11 +56,11 @@ describe("EX4-072 Digital Translator", () => {
         },
       ],
       [
-        "VARIANT",
+        "BASE",
         {
-          cardId: "VARIANT",
+          cardId: "BASE",
           set: "TEST",
-          nameEn: "Gallantmon X Antibody",
+          nameEn: "Gallantmon",
           kinds: [CardKind.Digimon],
           colors: ["Red"] as never,
           playCost: 8,
@@ -69,9 +70,24 @@ describe("EX4-072 Digital Translator", () => {
           maxCountInDeck: 4,
         },
       ],
+      [
+        "VARIANT",
+        {
+          cardId: "VARIANT",
+          set: "TEST",
+          nameEn: "Gallantmon X Antibody",
+          kinds: [CardKind.Digimon],
+          colors: ["Red"] as never,
+          playCost: 8,
+          dp: 12000,
+          level: 6,
+          evoCosts: [],
+          maxCountInDeck: 4,
+        },
+      ],
     ]);
     const players = [
-      { battleArea: [permanent], security: [], hand: [], deck: [], trash: [] },
+      { battleArea: [permanent], security: [], hand: [evolution], deck: [], trash: [] },
       { battleArea: [], security: [], hand: [], deck: [], trash: [] },
     ];
     const game = {

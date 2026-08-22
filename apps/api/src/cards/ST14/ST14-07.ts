@@ -18,13 +18,16 @@ const compiled: CompiledCard = {
       "trigger": "WhenDigivolving",
       "actions": [
         {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "isSelfRef": true
+          "kind": "GainTriggeredEffect",
+          "target": {
+            "filter": { "isSelfRef": true },
+            "count": 1,
+            "isSelf": true
           },
+          "gainedTrigger": "onDeletionOf",
           "once": true,
-          "actions": [
+          "duration": "untilOpponentTurnEnd",
+          "gainedActions": [
             {
               "kind": "PlayWithoutCost",
               "target": {
@@ -37,17 +40,18 @@ const compiled: CompiledCard = {
               },
               "from": ["trash"],
               "payCost": false,
-              "optional": true
+              "optional": true,
+              "condition": {
+                "kind": "zoneCount",
+                "seat": "mine",
+                "zone": "trash",
+                "op": "gte",
+                "value": 10,
+                "raw": "there are 10 or more cards in your trash"
+              }
             }
           ],
-          "condition": {
-            "kind": "zoneCount",
-            "seat": "mine",
-            "zone": "trash",
-            "op": "gte",
-            "value": 10,
-            "raw": "there are 10 or more cards in your trash"
-          }
+          "raw": "This Digimon gains its printed On Deletion effect until the end of your opponent's turn"
         }
       ]
     },

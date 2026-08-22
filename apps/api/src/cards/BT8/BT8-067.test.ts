@@ -16,7 +16,7 @@ describe("BT8-067 MetalGreymon", () => {
   it("lets a Dragonkin host attack an unsuspended Digimon without granting Vortex", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT8-070", as: "host", under: ["BT8-067"] }] },
-      1: { battleArea: [{ card: "BT1-016", as: "unsuspendedTarget" }] },
+      1: { battleArea: [{ card: "BT1-016", as: "unsuspendedTarget", dp: 1000 }] },
     });
     await s.ready();
 
@@ -31,8 +31,8 @@ describe("BT8-067 MetalGreymon", () => {
         target: { kind: "permanent", permanentId: s.perm("unsuspendedTarget").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-016"));
-    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-016")).toBe(true);
+    await settle(() => s.perm("host").isSuspended);
+    expect(s.perm("host").isSuspended).toBe(true);
   });
 
   it("does not let a host without Machine or Dragonkin attack an unsuspended Digimon", async () => {

@@ -86,6 +86,7 @@ import type {
   TrashTopDeckAction,
 } from "./resources.js";
 import type {
+  DeclareCategoryImmunityAction,
   GlobalRestrictAction,
   GrantImmunityAction,
   MinDpFloorAction,
@@ -184,6 +185,7 @@ export type Action =
   | RedirectAttackAction
   | SelectBindAction
   | RestrictAction
+  | DeclareCategoryImmunityAction
   | RestrictUnsuspendedDigivolveAction
   | GrantCanAttackUnsuspendedAction
   | GrantVortexCanAttackPlayersAction

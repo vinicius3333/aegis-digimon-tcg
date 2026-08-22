@@ -5,10 +5,30 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./BT11-079.js";
 
 describe("BT11-079 DarkLizardmon", () => {
-  it("has Retaliation", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT11-079", as: "darklizardmon" }] } });
+  it("has executable Retaliation that deletes the Digimon it loses a battle against", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT11-079", as: "darklizardmon" }] },
+      1: { battleArea: [{ card: "BT1-084", as: "opponent", suspended: true }] },
+    });
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).hasKeyword(s.perm("darklizardmon"), "Retaliation")).toBe(true);
+    const darkLizardmonId = s.perm("darklizardmon").permanentId;
+    const opponentId = s.perm("opponent").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: darkLizardmonId,
+        target: { kind: "permanent", permanentId: opponentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.every(({ permanentId }) => permanentId !== darkLizardmonId) &&
+      s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== opponentId),
+    );
+
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT11-079")).toBe(true);
+    expect(s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT1-084")).toBe(true);
   });
 
   it("draws 1 and then trashes exactly 1 card on deletion", async () => {

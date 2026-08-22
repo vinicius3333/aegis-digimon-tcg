@@ -50,8 +50,12 @@ describe("Security promo gauntlet", () => {
         attackerPermanentId: s.perm(`attacker${index}`).permanentId,
         target: { kind: "player" },
       }), promos[index]).toEqual({ ok: true });
-      await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === index + 1);
-      await settle();
+      await settle(() =>
+        s.events.filter((event) => event.kind === "securityChecked").length === index + 1 &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === promoIds[index]) &&
+        !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
+        2_000,
+      );
       expect(s.state.players[0]!.hand.some((card) => card.instanceId === promoIds[index])).toBe(true);
     }
 

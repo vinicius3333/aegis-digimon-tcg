@@ -111,4 +111,33 @@ describe("BT11-094 Mirei Mikagura", () => {
     // LadyDevimon no longer in hand.
     expect(p0.hand.some((c) => c.instanceId === ladyDevimon.instanceId)).toBe(false);
   });
+
+  it("does not suspend or play a same-name counterpart", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-094", as: "mirei" },
+            { card: "BT10-074", as: "base" },
+          ],
+          hand: [
+            { card: "BT11-042", as: "evolving" },
+            { card: "BT11-042", as: "same-name" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("evolving").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT11-042");
+
+    expect(s.perm("mirei").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("same-name").instanceId)).toBe(true);
+  });
 });

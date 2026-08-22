@@ -77,6 +77,15 @@ const compiled: CompiledCard = {
               "from": [
                 "hand"
               ],
+              "payCost": true,
+              "reduceCostScaling": {
+                "per": 2,
+                "filter": {
+                  "controller": "mine",
+                  "kind": ["Tamer"]
+                },
+                "unit": "colors"
+              },
               "optional": true,
               "cost": {
                 "kind": "suspend",
@@ -92,23 +101,6 @@ const compiled: CompiledCard = {
               "abortOnDecline": true
             }
           ]
-        },
-        {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "mode": "reduceCost",
-          "amount": 1,
-          "raw": "reduce this effect's digivolution cost by 1",
-          "scaling": {
-            "per": 2,
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ]
-            },
-            "unit": "colors"
-          }
         }
       ]
     }

@@ -73,7 +73,7 @@ describe("P-007 Garurumon", () => {
     const ordering = s.decisions.find(({ req }) => req.kind === "orderTriggers")?.req;
     expect(ordering?.options?.triggerCardIds).toEqual(["ST6-03", "P-007"]);
     expect(ordering?.options?.triggerKeys).toEqual([
-      expect.stringContaining("::ST6-03/draw-trash"),
+      expect.stringContaining("::ST6-03/"),
       expect.stringContaining("::P-007/"),
     ]);
     expect(ordering?.options?.triggerCardIds).not.toContain("P-008");

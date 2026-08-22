@@ -814,6 +814,12 @@ export class GameEngine {
         permanentById: (id) => this.access.permanentById(id),
         buildContext: (srcPerm, leavingId) =>
           this.buildEffectContext(this.cardSourceOf(srcPerm.topCard!), { deletedPermanentId: leavingId }),
+        buildInstanceContext: (sourceInstanceId, leavingId) => {
+          const sourceInstance = this.findLooseInstance(sourceInstanceId);
+          return sourceInstance === undefined
+            ? undefined
+            : this.buildEffectContext(this.cardSourceOf(sourceInstance), { deletedPermanentId: leavingId });
+        },
         turnSeat: this.state.turnSeat,
         // Once-per-turn prevention ledger (＜Barrier＞), keyed in the shared per-turn UseTracker
         // (reset at each turn start alongside every other Once-Per-Turn limit).
@@ -1181,6 +1187,8 @@ export class GameEngine {
       maxAffordable: mem.maxAffordable,
       payMemory: mem.payMemory,
       recomputeDP: (state, permanentId) => this.modifiers.recomputeDP(state, permanentId),
+      reanchorGrantedEffects: (priorTopInstanceId, newTopInstanceId) =>
+        this.continuous.reanchorCustomEffectGrants(priorTopInstanceId, newTopInstanceId),
       // Apply active continuous digivolution-cost modifiers (changeEvoCost) to the
       // printed evolve cost: a `fixed` adjustment sets an absolute cost, otherwise the
       // delta sums; floored at 0 (Official Rule Manual: a cost can't go below 0).

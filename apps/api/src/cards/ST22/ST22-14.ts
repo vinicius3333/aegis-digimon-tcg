@@ -52,6 +52,7 @@ const compiled: CompiledCard = {
         {
           kind: "Trash",
           target: { filter: { zone: "hand", controller: "opponent" }, count: 1, untilHandSize: 6 },
+          chooser: "opponent",
         },
         {
           kind: "PlayWithoutCost",
@@ -69,6 +70,7 @@ const compiled: CompiledCard = {
         {
           kind: "Trash",
           target: { filter: { zone: "hand", controller: "opponent" }, count: 1, untilHandSize: 6 },
+          chooser: "opponent",
         },
         {
           kind: "PlayWithoutCost",
@@ -86,6 +88,7 @@ const compiled: CompiledCard = {
         {
           kind: "Trash",
           target: { filter: { zone: "hand", controller: "opponent" }, count: 1 },
+          chooser: "opponent",
           untilHandSize: 5,
           condition: handAtLeastSix,
         },

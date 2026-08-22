@@ -82,7 +82,8 @@ const compiled: CompiledCard = {
                 "count": 1,
                 "isSelf": true
               },
-              "restriction": "beDeletedByOpponent",
+              "restriction": "beDeleted",
+              "byOpponentEffectsOnly": true,
               "duration": "untilOpponentTurnEnd"
             }
           ]

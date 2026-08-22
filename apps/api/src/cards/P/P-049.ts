@@ -1,65 +1,59 @@
-import { EffectDuration, EffectTiming, isTamer } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { whenBlocked, whenDigivolving } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "P-049";
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.WhenDigivolving) {
-      return [
-        whenDigivolving({
-          source,
-          effectKey: `${cardId}/when-digivolving`,
-          description:
-            "[When Digivolving] If you have a Tamer in play, this Digimon gains " +
-            "<Security Attack +1> for the turn.",
-          canActivate: (ctx) =>
-            Array.from(ctx.game.player(source.ownerSeat).battleArea).some(
-              (permanent) =>
-                permanent.topCard !== undefined && isTamer(ctx.game.definitionOf(permanent.topCard)),
-            ),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self !== undefined) {
-              ctx.fx.grantKeyword(
-                self.permanentId,
-                "SecurityAttack",
-                EffectDuration.UntilEachTurnEnd,
-                1,
-              );
-            }
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
           },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.OnBlockAnyone) {
-      return [
-        whenBlocked({
-          source,
-          effectKey: `${cardId}/when-blocked`,
-          description:
-            "[Your Turn][Once Per Turn] When this Digimon is blocked, trash the top card " +
-            "of your opponent's security stack.",
-          maxPerTurn: 1,
-          when: (ctx) => ctx.game.state.turnSeat === source.ownerSeat,
-          resolve: async (ctx) => {
-            await ctx.fx.trashFromSecurity(ctx.game.opponentOf(source.ownerSeat), 1, {
-              fromTop: true,
-            });
+          keyword: {
+            keyword: "SecurityAttack",
+            amount: 1,
+            raw: "＜Security Attack +1＞",
           },
-        }),
-      ];
-    }
-
-    return [];
-  },
+          duration: "forTheTurn",
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "battleArea",
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+            },
+            raw: "you have a Tamer in play",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenBlocked",
+          raw: "when this Digimon is blocked",
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              op: "trashTop",
+              controller: "opponent",
+              amount: 1,
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("P-049", compiled);

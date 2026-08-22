@@ -17,4 +17,41 @@ describe("P-123 Ukkomon", () => {
     assertNoLoudGap(s);
   });
 
+  it("Q4236 gains memory even when the optional hatch is declined", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "P-123", as: "ukkomon" }],
+        breeding: { card: "BT1-009", as: "raised" },
+        eggDeck: ["BT1-001"],
+      },
+    }, { autoDeclineOptional: true });
+    s.state.memory = 0;
+    s.state.phase = Phase.Breeding;
+
+    expect(s.engine.applyIntent(0, {
+      type: "moveFromBreeding",
+      permanentId: s.perm("raised").permanentId,
+    })).toEqual({ ok: true });
+    await settle(() => s.state.memory === 1);
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+  });
+
+  it("Q4239 triggers when Ukkomon itself moves from breeding", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: "P-123", as: "ukkomon" }, eggDeck: ["BT1-001"] },
+    }, { autoDeclineOptional: true });
+    s.state.memory = 0;
+    s.state.phase = Phase.Breeding;
+
+    expect(s.engine.applyIntent(0, {
+      type: "moveFromBreeding",
+      permanentId: s.perm("ukkomon").permanentId,
+    })).toEqual({ ok: true });
+    await settle(() => s.state.memory === 1);
+
+    expect(s.state.memory).toBe(1);
+  });
+
 });

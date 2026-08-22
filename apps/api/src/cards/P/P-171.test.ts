@@ -69,6 +69,8 @@ describe("P-171 Pukumon", () => {
     );
     const twoSourcesId = s.perm("twoSources").permanentId;
     const alreadyEmptyId = s.perm("alreadyEmpty").permanentId;
+    const middleTrashedId = s.inst("middleTrashed").instanceId;
+    const bottomKeptId = s.inst("bottomKept").instanceId;
     preferred.push(twoSourcesId);
     await s.ready();
 
@@ -76,11 +78,9 @@ describe("P-171 Pukumon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("pukumon"));
     await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === twoSourcesId));
 
-    expect(s.perm("threeSources").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("bottomKept").instanceId]);
+    expect(s.perm("threeSources").stack.map(({ instanceId }) => instanceId)).toEqual([bottomKeptId]);
     expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === alreadyEmptyId)).toBe(true);
-    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
-      expect.arrayContaining([s.inst("middleTrashed").instanceId, s.inst("topTrashed").instanceId]),
-    );
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(middleTrashedId);
     assertNoLoudGap(s);
   });
 

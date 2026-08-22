@@ -30,4 +30,20 @@ describe("BT11-096 Magma Bomb", () => {
     expect(s.state.memory).toBe(0);
     expect(s.state.players[1]!.battleArea[0]!.topCard?.cardId).toBe("BT1-015");
   });
+
+  it("pays the full option cost without a red Tamer", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: ["BT1-009"], hand: [{ card: "BT11-096", as: "option" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 2000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 6;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.memory).toBe(0);
+  });
 });

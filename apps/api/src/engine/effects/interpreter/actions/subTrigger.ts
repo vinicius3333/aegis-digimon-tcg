@@ -74,6 +74,7 @@ export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefine
   whenEffectAddsToOpponentHand: "whenEffectAddsToOpponentHand",
   whenEffectAddsToDeck: "whenEffectAddsToDeck",
   whenCardReturnsFromTrashToHand: "whenCardReturnsFromTrashToHand",
+  whenCardReturnsFromTrashToDeck: "whenCardReturnsFromTrashToDeck",
   whenDigimonReturnsToHand: "whenDigimonReturnsToHand",
   whenEffectSuspends: "whenEffectSuspends",
   whenOpponentDraws: "whenOpponentDraws",
@@ -228,6 +229,7 @@ export async function runSubTrigger(
     event === "whenEffectAddsToHand" ||
     event === "whenEffectAddsToDeck" ||
     event === "whenCardReturnsFromTrashToHand" ||
+    event === "whenCardReturnsFromTrashToDeck" ||
     event === "whenDigimonReturnsToHand" ||
     // whenTrashedByEffect uses trashedByEffectPermanentId (not subjectPermanentId); the
     // isSelfRef + zone gates are handled entirely by whenTrashedByEffectGate below.
@@ -454,6 +456,13 @@ export async function runSubTrigger(
           });
         }
       : undefined;
+  // This event carries no permanent subject. Scope "your trash" to the returning
+  // cards' owner seat, mirroring the trash-to-hand event above.
+  const cardReturnsFromTrashToDeckGate =
+    event === "whenCardReturnsFromTrashToDeck"
+      ? (subCtx: EffectContext): boolean =>
+          subCtx.trigger?.returnedFromTrashToDeckSeat === subCtx.source.ownerSeat
+      : undefined;
   // Event payloads attributed to an effect carry the acting seat. `bySourceController`
   // enforces printed clauses such as "one of YOUR effects suspends" and "using one of YOUR
   // effects, trash a card in your hand" without conflating the affected card's controller
@@ -639,6 +648,20 @@ export async function runSubTrigger(
           return subjectName === hostName;
         }
       : undefined;
+  const linkedCardGate =
+    event === "whenLinked" && action.linkedCardFilter !== undefined
+      ? (subCtx: EffectContext): boolean => {
+          const subjectId = subCtx.trigger.subjectPermanentId;
+          const linkedIds = subCtx.trigger.linkedCardInstanceIds ?? [];
+          const subject = subjectId === undefined ? undefined : subCtx.game.permanentById(subjectId);
+          if (subject === undefined || linkedIds.length === 0) return false;
+          return subject.linked.some(
+            (card) =>
+              linkedIds.includes(card.instanceId) &&
+              definitionMatches(action.linkedCardFilter!, subCtx.game.definitionOf(card)),
+          );
+        }
+      : undefined;
   const sourceDeleteCause = (sourceFilter as (Filter & { deleteCause?: "dpReachedZero" }) | undefined)?.deleteCause;
   const deleteCauseGate =
     event === "onDeletionOf" && sourceDeleteCause === "dpReachedZero"
@@ -669,6 +692,7 @@ export async function runSubTrigger(
     effectAddsToHandGate,
     effectAddsToDeckGate,
     cardReturnsFromTrashToHandGate,
+    cardReturnsFromTrashToDeckGate,
     bySourceControllerGate,
     returnDestinationGate,
     whenTrashedByEffectGate,
@@ -679,6 +703,7 @@ export async function runSubTrigger(
     effectSourceGate,
     triggerFilterGate,
     addedDigivolutionCardGate,
+    linkedCardGate,
     inheritedHostNameGate,
     hostFilterGate,
     deleteCauseGate,
@@ -712,6 +737,7 @@ export async function runSubTrigger(
     // turn", EX3-069 / KB Q5722). `fire` evaluates `matches` BEFORE marking a sub as fired, so a
     // one-shot survives the turn ends its gates reject. Default: persists until its anchor leaves.
     once: action.once === true,
+    ...(action.once === true ? { continuous: false } : {}),
     ...(matches ? { matches } : {}),
     ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
     ...(action.oncePerTiming ? { oncePerTiming: true } : {}),
@@ -739,6 +765,10 @@ export async function runSubTrigger(
       // opponent-target prompt lost its [Your Turn] label entirely).
       subCtx.activeTiming ??= ctx.activeTiming;
       subCtx.activeEffectText ??= ctx.activeEffectText;
+      // The body is resolving a triggered event even when its watcher was installed by a
+      // continuous effect. Any duration-scoped effects it creates must survive the trailing
+      // continuous recompute instead of being mistaken for static contributions.
+      subCtx.continuousPass = false;
       // A simultaneous play is one whenPlayed event, but a filtered watcher binds "those
       // Digimon" only to the members of that event that satisfied its sourceFilter. Keep the
       // narrowed provenance on this activation context so sourceRef:"triggerSubject" cannot
@@ -902,6 +932,15 @@ export async function runGainTriggeredEffect(
       event === "whenDeletesInBattle" && sourceFilter?.isSelfRef === true && anchorPermanentId !== undefined
         ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === anchorPermanentId
         : undefined;
+    const whenSuspendedSelfGate =
+      event === "whenSuspended" && anchorPermanentId !== undefined
+        ? (subCtx: EffectContext): boolean => {
+            const suspendedIds =
+              subCtx.trigger.subjectPermanentIds ??
+              (subCtx.trigger.suspendedPermanentId !== undefined ? [subCtx.trigger.suspendedPermanentId] : []);
+            return suspendedIds.includes(anchorPermanentId);
+          }
+        : undefined;
     const immunityAtTriggerGate = (subCtx: EffectContext): boolean => {
       const current = subCtx.game.permanentById(targetPermanentId);
       if (current === undefined || current.controllerSeat === grantingSeat) return true;
@@ -914,6 +953,7 @@ export async function runGainTriggeredEffect(
       grantedPermanentDeletionGate,
       grantedPermanentBattleDeleteGate,
       whenDeletesInBattleSelfGate,
+      whenSuspendedSelfGate,
       immunityAtTriggerGate,
     ].filter((g): g is (subCtx: EffectContext) => boolean => g !== undefined);
     const matches = gates.length === 0 ? undefined : (subCtx: EffectContext): boolean => gates.every((g) => g(subCtx));
@@ -921,8 +961,11 @@ export async function runGainTriggeredEffect(
     ctx.fx.subscribeSubTrigger({
       event,
       sourcePermanentId: targetPermanentId,
-      once: false,
-      ...(ctx.continuousPass === true ? { continuous: true } : {}),
+      once: action.once === true,
+      // A gained trigger is armed by a resolved effect and lasts for its printed duration;
+      // it is not itself a static watcher even when the granting clause was reached through
+      // a continuously installed SubTrigger.
+      continuous: false,
       ...(matches ? { matches } : {}),
       ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
       description: action.raw ?? `GainTriggeredEffect(${action.gainedTrigger}) on ${targetPermanentId}`,

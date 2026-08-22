@@ -12,5 +12,30 @@ describe("BT8-044 Azulongmon", () => {
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("azulongmon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle(() => s.state.memory === 5);
     expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.trash.some(card => card.cardId === "BT8-034")).toBe(true);
+  });
+
+  it("may unsuspend the other Digimon that just digivolved", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT8-044", as: "azulongmon" }, { card: "BT1-051", as: "other", suspended: true }],
+        hand: [{ card: "BT8-042", as: "evolving" }],
+        deck: ["BT8-034"],
+        security: ["BT8-035"],
+      },
+    }, { autoAcceptOptional: true });
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("other").permanentId,
+      instanceId: s.inst("evolving").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => !s.perm("other").isSuspended);
+
+    expect(s.perm("other").isSuspended).toBe(false);
+    expect(s.perm("azulongmon").isSuspended).toBe(false);
   });
 });

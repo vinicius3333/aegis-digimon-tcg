@@ -72,7 +72,8 @@ describe("BT8 Creepymon Lucemon toolbox", () => {
         s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT7-111") &&
         !s.state.players[1]!.battleArea.some(
           (permanent) => permanent.permanentId === deletedTamerId,
-        ),
+        ) &&
+        s.events.some(event => event.kind === "effectResolved" && event.sourceCardId === "BT8-111"),
       5000,
     );
 

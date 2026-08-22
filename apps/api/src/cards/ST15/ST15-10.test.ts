@@ -2,7 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
@@ -23,11 +23,18 @@ describe("ST15-10 Andromon", () => {
     expect(target.stack).toHaveLength(2);
     expect(observe(s.engine).hasKeyword(base, "Reboot")).toBe(false);
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: base.permanentId, instanceId: s.inst("hia").instanceId })).toEqual({ ok: true });
-    await s.ready();
+    await settle(() => base.topCard.cardId === "ST15-13");
+    await s.engine.recomputeContinuousEffects();
     expect(registeredCompiledCards.get("ST15-10")?.effects.find((effect) => effect.isInherited)).toMatchObject({
       trigger: "Static",
       keywords: [{ keyword: "Reboot" }],
     });
+  });
+
+  it("grants inherited Reboot to its evolved host", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "ST15-13", as: "host", under: ["ST15-10"] }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
   });
 
   it("does not add Reboot to an unrelated Digimon", async () => {

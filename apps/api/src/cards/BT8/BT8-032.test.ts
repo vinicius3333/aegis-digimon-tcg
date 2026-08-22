@@ -126,4 +126,18 @@ describe("BT8-032 Imperialdramon: Fighter Mode", () => {
     expect(s.perm("ally").isSuspended).toBe(false);
     expect(s.perm("opponent").isSuspended).toBe(true);
   });
+
+  it("digivolves for 2 from a Digimon with Dragon Mode in its name", async () => {
+    const s = setupEngine({ 0: {
+      battleArea: [{ card: "ST9-06", as: "dragonMode" }],
+      hand: [{ card: "BT8-032", as: "fighterMode" }],
+    } });
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("dragonMode").permanentId, instanceId: s.inst("fighterMode").instanceId })).toEqual({ ok: true });
+    await settle();
+
+    expect(s.perm("dragonMode").topCard.instanceId).toBe(s.inst("fighterMode").instanceId);
+    expect(s.state.memory).toBe(1);
+  });
 });

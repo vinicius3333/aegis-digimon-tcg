@@ -125,6 +125,8 @@ export interface PlayFromZoneAction extends ActionBase {
   from: ZoneRef[];
   /** Allow optional DigiXros material selection from these loose zones before the play. */
   digiXrosMaterialsFrom?: ZoneRef[];
+  /** Treat the resolving source as this named DigiXros material when a ruling permits it. */
+  digiXrosSourceMaterialName?: string;
   /** Floored at 0, default 0. Ignored when `payCost` is false. */
   costReduction?: number;
   /**

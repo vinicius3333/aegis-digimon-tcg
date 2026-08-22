@@ -21,7 +21,7 @@ describe("ST6 CresGarurumon historical deck gauntlet", () => {
         },
         1: { security: ["BT1-001", "BT1-002", "BT1-003"] },
       },
-      { autoSelectCards: true, autoOrderTriggers: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     await s.ready();
     const cresgarurumon = s.perm("cresgarurumon");

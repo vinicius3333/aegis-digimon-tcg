@@ -49,10 +49,7 @@ const compiled: CompiledCard = {
             ]
           },
           "underFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Tamer"
-            ]
+            "isSelfRef": true
           },
           "optional": true
         },
@@ -100,10 +97,7 @@ const compiled: CompiledCard = {
             ]
           },
           "underFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Tamer"
-            ]
+            "isSelfRef": true
           },
           "optional": true
         },
@@ -132,7 +126,13 @@ const compiled: CompiledCard = {
           "kind": "GainKeyword",
           "target": {
             "filter": {
-              "isSelfRef": true
+              "isSelfRef": true,
+              "nameOrTrait": [
+                {
+                  "tokens": ["Hybrid", "Ten Warriors"],
+                  "match": "trait"
+                }
+              ]
             },
             "count": 1,
             "isSelf": true
@@ -143,12 +143,17 @@ const compiled: CompiledCard = {
             "raw": "＜Security Attack +1＞"
           },
           "duration": "forTheAttack",
-          "cost": {
-            "kind": "attack",
-            "raw": "By attacking with this Digimon with the [Hybrid] or [Ten Warriors] trait"
-          },
           "optional": true,
           "abortOnDecline": true
+        },
+        {
+          "kind": "Attack",
+          "target": {
+            "filter": { "isSelfRef": true },
+            "count": 1,
+            "isSelf": true
+          },
+          "attackPlayer": true
         }
       ],
       "isInherited": true,

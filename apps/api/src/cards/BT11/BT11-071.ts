@@ -29,12 +29,20 @@ const enterActions: any[] = [
       kind: "selfDigivolutionStackHasTrait",
       filter: { nameOrTrait: [{ tokens: ["Tuwarmon"], match: "name" }] },
     },
-    optional: true,
   },
 ];
 
 const compiled: CompiledCard = {
   effects: [
+    {
+      trigger: "Rule",
+      actions: [{
+        kind: "GrantStatic",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        grant: "name",
+        tokens: ["DarkKnightmon", "Tuwarmon"],
+      }],
+    },
     { trigger: "OnPlay", actions: enterActions },
     { trigger: "WhenDigivolving", actions: enterActions },
     {
@@ -52,6 +60,10 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digiXrosRequirement: [{
+    materials: [{ names: ["DarkKnightmon"] }, { names: ["Tuwarmon"] }],
+    count: 2,
+  }],
 };
 
 registerIrCard("BT11-071", compiled);

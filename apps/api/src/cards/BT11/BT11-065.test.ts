@@ -3,6 +3,7 @@ import { type PlayerState } from "@aegis/shared";
 import "../index.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 
 // A3 for BT11-065 (Snatchmon) — the inherited Vemmon-return clause.
 //
@@ -45,6 +46,7 @@ describe("BT11-065 inherited: Vemmon returned from this Digimon's stack to deck 
 
     // The inherited clause fired: the host is unsuspended, and the Vemmon is in the deck.
     expect(s.perm("host").isSuspended).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
     const stackCardId = s.inst("stackCard").instanceId;
     expect((s.state.players[0] as PlayerState).deck.some((c) => c.instanceId === stackCardId)).toBe(true);
   });
@@ -74,5 +76,62 @@ describe("BT11-065 inherited: Vemmon returned from this Digimon's stack to deck 
     // The card moved, but the host stays suspended — the watcher gates on the [Vemmon] name.
     expect((s.state.players[0] as PlayerState).deck.some((c) => c.instanceId === stackCardId)).toBe(true);
     expect(s.perm("host").isSuspended).toBe(true);
+  });
+
+  it("uses the inherited trigger only once per turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{
+          card: TOP,
+          as: "host",
+          suspended: true,
+          under: [{ card: SNATCH }, { card: VEMMON, as: "first" }, { card: VEMMON, as: "second" }],
+        }],
+      },
+    });
+
+    await advance(s.engine).verb.returnToDeck([s.inst("first").instanceId]);
+    await settle(() => s.perm("host").isSuspended === false);
+    s.perm("host").isSuspended = true;
+
+    await advance(s.engine).verb.returnToDeck([s.inst("second").instanceId]);
+    await settle();
+
+    expect(s.perm("host").isSuspended).toBe(true);
+  });
+});
+
+describe("BT11-065 when digivolving", () => {
+  it("places up to 2 Vemmon under itself and recovers Fusionize after reaching 4", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: VEMMON, as: "base", under: [VEMMON] },
+            { card: "BT1-010", as: "neighbor" },
+          ],
+          hand: [{ card: SNATCH, as: "snatch" }],
+          trash: [
+            { card: VEMMON, as: "trashVemmon1" },
+            { card: VEMMON, as: "trashVemmon2" },
+            { card: "BT11-105", as: "fusionize" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("snatch").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT11-105"));
+
+    expect(s.perm("base").stack.filter(({ cardId }) => cardId === VEMMON)).toHaveLength(4);
+    expect(s.perm("neighbor").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT11-105");
+    expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 });

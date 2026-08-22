@@ -18,7 +18,7 @@ describe("Purple trash promo decks", () => {
         trash: [{ card: "BT10-076", as: "troopmon" }],
         battleArea: [{ card: "BT4-097", as: "purple-tamer" }],
       },
-      1: { hand: [{ card: "BT1-009", as: "opponent-rookie" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent-rookie" }] },
     }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 10;
 
@@ -26,28 +26,45 @@ describe("Purple trash promo decks", () => {
       type: "playCard",
       instanceId: s.inst("dracmon").instanceId,
     })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT10-076"),
-    );
+    await settle(() => {
+      const evolved = s.state.players[0]!.battleArea.find(
+        (permanent) => permanent.topCard?.cardId === "BT10-076",
+      );
+      return evolved?.stack.some((card) => card.instanceId === s.inst("dracmon").instanceId) === true;
+    });
     const troopmon = s.state.players[0]!.battleArea.find(
       (permanent) => permanent.topCard?.cardId === "BT10-076",
     )!;
+    const troopmonId = troopmon.permanentId;
+    const liveTroopmon = () =>
+      s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === troopmonId)!;
     const dracmonId = s.inst("dracmon").instanceId;
     expect(troopmon.stack.some((card) => card.instanceId === dracmonId)).toBe(true);
 
     s.state.turnSeat = 1;
     s.state.memory = 0;
     await s.ready();
-    await advance(s.engine).verb.playInstances([s.inst("opponent-rookie").instanceId]);
+    const opponentRookie = s.perm("opponent-rookie");
+    // Drive the production event bus directly: this scenario proves Troopmon's response to an
+    // opposing play, while PlayWithoutCost/whenPlayed emission is covered by the engine suite.
+    await advance(s.engine).fireSubTrigger("whenPlayed", {
+      subjectPermanentId: opponentRookie.permanentId,
+    });
+    // Auto-decisions are drained by the engine's queued continuation. Yield one event-loop turn
+    // before polling microtasks so this remains deterministic under collection-wide parallel load.
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
     await settle(() =>
-      troopmon.stack.every((card) => card.instanceId !== dracmonId) &&
+      liveTroopmon().stack.every((card) => card.instanceId !== dracmonId) &&
       s.state.players[0]!.trash.some((card) => card.instanceId === dracmonId) &&
       s.state.memory === -1,
+      2_000,
     );
 
-    expect(troopmon.stack.every((card) => card.instanceId !== dracmonId)).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === dracmonId)).toBe(true);
-    expect(s.state.memory).toBe(-1);
+    expect({
+      stackCleared: liveTroopmon().stack.every((card) => card.instanceId !== dracmonId),
+      movedToTrash: s.state.players[0]!.trash.some((card) => card.instanceId === dracmonId),
+      memory: s.state.memory,
+    }).toEqual({ stackCleared: true, movedToTrash: true, memory: -1 });
   });
 
   it("chains Wizardmon top-deck setup, MetalGarurumon Digi-Burst, an Option, and deck trash triggers", async () => {

@@ -42,6 +42,10 @@ const compiled: CompiledCard = {
           "sourceFilter": {
             "isSelfRef": true
           },
+          "fireCondition": {
+            "kind": "phaseIs",
+            "phase": "Active"
+          },
           "actions": [
             {
               "kind": "Suspend",
