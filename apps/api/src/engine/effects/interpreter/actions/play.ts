@@ -404,12 +404,16 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
         });
         ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);
-        if (action.bindResultAs && ctx.lastPlayedPermanentIds.length > 0) {
+        if (action.bindResultAs) {
           if (!ctx.boundPlayed) (ctx as { boundPlayed: Map<string, Set<string>> }).boundPlayed = new Map();
           ctx.boundPlayed!.set(action.bindResultAs, new Set(ctx.lastPlayedPermanentIds));
         }
       } else {
         ctx.lastPlayedPermanentIds = [];
+        if (action.bindResultAs) {
+          if (!ctx.boundPlayed) (ctx as { boundPlayed: Map<string, Set<string>> }).boundPlayed = new Map();
+          ctx.boundPlayed!.set(action.bindResultAs, new Set());
+        }
       }
       ctx.lastEffectActed = pfzChosen.length > 0;
       return false;
