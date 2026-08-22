@@ -3,9 +3,38 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { compiled } from "./BT24-095.js";
 import "../index.js";
 
 describe("BT24-095 Sonic Shot", () => {
+  it("records the printed TS Link requirement and breeding-aware color waiver", () => {
+    expect(compiled.linkRequirement).toEqual([{ traits: ["TS"], cost: 3 }]);
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "Static",
+      actions: [{ condition: { kind: "anyOf", conditions: [{ kind: "youHave" }, { kind: "youHave" }] } }],
+    });
+  });
+
+  it("may be used with only a breeding-area TS color-waiver source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT24-009", as: "breedingTs" },
+          hand: [{ card: "BT24-095", as: "shot" }],
+        },
+        1: { battleArea: [{ card: "BT1-020", as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shot").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").isSuspended);
+  });
+
   it("declares Link onto TS for cost 3 and atomically rejects a non-TS host", async () => {
     const valid = setupEngine({
       0: { hand: [{ card: "BT24-095", as: "shot" }], battleArea: [{ card: "BT24-009", as: "tsHost" }] },
