@@ -40,7 +40,7 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
     case "GainMemory": {
       const amount = scale === undefined ? action.amount : action.amount * scale;
       ctx.lastMemoryGainAmount = amount;
-      const seat = ctx.source.ownerSeat;
+      const seat = action.seat === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
       if (action.at === "endOfTurn") {
         // Deferred one-shot ("at the end of your turn, lose 3 memory" — BT1-021). Installed
         // anchor-less so it still fires if this source is deleted first (KB Q882/Q883).

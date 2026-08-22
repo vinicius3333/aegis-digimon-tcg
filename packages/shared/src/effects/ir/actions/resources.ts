@@ -20,6 +20,8 @@ export interface GainMemoryAction extends ActionBase {
   kind: "GainMemory";
   /** Negative means lose memory. */
   amount: number;
+  /** Optional owner-relative seat override for effects that credit a specific player. */
+  seat?: "mine" | "opponent";
   /**
    * Deferred one-shot: apply at the stated boundary rather than immediately ("At the end of your
    * turn, lose 3 memory" — BT1-021). It still fires if the source leaves the field first, since
