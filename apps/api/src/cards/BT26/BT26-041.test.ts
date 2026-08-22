@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT26-041.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 describe("BT26-041 Hudiemon", () => {
   it("compiles both play windows with security handoff, recovery, and optional suspend", () => {
@@ -28,5 +29,15 @@ describe("BT26-041 Hudiemon", () => {
     expect(
       s.state.players.some((player) => player.battleArea.some((permanent) => permanent.isSuspended)),
     ).toBe(true);
+  });
+
+  it("publicly gains one memory when its host wins a battle", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT26-008", as: "winner", under: ["BT26-041"] }] } });
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenBattleWon", { attackerPermanentId: s.perm("winner").permanentId });
+
+    expect(s.state.memory).toBe(1);
   });
 });
