@@ -87,6 +87,8 @@ describe("BT24-035 Gatomon", () => {
         type: "digivolve",
         permanentId: s.perm("tsBase").permanentId,
         instanceId: s.inst("gatomon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("tsBase").topCard.instanceId === s.inst("gatomon").instanceId);
