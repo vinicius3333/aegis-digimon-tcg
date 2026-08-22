@@ -31,6 +31,15 @@ describe("BT24-016 Lamiamon", () => {
     ]);
   });
 
+  it("scopes its inherited play trigger to the opponent security stack", () => {
+    const inherited = compiled.effects.find((effect) => effect.isInherited) as any;
+    expect(inherited.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenSecurityRemoved",
+      sourceFilter: { controller: "opponent" },
+    });
+  });
+
   it("places Dimetromon under Elizamon and digivolves for cost 2 after Elizamon's reduction (Q5586)", async () => {
     const s = setupEngine(
       {
@@ -131,6 +140,7 @@ describe("BT24-016 Lamiamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
 
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
     expect(s.state.players[0]!.battleArea).toHaveLength(1);

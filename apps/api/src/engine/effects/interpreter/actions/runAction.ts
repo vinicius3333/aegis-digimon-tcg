@@ -177,7 +177,16 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     // destination form a legal digivolution. In particular, "without paying the cost" does
     // not waive printed requirements (P-092 Q4182); do this before asking so the UI never
     // confirms an evolution the resolver will immediately discard.
-    if (action.kind === "Digivolve" && !canAttemptDigivolve(ctx, action)) return false;
+    if (
+      action.kind === "Digivolve" &&
+      !(
+        action.cost?.kind === "place" &&
+        action.cost.bindHostAs !== undefined &&
+        action.cost.bindHostAs === action.target.fromSelectionRef
+      ) &&
+      !canAttemptDigivolve(ctx, action)
+    )
+      return false;
     const costUnpayable = action.cost !== undefined && !canPayCost(ctx, action.cost as Cost);
     if (!costUnpayable) {
       const yes = await ctx.ask.optional(ctx, describeAction(action));

@@ -553,6 +553,18 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
     action.kind === "DnaDigivolve" ||
     (action.kind !== "ConditionalBranch" && action.condition !== undefined) ||
     action.cost !== undefined;
+  const intrinsicPossible = (action: Action): boolean => {
+    if (action.kind === "Digivolve") {
+      const costProducedTarget =
+        action.cost?.kind === "place" &&
+        action.cost.bindHostAs !== undefined &&
+        action.cost.bindHostAs === action.target.fromSelectionRef;
+      return costProducedTarget || canAttemptDigivolve(ctx, action);
+    }
+    return action.kind === "DnaDigivolve"
+      ? canAttemptDnaDigivolve(ctx, action)
+      : action.kind !== "Link" || canAttemptLink(ctx, action);
+  };
   // A leading abort-on-decline action is the activation gate for the complete clause:
   // "If ..., by paying ..., do X. Then, do Y." The dependent `Then` action is often
   // mechanically ungated because it consumes a binding produced by X; treating Y as an
@@ -560,32 +572,22 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
   // condition/cost is impossible (BT10-025). Mirror runEffect's ordered abort semantics here.
   const leadingAction = relevantActions[0];
   if (leadingAction?.abortOnDecline === true && isGated(leadingAction)) {
-    const intrinsicPossible =
-      leadingAction.kind === "Digivolve"
-        ? canAttemptDigivolve(ctx, leadingAction)
-        : leadingAction.kind === "DnaDigivolve"
-          ? canAttemptDnaDigivolve(ctx, leadingAction)
-          : leadingAction.kind !== "Link" || canAttemptLink(ctx, leadingAction);
+    const actionPossible = intrinsicPossible(leadingAction);
     const conditionMet =
       leadingAction.condition === undefined ||
       (leadingAction.condition.kind !== "raw" && evaluateCondition(ctx, leadingAction.condition));
     const costPayable = leadingAction.cost === undefined || canPayCost(ctx, leadingAction.cost);
-    return intrinsicPossible && conditionMet && costPayable;
+    return actionPossible && conditionMet && costPayable;
   }
   const gatedActions = relevantActions.filter(isGated);
   const ungatedCount = relevantActions.length - gatedActions.length;
   if (gatedActions.length === 0 || ungatedCount > 0) return true;
   return gatedActions.some((action) => {
-    const intrinsicPossible =
-      action.kind === "Digivolve"
-        ? canAttemptDigivolve(ctx, action)
-        : action.kind === "DnaDigivolve"
-          ? canAttemptDnaDigivolve(ctx, action)
-          : action.kind !== "Link" || canAttemptLink(ctx, action);
+    const actionPossible = intrinsicPossible(action);
     const conditionMet =
       action.condition === undefined || (action.condition.kind !== "raw" && evaluateCondition(ctx, action.condition));
     const costPayable = action.cost === undefined || canPayCost(ctx, action.cost);
-    return intrinsicPossible && conditionMet && costPayable;
+    return actionPossible && conditionMet && costPayable;
   });
 }
 
