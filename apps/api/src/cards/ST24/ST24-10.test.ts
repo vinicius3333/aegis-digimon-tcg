@@ -11,10 +11,12 @@ describe("ST24-10 Lilamon", () => {
             {
               card: "ST24-13",
               as: "tamer",
-              under: [
-                { card: "BT1-001", as: "under1", faceUp: false },
-                { card: "BT1-002", as: "under2", faceUp: false },
-              ],
+              under: [{ card: "BT1-001", as: "under1", faceUp: false }],
+            },
+            {
+              card: "ST24-14",
+              as: "tamer2",
+              under: [{ card: "BT1-002", as: "under2", faceUp: false }],
             },
           ],
           hand: [
