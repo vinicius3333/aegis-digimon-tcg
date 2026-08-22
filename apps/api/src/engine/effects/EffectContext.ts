@@ -289,6 +289,8 @@ export interface TriggerInfo {
    * its own controller's stack rather than the opponent's.
    */
   removedFromSecuritySeat?: Seat;
+  /** True when an effect, rather than a security check, removed the card. */
+  securityRemovedByEffect?: boolean;
   /** Card instances just trashed from a security stack. */
   trashedFromSecurityInstanceIds?: string[];
   /**

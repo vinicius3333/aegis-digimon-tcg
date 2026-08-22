@@ -12,6 +12,10 @@ const placeHandCost = {
 };
 const placeDeckTop = { kind: "PlaceUnder", fromDeckTop: true, target: self, faceDown: true };
 const removalGate = { kind: "triggerRemovedSecuritySeat", seat: "mine" };
+const nonEffectRemovalGate = {
+  kind: "allOf",
+  conditions: [removalGate, { kind: "not", condition: { kind: "triggerSecurityRemovedByEffect" } }],
+};
 const commonRemovalBody = [{ kind: "Suspend", target: self }, placeDeckTop];
 
 export const compiled: CompiledCard = {
@@ -26,7 +30,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSecurityRemoved",
-          fireCondition: removalGate,
+          fireCondition: nonEffectRemovalGate,
           actions: commonRemovalBody,
           raw: "When your security stack is removed from, by suspending this Tamer, place the top card of your deck face down under this Tamer.",
         },

@@ -92,6 +92,7 @@ export interface Condition {
     | "triggerDefenderIsSelf"
     | "triggerDefenderMatchesFilter" // the originally declared defender, before Blocker redirection
     | "triggerRemovedSecuritySeat"
+    | "triggerSecurityRemovedByEffect"
     | "triggerHandTrashedSeat"
     | "triggerRemovalCause"
     | "triggerDeletedByDpZero"
