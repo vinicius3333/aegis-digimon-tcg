@@ -1,9 +1,20 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./ST1-06.js";
+import { compiled } from "./ST1-06.js";
 
 describe("ST1-06 Coredramon", () => {
+  it("registers Blocker and mandatory attack memory loss as complete IR", () => {
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        { trigger: "Static", keywords: [{ keyword: "Blocker" }] },
+        { trigger: "WhenAttacking", actions: [{ kind: "GainMemory", amount: -2 }] },
+      ],
+    });
+  });
+
   it("has Blocker and loses 2 memory when attacking", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "ST1-06", as: "coredramon" }] },
