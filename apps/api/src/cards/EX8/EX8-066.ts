@@ -14,12 +14,11 @@ export const compiled: CompiledCard = {
         ...(["whenPlayed", "whenOneOfYoursDigivolves"] as const).map((event) => ({
           kind: "SubTrigger",
           event,
-          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Ice-Snow"], match: "trait" }] },
           actions: [{
             kind: "TrashDigivolution",
             target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" }, count: 1 },
             amount: 1,
-            condition: { kind: "raw", raw: "any of them have the [Ice-Snow] trait" },
             cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, raw: "by suspending this Tamer" },
             optional: true,
             abortOnDecline: true,
