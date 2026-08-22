@@ -1,4 +1,8 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT13-071.js";
 
 describe("BT13-071 Giromon", () => {
@@ -23,5 +27,17 @@ describe("BT13-071 Giromon", () => {
         },
       ],
     });
+  });
+
+  it("trashes the opponent's top security when an inherited Digimon becomes suspended", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", under: ["BT13-071"], as: "host" }] },
+      1: { security: ["BT1-001"] },
+    });
+    await advance(s.engine).fireForPermanent(EffectTiming.OpponentsTurn, s.perm("host"));
+    await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
   });
 });
