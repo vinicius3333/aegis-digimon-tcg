@@ -5,5 +5,5 @@ const clause = [{ kind: "Suspend", target: { count: 1, filter: { kind: ["Digimon
 export const compiled: CompiledCard = { effects: [
   { trigger: "OnPlay", actions: clause }, { trigger: "WhenDigivolving", actions: clause }, { trigger: "OnMove", actions: clause },
   { trigger: "AllTurns", isInherited: true, actions: [{ kind: "SubTrigger", event: "whenBattleWon", frequency: "OncePerTurn", actions: [{ kind: "Digivolve", target: { count: 1, filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Insectoid"], match: "trait" }, { tokens: ["Titan"], match: "trait" }] } }, from: ["hand"], into: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Insectoid"], match: "trait" }, { tokens: ["Titan"], match: "trait" }] }, payCost: true, costDelta: -1, optional: true }] }] },
-], coverage: "full", residual: [] };
+], coverage: "full", residual: [], digivolutionRequirement: [{ level: 3, traits: ["TS"], cost: 2, isAlternate: true }] };
 registerIrCard("BT26-038", compiled);
