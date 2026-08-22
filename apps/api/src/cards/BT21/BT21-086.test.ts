@@ -6,7 +6,9 @@ import { observe } from "../../engine/testkit/observe.js";
 describe("BT21-086 Marcus Damon", () => {
   it("registers the three printed timing windows and a real On Play suspension effect", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({ kind: "Suspend" });
-    expect(compiled.effects.find((entry) => entry.trigger === "StartOfYourMainPhase")?.actions[0]).toMatchObject({ kind: "GainMemory" });
+    expect(compiled.effects.find((entry) => entry.trigger === "StartOfYourMainPhase")?.actions[0]).toMatchObject({
+      kind: "GainMemory",
+    });
     expect(compiled.effects.find((entry) => entry.trigger === "AllTurns")).toMatchObject({ frequency: "OncePerTurn" });
     expect(compiled.effects.find((entry) => entry.trigger === "Security")?.isSecurity).toBe(true);
     expect(compiled.coverage).toBe("full");
