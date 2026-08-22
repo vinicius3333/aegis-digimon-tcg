@@ -1,4 +1,11 @@
-import { CardColor, CardKind, digivolutionRequirementsFor, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
+import {
+  CardColor,
+  CardKind,
+  digivolutionRequirementsFor,
+  EffectTiming,
+  type CardDefinition,
+  type Seat,
+} from "@aegis/shared";
 import { describe, expect, it, vi } from "vitest";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives, SubTriggerInstall } from "../../engine/effects/EffectContext.js";
@@ -44,7 +51,11 @@ async function installedWatcher(cardSource: CardSource): Promise<SubTriggerInsta
   const ctx = {
     source: cardSource,
     trigger: {},
-    game: { opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) },
+    game: {
+      opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0),
+      permanentById: (permanentId: string) =>
+        permanentId === cardSource.permanent()?.permanentId ? cardSource.permanent() : undefined,
+    },
     ask: {},
     fx: {
       subscribeSubTrigger: (subscription: SubTriggerInstall) => {
@@ -62,7 +73,12 @@ describe("BT26-063 Tellermon", () => {
     expect(compiled.keywords).toEqual([{ keyword: "Detach", raw: "＜Detach ([Seven Code] trait)＞" }]);
   });
   it("exposes the Appmon evolution and Link requirements", () => {
-    expect(digivolutionRequirementsFor("BT26-063")).toContainEqual({ level: 2, traits: ["Appmon"], cost: 0, isAlternate: true });
+    expect(digivolutionRequirementsFor("BT26-063")).toContainEqual({
+      level: 2,
+      traits: ["Appmon"],
+      cost: 0,
+      isAlternate: true,
+    });
     expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 3 }]);
   });
 
@@ -351,7 +367,11 @@ describe("BT26-063 Tellermon", () => {
     const ctx = {
       source: cardSource,
       trigger: { subjectPermanentId: "tellermon" },
-      game: { opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0), definitionOf: (card: { cardId: string }) => defs[card.cardId]! } as unknown as GameAccess,
+      game: {
+        opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0),
+        permanentById: (permanentId: string) => (permanentId === "tellermon" ? cardSource.permanent() : undefined),
+        definitionOf: (card: { cardId: string }) => defs[card.cardId]!,
+      } as unknown as GameAccess,
       ask: { selectCards, chooseOption: vi.fn(async () => choice) },
       fx: { reveal: vi.fn(async () => revealed), returnToHand, returnToDeck } as unknown as Primitives,
     } as unknown as EffectContext;
@@ -378,6 +398,7 @@ describe("BT26-063 Tellermon", () => {
       trigger: { subjectPermanentId: "tellermon" },
       game: {
         opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0),
+        permanentById: (permanentId: string) => (permanentId === "tellermon" ? cardSource.permanent() : undefined),
         definitionOf: (card: { cardId: string }) =>
           definition({ cardId: card.cardId, types: card.cardId === "NEAR" ? ["Seven Codes"] : [] }),
       },
