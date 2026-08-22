@@ -53,4 +53,23 @@ describe("BT16-061 DoruGreymon", () => {
       ],
     });
   });
+
+  it("plays a qualifying X Antibody card from trash after a battle deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT16-061", as: "host", under: ["BT16-061"] }],
+          trash: [{ card: "BT16-051", as: "target" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fireSubTrigger("whenBattleDeleteOpponent", {
+      attackerPermanentId: s.perm("host").permanentId,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-051"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-051")).toBe(true);
+  });
 });
