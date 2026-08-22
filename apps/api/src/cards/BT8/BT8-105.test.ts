@@ -11,7 +11,7 @@ describe("BT8-105 Dark Gaia Force", () => {
         0: { battleArea: ["BT8-011"], hand: [{ card: "BT8-105", as: "option" }] },
         1: { battleArea: [{ card: "BT8-011", as: "fiveCost" }, { card: "BT8-017", as: "tenCost" }] },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
 

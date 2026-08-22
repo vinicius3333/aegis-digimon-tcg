@@ -20,7 +20,7 @@ const sharedBody = [
         filter: {
           controller: "mine",
           zone: "digivolutionCards",
-          colorCount: 2,
+          multicolor: true,
         },
         count: 1,
       },

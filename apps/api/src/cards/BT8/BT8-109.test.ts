@@ -8,7 +8,7 @@ describe("BT8-109 Flame Hellscythe", () => {
   it("reduces an opposing Digimon and may play a purple or yellow Digimon from trash", async () => {
     const s = setupEngine({
       0: { battleArea: ["BT8-041"], hand: [{ card: "BT8-109", as: "option" }], trash: ["BT8-071"] },
-      1: { battleArea: [{ card: "BT8-023", as: "target" }] },
+      1: { battleArea: [{ card: "BT8-017", as: "target" }] },
     }, { autoSelectCards: true, autoAcceptOptional: true });
     s.state.memory = 8;
     const before = s.perm("target").currentDP;
@@ -23,7 +23,7 @@ describe("BT8-109 Flame Hellscythe", () => {
   it("activates the same Main effect from Security", async () => {
     const s = setupEngine({
       0: { security: [{ card: "BT8-109", as: "option", faceUp: true }] },
-      1: { battleArea: [{ card: "BT8-023", as: "target" }] },
+      1: { battleArea: [{ card: "BT8-017", as: "target" }] },
     }, { autoSelectCards: true });
     const before = s.perm("target").currentDP;
 

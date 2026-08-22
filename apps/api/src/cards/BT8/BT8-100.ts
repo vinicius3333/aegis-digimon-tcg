@@ -7,11 +7,11 @@ const multicolorCondition = {
   conditions: [
     {
       kind: "youHave",
-      filter: { zone: "battleArea", kind: ["Digimon"], colorCount: 2 },
+      filter: { zone: "battleArea", kind: ["Digimon"], multicolor: true },
     },
     {
       kind: "youHave",
-      filter: { zone: "digivolutionCards", kind: ["Digimon"], colorCount: 2 },
+      filter: { zone: "digivolutionCards", kind: ["Digimon"], multicolor: true },
     },
   ],
 };

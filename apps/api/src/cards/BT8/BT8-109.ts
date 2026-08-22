@@ -29,10 +29,7 @@ const compiled: CompiledCard = {
               "kind": [
                 "Digimon"
               ],
-              "or": [
-                { "colors": ["Yellow"] },
-                { "colors": ["Purple"] }
-              ],
+              "colors": ["Yellow", "Purple"],
               "dp": {
                 "op": "lte",
                 "value": 6000
