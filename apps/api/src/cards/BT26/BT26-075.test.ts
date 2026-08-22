@@ -7,7 +7,7 @@ describe("BT26-075 compiled behavior", () => {
     expect(compiled.residual).toEqual([]);
     expect(compiled.digivolutionRequirement).toEqual([{ level: 4, traits: ["Glowing Dawn"], cost: 3, isAlternate: true }]);
     expect(compiled.effects).toEqual(expect.arrayContaining([
-      expect.objectContaining({ trigger: "Security", isSecurity: true, actions: [expect.objectContaining({ kind: "PlayWithoutCost", payCost: false, from: ["trash"], optional: true, cost: expect.objectContaining({ kind: "trash" }) })] }),
+      expect.objectContaining({ trigger: "Security", isSecurity: true, actions: [expect.objectContaining({ kind: "PlayWithoutCost", payCost: false, from: ["trash"], optional: true, cost: expect.objectContaining({ kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 }) })] }),
       expect.objectContaining({ trigger: "OnDeletion", actions: [expect.objectContaining({ kind: "PlayWithoutCost", target: expect.objectContaining({ filter: expect.objectContaining({ playCostLte: 5, nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }] }) }) })] }),
       expect.objectContaining({ trigger: "Main", actions: [{ kind: "Delete", target: expect.objectContaining({ count: 1, filter: expect.objectContaining({ controller: "opponent", kind: ["Digimon"], superlative: "lowestLevel" }) }) }] }),
     ]));
