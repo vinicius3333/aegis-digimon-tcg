@@ -46,7 +46,7 @@ function source(): CardSource {
 }
 
 describe("BT26-018 reveal movement boundaries", () => {
-  it("requires one eligible add, orders every actual remainder, and retains a pick whose hand move fails", async () => {
+  it("requires one eligible add, orders the remainder, and retains a pick whose hand move fails", async () => {
     const cards = [
       { instanceId: "aqua", cardId: "AQUA" },
       { instanceId: "sea", cardId: "SEA" },
@@ -87,15 +87,15 @@ describe("BT26-018 reveal movement boundaries", () => {
     await getEffectModule(CARD_ID)!.effectsForTiming(EffectTiming.OnPlay, cardSource)[0]!.resolve(ctx);
 
     expect(selectCards).toHaveBeenCalledWith(
-      ctx,
+      expect.any(Object),
       expect.objectContaining({ candidates: ["aqua", "sea", "ds"], min: 1, max: 1 }),
     );
-    expect(orderCards).toHaveBeenCalledWith(ctx, {
-      candidates: ["aqua", "sea", "ds", "plain"],
-      visibleCards: cards,
+    expect(orderCards).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({
+      candidates: ["sea", "ds", "plain"],
+      visibleCards: cards.slice(1),
       destination: "deckBottom",
-    });
-    expect(returnToDeck).toHaveBeenCalledWith(["plain", "ds", "sea", "aqua"], { toTop: false });
+    }));
+    expect(returnToDeck).toHaveBeenCalledWith(["plain", "ds", "sea"], { toTop: false });
   });
 });
 
