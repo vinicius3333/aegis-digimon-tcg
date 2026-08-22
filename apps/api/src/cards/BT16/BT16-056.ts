@@ -10,7 +10,6 @@ const placeVaccineTopInSecurity = {
     filter: {
       controller: "opponent",
       kind: ["Digimon"],
-      digivolutionCards: "hasAny",
       nameOrTrait: [{ tokens: ["Vaccine"], match: "trait" }],
     },
     count: 1,

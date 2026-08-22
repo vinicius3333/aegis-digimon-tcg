@@ -6,8 +6,47 @@ describe("BT13-048 Salamon", () => {
   it("searches the two printed trait groups and applies the inherited DP condition", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects[0]).toMatchObject({ trigger: "OnPlay", actions: [expect.objectContaining({ kind: "RevealAdd", revealCount: 3, rest: "deckBottom", add: expect.arrayContaining([expect.objectContaining({ count: 1 }), expect.objectContaining({ count: 1 })]) })] });
-    expect(compiled.effects[1]).toMatchObject({ trigger: "YourTurn", isInherited: true, actions: [expect.objectContaining({ kind: "Aura", effect: { kind: "modifyDP", amount: 2000 } })] });
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "RevealAdd",
+          revealCount: 3,
+          rest: "deckBottom",
+          add: [
+            {
+              count: 1,
+              to: "hand",
+              filter: {
+                kind: ["Digimon"],
+                excludeNameOrTrait: [{ match: "trait", tokens: ["Sea Animal"] }],
+                nameOrTrait: [
+                  { match: "trait", tokens: ["Beast", "Animal"] },
+                  { match: "trait", tokens: ["Sovereign"] },
+                ],
+              },
+            },
+            {
+              count: 1,
+              to: "hand",
+              filter: { kind: ["Digimon"], nameOrTrait: [{ match: "trait", tokens: ["Royal Knight"] }] },
+            },
+          ],
+        },
+      ],
+    });
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "YourTurn",
+      isInherited: true,
+      actions: [
+        {
+          kind: "Aura",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          effect: { kind: "modifyDP", amount: 2000 },
+          while: { kind: "anyOf" },
+        },
+      ],
+    });
   });
 
   it("loads the compiled Salamon implementation into a live permanent", async () => {

@@ -28,7 +28,9 @@ import type { Condition, Filter } from "@aegis/shared";
  *  unmet so the interpreter never guesses a gate it could not parse. */
 export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
   const mine = ctx.source.ownerSeat;
-  const opp = ctx.game.opponentOf(mine);
+  // Some focused IR probes evaluate local trigger predicates with a minimal game double that
+  // omits opponentOf; defer to the local seat for predicates that do not read opponent state.
+  const opp = ctx.game.opponentOf?.(mine) ?? mine;
   switch (cond.kind) {
     case "true":
       return true;
@@ -67,7 +69,9 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     }
     case "lastTargetDpGreaterThanSelf": {
       const source = ctx.source.permanent();
-      const ids = ctx.lastResolvedPermanentIds ?? [];
+      const ids = (ctx.lastResolvedPermanentIds?.length ?? 0) > 0
+        ? ctx.lastResolvedPermanentIds!
+        : [ctx.trigger.targetPermanentId ?? ctx.trigger.defenderPermanentId].filter((id): id is string => id !== undefined);
       return (
         source !== undefined &&
         ids.length > 0 &&
@@ -92,6 +96,14 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return (
         cond.filter !== undefined &&
         (ctx.lastRevealedCards ?? []).some((card) =>
+          definitionMatches(cond.filter!, ctx.game.definitionOf(card as never)),
+        )
+      );
+    case "triggerAllRevealedMatchFilter":
+      return (
+        cond.filter !== undefined &&
+        (ctx.lastRevealedCards ?? []).length > 0 &&
+        (ctx.lastRevealedCards ?? []).every((card) =>
           definitionMatches(cond.filter!, ctx.game.definitionOf(card as never)),
         )
       );
@@ -376,9 +388,19 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       if (deletedColors !== undefined) {
         return compareNumber(new Set(deletedColors).size, cond.op, cond.value ?? 0);
       }
+      const self = ctx.source.permanent();
+      if (self !== undefined && ctx.game.effectiveColors !== undefined) {
+        return compareNumber(
+          new Set(ctx.game.effectiveColors(self)).size,
+          cond.op,
+          cond.value ?? 0,
+        );
+      }
       const def = sourceTopDefinition(ctx);
       if (def === undefined) return false;
-      return compareNumber(new Set(def.colors ?? []).size, cond.op, cond.value ?? 0);
+      const permanent = ctx.source.permanent();
+      const colors = permanent === undefined ? def.colors ?? [] : ctx.game.effectiveColors?.(permanent) ?? def.colors ?? [];
+      return compareNumber(new Set(colors).size, cond.op, cond.value ?? 0);
     }
     case "selfLevelIs": {
       // "This Digimon is level N" — exact current top-card level.
@@ -661,6 +683,12 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return ctx.source.permanent()?.enteredByEffect === true;
     case "triggerPlayedByEffectSource":
       return cond.sourceCardId !== undefined && ctx.trigger.playedByEffectSourceCardId === cond.sourceCardId;
+    case "triggerPlayedByDecode":
+      return ctx.trigger.playedByDecode === true;
+    case "lastSuspendedIsMine": {
+      const ids = ctx.lastSuspendedPermanentIds ?? [];
+      return ids.some((id) => ctx.game.permanentById(id)?.controllerSeat === mine);
+    }
     case "isDnaDigivolving":
       // WhenDigivolving: the digivolve that reached this window was a DNA digivolve (two materials
       // merged). The DNA-digivolve fire seam sets TriggerInfo.isDnaDigivolve; a single digivolve and
@@ -682,6 +710,12 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // with a cost of 2 or more"). KB Q5471-Q5473: the gate reads the card's cost itself, not a
       // paid/reduced cost. Unset payload (cost unknown) is conservative => does not fire.
       return (ctx.trigger.usedOptionCost ?? -1) >= (cond.value ?? 0);
+    case "triggerOptionMatchesFilter": {
+      const instanceId = ctx.trigger.subjectPermanentId;
+      if (instanceId === undefined || cond.filter === undefined) return false;
+      const candidate = findLooseCandidateByInstance(ctx, instanceId);
+      return candidate !== undefined && definitionMatches(cond.filter, ctx.game.definitionOf({ cardId: candidate.cardId }));
+    }
     case "triggerSubjectHasColor":
       // whenPlayed/whenOneOfYoursDigivolves fire-time gate: the permanent that drove the event
       // (TriggerInfo.subjectPermanentId) has one of `filter.colors` on its top card. Read at
@@ -734,6 +768,10 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     case "triggerRemovedSecuritySeat": {
       const seat = cond.seat === "opponent" ? opp : mine;
       return ctx.trigger.removedFromSecuritySeat === seat;
+    }
+    case "triggerHandTrashedSeat": {
+      const seat = cond.seat === "opponent" ? opp : mine;
+      return ctx.trigger.handTrashedSeat === seat;
     }
     case "triggerRemovalCause":
       return ctx.trigger.removalCause === cond.removalCause;

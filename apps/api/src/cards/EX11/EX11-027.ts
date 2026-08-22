@@ -104,15 +104,14 @@ const module: EffectModule = {
                   await ctx.fx.link(linkTo[0]!, [linkSource]);
                 }
               }
-            }
-          },
-        }),
-      ];
+            ]
+          ]
+        }
+      ]
     }
-
-    return [];
-  },
+  ],
+  "coverage": "full",
+  "residual": []
 };
 
-registerCard(module);
-export default module;
+registerIrCard("EX11-027", compiled);

@@ -2,6 +2,7 @@
 
 import type { EffectDurationRef } from "../durations.js";
 import type { Filter, Target } from "../filters/filter.js";
+import type { Scaling } from "../predicates/scaling.js";
 import type { Controller } from "../filters/zones.js";
 import type { KeywordRef } from "../keywords.js";
 import type { Cost } from "../predicates/costs.js";
@@ -12,7 +13,7 @@ export interface HandManipulationAction extends ActionBase {
   kind: "HandManipulation";
   op: "trashVariable";
   controller?: Controller;
-  amount: number | "variable";
+  amount: number | "variable" | "untilFive";
   /** See `TrashAction.chooser` for the full rationale. */
   chooser?: "controller" | "opponent";
 }
@@ -45,6 +46,8 @@ export interface RepeatPerCountAction extends ActionBase {
   countSource: string;
   /** Alternatively derive the repeat count from the current board. */
   countFilter?: Filter;
+  /** Derive the repeat count with a scaling unit such as distinct colors. */
+  countScaling?: Scaling;
   action: Action;
 }
 
@@ -88,6 +91,7 @@ export interface ModifyDPAction extends ActionBase {
   /** Override continuous-pass inference for audited edge cases with a triggered duration. */
   continuous?: boolean;
 }
+export interface AddDPFromTrashedCardAction extends ActionBase { kind: "AddDPFromTrashedCard"; cost: Cost; target: Target; duration: EffectDurationRef; }
 
 export interface AddDPFromTrashedCardAction extends ActionBase {
   kind: "AddDPFromTrashedCard";

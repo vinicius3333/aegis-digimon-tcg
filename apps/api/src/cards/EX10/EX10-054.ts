@@ -76,8 +76,7 @@ const compiled: CompiledCard = {
             "count": 2
           },
           "restriction": "unsuspend",
-          "duration": "untilOpponentTurnEnd",
-          "optional": true
+          "duration": "untilOpponentTurnEnd"
         }
       ]
     },
@@ -111,8 +110,7 @@ const compiled: CompiledCard = {
             "count": 2
           },
           "restriction": "unsuspend",
-          "duration": "untilOpponentTurnEnd",
-          "optional": true
+          "duration": "untilOpponentTurnEnd"
         }
       ]
     },
@@ -140,3 +138,5 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("EX10-054", compiled);
+
+export { compiled };

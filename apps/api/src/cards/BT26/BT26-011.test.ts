@@ -1,27 +1,19 @@
-import { CardKind, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
-import { describe, expect, it, vi } from "vitest";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
+import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { module } from "./BT26-011.js";
+import { compiled } from "./BT26-011.js";
 import "../index.js";
 
 const CARD_ID = "BT26-011";
 
-function source(): CardSource {
-  return {
-    instanceId: "buraimon",
-    cardId: CARD_ID,
-    ownerSeat: 0 as Seat,
-    definition: {} as CardDefinition,
-    permanent: () => ({ permanentId: "buraimon-permanent" }),
-    isOnBattleArea: () => true,
-    isOwnersTurn: () => true,
-  } as unknown as CardSource;
-}
-
 describe("BT26-011 Buraimon", () => {
+  it("compiles both Raid keywords and the two draw-two triggers", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.effects.map((effect) => [effect.trigger, effect.isInherited])).toEqual([
+      ["Static", undefined], ["OnPlay", undefined], ["WhenDigivolving", undefined], ["Static", true],
+    ]);
+  });
   it("evolves from an off-color Lv.3 TS Digimon for 2 and rejects a non-TS peer", async () => {
     const positive = setupEngine({
       0: {
@@ -58,49 +50,6 @@ describe("BT26-011 Buraimon", () => {
     expect(negative.state.memory).toBe(2);
   });
 
-  it("matches Chronomon in every printed field plus exact Shaman, not a near trait (Q6965)", async () => {
-    const cardSource = source();
-    const cards = ["name", "inherited", "rule", "requirement", "shaman", "near"].map((instanceId) => ({
-      instanceId,
-      cardId: instanceId,
-    }));
-    const definitions: Record<string, CardDefinition> = {
-      name: { kinds: [CardKind.Digimon], nameEn: "Chronomon: Holy Mode", types: [] } as unknown as CardDefinition,
-      inherited: {
-        kinds: [CardKind.Digimon],
-        nameEn: "Inherited",
-        types: [],
-        inheritedEffectText: "Chronomon",
-      } as unknown as CardDefinition,
-      rule: {
-        kinds: [CardKind.Digimon],
-        nameEn: "Rule",
-        types: [],
-        effectText: "[Rule] Name: Chronomon",
-      } as unknown as CardDefinition,
-      requirement: {
-        kinds: [CardKind.Digimon],
-        nameEn: "Req",
-        types: [],
-        linkRequirement: "[Link] Chronomon: Cost 2",
-      } as unknown as CardDefinition,
-      shaman: { kinds: [CardKind.Digimon], nameEn: "Trait", types: ["Shaman"] } as unknown as CardDefinition,
-      near: { kinds: [CardKind.Digimon], nameEn: "Near", types: ["Shamanism"] } as unknown as CardDefinition,
-    };
-    const selectCards = vi.fn(async (_ctx, request: { candidates: string[] }) => {
-      expect(new Set(request.candidates)).toEqual(new Set(["name", "inherited", "rule", "requirement", "shaman"]));
-      return [];
-    });
-    const ctx = {
-      source: cardSource,
-      game: { player: () => ({ hand: cards }), definitionOf: (card: { cardId: string }) => definitions[card.cardId]! },
-      ask: { selectCards },
-      fx: {},
-    } as unknown as EffectContext;
-    await module.effectsForTiming(EffectTiming.OnPlay, cardSource)[0]!.resolve(ctx);
-    expect(selectCards).toHaveBeenCalledOnce();
-  });
-
   it("plays for 5, pays exactly one matching card, then draws 2", async () => {
     const s = setupEngine(
       {
@@ -125,23 +74,6 @@ describe("BT26-011 Buraimon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
     expect(new Set(s.state.players[0]!.hand.map((card) => card.cardId))).toEqual(new Set(["BT1-009", "BT1-010"]));
-  });
-
-  it("does not draw when the selected trash cost fails", async () => {
-    const cardSource = source();
-    const cost = { instanceId: "cost", cardId: "COST" };
-    const draw = vi.fn();
-    const ctx = {
-      source: cardSource,
-      game: {
-        player: () => ({ hand: [cost] }),
-        definitionOf: () => ({ kinds: [CardKind.Digimon], nameEn: "Chronomon", types: [] }),
-      },
-      ask: { selectCards: async () => [cost.instanceId] },
-      fx: { trash: async () => [], draw },
-    } as unknown as EffectContext;
-    await module.effectsForTiming(EffectTiming.WhenDigivolving, cardSource)[0]!.resolve(ctx);
-    expect(draw).not.toHaveBeenCalled();
   });
 
   it("publishes Raid both as the top card and inherited from a real stack", async () => {

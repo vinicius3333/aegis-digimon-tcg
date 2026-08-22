@@ -99,6 +99,8 @@ export interface UseOptionWithoutCostAction extends ActionBase {
   filter: Filter;
   payCost: boolean;
   reduceCostBy?: number;
+  /** Dynamic reduction equal to the source controller's opponent's current memory. */
+  reduceCostByOpponentMemory?: boolean;
   /** Defaults to ["hand"], the only printed form. */
   from?: ZoneRef[];
   /** Alternative to `filter`. */

@@ -155,15 +155,20 @@ function makeCtx(
 }
 
 describe("EX4-030 Kuzuhamon", () => {
-  const module = getEffectModule("EX4-030");
-
-  it("is registered on import", () => {
-    expect(module).toBeDefined();
+  it("registers full residual-free IR", () => {
+    expect(getEffectModule("EX4-030")).toBeDefined();
+    expect(runtimeCompiledCard("EX4-030")).toMatchObject({ coverage: "full", residual: [] });
   });
 
-  it("produces 2 None effects (name grant + watcher install)", () => {
-    const source = makeSource();
-    expect(module!.effectsForTiming(EffectTiming.None, source)).toHaveLength(2);
+  it("uses one optional hand Option costing 5 or less when digivolving", () => {
+    const effect = runtimeCompiledCard("EX4-030")?.effects?.find((entry) => entry.trigger === "WhenDigivolving");
+    expect(effect?.actions?.[0]).toMatchObject({
+      kind: "UseOptionWithoutCost",
+      filter: { kind: ["Option"], playCostLte: 5 },
+      payCost: false,
+      from: ["hand"],
+      optional: true,
+    });
   });
 
   it("produces 1 WhenDigivolving effect", () => {
@@ -184,7 +189,7 @@ describe("EX4-030 Kuzuhamon", () => {
     expect(nameCalls).toHaveLength(1);
     expect(nameCalls[0]!.args[1]).toBe("name");
     expect(nameCalls[0]!.args[2]).toContain("Sakuyamon");
-    expect(nameCalls[0]!.args[3]).toBe(EffectDuration.UntilEachTurnEnd);
+    expect(nameCalls[0]!.args[3]).toBe(EffectDuration.Permanent);
   });
 
   it("[Static] installs whenOptionUsed watcher via subscribeSubTrigger", async () => {
@@ -246,7 +251,7 @@ describe("EX4-030 Kuzuhamon", () => {
     const effects = module!.effectsForTiming(EffectTiming.None, source);
     await effects[1]!.resolve(ctx); // installs the watcher
 
-    // The subscribeSubTrigger call captures the watcher; extract and invoke it
+    // The subscribeSubTrigger call captures the public IR watcher.
     const subTriggerCall = recorder.calls.find((c) => c.verb === "subscribeSubTrigger");
     const install = subTriggerCall!.args[0] as {
       run: (ctx: EffectContext) => Promise<void>;

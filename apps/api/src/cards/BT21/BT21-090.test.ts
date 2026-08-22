@@ -20,6 +20,17 @@ describe("BT21-090 The Strongest of Brothers", () => {
         actions: [expect.objectContaining({ kind: "RevealAdd" }), { kind: "PlaceInBattleAreaSelf" }],
       }),
     );
-    expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "Security", isSecurity: true }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "Security",
+        isSecurity: true,
+        actions: [
+          expect.objectContaining({ kind: "PlayWithoutCost", optional: true }),
+          { kind: "PlaceInBattleAreaSelf" },
+        ],
+      }),
+    );
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });

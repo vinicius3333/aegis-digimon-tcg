@@ -6,7 +6,7 @@ import { type ActionScope, runAction } from "../dispatch.js";
 import { toDuration } from "../duration.js";
 import { ACTION_TYPE_KEYWORDS, unsupported } from "../errors.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
-import { countMatching } from "../scaling.js";
+import { countMatching, scaleFactor } from "../scaling.js";
 import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardKind, getCardDefinition } from "@aegis/shared";
@@ -16,6 +16,18 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
   const { scale } = scope;
   switch (action.kind) {
     case "HandManipulation": {
+      if (action.amount === "untilFive") {
+        for (const seat of [ctx.source.ownerSeat, ctx.game.opponentOf(ctx.source.ownerSeat)] as const) {
+          const hand = ctx.game.player(seat).hand;
+          const count = Math.max(0, hand.length - 5);
+          if (count === 0) continue;
+          const target: Target = { filter: { zone: "hand", controller: seat === ctx.source.ownerSeat ? "mine" : "opponent" }, count };
+          const candidates = candidateLooseInstances(ctx, target, ["hand"]);
+          const chosen = await pickLoose(ctx, target, candidates, undefined, ctx.ask);
+          if (chosen.length > 0) await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
+        }
+        return false;
+      }
       const count = action.amount === "variable" ? (ctx.trigger.addedToHand?.instanceIds.length ?? 0) : action.amount;
       if (count <= 0) return false;
       const controller = action.controller ?? "mine";
@@ -81,6 +93,9 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
           ctx.selections.set(action.target.bindAs, ids[0]!);
         }
       }
+      // Publish the actual transition target for same-target continuations such as
+      // BT8-081's "unsuspend it and it gets +3000 DP" pair.
+      ctx.lastResolvedPermanentIds = ids;
       return false;
     }
     case "RepeatPerCount": {
@@ -88,7 +103,9 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       // KB Q1014: each iteration is a separate activation with its own fresh target
       // selection. KB Q1015: all activations share the same timing priority window.
       const repeatCount =
-        action.countFilter !== undefined
+        action.countScaling !== undefined
+          ? scaleFactor(ctx, action.countScaling)
+          : action.countFilter !== undefined
           ? countMatching(ctx, action.countFilter)
           : (ctx.namedCounts?.get(action.countSource) ?? 0);
       for (let i = 0; i < repeatCount; i++) {
@@ -128,12 +145,19 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
       const amount = scale === undefined ? action.amount : action.amount * scale;
+      const continuous =
+        action.continuous === true ||
+        (action.continuous === undefined &&
+          ["Static", "AllTurns", "YourTurn", "OpponentsTurn"].includes(ctx.activeTiming ?? "") &&
+          Object.keys(ctx.trigger ?? {}).length === 0);
       for (const id of ids) {
         ctx.fx.modifyDP(
           id,
           amount,
           duration,
-          action.continuous === undefined ? undefined : { continuous: action.continuous },
+          action.continuous === undefined
+            ? (ctx.continuousPass === true ? { continuous: true } : undefined)
+            : { continuous: action.continuous },
         );
         for (const keyword of action.alsoGainKeywords ?? []) {
           ctx.fx.grantKeyword(id, keyword.keyword, duration, keyword.amount);
@@ -143,6 +167,30 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         ctx.selections ??= new Map();
         ctx.selections.set(action.target.bindAs, ids[0]!);
       }
+      return false;
+    }
+    case "AddDPFromTrashedCard": {
+      const costTarget = action.cost.target;
+      if (costTarget === undefined) return action.abortOnDecline === true;
+      const candidates = candidateLooseInstances(ctx, costTarget, ["hand"]);
+      const chosen = await pickLoose(ctx, costTarget, candidates);
+      let dp = 0;
+      if (chosen.length > 0) {
+        const hand = ctx.game.player(ctx.source.ownerSeat).hand;
+        const cards = chosen
+          .map((id) => hand.find((card) => card.instanceId === id))
+          .filter((card) => card !== undefined);
+        dp = ctx.game.definitionOf(cards[0]!).dp ?? 0;
+        const moved = await ctx.fx.trash(cards, { byEffectSeat: ctx.source.ownerSeat });
+        if (moved.length !== cards.length) return action.abortOnDecline === true;
+      } else {
+        const trash = ctx.game.player(ctx.source.ownerSeat).trash;
+        const last = trash[trash.length - 1];
+        if (last === undefined) return action.abortOnDecline === true;
+        dp = ctx.game.definitionOf(last).dp ?? 0;
+      }
+      for (const id of await resolvePermanentTargets(ctx, action.target))
+        ctx.fx.modifyDP(id, dp, toDuration(action.duration));
       return false;
     }
     case "AddDPFromSuspendedCost": {
@@ -283,7 +331,10 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       }
       for (const extra of action.keywords ?? []) {
         if (extra.keyword === kw) continue;
-        for (const id of ids) ctx.fx.grantKeyword(id, extra.keyword, duration, extra.amount);
+        for (const id of ids) {
+          if (extra.keyword === "Piercing") ctx.fx.grantPierce(id, duration);
+          else ctx.fx.grantKeyword(id, extra.keyword, duration, extra.amount);
+        }
       }
       // Some generated cards attach a second continuous grant to a keyword action. The legacy
       // shape used by BT24-028 is `additionalEffect: { kind: "GrantStatic", modifier:

@@ -6,11 +6,9 @@ import {
   EffectTiming,
   EffectDuration,
   Phase,
-  Permanent,
   type CardColor,
   type CardDefinition,
   type CardInstance,
-  Permanent,
   type Intent,
   type IntentResult,
   type DecisionRequest,
@@ -32,7 +30,7 @@ import { CombatController } from "./combat/controller.js";
 import { detachableLinkedCards, detachLinkedCard, detachTraitTokens } from "./effects/detach.js";
 import { canAttackerDeclare } from "./combat/legality.js";
 import { rollTurnActivity } from "./turnActivity.js";
-import { resolveKeywords } from "./combat/keywords.js";
+import { printedKeywordsOf, resolveKeywords } from "./combat/keywords.js";
 import { WinCheck, runSecurityCheck, type SecurityCheckDeps } from "./security/index.js";
 import { SecurityDpLedger } from "./security/securityDp.js";
 import { DeletionMaxDpLedger } from "./deletionMaxDp.js";
@@ -438,6 +436,15 @@ export class GameEngine {
         }
       }
       return undefined;
+    }, (permanentId) => {
+      for (const player of this.state.players) {
+        const permanent = player.battleArea.find((candidate) => candidate.permanentId === permanentId);
+        if (permanent !== undefined) {
+          const definition = lookupDefinition(permanent.topCard.cardId);
+          return printedKeywordsOf(definition?.effectText);
+        }
+      }
+      return [];
     });
     this.memory = new MemoryGauge(this.state, this.hooks.emit, (seat, opts) => {
       const kinds = opts.isTamerEffect ? [CardKind.Tamer] : [CardKind.Digimon];
@@ -871,11 +878,6 @@ export class GameEngine {
   }
 
   /**
-   * Whether `seat` has at least one legal Main-phase action right now: a playable
-   * card, a digivolve option, an available attack, or an activatable [Main] effect.
-   * Returns as soon as any action is found possible (short-circuit). Used to auto-end
-   * the turn when the player has nothing left to do.
-   */
   private hasAnyMainPhaseAction(seat: Seat): boolean {
     const player = this.state.players[seat];
     if (!player) return false;
@@ -1750,7 +1752,7 @@ export class GameEngine {
    * field is skipped (its subscription was already dropped on leave).
    */
   private async fireSubTrigger(event: SubTriggerEventName, payload: TriggerInfo = {}): Promise<void> {
-    if (this.ruleProcessing) {
+    if (this.ruleProcessing && event !== "onDeletionOf") {
       const deletedControllerSeat =
         payload.deletedPermanentId === undefined
           ? undefined
@@ -1845,6 +1847,18 @@ export class GameEngine {
         await this.subTriggers.fire(
           event,
           (sub) => {
+            // Inherited watchers keep both the host anchor and the card instance that
+            // installed the watcher. Once that source card leaves the stack, resolve the
+            // loose instance first so isSelfRef and inherited effects still refer to the
+            // card that was actually trashed (BT7-031, BT8-081, P-032).
+            const trashedSource =
+              sub.sourceInstanceId !== undefined &&
+              (payload.trashedDigivolutionInstanceId === sub.sourceInstanceId ||
+                payload.trashedDigivolutionInstanceIds?.includes(sub.sourceInstanceId) === true);
+            if (trashedSource) {
+              const loose = this.findLooseInstance(sub.sourceInstanceId);
+              if (loose !== undefined) return this.buildEffectContext(this.cardSourceOf(loose), payload);
+            }
             // Anchor the watcher's context on its OWN source permanent. A watcher whose anchor
             // has left the field (its subscription should already be dropped on leave; guard
             // defensively) yields undefined and is skipped by the registry.
@@ -1860,11 +1874,7 @@ export class GameEngine {
               if (srcPerm?.topCard === undefined) return undefined;
               return this.buildEffectContext(this.cardSourceOf(srcPerm.topCard), payload);
             }
-            if (sub.sourceInstanceId !== undefined) {
-              const loose = this.findLooseInstance(sub.sourceInstanceId);
-              if (loose === undefined) return undefined;
-              return this.buildEffectContext(this.cardSourceOf(loose), payload);
-            }
+            if (sub.sourceInstanceId !== undefined) return undefined;
             if (sub.activationContext !== undefined) {
               return { ...sub.activationContext, trigger: payload, selections: new Map() };
             }
@@ -1878,9 +1888,7 @@ export class GameEngine {
           // watcher dedupes across multiple plays/events from ONE resolving effect (KB Q2814)
           // while still firing once per genuinely separate top-level resolution.
           this.activeWindowToken ??
-            (event === "whenAttacking" || event === "whenOpponentAttacks"
-              ? payload.attackSequence
-              : undefined),
+            (event === "whenAttacking" || event === "whenOpponentAttacks" ? payload.attackSequence : undefined),
           // `oncePerTurnKey` ledger: reuses the SAME per-turn UseTracker the kernel's
           // maxPerTurn and the leave-prevention "replacement" keys use, namespaced with
           // "subtrigger" so the three ledgers never collide. Resets with everything else at
@@ -1910,11 +1918,7 @@ export class GameEngine {
       if (srcPerm?.topCard === undefined) return undefined;
       return this.buildEffectContext(this.cardSourceOf(srcPerm.topCard), payload);
     }
-    if (sub.sourceInstanceId !== undefined) {
-      const loose = this.findLooseInstance(sub.sourceInstanceId);
-      if (loose === undefined) return undefined;
-      return this.buildEffectContext(this.cardSourceOf(loose), payload);
-    }
+    if (sub.sourceInstanceId !== undefined) return undefined;
     if (sub.activationContext !== undefined) {
       return { ...sub.activationContext, trigger: payload, selections: new Map() };
     }
@@ -2008,6 +2012,7 @@ export class GameEngine {
       );
       for (const { source, effect } of continuousEffects) {
         const ctx = this.buildEffectContext(source, {}, noPromptAsk);
+        ctx.continuousPass = true;
         // Persistent effects re-apply whenever their guard holds; canTrigger here is
         // the builder's on-field/`when` gate (maxPerTurn is irrelevant — uncounted).
         if (!canTrigger(effect, ctx, this.tracker)) continue;
@@ -2031,6 +2036,7 @@ export class GameEngine {
         (source, effect, conferredToPermanentId) => ({
           ...this.buildEffectContext(source, {}, noPromptAsk),
           activeTiming: EffectTiming[EffectTiming.None],
+          continuousPass: true,
           activeEffectText: effect.description,
           conferredToPermanentId,
         }),
@@ -2040,6 +2046,7 @@ export class GameEngine {
         const ctx: EffectContext = {
           ...this.buildEffectContext(source, {}, noPromptAsk),
           activeTiming: EffectTiming[EffectTiming.None],
+          continuousPass: true,
           activeEffectText: effect.description,
           conferredToPermanentId,
         };
@@ -2059,6 +2066,7 @@ export class GameEngine {
         (source, effect) => ({
           ...this.buildEffectContext(source, {}, noPromptAsk),
           activeTiming: EffectTiming[EffectTiming.None],
+          continuousPass: true,
           activeEffectText: effect.description,
         }),
         this.tracker,
@@ -2067,6 +2075,7 @@ export class GameEngine {
         const ctx: EffectContext = {
           ...this.buildEffectContext(source, {}, noPromptAsk),
           activeTiming: EffectTiming[EffectTiming.None],
+          continuousPass: true,
           activeEffectText: effect.description,
         };
         if (!canActivate(effect, ctx, this.tracker)) continue;
@@ -2451,6 +2460,7 @@ export class GameEngine {
       playedFromZone?: ZoneRef;
       digiXrosMaterialCount?: number;
       playedByEffectSourceCardId?: string;
+      playedByDecode?: boolean;
     },
   ): Promise<void> {
     const attackerPermanentId = this.combat?.currentAttackerId;
@@ -2472,6 +2482,7 @@ export class GameEngine {
       ...(opts?.playedByEffectSourceCardId !== undefined
         ? { playedByEffectSourceCardId: opts.playedByEffectSourceCardId }
         : {}),
+      ...(opts?.playedByDecode === true ? { playedByDecode: true } : {}),
     });
     const subjectPermanentId = subjectPermanent?.permanentId;
     if (subjectPermanentId === undefined) return;
@@ -4116,6 +4127,11 @@ export class GameEngine {
     // whether the restored-memory turn remains open.
     if (this.combat.isAttacking) return;
 
+    // A continuation can finish after the turn machine has advanced its seat. The
+    // open Main phase is authoritative for this callback; evaluating the new
+    // turn's actions can incorrectly auto-close the still-open phase.
+    if (this.state.phase !== Phase.Main || this.mainPhase.seat === undefined) return;
+
     // ＜Blitz＞ (§16-22): when memory has crossed to the opponent but the turn
     // player has an unsuspended Blitz Digimon that hasn't attacked this turn, keep
     // the Main phase open for one more attack. Skip the turn-end check so the
@@ -4156,9 +4172,9 @@ export class GameEngine {
       }
     }
     this.mainPhase.checkTurnEnd();
-    if (this.mainPhase.isOpen && !this.hasAnyMainPhaseAction(this.state.turnSeat)) {
-      this.mainPhase.endPhaseRequested(this.state.turnSeat);
-    }
+    // Do not infer a passed turn from a transient post-combat action snapshot. Combat can
+    // leave its attacker/target projections and deletion state settling across this callback;
+    // the next client intent (or a crossed gauge) is the authoritative Main-phase boundary.
   }
 
   /**

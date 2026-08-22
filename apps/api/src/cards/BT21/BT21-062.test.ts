@@ -29,6 +29,13 @@ function fireTiming(s: EngineSetup, timing: EffectTiming, trigger: Record<string
 }
 
 describe("BT21-062 [Start of Your Main Phase] delete 1 opponent Digimon", () => {
+  it("registers all three printed timings and the Snatchmon evolution route", () => {
+    expect(module.effectsForTiming(EffectTiming.WhenDigivolving, {} as never)).toHaveLength(1);
+    expect(module.effectsForTiming(EffectTiming.OnStartMainPhase, {} as never)).toHaveLength(1);
+    expect(module.effectsForTiming(EffectTiming.OnEnterFieldAnyone, {} as never)).toHaveLength(1);
+    expect(module.cardId).toBe(GALACTICMON);
+  });
+
   it("deletes one of the opponent's Digimon on start of main phase", async () => {
     const s = setupEngine(
       {

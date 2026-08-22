@@ -21,7 +21,7 @@ import { registerCard } from "../../engine/effects/registry.js";
  *   Q2371: Digivolution requirements must still be met (NOT ignored).
  *   Q2372: Digivolution cost must be paid (NOT free).
  *
- *   The "YourTurn" + SubTrigger(whenHandTrashed) pattern (like BT14-071's ESS) maps to
+ *   The "YourTurn" + SubTrigger(whenTrashedFromHand) pattern (like BT14-071's ESS) maps to
  *   EffectTiming.None (continuous/static) + subscribeSubTrigger("whenHandTrashed").
  *   The static resolve installs the watcher; `continuousOpt()` in primitives stamps it as
  *   a continuous subscription, so the recompute clears and re-derives it without duplication.
@@ -66,7 +66,7 @@ const module: EffectModule = {
             if (self.topCard === undefined) return;
 
             ctx.fx.subscribeSubTrigger({
-              event: "whenHandTrashed",
+              event: "whenTrashedFromHand",
               sourcePermanentId: self.permanentId,
               once: false,
               description:

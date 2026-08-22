@@ -13,9 +13,13 @@ describe("BT10-034 Dorulumon", () => {
   });
 
   it("reduces all opposing Security Digimon DP only while its host has Shoutmon in its name", async () => {
-    const matching = setupEngine({ 0: { battleArea: [{ card: "BT10-009", as: "host", under: ["BT10-034"] }] } });
+    const matching = setupEngine({
+      0: { battleArea: [{ card: "BT10-009", as: "host", under: ["BT10-034"] }] },
+      1: { battleArea: [{ card: "BT10-020", as: "battleTarget", dp: 5000 }] },
+    });
     await matching.engine.recomputeContinuousEffects();
     expect(observe(matching.engine).securityDp(1)).toBe(-2000);
+    expect(matching.perm("battleTarget").currentDP).toBe(5000);
 
     const other = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT10-034"] }] } });
     await other.engine.recomputeContinuousEffects();

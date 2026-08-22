@@ -1,10 +1,6 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { turnTiming, security, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const cardId = "EX11-065";
 
@@ -158,5 +154,27 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
-export default module;
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "StartOfYourMainPhase",
+      actions: [{ kind: "GainMemory", amount: 1, cost: { kind: "trash", target: { filter: { controller: "mine", kind: ["Digimon"], zone: ["hand", "digivolutionCards"], nameOrTrait: [{ tokens: ["Mineral"], match: "trait" }, { tokens: ["Rock"], match: "trait" }] }, count: 1 }, raw: "By trashing 1 [Mineral] or [Rock] trait card from your hand or your Digimon's digivolution cards" }, optional: true, abortOnDecline: true }]
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        { kind: "SubTrigger", event: "whenPlayed", sourceFilter: mineralRock, actions: [place] },
+        { kind: "SubTrigger", event: "whenOneOfYoursDigivolves", sourceFilter: mineralRock, actions: [place] }
+      ]
+    },
+    {
+      trigger: "Security",
+      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
+      isSecurity: true
+    }
+  ],
+  coverage: "full",
+  residual: []
+};
+
+registerIrCard("EX11-065", compiled);

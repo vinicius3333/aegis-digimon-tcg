@@ -1,37 +1,36 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { EffectDuration } from "@aegis/shared";
-import { onPlay, onDeletion, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "EX11-053";
-
-function isRoyalKnight(def: CardDefinition): boolean {
-  return isDigimon(def) && (def.types ?? []).includes("Royal Knight");
-}
-
-function isKingDrasil(def: CardDefinition): boolean {
-  return def.nameEn === "King Drasil_7D6";
-}
-
-function isOmnimonXAntibody(def: CardDefinition): boolean {
-  return isDigimon(def) && def.nameEn.includes("Omnimon") && (def.types ?? []).includes("X Antibody");
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnEnterFieldAnyone) {
-      return [
-        onPlay({
-          source,
-          effectKey: `${cardId}/on-play-draw-place`,
-          description:
-            "[On Play] By placing 1 [Royal Knight] trait Digimon card from your hand as the " +
-            "bottom digivolution card of any of your [King Drasil_7D6]s on the field, <Draw 1>.",
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Royal Knight"], match: "trait" }]
+              },
+              count: 1,
+              from: ["hand"]
+            },
+            raw: "By placing 1 [Royal Knight] trait Digimon card from your hand as the bottom digivolution card of any of your [King Drasil_7D6]s on the field",
+            underFilter: {
+              controller: "mine",
+              nameOrTrait: [{ tokens: ["King Drasil_7D6"], match: "name" }]
+            },
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "target"
+          },
           optional: true,
           canActivate: (ctx) => ctx.source.isOnBattleArea(),
           resolve: async (ctx) => {
@@ -58,19 +57,8 @@ const module: EffectModule = {
             await ctx.fx.placeUnder(chosenHost[0]!, chosenCard);
             await ctx.fx.draw(source.ownerSeat, 1);
           },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.OnDestroyedAnyone) {
-      return [
-        onDeletion({
-          source,
-          effectKey: `${cardId}/on-deletion-play`,
-          description:
-            "[On Deletion] If you have 1 or fewer security cards, you may play 1 card with " +
-            "[Omnimon X Antibody] from your hand or from under your [King Drasil_7D6] without " +
-            "paying the cost. Place this card as its bottom digivolution card.",
+          from: ["hand", "digivolutionCards"],
+          payCost: false,
           optional: true,
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
@@ -108,27 +96,9 @@ const module: EffectModule = {
         }),
       ];
     }
-
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/rule-x-antibody`,
-          description: "[Rule] This card is also treated as having [X Antibody] in its name.",
-          when: (_ctx) => source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self !== undefined) {
-              ctx.fx.grantNameTrait(self.permanentId, "name", ["X Antibody"], EffectDuration.Permanent);
-            }
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+  ],
+  coverage: "full",
+  residual: []
 };
 
-registerCard(module);
-export default module;
+registerIrCard("EX11-053", compiled);

@@ -32,6 +32,7 @@ export interface Condition {
     | "lastTargetCanTrashDigivolution" // the previous target still has stack cards and is not level 3 (EX5-055)
     | "triggerRevealedFromDeck" // the source card is among the cards this effect revealed from a deck
     | "triggerRevealedMatchesFilter" // any card in the current reveal window matches `filter`
+    | "triggerAllRevealedMatchFilter"
     | "triggerAttackBy" // the current attack was declared through the named attack mechanic
     | "allYoursMatchFilter" // every permanent you control in the battle area matches `filter`
     | "breedingAreaEmpty"
@@ -75,7 +76,10 @@ export interface Condition {
     | "triggerPlayedOrDigivolvedByEffect" // either a whenPlayed effect event or an effect-driven digivolve (BT25-077)
     | "selfEnteredByEffect" // the live source permanent's current top entered by an effect (BT25-080)
     | "triggerPlayedByEffectSource" // the exact card named by `sourceCardId` drove the play
+    | "triggerPlayedByDecode" // the play was caused by an explicit Decode replacement payload
+    | "lastSuspendedIsMine" // the preceding Suspend action actually suspended one of your permanents
     | "triggerOptionCostAtLeast" // the Option's ORIGINAL use cost, not a reduced one (BT19-040; KB Q5471-Q5473)
+    | "triggerOptionMatchesFilter" // the used Option's printed definition matches `filter`
     | "triggerSubjectHasColor" // evaluated POST-digivolve (BT25-026; KB Q6290/Q6291)
     | "triggerSubjectMatchesFilter" // non-color subject gates; later "then" branches still run (BT21-061)
     | "triggerDigivolvedSameLevel" // BT9-092
@@ -86,6 +90,7 @@ export interface Condition {
     | "triggerDefenderIsSelf"
     | "triggerDefenderMatchesFilter" // the originally declared defender, before Blocker redirection
     | "triggerRemovedSecuritySeat"
+    | "triggerHandTrashedSeat"
     | "triggerRemovalCause"
     | "triggerDeletedByDpZero"
     | "noTamerInDigivolution"

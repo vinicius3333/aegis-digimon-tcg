@@ -81,33 +81,22 @@ const compiled: CompiledCard = {
       "trigger": "YourTurn",
       "actions": [
         {
-          "kind": "Digivolve",
-          "target": {
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Regulusmon"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "reduceCost": 1,
-          "optional": true
+          "kind": "SubTrigger",
+          "event": "onAddDigivolutionCards",
+          "sourceFilter": { "isSelfRef": true },
+          "actions": [
+            {
+              "kind": "Digivolve",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "into": {
+                "controllerDefault": "mine",
+                "nameOrTrait": [{ "tokens": ["Regulusmon"], "match": "name" }]
+              },
+              "from": ["hand", "trash"],
+              "reduceCost": 1,
+              "optional": true
+            }
+          ]
         }
       ],
       "frequency": "OncePerTurn"
@@ -138,3 +127,5 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("EX10-042", compiled);
+
+export { compiled };

@@ -6,8 +6,29 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import "./BT26-074.js";
+import { compiled } from "./BT26-074.js";
 
 const CARD_ID = "BT26-074";
+
+it("encodes the shared once-per-turn Titan Option use and inherited lowest-level deletion", () => {
+  for (const effect of compiled.effects?.slice(0, 3) ?? []) {
+    expect(effect).toMatchObject({
+      frequency: "OncePerTurn",
+      sharedUseKey: "trash-hand-use-titan-option-from-trash",
+      actions: [
+        { kind: "PlayWithoutCost", from: ["trash"], payCost: true, reduceCostBy: 2, condition: { kind: "raw" } },
+      ],
+    });
+  }
+  expect(compiled.effects?.[3]).toMatchObject({
+    isInherited: true,
+    actions: [{ kind: "Delete", target: { superlative: "lowestLevel" } }],
+  });
+});
+
+it("exposes the printed level-4 TS evolution requirement", () => {
+  expect(compiled.digivolutionRequirement).toContainEqual({ level: 4, traits: ["TS"], cost: 3, isAlternate: true });
+});
 
 function definition(overrides: Partial<CardDefinition> = {}): CardDefinition {
   return {
@@ -75,7 +96,7 @@ describe("BT26-074 Cerberusmon", () => {
     const effects = [
       module.effectsForTiming(EffectTiming.OnPlay, ownerSource)[0]!,
       module.effectsForTiming(EffectTiming.WhenDigivolving, ownerSource)[0]!,
-      module.effectsForTiming(EffectTiming.OnAllyAttack, ownerSource)[0]!,
+      module.effectsForTiming(EffectTiming.WhenAttacking, ownerSource)[0]!,
     ];
 
     expect(effects.map(({ effectKey }) => effectKey)).toEqual([
@@ -90,6 +111,7 @@ describe("BT26-074 Cerberusmon", () => {
     const game = {
       player: () => ({ hand: [handCost], trash: [titanOption] }),
       definitionOf: () => definition({ kinds: [CardKind.Option], types: ["Titan"] }),
+      opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
     } as unknown as GameAccess;
     const opponentTurnEffect = module.effectsForTiming(EffectTiming.OnPlay, source(false))[0]!;
     const ctx = { game } as unknown as EffectContext;
@@ -116,6 +138,7 @@ describe("BT26-074 Cerberusmon", () => {
     const game = {
       player: () => owner,
       definitionOf: (instance: CardInstance) => definitions[instance.cardId] ?? definition({ cardId: instance.cardId }),
+      opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
     } as unknown as GameAccess;
     const trash = vi.fn(async () => [handCost]);
     const gainMemory = vi.fn();
@@ -140,7 +163,12 @@ describe("BT26-074 Cerberusmon", () => {
     expect(selectCards).toHaveBeenCalledWith(ctx, { candidates: [handCost.instanceId], min: 1, max: 1 });
     expect(trash).toHaveBeenCalledWith([handCost.instanceId], { byEffectSeat: 0 });
     expect(gainMemory).toHaveBeenCalledWith(-3);
-    expect(useOptionFromHand).toHaveBeenCalledWith(ctx, titanOption.instanceId, 5);
+    expect(useOptionFromHand).toHaveBeenCalledWith(
+      ctx,
+      titanOption.instanceId,
+      5,
+      expect.objectContaining({ payCost: true, costDelta: -2 }),
+    );
   });
 
   it("does not charge memory or use the Option when the hand-trash cost is prevented", async () => {
@@ -150,6 +178,7 @@ describe("BT26-074 Cerberusmon", () => {
       player: () => ({ hand: [handCost], trash: [titanOption] }),
       definitionOf: (instance: CardInstance) =>
         definition({ cardId: instance.cardId, kinds: [CardKind.Option], playCost: 3, types: ["Titan"] }),
+      opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
     } as unknown as GameAccess;
     const gainMemory = vi.fn();
     const useOptionFromHand = vi.fn(async () => []);

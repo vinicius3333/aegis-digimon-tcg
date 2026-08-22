@@ -53,6 +53,9 @@ const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "whenLinkTrashed",
+          "sourceFilter": {
+            "isSelfRef": true
+          },
           "actions": [
             {
               "kind": "GainMemory",
@@ -69,3 +72,5 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("EX10-043", compiled);
+
+export { compiled };

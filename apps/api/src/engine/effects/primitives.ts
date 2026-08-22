@@ -25,6 +25,7 @@ import {
   applyOverflow,
   extractCardAt,
   extractPermanentAt,
+  findPermanentInState,
   insertCard,
   placePermanent as appendPermanent,
   takeBottom,
@@ -400,8 +401,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
   };
 
   /** Whether the engine is currently re-firing persistent effects (see PrimitivesEngine). */
-  const continuousPass = (): boolean =>
-    (engine.inContinuousPass?.() ?? false) && !(engine.inResolvingWindow?.() ?? false);
+  const continuousPass = (): boolean => engine.inContinuousPass?.() ?? false;
   /** `{ continuous: true }` while re-firing persistent effects, else undefined. */
   const continuousOpt = (): { continuous: boolean } | undefined =>
     continuousPass() ? { continuous: true } : undefined;
@@ -566,7 +566,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     opts?: { setFixed?: boolean; once?: boolean; continuous?: boolean; onConsume?: (match: EvoCostMatch) => void },
   ): void => {
     ledger.addEvoCostAdjustment(filter, delta, opts?.setFixed ?? false, {
-      ...(opts?.continuous === true ? { continuous: true } : continuousOpt() ?? {}),
+      ...(opts?.continuous === true ? { continuous: true } : (continuousOpt() ?? {})),
       once: opts?.once,
       onConsume: opts?.onConsume,
     });
@@ -699,7 +699,9 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       costDelta?: number;
       suppressOnPlayEffects?: boolean;
       effectSourceCardId?: string;
+      playedByDecode?: boolean;
       digiXrosMaterialInstanceIds?: string[];
+      hostPermanentIds?: Record<string, string>;
     },
   ): Promise<Permanent[]> => {
     const created: Permanent[] = [];
@@ -738,7 +740,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         if (engine.memory.maxCostFor(ownerPlayer.seat) < cost) continue;
         if (cost > 0) engine.memory.pay(ownerPlayer.seat, cost, "playCard");
       }
-      const instance = removeLooseInstance(state, instanceId);
+      // Preserve the resolved host when moving stack material.  A material selected from
+      // the breeding stack must be detached from that exact permanent before the new
+      // permanent is placed; falling back to the global loose lookup can otherwise retain
+      // stale breeding material when the same instance id is observed through another view.
+      const resolvedHostPermanentId =
+        hostOfStackInstance(state, instanceId)?.hostPermanentId ?? opts?.hostPermanentIds?.[instanceId];
+      const instance = removeLooseInstance(state, instanceId, true, resolvedHostPermanentId);
       if (instance === undefined) continue;
       instance.faceUp = true;
       const permanent = placePermanent(engine, ownerPlayer, instance, definition, opts?.suspended ?? false);
@@ -798,6 +806,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
               ...(opts?.effectSourceCardId !== undefined
                 ? { playedByEffectSourceCardId: opts.effectSourceCardId }
                 : {}),
+              ...(opts?.playedByDecode === true ? { playedByDecode: true } : {}),
             },
           );
         }
@@ -817,6 +826,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         subjectPermanentIds: created.map((permanent) => permanent.permanentId),
         playedByEffect: true,
         ...(opts?.effectSourceCardId !== undefined ? { playedByEffectSourceCardId: opts.effectSourceCardId } : {}),
+        ...(opts?.playedByDecode === true ? { playedByDecode: true } : {}),
         ...(playedLevel !== undefined ? { playedLevel } : {}),
         ...(playedPlayCost !== undefined ? { playedPlayCost } : {}),
         ...(playedFromZone !== undefined ? { playedFromZone } : {}),
@@ -1320,6 +1330,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const def = requireCardDefinition(newTop.cardId);
     permanent.baseDP = def.kinds.includes(CardKind.Digimon) ? def.dp : 0;
     ledger.recomputeDP(state, permanentId);
+    // The promoted card is now the permanent's active top card. Re-derive its static
+    // keywords/effects before the deletion-prevention window continues (BT8 Armor Purge
+    // chains must expose the promoted card's own Armor Purge immediately).
+    await engine.recomputeContinuousEffects?.();
     // <Overflow> (CR §4-18): the old top card just left the battle area for trash — a genuine
     // leave, distinct from the permanent as a whole (which is NOT being deleted).
     applyOverflow(engine.memory, [oldTop], state.turnSeat);
@@ -2489,7 +2503,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // Default-safe: the consult returns empty unless a matching prevent-replacement is active.
     let toDelete = permanentIds;
     if (engine.consultLeavePrevention) {
-      const prevented = await engine.consultLeavePrevention(permanentIds, cause, engine.controllerSeat());
+      // A nested effect may be resolving for the non-turn player (for example an
+      // opponent's When Digivolving effect).  The turn seat is only the fallback;
+      // leave-cause gates such as "other than by your effects" must see the effect
+      // resolution owner that was pushed by the interpreter.
+      const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
+      const prevented = await engine.consultLeavePrevention(permanentIds, cause, resolvingSeat);
       if (prevented.size > 0) toDelete = permanentIds.filter((id) => !prevented.has(id));
     }
     // ＜Evade＞ keyword: when this Digimon would be deleted by an effect, you MAY suspend
@@ -2551,7 +2570,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           if (decoyCostPermanentIds.has(permanentId)) continue;
           const perm = access.permanentById(permanentId);
           if (perm === undefined || perm.topCard === undefined) continue;
-          const resolvingSeat = engine.controllerSeat();
+          const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
           if (resolvingSeat === perm.controllerSeat) continue; // must be an OPPONENT's effect
           const targetDef = requireCardDefinition(perm.topCard.cardId);
           const holders = access
@@ -2696,7 +2715,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         if (!continuous.hasKeyword(permanentId, "Scapegoat")) continue;
         const perm = access.permanentById(permanentId);
         if (perm === undefined) continue;
-        if (cause === "byEffect" && engine.controllerSeat() === perm.controllerSeat) continue;
+        const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
+        if (cause === "byEffect" && resolvingSeat === perm.controllerSeat) continue;
         const candidates = access
           .battleAreaPermanents(perm.controllerSeat)
           .filter((p) => p.permanentId !== permanentId && p.topCard !== undefined && access.isBattleAreaDigimon(p));
@@ -2813,7 +2833,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         const perm = access.permanentById(permanentId);
         if (perm === undefined || perm.topCard === undefined) return undefined;
         if (!continuous.hasKeyword(permanentId, "Partition")) return undefined;
-        if (cause === "byEffect" && engine.controllerSeat() === perm.controllerSeat) return undefined;
+        const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
+        if (cause === "byEffect" && resolvingSeat === perm.controllerSeat) return undefined;
         const spec = partitionSpecOf(perm.topCard.cardId);
         if (spec === undefined) return undefined;
         const remaining = [...perm.stack];
@@ -3540,18 +3561,24 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
             (candidate) => candidate.permanentId === permanent!.permanentId,
           );
           if (index >= 0) {
-            battleOwner.battleArea.splice(index, 1);
+            extractPermanentAt(battleOwner, index);
             dropPermanentLedgers(permanent.permanentId);
           }
         } else {
           permanent.topCard = promoted;
           const promotedDefinition = requireCardDefinition(promoted.cardId);
           permanent.baseDP = promotedDefinition.kinds.includes(CardKind.Digimon) ? promotedDefinition.dp : 0;
+          dropPermanentLedgers(permanent.permanentId);
           ledger.recomputeDP(state, permanent.permanentId);
+          // The promoted card is now the active top card. Recompute printed keywords and
+          // continuous effects before the next deletion/prevention window (BT9-044's
+          // security redirect can promote a Digimon with Armor Purge, such as BT8-038).
+          await engine.recomputeContinuousEffects?.();
         }
         detached.faceUp = faceUp;
         if (toTop) insertCard(p, Zone.Security, detached, "top");
         else insertCard(p, Zone.Security, detached);
+        ledger.dropSourceInstances(state, [detached.instanceId]);
         added.push(detached);
         continue;
       }
@@ -4618,7 +4645,21 @@ function locateInSecurity(state: GameState, instanceId: string): LocatedInZone |
  * from your trash"). The one verb that must NOT pull from trash is `trash` itself (it
  * moves cards INTO trash), so it passes `false`; every other caller wants the full set.
  */
-function removeLooseInstance(state: GameState, instanceId: string, includeTrash = true): CardInstance | undefined {
+function removeLooseInstance(
+  state: GameState,
+  instanceId: string,
+  includeTrash = true,
+  hostPermanentId?: string,
+): CardInstance | undefined {
+  if (hostPermanentId !== undefined) {
+    const host = findPermanentInState(state, hostPermanentId);
+    if (host !== undefined) {
+      const fromStack = spliceById(host.stack, instanceId);
+      if (fromStack) return fromStack;
+      const fromLinked = spliceById(host.linked, instanceId);
+      if (fromLinked) return fromLinked;
+    }
+  }
   for (const owner of state.players) {
     // See the matching note in peekLooseInstance: a resolving Option's own effect is allowed
     // to move it out of the transient `resolvingOption` slot into a real area (§9-1-5's

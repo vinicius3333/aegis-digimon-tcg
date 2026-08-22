@@ -401,6 +401,16 @@ export function permanentMatchesFilter(
   if (filter.suspended === false && permanent.isSuspended) return false;
   // Unsuspended-state filter ("opponent has no unsuspended Digimon") — live state.
   if (filter.unsuspended && permanent.isSuspended) return false;
+  if (filter.sameOrientationAsSource) {
+    // In an attack window, the trigger's attacker is the authoritative live "this Digimon"
+    // identity. Prefer it over a possibly stale/conferred CardSource, while retaining the
+    // source lookup for non-attack effect contexts that use this predicate.
+    const relativePermanentId = ctx.trigger.attackerPermanentId ?? ctx.trigger.subjectPermanentId;
+    const sourcePermanent = relativePermanentId !== undefined
+      ? ctx.game.permanentById(relativePermanentId)
+      : source?.permanent();
+    if (sourcePermanent === undefined || permanent.isSuspended !== sourcePermanent.isSuspended) return false;
+  }
 
   if ((filter.digivolutionCards === "none" || filter.digivolutionCards === "hasNone") && permanent.stack.length > 0)
     return false;
@@ -530,10 +540,11 @@ export function permanentMatchesFilter(
   // GameAccess.effectiveKinds is available, check effective kinds first; fall back
   // to the static CardDefinition.kinds when it isn't (test fakes / lightweight calls).
   if (filter.kind?.includes("Digimon")) {
-    const effective = ctx.game.effectiveKinds?.(permanent.permanentId);
+    const effective = ctx.game.effectiveKinds?.(permanent.permanentId, def.kinds) ?? def.kinds;
     if (effective !== undefined) {
       const wanted = filter.kind.map((k) => KIND_MAP[k]);
-      if (!wanted.some((k) => effective.includes(k))) return false;
+      const tokenAsDigimon = filter.allowTokens === true && def.isToken === true && wanted.includes(CardKind.Digimon);
+      if (!tokenAsDigimon && !wanted.some((k) => effective.includes(k))) return false;
       // Strip kind from filter so definitionMatches doesn't double-check against static def.kinds
       const { kind: _k, ...rest } = filter;
       return definitionMatches(rest, def);

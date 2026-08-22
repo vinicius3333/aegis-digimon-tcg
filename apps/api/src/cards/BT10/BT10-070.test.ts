@@ -16,6 +16,19 @@ describe("BT10-070 Blastmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("source"), "Blitz")).toBe(true);
   });
 
+  it("also gains Blitz with four digivolution cards (Q1994)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT10-070", as: "source", under: ["BT10-018", "BT10-019", "BT10-021", "BT10-022"] }] },
+    });
+    const engine = s.engine as unknown as {
+      fireTimingForInstance(timing: EffectTiming, instanceId: string): Promise<void>;
+    };
+
+    await engine.fireTimingForInstance(EffectTiming.OnPlay, s.perm("source").topCard.instanceId);
+
+    expect(observe(s.engine).hasKeyword(s.perm("source"), "Blitz")).toBe(true);
+  });
+
   it("pays one source to delete a level 4 attacker only once per opponent turn", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

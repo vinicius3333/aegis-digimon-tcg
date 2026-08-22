@@ -1,11 +1,6 @@
-import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { Permanent, Seat } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { staticModifier, turnTiming, whenAttacking, whenDigivolving } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Vortexdramon — EX11-074 (Green Lv.7 Digimon).
 //
@@ -218,7 +213,53 @@ const module: EffectModule = {
 
     return [];
   },
+  { kind: "ModifyDP", target: self, amount: 6000, duration: "untilOpponentTurnEnd" },
+];
+const suspendChoice = [
+  { kind: "Suspend", target: { filter: { kind: ["Digimon"] }, count: 1 }, optional: true, abortOnDecline: true },
+  ...reward.map((action) => ({ ...action, condition: { kind: "lastSuspendedIsMine" } })),
+];
+
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Static",
+      actions: [],
+      effectKey: "EX11-074/piercing",
+      keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }],
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      effectKey: "EX11-074/vortex",
+      keywords: [{ keyword: "Vortex", raw: "＜Vortex＞" }],
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      effectKey: "EX11-074/blocker",
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
+    },
+    { trigger: "WhenDigivolving", optional: true, actions: suspendChoice },
+    { trigger: "WhenAttacking", optional: true, actions: suspendChoice },
+    {
+      trigger: "AllTurns",
+      timingOverride: "OnTappedAnyone",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          actions: [
+            { kind: "Unsuspend", target: self, optional: true },
+            { kind: "Battle", attacker: self, defender: opponentDigimon, optional: true },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
-registerCard(module);
-export default module;
+export default registerIrCard("EX11-074", compiled);

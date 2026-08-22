@@ -8,7 +8,11 @@ describe("BT21-076 WarGrowlmon", () => {
         frequency: "OncePerTurn",
         actions: expect.arrayContaining([
           expect.objectContaining({ kind: "Digivolve" }),
-          expect.objectContaining({ kind: "Replacement", mode: "reduceCost", scaling: expect.anything() }),
+          expect.objectContaining({
+            kind: "Replacement",
+            mode: "reduceCost",
+            scaling: { per: 10, unit: "cards", filter: { zone: "trash", controller: "both" } },
+          }),
         ]),
       }),
     );
@@ -18,11 +22,15 @@ describe("BT21-076 WarGrowlmon", () => {
         isInherited: true,
         actions: [
           expect.objectContaining({
-            kind: "Trash",
-            target: expect.objectContaining({ filter: { controller: "opponent" } }),
+            kind: "SecurityManipulation",
+            op: "trashTop",
+            controller: "opponent",
+            amount: 1,
           }),
         ],
       }),
     );
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });

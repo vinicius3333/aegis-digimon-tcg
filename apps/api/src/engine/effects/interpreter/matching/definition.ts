@@ -63,6 +63,13 @@ export function parseCopyEffectsFilterText(raw: string): Filter | undefined {
  * (e.g. `hasLevel` excludes Lv.- cards from a level-budget delete).
  */
 export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean {
+  // A small set of catalog records still uses the legacy `cardType`/`trait`
+  // spelling inside `orFilters` (notably BT25-085's dual Option clause).
+  // Normalize those fields here so an unsupported field cannot accidentally
+  // turn an OR branch into an unconstrained match.
+  const legacy = filter as Filter & { cardType?: string; trait?: string[] };
+  if (legacy.cardType !== undefined && !def.kinds.some((kind) => String(kind) === legacy.cardType)) return false;
+  if (legacy.trait !== undefined && !legacy.trait.some((trait) => (def.types ?? []).includes(trait))) return false;
   // Disjunctive sub-filter: "black or has [Legend-Arms] in its traits" — the card matches
   // if ANY sub-filter matches. All other fields on the parent filter still apply (AND).
   if (filter.or && filter.or.length > 0) {
@@ -72,9 +79,14 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
     if (!filter.and.every((f) => definitionMatches(f, def))) return false;
   }
   if (filter.not && definitionMatches(filter.not, def)) return false;
+  if (filter.isToken !== undefined && def.isToken !== filter.isToken) return false;
   if (filter.kind && filter.kind.length > 0) {
     const wanted = filter.kind.map((k) => KIND_MAP[k]);
-    if (!wanted.some((k) => def.kinds.includes(k))) return false;
+    // Tokens are Digimon permanents for target/cost resolution even though their
+    // synthetic definitions carry the Token kind rather than the printed
+    // Digimon kind.  `allowTokens` is the explicit IR opt-in for that rule.
+    const tokenAsDigimon = filter.allowTokens === true && def.isToken === true && wanted.includes(CardKind.Digimon);
+    if (!tokenAsDigimon && !wanted.some((k) => def.kinds.includes(k))) return false;
   }
   if (filter.hasDnaDigivolutionRequirement === true) {
     const compiled = def.cardId !== undefined ? runtimeCompiledCard(def.cardId) : undefined;
@@ -283,7 +295,7 @@ export function matchNameOrTrait(
     if (ref.match === "name") return names.some((name) => name.includes(nameToken));
     // named "Cerberusmon: Werewolf Mode" does NOT match "Cerberusmon" (KB Q1231/Q1232).
     if (ref.match === "nameExact") return names.some((name) => name === nameToken);
-    if (ref.match === "trait") return traits.some((x) => x.includes(normalizeTrait(rawToken)));
+    if (ref.match === "trait") return traits.some((x) => x === normalizeTrait(rawToken));
     // a card NAMED/TRAITED X "has [X] in its text" too, so "text" is the full union
     // (identical to "any"), not effectText-only.
     return (

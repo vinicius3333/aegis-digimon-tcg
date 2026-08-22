@@ -6,8 +6,27 @@ describe("BT13-046 Kentaurosmon", () => {
   it("contains the security-count reveal effects and the attack cost/debuff sequence", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects[0]).toMatchObject({ trigger: "OnPlay", actions: [expect.objectContaining({ kind: "GainMemory", amount: 3 }), expect.objectContaining({ kind: "RevealAdd" })] });
-    expect(compiled.effects[2]).toMatchObject({ trigger: "WhenAttacking", frequency: "OncePerTurn", actions: [expect.objectContaining({ kind: "Unsuspend", abortOnDecline: true }), expect.objectContaining({ kind: "ModifyDP", amount: -7000 })] });
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "OnPlay",
+      actions: [
+        { kind: "GainMemory", amount: 3, condition: { kind: "raw", raw: expect.stringContaining("6 or fewer") } },
+        {
+          kind: "HandRevealAdd",
+          target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+          securityFilter: { colors: ["Yellow"] },
+          toTop: true,
+          condition: { kind: "raw", raw: expect.stringContaining("6 or fewer") },
+        },
+      ],
+    });
+    expect(compiled.effects[2]).toMatchObject({
+      trigger: "WhenAttacking",
+      frequency: "OncePerTurn",
+      actions: [
+        expect.objectContaining({ kind: "Unsuspend", abortOnDecline: true }),
+        expect.objectContaining({ kind: "ModifyDP", amount: -7000 }),
+      ],
+    });
   });
 
   it("loads the IR implementation into a live Kentaurosmon permanent", async () => {

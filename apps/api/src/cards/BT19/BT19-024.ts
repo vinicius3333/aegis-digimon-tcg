@@ -118,6 +118,7 @@ const compiled: CompiledCard = {
               },
               "from": ["digivolutionCards"],
               "payCost": false,
+              "playedByDecode": true,
               "optional": true
             }
           ]

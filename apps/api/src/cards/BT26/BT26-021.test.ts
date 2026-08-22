@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { CardKind, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
+import { CardKind, EffectTiming, digivolutionRequirementsFor, type CardDefinition, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -8,9 +8,37 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, SubTriggerInstall } from "../../engine/effects/EffectContext.js";
 import "./BT26-021.js";
 import "../index.js";
+import { compiled } from "./BT26-021.js";
 
 const CARD_ID = "BT26-021";
 const MAIN_KEY = "main-play-ts-tamer-from-trash";
+
+it("exposes the printed level-3 TS evolution", () => {
+  expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({ level: 3, traits: ["TS"], cost: 2, isAlternate: true });
+});
+
+it("encodes normal TS targeting, reduced trash Tamer play, and inherited bottom-source cost", () => {
+  expect(compiled.effects).toMatchObject([
+    { trigger: "OnPlay", actions: [{ kind: "Restrict", restriction: "attackTargetChange" }] },
+    { trigger: "WhenDigivolving", actions: [{ kind: "Restrict", restriction: "attackTargetChange" }] },
+    {
+      trigger: "Main",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "PlayWithoutCost", from: ["trash"], reduceCostBy: 2 }],
+    },
+    {
+      trigger: "AllTurns",
+      isInherited: true,
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          actions: [{ kind: "TrashDigivolution", amount: 2, fromTop: false }],
+        },
+      ],
+    },
+  ]);
+});
 
 function definition(over: Partial<CardDefinition> = {}): CardDefinition {
   return {
@@ -58,6 +86,7 @@ describe("BT26-021 inherited watcher boundaries", () => {
       game: {
         player: (seat: Seat) => (seat === 0 ? { hand, battleArea: [] } : { hand: [], battleArea: [target] }),
         opponentOf: () => 1 as Seat,
+        permanentById: (permanentId: string) => (permanentId === target.permanentId ? target : undefined),
         definitionOf: () => definition(),
       },
       ask: { selectCards: async () => [] },

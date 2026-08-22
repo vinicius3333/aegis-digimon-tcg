@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js"; // register the compiled cards so the real activateEffect path runs
+import { compiled } from "./BT20-102.js";
 
 /**
  * A3 for BT20-102 (Omnimon (X Antibody)) — the [When Digivolving] mass-delete's survivor.
@@ -25,12 +26,31 @@ const OWN_OTHER = "AD1-011"; // an unrelated own Digimon, must be deleted (not t
 const OPPONENT_DIGIMON = "AD1-004"; // an unrelated opponent Digimon, must be deleted
 
 describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor (Target.except)", () => {
+  it("grants Rush and then offers the same Digimon an unsuspending attack", () => {
+    expect(compiled.effects.find((entry) => entry.trigger === "EndOfYourTurn")).toMatchObject({
+      frequency: "OncePerTurn",
+      actions: [
+        { kind: "GainKeyword", keyword: { keyword: "Rush" }, duration: "forTheTurn" },
+        {
+          kind: "Attack",
+          target: { sameTarget: true },
+          withoutSuspending: true,
+          optional: true,
+          condition: { kind: "ifThisEffectActed" },
+        },
+      ],
+    });
+  });
+
   it("keeps the chosen survivor (itself) while deleting every other Digimon", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: OMNIMON_BASE, as: "base" }, { card: OWN_OTHER, as: "ownOther" }],
+          battleArea: [
+            { card: OMNIMON_BASE, as: "base" },
+            { card: OWN_OTHER, as: "ownOther" },
+          ],
           hand: [{ card: OMNIMON_XA, as: "evolving" }],
         },
         1: {

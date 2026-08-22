@@ -59,7 +59,7 @@ describe("BT25-100 Iron Slash", () => {
     await settle(() => observe(s.engine).hasKeyword(s.perm("host"), "Collision"));
 
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Collision")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Piercing")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
     expect(s.perm("host").currentDP).toBe(getCardDefinition("BT25-075")!.dp + 2000);
   });
 

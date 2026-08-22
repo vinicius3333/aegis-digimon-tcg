@@ -17,6 +17,22 @@ describe("BT10-073 ChuuChuumon", () => {
     expect(player.deck).toHaveLength(2);
   });
 
+  it("adds the only available category card and bottoms the other reveals (Q1996)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT10-073", as: "source" }],
+        deck: [{ card: "BT10-075", as: "digimon" }, "BT10-071", "BT10-072", "BT10-074"],
+      },
+    }, { autoSelectCards: true });
+    s.state.memory = 4;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("digimon").instanceId));
+
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+  });
+
   it("uses Save to place itself under Yuu Amano on deletion", async () => {
     const s = setupEngine(
       {

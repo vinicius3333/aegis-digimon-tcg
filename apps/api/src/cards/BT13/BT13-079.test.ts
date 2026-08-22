@@ -8,7 +8,7 @@ describe("BT13-079 Falcomon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions?.[0]).toMatchObject({
       kind: "GainKeyword",
       target: { filter: { controller: "mine", kind: ["Digimon"], colors: ["Purple"] }, count: 1 },
-      keyword: { keyword: "Retaliation" },
+      keyword: { keyword: "Retaliation", raw: "＜Retaliation＞" },
       duration: "untilOpponentTurnEnd",
     });
   });
@@ -18,12 +18,19 @@ describe("BT13-079 Falcomon", () => {
       kind: "Trash",
       chooser: "opponent",
       target: { filter: { controller: "opponent", zone: "hand" }, count: 1 },
-      condition: { kind: "not", condition: { kind: "triggerRemovalCause", removalCause: "byBattle" } },
+      condition: {
+        kind: "not",
+        condition: { kind: "triggerRemovalCause", removalCause: "byBattle" },
+        raw: "deleted outside of a battle",
+      },
     });
   });
 
   it("trashes an opposing hand card when deleted outside battle", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-079"] }] }, 1: { hand: ["BT1-001"] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT13-079"] }] }, 1: { hand: ["BT1-001"] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
 
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);

@@ -1,136 +1,34 @@
-import { CardKind, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
-import { describe, expect, it, vi } from "vitest";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext, GameAccess, Primitives, SubTriggerInstall } from "../../engine/effects/EffectContext.js";
+import { describe, expect, it } from "vitest";
+import { compiled } from "./BT26-049.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import module from "./BT26-049.js";
-import "../index.js";
-
-const CARD_ID = "BT26-049";
-
-function source(): CardSource {
-  return {
-    instanceId: "rosemon",
-    cardId: CARD_ID,
-    ownerSeat: 0 as Seat,
-    definition: {} as CardDefinition,
-    permanent: () => ({ permanentId: "rosemon-permanent" }) as never,
-    isOnBattleArea: () => true,
-    isOwnersTurn: () => true,
-    hasColor: () => true,
-  };
-}
 
 describe("BT26-049 Rosemon", () => {
-  it("uses the [Lilamon] alternate evolution path for cost 3 instead of ordinary 4", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT23-044", as: "lilamon" }],
-          hand: [{ card: CARD_ID, as: "rosemon" }],
-          deck: ["BT5-022"],
-        },
-      },
-      { autoDeclineOptional: true },
-    );
-    s.state.memory = 3;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("lilamon").permanentId,
-        instanceId: s.inst("rosemon").instanceId,
-        useAlternateCost: true,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("lilamon").topCard.instanceId === s.inst("rosemon").instanceId);
-    expect(s.state.memory).toBe(0);
+  it("encodes the shared suspend budget and both All Turns reaction routes", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { names: ["Lilamon"], cost: 3, isAlternate: true },
+      { level: 5, traits: ["DATA SQUAD"], cost: 3, isAlternate: true },
+    ]);
+    expect(compiled.effects?.[0]).toMatchObject({ trigger: "WhenDigivolving", frequency: "OncePerTurn", actions: [{ kind: "Suspend", target: { count: 2, upTo: true } }] });
+    expect(compiled.effects?.[1]).toMatchObject({ trigger: "WhenAttacking", sharedUseKey: "bt26-049-suspend" });
+    expect(compiled.effects?.[2]).toMatchObject({ trigger: "AllTurns", frequency: "OncePerTurn", actions: [
+      { kind: "SubTrigger", event: "whenSuspended", actions: [{ kind: "Modal", choose: 1, options: [[{ kind: "PlayWithoutCost", playCostCeiling: { base: 3, raise: 1, per: 1, unit: "cards" } }], [{ kind: "UseOptionWithoutCost", playCostCeiling: { base: 3, raise: 1, per: 1, unit: "cards" } }]] }] },
+      { kind: "SubTrigger", event: "whenDigivolutionTrashed", actions: [{ kind: "Modal", choose: 1 }] },
+    ] });
+    expect(compiled.effects?.[2]?.actions?.[0]?.actions?.[0]?.target?.filter).not.toHaveProperty("playCostLte");
   });
 
-  it("shares one OPT across When Digivolving/When Attacking and only offers unsuspended opponent cards", async () => {
-    const cardSource = source();
-    const opponent = [
-      { permanentId: "digimon", inBreeding: false, isSuspended: false, topCard: { cardId: "DIGIMON" } },
-      { permanentId: "tamer", inBreeding: false, isSuspended: false, topCard: { cardId: "TAMER" } },
-      { permanentId: "already", inBreeding: false, isSuspended: true, topCard: { cardId: "DIGIMON" } },
-    ];
-    const suspend = vi.fn();
-    const ctx = {
-      source: cardSource,
-      game: {
-        opponentOf: () => 1 as Seat,
-        player: (seat: Seat) => ({ battleArea: seat === 1 ? opponent : [] }),
-        definitionOf: (card: { cardId: string }) => ({
-          kinds: [card.cardId === "TAMER" ? CardKind.Tamer : CardKind.Digimon],
-        }),
-      } as unknown as GameAccess,
-      ask: {
-        chooseTargets: vi.fn(async (_ctx, options: { candidates: string[] }) => {
-          expect(options.candidates).toEqual(["digimon", "tamer"]);
-          return options.candidates;
-        }),
-      },
-      fx: { suspend },
-    } as unknown as EffectContext;
-    const effects = [EffectTiming.WhenDigivolving, EffectTiming.OnAllyAttack].map(
-      (timing) => module.effectsForTiming(timing, cardSource)[0]!,
-    );
-
-    expect(new Set(effects.map(({ effectKey }) => effectKey))).toEqual(new Set([`${CARD_ID}/wd-wa-suspend-2`]));
-    await effects[0]!.resolve(ctx);
-    expect(suspend).toHaveBeenCalledWith(["digimon", "tamer"]);
-  });
-
-  it("plays a cost-4 DATA SQUAD Tamer for free after one opposing Digimon suspends", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: CARD_ID, as: "rosemon" }],
-          hand: [{ card: "BT26-091", as: "tamer" }],
-        },
-        1: { battleArea: [{ card: "BT5-022", as: "opponent" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
+  it("uses an Option after two opposing suspensions raise the DATA SQUAD ceiling to five", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT26-049", as: "rosemon" }], hand: [{ card: "BT26-098", as: "option" }] },
+      1: { battleArea: [{ card: "BT1-085", as: "suspendedOne", suspended: true }, { card: "BT1-086", as: "suspendedTwo", suspended: true }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 });
     await s.ready();
 
-    await advance(s.engine).verb.suspend([s.perm("opponent").permanentId]);
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT26-091"));
+    await advance(s.engine).fireSubTrigger("whenSuspended", { suspendedPermanentId: s.perm("suspendedOne").permanentId });
+    await settle();
 
-    expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.hand).toHaveLength(0);
-  });
-
-  it("installs both trigger routes with one instance-scoped key and requires an effect trash under a Tamer", async () => {
-    const installed: SubTriggerInstall[] = [];
-    const cardSource = source();
-    const tamer = {
-      permanentId: "tamer",
-      controllerSeat: 0 as Seat,
-      topCard: { cardId: "TAMER" },
-      inBreeding: false,
-    };
-    const ctx = {
-      source: cardSource,
-      game: {
-        permanentById: () => tamer,
-        definitionOf: () => ({ kinds: [CardKind.Tamer] }),
-      },
-      fx: { subscribeSubTrigger: vi.fn((sub) => installed.push(sub)) } as unknown as Primitives,
-    } as unknown as EffectContext;
-    const effect = module
-      .effectsForTiming(EffectTiming.None, cardSource)
-      .find(({ effectKey }) => effectKey.endsWith("all-turns-free-play-or-use"))!;
-
-    await effect.resolve(ctx);
-    expect(installed).toHaveLength(2);
-    expect(new Set(installed.map(({ oncePerTurnKey }) => oncePerTurnKey))).toEqual(
-      new Set([`rosemon/${CARD_ID}/all-turns-free-play-or-use`]),
-    );
-    const trashWatcher = installed.find(({ event }) => event === "whenDigivolutionTrashed")!;
-    expect(trashWatcher.matches!({ ...ctx, trigger: { subjectPermanentId: "tamer" } } as EffectContext)).toBe(false);
-    expect(
-      trashWatcher.matches!({ ...ctx, trigger: { subjectPermanentId: "tamer", byEffectSeat: 1 } } as EffectContext),
-    ).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 });

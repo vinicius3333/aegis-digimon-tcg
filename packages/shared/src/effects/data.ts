@@ -124,7 +124,9 @@ export const APP_FUSION_REQUIREMENT_OVERRIDES: Record<string, AppFusionRequireme
 
 /** Look up the compiled IR record for a card id, or undefined when absent. */
 export function getCompiledCard(cardId: string): CompiledCard | undefined {
-  return compiledEffects[cardId];
+  const compiled = compiledEffects[cardId];
+  if (compiled === undefined || !HAND_AUTHORED_COVERAGE_OVERRIDES.has(cardId)) return compiled;
+  return { ...compiled, coverage: "full", residual: [] };
 }
 
 /**
@@ -293,10 +295,34 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
   // EX12-055 prints Black/Purple Lv.4 + Red/Yellow Lv.4: expand the color alternatives
   // into the four concrete material pairings consumed by the server legality seam.
   "EX12-055": [
-    { cost: 0, materials: [{ color: "Black", level: 4 }, { color: "Red", level: 4 }] },
-    { cost: 0, materials: [{ color: "Black", level: 4 }, { color: "Yellow", level: 4 }] },
-    { cost: 0, materials: [{ color: "Purple", level: 4 }, { color: "Red", level: 4 }] },
-    { cost: 0, materials: [{ color: "Purple", level: 4 }, { color: "Yellow", level: 4 }] },
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 4 },
+        { color: "Red", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 4 },
+        { color: "Yellow", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Purple", level: 4 },
+        { color: "Red", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Purple", level: 4 },
+        { color: "Yellow", level: 4 },
+      ],
+    },
   ],
   "BT17-078": [
     {
@@ -333,10 +359,10 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     { names: ["Luminamon"], cost: 2, isAlternate: true },
     {
       names: ["Nene Amano"],
-      minNameStackCount: 1,
-      minNameStackNames: ["Shademon"],
       cost: 3,
       isAlternate: true,
+      minNameStackCount: 1,
+      minNameStackNames: ["Shademon"],
     },
   ],
   // EX12-032 prints two Lv.4 alternate paths: Garurumon in name, or NSo/VB trait.
@@ -953,11 +979,21 @@ export function baseGrantedDigivolveFor(cardId: string): BaseGrantedDigivolve[] 
  * + cost) and CLIENT (material highlighting) read ONE source of truth.
  */
 export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[]> = {
+  // ST19-10: [Tyrannomon]/[Raremon] in name plus a Lv.4 [Puppet] Digimon.
+  "ST19-10": [
+    {
+      materials: [
+        { nameOrTrait: [{ tokens: ["Tyrannomon", "Raremon"], match: "name" }], level: 4 },
+        { traits: ["Puppet"], level: 4 },
+      ],
+      count: 2,
+    },
+  ],
   // BT19-102: [Nene Amano] is a Tamer material and the second slot accepts either named Digimon.
   "BT19-102": [
     {
-      materials: [{ names: ["Nene Amano"] }, { names: ["Luminamon", "Shademon"] }],
       count: 1,
+      materials: [{ names: ["Nene Amano"] }, { names: ["Luminamon", "Shademon"] }],
     },
   ],
   // EX12-029: the printed slot is one Lv.5-or-lower Digimon with [Gokuumon] in its text

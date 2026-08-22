@@ -6,120 +6,126 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // [Xros Heart]/[Blue Flare] trait Digimon cards from its digivolution cards under 1
 // of your Tamers. No Blue color restriction in the text — trait only.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "grant": "name",
-          "tokens": ["Shoutmon", "ZeigGreymon"]
-        }
-      ]
+          grant: "name",
+          tokens: ["Shoutmon", "ZeigGreymon"],
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "SecurityAttack",
-          "amount": 1,
-          "raw": "＜Security Attack +1＞"
-        }
-      ]
+          keyword: "SecurityAttack",
+          amount: 1,
+          raw: "＜Security Attack +1＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "superlative": "lowestDP"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestDP",
             },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"],
-              "superlative": "lowestDP"
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "isSelfRef": true
+            count: 1,
           },
-          "mode": "instead",
-          "actions": [
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestDP",
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          mode: "instead",
+          actions: [
             {
-              "kind": "PlaceUnder",
-              "target": {
-                "filter": {
-                  "nameOrTrait": [
+              kind: "PlaceUnder",
+              target: {
+                filter: {
+                  nameOrTrait: [
                     {
-                      "tokens": ["Xros Heart", "Blue Flare"],
-                      "match": "trait"
-                    }
-                  ]
+                      tokens: ["Xros Heart", "Blue Flare"],
+                      match: "trait",
+                    },
+                  ],
                 },
-                "count": 4,
-                "upTo": true,
-                "from": ["digivolutionCards"]
+                count: 4,
+                upTo: true,
+                from: ["digivolutionCards"],
               },
-              "underFilter": {
-                "controller": "mine",
-                "kind": ["Tamer"]
-              }
-            }
+              underFilter: {
+                controller: "mine",
+                kind: ["Tamer"],
+              },
+            },
           ],
-          "optional": true,
-          "raw": "you may place up to 4 [Xros Heart]/[Blue Flare] trait Digimon cards from its digivolution cards under 1 of your Tamers"
-        }
-      ]
-    }
+          optional: true,
+          raw: "you may place up to 4 [Xros Heart]/[Blue Flare] trait Digimon cards from its digivolution cards under 1 of your Tamers",
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": ["ZeigGreymon"],
-      "cost": 2,
-      "isAlternate": true
+      names: ["ZeigGreymon"],
+      cost: 2,
+      isAlternate: true,
     },
     {
-      "level": 5,
-      "traits": ["Xros Heart"],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      level: 5,
+      traits: ["Xros Heart"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
+  digiXrosRequirement: [
+    {
+      materials: [{ names: ["OmniShoutmon"] }, { names: ["ZeigGreymon"] }],
+      count: 2,
+    },
+  ],
 };
 
 registerIrCard("BT21-027", compiled);

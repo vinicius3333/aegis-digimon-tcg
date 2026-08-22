@@ -7197,6 +7197,33 @@ describe("CAP-C-16: GainTriggeredEffect (BT21-077)", () => {
     expect(installed!.matches!(subCtxOffField)).toBe(false);
   });
 
+  it("EndOfYourTurn grants map to endOfTurn and gate to the granted owner's turn", async () => {
+    const { ctx, src, targetPerm, getCaptured } = makeGainTriggeredCtx();
+    const action = {
+      ...(gainTriggeredAction as unknown as Record<string, unknown>),
+      gainedTrigger: "EndOfYourTurn",
+    } as never;
+    const ir: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [{ trigger: "OnPlay", actions: [action] }],
+    } as unknown as CompiledCard;
+    await irCardModule("C16-end-of-your-turn", ir).effectsForTiming(EffectTiming.OnPlay, src)[0]!.resolve(ctx);
+    const installed = getCaptured();
+    expect(installed).toMatchObject({ event: "endOfTurn", sourcePermanentId: targetPerm.permanentId });
+    expect(installed?.matches).toBeDefined();
+
+    const subSource: CardSource = {
+      ...src,
+      ownerSeat: 1 as Seat,
+      permanent: () => targetPerm,
+      isOnBattleArea: () => true,
+      isOwnersTurn: () => true,
+    };
+    expect(installed!.matches!({ ...ctx, source: subSource })).toBe(true);
+    expect(installed!.matches!({ ...ctx, source: { ...subSource, isOwnersTurn: () => false } as never })).toBe(false);
+  });
+
   it("keeps an immune target selectable for the grant but suppresses the gained trigger while immunity applies", async () => {
     const { ctx, src, targetPerm, getCaptured } = makeGainTriggeredCtx();
     ctx.fx.isBeAffectedBySourceKind = (_id, kind) => kind === "Digimon";

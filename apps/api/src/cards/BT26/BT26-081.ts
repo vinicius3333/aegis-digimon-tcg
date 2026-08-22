@@ -1,184 +1,36 @@
-import { EffectDuration, EffectTiming, isDigimon, isTamer } from "@aegis/shared";
-import type { CardDefinition, CardInstance } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, whenDigivolving, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
-import { cardHasTrait, isPermanentKind } from "../../engine/cards/cardData.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/**
- * BT26-081 — Mervamon (BT26, Purple/Yellow/Black Lv.6 Digimon).
- *
- * The committed KB contains Q7115-Q7116 (2026-08-18), confirming that the DP reduction
- * is independent of whether a card was played and that resulting 0-DP deletion waits for
- * the rule-check timing after the whole effect resolves.
- *
- * Printed text:
- *   [Digivolve] [Minervamon]: Cost 2
- *   [Digivolve] Lv.5 w/[TS] trait: Cost 4
- *   [Assembly -5] [Minervamon]
- *   [On Play] [When Digivolving] You may play up to 8 play cost's total worth of [Iliad]
- *     trait cards from your hand or trash without paying the costs. Then, to 1 of your
- *     opponent's Digimon, give -4000 DP until their turn ends for each of your [Iliad] or
- *     [TS] trait Digimon or Tamers.
- *   [All Turns] All of your [Iliad] trait Digimon gain ＜Alliance＞, ＜Reboot＞,
- *     ＜Blocker＞ and +2000 DP.
- *
- * Clause mapping:
- *   EffectTiming.OnPlay / EffectTiming.WhenDigivolving — "Play up to 8 play cost's total
- *     worth of [Iliad] trait cards ... without paying the costs": there is no
- *     "totalPlayCostBudget" primitive (the compiled IR for similarly-worded cards —
- *     EX7-047, EX8-029, BT8-106 — carries the SAME field name only as an unexecuted
- *     compiler placeholder; `rg -n "totalPlayCostBudget" apps/api/src/engine` has zero
- *     hits anywhere at runtime). Per card-module contract.3 this is one-off card logic, not a
- *     missing reusable primitive: modeled inline as a repeated "spend remaining budget"
- *     loop — each iteration offers the player any not-yet-played [Iliad] card from hand
- *     or trash whose OWN printed cost fits the remaining budget, using only the existing
- *     `ctx.ask.selectCards` / `ctx.fx.playInstances` primitives. Then "-4000 DP for each
- *     of your [Iliad] or [TS] trait Digimon or Tamers" is a scaling DP debuff on 1 chosen
- *     opponent Digimon (`ctx.fx.modifyDP`).
- *   EffectTiming.None — the "[All Turns]" static keyword+DP group-grant, re-derived every
- *     continuous pass over ALL of the controller's [Iliad] trait Digimon (BT5-085's
- *     `battleArea`-iteration group-grant shape, not a self-only grant).
- */
-const cardId = "BT26-081";
-const BUDGET = 8;
+const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const iliad = { controller: "mine", zone: "battleArea", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }] };
+const iliadHandOrTrash = { controller: "mine", kind: ["Digimon", "Tamer", "Option"], nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }] };
+const iliadOrTs = { controller: "mine", kind: ["Digimon", "Tamer"], nameOrTrait: [{ tokens: ["Iliad", "TS"], match: "trait" }] };
 
-function hasIliadTrait(def: CardDefinition): boolean {
-  return cardHasTrait(def, "Iliad");
-}
+const main = [
+  { kind: "PlayMultiple", filter: iliadHandOrTrash, from: ["hand", "trash"], payCost: false, totalCost: 8, optional: true },
+  { kind: "ModifyDP", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, amount: -4000, duration: "untilOpponentTurnEnd", scaling: { per: 1, unit: "cards", filter: iliadOrTs } },
+];
 
-function hasIliadOrTsTrait(def: CardDefinition): boolean {
-  return cardHasTrait(def, "Iliad") || cardHasTrait(def, "TS");
-}
-
-/** "Play up to 8 play cost's total worth of [Iliad] trait cards from hand/trash without paying costs." */
-async function resolvePlayIliadBudget(ctx: EffectContext, source: CardSource): Promise<void> {
-  let remaining = BUDGET;
-  const owner = ctx.game.player(source.ownerSeat);
-  const available = [...owner.hand, ...owner.trash];
-
-  const poolOf = (): CardInstance[] =>
-    available.filter((c) => {
-      const def = ctx.game.definitionOf(c);
-      return isPermanentKind(def) && hasIliadTrait(def) && def.playCost <= remaining;
-    });
-
-  for (;;) {
-    const pool = poolOf();
-    if (pool.length === 0) break;
-    const willPlay = await ctx.ask.optional(ctx, `Play an [Iliad] trait card (${remaining} cost remaining)?`);
-    if (!willPlay) break;
-    const candidateIds = pool.map((c) => c.instanceId);
-    const picked = await ctx.ask.selectCards(ctx, { candidates: candidateIds, min: 1, max: 1 });
-    if (picked.length === 0) break;
-    const chosen = pool.find((c) => c.instanceId === picked[0]);
-    if (chosen === undefined) break;
-    const def = ctx.game.definitionOf(chosen);
-    const played = await ctx.fx.playInstances([chosen.instanceId], { payCost: false });
-    available.splice(
-      available.findIndex((candidate) => candidate.instanceId === chosen.instanceId),
-      1,
-    );
-    if (played.length === 0) continue;
-    remaining -= def.playCost;
-    if (remaining <= 0) break;
-  }
-}
-
-/** "-4000 DP for each of your [Iliad] or [TS] trait Digimon or Tamers." */
-async function resolveDpDebuff(ctx: EffectContext, source: CardSource): Promise<void> {
-  const owner = ctx.game.player(source.ownerSeat);
-  const count = owner.battleArea.filter((p) => {
-    if (p.inBreeding || p.topCard === undefined) return false;
-    const def = ctx.game.definitionOf(p.topCard);
-    return (isDigimon(def) || isTamer(def)) && hasIliadOrTsTrait(def);
-  }).length;
-  if (count === 0) return;
-
-  const opponent = ctx.game.opponentOf(source.ownerSeat);
-  const candidates = ctx.game
-    .player(opponent)
-    .battleArea.filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)))
-    .map((p) => p.permanentId);
-  if (candidates.length === 0) return;
-
-  const chosen =
-    candidates.length === 1 ? candidates[0]! : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
-  if (chosen === undefined) return;
-  ctx.fx.modifyDP(chosen, -4000 * count, EffectDuration.UntilOpponentTurnEnd);
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    const resolveMain = async (ctx: EffectContext): Promise<void> => {
-      await resolvePlayIliadBudget(ctx, source);
-      await resolveDpDebuff(ctx, source);
-    };
-
-    if (timing === EffectTiming.OnPlay) {
-      return [
-        onPlay({
-          source,
-          effectKey: `${cardId}/on-play-budget-play-and-debuff`,
-          description:
-            "[On Play] [When Digivolving] You may play up to 8 play cost's total worth of " +
-            "[Iliad] trait cards from your hand or trash without paying the costs. Then, to " +
-            "1 of your opponent's Digimon, give -4000 DP until their turn ends for each of " +
-            "your [Iliad] or [TS] trait Digimon or Tamers.",
-          optional: false,
-          resolve: resolveMain,
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.WhenDigivolving) {
-      return [
-        whenDigivolving({
-          source,
-          effectKey: `${cardId}/when-digivolving-budget-play-and-debuff`,
-          description:
-            "[On Play] [When Digivolving] You may play up to 8 play cost's total worth of " +
-            "[Iliad] trait cards from your hand or trash without paying the costs. Then, to " +
-            "1 of your opponent's Digimon, give -4000 DP until their turn ends for each of " +
-            "your [Iliad] or [TS] trait Digimon or Tamers.",
-          optional: false,
-          resolve: resolveMain,
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/all-turns-iliad-group-grant`,
-          description:
-            "[All Turns] All of your [Iliad] trait Digimon gain ＜Alliance＞, ＜Reboot＞, " +
-            "＜Blocker＞ and +2000 DP.",
-          when: (ctx) => ctx.source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-            for (const permanent of owner.battleArea) {
-              if (permanent.inBreeding || permanent.topCard === undefined) continue;
-              const def = ctx.game.definitionOf(permanent.topCard);
-              if (!isDigimon(def) || !hasIliadTrait(def)) continue;
-              ctx.fx.grantKeyword(permanent.permanentId, "Alliance", EffectDuration.UntilEachTurnEnd);
-              ctx.fx.grantKeyword(permanent.permanentId, "Reboot", EffectDuration.UntilEachTurnEnd);
-              ctx.fx.grantKeyword(permanent.permanentId, "Blocker", EffectDuration.UntilEachTurnEnd);
-              ctx.fx.modifyDP(permanent.permanentId, 2000, EffectDuration.UntilEachTurnEnd);
-            }
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+export const compiled: CompiledCard = {
+  effects: [
+    { trigger: "OnPlay", actions: main },
+    { trigger: "WhenDigivolving", actions: main },
+    { trigger: "AllTurns", actions: [
+      { kind: "GainKeyword", target: { filter: iliad, count: "all" }, keyword: { keyword: "Alliance" }, duration: "permanent" },
+      { kind: "GainKeyword", target: { filter: iliad, count: "all" }, keyword: { keyword: "Reboot" }, duration: "permanent" },
+      { kind: "GainKeyword", target: { filter: iliad, count: "all" }, keyword: { keyword: "Blocker" }, duration: "permanent" },
+      { kind: "ModifyDP", target: { filter: iliad, count: "all" }, amount: 2000, duration: "permanent" },
+    ] },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    { names: ["Minervamon"], cost: 2, isAlternate: true },
+    { level: 5, traits: ["TS"], cost: 4, isAlternate: true },
+  ],
+  assemblyRequirement: [{ reduceCost: 5, materials: [{ names: ["Minervamon"], count: 1 }] }],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("BT26-081", compiled);
+export default compiled;

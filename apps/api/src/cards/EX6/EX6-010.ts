@@ -1,13 +1,10 @@
-import { CardKind, EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { activated, whenDigivolving, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import { getCompiledCard, type CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "EX6-010";
+const generated = getCompiledCard("EX6-010")!;
+const generatedMain = generated.effects.find((effect) => effect.trigger === "Main")!;
+const generatedDisable = generated.effects.find((effect) => effect.trigger === "YourTurn")!;
 
 function isLegendArmsOrLevel6(def: CardDefinition): boolean {
   if (!isDigimon(def)) return false;
@@ -77,8 +74,8 @@ const module: EffectModule = {
               await ctx.fx.deletePermanent(chosenVictim);
             }
           },
-        }),
-      ];
+        ],
+      };
     }
 
     // [When Digivolving] 1 of your Digimon may attack (KB Q3705: must be legally attackable).
@@ -105,8 +102,8 @@ const module: EffectModule = {
 
             await ctx.fx.forceAttack(chosen[0]!);
           },
-        }),
-      ];
+        ],
+      };
     }
 
     // Inherited Piercing is always active; RagnaLoardmon security suppression is
@@ -139,5 +136,4 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
-export default module;
+registerIrCard("EX6-010", compiled);

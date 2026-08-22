@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import "./EX6-070.js";
+import { compiled } from "./EX6-070.js";
 
 describe("EX6-070 Gate of Deadly Sins", () => {
   it("registers the Main option effect, security effect, and continuous deletion watcher", () => {

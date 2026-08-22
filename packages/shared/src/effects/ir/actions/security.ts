@@ -61,7 +61,8 @@ export type SecurityOp =
   | "flipUp"
   | "revealTop" // stays in security, face up
   | "revealBottom"
-  | "lookAndMayAddToHand"; // look, optionally take, then run the matching branch (BT9-034)
+  | "lookAndMayAddToHand" // look, optionally take, then run the matching branch (BT9-034)
+  | "moveTopToBottom";
 
 export interface SecurityManipulationAction extends ActionBase {
   kind: "SecurityManipulation";
@@ -77,6 +78,8 @@ export interface SecurityManipulationAction extends ActionBase {
   bothPlayers?: boolean;
   /** For trashTop; default 1. */
   amount?: number;
+  /** Compute the amount from a preceding action's named count (e.g. 7 minus deletions). */
+  amountFromNamedCount?: { base: number; countSource: string; per: number; floor?: number };
   /** For trashTop: trash enough to leave this many cards in the stack. */
   leaveCount?: number;
   /** For trashTop: the controller picks any amount from 0 to the computed maximum. */
@@ -84,7 +87,7 @@ export interface SecurityManipulationAction extends ActionBase {
   /** For trashTop: the effect controller chooses the top or bottom card. */
   chooseTopOrBottom?: boolean;
   /** For placeAsSecurity: which cards are placed. */
-  source?: Target | "securityTop" | "deck" | "deckTop" | "revealed" | "reveal" | "rest" | "hand" | "handOrTrash";
+  source?: Target | "securityTop" | "deck" | "deckTop" | "revealed" | "reveal" | "rest" | "hand" | "handOrTrash" | "lastOptionUsed";
   /** For placeAsSecurity: which zone the placed cards come from. */
   from?: ZoneRef[];
   /** For placeAsSecurity; default top. */

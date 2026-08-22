@@ -1,6 +1,7 @@
 // The closed `Action` union.
 
 import type {
+  AddDPFromTrashedCardAction,
   AddDPFromSuspendedCostAction,
   AddDPFromTrashedCardAction,
   AddToHandSelfAction,
@@ -36,6 +37,7 @@ import type {
   CannotIgnoreDigivolutionRequirementsAction,
   DeDigivolveAction,
   DigivolveAction,
+  DigivolveViaPlacementAction,
   PlaceUnderAction,
   TrashDigivolutionAction,
   WaiveColorRequirementAction,
@@ -64,12 +66,14 @@ import type {
   DelayedDeletePlayedAction,
   DeleteAction,
   DeleteBudgetAction,
+  DeleteByStackColorBudgetAction,
   DeleteByDPBudgetAction,
   DeleteLevelBudgetAction,
   DeletePerColorAction,
   DeleteUntilCountAction,
   DeletionMaxDpModifierAction,
   ReturnAction,
+  ReturnTopDigivolutionCardsAction,
   RevealChooseDeleteBudgetAction,
   TrashAction,
 } from "./removal.js";
@@ -97,7 +101,13 @@ import type {
   RestrictUnsuspendedDigivolveAction,
   StackTrashLockAction,
 } from "./restrictions.js";
-import type { RevealAction, RevealAddAction, SearchAction, SearchSecurityAction } from "./reveal.js";
+import type {
+  HandRevealAddAction,
+  RevealAction,
+  RevealAddAction,
+  SearchAction,
+  SearchSecurityAction,
+} from "./reveal.js";
 import type {
   DisableSecurityEffectAction,
   ModifySecurityDPAction,
@@ -142,12 +152,14 @@ export type Action =
   | OpponentMayTrashSecurityAction
   | HandManipulationAction
   | ReturnAction
+  | ReturnTopDigivolutionCardsAction
   | SuspendAction
   | RepeatPerCountAction
   | UnsuspendAction
   | MovePermanentAction
   | HatchAction
   | ModifyDPAction
+  | AddDPFromTrashedCardAction
   | AddDPFromSuspendedCostAction
   | AddDPFromTrashedCardAction
   | SetBaseDPAction
@@ -164,11 +176,13 @@ export type Action =
   | DigiXrosMaterialZoneExpansionAction
   | AllowDigiXrosMaterialsFromTrashAction
   | RevealAddAction
+  | HandRevealAddAction
   | RevealAction
   | SearchAction
   | SearchSecurityAction
   | DeDigivolveAction
   | DigivolveAction
+  | DigivolveViaPlacementAction
   | AttackAction
   | BattleAction
   | PlaceUnderAction

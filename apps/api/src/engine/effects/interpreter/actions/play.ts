@@ -7,8 +7,9 @@ import { permanentMatchesFilter, seatsForController } from "../matching/permanen
 import { countMatching, scaleFactor } from "../scaling.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { runPlayPerLevel } from "./dna.js";
-import { CardKind, effectiveStaticNames } from "@aegis/shared";
+import { CardKind, digiXrosRequirementFor, effectiveStaticNames } from "@aegis/shared";
 import type { Action, Seat, Target } from "@aegis/shared";
+import { materialsSatisfyRecipe } from "../../../actions/digiXros.js";
 
 export async function runPlayAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
@@ -57,10 +58,10 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
     case "PlayWithoutCost": {
       // Bind "the Digimon this effect played" from whichever branch resolves the play, so a later
       // action (e.g. BT16-015's Delete with dp.valueFrom) can reference exactly what was played.
-      const bindPlayWithoutCost = () => {
-        if (action.bindResultAs && ctx.lastPlayedPermanentIds && ctx.lastPlayedPermanentIds.length > 0) {
+      const bindPlayWithoutCost = (playedPermanentIds = ctx.lastPlayedPermanentIds) => {
+        if (action.bindResultAs && playedPermanentIds !== undefined) {
           ctx.boundPlayed ??= new Map();
-          ctx.boundPlayed.set(action.bindResultAs, new Set(ctx.lastPlayedPermanentIds));
+          ctx.boundPlayed.set(action.bindResultAs, new Set(playedPermanentIds));
         }
       };
       // ＜Delay＞-armed gate: if the action is marked requiresDelayArmed, the source permanent
@@ -94,7 +95,11 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           ctx.lastPlayedPermanentIds = [];
           return false;
         }
-        const fromSecurity = action.from?.includes("security") === true;
+        const fromSecurity =
+          action.from?.includes("security") === true ||
+          (ctx.activeTiming === "Security" &&
+            !ctx.game.player(self.ownerSeat).trash.some((card) => card.instanceId === self.instanceId)) ||
+          ctx.game.player(self.ownerSeat).security.some((card) => card.instanceId === self.instanceId);
         if (fromSecurity) {
           const played = await ctx.fx.playFromSecurity(self.instanceId, { payCost: action.payCost });
           ctx.lastPlayedPermanentIds = played !== undefined ? [played.permanentId] : [];
@@ -108,7 +113,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           const played = await ctx.fx.playInstances([self.instanceId], {
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
-            ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
+            ...(action.reduceCostBy !== undefined ? { costDelta: -action.reduceCostBy } : {}),
           });
           ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);
         } else {
@@ -120,7 +125,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           const played = await ctx.fx.playInstances([self.instanceId], {
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
-            ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
+            ...(action.reduceCostBy !== undefined ? { costDelta: -action.reduceCostBy } : {}),
           });
           ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);
         }
@@ -192,13 +197,30 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         }
         return { ...scaledPlayTarget, filter: { ...scaledPlayTarget.filter, dp: { ...origDp, value: newValue } } };
       })();
+      const levelCeilingAdjustedTarget =
+        ctx.playLevelCeilingDelta === undefined || ctx.playLevelCeilingDelta === 0
+          ? playTarget
+          : {
+              ...playTarget,
+              filter: {
+                ...playTarget.filter,
+                levelComparison:
+                  playTarget.filter.levelComparison?.op === "lte" &&
+                  playTarget.filter.levelComparison.value !== undefined
+                    ? {
+                        ...playTarget.filter.levelComparison,
+                        value: playTarget.filter.levelComparison.value + ctx.playLevelCeilingDelta,
+                      }
+                    : playTarget.filter.levelComparison,
+              },
+            };
       // playCostCeiling: dynamically raise the playCostLte ceiling before resolving candidates.
       // Counts cards matching filter.zone/controller across all applicable seats, then computes:
       //   ceiling = base + Math.floor(totalCards / per) * raise
       // and overrides the target filter's playCostLte with the result. (CAP-E16, BT21-079)
       const playCostAdjustedTarget = (() => {
         const ceiling = action.playCostCeiling;
-        if (ceiling === undefined) return playTarget;
+        if (ceiling === undefined) return levelCeilingAdjustedTarget;
         const mine = ctx.source.ownerSeat;
         const opp = ctx.game.opponentOf(mine);
         const f = ceiling.filter;
@@ -219,7 +241,10 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           for (const seat of seats) totalCards += ctx.game.player(seat).trash.length;
         }
         const computedCeiling = ceiling.base + Math.floor(totalCards / ceiling.per) * ceiling.raise;
-        return { ...playTarget, filter: { ...playTarget.filter, playCostLte: computedCeiling } };
+        return {
+          ...levelCeilingAdjustedTarget,
+          filter: { ...levelCeilingAdjustedTarget.filter, playCostLte: computedCeiling },
+        };
       })();
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
       let candidates = candidateLooseInstances(ctx, playCostAdjustedTarget, zones);
@@ -323,10 +348,20 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             candidate === undefined ? undefined : ctx.game.definitionOf({ cardId: candidate.cardId } as never).playCost;
           await ctx.fx.useOptionFromHand(ctx, optionId, usedCost, {
             payCost: action.payCost,
-            ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
+            ...(action.reduceCostBy !== undefined ? { costDelta: -action.reduceCostBy } : {}),
           });
         }
         const permanentIds = chosen.filter((instanceId) => !optionIds.includes(instanceId));
+        const hostPermanentIds = Object.fromEntries(
+          permanentIds
+            .map((instanceId) => {
+              const hostPermanentId = candidates.find(
+                (candidate) => candidate.instanceId === instanceId,
+              )?.hostPermanentId;
+              return hostPermanentId === undefined ? undefined : [instanceId, hostPermanentId];
+            })
+            .filter((entry): entry is [string, string] => entry !== undefined),
+        );
         const played =
           permanentIds.length > 0
             ? await ctx.fx.playInstances(permanentIds, {
@@ -334,11 +369,15 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                 breeding: action.breeding,
                 suspended: action.suspended,
                 effectSourceCardId: ctx.source.cardId,
+                ...(action.playedByDecode === true ? { playedByDecode: true } : {}),
                 ...(costReduction !== undefined ? { costDelta: costReduction } : {}),
                 ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
+                hostPermanentIds,
               })
             : [];
-        ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);
+        const playedPermanentIds = (played ?? []).map((p) => p.permanentId);
+        ctx.lastPlayedPermanentIds = playedPermanentIds;
+        bindPlayWithoutCost(playedPermanentIds);
       } else {
         ctx.lastPlayedPermanentIds = [];
       }
@@ -392,18 +431,40 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       const costDelta = payCost ? (action.costReduction ?? 0) + scaledReduction : 0;
       const pfzChosen = await pickLoose(ctx, action.target, pfzCandidates);
       if (pfzChosen.length > 0) {
+        let digiXrosMaterialInstanceIds: string[] = [];
+        if (action.digiXrosMaterialsFrom !== undefined && pfzChosen.length === 1) {
+          const chosenCard = pfzCandidates.find((card) => card.instanceId === pfzChosen[0]);
+          const requirement = chosenCard === undefined ? undefined : digiXrosRequirementFor(chosenCard.cardId)?.[0];
+          if (requirement !== undefined) {
+            const materialCandidates = action.digiXrosMaterialsFrom
+              .flatMap((zone) => looseCardsInZone(ctx, ctx.source.ownerSeat, zone))
+              .filter((card) => card.instanceId !== pfzChosen[0]);
+            const selected = await ctx.ask.selectCards(ctx, {
+              candidates: materialCandidates.map((card) => card.instanceId),
+              min: 0,
+              max: requirement.materials.length,
+            });
+            const selectedDefinitions = selected.map((id) => ctx.game.definitionOf(materialCandidates.find((card) => card.instanceId === id)!));
+            if (materialsSatisfyRecipe(selectedDefinitions, requirement.materials)) digiXrosMaterialInstanceIds = selected;
+          }
+        }
         const played = await ctx.fx.playInstances(pfzChosen, {
           payCost,
+          ...(digiXrosMaterialInstanceIds.length > 0 ? { digiXrosMaterialInstanceIds } : {}),
           ...(costDelta > 0 ? { costDelta } : {}),
           ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
         });
         ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);
-        if (action.bindResultAs && ctx.lastPlayedPermanentIds.length > 0) {
+        if (action.bindResultAs) {
           if (!ctx.boundPlayed) (ctx as { boundPlayed: Map<string, Set<string>> }).boundPlayed = new Map();
           ctx.boundPlayed!.set(action.bindResultAs, new Set(ctx.lastPlayedPermanentIds));
         }
       } else {
         ctx.lastPlayedPermanentIds = [];
+        if (action.bindResultAs) {
+          if (!ctx.boundPlayed) (ctx as { boundPlayed: Map<string, Set<string>> }).boundPlayed = new Map();
+          ctx.boundPlayed!.set(action.bindResultAs, new Set());
+        }
       }
       ctx.lastEffectActed = pfzChosen.length > 0;
       return false;
@@ -424,7 +485,10 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           // than the registry alias. Resolve the printed descriptor to the shared token
           // registry while preserving the card's authored stats for future token metadata.
           const tokenName = typeof tokenRef === "string" ? tokenRef : tokenRef.name;
-          const registryName = tokenName === "Atho, René & Por" ? "AthoRenePor Token" : tokenName;
+          const registryName =
+            tokenName === "Atho, René & Por" ? "AthoRenePor Token" :
+            tokenName === "Amon of Crimson Flame" ? "Amon Token" :
+            tokenName === "Umon of Blue Thunder" ? "Umon Token" : tokenName;
           await ctx.fx.playToken(placementSeat, registryName, {
             payCost: action.payCost ?? false,
             suspended: action.suspended ?? false,

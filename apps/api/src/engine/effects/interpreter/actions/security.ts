@@ -21,6 +21,7 @@ export async function runRecoverByTrashingMostSecurity(
 ): Promise<void> {
   const mine = ctx.source.ownerSeat;
   const { trashed } = await ctx.fx.trashTopSecurityOfPlayerWithMostSecurity(mine);
+  ctx.lastEffectActed = trashed.length > 0;
   if (trashed.length === 0) return;
   if (action.recover !== false) await ctx.fx.recoverToSecurity(mine, action.amount ?? 1);
 }
@@ -49,9 +50,26 @@ export async function runSecurityManipulation(
   ctx: EffectContext,
   action: Extract<Action, { kind: "SecurityManipulation" }>,
 ): Promise<void> {
+  if (action.amountFromNamedCount !== undefined) {
+    const count = ctx.namedCounts?.get(action.amountFromNamedCount.countSource) ?? 0;
+    action = {
+      ...action,
+      amount: Math.max(
+        action.amountFromNamedCount.floor ?? 0,
+        action.amountFromNamedCount.base + count * action.amountFromNamedCount.per,
+      ),
+    };
+  }
   const mine = ctx.source.ownerSeat;
   const opp = ctx.game.opponentOf(mine);
   const seat = action.controller === "opponent" ? opp : mine;
+  if (action.op === "placeAsSecurity" && action.source === "lastOptionUsed") {
+    const id = ctx.lastOptionUsedInstanceId;
+    if (id !== undefined && ctx.game.player(seat).trash.some((card) => card.instanceId === id)) {
+      await ctx.fx.addSecurity(seat, [id], { toTop: action.toTop ?? true, faceUp: action.faceUp });
+    }
+    return;
+  }
   // "both players' security": apply the op to each seat's stack (e.g. BT3-090 trashes
   // 1 from the top of each player's security).
   if (action.bothPlayers && (action.op === "trashTop" || action.op === "trash" || action.op === "shuffle")) {
@@ -82,6 +100,17 @@ export async function runSecurityManipulation(
     }
   }
   switch (action.op) {
+    case "moveTopToBottom": {
+      const security = ctx.game.player(seat).security;
+      if (security.length === 0) {
+        ctx.lastEffectActed = false;
+        return;
+      }
+      const [top] = security.splice(0, 1);
+      security.push(top);
+      ctx.lastEffectActed = true;
+      return;
+    }
     case "shuffle":
       ctx.fx.shuffleSecurity(seat);
       return;

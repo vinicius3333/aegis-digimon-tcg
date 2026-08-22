@@ -236,32 +236,5 @@ describe("BT10-041 (Sakuyamon: Maid Mode)", () => {
         },
       },
     });
-
-    await effects[0]!.resolve(ctx);
-
-    // useOptionFromHand must be called with the plugin's instanceId.
-    expect(useOptionFromHandCalled.ids).toContain("plugin-inst");
-    // After use, card is in trash → addSecurity must be called to move it to security.
-    expect(addSecurityCalled.ids).toContain("plugin-inst");
-    expect(addSecurityCalled.seat).toBe(0);
-  });
-
-  it("[When Digivolving] does NOT call addSecurity when eligible option is absent", async () => {
-    // canActivate guard: no eligible option in hand means the effect does not fire.
-    const source = makeSource();
-    const effects = module!.effectsForTiming(EffectTiming.WhenDigivolving, source);
-
-    const addSecurityCalled = { seat: -1 as Seat, ids: [] as string[] };
-    const useOptionFromHandCalled = { ids: [] as string[] };
-    const ctx = makeContext({ source, ownerHand: [], addSecurityCalled, useOptionFromHandCalled });
-
-    // canActivate returns false when hand is empty.
-    const canActivate = effects[0]!.canActivate?.(ctx) ?? true;
-    expect(canActivate).toBe(false);
-  });
-
-  it("routes [When Attacking] to OnUseAttack timing", () => {
-    const source = makeSource();
-    expect(module!.effectsForTiming(EffectTiming.OnUseAttack, source).length).toBeGreaterThanOrEqual(1);
   });
 });

@@ -23,12 +23,14 @@ import {
 } from "../builders.js";
 import type { BuilderOptions } from "../builders.js";
 import { canAttemptDnaDigivolve } from "./actions/dna.js";
+import { linkEligible } from "../mindLink.js";
+import { candidateLooseInstances } from "./targeting/loose.js";
 import { evaluateCondition } from "./conditions.js";
 import { canPayCost } from "./costs.js";
 import { installEffectRunner, runAction } from "./dispatch.js";
 import { ACTION_TYPE_KEYWORDS } from "./errors.js";
 import { isBlastDigivolveMarker } from "./registration/keywords.js";
-import { EffectDuration, EffectTiming } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
 import type { Action, CardEffect } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
@@ -180,11 +182,18 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
  * clause to restrict.
  */
 export function timingsForTrigger(effect: CardEffect, isOptionPlayBody: boolean): EffectTiming[] {
+  if (effect.timingOverride !== undefined) return [effect.timingOverride as unknown as EffectTiming];
   const primary = timingForTrigger(effect);
   if (primary === undefined) return [];
   const isDelay = (effect.keywords ?? []).some((kw) => kw.keyword === "Delay");
   if (!effect.isSecurity && effect.trigger === "Main" && !isDelay && !isOptionPlayBody) {
     return [EffectTiming.OnUseOption, EffectTiming.OnDeclaration];
+  }
+  if (effect.isInherited && effect.trigger === "WhenAttacking") {
+    return [primary, EffectTiming.OnAllyAttack];
+  }
+  if (effect.trigger === "AllTurns" && effect.actions.some((action) => action.kind === "Replacement")) {
+    return [primary, EffectTiming.OnLeaveFieldAnyone];
   }
   return [primary];
 }
@@ -463,11 +472,12 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
   const outerRestrictions = ctxWithSelections.effectRestrictions;
   ctxWithSelections.effectRestrictions = new Set(ctx.effectRestrictions ?? []);
   ctxWithSelections.activeTiming = effect.trigger;
+  const sourceDefinition = ctx.source.definition ?? ctx.game.definitionOf({ cardId: ctx.source.cardId } as never);
   ctxWithSelections.activeEffectText = effect.isInherited
-    ? ctx.source.definition.inheritedEffectText
+    ? sourceDefinition?.inheritedEffectText
     : effect.isSecurity
-      ? ctx.source.definition.securityEffectText
-      : ctx.source.definition.effectText;
+      ? sourceDefinition?.securityEffectText
+      : sourceDefinition?.effectText;
   const actions = effect.actions ?? [];
   if (actions.length === 0 && (effect.keywords?.length ?? 0) > 0) {
     const durationStr =
@@ -554,8 +564,18 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
   // effect that resolution will silently skip.
   if (effect.condition && (effect.condition.kind === "raw" || !evaluateCondition(ctx, effect.condition))) return false;
   const relevantActions = (effect.actions ?? []).filter((action) => action.kind !== "RawUnparsed");
+  const intrinsicPossible = (action: Action): boolean => {
+    if (action.kind === "DnaDigivolve") return canAttemptDnaDigivolve(ctx, action);
+    if (action.kind === "Link") {
+      return candidateLooseInstances(ctx, action.target, action.from ?? ["hand", "digivolutionCards"]).some(
+        (candidate) => linkEligible(ctx.game.definitionOf({ cardId: candidate.cardId } as never)),
+      );
+    }
+    return true;
+  };
   const isGated = (action: Action) =>
     action.kind === "DnaDigivolve" ||
+    action.kind === "Link" ||
     (action.kind !== "ConditionalBranch" && action.condition !== undefined) ||
     action.cost !== undefined;
   // A leading abort-on-decline action is the activation gate for the complete clause:
@@ -565,22 +585,22 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
   // condition/cost is impossible (BT10-025). Mirror runEffect's ordered abort semantics here.
   const leadingAction = relevantActions[0];
   if (leadingAction?.abortOnDecline === true && isGated(leadingAction)) {
-    const intrinsicPossible = leadingAction.kind !== "DnaDigivolve" || canAttemptDnaDigivolve(ctx, leadingAction);
+    const canProcess = intrinsicPossible(leadingAction);
     const conditionMet =
       leadingAction.condition === undefined ||
       (leadingAction.condition.kind !== "raw" && evaluateCondition(ctx, leadingAction.condition));
     const costPayable = leadingAction.cost === undefined || canPayCost(ctx, leadingAction.cost);
-    return intrinsicPossible && conditionMet && costPayable;
+    return canProcess && conditionMet && costPayable;
   }
   const gatedActions = relevantActions.filter(isGated);
   const ungatedCount = relevantActions.length - gatedActions.length;
   if (gatedActions.length === 0 || ungatedCount > 0) return true;
   return gatedActions.some((action) => {
-    const intrinsicPossible = action.kind !== "DnaDigivolve" || canAttemptDnaDigivolve(ctx, action);
+    const canProcess = intrinsicPossible(action);
     const conditionMet =
       action.condition === undefined || (action.condition.kind !== "raw" && evaluateCondition(ctx, action.condition));
     const costPayable = action.cost === undefined || canPayCost(ctx, action.cost);
-    return intrinsicPossible && conditionMet && costPayable;
+    return canProcess && conditionMet && costPayable;
   });
 }
 

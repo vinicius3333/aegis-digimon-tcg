@@ -78,8 +78,27 @@ export interface DigivolveAction extends ActionBase {
   ignoreLevelRequirement?: boolean;
   /** The card digivolved into must share a color with the chosen base. */
   colorsMatchDigivolvingSource?: boolean;
+  /** Destination name must include the selected base permanent's name (EX4-072). */
+  nameIncludesDigivolvingTarget?: boolean;
+  /** Destination name must differ from the selected base permanent's name. */
+  differentNameFromDigivolvingTarget?: boolean;
   /** Store the resulting permanent id for a downstream `filter.boundRef` or condition. */
   bindResultAs?: string;
+}
+
+export interface DigivolveViaPlacementAction extends Omit<ActionBase, "cost"> {
+  kind: "DigivolveViaPlacement";
+  placeCost: {
+    kind: "placeFromTrash";
+    target: Target;
+    destination: "digivolutionStack";
+    position: "bottom";
+    hostFilter: Filter;
+    raw?: string;
+  };
+  into: Target;
+  cost: number;
+  ignoreDigivolutionRequirements?: boolean;
 }
 
 export interface PlaceUnderAction extends ActionBase {
@@ -136,6 +155,10 @@ export interface PlaceUnderAction extends ActionBase {
    * permanent, or `underFilter`, the host.
    */
   destination?: { filter: Filter; count: number };
+  /** Select a single exact count from battle-area permanents, their linked cards, and trash.
+   * Battle-area permanents are relocated with their stacks; loose cards are placed normally.
+   * Used by BT26-102's mixed Seven Code material cost. */
+  mixedSources?: { battleAreaPermanents?: boolean; linkedCards?: boolean; trash?: boolean };
   /**
    * Place as DigiXros materials for the Digimon being played — the trigger source of the
    * enclosing `wouldBePlayed` Replacement — via the materials slot rather than the digivolution

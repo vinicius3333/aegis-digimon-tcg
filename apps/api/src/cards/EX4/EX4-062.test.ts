@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
 // A3 for EX4-062 (Nene Amano & Kiriha Aonuma) — DigiXros source-zone expander:
@@ -11,6 +12,15 @@ const BLUE_FLARE_DIGIMON = "BT11-030"; // [Blue Flare] L5 DigiXros card, recipe 
 const METALGREYMON = "BT10-024"; // "MetalGreymon" Blue L5
 
 describe("EX4-062 DigiXros source-zone expansion (trash, [Blue Flare] gate)", () => {
+  it("registers full residual-free IR with the suspend-paid zone expansion", () => {
+    expect(runtimeCompiledCard("EX4-062")).toMatchObject({ coverage: "full", residual: [] });
+    expect(runtimeCompiledCard("EX4-062")?.effects?.[2]?.actions?.[0]).toMatchObject({
+      kind: "DigiXrosMaterialZoneExpansion",
+      zones: ["tamerCards", "trash"],
+      cost: { kind: "suspend" },
+    });
+  });
+
   it("with EX4-062 suspended, a trash [MetalGreymon] is a legal DigiXros material", async () => {
     const s = setupEngine(
       {

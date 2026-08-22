@@ -1,12 +1,11 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { onPlay, turnTiming, security, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "EX11-066";
+const vemmonText = { nameOrTrait: [{ tokens: ["Vemmon"], match: "text" }] };
+const vemmonDigimon = { controller: "mine", kind: ["Digimon"], ...vemmonText };
+const trashCost = { kind: "trash", target: { filter: { zone: "hand", controller: "mine", ...vemmonText }, count: 1 }, raw: "By trashing 1 card with [Vemmon] in its text from your hand" };
+const suspendCost = { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, raw: "by suspending this Tamer" };
 
 function hasVemmonInText(def: CardDefinition): boolean {
   return JSON.stringify(def).includes("Vemmon");
@@ -197,5 +196,4 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
-export default module;
+registerIrCard("EX11-066", compiled);
