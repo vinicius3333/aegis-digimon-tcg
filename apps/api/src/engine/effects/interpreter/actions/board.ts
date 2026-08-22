@@ -6,7 +6,7 @@ import { type ActionScope, runAction } from "../dispatch.js";
 import { toDuration } from "../duration.js";
 import { ACTION_TYPE_KEYWORDS, unsupported } from "../errors.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
-import { countMatching } from "../scaling.js";
+import { countMatching, scaleFactor } from "../scaling.js";
 import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardKind, getCardDefinition } from "@aegis/shared";
@@ -89,7 +89,9 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       // selection. KB Q1015: all activations share the same timing priority window.
       const repeatCount =
         action.countFilter !== undefined
-          ? countMatching(ctx, action.countFilter)
+          ? action.countUnit !== undefined
+            ? scaleFactor(ctx, { unit: action.countUnit, per: 1, filter: action.countFilter })
+            : countMatching(ctx, action.countFilter)
           : (ctx.namedCounts?.get(action.countSource) ?? 0);
       for (let i = 0; i < repeatCount; i++) {
         await runAction(ctx, action.action);

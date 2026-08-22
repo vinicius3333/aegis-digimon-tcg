@@ -32,4 +32,10 @@ describe("EX4 collection registration evidence", () => {
     expect(compiled?.coverage).toBe("full");
     expect(compiled?.residual).toEqual([]);
   });
+
+  it("keeps the migrated EX4-068 IR record full and residual-free", () => {
+    const compiled = runtimeCompiledCard("EX4-068");
+    expect(compiled?.coverage).toBe("full");
+    expect(compiled?.residual).toEqual([]);
+  });
 });
