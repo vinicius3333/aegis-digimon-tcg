@@ -86,7 +86,7 @@ async function resolveHandMain(ctx: EffectContext, source: CardSource): Promise<
   await ctx.fx.digivolveFromInstance(hostPermanentId, source.instanceId, {
     payCost: true,
     costOverride: 3,
-    ignoreRequirements: true,
+    virtualBase: { level: 4, colors: ["Red"] },
   });
 }
 

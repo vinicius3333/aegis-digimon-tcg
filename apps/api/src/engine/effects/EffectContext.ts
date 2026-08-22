@@ -608,6 +608,8 @@ export interface Primitives {
       useAlternateCost?: boolean;
       /** Ignore only the level portion of the printed digivolution requirement. */
       ignoreLevel?: boolean;
+      /** Temporarily evaluate the base as the printed virtual level/colors (e.g. a Tamer). */
+      virtualBase?: { level: number; colors: CardColor[] };
       ignoreRequirements?: boolean;
       beforeWhenDigivolving?: () => Promise<void>;
     },

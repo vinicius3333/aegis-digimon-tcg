@@ -908,6 +908,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       costOverride?: number;
       useAlternateCost?: boolean;
       ignoreLevel?: boolean;
+      virtualBase?: { level: number; colors: CardColor[] };
       ignoreRequirements?: boolean;
       beforeWhenDigivolving?: () => Promise<void>;
     },
@@ -948,7 +949,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         // and the digivolve then no-opped silently after the controller had already chosen it.
         // `runDigivolve`'s candidate filter already offers alternate-path bases; this is the
         // authoritative gate it claims to mirror, so the two must agree.
-        const baseDef = requireCardDefinition(permanent.topCard.cardId);
+        const actualBaseDef = requireCardDefinition(permanent.topCard.cardId);
+        const baseDef = opts.virtualBase === undefined
+          ? actualBaseDef
+          : { ...actualBaseDef, level: opts.virtualBase.level, colors: opts.virtualBase.colors };
         const printed = matchingDigivolveCost(definition, baseDef);
         const baseGranted = engine.baseGrantedDigivolve?.(seat, permanent, definition);
         const alternate = matchingAlternateDigivolutionRequirement(definition, baseDef);
