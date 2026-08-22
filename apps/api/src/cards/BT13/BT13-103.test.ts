@@ -72,6 +72,7 @@ describe("BT13-103 Akihiro Kurata", () => {
       },
       { autoDeclineOptional: true },
     );
+    s.state.turnSeat = 1;
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("akihiro"));
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
     expect(s.state.players[0]!.trash).toHaveLength(1);
