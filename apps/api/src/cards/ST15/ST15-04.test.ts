@@ -15,9 +15,9 @@ describe("ST15-04 Solarmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("solarmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ST15-02").instanceId));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "ST15-02"));
 
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ST15-02").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "ST15-02")).toBe(true);
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
