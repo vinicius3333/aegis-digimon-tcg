@@ -8,7 +8,9 @@ describe("ST1-11 WarGreymon", () => {
     expect(compiled).toMatchObject({
       coverage: "full",
       residual: [],
-      effects: [{ trigger: "YourTurn", actions: [{ kind: "GainKeyword", scaling: { per: 2, unit: "digivolutionCards" } }] }],
+      effects: [
+        { trigger: "YourTurn", actions: [{ kind: "GainKeyword", scaling: { per: 2, unit: "digivolutionCards" } }] },
+      ],
     });
   });
 
