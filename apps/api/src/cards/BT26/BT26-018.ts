@@ -6,14 +6,16 @@ const revealAndTrash = [
   {
     kind: "RevealAdd",
     revealCount: 3,
-    add: [{
-      filter: { nameOrTrait: [{ tokens: ["Aqua"], match: "trait" }] },
-      orFilters: [
-        { nameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }] },
-        { nameOrTrait: [{ tokens: ["DS"], match: "trait" }] },
-      ],
-      count: 1,
-    }],
+    add: [
+      {
+        filter: { nameOrTrait: [{ tokens: ["Aqua"], match: "trait" }] },
+        orFilters: [
+          { nameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }] },
+          { nameOrTrait: [{ tokens: ["DS"], match: "trait" }] },
+        ],
+        count: 1,
+      },
+    ],
     rest: "deckBottom",
   },
   {
@@ -25,11 +27,23 @@ const revealAndTrash = [
 ];
 
 export const compiled: CompiledCard = {
+  digivolutionRequirement: [{ level: 2, traits: ["DS"], cost: 0, isAlternate: true }],
   effects: [
     { trigger: "OnPlay", actions: revealAndTrash },
     { trigger: "OnMove", actions: revealAndTrash },
     { trigger: "Static", isInherited: true, actions: [], keywords: [{ keyword: "Jamming", raw: "＜Jamming＞" }] },
-    { trigger: "Static", actions: [{ kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "trait", tokens: ["Aquatic"], duration: "permanent" }] },
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          grant: "trait",
+          tokens: ["Aquatic"],
+          duration: "permanent",
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
