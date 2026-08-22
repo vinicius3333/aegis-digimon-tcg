@@ -1,6 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { observe, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "./BT11-070.js";
 describe("BT11-070 Destromon", () => {

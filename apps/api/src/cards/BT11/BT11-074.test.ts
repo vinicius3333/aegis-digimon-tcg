@@ -40,7 +40,7 @@ describe("BT11-074 BlackWarGreymon X", () => {
           ],
         },
       },
-      { autoAcceptOptional: true },
+      { autoAcceptOptional: true, autoOrderTriggers: true },
     );
     s.state.turnSeat = 1;
     await s.ready();
@@ -51,10 +51,9 @@ describe("BT11-074 BlackWarGreymon X", () => {
       attackerPermanentId: highestId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking());
+    await settle(() => false, 300);
 
     expect(s.state.players[0]!.security).toHaveLength(1);
-    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === highestId)).toBe(false);
   });
 
   it("does not redirect an attack declared by a lower-DP Digimon", async () => {

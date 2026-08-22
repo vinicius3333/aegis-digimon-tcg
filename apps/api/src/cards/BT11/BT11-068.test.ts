@@ -1,7 +1,8 @@
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { observe, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./BT11-068.js";
 describe("BT11-068 Mamemon", () => {
   it("registers both reveal timings as dedicated effects", () => {

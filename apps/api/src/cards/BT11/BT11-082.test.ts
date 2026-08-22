@@ -10,7 +10,7 @@ describe("BT11-082 Tuwarmon", () => {
       0: {
         battleArea: [
           { card: "BT11-082", as: "tuwarmon" },
-          { card: "BT10-093", as: "yuu" },
+          { card: "BT12-094", as: "yuu" },
         ],
       },
     });

@@ -6,9 +6,9 @@ const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
-        { kind: "SelectBind", target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Insect"], match: "trait" }] }, count: 1, bindAs: "selected" } },
+        { kind: "SelectBind", target: { filter: { controller: "mine", kind: ["Digimon"], traitContains: ["Insect"] }, count: 1, bindAs: "selected" } },
         { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"], relativeTo: { selectionRef: "selected", attr: "dp", op: "lte" } }, count: 2 } },
-        { kind: "Restrict", target: { sameTarget: true, filter: {}, count: 2 }, restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
+        { kind: "Restrict", target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: true }, count: 1 }, restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
       ],
     },
     { trigger: "Security", actions: [{ kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 2 } }], isSecurity: true },

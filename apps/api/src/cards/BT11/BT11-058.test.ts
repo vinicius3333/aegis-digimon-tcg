@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { observe, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./BT11-058.js";
 
 describe("BT11-058 HerculesKabuterimon (X Antibody)", () => {

@@ -10,7 +10,7 @@ const compiled: CompiledCard = {
       actions: [{
         kind: "SubTrigger",
         event: "whenOpponentAttacks",
-        sourceFilter: { controller: "opponent", kind: ["Digimon"], superlative: "highestDP" },
+        triggerFilter: { controller: "opponent", kind: ["Digimon"], superlative: "highestDP" },
         actions: [{
           kind: "RedirectAttack",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },

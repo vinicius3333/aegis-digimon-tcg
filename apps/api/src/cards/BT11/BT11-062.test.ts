@@ -43,7 +43,7 @@ describe("BT11-062 Agumon (X Antibody)", () => {
       permanentId: s.perm("agumon").permanentId,
       instanceId: s.inst("xAgumon").instanceId,
     })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT9-109"));
+    await settle(() => s.state.players[0]!.hand.length === 2);
 
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(
