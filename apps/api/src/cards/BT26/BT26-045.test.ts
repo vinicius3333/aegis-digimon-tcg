@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { compiled } from "./BT26-045.js";
 
 describe("BT26-045 GranKuwagamon", () => {
   it("encodes hand-size reduction, shared free play, and all three Your Turn keywords", () => {
+    expect(digivolutionRequirementsFor("BT26-045")).toContainEqual({ level: 5, traits: ["Insectoid", "TS"], cost: 3, isAlternate: true });
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "Static", actions: [{ kind: "Replacement", event: "wouldBePlayed", mode: "reduceCost", amount: 4 }] });
     expect(compiled.effects?.slice(1, 4)).toEqual(expect.arrayContaining([
       expect.objectContaining({ trigger: "OnPlay", frequency: "OncePerTurn" }),

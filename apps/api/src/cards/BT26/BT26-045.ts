@@ -18,6 +18,6 @@ export const compiled: CompiledCard = { effects: [
     { kind: "GainKeyword", keyword: { keyword: "Piercing" }, target: insectoidTitan, duration: "untilEachTurnEnd" },
     { kind: "GainKeyword", keyword: { keyword: "Vortex" }, target: insectoidTitan, duration: "untilEachTurnEnd" },
   ] },
-], coverage: "full", residual: [] };
+], coverage: "full", residual: [], digivolutionRequirement: [{ level: 5, traits: ["Insectoid", "TS"], cost: 3, isAlternate: true }] };
 registerIrCard("BT26-045", compiled);
 export default compiled;
