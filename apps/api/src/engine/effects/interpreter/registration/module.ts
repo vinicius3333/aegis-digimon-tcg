@@ -54,7 +54,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
     (e) =>
       e.isInherited !== true &&
       ((e.keywords ?? []).some((k) => k.keyword === "Training") ||
-        e.actions.some(
+        e.actions?.some(
           (a) =>
             a.kind === "GainKeyword" &&
             (a as { keyword?: { keyword?: string } }).keyword?.keyword === "Training" &&
@@ -123,7 +123,8 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         // ledger entry — the UseTracker keys on (instanceId, effectKey), so a stable key shared by
         // each clause collapses them to a single [Once Per Turn] limit (BT25-084's OP/WD/WA share).
         const effectKey =
-          effect.sharedUseKey !== undefined ? `${cardId}/${effect.sharedUseKey}` : `${cardId}/ir-${timing}-${i}`;
+          (effect as CardEffect & { effectKey?: string }).effectKey ??
+          (effect.sharedUseKey !== undefined ? `${cardId}/${effect.sharedUseKey}` : `${cardId}/ir-${timing}-${i}`);
         const isDelay = (effect.keywords ?? []).some((kw) => kw.keyword === "Delay");
         // The trash-to-activate Delay semantics apply to [Main] effects (routed to
         // OnDeclaration, below) AND to continuous-window triggers like AllTurns
@@ -174,11 +175,10 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
                 ctx.fx.revokeKeyword?.(self.permanentId, "Delay");
                 delayArmedConsumed = true;
               }
-              // Resolve the payload while the source remains addressable. Its printed cost is
-              // still atomic with Delay activation: a failed payload cost leaves the source in
-              // play, while a successful payload is followed by the intrinsic source trash.
-              await runEffect({ ...ctx, delayArmedConsumed }, effect);
               await ctx.fx.deletePermanent([self.permanentId]);
+              // The source is the activation cost. Delete it before resolving the payload so
+              // state observers cannot see the Delay reward while the paid card remains in play.
+              await runEffect({ ...ctx, delayArmedConsumed }, effect);
             },
           });
         }

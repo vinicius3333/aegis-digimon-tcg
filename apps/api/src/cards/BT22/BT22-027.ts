@@ -2,24 +2,6 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// BT22-027 Ryugumon
-// Text:
-//   <Decode (Lv.5 w/[Aqua]/[Sea Animal] in any trait)>
-//   [On Play] [When Digivolving] By placing 1 level 5 or lower Digimon card with
-//   [Aqua] or [Sea Animal] in any of its traits from your hand as this Digimon's
-//   bottom digivolution card, 1 of your opponent's Digimon or Tamers can't suspend
-//   until their turn ends.
-//   [All Turns] [Once Per Turn] When effects add to this Digimon's digivolution
-//   cards, return 1 of your opponent's level 5 or lower Digimon to the bottom of
-//   the deck.
-//
-// Fixes vs auto-generated:
-//   1. AllTurns Return needs SubTrigger with event "whenEffectAddsToDigivolutionCards"
-//      (see LANE_E.md for capability spec — not yet in engine).
-//   2. AllTurns Return filter was missing the [Aqua]/[Sea Animal] trait restriction
-//      on the returned Digimon? No — re-read text: the returned Digimon is just any
-//      opponent level 5 or lower Digimon (no trait restriction). That part is correct.
-//      The real fix is wrapping the action in a SubTrigger.
 export const compiled: CompiledCard = {
   effects: [
     {

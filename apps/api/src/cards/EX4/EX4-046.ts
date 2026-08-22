@@ -69,22 +69,6 @@ export const compiled: CompiledCard = {
       "trigger": "WhenOpponentAttacks",
       "actions": [
         {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "optional": true,
-          "cost": {
-            "kind": "suspend",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "raw": "suspend this Digimon"
-          }
-        },
-        {
           "kind": "RedirectAttack",
           "target": {
             "filter": {
@@ -94,9 +78,16 @@ export const compiled: CompiledCard = {
             "isSelf": true
           },
           "condition": {
-            "kind": "ifThisEffectUsed",
-            "raw": "if this Digimon was suspended by this effect"
-          }
+            "kind": "duringAttack",
+            "raw": "an opponent's Digimon is attacking"
+          },
+          "cost": {
+            "kind": "suspend",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "raw": "suspend this Digimon"
+          },
+          "optional": true,
+          "abortOnDecline": true
         }
       ],
       "isInherited": true

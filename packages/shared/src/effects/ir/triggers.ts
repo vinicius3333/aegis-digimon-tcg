@@ -12,6 +12,8 @@ export type EffectTrigger =
   | "WhenDigivolving"
   | "WhenAttacking"
   | "OnDeletion"
+  /** Internal reactive deletion bus for effects watching any permanent's deletion. */
+  | "OnDestroyedAnyone"
   | "EndOfAttack"
   | "AllTurns"
   | "YourTurn"
@@ -44,13 +46,17 @@ export type EffectTrigger =
    * normal security-check reveal.
    */
   | "OnDiscardSecurity"
+  /** Fires while a security card is revealed, before the normal battle/trash resolution. */
+  | "OnSecurityCheck"
   /**
    * Fires on THIS Digimon as attacker when it is blocked (BT7-016). Maps to
    * EffectTiming.OnBlockAnyone, fired from `switchDefenderToBlocker` for EVERY block regardless of
    * who is watching, so the effect module must check that it is the attacker —
    * `ctx.trigger.attackerPermanentId` equals its own permanent.
    */
-  | "WhenBlocked";
+  | "WhenBlocked"
+  /** Fires for every security card this Digimon checks. */
+  | "OnSecurityCheck";
 
 /** Per-turn activation limit, from `[Once Per Turn]` / `[Twice Per Turn]`. */
 export type EffectFrequency = "OncePerTurn" | "TwicePerTurn";

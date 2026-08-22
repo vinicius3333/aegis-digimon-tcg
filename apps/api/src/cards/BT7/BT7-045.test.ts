@@ -1,8 +1,6 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT7-045.js";
+import { compiled } from "./BT7-045.js";
 
 describe("BT7-045 Tortomon", () => {
   it("places a green Digimon from hand on top of the deck to give its host +3000 DP when attacking", async () => {
@@ -13,8 +11,7 @@ describe("BT7-045 Tortomon", () => {
     await s.ready();
     const baseDP = s.perm("host").currentDP;
     const greenCardId = s.inst("greenCard").instanceId;
-    const inheritedSource = (s.engine as any).cardSourceOf(s.perm("host").stack[0]!);
-    expect(effectsOf(EffectTiming.OnAllyAttack, inheritedSource).map((effect) => effect.effectKey)).toContain("BT7-045/reveal-green-for-dp");
+    expect(compiled.effects[0]).toMatchObject({ trigger: "WhenAttacking", isInherited: true });
 
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle(() => s.perm("host").currentDP === baseDP + 3000);

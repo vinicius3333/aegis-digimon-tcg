@@ -4,6 +4,7 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-055.js";
 
 describe("BT12-055 handwritten module", () => {
@@ -22,7 +23,7 @@ describe("BT12-055 handwritten module", () => {
   });
 });
 
-it("still permits the follow-up attack when the digivolution was not DNA", async () => {
+it("does not apply the DNA-only effect during a non-DNA digivolution window", async () => {
   const s = setupEngine(
     {
       0: { battleArea: [{ card: "BT12-055", as: "dino" }] },
@@ -35,4 +36,49 @@ it("still permits the follow-up attack when the digivolution was not DNA", async
   await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("dino"));
   expect(s.perm("dino").currentDP).toBe(before);
   expect(s.perm("target").isSuspended).toBe(false);
+});
+
+it("still may attack an opponent's Digimon when the digivolution was not DNA", async () => {
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: "BT12-055", as: "dino" }] },
+      1: { battleArea: [{ card: "BT12-043", as: "target", dp: 15000, suspended: true }] },
+    },
+    { autoSelectCards: true, autoAcceptOptional: true },
+  );
+  await s.ready();
+  await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("dino"), {
+    isDnaDigivolve: false,
+  });
+  expect(observe(s.engine).hasAttackedThisTurn(s.perm("dino"))).toBe(true);
+  expect(s.perm("dino").currentDP).toBe(8000);
+  expect(s.perm("target").isSuspended).toBe(true);
+});
+
+it("suspends an opponent and gains 3000 DP during DNA digivolution", async () => {
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: "BT12-055", as: "dino" }] },
+      1: { battleArea: [{ card: "BT12-043", as: "target", dp: 15000 }] },
+    },
+    { autoSelectCards: true, autoAcceptOptional: true },
+  );
+  await s.ready();
+  const before = s.perm("dino").currentDP;
+  await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("dino"), {
+    isDnaDigivolve: true,
+  });
+  expect(s.perm("dino").currentDP).toBe(before + 3000);
+  expect(s.perm("target").isSuspended).toBe(true);
+});
+
+it("trashes one opposing security card for a qualifying inherited host once per turn", async () => {
+  const s = setupEngine({
+    0: { battleArea: [{ card: "BT12-022", as: "host", under: ["BT12-055"] }] },
+    1: { security: ["BT1-009", "BT1-010"] },
+  });
+  await s.ready();
+  await advance(s.engine).fire(EffectTiming.OnBattleDeleteOpponent, s.perm("host"));
+  await advance(s.engine).fire(EffectTiming.OnBattleDeleteOpponent, s.perm("host"));
+  expect(s.state.players[1]!.security).toHaveLength(1);
 });

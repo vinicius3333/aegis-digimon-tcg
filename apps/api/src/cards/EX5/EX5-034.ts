@@ -12,130 +12,132 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Fix: the "you may" applies to the whole package (choose a target and apply BOTH effects
 //   together). Use a single optional compound action binding the target once.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [
+      trigger: "Static",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldBePlayed",
-              "mode": "reduceCost",
-              "amount": 5,
-              "raw": "reduce the play cost by 5",
-              "condition": {
-                "kind": "totalSecurityCount",
-            "op": "lte",
-            "value": 6,
-            "raw": "there're 6 or fewer total cards in both players' security stacks"
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "OnPlay",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Suspend",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "whenSuspended",
-          "sourceFilter": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "SelectBind",
-              "chooser": "controller",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1,
-                "bindAs": "ex5034OptionalTarget"
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 5,
+              raw: "reduce the play cost by 5",
+              condition: {
+                kind: "allOf",
+                conditions: [
+                  {
+                    kind: "playedFromZone",
+                    zone: "hand",
+                    raw: "this card is played from the hand",
+                  },
+                  {
+                    kind: "totalSecurityCount",
+                    op: "lte",
+                    value: 6,
+                    raw: "there're 6 or fewer total cards in both players' security stacks",
+                  },
+                ],
               },
-              "optional": true,
-              "abortOnDecline": true,
-              "reason": "applyBothEffects"
             },
-            {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {},
-                "count": 1,
-                "fromSelectionRef": "ex5034OptionalTarget"
-              },
-              "amount": -4000,
-              "duration": "untilOpponentTurnEnd"
-            },
-            {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {},
-                "count": 1,
-                "fromSelectionRef": "ex5034OptionalTarget"
-              },
-              "keyword": {
-                "keyword": "SecurityAttack",
-                "amount": -1,
-                "raw": "＜Security Attack -1＞"
-              },
-              "duration": "untilOpponentTurnEnd"
-            }
-          ]
-        }
+          ],
+        },
       ],
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Suspend",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+          },
+          actions: [
+            {
+              kind: "SelectBind",
+              chooser: "controller",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+                bindAs: "ex5034OptionalTarget",
+              },
+              optional: true,
+              abortOnDecline: true,
+              reason: "applyBothEffects",
+            },
+            {
+              kind: "ModifyDP",
+              target: {
+                filter: {},
+                count: 1,
+                fromSelectionRef: "ex5034OptionalTarget",
+              },
+              amount: -4000,
+              duration: "untilOpponentTurnEnd",
+            },
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {},
+                count: 1,
+                fromSelectionRef: "ex5034OptionalTarget",
+              },
+              keyword: {
+                keyword: "SecurityAttack",
+                amount: -1,
+                raw: "＜Security Attack -1＞",
+              },
+              duration: "untilOpponentTurnEnd",
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX5-034", compiled);

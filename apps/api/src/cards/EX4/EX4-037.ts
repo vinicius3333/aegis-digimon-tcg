@@ -39,11 +39,13 @@ const module: EffectModule = {
           when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn(),
           canActivate: (ctx) => {
             const mine = ctx.game.player(source.ownerSeat).battleArea;
-            return mine.filter((p) => {
-              if (p.topCard === undefined) return false;
-              if (!isDigimon(ctx.game.definitionOf(p.topCard))) return false;
-              return isGreenOrBlack(ctx.game.definitionOf(p.topCard));
-            }).length >= 2;
+            return (
+              mine.filter((p) => {
+                if (p.topCard === undefined) return false;
+                if (!isDigimon(ctx.game.definitionOf(p.topCard))) return false;
+                return isGreenOrBlack(ctx.game.definitionOf(p.topCard));
+              }).length >= 2
+            );
           },
           resolve: async (ctx) => {
             const mine = ctx.game.player(source.ownerSeat).battleArea;

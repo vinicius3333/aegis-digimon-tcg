@@ -22,6 +22,7 @@ import {
 } from "../builders.js";
 import type { BuilderOptions } from "../builders.js";
 import { canAttemptDnaDigivolve } from "./actions/dna.js";
+import { canAttemptDigivolve } from "./actions/digivolve.js";
 import { evaluateCondition } from "./conditions.js";
 import { canPayCost } from "./costs.js";
 import { installEffectRunner, runAction } from "./dispatch.js";
@@ -539,6 +540,7 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
   if (effect.condition && (effect.condition.kind === "raw" || !evaluateCondition(ctx, effect.condition))) return false;
   const relevantActions = (effect.actions ?? []).filter((action) => action.kind !== "RawUnparsed");
   const isGated = (action: Action) =>
+    action.kind === "Digivolve" ||
     action.kind === "DnaDigivolve" ||
     (action.kind !== "ConditionalBranch" && action.condition !== undefined) ||
     action.cost !== undefined;
@@ -549,7 +551,9 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
   // condition/cost is impossible (BT10-025). Mirror runEffect's ordered abort semantics here.
   const leadingAction = relevantActions[0];
   if (leadingAction?.abortOnDecline === true && isGated(leadingAction)) {
-    const intrinsicPossible = leadingAction.kind !== "DnaDigivolve" || canAttemptDnaDigivolve(ctx, leadingAction);
+    const intrinsicPossible = leadingAction.kind === "Digivolve"
+      ? canAttemptDigivolve(ctx, leadingAction)
+      : leadingAction.kind !== "DnaDigivolve" || canAttemptDnaDigivolve(ctx, leadingAction);
     const conditionMet =
       leadingAction.condition === undefined ||
       (leadingAction.condition.kind !== "raw" && evaluateCondition(ctx, leadingAction.condition));
@@ -560,7 +564,9 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
   const ungatedCount = relevantActions.length - gatedActions.length;
   if (gatedActions.length === 0 || ungatedCount > 0) return true;
   return gatedActions.some((action) => {
-    const intrinsicPossible = action.kind !== "DnaDigivolve" || canAttemptDnaDigivolve(ctx, action);
+    const intrinsicPossible = action.kind === "Digivolve"
+      ? canAttemptDigivolve(ctx, action)
+      : action.kind !== "DnaDigivolve" || canAttemptDnaDigivolve(ctx, action);
     const conditionMet =
       action.condition === undefined || (action.condition.kind !== "raw" && evaluateCondition(ctx, action.condition));
     const costPayable = action.cost === undefined || canPayCost(ctx, action.cost);

@@ -27,6 +27,15 @@ export interface GainMemoryAction extends ActionBase {
   at?: "endOfTurn";
 }
 
+/** Pay any amount from zero through maxMemory, applying amount DP per memory paid. */
+export interface PayMemoryUpToAction extends ActionBase {
+  kind: "PayMemoryUpTo";
+  maxMemory: number;
+  target: Target;
+  amount: number;
+  duration: EffectDurationRef;
+}
+
 export interface SetMemoryAction extends ActionBase {
   kind: "SetMemory";
   value: number;

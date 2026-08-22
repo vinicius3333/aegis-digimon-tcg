@@ -3,7 +3,7 @@ import type { CardDefinition } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
-import { onPlay, whenDigivolving, staticModifier } from "../../engine/effects/builders.js";
+import { onPlay, turnTiming, whenDigivolving, staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "P-215";
@@ -13,6 +13,10 @@ function hasIceOrMineralOrRock(def: CardDefinition): boolean {
 }
 
 const _UNDER_TRAITS = ["Ice-Snow", "Mineral", "Rock"];
+
+function isSelfMove(ctx: EffectContext, source: CardSource): boolean {
+  return ctx.trigger?.movedPermanentId === source.permanent()?.permanentId;
+}
 
 async function placeAndProtect(
   ctx: Parameters<NonNullable<Parameters<typeof onPlay>[0]["resolve"]>>[0],
@@ -45,7 +49,9 @@ async function placeAndProtect(
           max: 1,
         });
         if (protect.length > 0) {
-          ctx.fx.restrict(protect[0]!, "beReturned", EffectDuration.UntilOpponentTurnEnd, { byOpponentEffectsOnly: true });
+          ctx.fx.restrict(protect[0]!, "beReturned", EffectDuration.UntilOpponentTurnEnd, {
+            byOpponentEffectsOnly: true,
+          });
         }
       }
     }
@@ -106,18 +112,23 @@ const module: EffectModule = {
             }
           },
         }),
-        staticModifier({
+      ];
+    }
+
+    if (timing === EffectTiming.OnMove) {
+      return [
+        turnTiming({
           source,
           effectKey: `${cardId}/when-moving`,
           description:
             "[When Moving] By placing 1 level 4 or lower [Ice-Snow]/[Mineral]/[Rock] trait " +
             "card from your hand or trash under this Digimon, 1 of your [Ice-Snow]...trait " +
             "Digimon can't be returned until opponent's turn end.",
-          when: (_ctx) => source.isOnBattleArea(),
-          resolve: async (/*ctx*/) => {
-            // ENGINE-GAP: SubTrigger event "whenMoving" (When Moving) not available
-            // as a SubTrigger; the place-and-protect pattern requires a move event
-            // that fires when the Digimon moves breeding ↔ battle.
+          optional: true,
+          when: (ctx) => source.isOnBattleArea() && isSelfMove(ctx, source),
+          canActivate: (ctx) => ctx.source.isOnBattleArea(),
+          resolve: async (ctx) => {
+            await placeAndProtect(ctx, source);
           },
         }),
       ];

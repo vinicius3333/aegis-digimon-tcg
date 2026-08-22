@@ -2,9 +2,14 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./ST5-06.js";
 
 describe("ST5-06 Greymon", () => {
+  it("is fully represented with the inherited no-attack draw", () => {
+    expect(runtimeCompiledCard("ST5-06")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("draws at the end of the opponent's turn if they did not attack", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "ST5-08", under: ["ST5-06"], as: "host" }], deck: [{ card: "ST5-03", as: "drawn" }] } });
     s.state.turnSeat = 1;

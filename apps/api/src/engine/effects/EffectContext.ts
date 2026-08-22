@@ -149,6 +149,8 @@ export type RemovalCause = "byEffect" | "byBattle" | "byRule";
  * sections 2 and 10).
  */
 export interface TriggerInfo {
+  /** The play was initiated by an explicitly marked Decode replacement payload. */
+  playedByDecode?: boolean;
   /** Seat whose turn was active when the event occurred (preserved across deferred rule triggers). */
   turnSeat?: Seat;
   /** Controller of a deleted permanent, captured before deferred rule processing removes it. */
@@ -158,6 +160,8 @@ export interface TriggerInfo {
   /** Whether the pay-time declaration is using the card as an Option rather than playing a permanent. */
   wouldBePlayedAsOption?: boolean;
   attackerPermanentId?: string;
+  /** Stable identity for this attack across all reactive attack sub-trigger fires. */
+  attackSequence?: number;
   /** Named attack procedure that caused the current attack watcher, when applicable. */
   attackMechanic?: string;
   /** The defending permanent of the in-flight battle (the original target or the blocker). */
@@ -190,6 +194,8 @@ export interface TriggerInfo {
   removalCause?: RemovalCause;
   /** True when this simultaneous deletion batch is the rule check for Digimon at exactly 0 DP. */
   deletedByDpZero?: boolean;
+  /** Top-card instance IDs that individually reached exactly 0 DP in this deletion window. */
+  deletedByDpZeroInstanceIds?: string[];
   /** Security card currently being checked. */
   securityInstanceId?: string;
   /** Option permanent card instance that was trashed from the battle area. */
@@ -260,6 +266,8 @@ export interface TriggerInfo {
   addedDigivolutionCardInstanceIds?: string[];
   /** Stack position used by an effect placing cards under a Digimon. */
   addedDigivolutionCardsPosition?: "top" | "bottom";
+  /** True when an effect rotated the host's own top card to the bottom of its stack. */
+  placedOwnTopAtStackBottom?: boolean;
   /** Printed card id selected as the destination of an imminent digivolution. */
   digivolvingIntoCardId?: string;
   /** Printed level of the permanent's top card immediately before a digivolution. */
@@ -463,13 +471,21 @@ export interface GameAccess {
    * (HARD-01). Optional so lightweight test GameAccess literals fall back to static
    * kinds; the live engine always provides it via createGameAccess.
    */
-  effectiveKinds?(permanentId: string): import("@aegis/shared").CardKind[];
+  effectiveKinds?(
+    permanentId: string,
+    printedKinds?: readonly import("@aegis/shared").CardKind[],
+  ): import("@aegis/shared").CardKind[];
   /** A permanent's printed traits plus active runtime trait grants. */
   effectiveTraits?(permanentId: string): string[];
   /** A permanent's printed kinds plus active runtime kind grants. */
-  effectiveKinds?(permanentId: string): import("@aegis/shared").CardKind[];
+  effectiveKinds?(
+    permanentId: string,
+    printedKinds?: readonly import("@aegis/shared").CardKind[],
+  ): import("@aegis/shared").CardKind[];
   /** Effective printed-plus-granted colors used by Option color requirements. */
   effectiveColors?(permanent: Permanent): import("@aegis/shared").CardColor[];
+  /** Current DP including active continuous modifiers during effect recomputation. */
+  effectiveDP?(permanentId: string): number;
   /** Whether a loose card currently ignores its printed color requirement. */
   colorRequirementWaived?(instanceId: string): boolean;
   /** Server-authoritative live keyword/mechanic lookup for the source permanent. */
@@ -587,6 +603,8 @@ export interface Primitives {
       effectSourceCardId?: string;
       /** Server-selected DigiXros materials to place before firing this effect-played card's On Play. */
       digiXrosMaterialInstanceIds?: string[];
+      /** Resolved host permanent for stack-origin instances, when the source is a stack zone. */
+      hostPermanentIds?: Record<string, string>;
     },
   ): Promise<Permanent[]>;
   /**
@@ -611,6 +629,10 @@ export interface Primitives {
       costOverride?: number;
       /** Choose a matching alternate digivolution requirement when printed and alternate paths both match. */
       useAlternateCost?: boolean;
+      /** Ignore only the level portion of the printed digivolution requirement. */
+      ignoreLevel?: boolean;
+      /** Temporarily evaluate the base as the printed virtual level/colors (e.g. a Tamer). */
+      virtualBase?: { level: number; colors: CardColor[] };
       ignoreRequirements?: boolean;
       beforeWhenDigivolving?: () => Promise<void>;
     },
@@ -737,6 +759,8 @@ export interface Primitives {
    * sequences before control returns (WR-01). Non-link trashes resolve synchronously-fast.
    */
   trash(instanceIds: string[], opts?: { byEffectSeat?: Seat }): Promise<CardInstance[]>;
+  /** Trash a breeding permanent as a whole without treating the move as deletion. */
+  trashBreedingPermanent?(seat: Seat, opts?: { byEffectSeat?: Seat }): Promise<CardInstance[]>;
   /**
    * Trash digivolution-stack cards (`instanceIds`) of `hostPermanentId` BY AN EFFECT, firing the
    * whenDigivolutionTrashed SubTrigger once per card actually trashed (carrying the host as the
@@ -899,7 +923,7 @@ export interface Primitives {
   changeEvoCost(
     filter: (m: EvoCostMatch) => boolean,
     delta: number,
-    opts?: { setFixed?: boolean; once?: boolean; onConsume?: (match: EvoCostMatch) => void },
+    opts?: { setFixed?: boolean; once?: boolean; continuous?: boolean; onConsume?: (match: EvoCostMatch) => void },
   ): void;
   /**
    * Record a continuous play/use-cost modification ("reduce the play cost of your
@@ -1126,7 +1150,7 @@ export interface Primitives {
     targetPermanentId: string,
     stackInstanceId: string,
     duration: EffectDuration,
-    opts?: { trigger?: string },
+    opts?: { trigger?: string; inheritedOnly?: boolean },
   ): void;
 
   // --- security-stack manipulation -------------------------------------------
@@ -1175,6 +1199,7 @@ export interface Primitives {
     opts?: {
       withoutSuspending?: boolean;
       attackPlayer?: boolean;
+      attackPlayerOnly?: boolean;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
     },
@@ -1324,11 +1349,11 @@ export interface SubTriggerInstall {
   /**
    * Anchor for a watcher installed by a card that is NOT a live battle-area Permanent —
    * a hand- or trash-resident source ("when this card is trashed from the hand", a
-   * `[Trash]` continuous reaction). Absent when `sourcePermanentId` is set (the two are
-   * mutually exclusive in practice: a permanent-anchored watcher never needs this
-   * fallback). The engine resolves it against the loose CardInstance wherever it
-   * currently sits (hand/trash/security), binding `ctx.source` from it instead of
-   * requiring a Permanent. See `SubTriggerRegistry.subscribe`'s loud-failure guard: a
+   * `[Trash]` continuous reaction). When paired with `sourcePermanentId`, it preserves
+   * the exact printed source card while the permanent id anchors lifecycle. Otherwise,
+   * the engine resolves it against the loose CardInstance wherever it currently sits
+   * (hand/trash/security), binding `ctx.source` from it instead of requiring a Permanent.
+   * See `SubTriggerRegistry.subscribe`'s loud-failure guard: a
    * watcher with a `matches` predicate and NEITHER anchor can never fire and is now a
    * hard error at install time, not a silent no-op.
    */
@@ -1336,6 +1361,8 @@ export interface SubTriggerInstall {
   /** Retained live context for a seat-scoped timed watcher with no permanent/card anchor. */
   activationContext?: EffectContext;
   once: boolean;
+  /** Marks a watcher installed by a persistent static effect for recompute teardown. */
+  continuous?: boolean;
   run: (ctx: EffectContext) => Promise<void>;
   /**
    * Per-install gate on the fired event's payload (the captured `sourceFilter`).
@@ -1369,6 +1396,8 @@ export interface SubTriggerInstall {
 export interface ReplacementInstallBase {
   event: ReplacementEventName;
   sourcePermanentId?: string;
+  /** Anchor for a replacement sourced from a loose card in hand/trash. */
+  sourceInstanceId?: string;
   /** Stable per-turn budget key for a persistent `[Once Per Turn]` replacement. */
   oncePerTurnKey?: string;
   /**
@@ -1386,6 +1415,7 @@ export interface ReplacementInstallBase {
 export interface ReplacementInstallReduceCost extends ReplacementInstallBase {
   mode: "reduceCost";
   amount?: number;
+  amountForInto?: (def: CardDefinition) => number;
   /**
    * For mode "reduceCost" + event "wouldDigivolve": restrict the reduction to when the
    * digivolution target (the "into" card) matches this definition predicate. Absent => applies
@@ -1580,6 +1610,8 @@ export interface EffectContext {
    * relevant printed clause instead of the card's full effect text. Display-only.
    */
   activeTiming?: string;
+  /** Internal marker for effects re-derived by the continuous-effect pass. */
+  continuousPass?: boolean;
   /** Exact rules clause currently resolving, including inherited/security provenance. Display-only. */
   activeEffectText?: string;
   /** Temporary restrictions installed by a RestrictEffect action in this resolution. */
@@ -1626,6 +1658,8 @@ export interface EffectContext {
    *   delete it" on a Digimon just played by this effect.
    */
   lastDeleteCount?: number;
+  /** Whether the most recent Delete selected a target, even if deletion was prevented. */
+  lastDeleteTargetSelected?: boolean;
   /**
    * The MAX printed level among permanents deleted by the most recent Delete (or `deleteOwn`
    * subsequent target filter's `levelComparison.relativeTo:"lastDeleted"` binds its threshold
@@ -1635,6 +1669,7 @@ export interface EffectContext {
   lastDeletedLevel?: number;
   lastDigivolveResult?: boolean;
   lastOptionUsed?: boolean;
+  lastOptionUsedInstanceId?: string;
   lastEffectActed?: boolean;
   /** Whether the opponent declined the immediately preceding opponent-choice action. */
   lastOpponentDeclined?: boolean;
@@ -1648,6 +1683,7 @@ export interface EffectContext {
    * Used by clauses like "with as much or less DP as the Digimon this effect suspended".
    */
   lastSuspendedPermanentIds?: string[];
+  lastTrashedCards?: { instanceId: string; cardId: string; dp: number }[];
   /**
    * Cards revealed by the most recent Reveal/RevealAdd action in this effect resolution.
    * Kept as a snapshot because the cards may be immediately returned to deck bottom/hand/trash,
@@ -1668,6 +1704,8 @@ export interface EffectContext {
    * the delta (T-08-26). Undefined / 0 => no reduction (payment declined or none eligible).
    */
   playCostDelta?: number;
+  /** Temporary maximum-level adjustment for a subsequent effect-driven hand play. */
+  playLevelCeilingDelta?: number;
   /**
    * Battle-area permanent ids a `wouldBePlayed` self-reducer's cost body (BT12-112) selected to be
    * relocated as a digivolution card under the card being played — collected during

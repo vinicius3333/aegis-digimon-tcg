@@ -29,8 +29,9 @@ const isRosemonOrJijimon = (def: CardDefinition): boolean =>
 
 function oppDigimonPermanentIds(ctx: EffectContext, ownerSeat: 0 | 1): string[] {
   const oppSeat = ctx.game.opponentOf(ownerSeat);
-  return ctx.game.player(oppSeat).battleArea
-    .filter((p) => {
+  return ctx.game
+    .player(oppSeat)
+    .battleArea.filter((p) => {
       if (p.inBreeding || p.topCard === undefined) return false;
       return isDigimon(ctx.game.definitionOf(p.topCard));
     })
@@ -81,7 +82,7 @@ const module: EffectModule = {
     }
 
     // [End of Opponent's Turn] By deleting this Digimon, you may play 1 [Rosemon]/[Jijimon]
-    // from your hand without paying the cost. Then, activate [When Digivolving] (residual).
+    // from your hand without paying the cost. Then, activate [When Digivolving].
     if (timing === EffectTiming.OnEndTurn) {
       return [
         turnTiming({
@@ -99,9 +100,7 @@ const module: EffectModule = {
 
             const ownerSeat = source.ownerSeat;
             const ownerPlayer = ctx.game.player(ownerSeat);
-            const handCandidates = ownerPlayer.hand.filter((c) =>
-              isRosemonOrJijimon(ctx.game.definitionOf(c)),
-            );
+            const handCandidates = ownerPlayer.hand.filter((c) => isRosemonOrJijimon(ctx.game.definitionOf(c)));
 
             if (handCandidates.length === 0) return;
 

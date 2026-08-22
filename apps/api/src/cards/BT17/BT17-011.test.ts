@@ -8,7 +8,7 @@ describe("BT17-011", () => {
 
   it("digivolves into AncientGreymon for 3 and deletes itself if successful", () => {
     expect(compiled.effects?.[1]?.actions?.[0]).toMatchObject({ kind: "Digivolve", from: ["hand"], costOverride: 3, ignoreRequirements: true, optional: true, condition: { kind: "anyOf" } });
-    expect(compiled.effects?.[1]?.actions?.[1]).toMatchObject({ kind: "Delete", condition: { kind: "ifThisEffectDigivolved" } });
+    expect(compiled.effects?.[1]?.actions?.[1]).toMatchObject({ kind: "DelayedDelete", condition: { kind: "ifThisEffectDigivolved" } });
   });
 
   it("has inherited permanent DP", () => {

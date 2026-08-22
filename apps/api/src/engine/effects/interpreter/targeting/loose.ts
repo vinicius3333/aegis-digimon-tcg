@@ -57,8 +57,8 @@ export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef):
       if (p.breeding?.topCard) collect([p.breeding.topCard]);
       break;
     case "digivolutionCards": {
-      // "from under your Tamers/Digimon" — every digivolution card of every battle-area
-      // permanent this seat controls (the cards stacked beneath each top card).
+      // "from under your Tamers/Digimon" — every digivolution card of every permanent
+      // this seat controls, including the breeding-area permanent (BT13-110/112).
       for (const permanent of p.battleArea) {
         for (const c of permanent.stack) {
           out.push({
@@ -66,6 +66,17 @@ export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef):
             cardId: c.cardId,
             ownerSeat: c.ownerSeat,
             hostPermanentId: permanent.permanentId,
+            faceUp: c.faceUp,
+          });
+        }
+      }
+      if (p.breeding !== undefined) {
+        for (const c of p.breeding.stack) {
+          out.push({
+            instanceId: c.instanceId,
+            cardId: c.cardId,
+            ownerSeat: c.ownerSeat,
+            hostPermanentId: p.breeding.permanentId,
             faceUp: c.faceUp,
           });
         }
@@ -140,6 +151,14 @@ export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef):
  * `hasLinkRequirement` ＜Link＞-capability gate over hand/digivolution link material).
  */
 export function candidateLooseInstances(ctx: EffectContext, target: Target, zones: ZoneRef[]): LooseCandidate[] {
+  if (target.fromSelectionRef !== undefined) {
+    const boundInstanceId = ctx.selections?.get(target.fromSelectionRef);
+    if (boundInstanceId === undefined) return [];
+    const bound = findLooseCandidateByInstance(ctx, boundInstanceId);
+    if (bound === undefined || !zones.some((zone) => looseCardsInZone(ctx, bound.ownerSeat, zone).some((card) => card.instanceId === boundInstanceId))) return [];
+    const def = ctx.game.definitionOf({ cardId: bound.cardId } as never);
+    return definitionMatches(target.filter, def) ? [bound] : [];
+  }
   // `orFilters`: a card qualifies if it matches the primary filter OR any alternative
   // ("play 1 [X] or 1 [Y]", BT17-074). Union the controller scope across all alternatives.
   const allFilters = [target.filter, ...(target.orFilters ?? []), ...(target.filter.orFilters ?? [])];
@@ -179,7 +198,11 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
             if (self === undefined || self.permanentId !== cand.hostPermanentId) continue;
           } else {
             const host = ctx.game.permanentById(cand.hostPermanentId);
-            if (host && !permanentMatchesFilter(ctx, host, hostFilter, ctx.source)) continue;
+            const boundRef = (hostFilter as { boundRef?: string }).boundRef;
+            if (boundRef !== undefined) {
+              const selectedHost = ctx.selections?.get(boundRef);
+              if (selectedHost === undefined || selectedHost !== cand.hostPermanentId) continue;
+            } else if (host && !permanentMatchesFilter(ctx, host, hostFilter, ctx.source)) continue;
           }
         }
         if (cand.hostPermanentId && target.filter.position === "top") {

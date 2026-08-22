@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT5-080.js";
 
 describe("BT5-080 Zanbamon", () => {
+  it("has complete residual-free runtime coverage", () => {
+    expect(runtimeCompiledCard("BT5-080")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("deletes the opposing Digimon with Retaliation after losing a battle", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT5-080", as: "zanba" }] }, 1: { battleArea: [{ card: "BT4-073", as: "strong", suspended: true, dp: 13000 }] } });
     const strongId = s.perm("strong").permanentId;

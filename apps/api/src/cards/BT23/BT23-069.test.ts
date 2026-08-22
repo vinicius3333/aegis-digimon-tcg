@@ -182,7 +182,7 @@ describe("A3 BT23-069 — delete-outcome gate: continue if it deleted, end if it
       opponentBattleArea: [oppImmune],
       recorder,
       // A target WAS chosen, but it is deletion-immune => 0 actually removed (Q5338).
-      deleteCount: () => 0,
+      deleteCount: (ids) => (ids.includes(self.permanentId) ? ids.length : 0),
       installed,
     });
     const watcher = await installWatcher(ctx, installed);

@@ -1,7 +1,8 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type Seat } from "@aegis/shared";
 import { setupEngine, type BoardSpec, type EngineSetup } from "../../engine/testkit/harness.js";
-import "../index.js";
+import { compiled } from "./BT20-089.js";
+import "./index.js";
 
 // A3 for BT20-089 (Code Cracker Fang & Hacker Judge — Purple/Black Tamer).
 //
@@ -10,8 +11,6 @@ import "../index.js";
 //   gains ＜Alliance＞, ＜Piercing＞ and ＜Barrier＞.
 // [Inherited — End of All Turns] Play 1 [Eiji Nagasumi] from this Digimon's
 //   digivolution cards without paying the cost.
-//   RESIDUAL: inherited effects in hand-written EffectModules require conferStackEffects
-//   (IR-only path), so the stack-confer path is not tested here.
 //
 // FAILS-WHEN-REVERTED: [Start of Your Main Phase] memory gain fires — the memory
 //   increases by 1 when the opponent has a Digimon.
@@ -59,6 +58,11 @@ async function driveTurn(h: Harness, seat: Seat): Promise<void> {
 }
 
 describe("BT20-089 Code Cracker Fang & Hacker Judge — Tamer effects", () => {
+  it("keeps the Rule name treatment permanent", () => {
+    const rule = compiled.effects.find((effect) => effect.trigger === "Rule");
+    expect(rule?.actions[0]).toMatchObject({ kind: "GrantStatic", grant: "name", tokens: ["Eiji Nagasumi", "Leon Alexander"], duration: "permanent" });
+  });
+
   it("[Start of Your Main Phase] gains 1 memory when opponent has a Digimon", async () => {
     const h = harness({
       // Place CC Fang on seat 0's battle area.

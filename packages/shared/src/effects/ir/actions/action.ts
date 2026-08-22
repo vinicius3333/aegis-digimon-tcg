@@ -79,6 +79,7 @@ import type {
   CostModifierAction,
   DrawAction,
   GainMemoryAction,
+  PayMemoryUpToAction,
   ReducePlayCostAction,
   SetMemoryAction,
   SetTurnEndMemoryAction,
@@ -126,6 +127,7 @@ import type {
 export type Action =
   | DrawAction
   | GainMemoryAction
+  | PayMemoryUpToAction
   | SetMemoryAction
   | SetTurnEndMemoryAction
   | DeleteAction

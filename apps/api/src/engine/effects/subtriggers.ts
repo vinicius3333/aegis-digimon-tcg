@@ -30,9 +30,9 @@ export interface SubTriggerSubscription {
   sourcePermanentId?: string;
   /**
    * Anchor for a hand/trash-resident source with no live Permanent. See
-   * {@link SubTriggerInstall.sourceInstanceId}. Mutually exclusive with
-   * `sourcePermanentId` in practice — the engine's context builder tries the
-   * permanent anchor first and falls back to this only when it is absent.
+   * {@link SubTriggerInstall.sourceInstanceId}. When both are present, the
+   * permanent anchors the subscription lifecycle while the instance preserves
+   * the printed source card (including an inherited card in a stack).
    */
   sourceInstanceId?: string;
   /**
@@ -323,6 +323,12 @@ export class SubTriggerRegistry {
           `never resolve a context and would silently never fire. Anchor it to the installing card's ` +
           `permanent/instance or retain the activating resolution context.`,
       );
+    }
+    if (sub.oncePerTurnKey !== undefined) {
+      const existing = this.subs.find(
+        (candidate) => candidate.event === sub.event && candidate.oncePerTurnKey === sub.oncePerTurnKey,
+      );
+      if (existing !== undefined) return existing.id;
     }
     const id = this.seq++;
     this.subs.push({ ...sub, id });

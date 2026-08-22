@@ -1,17 +1,31 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX10-064.js";
-import { allowsExtraDigiXrosMaterials } from "../../engine/effects/interpreter.js";
 
-describe("EX10-064", () => {
-  it("registers the replacement as a one-under-Tamer plus one-trash DigiXros expansion", () => {
-    const replacement = compiled.effects.find((entry) => entry.trigger === "AllTurns")?.actions[0] as {
-      additionalEffects?: Array<{ kind: string }>;
-    };
-    expect(replacement.additionalEffects).toEqual([
-      { kind: "AllowDigiXrosMaterialsFromTrash" },
-      { kind: "DigiXrosExtraMaterial" },
-    ]);
-    expect(allowsExtraDigiXrosMaterials("EX10-064")).toBe(true);
-    expect(compiled.coverage).toBe("full");
+describe("EX10-064 Yuu Amano & Nene Amano compiled contract", () => {
+  it("proves the draw cost, DigiXros expansion, and Security play clauses", () => {
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          trigger: "StartOfYourMainPhase",
+          actions: [expect.objectContaining({ kind: "Draw", cost: expect.objectContaining({ kind: "place" }) })],
+        }),
+        expect.objectContaining({
+          trigger: "AllTurns",
+          actions: [
+            expect.objectContaining({
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              actions: expect.arrayContaining([expect.objectContaining({ kind: "DigiXrosExtraMaterial" })]),
+            }),
+          ],
+        }),
+        expect.objectContaining({
+          trigger: "Security",
+          isSecurity: true,
+          actions: [expect.objectContaining({ kind: "PlayWithoutCost", payCost: false })],
+        }),
+      ]),
+    );
   });
 });

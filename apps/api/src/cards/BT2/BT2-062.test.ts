@@ -2,11 +2,11 @@ import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import module from "./BT2-062.js";
+import { compiled } from "./BT2-062.js";
 
 describe("BT2-062 Infermon", () => {
   it("matches official metadata and publishes the typed self cost reducer", () => {
-    expect(module.cardId).toBe("BT2-062");
+    expect(compiled).toBeDefined();
     expect(getCardDefinition("BT2-062")).toMatchObject({
       nameEn: "Infermon",
       colors: ["Black"],

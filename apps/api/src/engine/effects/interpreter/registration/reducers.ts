@@ -7,6 +7,7 @@ import { runAction } from "../dispatch.js";
 import { scaleFactor } from "../scaling.js";
 import { candidateLooseInstances } from "../targeting/loose.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
+import { permanentMatchesFilter } from "../matching/permanent.js";
 import type { Action, CardEffect, Condition, Cost, Permanent, Scaling, ZoneRef } from "@aegis/shared";
 
 /**
@@ -40,7 +41,7 @@ export function registerWouldBePlayedSelfReducer(cardId: string, reducer: WouldB
   WOULD_BE_PLAYED_SELF_REDUCERS.set(cardId, [...withoutSameKey, reducer]);
 }
 
-const STRUCTURED_REDUCER_COSTS = new Set(["suspend", "unsuspend", "return", "trash"]);
+const STRUCTURED_REDUCER_COSTS = new Set(["suspend", "unsuspend", "return", "trash", "trashBottomFaceDownUnderTamer"]);
 
 /**
  * Cards whose "When THIS card would be played, by [structured cost], reduce the play cost by N"
@@ -63,6 +64,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "P-171", // face-up [Deep Savers] in security -> -4
   "P-172", // face-up [Nature Spirits] in security -> -4
   "P-174", // face-up [Nightmare Soldiers] in security -> -4
+  "ST14-09", // reduce this card's play cost by 4 for every 10 cards in your trash
   "BT12-112", // place 1 [Shoutmon] as digivolution material -> -1 (KB Q2249-Q2256)
   "BT8-043", // delete 1 purple [Cherubimon] -> -8
   "BT9-097", // condition: you have a Digimon with [X Antibody] card name in play -> -2 (KB Q1902)
@@ -82,7 +84,19 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT25-059", // 2+ suspended Digimon -> -5 (Q6306/Q6350)
   "BT25-075", // fewer Digimon than your opponent -> -5 (Q6370-Q6372)
   "BT25-077", // condition: 12+ total Digimon levels -> -5 (Q7002 effect-driven stacking)
+  "BT25-096", // trash the bottom face-down card under a Tamer -> Option use cost -2 (Q6456)
   "BT22-041", // condition: total cards in both security stacks <= 6 -> self play cost -6
+  "BT11-096", // condition: you have a red Tamer -> Option use cost -1
+  "BT11-099", // condition: you have a blue Tamer -> Option use cost -1
+  "BT11-100", // condition: you have a yellow Tamer -> Option use cost -1
+  "BT11-101", // condition: you have a yellow Tamer -> Option use cost -1
+  "BT11-103", // condition: you have a green Tamer -> Option use cost -1
+  "BT11-104", // condition: you have a green Tamer -> Option use cost -1
+  "BT11-105", // condition: you have a Snatchmon -> Option use cost -1
+  "BT11-106", // condition: you have a black Tamer -> Option use cost -1
+  "BT11-107", // condition: you have X Antibody in play -> Option use cost -2
+  "BT11-108", // condition: you have a black Tamer -> Option use cost -1
+  "BT11-110", // condition: you have a purple Tamer -> Option use cost -1
 ]);
 
 /**
@@ -237,6 +251,7 @@ export function wouldBePlayedSelfReducersFor(cardId: string): WouldBePlayedSelfR
 export interface WouldDigivolveSelfReducer {
   cost?: Cost;
   scaling?: Scaling;
+  sourceFilter?: import("@aegis/shared").Filter;
   amount: number;
   raw: string;
 }
@@ -246,6 +261,8 @@ const WOULD_DIGIVOLVE_SELF_REDUCERS = new Map<string, WouldDigivolveSelfReducer[
 const VERIFIED_DIGIVOLVE_SELF_REDUCER_CARDS = new Set([
   "EX3-054", // return up to 5 [D-Brigade] cards from trash to deck top -> -1 each (KB Q3423)
   "BT22-038", // -1 for each face-down digivolution card on the Ver.1 base (KB Q4884/Q5196)
+  "BT8-112", // return a white level 7 from trash to the deck bottom -> -4
+  "BT3-111", // Paildramon/Dinobeemon would digivolve into this card -> -2 (KB card ruling)
 ]);
 
 export function collectWouldDigivolveSelfReducers(cardId: string, effects: readonly CardEffect[]): void {
@@ -259,12 +276,12 @@ export function collectWouldDigivolveSelfReducers(cardId: string, effects: reado
           action.kind === "Replacement" &&
           action.event === "wouldDigivolve" &&
           action.mode === "reduceCost" &&
-          (action.cost !== undefined || action.scaling !== undefined) &&
           typeof action.amount === "number"
         ) {
           reducers.push({
             ...(action.cost !== undefined ? { cost: action.cost } : {}),
             ...(action.scaling !== undefined ? { scaling: action.scaling } : {}),
+            ...(outer.sourceFilter !== undefined ? { sourceFilter: outer.sourceFilter } : {}),
             amount: action.amount,
             raw: action.cost?.raw ?? action.raw ?? "Reduce the digivolution cost.",
           });
@@ -283,15 +300,22 @@ function digivolveReducerScale(ctx: EffectContext, reducer: WouldDigivolveSelfRe
   if (reducer.scaling === undefined) return 1;
   if (target !== undefined && reducer.scaling.unit === "digivolutionCards") {
     const filter = reducer.scaling.filter ?? {};
-    const count = target.stack.filter((card) =>
-      (filter.faceDown !== true || card.faceUp !== true) && (filter.faceUp !== true || card.faceUp === true),
+    const count = target.stack.filter(
+      (card) => (filter.faceDown !== true || card.faceUp !== true) && (filter.faceUp !== true || card.faceUp === true),
     ).length;
     return Math.floor(count / Math.max(1, reducer.scaling.per));
   }
   return scaleFactor(ctx, reducer.scaling);
 }
 
-export function potentialWouldDigivolveSelfReduction(ctx: EffectContext, reducer: WouldDigivolveSelfReducer, target?: Permanent): number {
+export function potentialWouldDigivolveSelfReduction(
+  ctx: EffectContext,
+  reducer: WouldDigivolveSelfReducer,
+  target?: Permanent,
+): number {
+  if (reducer.sourceFilter !== undefined && (target === undefined || !permanentMatchesFilter(ctx, target, reducer.sourceFilter, ctx.source))) {
+    return 0;
+  }
   const scale = digivolveReducerScale(ctx, reducer, target);
   if (reducer.cost === undefined) return Math.max(0, reducer.amount * scale);
   if (reducer.cost.target?.upTo !== true || typeof reducer.cost.target.count !== "number") {

@@ -77,8 +77,7 @@ const module: EffectModule = {
         staticModifier({
           source,
           effectKey: `${cardId}/barrier-ess`,
-          description:
-            "<Barrier> (Once per turn, when this Digimon would be deleted, negate that deletion.)",
+          description: "<Barrier> (Once per turn, when this Digimon would be deleted, negate that deletion.)",
           isInherited: true,
           maxPerTurn: 1,
           when: (ctx) => ctx.source.isOnBattleArea(),

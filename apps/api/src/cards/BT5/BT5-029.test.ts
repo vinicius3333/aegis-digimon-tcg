@@ -11,4 +11,10 @@ describe("BT5-029 WereGarurumon: Sagittarius Mode", () => {
     expect(observe(s.engine).hasKeyword(s.perm("sagittarius"), "Jamming")).toBe(true);
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
   });
+
+  it("does not gain Jamming without a WereGarurumon source", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-029", as: "sagittarius" }] } });
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).hasKeyword(s.perm("sagittarius"), "Jamming")).toBe(false);
+  });
 });

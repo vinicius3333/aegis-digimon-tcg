@@ -2,6 +2,7 @@
 
 import type { EffectDurationRef } from "../durations.js";
 import type { Filter, Target } from "../filters/filter.js";
+import type { Scaling } from "../predicates/scaling.js";
 import type { Controller } from "../filters/zones.js";
 import type { KeywordRef } from "../keywords.js";
 import type { Cost } from "../predicates/costs.js";
@@ -45,6 +46,8 @@ export interface RepeatPerCountAction extends ActionBase {
   countSource: string;
   /** Alternatively derive the repeat count from the current board. */
   countFilter?: Filter;
+  /** Derive the repeat count with a scaling unit such as distinct colors. */
+  countScaling?: Scaling;
   action: Action;
 }
 
@@ -88,6 +91,12 @@ export interface ModifyDPAction extends ActionBase {
   /** Override continuous-pass inference for audited edge cases with a triggered duration. */
   continuous?: boolean;
 }
+export interface AddDPFromTrashedCardAction extends ActionBase {
+  kind: "AddDPFromTrashedCard";
+  target: Target;
+  duration: EffectDurationRef;
+  from: string;
+}
 
 /**
  * Suspend a Digimon as an activation cost, then add that Digimon's current DP to the target for
@@ -123,6 +132,8 @@ export interface GainKeywordAction extends ActionBase {
   /** Legacy compiler shape: several keywords granted in one action. */
   keywords?: KeywordRef[];
   duration: EffectDurationRef;
+  /** Apply the grant to the controller's current and future Digimon for the duration. */
+  playerWide?: boolean;
   /**
    * How many times each target gains the keyword; default 1. BT19-091 "gains ＜Alliance＞ twice"
    * — each extra Alliance grant adds one more security check.

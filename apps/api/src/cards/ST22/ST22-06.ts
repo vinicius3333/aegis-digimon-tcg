@@ -33,35 +33,10 @@ const compiled: CompiledCard = {
             filter: {
               kind: ["Option"],
               playCostLte: 99,
-              nameOrTrait: [
-                {
-                  tokens: ["Onmyōjutsu"],
-                  match: "trait",
-                },
-              ],
-              hostFilter: {
-                controllerDefault: "mine",
-                kind: ["Tamer"],
-              },
+              nameOrTrait: [{ tokens: ["Onmyōjutsu", "Plug-In"], match: "trait" }],
             },
             count: 1,
             from: ["hand", "digivolutionCards"],
-            orFilters: [
-              {
-                kind: ["Option"],
-                playCostLte: 99,
-                nameOrTrait: [
-                  {
-                    tokens: ["Plug-In"],
-                    match: "trait",
-                  },
-                ],
-                hostFilter: {
-                  controllerDefault: "mine",
-                  kind: ["Tamer"],
-                },
-              },
-            ],
           },
           payCost: false,
           optional: true,
@@ -77,35 +52,10 @@ const compiled: CompiledCard = {
             filter: {
               kind: ["Option"],
               playCostLte: 99,
-              nameOrTrait: [
-                {
-                  tokens: ["Onmyōjutsu"],
-                  match: "trait",
-                },
-              ],
-              hostFilter: {
-                controllerDefault: "mine",
-                kind: ["Tamer"],
-              },
+              nameOrTrait: [{ tokens: ["Onmyōjutsu", "Plug-In"], match: "trait" }],
             },
             count: 1,
             from: ["hand", "digivolutionCards"],
-            orFilters: [
-              {
-                kind: ["Option"],
-                playCostLte: 99,
-                nameOrTrait: [
-                  {
-                    tokens: ["Plug-In"],
-                    match: "trait",
-                  },
-                ],
-                hostFilter: {
-                  controllerDefault: "mine",
-                  kind: ["Tamer"],
-                },
-              },
-            ],
           },
           payCost: false,
           optional: true,
@@ -153,6 +103,7 @@ const compiled: CompiledCard = {
             target: {
               filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestDP" },
               count: 1,
+              from: ["battleArea"],
             },
             destination: "security",
             position: "bottom",

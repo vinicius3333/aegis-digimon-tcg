@@ -4,6 +4,13 @@ import type { Filter, Target } from "../filters/filter.js";
 import type { Controller, ZoneRef } from "../filters/zones.js";
 import type { ActionBase } from "./base.js";
 
+export interface HandRevealAddAction extends ActionBase {
+  kind: "HandRevealAdd";
+  target: Target;
+  securityFilter: Filter;
+  toTop?: boolean;
+}
+
 export interface RevealAddAction extends ActionBase {
   kind: "RevealAdd";
   revealCount: number;
@@ -35,6 +42,8 @@ export interface RevealAddAction extends ActionBase {
     /** Added to numeric `count` when a condition/scaling clause applies. */
     countModifier?: Target["countModifier"];
     to?: "hand" | "trash" | "play" | "useOption" | "digivolve" | "placeUnder" | "underTamer" | "security";
+    /** For `to:"useOption"`: whether the Option's memory cost is paid. */
+    payCost?: boolean;
     /** For `to:"digivolve"`: which battle-area Digimon may receive the revealed card. */
     digivolveTarget?: Target;
     /** Place the selected card at the TOP of security (BT6-100). */
@@ -94,6 +103,8 @@ export interface RevealAddAction extends ActionBase {
   trashFilter?: Filter;
   /** Where the rest go. */
   rest: "deckBottom" | "deckBottomAnyOrder" | "deckTop" | "deckTopOrBottom" | "trash";
+  /** Preserve an explicitly chosen bottom order for effects whose UI order is top-to-bottom. */
+  reverseBottomOrder?: boolean;
   /**
    * Store how many revealed cards actually reached hand, for a later scaling or `countSource`
    * ("reveal 5, add all [X] to hand. Gain 1 memory for each card added").

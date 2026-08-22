@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 // Boot side-effect: self-register every compiled-IR card module (so EX10-062's real IR loads).
-import "../index.js";
+import "./EX10-062.js";
 
 /**
  * Full-engine A3 for EX10-062 Yujin Ozora's [All Turns] trash-link-card-trigger clause

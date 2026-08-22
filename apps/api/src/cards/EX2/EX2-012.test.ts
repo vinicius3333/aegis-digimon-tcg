@@ -188,6 +188,17 @@ describe("EX2-012 Megidramon", () => {
     expect(module).toBeDefined();
   });
 
+  it("registers full compiled IR for every printed clause", () => {
+    const compiled = registeredCompiledCards.get("EX2-012");
+    expect(compiled?.coverage).toBe("full");
+    expect(compiled?.residual).toEqual([]);
+    expect(compiled?.effects.find((effect) => effect.trigger === "OnDeletion")?.actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "PlayWithoutCost", from: ["hand", "trash"] }),
+      ]),
+    );
+  });
+
   it("produces 1 WhenDigivolving effect", () => {
     const source = makeSource();
     expect(module!.effectsForTiming(EffectTiming.WhenDigivolving, source)).toHaveLength(1);

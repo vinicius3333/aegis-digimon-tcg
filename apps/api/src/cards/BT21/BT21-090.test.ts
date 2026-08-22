@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-090.js";
 
 describe("BT21-090 The Strongest of Brothers", () => {
@@ -20,6 +21,39 @@ describe("BT21-090 The Strongest of Brothers", () => {
         actions: [expect.objectContaining({ kind: "RevealAdd" }), { kind: "PlaceInBattleAreaSelf" }],
       }),
     );
-    expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "Security", isSecurity: true }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "Security",
+        isSecurity: true,
+        actions: [
+          expect.objectContaining({ kind: "PlayWithoutCost", optional: true }),
+          { kind: "PlaceInBattleAreaSelf" },
+        ],
+      }),
+    );
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
+  it("reveals three cards, adds a Gammamon-text card, and places itself", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "color" }],
+          hand: [{ card: "BT21-090", as: "option" }],
+          deck: ["BT21-010", "BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT21-010"));
+
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT21-010")).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 });

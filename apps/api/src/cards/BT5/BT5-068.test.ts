@@ -1,11 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../BT2/BT2-055.js";
 import "./BT5-068.js";
 import "./BT5-069.js";
 
 describe("BT5-068 BlackMachGaogamon", () => {
+  it("has complete residual-free runtime coverage", () => {
+    expect(runtimeCompiledCard("BT5-068")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("has Reboot without immediately unsuspending and gives its host +2000 DP", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT5-068", as: "mach", suspended: true }, { card: "BT5-069", as: "host", under: ["BT5-068"] }] } });
     await s.engine.recomputeContinuousEffects();

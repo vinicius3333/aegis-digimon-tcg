@@ -24,7 +24,9 @@ describe("BT10-098 Plasma Deckerdra Launcher", () => {
     preferred.push(s.perm("level6").permanentId);
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === level6TopId));
 
     expect(s.state.memory).toBe(5);
@@ -41,7 +43,9 @@ describe("BT10-098 Plasma Deckerdra Launcher", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.hand.some((card) => card.cardId === "BT10-085"));
 
     expect(s.state.memory).toBe(3);

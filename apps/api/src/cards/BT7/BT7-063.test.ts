@@ -5,6 +5,32 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-063.js";
 
 describe("BT7-063 DarkKnightmon", () => {
+  it("requires one of each named material when extra SkullKnightmon cards are available", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT7-063", as: "darkKnightmon" },
+            { card: "BT7-058", as: "skullKnightmonOne" },
+            { card: "BT7-058", as: "skullKnightmonTwo" },
+          ],
+          trash: [{ card: "BT7-059", as: "deadlyAxemon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+    s.state.memory = 7;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("darkKnightmon").instanceId })).toEqual({ ok: true });
+    await settle(() => player.battleArea.find((permanent) => permanent.topCard.instanceId === s.inst("darkKnightmon").instanceId)?.stack.length === 2);
+
+    const stackIds = player.battleArea.find((permanent) => permanent.topCard.instanceId === s.inst("darkKnightmon").instanceId)!.stack.map((card) => card.instanceId);
+    expect(stackIds).toEqual(expect.arrayContaining([s.inst("deadlyAxemon").instanceId]));
+    expect(stackIds.filter((id) => id === s.inst("skullKnightmonOne").instanceId || id === s.inst("skullKnightmonTwo").instanceId)).toHaveLength(1);
+    expect(player.hand.map((card) => card.instanceId)).toContain(s.inst("skullKnightmonTwo").instanceId);
+  });
+
   it("may place a SkullKnightmon and a DeadlyAxemon from hand and trash in its stack", async () => {
     const s = setupEngine(
       {
@@ -54,23 +80,12 @@ describe("BT7-063 DarkKnightmon", () => {
       instanceId: s.inst("darkKnightmon").instanceId,
     })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
-    const skullChoice = s.decisions.at(-1)!.req;
+    const materials = s.decisions.at(-1)!.req;
     expect(s.engine.applyIntent(0, {
       type: "respondDecision",
-      decisionId: skullChoice.decisionId,
-      response: { kind: "selectCards", instanceIds: [s.inst("skullKnightmon").instanceId] },
-    })).toEqual({ ok: true });
-    await settle(() => {
-      const latest = s.decisions.at(-1)?.req;
-      return latest?.kind === "selectCards" && latest.decisionId !== skullChoice.decisionId &&
-        latest.decisionId === s.state.pendingDecision?.decisionId;
-    });
-    const axeChoice = s.decisions.at(-1)!.req;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: axeChoice.decisionId,
-      response: { kind: "selectCards", instanceIds: [s.inst("deadlyAxemon").instanceId] },
-    })).toEqual({ ok: true });
+      decisionId: materials.decisionId,
+      response: { kind: "selectCards", instanceIds: [s.inst("skullKnightmon").instanceId, s.inst("deadlyAxemon").instanceId] },
+    })).toMatchObject({ ok: false, reason: "decision-pending" });
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
 
     const ordering = s.decisions.at(-1)!.req;

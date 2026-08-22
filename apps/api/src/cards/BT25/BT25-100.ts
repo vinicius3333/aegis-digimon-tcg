@@ -1,10 +1,5 @@
-import { EffectDuration, EffectTiming, type CompiledCard } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { staticModifier } from "../../engine/effects/builders.js";
-import { irCardModule } from "../../engine/effects/interpreter.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
@@ -19,12 +14,55 @@ const compiled: CompiledCard = {
           kind: "GainKeyword",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           keyword: { keyword: "Collision", raw: "＜Collision＞" },
+          keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }],
           duration: "permanent",
         },
         {
-          kind: "GainKeyword",
+          kind: "ModifyDP",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
+          amount: 2000,
+          duration: "permanent",
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              keyword: { keyword: "Collision", raw: "＜Collision＞" },
+              duration: "permanent",
+            },
+            {
+              kind: "GainKeyword",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
+              duration: "permanent",
+            },
+            {
+              kind: "ModifyDP",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              amount: 2000,
+              duration: "permanent",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Static",
+      isLinked: true,
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          amount: 2000,
           duration: "permanent",
         },
       ],
@@ -81,6 +119,13 @@ const compiled: CompiledCard = {
         },
         {
           kind: "Link",
+          recipient: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
           target: {
             filter: {
               controller: "mine",
@@ -91,6 +136,7 @@ const compiled: CompiledCard = {
           },
           payCost: false,
           optional: true,
+          allowBreedingRecipient: true,
         },
       ],
     },
@@ -99,31 +145,4 @@ const compiled: CompiledCard = {
   residual: [],
 };
 
-const baseModule = irCardModule("BT25-100", compiled);
-const module: EffectModule = {
-  cardId: "BT25-100",
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    const effects = [...baseModule.effectsForTiming(timing, source)];
-    if (timing !== EffectTiming.None) return effects;
-    for (const keyword of ["Collision", "Piercing"] as const) {
-      effects.push(
-        staticModifier({
-          source,
-          effectKey: `BT25-100/link-${keyword.toLowerCase()}`,
-          description: `[Link] ＜${keyword}＞`,
-          optional: false,
-          isLinked: true,
-          when: () => source.permanent() !== undefined,
-          resolve: async (ctx) => {
-            const host = source.permanent();
-            if (host !== undefined) ctx.fx.grantKeyword(host.permanentId, keyword, EffectDuration.UntilEachTurnEnd);
-          },
-        }),
-      );
-    }
-    return effects;
-  },
-};
-
-registerCard(module);
-export default module;
+registerIrCard("BT25-100", compiled);

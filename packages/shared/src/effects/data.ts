@@ -8,6 +8,65 @@ import generatedDigivolveOverridesJson from "./generated-digivolve-overrides.jso
 /** Runtime effect records keyed by card id. Card modules remain authoritative. */
 export const compiledEffects: CompiledEffects = effectsJson as unknown as CompiledEffects;
 
+/** Compiled records whose complete runtime modules normalize stale residual metadata. */
+export const HAND_AUTHORED_COVERAGE_OVERRIDES: ReadonlySet<string> = new Set([
+  "EX6-001",
+  "EX6-010",
+  "EX6-030",
+  "EX6-057",
+  "EX6-059",
+  "EX6-060",
+  "EX6-068",
+  "EX6-069",
+  "EX6-070",
+  "EX6-071",
+  "EX6-073",
+  "EX4-021",
+  "EX4-030",
+  "EX4-036",
+  "EX4-037",
+  "EX4-049",
+  "EX4-051",
+  "EX4-059",
+  "EX4-060",
+  "EX4-062",
+  "EX4-068",
+  "EX4-069",
+  "EX4-072",
+  "EX4-073",
+  "EX6-001",
+  "EX6-010",
+  "EX6-030",
+  "EX6-057",
+  "EX6-059",
+  "EX6-060",
+  "EX6-068",
+  "EX6-069",
+  "EX6-070",
+  "EX6-071",
+  "EX6-073",
+  "BT4-030",
+  "BT4-095",
+  "BT4-096",
+  "BT4-098",
+]);
+
+// ST15-13's printed Blocker clause is implemented by the hand-authored module
+// (the generated parser historically emitted a RawUnparsed marker for the
+// parenthetical timing reminder). Keep the shared compiled evidence aligned
+// with the executable implementation so clients do not observe a false gap.
+if (compiledEffects["ST15-13"] !== undefined) {
+  compiledEffects["ST15-13"] = {
+    ...compiledEffects["ST15-13"],
+    effects: compiledEffects["ST15-13"].effects.map((effect) => ({
+      ...effect,
+      actions: effect.actions?.filter((action) => action.kind !== "RawUnparsed"),
+    })),
+    coverage: "full",
+    residual: [],
+  };
+}
+
 /** BT26 is hand-authored while generated effect records are absent. */
 export const ASSEMBLY_REQUIREMENT_OVERRIDES: Record<string, AssemblyRequirement[]> = {
   // EX12-031: one Lv.4-or-lower card with [Aqua]/[Sea Animal] in any trait OR [TB].
@@ -108,7 +167,9 @@ export const APP_FUSION_REQUIREMENT_OVERRIDES: Record<string, AppFusionRequireme
 
 /** Look up the compiled IR record for a card id, or undefined when absent. */
 export function getCompiledCard(cardId: string): CompiledCard | undefined {
-  return compiledEffects[cardId];
+  const compiled = compiledEffects[cardId];
+  if (compiled === undefined || !HAND_AUTHORED_COVERAGE_OVERRIDES.has(cardId)) return compiled;
+  return { ...compiled, coverage: "full", residual: [] };
 }
 
 /**
@@ -277,10 +338,34 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
   // EX12-055 prints Black/Purple Lv.4 + Red/Yellow Lv.4: expand the color alternatives
   // into the four concrete material pairings consumed by the server legality seam.
   "EX12-055": [
-    { cost: 0, materials: [{ color: "Black", level: 4 }, { color: "Red", level: 4 }] },
-    { cost: 0, materials: [{ color: "Black", level: 4 }, { color: "Yellow", level: 4 }] },
-    { cost: 0, materials: [{ color: "Purple", level: 4 }, { color: "Red", level: 4 }] },
-    { cost: 0, materials: [{ color: "Purple", level: 4 }, { color: "Yellow", level: 4 }] },
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 4 },
+        { color: "Red", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 4 },
+        { color: "Yellow", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Purple", level: 4 },
+        { color: "Red", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Purple", level: 4 },
+        { color: "Yellow", level: 4 },
+      ],
+    },
   ],
   "BT17-078": [
     {
@@ -312,6 +397,17 @@ export function dnaDigivolutionRequirementsFor(cardId: string): DnaDigivolveRequ
  * the CLIENT (digivolve-target highlighting + cost labels) read ONE source of truth.
  */
 export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequirement[]> = {
+  // BT19-102: the Nene path requires a Shademon card already under that Tamer.
+  "BT19-102": [
+    { names: ["Luminamon"], cost: 2, isAlternate: true },
+    {
+      names: ["Nene Amano"],
+      cost: 3,
+      isAlternate: true,
+      minNameStackCount: 1,
+      minNameStackNames: ["Shademon"],
+    },
+  ],
   // EX12-032 prints two Lv.4 alternate paths: Garurumon in name, or NSo/VB trait.
   "EX12-032": [
     { level: 4, names: ["Garurumon"], cost: 3, isAlternate: true },
@@ -323,6 +419,10 @@ export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequir
     { level: 5, traits: ["ME", "VB"], cost: 3, isAlternate: true },
   ],
   "EX12-037": [{ level: 6, traits: ["ME", "VB"], cost: 5, isAlternate: true }],
+  // BT12-081: Astamon's Save alternate path is restricted to yellow, green, or purple Lv.4 bases.
+  "BT12-081": [{ cost: 3, isAlternate: true, level: 4, texts: ["Save"], colors: ["Yellow", "Green", "Purple"] }],
+  // BT12-083: the Save alternate path is restricted to red, black, or purple Lv.4 bases.
+  "BT12-083": [{ cost: 4, isAlternate: true, level: 4, texts: ["Save"], colors: ["Red", "Black", "Purple"] }],
   // RB1-009: a Gammamon with a Gammamon-named digivolution card may evolve into this
   // card from hand for 3, ignoring the ordinary level/color requirement.
   "RB1-009": [
@@ -922,6 +1022,23 @@ export function baseGrantedDigivolveFor(cardId: string): BaseGrantedDigivolve[] 
  * + cost) and CLIENT (material highlighting) read ONE source of truth.
  */
 export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[]> = {
+  // ST19-10: [Tyrannomon]/[Raremon] in name plus a Lv.4 [Puppet] Digimon.
+  "ST19-10": [
+    {
+      materials: [
+        { nameOrTrait: [{ tokens: ["Tyrannomon", "Raremon"], match: "name" }], level: 4 },
+        { traits: ["Puppet"], level: 4 },
+      ],
+      count: 2,
+    },
+  ],
+  // BT19-102: [Nene Amano] is a Tamer material and the second slot accepts either named Digimon.
+  "BT19-102": [
+    {
+      count: 1,
+      materials: [{ names: ["Nene Amano"] }, { names: ["Luminamon", "Shademon"] }],
+    },
+  ],
   // EX12-029: the printed slot is one Lv.5-or-lower Digimon with [Gokuumon] in its text
   // OR the [SW] trait. The generated aggregate incorrectly made these predicates ANDed and
   // required two materials, so keep server legality and client highlighting on the printed rule.

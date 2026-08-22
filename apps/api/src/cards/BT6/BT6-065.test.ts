@@ -44,13 +44,6 @@ describe("BT6-065 Gundramon", () => {
       1: { battleArea: [{ card: "BT6-030", as: "target" }] },
     });
     const resolution = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("gundramon"));
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    const optional = s.decisions.at(-1)!.req;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: optional.decisionId,
-      response: { kind: "optional", accept: true },
-    })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
 
     const selection = s.decisions.at(-1)!.req;

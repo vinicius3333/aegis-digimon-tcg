@@ -119,7 +119,9 @@ describe("Machinedramon, Omnimon Zwart, and Omnimon X deck", () => {
     );
 
     expect(s.state.players[0]!.security).toHaveLength(2);
-    expect(s.state.players[0]!.trash).toHaveLength(2);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT5-087", "EX1-048", "BT1-114", "EX1-073"]),
+    );
     expect(s.perm("omniZwart").topCard.cardId).toBe("BT5-111");
   });
 });

@@ -1,65 +1,50 @@
-import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { security, staticModifier, turnTiming } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "BT11-095";
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing, source): Effect[] {
-    if (timing === EffectTiming.OnStartMainPhase)
-      return [
-        turnTiming({
-          source,
-          effectKey: `${cardId}/start-main`,
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "StartOfYourMainPhase",
+      actions: [
+        {
+          kind: "GainMemory",
+          amount: 1,
+          cost: { kind: "place", target: { filter: { zone: "hand", controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Xros Heart", "Blue Flare"], match: "trait" }] }, count: 1, from: ["hand"] }, raw: "By placing 1 Digimon card with [Xros Heart] or [Blue Flare] in its traits from your hand under this Tamer" },
           optional: true,
-          description: "Place an Xros Heart/Blue Flare Digimon under this Tamer to gain 1 memory and draw 1.",
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            const candidates = ctx.game
-              .player(source.ownerSeat)
-              .hand.filter((card) => {
-                const def = ctx.game.definitionOf(card);
-                return (
-                  isDigimon(def) &&
-                  def.types?.some((trait) => trait === "Xros Heart" || trait === "Blue Flare") === true
-                );
-              })
-              .map(({ instanceId }) => instanceId);
-            const chosen = await ctx.ask.selectCards(ctx, { candidates, min: 0, max: 1 });
-            if (chosen.length === 0) return;
-            await ctx.fx.placeUnder(self.permanentId, chosen);
-            ctx.fx.gainMemory(1);
-            await ctx.fx.draw(source.ownerSeat, 1);
-          },
-        }),
-      ];
-    if (timing === EffectTiming.None)
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/xros-from-tamers`,
-          description: "While unsuspended, DigiXros may use cards under your Tamers.",
-          when: () => source.isOwnersTurn() && source.permanent()?.isSuspended === false,
-          resolve: async (ctx) => {
-            ctx.fx.expandDigiXrosZones?.(source.ownerSeat, ["digivolutionCards"], EffectDuration.Permanent);
-          },
-        }),
-      ];
-    if (timing === EffectTiming.SecuritySkill)
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security`,
-          description: "Play this card without paying its cost.",
-          resolve: async (ctx) => {
-            await ctx.fx.playFromSecurity(source.instanceId, { payCost: false });
-          },
-        }),
-      ];
-    return [];
-  },
+          abortOnDecline: true,
+        },
+        { kind: "Draw", controller: "mine", amount: 1 },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: { controllerDefault: "mine", count: 1, kind: ["Digimon"], hasDigiXrosRequirement: true },
+          actions: [
+            {
+              kind: "PlaceUnder",
+              target: { filter: { controller: "mine", kind: ["Digimon"], zone: "underTamer" }, count: 1 },
+              underFilter: { controller: "mine", kind: ["Tamer"] },
+              cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, raw: "by suspending this Tamer" },
+              optional: true,
+              abortOnDecline: true,
+              asDigiXrosMaterial: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
+      isSecurity: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
-registerCard(module);
+
+registerIrCard("BT11-095", compiled);

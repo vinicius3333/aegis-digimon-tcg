@@ -49,8 +49,9 @@ export function selfTopMatchesText(ctx: EffectContext, filter: Filter | undefine
   const refs = filter?.nameOrTrait;
   if (refs === undefined || refs.length === 0) return false;
   const self = ctx.source.permanent();
-  if (self?.topCard === undefined) return false;
-  const def = ctx.game.definitionOf(self.topCard);
+  const topCard = self?.topCard ?? (ctx.trigger.deletedTopCardId !== undefined ? { cardId: ctx.trigger.deletedTopCardId } : undefined);
+  if (topCard === undefined) return false;
+  const def = ctx.game.definitionOf(topCard as never);
   return refs.some((ref) => matchNameOrTrait(def, ref));
 }
 
@@ -153,6 +154,12 @@ export function permanentMatchesFilter(
   // in breeding (BT2-088 Q1038).
   if (filter.zone === "battleArea" && permanent.inBreeding) return false;
   if (filter.zone === "breeding" && !permanent.inBreeding) return false;
+  const stackKeywords = (filter as Filter & { stackKeywords?: string[] }).stackKeywords;
+  if (stackKeywords !== undefined) {
+    if (!stackKeywords.every((keyword) => permanent.stack.some((card) => textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, keyword)))) return false;
+    const { stackKeywords: _omit, ...withoutStackKeywords } = filter as Filter & { stackKeywords?: string[] };
+    filter = withoutStackKeywords;
+  }
   if (filter.excludeSelf || filter.isSelfRef === false) {
     const self = source.permanent();
     if (self !== undefined && self.permanentId === permanent.permanentId) {
@@ -171,7 +178,8 @@ export function permanentMatchesFilter(
   // or another producing action via `bindResultAs`). An unbound or empty ref matches nothing.
   if (filter.boundRef !== undefined) {
     const bound = ctx.boundPlayed?.get(filter.boundRef);
-    if (!bound || !bound.has(permanent.permanentId)) return false;
+    const selected = ctx.selections?.get(filter.boundRef);
+    if (!bound?.has(permanent.permanentId) && selected !== permanent.permanentId) return false;
   }
   if (
     typeof filter.playCost === "object" &&
@@ -366,6 +374,14 @@ export function permanentMatchesFilter(
     const { playCostLteTriggerSource: _bound, ...rest } = filter;
     filter = rest;
   }
+  if (filter.playCostLteAttackerLevel === true) {
+    const attackerId = ctx.trigger.attackerPermanentId;
+    const attacker = attackerId === undefined ? undefined : ctx.game.permanentById(attackerId);
+    const attackerLevel = attacker?.topCard === undefined ? undefined : ctx.game.definitionOf(attacker.topCard).level;
+    if (attackerLevel === undefined || def.playCost > attackerLevel) return false;
+    const { playCostLteAttackerLevel: _bound, ...rest } = filter;
+    filter = rest;
+  }
   if (filter.levelEq !== undefined) {
     const bound = typeof filter.levelEq === "string" ? ctx.namedCounts?.get(filter.levelEq) : filter.levelEq;
     if (bound === undefined || def.level === undefined || def.level !== bound) return false;
@@ -495,6 +511,15 @@ export function permanentMatchesFilter(
     return definitionMatches(rest, def);
   }
 
+  // Runtime-scaled printed-DP cap for hand/deck play candidates (BT11-016).
+  if (filter.dpAtMostScaling) {
+    const base = filter.dpAtMost ?? 0;
+    const cap = base + scaleFactor(ctx, filter.dpAtMostScaling);
+    if ((def.dp ?? 0) > cap) return false;
+    const { dpAtMost: _baseCap, dpAtMostScaling: _scaledCap, ...rest } = filter;
+    return definitionMatches(rest, def);
+  }
+
   // Color predicates on a LIVE permanent must observe "also treated as <color>" grants.
   // Definition-only filters still use printed colors, but board predicates such as `youHave`
   // and effect targets see the permanent's effective set (printed union active grants).
@@ -522,10 +547,11 @@ export function permanentMatchesFilter(
   // GameAccess.effectiveKinds is available, check effective kinds first; fall back
   // to the static CardDefinition.kinds when it isn't (test fakes / lightweight calls).
   if (filter.kind?.includes("Digimon")) {
-    const effective = ctx.game.effectiveKinds?.(permanent.permanentId);
+    const effective = ctx.game.effectiveKinds?.(permanent.permanentId, def.kinds) ?? def.kinds;
     if (effective !== undefined) {
       const wanted = filter.kind.map((k) => KIND_MAP[k]);
-      if (!wanted.some((k) => effective.includes(k))) return false;
+      const tokenAsDigimon = filter.allowTokens === true && def.isToken === true && wanted.includes(CardKind.Digimon);
+      if (!tokenAsDigimon && !wanted.some((k) => effective.includes(k))) return false;
       // Strip kind from filter so definitionMatches doesn't double-check against static def.kinds
       const { kind: _k, ...rest } = filter;
       return definitionMatches(rest, def);
@@ -543,7 +569,10 @@ export function permanentMatchesFilter(
   if (filter.keywords && filter.keywords.length > 0) {
     const granted = new Set((ctx.fx.grantedKeywords?.(permanent.permanentId) ?? []).map((g) => g.keyword));
     const hasKeyword = (kw: string): boolean =>
-      ctx.game.hasKeyword?.(permanent.permanentId, kw) === true || granted.has(kw) || textHasKeyword(def, kw);
+      ctx.game.hasKeyword?.(permanent.permanentId, kw) === true ||
+      granted.has(kw) ||
+      textHasKeyword(def, kw) ||
+      permanent.stack.some((card) => textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, kw));
     if (!filter.keywords.every(hasKeyword)) return false;
     const { keywords: _omit, ...rest } = filter;
     return definitionMatches(rest, def);
@@ -551,7 +580,10 @@ export function permanentMatchesFilter(
   if (filter.excludeKeywords && filter.excludeKeywords.length > 0) {
     const granted = new Set((ctx.fx.grantedKeywords?.(permanent.permanentId) ?? []).map((g) => g.keyword));
     const hasKeyword = (kw: string): boolean =>
-      ctx.game.hasKeyword?.(permanent.permanentId, kw) === true || granted.has(kw) || textHasKeyword(def, kw);
+      ctx.game.hasKeyword?.(permanent.permanentId, kw) === true ||
+      granted.has(kw) ||
+      textHasKeyword(def, kw) ||
+      permanent.stack.some((card) => textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, kw));
     if (filter.excludeKeywords.some(hasKeyword)) return false;
     const { excludeKeywords: _omit, ...rest } = filter;
     return definitionMatches(rest, def);

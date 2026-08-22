@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "../index.js";
+import "./index.js";
 
 // A3 for BT17-048 (Argomon, Green Lv.5):
 //   [On Deletion] If 4+ [Argomon] in trash, may play 1 Lv.6 [Argomon] from hand for free.
@@ -23,6 +23,11 @@ const ARGOMON_LV5 = "BT17-048";
 const ARGOMON_LV6 = "BT17-051";
 
 describe("BT17-048 Argomon — [On Deletion] play Lv.6 Argomon (KB Q2800)", () => {
+  it("prevents all opposing Tamers from unsuspending during the opponent's turn", async () => {
+    const { compiled } = await import("./BT17-048.js");
+    expect(compiled.effects.find((entry) => entry.trigger === "OpponentsTurn")?.actions[0]).toMatchObject({ kind: "Restrict", target: { filter: { controller: "opponent", kind: ["Tamer"] }, count: "all" }, restriction: "unsuspend", duration: "untilOpponentTurnEnd" });
+  });
+
   it("with 3 Argomon in trash before deletion, the deleted card counts → 4 total, condition met", async () => {
     // Put 3 Argomon in trash (they count toward the threshold).
     // Put a Lv.6 Argomon in hand.

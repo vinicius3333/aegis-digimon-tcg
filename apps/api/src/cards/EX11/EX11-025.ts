@@ -73,6 +73,7 @@ const compiled: CompiledCard = {
             "hand"
           ],
           "toTop": false,
+          "faceUp": true,
           "optional": true
         }
       ]

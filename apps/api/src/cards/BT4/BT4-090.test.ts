@@ -36,4 +36,26 @@ describe("BT4-090 Chaosmon", () => {
       }),
     ).toEqual({ ok: false, reason: "illegal-target" });
   });
+
+  it("does not bypass summoning sickness after the stack enters play this turn", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT3-057", as: "base" }, { card: "BT4-090", as: "evolving" }],
+      },
+      1: { battleArea: [{ card: "BT1-010", as: "target", dp: 1000 }] },
+    }, { autoSelectCards: true });
+    s.state.memory = 20;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("base").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("base").instanceId));
+    const base = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.instanceId === s.inst("base").instanceId)!;
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: base.permanentId,
+      instanceId: s.inst("evolving").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => base.topCard?.cardId === "BT4-090" && s.state.pendingDecision === undefined, 5000);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
 });

@@ -1,12 +1,46 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-073.js";
+import "../index.js";
 
 describe("BT16-073", () => {
   it("models Retaliation and draws two then trashes two on play", () => {
-    expect(compiled.effects?.[0]).toMatchObject({ trigger: "OnPlay", keywords: [{ keyword: "Retaliation" }], actions: [{ kind: "Draw", amount: 2 }, { kind: "Trash", target: { count: 2 } }] });
+    expect(compiled.effects?.[0]).toMatchObject({
+      trigger: "OnPlay",
+      keywords: [{ keyword: "Retaliation" }],
+      actions: [
+        { kind: "Draw", amount: 2 },
+        { kind: "Trash", target: { count: 2 } },
+      ],
+    });
   });
 
   it("plays a Myotismon-text Tamer from trash on deletion", () => {
-    expect(compiled.effects?.[1]).toMatchObject({ trigger: "OnDeletion", actions: [{ kind: "PlayWithoutCost", payCost: false, target: { count: 1, location: "trash", controller: "mine" } }] });
+    expect(compiled.effects?.[1]).toMatchObject({
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          payCost: false,
+          optional: true,
+          abortOnDecline: true,
+          target: { count: 1, location: "trash", controller: "mine" },
+        },
+      ],
+    });
+  });
+
+  it("plays an eligible Myotismon-text Tamer from trash when accepted", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT16-073", as: "mummy" }], trash: [{ card: "BT16-087", as: "kosuke" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await s.engine.deletePermanent(s.perm("mummy").permanentId, { byEffect: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-087"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-087")).toBe(true);
   });
 });

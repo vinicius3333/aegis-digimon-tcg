@@ -8,51 +8,47 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   that has [DNA Digivolve], paying the digivolve cost.
 // KB Q724: must have [DNA Digivolve] in target; Q725: can't ignore digivolve requirements.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "EndOfYourTurn",
-      "actions": [
+      trigger: "EndOfYourTurn",
+      actions: [
         {
-          "kind": "DnaDigivolve",
-          "materials": [
+          kind: "DnaDigivolve",
+          materials: [
             {
-              "filter": {
-                "isSelfRef": true
+              filter: {
+                isSelfRef: true,
               },
-              "count": 1,
-              "isSelf": true
+              count: 1,
+              isSelf: true,
             },
             {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "excludeSelf": true
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                excludeSelf: true,
               },
-              "count": 1
-            }
+              count: 1,
+            },
           ],
-          "into": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "hasDnaDigivolutionRequirement": true,
-              "zone": "hand"
+          into: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              hasDnaDigivolutionRequirement: true,
+              zone: "hand",
             },
-            "count": 1
+            count: 1,
           },
-          "payCost": true,
-          "optional": true
-        }
+          payCost: true,
+          optional: true,
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST10-02", compiled);

@@ -31,4 +31,20 @@ describe("BT12-059 Agumon", () => {
 
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
   });
+
+  it("adds the eligible Greymon even when no Tai Kamiya is revealed", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT12-059", as: "agumon" }],
+          deck: ["BT1-015", "BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-015"));
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-015");
+  });
 });

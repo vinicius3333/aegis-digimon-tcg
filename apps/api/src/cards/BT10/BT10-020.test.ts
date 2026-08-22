@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT10-020.js";
 
@@ -34,5 +35,18 @@ describe("BT10-020 Deckerdramon", () => {
     s.state.turnSeat = 1;
     await s.ready();
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
+  });
+
+  it("may Save itself under a Tamer when deleted", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT10-087", as: "tamer" }, { card: "BT10-020", as: "source" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
+    const sourceId = s.perm("source").topCard.instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId])).toBe(1);
+    await settle(() => s.perm("tamer").stack.some((card) => card.instanceId === sourceId));
+
+    expect(s.perm("tamer").stack.some((card) => card.instanceId === sourceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === sourceId)).toBe(false);
   });
 });

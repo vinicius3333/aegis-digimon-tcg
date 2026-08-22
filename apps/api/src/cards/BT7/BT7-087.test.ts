@@ -51,7 +51,7 @@ describe("BT7-087 Koji Minamoto", () => {
           ],
         },
       },
-      { autoAcceptOptional: true },
+      { autoAcceptOptional: true, autoOrderCards: true },
     );
     const source = (s.engine as any).cardSourceOf(s.perm("koji").topCard!);
     const effectKey = effectsOf(EffectTiming.OnDeclaration, source)
@@ -72,19 +72,14 @@ describe("BT7-087 Koji Minamoto", () => {
       decisionId: materials.decisionId,
       response: { kind: "selectCards", instanceIds: hybrids },
     })).toEqual({ ok: true });
-    await settle(() => {
-      const latest = s.decisions.at(-1)?.req;
-      return latest?.kind === "selectCards" && latest.decisionId !== materials.decisionId &&
-        latest.decisionId === s.state.pendingDecision?.decisionId;
-    });
-
-    const evolution = s.decisions.at(-1)!.req;
-    expect(evolution.options?.candidateInstanceIds).toEqual([s.inst("magna").instanceId]);
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+    const ordering = s.decisions.at(-1)!.req;
+    expect(ordering.options?.orderDestination).toBe("stackBottom");
     expect(s.engine.applyIntent(0, {
       type: "respondDecision",
-      decisionId: evolution.decisionId,
-      response: { kind: "selectCards", instanceIds: [] },
-    })).toEqual({ ok: true });
+      decisionId: ordering.decisionId,
+      response: { kind: "orderCards", order: hybrids },
+    })).toMatchObject({ ok: false, reason: "decision-pending" });
     await settle(() => s.state.pendingDecision === undefined && s.perm("koji").stack.length === 5);
 
     expect(s.perm("koji").topCard.cardId).toBe("BT7-087");

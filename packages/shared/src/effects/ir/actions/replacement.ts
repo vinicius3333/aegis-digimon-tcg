@@ -17,6 +17,7 @@ export type ReplacementEvent =
   | "wouldLeavePlay"
   | "wouldBeDeleted"
   | "wouldBePlayed"
+  | "wouldTrashDigivolutionCard"
   | "wouldDigivolve"
   | "wouldLeaveBattleArea"
   | "raw";
@@ -32,6 +33,8 @@ export interface ReplacementAction extends ActionBase {
    * the effective mode from those shapes when this is absent.
    */
   mode?: "reduceCost" | "increaseCost" | "prevent" | "instead";
+  /** Pay a prevention cost by digivolving the leaving permanent into this source from Trash. */
+  digivolveFromTrash?: boolean;
   amount?: number;
   /**
    * Mutually exclusive reduceCost amounts the controller chooses between, never summed — for

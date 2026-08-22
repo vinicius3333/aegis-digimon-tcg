@@ -49,13 +49,14 @@ const module: EffectModule = {
           canActivate: (ctx) => ctx.source.isOnBattleArea(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
-            const iceSnowCount = Array.from(owner.battleArea)
-              .filter((p) => p.topCard !== undefined && hasIceSnow(ctx.game.definitionOf(p.topCard)))
-              .length;
+            const iceSnowCount = Array.from(owner.battleArea).filter(
+              (p) => p.topCard !== undefined && hasIceSnow(ctx.game.definitionOf(p.topCard)),
+            ).length;
             if (iceSnowCount === 0) return;
             const opponent = ctx.game.opponentOf(source.ownerSeat);
-            const oppDigimon = Array.from(ctx.game.player(opponent).battleArea)
-              .filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && p.stack.length > 0);
+            const oppDigimon = Array.from(ctx.game.player(opponent).battleArea).filter(
+              (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && p.stack.length > 0,
+            );
             if (oppDigimon.length === 0) return;
             const chosen = await ctx.ask.chooseTargets(ctx, {
               candidates: oppDigimon.map((p) => p.permanentId),
@@ -67,7 +68,10 @@ const module: EffectModule = {
             if (target === undefined) return;
             const toTrash = target.stack.slice(0, Math.min(iceSnowCount, target.stack.length));
             if (toTrash.length > 0) {
-              await ctx.fx.trashDigivolutionCards(chosen[0]!, toTrash.map((c) => c.instanceId));
+              await ctx.fx.trashDigivolutionCards(
+                chosen[0]!,
+                toTrash.map((c) => c.instanceId),
+              );
             }
           },
         }),

@@ -26,7 +26,8 @@ const compiled: CompiledCard = {
             {
               "kind": "Draw",
               "controller": "mine",
-              "amount": 1
+              "amount": 1,
+              "condition": { "kind": "attackTargetsPlayer", "raw": "a red Digimon attacks a player" }
             }
           ]
         }

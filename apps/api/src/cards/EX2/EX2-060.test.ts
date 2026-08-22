@@ -8,6 +8,7 @@ import type {
   Primitives,
 } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "./EX2-060.js";
 
 // A3 for EX2-060 (Rika Nonaka):
@@ -168,6 +169,11 @@ function makeCtx(
 }
 
 describe("EX2-060 Rika Nonaka", () => {
+  it("registers full compiled IR without residuals", () => {
+    const compiled = registeredCompiledCards.get("EX2-060");
+    expect(compiled?.coverage).toBe("full");
+    expect(compiled?.residual).toEqual([]);
+  });
   const module = getEffectModule("EX2-060");
 
   it("is registered on import", () => {
@@ -177,6 +183,11 @@ describe("EX2-060 Rika Nonaka", () => {
   it("produces 1 OnStartTurn effect", () => {
     const source = makeSource();
     expect(module!.effectsForTiming(EffectTiming.OnStartTurn, source)).toHaveLength(1);
+  });
+
+  it("produces 1 OnAllyAttack effect", () => {
+    const effect = registeredCompiledCards.get("EX2-060")?.effects.find((entry) => entry.trigger === "YourTurn");
+    expect(effect?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenAttacking" });
   });
 
   it("[Start of Your Turn] sets memory to 3 when ≤ 2", async () => {
@@ -191,4 +202,30 @@ describe("EX2-060 Rika Nonaka", () => {
     expect(recorder.calls.find((c) => c.verb === "setMemory")!.args[0]).toBe(3);
   });
 
+  it("[When Attacking] suspends self and uses a Plug-In Option from hand", () => {
+    const effect = registeredCompiledCards.get("EX2-060")?.effects.find((entry) => entry.trigger === "YourTurn");
+    const actions = (effect?.actions[0] as { actions?: unknown[] }).actions ?? [];
+    expect(actions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: "Suspend" }),
+      expect.objectContaining({ kind: "UseOptionWithoutCost", from: ["hand"], payCost: false }),
+    ]));
+  });
+
+  it("requires the Tamer suspension as the activation cost", () => {
+    const effect = registeredCompiledCards.get("EX2-060")?.effects.find((entry) => entry.trigger === "YourTurn");
+    const actions = (effect?.actions[0] as { actions?: unknown[] }).actions ?? [];
+    expect(actions[0]).toMatchObject({ kind: "Suspend", target: { isSelf: true } });
+  });
+
+  it("filters the used card to Plug-In Options", () => {
+    const effect = registeredCompiledCards.get("EX2-060")?.effects.find((entry) => entry.trigger === "YourTurn");
+    const actions = (effect?.actions[0] as { actions?: unknown[] }).actions ?? [];
+    expect(actions[1]).toMatchObject({ kind: "UseOptionWithoutCost", filter: { nameOrTrait: [{ tokens: ["Plug-In"], match: "name" }] } });
+  });
+
+  it("matches all four printed attacker names", () => {
+    const effect = registeredCompiledCards.get("EX2-060")?.effects.find((entry) => entry.trigger === "YourTurn");
+    const sourceFilter = (effect?.actions[0] as { sourceFilter?: { nameOrTrait?: { tokens?: string[] }[] } }).sourceFilter;
+    expect(sourceFilter?.nameOrTrait?.[0]?.tokens).toEqual(["Renamon", "Kyubimon", "Taomon", "Sakuyamon"]);
+  });
 });

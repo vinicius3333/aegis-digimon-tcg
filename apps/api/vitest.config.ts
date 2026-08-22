@@ -58,7 +58,7 @@ export default defineConfig({
     // only cross-file writer (resolution.test.ts) restores its override in `afterAll`.
     // Re-enable per file with `--isolate` if a new test depends on a fresh module graph;
     // better, reset that shared state between files instead.
-    isolate: true,
+    isolate: false,
     testTimeout: 15_000,
     slowTestThreshold: 3_000,
   },

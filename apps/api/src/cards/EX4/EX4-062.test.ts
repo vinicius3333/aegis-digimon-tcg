@@ -1,20 +1,26 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
 // A3 for EX4-062 (Nene Amano & Kiriha Aonuma) — DigiXros source-zone expander:
 //   "by suspending this Tamer, you may place DigiXros materials from your trash and from under your
 //    Tamers" for a [Blue Flare]/[Twilight] DigiXros play (documented behavior — trash max 1, under-Tamer max 1).
 //
-// FAILS-WHEN-REVERTED: a trash card is a legal DigiXros material ONLY while EX4-062's expansion is
-// active AND the played card carries [Blue Flare]/[Twilight]. Without suspending it the trash zone
-// is locked → the material is illegal and the DigiXros play is rejected.
-
 const EX4_062 = "EX4-062";
 const BLUE_FLARE_DIGIMON = "BT11-030"; // [Blue Flare] L5 DigiXros card, recipe incl. [MetalGreymon]; cost 8
 const METALGREYMON = "BT10-024"; // "MetalGreymon" Blue L5
 
 describe("EX4-062 DigiXros source-zone expansion (trash, [Blue Flare] gate)", () => {
+  it("registers full residual-free IR with the suspend-paid zone expansion", () => {
+    expect(runtimeCompiledCard("EX4-062")).toMatchObject({ coverage: "full", residual: [] });
+    expect(runtimeCompiledCard("EX4-062")?.effects?.[2]?.actions?.[0]).toMatchObject({
+      kind: "DigiXrosMaterialZoneExpansion",
+      zones: ["tamerCards", "trash"],
+      cost: { kind: "suspend" },
+    });
+  });
+
   it("with EX4-062 suspended, a trash [MetalGreymon] is a legal DigiXros material", async () => {
     const s = setupEngine(
       {

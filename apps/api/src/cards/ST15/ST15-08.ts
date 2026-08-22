@@ -8,6 +8,16 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   "effects": [
     {
+      "trigger": "Static",
+      "actions": [],
+      "keywords": [
+        {
+          "keyword": "Blocker",
+          "raw": "＜Blocker＞"
+        }
+      ]
+    },
+    {
       "trigger": "Security",
       "actions": [
         {

@@ -1,6 +1,6 @@
 // Evaluating an IR Condition against live game state.
 
-import { attackedWithDigimonInCurrentOrPreviousTurn } from "../../turnActivity.js";
+import { attackedWithDigimonThisTurn } from "../../turnActivity.js";
 import type { EffectContext } from "../EffectContext.js";
 import { COLOR_MAP } from "./maps.js";
 import { definitionMatches, matchNameOrTrait } from "./matching/definition.js";
@@ -28,7 +28,9 @@ import type { Condition, Filter } from "@aegis/shared";
  *  unmet so the interpreter never guesses a gate it could not parse. */
 export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
   const mine = ctx.source.ownerSeat;
-  const opp = ctx.game.opponentOf(mine);
+  // Some focused IR probes evaluate local trigger predicates with a minimal game double that
+  // omits opponentOf; defer to the local seat for predicates that do not read opponent state.
+  const opp = ctx.game.opponentOf?.(mine) ?? mine;
   switch (cond.kind) {
     case "true":
       return true;
@@ -67,7 +69,9 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     }
     case "lastTargetDpGreaterThanSelf": {
       const source = ctx.source.permanent();
-      const ids = ctx.lastResolvedPermanentIds ?? [];
+      const ids = (ctx.lastResolvedPermanentIds?.length ?? 0) > 0
+        ? ctx.lastResolvedPermanentIds!
+        : [ctx.trigger.targetPermanentId ?? ctx.trigger.defenderPermanentId].filter((id): id is string => id !== undefined);
       return (
         source !== undefined &&
         ids.length > 0 &&
@@ -92,6 +96,14 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return (
         cond.filter !== undefined &&
         (ctx.lastRevealedCards ?? []).some((card) =>
+          definitionMatches(cond.filter!, ctx.game.definitionOf(card as never)),
+        )
+      );
+    case "triggerAllRevealedMatchFilter":
+      return (
+        cond.filter !== undefined &&
+        (ctx.lastRevealedCards ?? []).length > 0 &&
+        (ctx.lastRevealedCards ?? []).every((card) =>
           definitionMatches(cond.filter!, ctx.game.definitionOf(card as never)),
         )
       );
@@ -146,7 +158,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     case "youDigivolvedThisTurn":
       return ctx.game.digivolvedThisTurn?.(mine) ?? false;
     case "opponentDidNotAttackWithDigimonThisTurn":
-      return !attackedWithDigimonInCurrentOrPreviousTurn(ctx.game.state, opp);
+      return !attackedWithDigimonThisTurn(ctx.game.state, opp);
     // The condition kind sets the DEFAULT side, but an explicit `controller` in the IR
     // filter wins: the runtime record emits e.g. `youHave {controller:"opponent"}` for a
     // CanSelectPermanentCondition ("there is an opponent permanent to target"), and that
@@ -208,12 +220,14 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const seat = cond.seat === "opponent" ? opp : mine;
       const player = ctx.game.player(seat);
       const zone = cond.zone ?? "hand";
-      const size = zone === "battleArea"
-        ? player.battleArea.filter((permanent) =>
-            permanent.topCard !== undefined &&
-            (cond.filter === undefined || definitionMatches(cond.filter, ctx.game.definitionOf(permanent.topCard))),
-          ).length
-        : player[zone].length;
+      const size =
+        zone === "battleArea"
+          ? player.battleArea.filter(
+              (permanent) =>
+                permanent.topCard !== undefined &&
+                (cond.filter === undefined || definitionMatches(cond.filter, ctx.game.definitionOf(permanent.topCard))),
+            ).length
+          : player[zone].length;
       const value = cond.value ?? 0;
       if (cond.op === "eq") return size === value;
       if (cond.op === "lt") return size < value;
@@ -354,7 +368,11 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // card is checked (the permanent's current identity); stack cards below are not included
       // (use `selfDigivolutionStackHasTrait` for that). An off-field source or absent filter
       // returns false (conservative — we never invent a gate).
-      return selfTopMatchesTrait(ctx, cond.filter);
+      const self = ctx.source.permanent();
+      if (self !== undefined) return selfTopMatchesTrait(ctx, cond.filter);
+      const deleted = sourceTopDefinition(ctx);
+      if (deleted === undefined || cond.filter?.nameOrTrait === undefined) return false;
+      return cond.filter.nameOrTrait.some((ref) => matchNameOrTrait(deleted, ref));
     }
     case "selfHasName": {
       // "This Digimon is [X]" — exact current top-card name check.
@@ -370,9 +388,19 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       if (deletedColors !== undefined) {
         return compareNumber(new Set(deletedColors).size, cond.op, cond.value ?? 0);
       }
+      const self = ctx.source.permanent();
+      if (self !== undefined && ctx.game.effectiveColors !== undefined) {
+        return compareNumber(
+          new Set(ctx.game.effectiveColors(self)).size,
+          cond.op,
+          cond.value ?? 0,
+        );
+      }
       const def = sourceTopDefinition(ctx);
       if (def === undefined) return false;
-      return compareNumber(new Set(def.colors ?? []).size, cond.op, cond.value ?? 0);
+      const permanent = ctx.source.permanent();
+      const colors = permanent === undefined ? def.colors ?? [] : ctx.game.effectiveColors?.(permanent) ?? def.colors ?? [];
+      return compareNumber(new Set(colors).size, cond.op, cond.value ?? 0);
     }
     case "selfLevelIs": {
       // "This Digimon is level N" — exact current top-card level.
@@ -526,16 +554,20 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const sp = ctx.source.permanent();
       return sp !== undefined && sp.isSuspended !== true;
     }
-    case "selfDpAtLeast":
-      return (ctx.source.permanent()?.currentDP ?? -1) >= (cond.value ?? 0);
+    case "selfDpAtLeast": {
+      const self = ctx.source.permanent();
+      return (ctx.game.effectiveDP?.(self?.permanentId ?? "") ?? self?.currentDP ?? -1) >= (cond.value ?? 0);
+    }
     case "selfDigivolutionCountAtLeast": {
       // "If this Digimon has N or more digivolution cards" — the SOURCE permanent's stack size
       // (BT22-007 "10 or more digivolution cards", KB Q4858). An off-field source => 0 => false.
       const self = ctx.source.permanent();
       return (self?.stack.length ?? 0) >= (cond.value ?? 0);
     }
-    case "selfLinkCountAtLeast":
-      return (ctx.source.permanent()?.linked.length ?? 0) >= (cond.value ?? 0);
+    case "selfDigivolutionCountExactly": {
+      const self = ctx.source.permanent();
+      return (self?.stack.length ?? 0) === (cond.value ?? 0);
+    }
     case "selfDigivolutionStackCountAtLeast": {
       // "If N or more cards matching [filter] are in THIS Digimon's digivolution cards" (BT11-065
       // "4+ [Vemmon]"). Counts SOURCE-permanent stack cards whose definition matches a
@@ -595,6 +627,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // True when the prior Delete removed 0 (an immune/prevented target counts as not deleted —
       // KB BT23-069 Q5338). Unset (no Delete ran) => 0 => true.
       return (ctx.lastDeleteCount ?? 0) === 0;
+    case "ifThisEffectDidNotDeleteChosenTarget":
+      return ctx.lastDeleteTargetSelected !== true;
     case "ifThisEffectUsed":
       // True when an Option-use happened this resolution (bool set by the 08-06 use verb).
       return ctx.lastOptionUsed === true;
@@ -621,6 +655,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     case "triggerSecurityIsYours":
       // whenAddSecurity: the stack that grew is the watcher controller's own (documented behavior
       return ctx.trigger.addedToSecuritySeat === mine;
+    case "triggerSecurityIsOpponents":
+      return ctx.trigger.addedToSecuritySeat === opp;
     case "triggerAddedSecurityHasTrait":
       // whenAddSecurity: at least one card just added to security is FACE-UP and matches the
       // A face-down add (＜Recovery＞) never satisfies the gate.
@@ -630,6 +666,10 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // effect (KB P-004 "when YOU trash a digivolution card"). An opponent-driven trash of the
       // same opponent Digimon must not fire this.
       return ctx.trigger.byEffectSeat === mine;
+    case "triggerByYourDigimonEffect": {
+      const byEffect = ctx.trigger.addedToHand?.byEffect;
+      return byEffect?.ownerSeat === mine && byEffect.isDigimonEffect === true;
+    }
     case "triggerEnteredByEffect":
       // OnPlay/WhenDigivolving: this card entered the battle area BY AN EFFECT (the entry was
       // gating BT25-084's "after, if played or digivolved by an effect". A manual entry and every
@@ -643,6 +683,12 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return ctx.source.permanent()?.enteredByEffect === true;
     case "triggerPlayedByEffectSource":
       return cond.sourceCardId !== undefined && ctx.trigger.playedByEffectSourceCardId === cond.sourceCardId;
+    case "triggerPlayedByDecode":
+      return ctx.trigger.playedByDecode === true;
+    case "lastSuspendedIsMine": {
+      const ids = ctx.lastSuspendedPermanentIds ?? [];
+      return ids.some((id) => ctx.game.permanentById(id)?.controllerSeat === mine);
+    }
     case "isDnaDigivolving":
       // WhenDigivolving: the digivolve that reached this window was a DNA digivolve (two materials
       // merged). The DNA-digivolve fire seam sets TriggerInfo.isDnaDigivolve; a single digivolve and
@@ -664,6 +710,12 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // with a cost of 2 or more"). KB Q5471-Q5473: the gate reads the card's cost itself, not a
       // paid/reduced cost. Unset payload (cost unknown) is conservative => does not fire.
       return (ctx.trigger.usedOptionCost ?? -1) >= (cond.value ?? 0);
+    case "triggerOptionMatchesFilter": {
+      const instanceId = ctx.trigger.subjectPermanentId;
+      if (instanceId === undefined || cond.filter === undefined) return false;
+      const candidate = findLooseCandidateByInstance(ctx, instanceId);
+      return candidate !== undefined && definitionMatches(cond.filter, ctx.game.definitionOf({ cardId: candidate.cardId }));
+    }
     case "triggerSubjectHasColor":
       // whenPlayed/whenOneOfYoursDigivolves fire-time gate: the permanent that drove the event
       // (TriggerInfo.subjectPermanentId) has one of `filter.colors` on its top card. Read at
@@ -684,6 +736,16 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const cardId = ctx.trigger.deletedTopCardId;
       const definition = cardId !== undefined ? getCardDefinition(cardId) : undefined;
       return definition !== undefined && (definition.level ?? -1) >= (cond.value ?? 0);
+    }
+    case "triggerDeletedStackMatchesFilter": {
+      const filter = cond.filter;
+      if (filter === undefined) return false;
+      const ids = ctx.trigger.deletedWasStackInstanceIds ?? [];
+      const trash = ctx.game.player(ctx.source.ownerSeat).trash;
+      return ids.some((id) => {
+        const card = trash.find((candidate) => candidate.instanceId === id);
+        return card !== undefined && definitionMatches(filter, ctx.game.definitionOf(card));
+      });
     }
     case "triggerAttackerIsSelf":
       return ctx.source.permanent()?.permanentId === ctx.trigger.attackerPermanentId;
@@ -713,6 +775,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     }
     case "triggerRemovalCause":
       return ctx.trigger.removalCause === cond.removalCause;
+    case "triggerDeletedByDpZero":
+      return ctx.trigger.deletedByDpZero === true;
     case "triggerSourceNotDeletedAtSameTiming": {
       // whenDeletesInBattle fireCondition: the trigger source (the attacker that deleted the
       // opponent's Digimon) must NOT have been deleted at the same timing. The combat controller

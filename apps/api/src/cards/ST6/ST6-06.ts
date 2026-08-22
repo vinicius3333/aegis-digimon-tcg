@@ -1,6 +1,26 @@
-import base from "./ST6-03.js";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { registerCard } from "../../engine/effects/registry.js";
-const module: EffectModule = { ...base, cardId: "ST6-06" };
-registerCard(module);
-export default module;
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "WhenAttacking",
+      isInherited: true,
+      actions: [
+        { kind: "Draw", controller: "mine", amount: 1 },
+        {
+          kind: "Trash",
+          target: {
+            filter: { zone: "hand", controller: "mine" },
+            count: 1,
+          },
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard("ST6-06", compiled);

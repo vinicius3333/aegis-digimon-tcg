@@ -12,7 +12,10 @@ function hasReptileOrDragonkin(def: CardDefinition): boolean {
   return (def.types ?? []).some((t) => t === "Reptile" || t === "Dragonkin");
 }
 
-async function subTriggerAction(subCtx: Parameters<NonNullable<Parameters<typeof turnTiming>[0]["resolve"]>>[0], source: CardSource): Promise<void> {
+async function subTriggerAction(
+  subCtx: Parameters<NonNullable<Parameters<typeof turnTiming>[0]["resolve"]>>[0],
+  source: CardSource,
+): Promise<void> {
   const selfPerm = subCtx.source.permanent();
   if (selfPerm === undefined || selfPerm.isSuspended) return;
   const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");

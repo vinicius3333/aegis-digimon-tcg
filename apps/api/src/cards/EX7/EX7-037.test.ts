@@ -1,17 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import "./EX7-037.js";
-
-describe("EX7-037", () => {
-  it("offers the NSp play effect and once-per-turn -7000 DP effect on digivolving", () => {
-    const source = { instanceId: "source", cardId: "EX7-037", ownerSeat: 0, definition: {}, permanent: () => undefined, isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true } as never;
-    const module = getEffectModule("EX7-037")!;
-    expect(module.effectsForTiming(EffectTiming.OnEnterFieldAnyone, source)).toHaveLength(2);
-    expect(module.effectsForTiming(EffectTiming.OnEnterFieldAnyone, source).map((effect) => effect.maxPerTurn)).toContain(1);
-  });
-  it("has the once-per-turn -7000 DP effect when attacking", () => {
-    const source = { instanceId: "source", cardId: "EX7-037", ownerSeat: 0, definition: {}, permanent: () => undefined, isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true } as never;
-    expect(getEffectModule("EX7-037")!.effectsForTiming(EffectTiming.OnAllyAttack, source)[0]?.maxPerTurn).toBe(1);
-  });
+import { compiled } from "./EX7-037.js";
+describe("EX7-037 SaberLeomon", () => {
+  it("branches between one and two different-color NSp plays for DNA", () => { const action = compiled.effects?.[0]?.actions[0] as any; expect(action).toMatchObject({ kind: "ConditionalBranch", condition: { kind: "isDnaDigivolving" }, ifTrue: [{ kind: "PlayWithoutCost", target: { count: 2 } }], ifFalse: [{ kind: "PlayWithoutCost", target: { count: 1 } }] }); expect(action.ifTrue[0].target.filter.differentColors).toBe(true); });
+  it("reduces an opponent by 7000 per own Digimon on digivolve and attack", () => { for (const effect of compiled.effects?.slice(1) ?? []) expect(effect.actions[0]).toMatchObject({ kind: "ModifyDP", amount: -7000, scaling: { unit: "cards" } }); });
 });

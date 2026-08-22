@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-026.js";
 
 describe("BT17-026", () => {
@@ -12,5 +15,13 @@ describe("BT17-026", () => {
 
   it("returns a level 4 or lower opponent as inherited when it has Hybrid or Ten Warriors", () => {
     expect(compiled.effects?.[2]).toMatchObject({ trigger: "WhenAttacking", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "Return", to: "hand", condition: { kind: "selfHasTrait" } }] });
+  });
+
+  it("returns an opposing level 4 Digimon when its Hybrid host attacks", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT17-023", as: "host", under: ["BT17-026"] }] }, 1: { battleArea: [{ card: "BT1-009", as: "target" }] } });
+    const targetInstanceId = s.perm("target").topCard!.instanceId;
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === targetInstanceId));
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === targetInstanceId)).toBe(true);
   });
 });

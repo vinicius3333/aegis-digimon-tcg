@@ -3,7 +3,7 @@ import { PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX8-069.js";
-import "../index.js";
+import "./index.js";
 
 describe("EX8-069", () => {
   it("waives its color requirement with no face-up security cards and grants all NSp Digimon Alliance", () => {

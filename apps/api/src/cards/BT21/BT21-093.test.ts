@@ -2,7 +2,6 @@ import { describe, it, expect } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-093.js";
-import "../index.js";
 
 describe("BT21-093 [Main] on-play body fires on a real playCard (not dead)", () => {
   it("deletes the opponent's highest-DP Digimon and lands in the battle area", async () => {
@@ -60,7 +59,11 @@ describe("BT21-093 Raging Serpentine", () => {
 
     const allTurns = compiled.effects.filter((entry) => entry.trigger === "AllTurns");
     expect(allTurns).toHaveLength(2);
-    expect(allTurns[0]?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenSecurityRemoved" });
+    expect(allTurns[0]?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenSecurityRemoved",
+      fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "opponent" },
+    });
     expect(allTurns[1]?.keywords).toEqual([{ keyword: "Delay", raw: "＜Delay＞" }]);
     expect(allTurns[1]?.actions[0]).toMatchObject({
       kind: "Digivolve",
@@ -71,5 +74,7 @@ describe("BT21-093 Raging Serpentine", () => {
     });
 
     expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "Security", isSecurity: true }));
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });

@@ -21,4 +21,11 @@ describe("BT5-030 Neptunemon", () => {
       }),
     ).toEqual({ ok: false, reason: "illegal-target" });
   });
+
+  it("is not restricted from being attacked during its controller's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-030", as: "neptunemon" }] } });
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(observe(s.engine).isRestricted(s.perm("neptunemon"), "cantBeAttacked")).toBe(false);
+  });
 });

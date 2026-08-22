@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // [On Play] / [When Digivolving]: Trash 2 cards from your hand. Then,
 // 1 of your Digimon gets +4000 DP for the turn and gains <Raid> and <Piercing>.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",

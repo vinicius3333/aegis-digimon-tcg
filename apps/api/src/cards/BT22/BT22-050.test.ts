@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-050.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT22-050 Roamon", () => {
   it("plays itself at the end of the battle when revealed from security", () => {

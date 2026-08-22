@@ -40,4 +40,15 @@ describe("BT10-002 Bebydomon", () => {
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
+
+  it("does not draw when the opponent has fewer than 2 Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT10-024", as: "host", under: ["BT10-002"] }], deck: ["BT1-001"] },
+      1: { battleArea: ["BT10-020"] },
+    });
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
 });

@@ -135,9 +135,7 @@ const module: EffectModule = {
         keyword("blocker", "＜Blocker＞", (ctx, id) =>
           ctx.fx.grantKeyword(id, "Blocker", EffectDuration.UntilEachTurnEnd),
         ),
-        keyword("piercing", "＜Piercing＞", (ctx, id) =>
-          ctx.fx.grantPierce(id, EffectDuration.UntilEachTurnEnd),
-        ),
+        keyword("piercing", "＜Piercing＞", (ctx, id) => ctx.fx.grantPierce(id, EffectDuration.UntilEachTurnEnd)),
         keyword("vortex", "＜Vortex＞", (ctx, id) =>
           ctx.fx.grantKeyword(id, "Vortex", EffectDuration.UntilEachTurnEnd),
         ),
@@ -209,9 +207,7 @@ const module: EffectModule = {
             const targets = ctx.game
               .player(opponentSeat)
               .battleArea.filter(
-                (permanent) =>
-                  permanent.topCard !== undefined &&
-                  isDigimon(ctx.game.definitionOf(permanent.topCard)),
+                (permanent) => permanent.topCard !== undefined && isDigimon(ctx.game.definitionOf(permanent.topCard)),
               );
             if (self === undefined || targets.length === 0) return;
             const chosen = await ctx.ask.chooseTargets(ctx, {

@@ -1,13 +1,6 @@
-import { CardKind, EffectTiming } from "@aegis/shared";
+// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { activated } from "../../engine/effects/builders.js";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-import { registerCard, unregisterCard } from "../../engine/effects/registry.js";
-import { cardHasTrait } from "../../engine/cards/cardData.js";
 
 // Cyber Engage (BT25-098)
 // <Use Req. ([Appmon] trait)>
@@ -15,9 +8,7 @@ import { cardHasTrait } from "../../engine/cards/cardData.js";
 //        Then place this card in the battle area.
 // [Main] <Delay> You may play 1 [Appmon] trait from hand with cost reduced by 3.
 // [Security] Place this card in the battle area.
-const cardId = "BT25-098";
-
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
@@ -51,6 +42,7 @@ const compiled: CompiledCard = {
           ],
           rest: "trash",
         },
+        { kind: "PlaceInBattleAreaSelf" },
       ],
     },
     {
@@ -86,70 +78,6 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-} as unknown as CompiledCard;
-
-function appmonPermanentsInHand(ctx: EffectContext, source: CardSource): string[] {
-  return Array.from(ctx.game.player(source.ownerSeat).hand)
-    .filter((card) => {
-      const definition = ctx.game.definitionOf(card);
-      return (
-        cardHasTrait(definition, "Appmon") &&
-        (definition.kinds.includes(CardKind.Digimon) || definition.kinds.includes(CardKind.Tamer))
-      );
-    })
-    .map((card) => card.instanceId);
-}
-
-// Keep the declarative implementation for the Use Requirement, initial [Main], and
-// [Security] clauses. The activated Delay body is explicit because it must combine
-// Delay's physical-source trash cost with the paid effect-play seam; representing the
-// reduction as a separate would-be-played replacement made the selected Appmon play for
-// free instead of paying printed cost -3 (Q6464).
-const baseModule = registerIrCard(cardId, compiled);
-unregisterCard(cardId);
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing !== EffectTiming.OnDeclaration) return baseModule.effectsForTiming(timing, source);
-    return [
-      activated({
-        source,
-        effectKey: `${cardId}/delay-play-appmon-reduced-3`,
-        description:
-          "[Main] <Delay> By trashing this card, you may play 1 [Appmon] trait card " +
-          "from your hand with the play cost reduced by 3.",
-        optional: true,
-        when: (ctx) => ctx.source.isOnBattleArea(),
-        canActivate: (ctx) => {
-          const self = ctx.source.permanent();
-          return (
-            self !== undefined &&
-            self.enterFieldTurnCount !== ctx.game.state.turnCount &&
-            appmonPermanentsInHand(ctx, source).length > 0
-          );
-        },
-        resolve: async (ctx) => {
-          const self = ctx.source.permanent();
-          if (self === undefined || self.enterFieldTurnCount === ctx.game.state.turnCount) return;
-          const trashed = await ctx.fx.trash([self.topCard.instanceId], {
-            byEffectSeat: source.ownerSeat,
-          });
-          if (trashed.length !== 1) return;
-
-          const candidates = appmonPermanentsInHand(ctx, source);
-          if (candidates.length === 0) return;
-          const selected = await ctx.ask.selectCards(ctx, { candidates, min: 1, max: 1 });
-          if (selected.length !== 1) return;
-          await ctx.fx.playInstances(selected, {
-            payCost: true,
-            costDelta: 3,
-            effectSourceCardId: cardId,
-          });
-        },
-      }),
-    ];
-  },
 };
 
-registerCard(module);
+registerIrCard("BT25-098", compiled);

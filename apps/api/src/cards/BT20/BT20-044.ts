@@ -12,7 +12,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 2. Both effects add a fireCondition that the deleting Digimon must NOT itself be
 //    deleted at the same time as the opponent's Digimon.
 //    KB Q4364/Q4367 confirm: cannot activate if both are deleted at the same timing.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",

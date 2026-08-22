@@ -9,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Capabilities needed: see LANE_H.md
 //   - Filter.digivolutionCardsAtMost: number (for "1 or fewer digivolution cards")
 //   - SubTrigger event "whenCheckedFaceUpSecurity" (for "when your Digimon checks a face-up security card")
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "EndOfOpponentsTurn",

@@ -22,6 +22,8 @@ export interface Filter extends CardPredicates, BoardPredicates, ContextPredicat
 /** A resolved target specification for an action. */
 export interface Target {
   filter: Filter;
+  /** Force the public chooser even when the candidate pool exactly matches count. */
+  forceSelection?: boolean;
   /** Default 1. `"all"` for "all ...". */
   count: number | "all";
   /** Who makes a non-trivial choice. Defaults to the effect's controller. */
@@ -39,6 +41,8 @@ export interface Target {
   untilHandSize?: number;
   /** "up to N" rather than exactly N. */
   upTo?: boolean;
+  /** Allow selecting zero when an outer optional effect already owns the decline choice. */
+  allowZero?: boolean;
   /** "this Digimon", "this card". */
   isSelf?: boolean;
   /**
@@ -75,6 +79,8 @@ export interface Target {
   totalDpCap?: number;
   /** Choose permanents whose printed play costs add up to at most this value. */
   totalPlayCostBudget?: number;
+  /** Resolve the total play-cost budget from a previously bound permanent's printed cost. */
+  totalPlayCostBudgetFromSelectionRef?: string;
   /**
    * Printed levels must sum to EXACTLY this value, or at most it when `upTo`. BT20-098's errata
    * makes "9 levels' total worth of Digimon cards" exact, not up to 9.

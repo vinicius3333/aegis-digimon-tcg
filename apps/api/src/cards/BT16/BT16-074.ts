@@ -35,7 +35,7 @@ export const compiled: CompiledCard = {
           condition: { kind: "securityAtMost", value: 3 },
           optional: true,
         },
-        { kind: "DelayedDelete" },
+        { kind: "DelayedDelete", timing: "endOfOpponentTurn" },
       ],
     },
     {
@@ -46,7 +46,11 @@ export const compiled: CompiledCard = {
         {
           kind: "Unsuspend",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          condition: { kind: "selfTopHasText", filter: { nameOrTrait: [{ tokens: ["Pulsemon"], match: "text" }] }, raw: "this Digimon has [Pulsemon] in its text" },
+          condition: {
+            kind: "selfTopHasText",
+            filter: { nameOrTrait: [{ tokens: ["Pulsemon"], match: "text" }] },
+            raw: "this Digimon has [Pulsemon] in its text",
+          },
           cost: {
             kind: "trash",
             target: { filter: { controller: "mine" }, count: 1 },

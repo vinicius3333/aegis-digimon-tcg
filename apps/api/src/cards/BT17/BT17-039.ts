@@ -40,6 +40,7 @@ const compiled: CompiledCard = {
         {
           "kind": "Replacement",
           "event": "wouldLeavePlay",
+          "leaveCause": "byOpponentEffect",
           "sourceFilter": {
             "isSelfRef": true
           },

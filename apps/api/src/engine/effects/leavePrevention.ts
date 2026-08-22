@@ -13,6 +13,7 @@ export interface LeavePreventionHost {
   permanentById(permanentId: string): Permanent | undefined;
   /** Build the reaction's EffectContext for a source permanent (with the leaving id in trigger). */
   buildContext(sourcePermanent: Permanent, leavingPermanentId: string): EffectContext;
+  buildInstanceContext?(sourceInstanceId: string, leavingPermanentId: string): EffectContext | undefined;
   /** The active turn seat — the default resolving controller for an effect-driven removal. */
   turnSeat: Seat;
   /** Whether a once-per-turn prevention key has already fired this turn (resets each turn). */
@@ -70,12 +71,14 @@ export async function consultLeavePrevention(
       // "instead" pass: substitute side effects that do NOT gate the removal itself.
       for (const repl of replacements) {
         if (repl.mode !== "instead") continue;
-        if (repl.sourcePermanentId === undefined) continue;
+        if (repl.sourcePermanentId === undefined && repl.sourceInstanceId === undefined) continue;
         if (repl.causeAllows && !repl.causeAllows(cause, seat, opts.isBounce === true)) continue;
-        const srcPerm = host.permanentById(repl.sourcePermanentId);
-        if (srcPerm === undefined || srcPerm.topCard === undefined) continue;
+        const srcPerm = repl.sourcePermanentId === undefined ? undefined : host.permanentById(repl.sourcePermanentId);
+        if (srcPerm === undefined && repl.sourceInstanceId === undefined) continue;
+        if (srcPerm !== undefined && srcPerm.topCard === undefined) continue;
         if (repl.oncePerTurnKey !== undefined && host.oncePerTurnFired?.(repl.oncePerTurnKey)) continue;
-        const ctx = host.buildContext(srcPerm, leavingId);
+        const ctx = srcPerm !== undefined ? host.buildContext(srcPerm, leavingId) : host.buildInstanceContext?.(repl.sourceInstanceId!, leavingId);
+        if (ctx === undefined) continue;
         if (repl.appliesTo && !repl.appliesTo(ctx, leavingId)) continue;
         await repl.apply(ctx);
         if (repl.oncePerTurnKey !== undefined) host.markOncePerTurnFired?.(repl.oncePerTurnKey);
@@ -83,11 +86,13 @@ export async function consultLeavePrevention(
       // "prevent" pass: the first successful reaction wins and stops the search.
       for (const repl of replacements) {
         if (repl.mode !== "prevent") continue;
-        if (repl.sourcePermanentId === undefined) continue;
+        if (repl.sourcePermanentId === undefined && repl.sourceInstanceId === undefined) continue;
         if (repl.causeAllows && !repl.causeAllows(cause, seat, opts.isBounce === true)) continue;
-        const srcPerm = host.permanentById(repl.sourcePermanentId);
-        if (srcPerm === undefined || srcPerm.topCard === undefined) continue;
-        const ctx = host.buildContext(srcPerm, leavingId);
+        const srcPerm = repl.sourcePermanentId === undefined ? undefined : host.permanentById(repl.sourcePermanentId);
+        if (srcPerm === undefined && repl.sourceInstanceId === undefined) continue;
+        if (srcPerm !== undefined && srcPerm.topCard === undefined) continue;
+        const ctx = srcPerm !== undefined ? host.buildContext(srcPerm, leavingId) : host.buildInstanceContext?.(repl.sourceInstanceId!, leavingId);
+        if (ctx === undefined) continue;
         if (repl.protects && !repl.protects(ctx, leavingId)) continue;
         if (repl.affectsAll && firedAll.has(repl.id)) {
           prevented.add(leavingId); // one activation already prevented all matching

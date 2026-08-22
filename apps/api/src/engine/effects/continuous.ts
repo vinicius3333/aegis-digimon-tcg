@@ -293,6 +293,7 @@ export interface StackEffectConferral {
   continuous?: boolean;
   /** Limit the copied effects to the printed trigger (for example, only [Main]). */
   trigger?: string;
+  inheritedOnly?: boolean;
 }
 
 /**
@@ -955,7 +956,10 @@ export class ContinuousEffectLedger {
     });
   }
 
-  constructor(private readonly controllerSeatOf?: (permanentId: string) => Seat | undefined) {}
+  constructor(
+    private readonly controllerSeatOf?: (permanentId: string) => Seat | undefined,
+    private readonly printedKeywordsOfPermanent?: (permanentId: string) => readonly string[],
+  ) {}
 
   /** Grant a keyword to every current and future Digimon permanent controlled by `seat`. */
   addPlayerKeywordGrant(seat: Seat, keyword: string, duration: EffectDuration, amount?: number): void {
@@ -978,7 +982,10 @@ export class ContinuousEffectLedger {
 
   /** Whether a permanent currently has a given keyword from any active grant. */
   hasKeyword(permanentId: string, keyword: string): boolean {
-    return this.grantedKeywords(permanentId).some((grant) => grant.keyword === keyword);
+    return (
+      this.printedKeywordsOfPermanent?.(permanentId)?.includes(keyword) === true ||
+      this.grantedKeywords(permanentId).some((grant) => grant.keyword === keyword)
+    );
   }
 
   /** Active parameter alternatives carried by grants such as Decoy (Black/White). */
@@ -1215,13 +1222,13 @@ export class ContinuousEffectLedger {
   conferStackEffects(
     targetPermanentId: string,
     stackInstanceId: string,
-    opts?: { continuous?: boolean; trigger?: string },
+    opts?: { continuous?: boolean; trigger?: string; inheritedOnly?: boolean },
   ): void {
     const exists = this.stackEffectConferrals.some(
       (c) =>
         c.targetPermanentId === targetPermanentId &&
         c.stackInstanceId === stackInstanceId &&
-        c.trigger === opts?.trigger,
+        c.trigger === opts?.trigger && c.inheritedOnly === opts?.inheritedOnly,
     );
     if (exists) return;
     this.stackEffectConferrals.push({
@@ -1229,6 +1236,7 @@ export class ContinuousEffectLedger {
       stackInstanceId,
       continuous: opts?.continuous,
       trigger: opts?.trigger,
+      inheritedOnly: opts?.inheritedOnly,
     });
   }
 

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "../index.js";
+import { compiled } from "./BT18-060.js";
 
 // A3 for BT18-060 (Vemmon) — [On Play] reveal top 3; add 1 [Vemmon]-text card to hand AND
 // place 1 card named "Vemmon" as the bottom digivolution card of 1 of your Digimon.
@@ -14,6 +14,15 @@ const VEMMON_NAMED = new Set(["BT11-061", "BT18-060", "BT21-056"]);
 
 describe("BT18-060 [On Play] reveal 3 → add a Vemmon to hand + place a Vemmon as bottom digivolution", () => {
   it("places a Vemmon-named card under a friendly Digimon and adds a Vemmon to hand", async () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects).toMatchObject([
+      { trigger: "OnPlay", actions: [{ kind: "RevealAdd", revealCount: 3, rest: "deckBottom", add: [
+        { count: 1, to: "hand" },
+        { count: 1, to: "placeUnder", underFilter: { controller: "mine", kind: ["Digimon"] } },
+      ] }] },
+      { trigger: "YourTurn", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "Replacement", event: "wouldDigivolve" }] },
+    ]);
     const s = setupEngine(
       {
         0: {

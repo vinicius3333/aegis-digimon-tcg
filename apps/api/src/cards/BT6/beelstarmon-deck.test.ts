@@ -142,11 +142,9 @@ describe("BT6 Three Musketeers deck", () => {
     expect(s.state.players[0]!.hand.some((card) =>
       card.instanceId === s.inst("happyBullet").instanceId
     )).toBe(true);
-    await settle(() => s.state.players[0]!.trash.some((card) =>
-      card.instanceId === s.inst("flyBullet").instanceId
-    ));
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT6-109"));
     expect(s.state.players[0]!.trash.some((card) =>
-      card.instanceId === s.inst("flyBullet").instanceId
+      card.cardId === "BT6-109"
     )).toBe(true);
     expect(s.state.memory).toBe(0);
   });

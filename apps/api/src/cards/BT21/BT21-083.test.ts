@@ -1,9 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
+import { EffectTiming } from "@aegis/shared";
+import { compiled } from "./BT21-083.js";
 import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
-import "../index.js";
 
 // A3 for BT21-083 (Taiki Kudo) â€” [Start of Your Main Phase]:
 //   "By placing 1 Digimon card with the [Xros Heart]/[Blue Flare]/[Hero] trait from your
@@ -98,30 +96,12 @@ describe("BT21-083 [Start of Main Phase] place Xros Heart Digimon under Tamer â†
 
 describe("BT21-083 module registration", () => {
   it("registers the played/digivolved attack watcher and security skill", () => {
-    const module = getEffectModule(TAIKI);
-    expect(module).toBeDefined();
-    const definition: CardDefinition = {
-      cardId: TAIKI,
-      set: "BT21",
-      nameEn: "Taiki Kudo",
-      kinds: ["Tamer"] as never,
-      colors: ["Red", "Yellow"] as never,
-      playCost: 4,
-      dp: 0,
-      evoCosts: [],
-      maxCountInDeck: 4,
-    };
-    const source: CardSource = {
-      instanceId: "INST#TAIKI",
-      cardId: TAIKI,
-      ownerSeat: 0 as Seat,
-      definition,
-      permanent: () => undefined,
-      isOnBattleArea: () => true,
-      isOwnersTurn: () => true,
-      hasColor: () => false,
-    };
-    expect(module!.effectsForTiming(EffectTiming.OnEnterFieldAnyone, source)).toHaveLength(1);
-    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)[0]?.isSecurity).toBe(true);
+    const yourTurn = compiled.effects.find((entry) => entry.trigger === "YourTurn");
+    expect(yourTurn?.actions).toHaveLength(2);
+    expect(yourTurn?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenPlayed" });
+    expect(yourTurn?.actions[1]).toMatchObject({ kind: "SubTrigger", event: "whenOneOfYoursDigivolves" });
+    expect(compiled.effects.find((entry) => entry.trigger === "Security")?.isSecurity).toBe(true);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });

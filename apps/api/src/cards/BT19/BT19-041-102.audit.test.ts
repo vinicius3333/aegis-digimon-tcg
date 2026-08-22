@@ -26,6 +26,15 @@ function nodesWithKey(value: unknown, key: string): Record<string, unknown>[] {
 }
 
 describe("BT19-041 through BT19-102 manual audit evidence", () => {
+  it("has a full residual-free runtime record for every card in the collection", () => {
+    for (let number = 41; number <= 102; number += 1) {
+      const id = `BT19-${String(number).padStart(3, "0")}`;
+      const ir = card(id);
+      expect(ir.coverage).toBe("full");
+      expect(ir.residual).toEqual([]);
+    }
+  });
+
   it("limits BT19-041's security-trash costs to the top security card", () => {
     const costs = nodesWithKey(card("BT19-041"), "raw").filter((node) =>
       String(node.raw).includes("top card of your security"),
@@ -36,5 +45,4 @@ describe("BT19-041 through BT19-102 manual audit evidence", () => {
       expect(filter).toMatchObject({ zone: "security", position: "top" });
     });
   });
-
 });

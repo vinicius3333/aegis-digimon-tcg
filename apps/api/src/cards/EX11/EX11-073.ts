@@ -92,15 +92,11 @@ const module: EffectModule = {
             const player = ctx.game.player(seat);
 
             // Gather candidates from hand, trash, and this Digimon's digivolution cards.
-            const handCandidates = Array.from(player.hand).filter((c) =>
-              hasMaquinamonInText(ctx.game.definitionOf(c)),
-            );
+            const handCandidates = Array.from(player.hand).filter((c) => hasMaquinamonInText(ctx.game.definitionOf(c)));
             const trashCandidates = Array.from(player.trash).filter((c) =>
               hasMaquinamonInText(ctx.game.definitionOf(c)),
             );
-            const stackCandidates = self.stack.filter((c) =>
-              hasMaquinamonInText(ctx.game.definitionOf(c)),
-            );
+            const stackCandidates = self.stack.filter((c) => hasMaquinamonInText(ctx.game.definitionOf(c)));
 
             const allCandidates = [...handCandidates, ...trashCandidates, ...stackCandidates];
 
@@ -146,13 +142,11 @@ const module: EffectModule = {
             await ctx.fx.trashFromSecurity(opponentSeat, linkCount);
 
             // Return N opponent Digimon to the bottom of their deck.
-            const oppDigimon = ctx.game
-              .player(opponentSeat)
-              .battleArea.filter((p) => {
-                if (p.topCard === undefined) return false;
-                const def = ctx.game.definitionOf(p.topCard);
-                return (def.kinds as string[]).includes("Digimon");
-              });
+            const oppDigimon = ctx.game.player(opponentSeat).battleArea.filter((p) => {
+              if (p.topCard === undefined) return false;
+              const def = ctx.game.definitionOf(p.topCard);
+              return (def.kinds as string[]).includes("Digimon");
+            });
 
             if (oppDigimon.length === 0) return;
 

@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT5-069.js";
 
 describe("BT5-069 BlackWarGreymon", () => {
+  it("has complete residual-free runtime coverage", () => {
+    expect(runtimeCompiledCard("BT5-069")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("has Security Attack +1 and Reboot without immediately unsuspending", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT5-069", as: "blackwar", suspended: true }] } });
     await s.engine.recomputeContinuousEffects();

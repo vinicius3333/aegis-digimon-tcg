@@ -27,4 +27,13 @@ describe("BT5-028 CrysPaledramon", () => {
 
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
   });
+
+  it("does not grant Security Attack +1 when every opponent Digimon has a source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT5-031", as: "host", under: ["BT5-028"] }] },
+      1: { battleArea: [{ card: "BT5-020", as: "sourceful", under: ["BT1-010"] }] },
+    });
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(0);
+  });
 });

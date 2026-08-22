@@ -5,7 +5,6 @@ import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harn
 // Boot side-effect: self-register every compiled-IR card module (so BT19-040's real IR loads).
 import "../index.js";
 
-
 function primitivesOf(s: EngineSetup): Primitives {
   return (s.engine as unknown as { primitives: Primitives }).primitives;
 }

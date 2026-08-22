@@ -122,7 +122,10 @@ const module: EffectModule = {
                 if (vemmonCards.length > 0) {
                   const subjectId = subCtx.trigger?.subjectPermanentId;
                   if (subjectId !== undefined) {
-                    await subCtx.fx.placeUnder(subjectId, vemmonCards.map((c) => c.instanceId));
+                    await subCtx.fx.placeUnder(
+                      subjectId,
+                      vemmonCards.map((c) => c.instanceId),
+                    );
                   }
                 }
                 if (nonVemmon.length > 0) {
@@ -170,7 +173,10 @@ const module: EffectModule = {
                 if (vemmonCards.length > 0) {
                   const subjectId = subCtx.trigger?.subjectPermanentId;
                   if (subjectId !== undefined) {
-                    await subCtx.fx.placeUnder(subjectId, vemmonCards.map((c) => c.instanceId));
+                    await subCtx.fx.placeUnder(
+                      subjectId,
+                      vemmonCards.map((c) => c.instanceId),
+                    );
                   }
                 }
                 if (nonVemmon.length > 0) {

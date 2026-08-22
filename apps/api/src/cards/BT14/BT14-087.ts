@@ -45,16 +45,6 @@ const compiled: CompiledCard = {
             "count": 1,
             "upTo": false
           }
-        },
-        {
-          "kind": "PlaceUnder",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          }
         }
       ],
       "keywords": [

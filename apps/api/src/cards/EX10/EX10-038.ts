@@ -65,3 +65,5 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("EX10-038", compiled);
+
+export { compiled };

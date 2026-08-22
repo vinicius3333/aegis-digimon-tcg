@@ -7,7 +7,6 @@ import {
   settle,
 } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-094.js";
-import "../index.js";
 
 // A3 for BT21-094 (Armor Digivolution) — [Main]/[Security]:
 //   Reveal the top 3 cards of your deck. Add 1 card with [Davis Motomiya] in its name and
@@ -75,6 +74,10 @@ describe("BT21-094 Delay watcher", () => {
       optional: true,
       into: { nameOrTrait: [{ tokens: ["Armor Form"], match: "trait" }] },
     });
-    expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "Security", isSecurity: true }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({ trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] }),
+    );
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });

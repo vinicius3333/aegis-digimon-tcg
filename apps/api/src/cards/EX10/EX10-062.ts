@@ -46,8 +46,9 @@ const module: EffectModule = {
           when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
-            const battleDigimon = Array.from(owner.battleArea)
-              .filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)));
+            const battleDigimon = Array.from(owner.battleArea).filter(
+              (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
+            );
             if (battleDigimon.length < 2) return;
             const materialChosen = await ctx.ask.chooseTargets(ctx, {
               candidates: battleDigimon.map((p) => p.permanentId),
@@ -76,8 +77,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/link-trash-draw`,
           description:
-            "[All Turns] When effects trash any of your Digimon's link cards, by suspending " +
-            "this Tamer, <Draw 1>.",
+            "[All Turns] When effects trash any of your Digimon's link cards, by suspending " + "this Tamer, <Draw 1>.",
           when: (_ctx) => source.isOnBattleArea(),
           resolve: async (ctx) => {
             const self = source.permanent();

@@ -6,116 +6,105 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+          kind: "GainMemory",
+          amount: 1,
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Blue Flare",
-                      "Xros Heart"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              },
-              "count": 1
-            },
-            "underFilter": {
-              "controller": "mine",
-              "kind": [
-                "Tamer"
-              ]
-            },
-            "raw": "By placing 1 Digimon card with the [Blue Flare]/[Xros Heart] trait from your hand under any of your Tamers"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Blue Flare"
-                ],
-                "match": "trait"
-              }
-            ],
-            "hasDigiXrosRequirements": true
-          },
-          "actions": [
-            {
-              "kind": "PlaceUnder",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "zone": "underTamer"
-                },
-                "count": "any"
-              },
-              "underFilter": {
-                "isTriggerSource": true
-              },
-              "asDigiXrosMaterial": true,
-              "cost": {
-                "kind": "suspend",
-                "target": {
-                  "filter": {
-                    "isSelfRef": true
+                    tokens: ["Blue Flare", "Xros Heart"],
+                    match: "trait",
                   },
-                  "count": 1,
-                  "isSelf": true
-                },
-                "raw": "by suspending this Tamer"
+                ],
               },
-              "optional": true
-            }
-          ]
-        }
-      ]
+              count: 1,
+            },
+            underFilter: {
+              controller: "mine",
+              kind: ["Tamer"],
+            },
+            raw: "By placing 1 Digimon card with the [Blue Flare]/[Xros Heart] trait from your hand under any of your Tamers",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
+              {
+                tokens: ["Blue Flare"],
+                match: "trait",
+              },
+            ],
+            hasDigiXrosRequirements: true,
           },
-          "payCost": false
-        }
+          actions: [
+            {
+              kind: "PlaceUnder",
+              target: {
+                filter: {
+                  controller: "mine",
+                  zone: "underTamer",
+                },
+                count: "any",
+              },
+              underFilter: {
+                isTriggerSource: true,
+              },
+              asDigiXrosMaterial: true,
+              cost: {
+                kind: "suspend",
+                target: {
+                  filter: {
+                    isSelfRef: true,
+                  },
+                  count: 1,
+                  isSelf: true,
+                },
+                raw: "by suspending this Tamer",
+              },
+              optional: true,
+            },
+          ],
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT19-081", compiled);

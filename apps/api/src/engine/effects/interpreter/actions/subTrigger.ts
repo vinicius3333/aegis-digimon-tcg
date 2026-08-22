@@ -83,6 +83,10 @@ export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefine
   startOfYourMainPhase: "startOfYourMainPhase",
   // GainTriggeredEffect in card IR may encode the trigger with a capital 'S' (runtime record output).
   StartOfYourMainPhase: "startOfYourMainPhase",
+  // A gained printed [End of Your Turn] clause uses the same live end-of-turn bus as
+  // hand-authored EndOfYourTurn effects; runGainTriggeredEffect adds the granted owner's
+  // turn/battle-area gate below so it cannot fire on the granter's turn (EX10-058, Q5159).
+  EndOfYourTurn: "endOfTurn",
   endOfTurn: "endOfTurn",
   endOfOpponentTurn: "endOfOpponentTurn",
   // "When [matching Digimon] WOULD BE returned to hand/deck" — fires before the return executes.
@@ -234,6 +238,10 @@ export async function runSubTrigger(
     // whenTrashedFromDeck fires for a loose deck card (no permanent); the isSelfRef gate
     // is handled entirely by whenTrashedFromDeckGate below.
     event === "whenTrashedFromDeck" ||
+    // onDeletionOf resolves after the rule-processing seam may have deferred the event;
+    // the permanent is then gone, so use the deletion snapshot gate below instead of
+    // attempting to re-resolve the subject from the battle area.
+    event === "onDeletionOf" ||
     event === "onDigivolutionCardDiscarded" ||
     event === "onDigivolutionCardsDiscardedBatch" ||
     event === "onDigiBurstCardDiscarded"
@@ -256,6 +264,27 @@ export async function runSubTrigger(
           const def = getCardDefinition(cardId);
           if (def === undefined) return false;
           return refs.some((ref) => matchNameOrTrait(def as DefinitionFacts, ref));
+        }
+      : undefined;
+  const deletionSourceFilterGate =
+    event === "onDeletionOf" && sourceFilter !== undefined
+      ? (subCtx: EffectContext): boolean => {
+          if (sourceFilter.isSelfRef === true) {
+            const anchor = subCtx.source.permanent()?.permanentId;
+            if (anchor === undefined || subCtx.trigger.deletedPermanentId !== anchor) return false;
+          }
+          const deletedSeat = subCtx.trigger.deletedControllerSeat;
+          const scope = sourceFilter.controller ?? sourceFilter.controllerDefault;
+          const seatMatches =
+            deletedSeat === undefined ||
+            scope === undefined ||
+            scope === "any" ||
+            (deletedSeat === subCtx.source.ownerSeat) === (scope === "mine");
+          if (!seatMatches) return false;
+          const deletedCardId = subCtx.trigger.deletedTopCardId;
+          if (sourceFilter.kind === undefined || deletedCardId === undefined) return true;
+          const definition = getCardDefinition(deletedCardId);
+          return definition !== undefined && sourceFilter.kind.some((kind) => definition.kinds.includes(kind));
         }
       : undefined;
   // `whenHandTrashed` carries no subject permanent — its payload names the seat whose hand an
@@ -386,7 +415,14 @@ export async function runSubTrigger(
     event === "whenEffectAddsToHand"
       ? (subCtx: EffectContext): boolean => {
           const seat = subCtx.trigger?.effectAddedToHandSeat;
-          return seat !== undefined && seat === subCtx.source.ownerSeat;
+          if (seat === undefined || seat !== subCtx.source.ownerSeat) return false;
+          if (sourceFilter === undefined) return true;
+          const ids = subCtx.trigger?.addedToHand?.instanceIds ?? [];
+          return ids.some((instanceId) => {
+            const card = findLooseCandidateByInstance(subCtx, instanceId);
+            if (card === undefined) return false;
+            return definitionMatches(sourceFilter, subCtx.game.definitionOf(card));
+          });
         }
       : undefined;
   // `whenEffectAddsToDeck` ("[Your Turn] when your effects add to decks", BT26-015): mirrors
@@ -613,6 +649,7 @@ export async function runSubTrigger(
       : undefined;
   const gates = [
     filterMatch,
+    deletionSourceFilterGate,
     ownerMainPhaseGate,
     fireConditionGate,
     securityRemovalGate,
@@ -648,9 +685,19 @@ export async function runSubTrigger(
     trashedDigivolutionTopGate,
   ].filter((g): g is (subCtx: EffectContext) => boolean => g !== undefined);
   const matches = gates.length === 0 ? undefined : (subCtx: EffectContext): boolean => gates.every((g) => g(subCtx));
+  // Inherited effects that trigger when their own source card is discarded from a
+  // digivolution stack must keep that card as the watcher source. The host permanent
+  // remains on the field, but the source card moves to trash before the event fires;
+  // anchoring the watcher to the host would make `isSelfRef` compare against the host's
+  // top card and silently skip the inherited effect (BT7 Digi-Burst cards).
+  const discardedSelfSource =
+    sourceFilter?.isSelfRef === true &&
+    (event === "onDigiBurstCardDiscarded" ||
+      event === "onDigivolutionCardsDiscardedBatch" ||
+      event === "onDigivolutionCardDiscarded");
   ctx.fx.subscribeSubTrigger({
     event,
-    sourcePermanentId: anchorPermanentId,
+    ...(discardedSelfSource ? {} : { sourcePermanentId: anchorPermanentId }),
     ...(playerScoped
       ? { activationContext: ctx }
       : action.on !== undefined
@@ -676,7 +723,13 @@ export async function runSubTrigger(
           })}`,
         }
       : {}),
-    ...(action.oncePerTurnKey ? { oncePerTurnKey: `${ctx.source.instanceId}/${action.oncePerTurnKey}` } : {}),
+    ...(action.oncePerTurnKey
+      ? {
+          oncePerTurnKey: action.oncePerTurnKey.startsWith("global:")
+            ? action.oncePerTurnKey.slice("global:".length)
+            : `${ctx.source.instanceId}/${action.oncePerTurnKey}`,
+        }
+      : {}),
     description: action.raw,
     run: async (subCtx) => {
       // Preserve the printed clause timing on every decision opened by the future watcher.
@@ -701,7 +754,10 @@ export async function runSubTrigger(
       // A freshly-built watcher context has no map by default; without initializing it,
       // SelectBind silently drops the chosen permanent and every following
       // fromSelectionRef action no-ops (BT8-081's +3000 DP / unsuspend pair).
-      subCtx.selections ??= new Map();
+      // Carry effect-local bindings across the delayed boundary. A Bond effect, for example,
+      // binds the Digimon that actually received the Bond and uses that same handle at end of
+      // turn; rebuilding an empty map here loses the selected host before the watcher runs.
+      subCtx.selections = new Map(ctx.selections ?? []);
       // CAP-E14: an intrinsic ＜Delay＞ gate (`withIntrinsicDelayGate`, comprehensive rules
       // §16-17) — this watcher belongs to a card printing ＜Delay＞ directly on a continuous
       // trigger. Its OWN optional-ask/cost supersedes `action.optional` below: §16-17-1 makes
@@ -783,6 +839,7 @@ export async function runGainTriggeredEffect(
   action: Extract<Action, { kind: "GainTriggeredEffect" }>,
 ): Promise<void> {
   const event = SUBTRIGGER_EVENT_MAP[action.gainedTrigger];
+  const sourceFilter = action.sourceFilter;
   if (event === undefined) {
     unsupported(
       ctx,
@@ -795,6 +852,7 @@ export async function runGainTriggeredEffect(
   const grantingSeat = ctx.source.ownerSeat;
   const grantingKinds = ctx.source.definition.kinds.filter((kind) => kind === "Digimon" || kind === "Option");
   for (const targetPermanentId of targetIds) {
+    const anchorPermanentId = targetPermanentId;
     const grantedPerm = ctx.game.permanentById(targetPermanentId);
     if (grantedPerm === undefined) continue;
     let expiresOnTurnEndOf: typeof ctx.source.ownerSeat | undefined;
@@ -810,6 +868,10 @@ export async function runGainTriggeredEffect(
       event === "startOfYourMainPhase"
         ? (subCtx: EffectContext): boolean => subCtx.source.isOwnersTurn() && subCtx.source.isOnBattleArea()
         : undefined;
+    const ownerTurnEndGate =
+      event === "endOfTurn"
+        ? (subCtx: EffectContext): boolean => subCtx.source.isOwnersTurn() && subCtx.source.isOnBattleArea()
+        : undefined;
     const grantedPermanentDeletionGate =
       event === "onDeletionOf"
         ? (subCtx: EffectContext): boolean => subCtx.trigger.deletedPermanentId === targetPermanentId
@@ -822,7 +884,7 @@ export async function runGainTriggeredEffect(
     const grantedPermanentBattleDeleteGate =
       event === "whenDeletesInBattle"
         ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === targetPermanentId
-      : undefined;
+        : undefined;
     const whenDeletesInBattleSelfGate =
       event === "whenDeletesInBattle" && sourceFilter?.isSelfRef === true && anchorPermanentId !== undefined
         ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === anchorPermanentId
@@ -835,6 +897,7 @@ export async function runGainTriggeredEffect(
     };
     const gates = [
       ownerMainPhaseGate,
+      ownerTurnEndGate,
       grantedPermanentDeletionGate,
       grantedPermanentBattleDeleteGate,
       whenDeletesInBattleSelfGate,
@@ -846,6 +909,7 @@ export async function runGainTriggeredEffect(
       event,
       sourcePermanentId: targetPermanentId,
       once: false,
+      ...(ctx.continuousPass === true ? { continuous: true } : {}),
       ...(matches ? { matches } : {}),
       ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
       description: action.raw ?? `GainTriggeredEffect(${action.gainedTrigger}) on ${targetPermanentId}`,

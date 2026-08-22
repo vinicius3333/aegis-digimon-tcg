@@ -111,10 +111,7 @@ const module: EffectModule = {
             return true;
           },
           canActivate: (ctx) => {
-            return (
-              eligibleMetalGreymonInStack(ctx).length >= 1 ||
-              eligibleDarkKnightmonInStack(ctx).length >= 1
-            );
+            return eligibleMetalGreymonInStack(ctx).length >= 1 || eligibleDarkKnightmonInStack(ctx).length >= 1;
           },
           resolve: async (ctx) => {
             const mgIds = eligibleMetalGreymonInStack(ctx);
@@ -168,10 +165,7 @@ const module: EffectModule = {
             return true;
           },
           canActivate: (ctx) => {
-            return (
-              eligibleMetalGreymonInStack(ctx).length >= 1 ||
-              eligibleDarkKnightmonInStack(ctx).length >= 1
-            );
+            return eligibleMetalGreymonInStack(ctx).length >= 1 || eligibleDarkKnightmonInStack(ctx).length >= 1;
           },
           resolve: async (ctx) => {
             const mgIds = eligibleMetalGreymonInStack(ctx);

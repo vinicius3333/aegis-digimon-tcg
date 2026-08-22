@@ -1,7 +1,7 @@
 import { getCardDefinition, getCompiledCard, type AttackTarget } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import module from "./BT2-094.js";
+import { compiled } from "./BT2-094.js";
 
 // A3 for BT2-094 (Arctic Blizzard, Blue Option).
 // [Main] Choose 1 digivolution card of 1 of your opponent's Digimon and trash it.
@@ -16,7 +16,7 @@ import module from "./BT2-094.js";
 
 describe("BT2-094 Arctic Blizzard", () => {
   it("matches its official Option and Security text through a direct module import", () => {
-    expect(module.cardId).toBe("BT2-094");
+    expect(compiled).toBeDefined();
     expect(getCardDefinition("BT2-094")).toMatchObject({
       nameEn: "Arctic Blizzard",
       colors: ["Blue"],

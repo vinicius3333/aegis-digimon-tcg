@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type PlayerState } from "@aegis/shared";
+import type { PlayerState } from "@aegis/shared";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -23,14 +23,6 @@ const HOST_CARD = "BT1-009"; // the Digimon hosting BT11-003 in its stack
  * Expose the internal fireTiming method (tests drive it directly to isolate the
  * OnEnterFieldAnyone window — same pattern as EX6-061.test.ts).
  */
-function fireTiming(s: EngineSetup, timing: EffectTiming, trigger: Record<string, unknown> = {}): Promise<void> {
-  return (
-    s.engine as unknown as {
-      fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
-    }
-  ).fireTiming(timing, trigger);
-}
-
 describe("BT11-003 [Your Turn][OPT] when you play an Angel-trait Digimon, <Draw 1>", () => {
   it("draws 1 card when an Angel-trait Digimon enters the controller's battle area", async () => {
     const s = setupEngine(
@@ -38,24 +30,24 @@ describe("BT11-003 [Your Turn][OPT] when you play an Angel-trait Digimon, <Draw 
         0: {
           battleArea: [
             { card: HOST_CARD, dp: 4000, as: "host", under: [{ card: "BT11-003" }] },
-            { card: ANGEL_CARD, dp: 3000, as: "angelPerm" },
           ],
+          hand: [{ card: ANGEL_CARD, as: "angel" }],
           deck: [{ card: "BT1-001", faceUp: false }],
         },
       },
       { autoAcceptOptional: true },
     );
+    s.state.memory = 5;
+    await s.ready();
     const p0 = s.state.players[0] as PlayerState;
 
     const handBefore = p0.hand.length;
 
-    await fireTiming(s, EffectTiming.OnEnterFieldAnyone, {
-      subjectPermanentId: s.perm("angelPerm").permanentId,
-    });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("angel").instanceId })).toEqual({ ok: true });
     await settle(() => p0.hand.length > handBefore);
 
     // <Draw 1>: one card moved from the deck to the hand.
-    expect(p0.hand.length).toBe(handBefore + 1);
+    expect(p0.hand.length).toBe(handBefore);
     expect(p0.deck.length).toBe(0);
   });
 
@@ -65,24 +57,24 @@ describe("BT11-003 [Your Turn][OPT] when you play an Angel-trait Digimon, <Draw 
         0: {
           battleArea: [
             { card: HOST_CARD, dp: 4000, as: "host", under: [{ card: "BT11-003" }] },
-            { card: NON_ANGEL_CARD, dp: 3000, as: "nonAngel" },
           ],
+          hand: [{ card: NON_ANGEL_CARD, as: "nonAngel" }],
           deck: [{ card: "BT1-001", faceUp: false }],
         },
       },
       { autoAcceptOptional: true },
     );
+    s.state.memory = 5;
+    await s.ready();
     const p0 = s.state.players[0] as PlayerState;
 
     const handBefore = p0.hand.length;
 
-    await fireTiming(s, EffectTiming.OnEnterFieldAnyone, {
-      subjectPermanentId: s.perm("nonAngel").permanentId,
-    });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nonAngel").instanceId })).toEqual({ ok: true });
     // Allow time for any spurious resolve.
     await settle(() => false, 20);
 
-    expect(p0.hand.length).toBe(handBefore); // no draw
+    expect(p0.hand.length).toBe(handBefore - 1); // play consumed the non-matching card; no draw
     expect(p0.deck.length).toBe(1); // deck untouched
   });
 
@@ -92,21 +84,21 @@ describe("BT11-003 [Your Turn][OPT] when you play an Angel-trait Digimon, <Draw 
         0: {
           battleArea: [
             { card: HOST_CARD, dp: 4000, as: "host", under: [{ card: "BT11-003" }] },
-            { card: ANGEL_CARD, dp: 3000, as: "angelPerm" },
           ],
+          hand: [{ card: ANGEL_CARD, as: "angel" }],
           deck: [{ card: "BT1-001", faceUp: false }],
         },
       },
       { autoAcceptOptional: true },
     );
+    s.state.memory = 5;
+    await s.ready();
     s.state.turnSeat = 1; // opponent's turn — [Your Turn] gate fails for seat 0
     const p0 = s.state.players[0] as PlayerState;
 
     const handBefore = p0.hand.length;
 
-    await fireTiming(s, EffectTiming.OnEnterFieldAnyone, {
-      subjectPermanentId: s.perm("angelPerm").permanentId,
-    });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("angel").instanceId })).toEqual({ ok: false, reason: expect.any(String) });
     await settle(() => false, 20);
 
     expect(p0.hand.length).toBe(handBefore); // no draw off-turn

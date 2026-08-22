@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import type { Seat } from "@aegis/shared";
+import { CardKind, type Seat } from "@aegis/shared";
 import type { CardSource } from "./CardSource.js";
 import type { EffectContext, GameAccess } from "./EffectContext.js";
 import type { Effect } from "./Effect.js";
@@ -10,7 +10,7 @@ import {
   canTrigger,
   canActivate,
 } from "./kernel.js";
-import { onPlay, security, staticModifier, whenAttacking } from "./builders.js";
+import { breeding, onPlay, security, staticModifier, whenAttacking } from "./builders.js";
 
 // --- Lightweight fakes (the kernel and builders are pure; no real schema needed) ---
 
@@ -215,6 +215,38 @@ describe("passesPlacementGuard (inherited/linked vs printed)", () => {
       resolve: async () => {},
     });
     expect(canActivate(eff, fakeContext(topSource, digimonTop), tracker)).toBe(false);
+  });
+
+  it("allows an inherited effect under a Digi-Egg host in the breeding area", () => {
+    const breedingSource = fakeSource({
+      instanceId: "source#1",
+      permanent: () => permanent,
+      isOnBreedingArea: () => true,
+    });
+    const eff = breeding({
+      source: breedingSource,
+      effectKey: "king-drassil-inherited",
+      description: "",
+      isInherited: true,
+      resolve: async () => {},
+    });
+    const ctx = fakeContext(breedingSource, { kinds: [CardKind.DigiEgg] });
+
+    expect(passesPlacementGuard(eff, ctx)).toBe(true);
+  });
+
+  it("does not treat a Digi-Egg host in the battle area as a Digimon", () => {
+    const stackSource = fakeSource({ instanceId: "source#1", permanent: () => permanent });
+    const eff = staticModifier({
+      source: stackSource,
+      effectKey: "battle-area-digi-egg",
+      description: "",
+      isInherited: true,
+      resolve: async () => {},
+    });
+    const ctx = fakeContext(stackSource, { kinds: [CardKind.DigiEgg] });
+
+    expect(passesPlacementGuard(eff, ctx)).toBe(false);
   });
 });
 

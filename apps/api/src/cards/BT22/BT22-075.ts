@@ -3,7 +3,6 @@ import { EffectTiming } from "@aegis/shared";
 import type { CompiledCard } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import { staticModifier } from "../../engine/effects/builders.js";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
 import { getEffectModule, registerCard, unregisterCard } from "../../engine/effects/registry.js";
 
 // Behavior is executed by the shared interpreter; this file only carries the IR and
@@ -108,12 +107,6 @@ export const compiled: CompiledCard = {
 };
 
 const cardId = "BT22-075";
-registerIrCard(cardId, {
-  ...compiled,
-  effects: compiled.effects.filter((effect) => effect.trigger !== "AllTurns"),
-});
-const interpreted = getEffectModule(cardId)!;
-unregisterCard(cardId);
 
 const module: EffectModule = {
   cardId,

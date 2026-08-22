@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./ST5-09.js";
 
 describe("ST5-09 MetalGreymon", () => {
+  it("is fully represented with the opponent-turn Blocker duration", () => {
+    expect(runtimeCompiledCard("ST5-09")).toMatchObject({ coverage: "full", residual: [], effects: [{ trigger: "WhenDigivolving", actions: [{ kind: "GainKeyword", keyword: { keyword: "Blocker" }, duration: "untilOpponentTurnEnd" }] }] });
+  });
+
   it("gives an own Digimon Blocker when digivolving", async () => {
     const preferred: string[] = [];
     const s = setupEngine({ 0: { battleArea: [{ card: "ST5-08", as: "base" }, { card: "ST5-03", as: "target" }], hand: [{ card: "ST5-09", as: "evolving" }] } }, { autoSelectCards: true, preferInstanceIds: preferred });
