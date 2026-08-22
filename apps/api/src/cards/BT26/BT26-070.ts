@@ -36,7 +36,7 @@ export const compiled: CompiledCard = {
         payCost: true,
         reduceCostBy: 2,
         optional: true,
-        cost: { kind: "trash", target: { filter: bottomFaceDownUnderTamer, count: 2 } },
+        cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 2 },
       }],
     },
     {

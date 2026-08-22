@@ -49,7 +49,7 @@ describe("BT26-070 bottom face-down Tamer cost", () => {
         from: ["trash"],
         payCost: true,
         reduceCostBy: 2,
-        cost: { kind: "trash", target: { filter: { zone: "digivolutionCards", faceDown: true, position: "bottom", hostFilter: { kind: ["Tamer"] } }, count: 2 } },
+        cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 2 },
       }],
     });
     expect(compiled.effects?.[3]).toMatchObject({ isInherited: true, keywords: [{ keyword: "Retaliation" }] });
