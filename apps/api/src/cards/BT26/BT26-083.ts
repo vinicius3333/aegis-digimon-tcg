@@ -16,12 +16,13 @@ const compiled: CompiledCard = {
     { keyword: "Execute", raw: "＜Execute＞" },
   ],
   effects: [
+    { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldLeavePlay", mode: "instead", sourceFilter: { isSelfRef: true }, leaveCause: "otherThanBattle", raw: "＜Decode ([Plutomon])＞: when this Digimon would leave other than in battle, you may play 1 [Plutomon] from its digivolution cards without paying the cost.", actions: [{ kind: "PlayWithoutCost", target: { filter: { controller: "mine", zone: "digivolutionCards", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Plutomon"], match: "name" }] }, count: 1 }, fromOwnDigivolutionStack: true, payCost: false, optional: true }] }] },
     { trigger: "OnPlay", actions: securityWipeAndDeletes },
     { trigger: "WhenDigivolving", actions: securityWipeAndDeletes },
     { trigger: "OnDeletion", actions: [{ kind: "GainKeyword", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" }, keyword: { keyword: "SecurityAttack", amount: -1 }, duration: "untilOpponentTurnEnd" }] },
   ],
   coverage: "full",
-  residual: ["Decode gameplay is not implemented by the engine; keyword remains catalog-only."],
+  residual: [],
   digivolutionRequirement: [{ level: 6, traits: ["TS"], cost: 4, isAlternate: true }],
 };
 

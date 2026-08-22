@@ -18,6 +18,7 @@ describe("BT26-083 compiled fidelity", () => {
       { kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: -1 } },
     ]);
     expect(card?.digivolutionRequirement).toEqual([{ level: 6, traits: ["TS"], cost: 4, isAlternate: true }]);
-    expect(card?.residual).toContain("Decode gameplay is not implemented by the engine; keyword remains catalog-only.");
+    expect(card?.residual).toEqual([]);
+    expect(card?.effects?.[0]?.actions).toMatchObject([{ kind: "Replacement", event: "wouldLeavePlay", mode: "instead", leaveCause: "otherThanBattle", actions: [{ kind: "PlayWithoutCost", fromOwnDigivolutionStack: true, payCost: false, optional: true }] }]);
   });
 });
