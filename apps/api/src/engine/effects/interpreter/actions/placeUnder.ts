@@ -24,9 +24,10 @@ export async function runPlaceUnder(
     const destination = action.destination;
     if (destination === undefined) return;
     const destinationIds = await resolvePermanentTargets(ctx, { filter: destination.filter, count: destination.count });
-    const destinationId = destinationIds.length === 1
-      ? destinationIds[0]
-      : (await ctx.ask.chooseTargets(ctx, { candidates: destinationIds, min: 1, max: 1 }))[0];
+    const destinationId =
+      destinationIds.length === 1
+        ? destinationIds[0]
+        : (await ctx.ask.chooseTargets(ctx, { candidates: destinationIds, min: 1, max: 1 }))[0];
     if (destinationId === undefined) return;
     if (action.bindHostAs !== undefined) ctx.selections?.set(action.bindHostAs, destinationId);
     const filter = action.target.filter;
@@ -34,36 +35,62 @@ export async function runPlaceUnder(
     const matches = (card: { cardId: string }) => {
       const definition = ctx.game.definitionOf(card as never);
       if (filter.kind !== undefined && !definition.kinds.some((kind) => filter.kind!.includes(kind))) return false;
-      if (filter.nameOrTrait !== undefined && !filter.nameOrTrait.some((ref) => matchNameOrTrait(definition, ref))) return false;
+      if (filter.nameOrTrait !== undefined && !filter.nameOrTrait.some((ref) => matchNameOrTrait(definition, ref)))
+        return false;
       return true;
     };
     const owner = ctx.game.player(ctx.source.ownerSeat);
     if (action.mixedSources.battleAreaPermanents || action.mixedSources.linkedCards) {
       for (const permanent of owner.battleArea) {
-        if (permanent.inBreeding || permanent.permanentId === destinationId || permanent.topCard === undefined) continue;
-        if (action.mixedSources.battleAreaPermanents && matches(permanent.topCard)) candidates.push({ instanceId: permanent.topCard.instanceId, permanentId: permanent.permanentId });
+        if (permanent.inBreeding || permanent.permanentId === destinationId || permanent.topCard === undefined)
+          continue;
+        if (action.mixedSources.battleAreaPermanents && matches(permanent.topCard))
+          candidates.push({ instanceId: permanent.topCard.instanceId, permanentId: permanent.permanentId });
         if (action.mixedSources.linkedCards) {
-          for (const linked of permanent.linked) if (matches(linked)) candidates.push({ instanceId: linked.instanceId });
+          for (const linked of permanent.linked)
+            if (matches(linked)) candidates.push({ instanceId: linked.instanceId });
         }
       }
     }
     if (action.mixedSources.hand) {
       for (const card of owner.hand) if (matches(card)) candidates.push({ instanceId: card.instanceId });
     }
-    if (action.mixedSources.trash) for (const card of owner.trash) if (matches(card)) candidates.push({ instanceId: card.instanceId });
+    if (action.mixedSources.trash)
+      for (const card of owner.trash) if (matches(card)) candidates.push({ instanceId: card.instanceId });
     const count = action.target.count === "all" ? candidates.length : Number(action.target.count ?? 1);
     if (candidates.length < count) return;
-    const selected = candidates.length === count
-      ? candidates
-      : (await ctx.ask.selectCards(ctx, { candidates: candidates.map((candidate) => candidate.instanceId), min: count, max: count }))
-          .map((id) => candidates.find((candidate) => candidate.instanceId === id))
-          .filter(Boolean) as typeof candidates;
+    const selected =
+      candidates.length === count
+        ? candidates
+        : ((
+            await ctx.ask.selectCards(ctx, {
+              candidates: candidates.map((candidate) => candidate.instanceId),
+              min: count,
+              max: count,
+            })
+          )
+            .map((id) => candidates.find((candidate) => candidate.instanceId === id))
+            .filter(Boolean) as typeof candidates);
     if (selected.length !== count) return;
-    const orderedIds = ctx.ask.orderCards ? await ctx.ask.orderCards(ctx, { candidates: selected.map((candidate) => candidate.instanceId), destination: "stackBottom" }) : selected.map((candidate) => candidate.instanceId);
-    const ordered = orderedIds.map((id) => selected.find((candidate) => candidate.instanceId === id)).filter(Boolean) as typeof selected;
+    const orderedIds = ctx.ask.orderCards
+      ? await ctx.ask.orderCards(ctx, {
+          candidates: selected.map((candidate) => candidate.instanceId),
+          destination: "stackBottom",
+        })
+      : selected.map((candidate) => candidate.instanceId);
+    const ordered = orderedIds
+      .map((id) => selected.find((candidate) => candidate.instanceId === id))
+      .filter(Boolean) as typeof selected;
     for (const candidate of [...ordered].reverse()) {
       if (candidate.permanentId !== undefined) {
-        if (await ctx.fx.relocatePermanentByEffect?.(destinationId, candidate.permanentId, { belowTop: false, faceUp: true, shedOwnCards: true }) !== true) return;
+        if (
+          (await ctx.fx.relocatePermanentByEffect?.(destinationId, candidate.permanentId, {
+            belowTop: false,
+            faceUp: true,
+            shedOwnCards: true,
+          })) !== true
+        )
+          return;
       } else if ((await ctx.fx.placeUnder(destinationId, [candidate.instanceId])).length !== 1) return;
     }
     if (action.trackCount !== undefined) ctx.namedCounts?.set(action.trackCount, count);
@@ -280,7 +307,14 @@ export async function runPlaceUnder(
     hostId = self.permanentId;
   }
   if (hostId === undefined) return;
-  let chosen = await pickLoose(ctx, action.target, candidates, undefined, ctx.ask, candidates.map((candidate) => candidate.instanceId));
+  let chosen = await pickLoose(
+    ctx,
+    action.target,
+    candidates,
+    undefined,
+    ctx.ask,
+    candidates.map((candidate) => candidate.instanceId),
+  );
   if (action.order === "any" && chosen.length > 1 && ctx.ask.orderCards !== undefined) {
     chosen = await ctx.ask.orderCards(ctx, {
       candidates: chosen,
@@ -297,7 +331,10 @@ export async function runPlaceUnder(
   // the DigiXros convention; the flag is structural metadata for the DigiXros system to read).
   if (chosen.length > 0) {
     const placementIds = action.position === "bottom" && action.order === "any" ? [...chosen].reverse() : chosen;
-    await ctx.fx.placeUnder(hostId, placementIds, { belowTop: action.position !== "bottom", faceUp: action.faceDown !== true });
+    await ctx.fx.placeUnder(hostId, placementIds, {
+      belowTop: action.position !== "bottom",
+      faceUp: action.faceDown !== true,
+    });
     for (const instanceId of placementIds) {
       ctx.fx.conferStackEffects?.(hostId, instanceId, EffectDuration.Permanent, { inheritedOnly: true });
     }
@@ -381,7 +418,7 @@ export async function runTrashDigivolution(
 ): Promise<boolean> {
   const amount = action.amount ?? 1;
   const fromTop = action.fromTop ?? true;
-  const minimum = action.minAmount ?? (typeof amount === "number" ? amount : undefined);
+  const minimum = action.minAmount;
   const isDigiBurst = /Digi-?Burst/i.test(action.raw ?? "");
   const trashOptions = {
     byEffectSeat: ctx.source.ownerSeat,
@@ -490,9 +527,8 @@ export async function runTrashDigivolution(
     const permanent = ctx.game.permanentById(pid);
     if (permanent === undefined) continue;
     const stack = permanent.stack;
-    const targetAmount = action.scaling?.unit === "targetColors"
-      ? new Set(ctx.game.definitionOf(permanent.topCard).colors).size
-      : amount;
+    const targetAmount =
+      action.scaling?.unit === "targetColors" ? new Set(ctx.game.definitionOf(permanent.topCard).colors).size : amount;
     const take = targetAmount === "all" ? stack.length : Math.min(targetAmount, stack.length);
     let ids: string[];
     if (action.choose === true) {

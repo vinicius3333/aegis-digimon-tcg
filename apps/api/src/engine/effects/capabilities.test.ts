@@ -10469,7 +10469,9 @@ describe("CAP-E14 regression: no compiled card carries a bare self-GainKeyword(D
       const src = fs.readFileSync(`${cardsDir}/${set}/${id}.ts`, "utf8");
       const m = /const compiled: CompiledCard = (\{[\s\S]*\});\s*\n\s*registerIrCard/.exec(src);
       if (m === null) throw new Error(`${id}: could not locate the compiled IR literal`);
-      const compiled = JSON.parse(m[1]!) as { effects: Array<{ actions?: unknown[] }> };
+      const compiled = Function(`"use strict"; return (${m[1]!});`)() as {
+        effects: Array<{ actions?: unknown[] }>;
+      };
       expect(hasBareDelaySelfGrantWithoutArmedConsumer(compiled.effects), id).toBe(false);
     }
   });

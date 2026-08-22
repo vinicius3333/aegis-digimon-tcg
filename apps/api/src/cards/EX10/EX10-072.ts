@@ -77,7 +77,7 @@ export const compiled: CompiledCard = {
           // EffectDuration.UntilOwnerTurnEnd + OnEndTurn gated on IsOwnerTurn). Replaces an
           // IMMEDIATE Delete whose `playedByThisEffect` filter the engine never read, so the card
           // deleted an arbitrary permanent on the spot instead of the played one at turn end.
-          kind: "DelayedDelete",
+          kind: "DelayedDeletePlayed",
           raw: "at the end of your turn, delete the Digimon this effect played",
         },
       ],

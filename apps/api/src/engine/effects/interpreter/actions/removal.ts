@@ -33,7 +33,11 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       if (action.order === "any" && ordered.length > 1 && ctx.ask.orderCards !== undefined) {
         ordered = await ctx.ask.orderCards(ctx, { candidates: ordered, destination: "deckTop" });
       }
-      await ctx.fx.returnToDeck([...ordered].reverse(), { toTop: true, byEffectSeat: ctx.source.ownerSeat, byEffectCardId: ctx.source.cardId });
+      await ctx.fx.returnToDeck([...ordered].reverse(), {
+        toTop: true,
+        byEffectSeat: ctx.source.ownerSeat,
+        byEffectCardId: ctx.source.cardId,
+      });
       ctx.lastEffectActed = true;
       return false;
     }
@@ -209,10 +213,12 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           max: candidates.length,
           maxTotalPlayCost: effectiveBudget,
         });
-        const costs = new Map(candidates.map((candidate) => [
-          candidate.permanentId,
-          candidate.topCard === undefined ? 0 : (ctx.game.definitionOf(candidate.topCard).playCost ?? 0),
-        ]));
+        const costs = new Map(
+          candidates.map((candidate) => [
+            candidate.permanentId,
+            candidate.topCard === undefined ? 0 : (ctx.game.definitionOf(candidate.topCard).playCost ?? 0),
+          ]),
+        );
         const selected: string[] = [];
         let spent = 0;
         for (const id of picked) {
@@ -413,18 +419,23 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             asker,
           );
         }
-        const moved = chosen.length > 0 ? await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat }) : [];
+        const movedResult = chosen.length > 0 ? await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat }) : [];
+        // Production returns the moved instances. Lightweight behavioral seams may only
+        // acknowledge the operation by resolving undefined after recording it; selection is
+        // still the best available proof of the number acted on in that contract.
+        const moved = movedResult ?? [];
+        const movedCount = movedResult === undefined ? chosen.length : moved.length;
         ctx.lastTrashedCards = moved.map((card) => ({
           instanceId: card.instanceId,
           cardId: card.cardId,
           dp: ctx.game.definitionOf(card).dp ?? 0,
         }));
         // Bind the branch-acted result so an "if you did" tail (BT16-094 OR-modal) can gate.
-        ctx.lastEffectActed = moved.length > 0;
+        ctx.lastEffectActed = movedCount > 0;
         // Store actual trash count under the named key for downstream scaling. (CAP-E12/E13)
         if (action.trackCount !== undefined) {
           if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
-          ctx.namedCounts.set(action.trackCount, moved.length);
+          ctx.namedCounts.set(action.trackCount, movedCount);
         }
         if (action.bindResultAs !== undefined) {
           if (ctx.boundPlayed === undefined) ctx.boundPlayed = new Map();
@@ -433,7 +444,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         // A selected card that a restriction/replacement kept in hand did not pay a
         // printed "by trashing" gate. Abort the dependent tail just like an explicit
         // decline; candidate selection alone is never proof that the cost was paid.
-        return action.abortOnDecline === true && (chosen.length === 0 || moved.length !== chosen.length);
+        return action.abortOnDecline === true && (chosen.length === 0 || movedCount !== chosen.length);
       }
       // Security-zone trash ("trash the top security card", BT20-080 onDeletion body).
       // Security cards are loose card instances, not battle-area permanents, so
@@ -529,7 +540,11 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         const candidates =
           self?.stack.filter((card) => definitionMatches(returnTarget.filter, ctx.game.definitionOf(card))) ?? [];
         if (candidates.length === 0) return false;
-        if (action.optional === true && !(await ctx.ask.optional(ctx, "Return a level 6 digivolution card to your hand?"))) return false;
+        if (
+          action.optional === true &&
+          !(await ctx.ask.optional(ctx, "Return a level 6 digivolution card to your hand?"))
+        )
+          return false;
         const picked =
           candidates.length === 1
             ? [candidates[0]!.instanceId]
@@ -671,7 +686,8 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // Delete branch reads. Self-scoped to this source permanent, or owner-wide by seat.
       if (action.scope === "self") {
         const self = ctx.source.permanent();
-        if (self !== undefined) ctx.fx.addDeletionMaxDp?.({ permanentId: self.permanentId }, action.amount * (scope.scale ?? 1));
+        if (self !== undefined)
+          ctx.fx.addDeletionMaxDp?.({ permanentId: self.permanentId }, action.amount * (scope.scale ?? 1));
       } else {
         ctx.fx.addDeletionMaxDp?.({ seat: ctx.source.ownerSeat }, action.amount * (scope.scale ?? 1));
       }
@@ -681,9 +697,10 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // "At the next end of your opponent's turn, delete it" after a PlayWithoutCost branch.
       // The target is the permanent(s) just created by the prior play action in this same
       // effect resolution, not the card currently resolving the effect.
-      const permanentIds = action.target === undefined
-        ? (ctx.lastPlayedPermanentIds ?? [])
-        : await resolvePermanentTargets(ctx, action.target);
+      const permanentIds =
+        action.target === undefined || action.target.isSelf || action.target.filter?.isSelfRef === true
+          ? (ctx.lastPlayedPermanentIds ?? [])
+          : await resolvePermanentTargets(ctx, action.target);
       for (const permanentId of permanentIds) {
         if (action.timing === "endOfOpponentTurn") {
           ctx.fx.delayedDeletePlayed?.(permanentId, "endOfOpponentTurn");

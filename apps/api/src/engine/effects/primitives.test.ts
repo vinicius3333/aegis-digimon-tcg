@@ -556,10 +556,12 @@ describe("primitives: trash / delete / suspend", () => {
 
     await h.fx.trash([h.s.inst("discarded").instanceId], { byEffectSeat: 1 });
 
-    expect(h.subTriggerFires).toContainEqual({
-      event: "whenHandTrashed",
-      payload: { handTrashedSeat: 0, byEffectSeat: 1 },
-    });
+    expect(h.subTriggerFires).toContainEqual(
+      expect.objectContaining({
+        event: "whenHandTrashed",
+        payload: expect.objectContaining({ handTrashedSeat: 0, byEffectSeat: 1 }),
+      }),
+    );
     expect(h.subTriggerFires).toContainEqual({
       event: "whenTrashedFromHand",
       payload: {

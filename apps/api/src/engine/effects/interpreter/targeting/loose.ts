@@ -34,10 +34,12 @@ export interface LooseCandidate {
 export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef): LooseCandidate[] {
   const p = ctx.game.player(seat);
   const out: LooseCandidate[] = [];
-  const collect = (cards: ArrayLike<{ instanceId: string; cardId: string; ownerSeat: Seat }>): void => {
+  const collect = (
+    cards: ArrayLike<{ instanceId: string; cardId: string; ownerSeat: Seat; faceUp?: boolean }>,
+  ): void => {
     for (let i = 0; i < cards.length; i++) {
       const c = cards[i]!;
-      out.push({ instanceId: c.instanceId, cardId: c.cardId, ownerSeat: c.ownerSeat });
+      out.push({ instanceId: c.instanceId, cardId: c.cardId, ownerSeat: c.ownerSeat, faceUp: c.faceUp });
     }
   };
   switch (zone) {
@@ -155,7 +157,13 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
     const boundInstanceId = ctx.selections?.get(target.fromSelectionRef);
     if (boundInstanceId === undefined) return [];
     const bound = findLooseCandidateByInstance(ctx, boundInstanceId);
-    if (bound === undefined || !zones.some((zone) => looseCardsInZone(ctx, bound.ownerSeat, zone).some((card) => card.instanceId === boundInstanceId))) return [];
+    if (
+      bound === undefined ||
+      !zones.some((zone) =>
+        looseCardsInZone(ctx, bound.ownerSeat, zone).some((card) => card.instanceId === boundInstanceId),
+      )
+    )
+      return [];
     const def = ctx.game.definitionOf({ cardId: bound.cardId } as never);
     return definitionMatches(target.filter, def) ? [bound] : [];
   }

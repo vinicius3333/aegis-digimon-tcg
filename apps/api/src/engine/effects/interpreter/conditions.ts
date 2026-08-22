@@ -69,9 +69,12 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     }
     case "lastTargetDpGreaterThanSelf": {
       const source = ctx.source.permanent();
-      const ids = (ctx.lastResolvedPermanentIds?.length ?? 0) > 0
-        ? ctx.lastResolvedPermanentIds!
-        : [ctx.trigger.targetPermanentId ?? ctx.trigger.defenderPermanentId].filter((id): id is string => id !== undefined);
+      const ids =
+        (ctx.lastResolvedPermanentIds?.length ?? 0) > 0
+          ? ctx.lastResolvedPermanentIds!
+          : [ctx.trigger.targetPermanentId ?? ctx.trigger.defenderPermanentId].filter(
+              (id): id is string => id !== undefined,
+            );
       return (
         source !== undefined &&
         ids.length > 0 &&
@@ -118,7 +121,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
             permanentMatchesFilter(ctx, permanent, { ...cond.filter, controller: "mine" }, ctx.source),
         );
     case "breedingAreaEmpty":
-      return ctx.game.player(mine).breeding === undefined && ctx.game.player(mine).eggDeck.length > 0;
+      return ctx.game.player(mine).breeding === undefined;
     case "digivolutionCountCompare": {
       const ids = ctx.lastResolvedPermanentIds ?? [];
       const target = ids.length === 1 ? ctx.game.permanentById(ids[0]!) : undefined;
@@ -175,7 +178,11 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
         const top = permanent.topCard;
         if (top === undefined) return false;
         const definition = ctx.game.definitionOf(top);
-        return isDigimon(definition) && definition.colors.includes(CardColor.Green) && (definition.level ?? 0) >= (cond.value ?? 5);
+        return (
+          isDigimon(definition) &&
+          definition.colors.includes(CardColor.Green) &&
+          (definition.level ?? 0) >= (cond.value ?? 5)
+        );
       });
     case "breedingActionAvailable": {
       const player = ctx.game.player(mine);
@@ -405,16 +412,13 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       }
       const self = ctx.source.permanent();
       if (self !== undefined && ctx.game.effectiveColors !== undefined) {
-        return compareNumber(
-          new Set(ctx.game.effectiveColors(self)).size,
-          cond.op,
-          cond.value ?? 0,
-        );
+        return compareNumber(new Set(ctx.game.effectiveColors(self)).size, cond.op, cond.value ?? 0);
       }
       const def = sourceTopDefinition(ctx);
       if (def === undefined) return false;
       const permanent = ctx.source.permanent();
-      const colors = permanent === undefined ? def.colors ?? [] : ctx.game.effectiveColors?.(permanent) ?? def.colors ?? [];
+      const colors =
+        permanent === undefined ? (def.colors ?? []) : (ctx.game.effectiveColors?.(permanent) ?? def.colors ?? []);
       return compareNumber(new Set(colors).size, cond.op, cond.value ?? 0);
     }
     case "selfLevelIs": {
@@ -729,7 +733,9 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const instanceId = ctx.trigger.subjectPermanentId;
       if (instanceId === undefined || cond.filter === undefined) return false;
       const candidate = findLooseCandidateByInstance(ctx, instanceId);
-      return candidate !== undefined && definitionMatches(cond.filter, ctx.game.definitionOf({ cardId: candidate.cardId }));
+      return (
+        candidate !== undefined && definitionMatches(cond.filter, ctx.game.definitionOf({ cardId: candidate.cardId }))
+      );
     }
     case "triggerSubjectHasColor":
       // whenPlayed/whenOneOfYoursDigivolves fire-time gate: the permanent that drove the event
