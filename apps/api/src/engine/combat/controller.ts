@@ -1335,13 +1335,6 @@ export class CombatController {
       await this.hooks.ascendToSecurity?.(instanceId);
     }
 
-    this.hooks.emit({
-      kind: "combatResolved",
-      seat: attacker.controllerSeat,
-      attackerPermanentId: attacker.permanentId,
-      deletedPermanentIds: deleted,
-    });
-
     // Battle deletion (is-deleted): the losers have left the field, so fire OnDestroyedAnyone
     // over the deleted set, mirroring documented behavior stacking the window after the
     // battle outcome is fixed. A single fire lets resolveTiming batch a both-combatants tie and
@@ -1447,6 +1440,16 @@ export class CombatController {
       deletedInstanceIds,
       deletedWasStackInstanceIds,
     });
+
+    // Publish the completion boundary only after battle and end-of-battle timings finish.
+    queueMicrotask(() =>
+      this.hooks.emit({
+        kind: "combatResolved",
+        seat: attacker.controllerSeat,
+        attackerPermanentId: attacker.permanentId,
+        deletedPermanentIds: deleted,
+      }),
+    );
   }
 
   /**
