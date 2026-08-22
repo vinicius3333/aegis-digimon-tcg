@@ -8,9 +8,11 @@ export const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "Replacement",
-          event: "wouldDigivolve",
-          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          kind: "CostModifier",
+          mode: "reduce",
+          costType: "digivolve",
+          amount: 1,
+          target: { filter: { controller: "mine", kind: ["Digimon"], zone: "battleArea" }, count: "all" },
           into: {
             controllerDefault: "mine",
             kind: ["Digimon"],
@@ -18,23 +20,9 @@ export const compiled: CompiledCard = {
             nameOrTrait: [{ tokens: ["Beast", "Animal", "Sovereign"], match: "trait" }],
             excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
           },
-          actions: [
-            {
-              kind: "Replacement",
-              event: "wouldDigivolve",
-              mode: "reduceCost",
-              amount: 1,
-              raw: "reduce the digivolution cost by 1",
-            },
-          ],
-          cost: {
-            kind: "suspend",
-            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-            raw: "by suspending this Tamer",
-          },
+          restriction: "suspendThisTamer",
           optional: true,
-          abortOnDecline: true,
-          raw: "when one of your Digimon would digivolve into a qualifying green card",
+          duration: "forTheTurn",
         },
       ],
     },

@@ -10,16 +10,17 @@ describe("RB1-034 Ruli Tsukiyono", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "RB1-034", as: "ruli" }, { card: "RB1-024", as: "base" }],
-          hand: [{ card: "RB1-025", as: "diarbbit" }],
+          battleArea: [{ card: "RB1-034", as: "ruli" }, { card: "RB1-022", as: "base" }],
+          hand: [{ card: "RB1-024", as: "lamortmon" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 4;
+    s.state.memory = 3;
+    await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("diarbbit").instanceId })).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "RB1-025");
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("lamortmon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "RB1-024");
 
     expect(s.state.memory).toBe(1);
     expect(s.perm("ruli").isSuspended).toBe(true);
@@ -27,7 +28,7 @@ describe("RB1-034 Ruli Tsukiyono", () => {
 
   it("excludes Sea Animal from the Beast, Animal, or Sovereign reduction filter", () => {
     expect(compiled.effects[0]?.actions[0]).toMatchObject({
-      kind: "Replacement",
+      kind: "CostModifier",
       into: { excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }] },
     });
   });
