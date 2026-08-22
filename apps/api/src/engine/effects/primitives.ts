@@ -4117,6 +4117,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     opts?: {
       withoutSuspending?: boolean;
       attackPlayer?: boolean;
+      attackPlayerOnly?: boolean;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
     },
@@ -4155,7 +4156,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       canAttackTarget(access, controllerSeat, attacker, playerTarget, continuous) === null
         ? [PLAYER]
         : []),
-      ...legalEnemyIds,
+      ...(opts?.attackPlayerOnly === true ? [] : legalEnemyIds),
     ];
     const chosen = await engine.ask.selectInstances(
       controllerSeat,

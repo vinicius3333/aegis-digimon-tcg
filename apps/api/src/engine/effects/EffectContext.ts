@@ -1168,6 +1168,7 @@ export interface Primitives {
     opts?: {
       withoutSuspending?: boolean;
       attackPlayer?: boolean;
+      attackPlayerOnly?: boolean;
       afterAttackTriggers?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
     },

@@ -27,6 +27,22 @@ it("does not register an unprinted Security effect", () => {
   expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toEqual([]);
 });
 
+it("allows declining the optional player attack after the Hybrid boost", async () => {
+  const s = setupEngine(
+    {
+      0: { hand: [{ card: "BT12-099", as: "option" }], battleArea: [{ card: "BT12-013", as: "hybrid" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }] },
+    },
+    { autoAcceptOptional: false, autoSelectCards: true },
+  );
+  await s.ready();
+  s.state.memory = 4;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+  await settle(() => s.perm("hybrid").currentDP !== s.perm("hybrid").baseDP);
+  expect(s.perm("hybrid").currentDP).toBe(s.perm("hybrid").baseDP + 3000);
+  expect(s.engine.combat.isAttacking).toBe(false);
+});
+
 it("deletes a 6000 DP or lower Digimon and boosts a Hybrid by 3000", async () => {
   const s = setupEngine({
     0: { hand: [{ card: "BT12-099", as: "option" }], battleArea: [{ card: "BT12-013", as: "hybrid" }] },

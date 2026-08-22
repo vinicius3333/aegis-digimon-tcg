@@ -816,7 +816,8 @@ export function lateBt12Module(cardId: string): EffectModule {
                   );
                   if (hybrid) {
                     await ctx.fx.modifyDP(hybrid, 3000, EffectDuration.UntilEachTurnEnd);
-                    await ctx.fx.forceAttack(hybrid, { attackPlayer: true });
+                    if (await ctx.ask.optional(ctx, "Attack a player with this Digimon?"))
+                      await ctx.fx.forceAttack(hybrid, { attackPlayer: true, attackPlayerOnly: true });
                   }
                 },
               }),
