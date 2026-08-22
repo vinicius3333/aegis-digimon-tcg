@@ -90,9 +90,10 @@ const compiled: CompiledCard = {
             {
               "kind": "ModifyDP",
               "target": {
-                "filter": {},
-                "count": 1,
-                "fromSelectionRef": "unsuspendedTarget"
+              "filter": {},
+              "count": 1,
+                "fromSelectionRef": "unsuspendedTarget",
+                "sameTarget": true
               },
               "amount": 3000,
               "duration": "forTheTurn"

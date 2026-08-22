@@ -81,6 +81,9 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
           ctx.selections.set(action.target.bindAs, ids[0]!);
         }
       }
+      // Publish the actual transition target for same-target continuations such as
+      // BT8-081's "unsuspend it and it gets +3000 DP" pair.
+      ctx.lastResolvedPermanentIds = ids;
       return false;
     }
     case "RepeatPerCount": {
