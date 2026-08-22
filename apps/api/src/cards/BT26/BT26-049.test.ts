@@ -1,12 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor } from "@aegis/shared";
 import { compiled } from "./BT26-049.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 describe("BT26-049 Rosemon", () => {
   it("encodes the shared suspend budget and both All Turns reaction routes", () => {
-    expect(digivolutionRequirementsFor("BT26-049")).toEqual([
+    expect(compiled.digivolutionRequirement).toEqual([
       { names: ["Lilamon"], cost: 3, isAlternate: true },
       { level: 5, traits: ["DATA SQUAD"], cost: 3, isAlternate: true },
     ]);
@@ -23,7 +22,7 @@ describe("BT26-049 Rosemon", () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT26-049", as: "rosemon" }], hand: [{ card: "BT26-098", as: "option" }] },
       1: { battleArea: [{ card: "BT1-085", as: "suspendedOne", suspended: true }, { card: "BT1-086", as: "suspendedTwo", suspended: true }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    }, { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 });
     await s.ready();
 
     await advance(s.engine).fireSubTrigger("whenSuspended", { suspendedPermanentId: s.perm("suspendedOne").permanentId });
