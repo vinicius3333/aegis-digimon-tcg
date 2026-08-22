@@ -10,6 +10,7 @@ import {
   type Permanent,
 } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
+import { cardHasTrait } from "../../engine/cards/cardData.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
@@ -418,7 +419,7 @@ export function midBt12Module(cardId: string): EffectModule {
                 description: "Reveal 3 and add a Free/Imperialdramon card plus the named Tamer.",
                 resolve: (ctx) =>
                   revealSearch(ctx, source, 3, [
-                    (d) => isDigimon(d) && (d.nameEn.includes("Imperialdramon") || contains(d, "free")),
+                    (d) => isDigimon(d) && (d.nameEn.includes("Imperialdramon") || cardHasTrait(d, "Free")),
                     (d) => isTamer(d) && d.nameEn.includes(cardId === "BT12-021" ? "Davis Motomiya" : "Ken Ichijoji"),
                   ]),
               }),
