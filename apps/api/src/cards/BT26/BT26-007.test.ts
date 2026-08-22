@@ -99,7 +99,7 @@ describe("BT26-007 Swipemon", () => {
         battleArea: [{ card: "BT21-009", as: "host", under: [CARD_ID] }],
         hand: [{ card: "BT26-010", as: "candidate" }],
       },
-    }, { autoAcceptOptional: false, autoSelectCards: true });
+    }, { autoDeclineOptional: true, autoSelectCards: true });
     s.state.memory = 1;
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
