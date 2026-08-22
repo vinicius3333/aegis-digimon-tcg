@@ -19,4 +19,13 @@ describe("ST14-06 Witchmon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(3);
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 2000);
   });
+
+  it("does not use a Wizard in the stack to qualify a non-Wizard host", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST14-05", as: "host", under: ["ST14-06"] }],
+      },
+    });
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
+  });
 });
