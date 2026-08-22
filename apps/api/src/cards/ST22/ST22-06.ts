@@ -39,10 +39,6 @@ const compiled: CompiledCard = {
                   match: "trait",
                 },
               ],
-              hostFilter: {
-                controllerDefault: "mine",
-                kind: ["Tamer"],
-              },
             },
             count: 1,
             from: ["hand", "digivolutionCards"],
@@ -56,10 +52,6 @@ const compiled: CompiledCard = {
                     match: "trait",
                   },
                 ],
-                hostFilter: {
-                  controllerDefault: "mine",
-                  kind: ["Tamer"],
-                },
               },
             ],
           },
@@ -83,10 +75,6 @@ const compiled: CompiledCard = {
                   match: "trait",
                 },
               ],
-              hostFilter: {
-                controllerDefault: "mine",
-                kind: ["Tamer"],
-              },
             },
             count: 1,
             from: ["hand", "digivolutionCards"],
@@ -100,10 +88,6 @@ const compiled: CompiledCard = {
                     match: "trait",
                   },
                 ],
-                hostFilter: {
-                  controllerDefault: "mine",
-                  kind: ["Tamer"],
-                },
               },
             ],
           },

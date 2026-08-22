@@ -11,6 +11,7 @@ import {
   inTrash,
   onAddHand,
   onDeletion,
+  onDiscardSecurity,
   onPlay,
   security,
   securityStatic,
@@ -307,6 +308,8 @@ export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) =>
       return whenAttacking;
     case "OnDeletion":
       return onDeletion;
+    case "OnDiscardSecurity":
+      return onDiscardSecurity;
     case "whenTrashedFromBattleArea":
       return whenTrashedFromBattleArea;
     case "Main":
