@@ -6,11 +6,12 @@ import "./ST2-16.js";
 
 describe("ST2-16 Cocytus Breath", () => {
   it("returns an opposing Digimon to hand and trashes all of its sources", async () => {
-    const s = setupEngine({ 0: { battleArea: ["ST2-03"], hand: [{ card: "ST2-16", as: "option" }] }, 1: { battleArea: [{ card: "ST2-09", as: "target", under: [{ card: "ST2-03", as: "source" }] }] } }, { autoSelectCards: true });
+    const s = setupEngine({ 0: { battleArea: ["ST2-03"], hand: [{ card: "ST2-16", as: "option" }] }, 1: { battleArea: [{ card: "ST2-09", as: "target", under: [{ card: "ST2-03", as: "source" }, { card: "ST1-03", as: "secondSource" }] }] } }, { autoSelectCards: true });
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.hand.some((card) => card.cardId === "ST2-09"));
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("source").instanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("secondSource").instanceId)).toBe(true);
   });
 
   it("activates the same return effect from security", async () => {
