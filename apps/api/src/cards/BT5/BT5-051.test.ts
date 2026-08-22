@@ -8,7 +8,8 @@ describe("BT5-051 MoriShellmon", () => {
   it("has no card effects", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT5-051", as: "moriShellmon" }] } });
     await s.engine.recomputeContinuousEffects();
-    expect(s.perm("moriShellmon").currentDP).toBe(s.perm("moriShellmon").baseDP);
+    expect(s.perm("moriShellmon").baseDP).toBe(7000);
+    expect(s.perm("moriShellmon").currentDP).toBe(7000);
   });
 
   it("is registered with complete, residual-free runtime coverage", () => {
