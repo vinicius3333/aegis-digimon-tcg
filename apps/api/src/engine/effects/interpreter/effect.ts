@@ -461,11 +461,13 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
   const outerRestrictions = ctxWithSelections.effectRestrictions;
   ctxWithSelections.effectRestrictions = new Set(ctx.effectRestrictions ?? []);
   ctxWithSelections.activeTiming = effect.trigger;
+  const sourceDefinition =
+    ctx.source.definition ?? ctx.game.definitionOf({ cardId: ctx.source.cardId } as never);
   ctxWithSelections.activeEffectText = effect.isInherited
-    ? ctx.source.definition.inheritedEffectText
+    ? sourceDefinition?.inheritedEffectText
     : effect.isSecurity
-      ? ctx.source.definition.securityEffectText
-      : ctx.source.definition.effectText;
+      ? sourceDefinition?.securityEffectText
+      : sourceDefinition?.effectText;
   const actions = effect.actions ?? [];
   if (actions.length === 0 && (effect.keywords?.length ?? 0) > 0) {
     const durationStr =
