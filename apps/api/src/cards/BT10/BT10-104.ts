@@ -1,6 +1,6 @@
 // @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
 /**
  * BT10-104 — Immortal Ruler (BT10, Black Option).
@@ -151,5 +151,4 @@ const module: EffectModule = {
   },
 };
 
-export { compiled };
-registerIrCard("BT10-104", compiled);
+registerCard(module);
