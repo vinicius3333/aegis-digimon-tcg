@@ -7,31 +7,65 @@ describe("ST24-10 Lilamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "ST24-13", as: "tamer", under: [{ card: "BT1-001", as: "under1", faceUp: false }, { card: "BT1-002", as: "under2", faceUp: false }] }],
-          hand: [{ card: "ST24-10", as: "lilamon" }, { card: "ST24-09", as: "next" }],
+          battleArea: [
+            {
+              card: "ST24-13",
+              as: "tamer",
+              under: [{ card: "BT1-001", as: "under1", faceUp: false }],
+            },
+            {
+              card: "ST24-14",
+              as: "tamer2",
+              under: [{ card: "BT1-002", as: "under2", faceUp: false }],
+            },
+          ],
+          hand: [
+            { card: "ST24-10", as: "lilamon" },
+            { card: "ST24-11", as: "next" },
+          ],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lilamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lilamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("opponent").isSuspended);
     expect(s.perm("opponent").isSuspended).toBe(true);
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("next").instanceId));
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("next").instanceId)).toBe(true);
-    expect(s.state.players[0]!.trash.filter((card) => card.instanceId === s.inst("under1").instanceId || card.instanceId === s.inst("under2").instanceId)).toHaveLength(2);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("next").instanceId),
+    );
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("next").instanceId),
+    ).toBe(true);
+    expect(
+      s.state.players[0]!.trash.filter(
+        (card) => card.instanceId === s.inst("under1").instanceId || card.instanceId === s.inst("under2").instanceId,
+      ),
+    ).toHaveLength(2);
   });
 
   it("does not free-digivolve when only one bottom face-down Tamer card is available", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "ST24-13", as: "tamer", under: [{ card: "BT1-001", as: "under", faceUp: false }] }], hand: [{ card: "ST24-10", as: "lilamon" }, { card: "ST24-09", as: "next" }] }, 1: { battleArea: [{ card: "BT1-009", as: "opponent" }] } },
+      {
+        0: {
+          battleArea: [{ card: "ST24-13", as: "tamer", under: [{ card: "BT1-001", as: "under", faceUp: false }] }],
+          hand: [
+            { card: "ST24-10", as: "lilamon" },
+            { card: "ST24-11", as: "next" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lilamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lilamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("opponent").isSuspended);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("next").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("next").instanceId)).toBe(true);
   });
 });

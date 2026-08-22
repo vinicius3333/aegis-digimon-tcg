@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import st24Lilamon from "../ST24/ST24-10.js";
 import "../index.js";
 
 describe("ST22/ST24 remaining complex clauses", () => {
@@ -51,11 +50,18 @@ describe("ST22/ST24 remaining complex clauses", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: "BT25-021", as: "dataSquad" }],
-          battleArea: [{ card: "ST24-10", as: "lilamon" }, { card: "ST24-13", as: "tamer", under: [
-            { card: "BT1-001", as: "underA", faceUp: false },
-            { card: "BT1-002", as: "underB", faceUp: false },
-          ] }],
+          hand: [{ card: "BT26-049", as: "dataSquad" }],
+          battleArea: [
+            { card: "ST24-10", as: "lilamon" },
+            {
+              card: "ST24-13",
+              as: "tamer",
+              under: [
+                { card: "BT1-001", as: "underA", faceUp: false },
+                { card: "BT1-002", as: "underB", faceUp: false },
+              ],
+            },
+          ],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
@@ -63,13 +69,13 @@ describe("ST22/ST24 remaining complex clauses", () => {
     );
     s.state.memory = 10;
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("lilamon"));
-    await settle(() => s.perm("lilamon").topCard?.cardId === "BT25-021");
+    await settle(() => s.perm("lilamon").topCard?.cardId === "BT26-049");
 
     const opponent = s.state.players[1]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT1-009");
-    expect(opponent?.isSuspended ?? true).toBe(true);
-    if (opponent !== undefined) expect(observe(s.engine).isRestricted(opponent, "unsuspend")).toBe(true);
-    expect(s.perm("lilamon").topCard?.cardId).toBe("BT25-021");
+    expect(opponent).toBeDefined();
+    expect(opponent!.isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(opponent!, "unsuspend")).toBe(true);
     expect(s.perm("tamer").stack).toHaveLength(0);
-    expect(st24Lilamon.cardId).toBe("ST24-10");
+    expect(s.perm("lilamon").topCard?.cardId).toBe("BT26-049");
   });
 });
