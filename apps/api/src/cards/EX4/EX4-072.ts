@@ -62,7 +62,7 @@ const module: EffectModule = {
           return mine.some((p) => {
             if (p.topCard === undefined) return false;
             const def = ctx.game.definitionOf(p.topCard);
-            return isDigimon(def) && [...VALID_NAMES].some((name) => def.nameEn.includes(name));
+            return isDigimon(def) && def.level === 6 && [...VALID_NAMES].some((name) => def.nameEn.includes(name));
           });
         },
         resolve: async (ctx) => {
@@ -71,7 +71,7 @@ const module: EffectModule = {
             .filter((p) => {
               if (p.topCard === undefined) return false;
               const def = ctx.game.definitionOf(p.topCard);
-              return isDigimon(def) && [...VALID_NAMES].some((name) => def.nameEn.includes(name));
+              return isDigimon(def) && def.level === 6 && [...VALID_NAMES].some((name) => def.nameEn.includes(name));
             })
             .map((p) => p.permanentId);
           if (candidates.length === 0) return;

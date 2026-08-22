@@ -5,9 +5,24 @@ import "./EX5-027.js";
 
 describe("EX5-027 Liollmon", () => {
   it("registers a security-search On Play and inherited On Deletion effect", () => {
-    const source = { instanceId: "source", cardId: "EX5-027", ownerSeat: 0, definition: {}, permanent: () => undefined, isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true } as never;
+    const source = {
+      instanceId: "source",
+      cardId: "EX5-027",
+      ownerSeat: 0,
+      definition: {},
+      permanent: () => undefined,
+      isOnBattleArea: () => true,
+      isOwnersTurn: () => true,
+      hasColor: () => true,
+    } as never;
     const module = getEffectModule("EX5-027")!;
-    expect(module.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(1);
-    expect(module.effectsForTiming(EffectTiming.OnDestroyedAnyone, source)[0]?.description).toContain("-2000 DP");
+    expect(module.effectsForTiming(EffectTiming.OnPlay, source)).toMatchObject([
+      { description: expect.stringContaining("security stack") },
+    ]);
+    expect(module.effectsForTiming(EffectTiming.OnDestroyedAnyone, source)[0]).toMatchObject({
+      description: expect.stringContaining("-2000 DP"),
+      isInherited: true,
+      optional: false,
+    });
   });
 });

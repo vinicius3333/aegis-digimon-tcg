@@ -1,274 +1,168 @@
-import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardInstance, type Seat } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type {
-  DecisionApi,
-  EffectContext,
-  GameAccess,
-  Primitives,
-} from "../../engine/effects/EffectContext.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import "./EX12-064.js";
-
-// A3 for EX12-064 (Megadramon):
-//   [On Play] / [When Digivolving] Delete 1 opponent Digimon Lv.4 or lower;
-//     if none deleted, de-digivolve 1 opponent Digimon 1 time.
-//   [Inherited][End of Attack][Once Per Turn] By unsuspending this Digimon,
-//     delete 1 of your Digimon with the lowest play cost.
-//
-// FAILS-WHEN-REVERTED: the IR RawUnparsed stub for the AllTurns clause means
-// the module produces 0 effects for OnPlay and OnDestroyedAnyone in the IR;
-// reverting to the declarative effect record means deletePermanent is never called from
-// those windows.
-
-interface Recorder {
-  calls: { verb: string; args: unknown[] }[];
-}
-
-function card(instanceId: string, cardId: string, seat: Seat = 0): CardInstance {
-  return { instanceId, cardId, ownerSeat: seat, faceUp: true } as CardInstance;
-}
-
-function makeSource(suspended = false): CardSource {
-  return {
-    instanceId: "self-inst",
-    cardId: "EX12-064",
-    ownerSeat: 0 as Seat,
-    definition: {
-      cardId: "EX12-064",
-      set: "EX12",
-      nameEn: "Megadramon",
-      kinds: ["Digimon"] as never,
-      colors: ["Black"] as never,
-      playCost: 5,
-      dp: 5000,
-      level: 5,
-      evoCosts: [],
-      maxCountInDeck: 4,
-    },
-    permanent: () =>
-      ({
-        permanentId: "SELF-PERM",
-        controllerSeat: 0 as Seat,
-        topCard: { instanceId: "self-inst", cardId: "EX12-064", ownerSeat: 0 as Seat, faceUp: true } as never,
-        stack: [] as never,
-        linked: [] as never,
-        baseDP: 5000,
-        currentDP: 5000,
-        isSuspended: suspended,
-        inBreeding: false,
-      }) as never,
-    isOnBattleArea: () => true,
-    isOwnersTurn: () => true,
-    hasColor: () => false,
-  };
-}
-
-type BattleAreaEntry = {
-  permanentId: string;
-  controllerSeat: Seat;
-  topCard: CardInstance;
-  isSuspended: boolean;
-  inBreeding: boolean;
-};
-
-function makeCtx(
-  recorder: Recorder,
-  source: CardSource,
-  opts: {
-    oppBattleArea?: BattleAreaEntry[];
-    ownBattleArea?: BattleAreaEntry[];
-    deleteReturns?: number;
-  } = {},
-): EffectContext {
-  const { oppBattleArea = [], ownBattleArea = [], deleteReturns = 1 } = opts;
-
-  const players = [
-    {
-      seat: 0 as Seat,
-      battleArea: ownBattleArea,
-      security: [],
-      hand: [],
-      deck: [],
-      trash: [],
-    },
-    {
-      seat: 1 as Seat,
-      battleArea: oppBattleArea,
-      security: [],
-      hand: [],
-      deck: [],
-      trash: [],
-    },
-  ];
-
-  const game: GameAccess = {
-    state: { memory: 3, players, turnSeat: 0 as Seat } as never,
-    player: (seat: Seat) => players[seat] as never,
-    opponentOf: (s: Seat) => (s === 0 ? 1 : 0) as Seat,
-    permanentById: () => undefined,
-    definitionOf: (c: { cardId: string }) => {
-      if (c.cardId === "LV4-DIGIMON") {
-        return { cardId: c.cardId, kinds: ["Digimon"], nameEn: "LowLevelDigimon", level: 4, playCost: 3 } as never;
-      }
-      if (c.cardId === "LV5-DIGIMON") {
-        return { cardId: c.cardId, kinds: ["Digimon"], nameEn: "HighLevelDigimon", level: 5, playCost: 5 } as never;
-      }
-      if (c.cardId === "OWN-LOW") {
-        return { cardId: c.cardId, kinds: ["Digimon"], nameEn: "OwnLow", level: 4, playCost: 2 } as never;
-      }
-      if (c.cardId === "OWN-HIGH") {
-        return { cardId: c.cardId, kinds: ["Digimon"], nameEn: "OwnHigh", level: 5, playCost: 5 } as never;
-      }
-      return { cardId: c.cardId, kinds: ["Digimon"], nameEn: "Unknown", level: 5, playCost: 5 } as never;
-    },
-  };
-
-  const fx = {
-    deletePermanent: async (...args: unknown[]) => {
-      recorder.calls.push({ verb: "deletePermanent", args });
-      return deleteReturns;
-    },
-    deDigivolve: (...args: unknown[]) => {
-      recorder.calls.push({ verb: "deDigivolve", args });
-      return [];
-    },
-    unsuspend: (...args: unknown[]) => {
-      recorder.calls.push({ verb: "unsuspend", args });
-    },
-  } as unknown as Primitives;
-
-  const ask: DecisionApi = {
-    optional: async () => true,
-    chooseTargets: async (_c, o) => o.candidates.slice(0, o.max),
-    selectPermanents: async (_c, o) => o.candidates.slice(0, o.max),
-    selectCards: async (_c, o) => o.candidates.slice(0, o.max),
-    chooseOption: async () => 0,
-  };
-
-  return { source, trigger: {}, game, fx, ask };
-}
-
-function lv4OppPermanent(n = 1): BattleAreaEntry[] {
-  return Array.from({ length: n }, (_, i) => ({
-    permanentId: `opp-lv4-${i}`,
-    controllerSeat: 1 as Seat,
-    topCard: card(`opp-lv4-top-${i}`, "LV4-DIGIMON", 1),
-    isSuspended: false,
-    inBreeding: false,
-  }));
-}
-
-function lv5OppPermanent(): BattleAreaEntry[] {
-  return [
-    {
-      permanentId: "opp-lv5-0",
-      controllerSeat: 1 as Seat,
-      topCard: card("opp-lv5-top-0", "LV5-DIGIMON", 1),
-      isSuspended: false,
-      inBreeding: false,
-    },
-  ];
-}
+import { describe, expect, it } from "vitest";
+import { EffectTiming, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./EX12-064.js";
 
 describe("EX12-064 Megadramon", () => {
-  const module = getEffectModule("EX12-064");
+  it("maps the catalog, evolution, delete fallback, trait watcher, and inherited cost", () => {
+    const card = getCardDefinition("EX12-064");
+    expect(card?.effectText).toContain("[Assembly -2]");
+    expect(card?.inheritedEffectText).toContain("lowest play cost");
+    expect(digivolutionRequirementsFor("EX12-064")).toEqual([
+      { level: 4, traits: ["Machine", "ME"], cost: 3, isAlternate: true },
+    ]);
 
-  it("is registered on import", () => {
-    expect(module).toBeDefined();
-  });
+    for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+      expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
+        actions: [
+          {
+            kind: "Delete",
+            target: {
+              filter: {
+                controller: "opponent",
+                kind: ["Digimon"],
+                levelComparison: { op: "lte", value: 4 },
+              },
+              count: 1,
+            },
+          },
+          {
+            kind: "DeDigivolve",
+            amount: 1,
+            condition: { kind: "ifThisEffectDidNotDelete" },
+          },
+        ],
+      });
+    }
 
-  it("produces 1 OnPlay effect", () => {
-    const source = makeSource();
-    expect(module!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(1);
-  });
-
-  it("produces 1 WhenDigivolving effect", () => {
-    const source = makeSource();
-    expect(module!.effectsForTiming(EffectTiming.WhenDigivolving, source)).toHaveLength(1);
-  });
-
-  it("produces 1 OnEndAttack (inherited) effect", () => {
-    const source = makeSource();
-    expect(module!.effectsForTiming(EffectTiming.OnEndAttack, source)).toHaveLength(1);
-  });
-
-  it("[On Play] deletes a Lv.4 or lower opponent Digimon when one exists", async () => {
-    const recorder: Recorder = { calls: [] };
-    const source = makeSource();
-    const ctx = makeCtx(recorder, source, { oppBattleArea: lv4OppPermanent() });
-
-    const effects = module!.effectsForTiming(EffectTiming.OnPlay, source);
-    await effects[0]!.resolve(ctx);
-
-    // FAILS-WHEN-REVERTED: IR stub doesn't have this OnPlay delete path
-    const deleteCalls = recorder.calls.filter((c) => c.verb === "deletePermanent");
-    expect(deleteCalls).toHaveLength(1);
-    expect(deleteCalls[0]!.args[0]).toEqual(["opp-lv4-0"]);
-  });
-
-  it("[On Play] de-digivolves when delete didn't happen (Lv.4 candidate is immune)", async () => {
-    const recorder: Recorder = { calls: [] };
-    const source = makeSource();
-    // deleteReturns = 0 means deletion was prevented
-    const ctx = makeCtx(recorder, source, {
-      oppBattleArea: [...lv4OppPermanent(), ...lv5OppPermanent()],
-      deleteReturns: 0,
+    expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")).toMatchObject({
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Machine", "Cyborg", "ME"], match: "trait" }],
+          },
+          actions: [{ kind: "ReactivateEffect", fromTrigger: "WhenDigivolving", count: 1, optional: true }],
+        },
+      ],
     });
 
-    const effects = module!.effectsForTiming(EffectTiming.OnPlay, source);
-    await effects[0]!.resolve(ctx);
-
-    // FAILS-WHEN-REVERTED: no de-digivolve call in IR
-    const dedigiCalls = recorder.calls.filter((c) => c.verb === "deDigivolve");
-    expect(dedigiCalls).toHaveLength(1);
+    expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({
+      trigger: "EndOfAttack",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Delete",
+          target: { filter: { superlative: "lowestPlayCost" }, count: 1 },
+          cost: { kind: "unsuspend", target: { filter: { isSelfRef: true }, isSelf: true } },
+        },
+      ],
+    });
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 
-  it("[On Play] de-digivolves when no Lv.4 or lower opponent Digimon exists", async () => {
-    const recorder: Recorder = { calls: [] };
-    const source = makeSource();
-    const ctx = makeCtx(recorder, source, { oppBattleArea: lv5OppPermanent() });
+  it("deletes exactly one opposing level-4-or-lower Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-064", as: "source" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "low" },
+            { card: "BT1-082", as: "high" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
 
-    const effects = module!.effectsForTiming(EffectTiming.OnPlay, source);
-    await effects[0]!.resolve(ctx);
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    // No delete called (no lv4 target), de-digivolve is called
-    const deleteCalls = recorder.calls.filter((c) => c.verb === "deletePermanent");
-    expect(deleteCalls).toHaveLength(0);
-    const dedigiCalls = recorder.calls.filter((c) => c.verb === "deDigivolve");
-    expect(dedigiCalls).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-082"]);
   });
 
-  it("[Inherited End of Attack] unsuspends self then deletes own lowest-cost Digimon", async () => {
-    const recorder: Recorder = { calls: [] };
-    const source = makeSource(true); // suspended
-    const ownBattleArea: BattleAreaEntry[] = [
+  it("de-digivolves when no level-4-or-lower target exists", async () => {
+    const s = setupEngine(
       {
-        permanentId: "own-low-perm",
-        controllerSeat: 0 as Seat,
-        topCard: card("own-low-top", "OWN-LOW", 0),
-        isSuspended: false,
-        inBreeding: false,
+        0: { battleArea: [{ card: "EX12-064", as: "source" }] },
+        1: { battleArea: [{ card: "EX12-059", as: "opponent", under: ["BT1-009"] }] },
       },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle(() => s.perm("opponent").stack.length === 0);
+
+    expect(s.perm("opponent").topCard?.cardId).toBe("BT1-009");
+    expect(s.perm("opponent").stack).toHaveLength(0);
+  });
+
+  it("reactivates the When Digivolving effect for a matching played trait and only once per turn", async () => {
+    const s = setupEngine(
       {
-        permanentId: "own-high-perm",
-        controllerSeat: 0 as Seat,
-        topCard: card("own-high-top", "OWN-HIGH", 0),
-        isSuspended: false,
-        inBreeding: false,
+        0: { battleArea: [{ card: "EX12-064", as: "source" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+        },
       },
-    ];
-    const ctx = makeCtx(recorder, source, { ownBattleArea });
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
 
-    const effects = module!.effectsForTiming(EffectTiming.OnEndAttack, source);
-    await effects[0]!.resolve(ctx);
+    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("source").permanentId });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
 
-    // FAILS-WHEN-REVERTED: IR inherited effect uses "raw" cost; no unsuspend+delete call
-    const unsuspendCalls = recorder.calls.filter((c) => c.verb === "unsuspend");
-    expect(unsuspendCalls).toHaveLength(1);
-    const deleteCalls = recorder.calls.filter((c) => c.verb === "deletePermanent");
-    expect(deleteCalls).toHaveLength(1);
-    // Should target the lowest-cost (playCost=2) one
-    expect(deleteCalls[0]!.args[0]).toEqual(["own-low-perm"]);
+    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("source").permanentId });
+    await settle(() => false, 60);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("allows declining the optional trait watcher", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-064", as: "source" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("source").permanentId });
+    await settle(() => false, 60);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it("unsuspends the inherited host and deletes the own Digimon with the lowest play cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-059", as: "host", suspended: true, under: ["EX12-064"] },
+            { card: "BT1-009", as: "low" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("host"));
+    await settle(() => !s.perm("host").isSuspended && s.state.players[0]!.battleArea.length === 1);
+
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["EX12-059"]);
   });
 });

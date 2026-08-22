@@ -40,4 +40,10 @@ describe("BT5-014 OmniShoutmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blitz")).toBe(true);
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
   });
+
+  it("does not grant Security Attack +1 without Blitz", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-073", as: "host", under: ["BT5-014"] }] } });
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(0);
+  });
 });

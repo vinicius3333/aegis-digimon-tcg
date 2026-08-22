@@ -7,7 +7,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // duration: untilOpponentTurnEnd.
 // The 'attackPlayers' restriction (can't attack players) maps to DefenderCondition Defender==null
 // in documented behavior.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
@@ -64,6 +64,7 @@ const compiled: CompiledCard = {
           raw: "[All Turns] [Once Per Turn] When one of your other Digimon with [Diaboromon] in its name is played, <De-Digivolve 1> 1 of your opponent's Digimon.",
           sourceFilter: {
             controller: "mine",
+            excludeSelf: true,
             kind: ["Digimon"],
             nameOrTrait: [{ tokens: ["Diaboromon"], match: "name" }],
           },

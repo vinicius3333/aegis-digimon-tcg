@@ -45,6 +45,7 @@ const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "whenOpponentAttacks",
+          "oncePerTiming": true,
           "actions": [
             {
               "kind": "TrashDigivolution",

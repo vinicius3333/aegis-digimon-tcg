@@ -30,4 +30,18 @@ describe("BT5-019 Shoutmon DX", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(observe(s.engine).hasKeyword(s.perm("shoutmon"), "Blitz")).toBe(true);
   });
+
+  it("does not delete a 5001-DP Digimon and counts only matching stack names", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT5-019", under: ["BT5-007"], as: "shoutmon" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "safe", dp: 5001 }, { card: "BT1-011", as: "boundary", dp: 5000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("shoutmon"));
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea[0]!.permanentId).toBe(s.perm("safe").permanentId);
+  });
 });

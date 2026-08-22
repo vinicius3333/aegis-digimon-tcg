@@ -3,7 +3,7 @@ import { compiled } from "./BT17-030.js";
 
 describe("BT17-030", () => {
   it("gains memory by placing Leon Alexander under itself", () => {
-    expect(compiled.effects?.[0]?.actions?.[0]).toMatchObject({ kind: "GainMemory", amount: 1, optional: true, abortOnDecline: true, cost: { kind: "place", destination: "digivolutionStack", position: "bottom", host: "self" } });
+    expect(compiled.effects?.[0]?.actions?.[0]).toMatchObject({ kind: "GainMemory", amount: 1, condition: { kind: "securityAtLeast", value: 3 }, optional: true, abortOnDecline: true, cost: { kind: "place", destination: "digivolutionStack", position: "bottom", host: "self" } });
   });
 
   it("adds a security card from deck when security is 2 or fewer and has inherited Pulsemon DP", () => {

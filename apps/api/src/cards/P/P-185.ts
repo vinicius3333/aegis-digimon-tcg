@@ -87,7 +87,10 @@ const compiled: CompiledCard = {
         "Takuya Kanbara"
       ],
       "cost": 4,
-      "isAlternate": true
+      "isAlternate": true,
+      "baseIsTamer": true,
+      "minTraitStackCount": 5,
+      "minTraitStackTraits": ["Hybrid"]
     }
   ]
 };

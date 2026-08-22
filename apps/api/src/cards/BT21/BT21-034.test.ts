@@ -15,4 +15,27 @@ describe("BT21-034 compiled implementation", () => {
       for (const action of effect.actions ?? []) expect(typeof action.kind).toBe("string");
     }
   });
+
+  it("draws one for its controller whenever this Digimon suspends", () => {
+    const allTurns = compiled.effects.find((effect) => effect.trigger === "AllTurns");
+
+    expect(allTurns?.actions).toEqual([
+      {
+        kind: "SubTrigger",
+        event: "whenSuspended",
+        actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
+      },
+    ]);
+  });
+
+  it("preserves the WG alternate Digivolution and inherited Jamming", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["WG"], cost: 2, isAlternate: true }]);
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "Static",
+        isInherited: true,
+        keywords: [{ keyword: "Jamming", raw: "＜Jamming＞" }],
+      }),
+    );
+  });
 });

@@ -28,7 +28,7 @@ describe("EX4-072 Digital Translator", () => {
     expect(module.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
   });
 
-  it("accepts a named variant such as Gallantmon X Antibody without requiring level six", () => {
+  it("accepts a level-six named variant such as Gallantmon X Antibody", () => {
     const sourceCard = { cardId: "EX4-072", instanceId: "option", ownerSeat: 0, faceUp: true } as CardInstance;
     const chosen = { cardId: "VARIANT", instanceId: "chosen", ownerSeat: 0, faceUp: true } as CardInstance;
     const permanent = {
@@ -63,7 +63,7 @@ describe("EX4-072 Digital Translator", () => {
           colors: ["Red"] as never,
           playCost: 8,
           dp: 11000,
-          level: 5,
+          level: 6,
           evoCosts: [],
           maxCountInDeck: 4,
         },

@@ -35,7 +35,11 @@ const compiled: CompiledCard = {
         },
         {
           "kind": "GainMemory",
-          "amount": 1
+          "amount": 1,
+          "condition": {
+            "kind": "ifThisEffectActed",
+            "raw": "if you did"
+          }
         }
       ]
     },

@@ -7,11 +7,14 @@ import "../index.js";
 describe("ST22-14 Barbamon", () => {
   it("trashes the opponent's hand down to six on play", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "ST22-14", as: "barbamon" }] }, 1: { hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"] } },
+      {
+        0: { battleArea: [{ card: "ST22-14", as: "barbamon" }] },
+        1: { hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnEnterFieldAnyone, s.perm("barbamon"));
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("barbamon"));
     await settle(() => s.state.players[1]!.hand.length === 6);
     expect(s.state.players[1]!.hand).toHaveLength(6);
     expect(s.state.players[1]!.trash).toHaveLength(1);
@@ -19,7 +22,16 @@ describe("ST22-14 Barbamon", () => {
 
   it("deletes the opponent's lowest-level Digimon after the hand is five or fewer", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "ST22-14", as: "barbamon" }] }, 1: { hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"], battleArea: [{ card: "BT1-009", as: "lowLevel" }, { card: "BT1-020", as: "highLevel" }] } },
+      {
+        0: { battleArea: [{ card: "ST22-14", as: "barbamon" }] },
+        1: {
+          hand: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+          battleArea: [
+            { card: "BT1-009", as: "lowLevel" },
+            { card: "BT1-020", as: "highLevel" },
+          ],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const lowLevelId = s.perm("lowLevel").permanentId;

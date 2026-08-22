@@ -3572,18 +3572,18 @@ describe("EX6-060 — trash count suspends distinct eligible Digimon", () => {
 
 describe("BT12-014 — dynamic DP deletion budget", () => {
   it("adds 3000 to the 4000 deletion budget for each 2 digivolution cards", async () => {
-    const s = setup({ autoSelectCards: true });
+    const s = setup({ autoSelectCards: true, autoAcceptOptional: true });
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
     const base = digimon(0, 6000, "BT11-010");
-    base.stack.push(instance("BT1-009", 0, true));
+    base.stack.push(instance("BT1-009", 0, true), instance("BT1-010", 0, true), instance("BT1-011", 0, true));
     const omniShoutmon = instance("BT12-014", 0, false);
-    const dp5000 = digimon(1, 5000, "AD1-001");
-    const dp2000 = digimon(1, 2000, "BT1-009");
-    const dp1000 = digimon(1, 1000, "BT1-010");
+    const dp3000a = digimon(1, 3000, "BT1-009");
+    const dp3000b = digimon(1, 3000, "BT1-010");
+    const dp1000 = digimon(1, 1000, "BT1-011");
     p0.battleArea.push(base);
     p0.hand.push(omniShoutmon);
-    p1.battleArea.push(dp5000, dp2000, dp1000);
+    p1.battleArea.push(dp3000a, dp3000b, dp1000);
     s.state.memory = 10;
 
     expect(
@@ -3593,11 +3593,11 @@ describe("BT12-014 — dynamic DP deletion budget", () => {
         instanceId: omniShoutmon.instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => !p1.battleArea.some((p) => p.permanentId === dp5000.permanentId));
+    await settle(() => !p1.battleArea.some((p) => p.permanentId === dp3000a.permanentId));
 
-    expect(p1.battleArea.some((p) => p.permanentId === dp5000.permanentId)).toBe(false);
-    expect(p1.battleArea.some((p) => p.permanentId === dp2000.permanentId)).toBe(false);
-    expect(p1.battleArea.some((p) => p.permanentId === dp1000.permanentId)).toBe(true);
+    expect(p1.battleArea.some((p) => p.permanentId === dp3000a.permanentId)).toBe(false);
+    expect(p1.battleArea.some((p) => p.permanentId === dp3000b.permanentId)).toBe(false);
+    expect(p1.battleArea.some((p) => p.permanentId === dp1000.permanentId)).toBe(false);
     assertNoLoudGap(s);
   });
 });

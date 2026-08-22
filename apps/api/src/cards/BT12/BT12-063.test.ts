@@ -104,7 +104,21 @@ function makeCtx(opts: {
   } as unknown as EffectContext;
 }
 
-describe("BT12-063 Shoutmon DX [On Play]", () => {
+describe("BT12-063 Damemon", () => {
+  it("registers only the inherited opponent-turn Blocker clause without a residual gap", async () => {
+    const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
+    const card = runtimeCompiledCard("BT12-063")!;
+    expect(card.coverage).toBe("full");
+    expect(card.residual).toEqual([]);
+    expect(JSON.stringify(card)).not.toContain("RawUnparsed");
+    expect(card.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ trigger: "OpponentsTurn", isInherited: true }),
+      ]),
+    );
+    expect(card.effects).not.toEqual(expect.arrayContaining([expect.objectContaining({ trigger: "Static" })]));
+  });
+
   it("calls playInstances when a [Taiki Kudo] is among the revealed cards", async () => {
     const playInstancesCalls: string[][] = [];
     const taiki = { cardId: "taiki-001", instanceId: "taiki-inst", name: "Taiki Kudo" };

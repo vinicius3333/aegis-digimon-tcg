@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { GameState, PlayerState, Permanent, CardInstance, Phase, type Seat, type DecisionRequest } from "@aegis/shared";
 import { GameEngine, type GameEngineHooks } from "../../engine/GameEngine.js";
-import "../index.js";
+import "./BT11-033.js";
 
 // A3 for BT11-033 (MirageGaogamon — Blue Lv.6 Digimon, RESTRICTED).
 //

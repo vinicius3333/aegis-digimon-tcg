@@ -7,166 +7,216 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Modal.chooseScaling = { per:5, unit:"digivolutionCards" } drives the pick count.
 // 0–4 cards → 0 options; 5–9 → 1; 10–14 → 2. The declarative effect record had choose:1 fixed.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Piercing",
-          "raw": "＜Piercing＞"
-        }
-      ]
+          keyword: "Piercing",
+          raw: "＜Piercing＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Barrier",
-          "raw": "＜Barrier＞"
-        }
-      ]
+          keyword: "Barrier",
+          raw: "＜Barrier＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "Modal",
-          "choose": 0,
-          "chooseScaling": {
-            "per": 5,
-            "filter": {},
-            "unit": "digivolutionCards"
+          kind: "Modal",
+          choose: 0,
+          chooseScaling: {
+            per: 5,
+            filter: {},
+            unit: "digivolutionCards",
           },
-          "options": [
+          options: [
             [
               {
-                "kind": "ModifyDP",
-                "target": {
-                  "filter": {
-                    "controller": "opponent",
-                    "kind": [
-                      "Digimon"
-                    ]
+                kind: "ModifyDP",
+                target: {
+                  filter: {
+                    controller: "opponent",
+                    kind: ["Digimon"],
                   },
-                  "count": 1
+                  count: 1,
                 },
-                "amount": -13000,
-                "duration": "untilOpponentTurnEnd"
-              }
+                amount: -13000,
+                duration: "untilOpponentTurnEnd",
+              },
             ],
             [
               {
-                "kind": "SecurityManipulation",
-                "op": "trashTop",
-                "controller": "opponent",
-                "amount": 1
+                kind: "SecurityManipulation",
+                op: "trashTop",
+                controller: "opponent",
+                amount: 1,
               },
               {
-                "kind": "SecurityManipulation",
-                "op": "addTop",
-                "controller": "mine",
-                "from": [
-                  "deck"
-                ],
-                "amount": 1
-              }
-            ]
-          ]
-        }
+                kind: "SecurityManipulation",
+                op: "addTop",
+                controller: "mine",
+                from: ["deck"],
+                amount: 1,
+              },
+            ],
+          ],
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
-          }
+            count: 1,
+          },
         },
         {
-          "kind": "Modal",
-          "choose": 0,
-          "chooseScaling": {
-            "per": 5,
-            "filter": {},
-            "unit": "digivolutionCards"
+          kind: "Modal",
+          choose: 0,
+          chooseScaling: {
+            per: 5,
+            filter: {},
+            unit: "digivolutionCards",
           },
-          "options": [
+          options: [
             [
               {
-                "kind": "ModifyDP",
-                "target": {
-                  "filter": {
-                    "controller": "opponent",
-                    "kind": [
-                      "Digimon"
-                    ]
+                kind: "ModifyDP",
+                target: {
+                  filter: {
+                    controller: "opponent",
+                    kind: ["Digimon"],
                   },
-                  "count": 1
+                  count: 1,
                 },
-                "amount": -13000,
-                "duration": "untilOpponentTurnEnd"
-              }
+                amount: -13000,
+                duration: "untilOpponentTurnEnd",
+              },
             ],
             [
               {
-                "kind": "SecurityManipulation",
-                "op": "trashTop",
-                "controller": "opponent",
-                "amount": 1
+                kind: "SecurityManipulation",
+                op: "trashTop",
+                controller: "opponent",
+                amount: 1,
               },
               {
-                "kind": "SecurityManipulation",
-                "op": "addTop",
-                "controller": "mine",
-                "from": [
-                  "deck"
-                ],
-                "amount": 1
-              }
-            ]
-          ]
-        }
+                kind: "SecurityManipulation",
+                op: "addTop",
+                controller: "mine",
+                from: ["deck"],
+                amount: 1,
+              },
+            ],
+          ],
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
-    }
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  digivolutionRequirement: [
+    {
+      level: 6,
+      traits: ["ME", "VB"],
+      cost: 5,
+      isAlternate: true,
+    },
+  ],
+  dnaDigivolveRequirement: [
+    {
+      cost: 0,
+      materials: [
+        {
+          color: "Blue",
+          level: 6,
+        },
+        {
+          color: "Red",
+          level: 6,
+        },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        {
+          color: "Blue",
+          level: 6,
+        },
+        {
+          color: "Black",
+          level: 6,
+        },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        {
+          color: "Yellow",
+          level: 6,
+        },
+        {
+          color: "Red",
+          level: 6,
+        },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        {
+          color: "Yellow",
+          level: 6,
+        },
+        {
+          color: "Black",
+          level: 6,
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX12-037", compiled);

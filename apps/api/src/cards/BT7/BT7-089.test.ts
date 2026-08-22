@@ -76,7 +76,7 @@ describe("BT7-089 J.P. Shibayama", () => {
         s.perm("hybrid"),
         requireCardDefinition("BT7-051"),
       ),
-    ).toEqual({ delta: -2 });
+    ).toBeUndefined();
 
     expect(s.engine.applyIntent(0, {
       type: "digivolve",
@@ -85,8 +85,8 @@ describe("BT7-089 J.P. Shibayama", () => {
     })).toEqual({ ok: true });
     await settle(() => s.perm("hybrid").topCard.instanceId === s.inst("rhino").instanceId);
 
-    // Rhino's own hand reduction is -2. J.P.'s -1 applies only when the Tamer
-    // itself digivolves and must not remain active from the inherited stack.
-    expect(s.state.memory).toBe(2);
+    // J.P.'s -1 applies only when the Tamer itself digivolves and must not remain
+    // active from the inherited stack; Rhino pays its printed cost.
+    expect(s.state.memory).toBe(0);
   });
 });

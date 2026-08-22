@@ -81,7 +81,8 @@ const module: EffectModule = {
         turnTiming({
           source,
           effectKey: `${cardId}/inherited-end-all-turns-play-unchained`,
-          description: "[End of All Turns] [Inherited] You may play 1 [Unchained] from this Digimon's digivolution cards without paying the cost.",
+          description:
+            "[End of All Turns] [Inherited] You may play 1 [Unchained] from this Digimon's digivolution cards without paying the cost.",
           optional: true,
           isInherited: true,
           when: (_ctx) => source.isOnBattleArea(),

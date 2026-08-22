@@ -4,13 +4,11 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { onPlay } from "../../engine/effects/builders.js";
-import { matchNameOrTrait } from "../../engine/effects/interpreter/matching/definition.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "EX11-027";
 
-const hasMaquinamonInText = (def: CardDefinition): boolean =>
-  matchNameOrTrait(def, { tokens: ["Maquinamon"], match: "text" });
+const hasMaquinamonInText = (def: CardDefinition): boolean => JSON.stringify(def).toLowerCase().includes("maquinamon");
 
 const module: EffectModule = {
   cardId,
@@ -63,10 +61,10 @@ const module: EffectModule = {
                 { toTop: false },
               );
             }
+            if (added.length > 0) await ctx.fx.returnToHand(added);
 
             const selfPerm = source.permanent();
             if (selfPerm === undefined) return;
-            const _ownerSeat = source.ownerSeat;
             const otherDigimon = Array.from(owner.battleArea)
               .filter(
                 (p) =>

@@ -37,4 +37,17 @@ describe("BT5-034 Kotemon", () => {
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("holyWarrior").instanceId)).toBe(false);
   });
+
+  it("may decline all eligible revealed cards", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT5-034", as: "source" }], deck: [
+      { card: "BT5-042", as: "warrior" }, "BT5-035", "BT5-036", "BT5-038", "BT5-039",
+    ] } });
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const choice = s.state.pendingDecision!;
+    expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: choice.decisionId, response: { kind: "selectCards", instanceIds: [] } })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
 });

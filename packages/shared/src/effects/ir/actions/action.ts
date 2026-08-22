@@ -2,6 +2,7 @@
 
 import type {
   AddDPFromSuspendedCostAction,
+  AddDPFromTrashedCardAction,
   AddToHandSelfAction,
   GainKeywordAction,
   HandManipulationAction,
@@ -112,6 +113,7 @@ import type {
   DisableTimingEffectAction,
   GrantAuraToOpponentsAction,
   GrantStaticAction,
+  DynamicDigivolutionNamesAction,
 } from "./statics.js";
 import type { SubTriggerAction } from "./subTrigger.js";
 import type {
@@ -123,6 +125,7 @@ import type {
 } from "./xrosLink.js";
 
 export type Action =
+  | DynamicDigivolutionNamesAction
   | DrawAction
   | GainMemoryAction
   | SetMemoryAction
@@ -146,6 +149,7 @@ export type Action =
   | HatchAction
   | ModifyDPAction
   | AddDPFromSuspendedCostAction
+  | AddDPFromTrashedCardAction
   | SetBaseDPAction
   | GainKeywordAction
   | PlayWithoutCostAction

@@ -29,7 +29,8 @@ const compiled: CompiledCard = {
             "isSelf": true
           },
           "keyword": {
-            "keyword": "SecurityAttack"
+            "keyword": "SecurityAttack",
+            "amount": 1
           },
           "duration": "permanent"
         }
@@ -181,6 +182,27 @@ const compiled: CompiledCard = {
           }
         }
       ]
+    },
+    {
+      "trigger": "Static",
+      "actions": [
+        {
+          "kind": "GainKeyword",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          },
+          "keyword": {
+            "keyword": "SecurityAttack",
+            "amount": 1
+          },
+          "duration": "permanent"
+        }
+      ],
+      "isInherited": true
     },
     {
       "trigger": "OpponentsTurn",

@@ -19,7 +19,7 @@ interface ForeignCandidate {
 }
 
 /**
- * Collect the foreign cards whose compiled [On Play]/[When Digivolving] effects this card
+ * Collect the foreign cards whose compiled [On Play], [When Digivolving], or [On Deletion] effects this card
  * may borrow, from the requested zone, filtered by `filter`. Only face-up cards qualify
  * (a face-down security card / flipped digivolution card has no readable effect; source
  * `!cardSource.IsFlipped`). A card with no matching borrowable effect is skipped.
@@ -69,7 +69,7 @@ function collectForeignCandidates(
     if (!definitionMatches(action.filter, def as unknown as DefinitionFacts)) continue;
     const compiled = runtimeCompiledCard(src.cardId);
     if (compiled === undefined) continue;
-    // Borrowable = an [On Play]/[When Digivolving] effect (security effects are never
+    // Borrowable = an [On Play]/[When Digivolving]/[On Deletion] effect (security effects are never
     // borrowable, source `!cardEffect.IsSecurityEffect`).
     const borrowable = compiled.effects.filter((e) => action.fromTriggers.includes(e.trigger) && e.isSecurity !== true);
     if (borrowable.length === 0) continue;
@@ -159,7 +159,7 @@ export async function runActivateForeignEffect(
   for (const eff of toRun.slice(0, action.count)) await runEffect(runCtx, eff);
 }
 
-const BORROWABLE_EFFECT_TRIGGERS: readonly EffectTrigger[] = ["OnPlay", "WhenDigivolving"];
+const BORROWABLE_EFFECT_TRIGGERS: readonly EffectTrigger[] = ["OnPlay", "WhenDigivolving", "OnDeletion", "OnDestroyedAnyone"];
 
 export async function runActivateEffect(
   ctx: EffectContext,

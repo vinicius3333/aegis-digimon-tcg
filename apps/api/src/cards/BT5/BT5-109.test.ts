@@ -2,9 +2,14 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT5-109.js";
 
 describe("BT5-109 Mega Digimon Fusion!", () => {
+  it("has complete residual-free runtime coverage", () => {
+    expect(runtimeCompiledCard("BT5-109")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("reduces the next level 6-to-7 digivolution by 6, then bottoms it and trashes its stack at turn end", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT5-019", as: "base", under: [{ card: "BT5-007", as: "source" }] }, "BT5-091"], hand: [{ card: "BT5-109", as: "option" }, { card: "BT5-086", as: "level7" }], deck: ["BT5-001"] }, 1: { deck: ["BT5-001"] } });
     const basePermanentId = s.perm("base").permanentId;

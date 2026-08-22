@@ -57,8 +57,9 @@ const compiled: CompiledCard = {
         {
           "kind": "Attack",
           "target": {
-            "fromSelectionRef": "dnaResult",
-            "filter": {},
+            "filter": {
+              "boundRef": "dnaResult"
+            },
             "count": 1
           },
           "withoutSuspending": false,

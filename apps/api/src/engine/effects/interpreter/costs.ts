@@ -42,6 +42,12 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   if (cost.kind === "compound") {
     return cost.costs !== undefined && cost.costs.length > 0 && cost.costs.every((nested) => canPayCost(ctx, nested));
   }
+  if (cost.kind === "trashBreeding") {
+    const breeding = ctx.game.player(ctx.source.ownerSeat).breeding;
+    if (breeding?.topCard === undefined) return false;
+    const definition = ctx.game.definitionOf(breeding.topCard);
+    return definition.kinds.includes(CardKind.Digimon) || definition.kinds.includes(CardKind.DigiEgg);
+  }
   if (cost.kind === "trashBottomFaceDownUnderTamer") {
     const seat = cost.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
     const candidates = ctx.game.player(seat).battleArea.filter((permanent) => {
@@ -117,7 +123,16 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   }
   if (cost.kind === "place" && cost.target !== undefined) {
     if (cost.destination === "digivolutionStack" && cost.target.from?.includes("deck")) {
-      const source = (ctx.trigger.attackerPermanentId !== undefined ? ctx.game.permanentById(ctx.trigger.attackerPermanentId) : undefined) ?? ctx.source.permanent() ?? ctx.game.player(ctx.source.ownerSeat).battleArea.find((p) => p.topCard?.instanceId === ctx.source.instanceId || p.permanentId === ctx.source.instanceId);
+      const source =
+        (ctx.trigger.attackerPermanentId !== undefined
+          ? ctx.game.permanentById(ctx.trigger.attackerPermanentId)
+          : undefined) ??
+        ctx.source.permanent() ??
+        ctx.game
+          .player(ctx.source.ownerSeat)
+          .battleArea.find(
+            (p) => p.topCard?.instanceId === ctx.source.instanceId || p.permanentId === ctx.source.instanceId,
+          );
       return ctx.game.player(ctx.source.ownerSeat).deck.length > 0 && source !== undefined;
     }
     // Self-restack costs operate on the source permanent's own evolution stack,
@@ -181,10 +196,21 @@ export async function payCost(
   out?: { paidCount: number },
   opts?: { deferSuspendTriggers?: boolean },
 ): Promise<boolean> {
+  const recordTrackedColors = (candidates: LooseCandidate[], chosen: readonly string[]) => {
+    if (cost.trackColors === undefined) return;
+    const colors = new Set<string>();
+    for (const candidate of candidates) {
+      if (!chosen.includes(candidate.instanceId)) continue;
+      for (const color of ctx.game.definitionOf({ cardId: candidate.cardId } as never).colors) colors.add(color);
+    }
+    ctx.namedCounts ??= new Map();
+    ctx.namedCounts.set(cost.trackColors, colors.size);
+  };
   if (cost.kind === "place" && cost.destination === "digivolutionStack" && cost.target?.from?.includes("deck")) {
-    const host = ctx.trigger.attackerPermanentId !== undefined
-      ? ctx.game.permanentById(ctx.trigger.attackerPermanentId)
-      : ctx.source.permanent();
+    const host =
+      ctx.trigger.attackerPermanentId !== undefined
+        ? ctx.game.permanentById(ctx.trigger.attackerPermanentId)
+        : ctx.source.permanent();
     if (host === undefined || ctx.game.player(ctx.source.ownerSeat).deck.length === 0) return false;
     const placed = await ctx.fx.placeUnderFromDeck(host.permanentId, ctx.source.ownerSeat);
     if (placed !== undefined && out) out.paidCount = 1;
@@ -212,6 +238,16 @@ export async function payCost(
         if (!(await payCost(ctx, nested, undefined, opts))) return false;
       }
       return true;
+    }
+    case "trashBreeding": {
+      const breeding = ctx.game.player(ctx.source.ownerSeat).breeding;
+      if (breeding?.topCard === undefined) return false;
+      const definition = ctx.game.definitionOf(breeding.topCard);
+      if (!definition.kinds.includes(CardKind.Digimon) && !definition.kinds.includes(CardKind.DigiEgg)) return false;
+      const moved = await ctx.fx.trashBreedingPermanent?.(ctx.source.ownerSeat, {
+        byEffectSeat: ctx.source.ownerSeat,
+      });
+      return (moved?.length ?? 0) > 0;
     }
     case "trashBottomFaceDownUnderTamer": {
       const seat = cost.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
@@ -287,6 +323,21 @@ export async function payCost(
       const suspendedIds = ids.filter((id) => ctx.game.permanentById(id)?.isSuspended === true);
       if (suspendedIds.length === 0) return false;
       await ctx.fx.unsuspend(suspendedIds);
+      return true;
+    }
+    case "unsuspendNamed": {
+      const targets = cost.targets ?? [];
+      if (targets.length === 0) return false;
+      const ids: string[] = [];
+      for (const target of targets) {
+        const candidates = (await resolvePermanentTargets(ctx, target)).filter(
+          (id) => ctx.game.permanentById(id)?.isSuspended === true,
+        );
+        if (candidates.length !== 1) return false;
+        ids.push(candidates[0]!);
+      }
+      if (new Set(ids).size !== ids.length) return false;
+      await ctx.fx.unsuspend(ids);
       return true;
     }
     case "trash": {
@@ -743,6 +794,7 @@ export async function payCost(
           max: n,
         });
         if (chosen.length < n) return false;
+        recordTrackedColors(candidates, chosen);
         await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
         if (out) out.paidCount = chosen.length;
         return true;
@@ -809,6 +861,13 @@ export async function payCost(
       await ctx.fx.trashFromSecurity(seat, 1, { fromTop: true });
       return true;
     }
+    case "trashBothSecurityTop": {
+      const opponent = ctx.game.opponentOf(ctx.source.ownerSeat);
+      if (ctx.game.player(ctx.source.ownerSeat).security.length === 0 || ctx.game.player(opponent).security.length === 0) return false;
+      await ctx.fx.trashFromSecurity(ctx.source.ownerSeat, 1, { fromTop: true });
+      await ctx.fx.trashFromSecurity(opponent, 1, { fromTop: true });
+      return true;
+    }
     case "securityToHand": {
       // "By adding your top security card to the hand" — all-or-nothing cost.
       const seat = ctx.source.ownerSeat;
@@ -862,7 +921,12 @@ export async function payCost(
       // than inferred from the card filter because the subsequent Delete target is a
       // separate choice and may include a different permanent.
       if (!cost.target || !cost.hostTarget) return false;
-      const hostCandidates = await resolvePermanentTargets(ctx, cost.hostTarget);
+      const hostCandidates = candidatePermanents(ctx, cost.hostTarget).map((host) => host.permanentId).filter((hostId) => {
+        const host = ctx.game.permanentById(hostId);
+        return host?.stack.some((card) =>
+          definitionMatches(cost.target!.filter, ctx.game.definitionOf({ cardId: card.cardId } as never)),
+        );
+      });
       if (hostCandidates.length === 0) return false;
       const hostId =
         hostCandidates.length === 1
@@ -886,6 +950,7 @@ export async function payCost(
       if (chosen.length !== 1) return false;
       const played = await ctx.fx.playInstances(chosen, { payCost: false });
       if (played.length === 0) return false;
+      ctx.lastResolvedPermanentIds = [hostId];
       if (out) out.paidCount = played.length;
       return true;
     }
@@ -952,6 +1017,7 @@ export async function payCost(
           for (const sourcePermanentId of sourceIds) {
             await relocateByEffect(ctx, hostPermId, sourcePermanentId, {
               belowTop: cost.position !== "bottom",
+              shedOwnCards: (cost as { shedOwnCards?: boolean }).shedOwnCards === true,
             });
           }
           if (out) out.paidCount = sourceIds.length;
@@ -1056,17 +1122,24 @@ export async function payCost(
           // target, so do not incorrectly default to the source Tamer; choose one of
           // the controller's Digimon permanents through the production target seam.
           const sourcePermanent = ctx.source.permanent();
-          const sourceIsTamer = sourcePermanent !== undefined &&
+          const sourceIsTamer =
+            sourcePermanent !== undefined &&
             ctx.game.definitionOf(sourcePermanent.topCard).kinds.includes(CardKind.Tamer);
-          if ((cost.raw && /as 1 of your Digimon's/i.test(cost.raw)) ||
-              (sourceIsTamer && cost.target.filter.kind?.includes("Digimon"))) {
-            const candidates = ctx.game.player(ctx.source.ownerSeat).battleArea
-              .filter((permanent) => ctx.game.definitionOf(permanent.topCard).kinds.includes(CardKind.Digimon))
+          if (
+            (cost.raw && /as 1 of your Digimon's/i.test(cost.raw)) ||
+            (sourceIsTamer && cost.target.filter.kind?.includes("Digimon"))
+          ) {
+            const candidates = ctx.game
+              .player(ctx.source.ownerSeat)
+              .battleArea.filter((permanent) =>
+                ctx.game.definitionOf(permanent.topCard).kinds.includes(CardKind.Digimon),
+              )
               .map((permanent) => permanent.permanentId);
             if (candidates.length === 0) return false;
-            hostPermId = candidates.length === 1
-              ? candidates[0]
-              : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
+            hostPermId =
+              candidates.length === 1
+                ? candidates[0]
+                : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
           } else {
             const selfPerm = ctx.source.permanent();
             if (selfPerm === undefined) return false;
@@ -1146,13 +1219,15 @@ export async function payCost(
           self !== undefined &&
           Array.from(ctx.game.player(ctx.source.ownerSeat).battleArea).some((p) => p.permanentId === self.permanentId);
         if (cost.raw && /as 1 of your Digimon's/i.test(cost.raw)) {
-          const destIds = ctx.game.player(ctx.source.ownerSeat).battleArea
-            .filter((permanent) => ctx.game.definitionOf(permanent.topCard).kinds.includes(CardKind.Digimon))
+          const destIds = ctx.game
+            .player(ctx.source.ownerSeat)
+            .battleArea.filter((permanent) => ctx.game.definitionOf(permanent.topCard).kinds.includes(CardKind.Digimon))
             .map((permanent) => permanent.permanentId);
           if (destIds.length === 0) return false;
-          hostId = destIds.length === 1
-            ? destIds[0]
-            : (await ctx.ask.chooseTargets(ctx, { candidates: destIds, min: 1, max: 1 }))[0];
+          hostId =
+            destIds.length === 1
+              ? destIds[0]
+              : (await ctx.ask.chooseTargets(ctx, { candidates: destIds, min: 1, max: 1 }))[0];
         } else {
           if (self === undefined || !inBattleArea) return false;
           hostId = self.permanentId;

@@ -20,4 +20,12 @@ describe("BT5-024 Garurumon", () => {
 
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
   });
+
+  it("does not gain memory without a Gabumon source", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-021", as: "base" }], hand: [{ card: "BT5-024", as: "evolving" }] } });
+    s.state.memory = 2;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.memory === 0);
+    expect(s.state.memory).toBe(0);
+  });
 });

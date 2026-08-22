@@ -40,4 +40,12 @@ describe("BT5-067 Infermon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId.includes("TOKEN")));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId.includes("TOKEN"))).toBe(true);
   });
+
+  it("allows declining the inherited Token effect", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-069", as: "host", under: ["BT5-067"] }] } }, { autoDeclineOptional: true });
+    await s.engine.recomputeContinuousEffects();
+    await (s.engine as any).primitives.deletePermanent([s.perm("host").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
 });

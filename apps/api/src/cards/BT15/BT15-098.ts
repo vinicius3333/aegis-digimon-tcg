@@ -20,9 +20,6 @@ import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
  *   battle area.
  *   [Security] Place this card in the battle area.
  *
- * Audit note: the current handwritten module covers [Main] and [Security], but the
- * Delay payload and the All-Turns Myotismon-deletion watcher still need a reliable
- * option-permanent Delay/subtrigger seam in the engine.
  */
 const cardId = "BT15-098";
 

@@ -193,7 +193,15 @@ const compiled: CompiledCard = {
     }
   ],
   "coverage": "full",
-  "residual": []
+  "residual": [],
+  "digivolutionRequirement": [
+    {
+      "level": 5,
+      "colors": ["Yellow"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ]
 };
 
 registerIrCard("EX11-024", compiled);

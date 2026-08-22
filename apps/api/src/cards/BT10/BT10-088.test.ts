@@ -42,17 +42,21 @@ describe("BT10-088 Kiriha Aonuma", () => {
     await s.ready();
     expect(s.perm("kiriha").isSuspended).toBe(false);
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("metalGreymon").instanceId,
-      digiXros: {
-        materialInstanceIds: [s.inst("greymon").instanceId, s.inst("mailbirdramon").instanceId],
-        expanderPermanentIds: [s.perm("kiriha").permanentId],
-      },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(
-      (permanent) => permanent.topCard.cardId === "BT10-024" && permanent.stack.length === 2,
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("metalGreymon").instanceId,
+        digiXros: {
+          materialInstanceIds: [s.inst("greymon").instanceId, s.inst("mailbirdramon").instanceId],
+          expanderPermanentIds: [s.perm("kiriha").permanentId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.cardId === "BT10-024" && permanent.stack.length === 2,
+      ),
+    );
 
     expect(s.perm("kiriha").isSuspended).toBe(true);
     expect(s.perm("otherTamer").stack).toHaveLength(0);

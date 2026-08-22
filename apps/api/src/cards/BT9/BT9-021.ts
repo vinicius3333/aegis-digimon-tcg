@@ -1,4 +1,4 @@
-import { CardKind,  EffectTiming, isDigimon } from "@aegis/shared";
+import { CardKind, EffectTiming, isDigimon } from "@aegis/shared";
 import type { Permanent } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -63,7 +63,10 @@ const module: EffectModule = {
           description:
             "[Your Turn] [Once Per Turn] When an effect adds a card to your hand, return 1 opposing level 3 Digimon to hand.",
           isInherited: true,
-          when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn(),
+          // Inherited effects are sourced from a card in the host's stack; the engine's
+          // placement guard validates that placement, so do not require the stack card itself
+          // to report as a battle-area permanent.
+          when: (ctx) => ctx.source.isOwnersTurn(),
           resolve: async (ctx) => {
             ctx.fx.subscribeSubTrigger({
               event: "whenEffectAddsToHand",

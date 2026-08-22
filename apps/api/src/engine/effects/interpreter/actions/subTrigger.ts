@@ -74,6 +74,7 @@ export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefine
   whenEffectAddsToOpponentHand: "whenEffectAddsToOpponentHand",
   whenEffectAddsToDeck: "whenEffectAddsToDeck",
   whenCardReturnsFromTrashToHand: "whenCardReturnsFromTrashToHand",
+  whenDigimonReturnsToHand: "whenDigimonReturnsToHand",
   whenEffectSuspends: "whenEffectSuspends",
   whenOpponentDraws: "whenOpponentDraws",
   // ＜Delay＞ watcher event (BT19-099): "when one of your Millenniummon would leave the battle
@@ -216,6 +217,7 @@ export async function runSubTrigger(
     event === "whenEffectAddsToHand" ||
     event === "whenEffectAddsToDeck" ||
     event === "whenCardReturnsFromTrashToHand" ||
+    event === "whenDigimonReturnsToHand" ||
     // whenTrashedByEffect uses trashedByEffectPermanentId (not subjectPermanentId); the
     // isSelfRef + zone gates are handled entirely by whenTrashedByEffectGate below.
     event === "whenTrashedByEffect" ||
@@ -225,6 +227,10 @@ export async function runSubTrigger(
     // whenTrashedFromDeck fires for a loose deck card (no permanent); the isSelfRef gate
     // is handled entirely by whenTrashedFromDeckGate below.
     event === "whenTrashedFromDeck" ||
+    // onDeletionOf resolves after the rule-processing seam may have deferred the event;
+    // the permanent is then gone, so use the deletion snapshot gate below instead of
+    // attempting to re-resolve the subject from the battle area.
+    event === "onDeletionOf" ||
     event === "onDigivolutionCardDiscarded" ||
     event === "onDigivolutionCardsDiscardedBatch" ||
     event === "onDigiBurstCardDiscarded"
@@ -247,6 +253,27 @@ export async function runSubTrigger(
           const def = getCardDefinition(cardId);
           if (def === undefined) return false;
           return refs.some((ref) => matchNameOrTrait(def as DefinitionFacts, ref));
+        }
+      : undefined;
+  const deletionSourceFilterGate =
+      event === "onDeletionOf" && sourceFilter !== undefined
+      ? (subCtx: EffectContext): boolean => {
+          if (sourceFilter.isSelfRef === true) {
+            const anchor = subCtx.source.permanent()?.permanentId;
+            if (anchor === undefined || subCtx.trigger.deletedPermanentId !== anchor) return false;
+          }
+          const deletedSeat = subCtx.trigger.deletedControllerSeat;
+          const scope = sourceFilter.controller ?? sourceFilter.controllerDefault;
+          const seatMatches =
+            deletedSeat === undefined ||
+            scope === undefined ||
+            scope === "any" ||
+            deletedSeat === subCtx.source.ownerSeat === (scope === "mine");
+          if (!seatMatches) return false;
+          const deletedCardId = subCtx.trigger.deletedTopCardId;
+          if (sourceFilter.kind === undefined || deletedCardId === undefined) return true;
+          const definition = getCardDefinition(deletedCardId);
+          return definition !== undefined && sourceFilter.kind.some((kind) => definition.kinds.includes(kind));
         }
       : undefined;
   // `whenHandTrashed` carries no subject permanent — its payload names the seat whose hand an
@@ -375,7 +402,14 @@ export async function runSubTrigger(
     event === "whenEffectAddsToHand"
       ? (subCtx: EffectContext): boolean => {
           const seat = subCtx.trigger?.effectAddedToHandSeat;
-          return seat !== undefined && seat === subCtx.source.ownerSeat;
+          if (seat === undefined || seat !== subCtx.source.ownerSeat) return false;
+          if (sourceFilter === undefined) return true;
+          const ids = subCtx.trigger?.addedToHand?.instanceIds ?? [];
+          return ids.some((instanceId) => {
+            const card = findLooseCandidateByInstance(subCtx, instanceId);
+            if (card === undefined) return false;
+            return definitionMatches(sourceFilter, subCtx.game.definitionOf(card));
+          });
         }
       : undefined;
   // `whenEffectAddsToDeck` ("[Your Turn] when your effects add to decks", BT26-015): mirrors
@@ -602,6 +636,7 @@ export async function runSubTrigger(
       : undefined;
   const gates = [
     filterMatch,
+    deletionSourceFilterGate,
     ownerMainPhaseGate,
     fireConditionGate,
     securityRemovalGate,
@@ -636,9 +671,19 @@ export async function runSubTrigger(
     trashedDigivolutionTopGate,
   ].filter((g): g is (subCtx: EffectContext) => boolean => g !== undefined);
   const matches = gates.length === 0 ? undefined : (subCtx: EffectContext): boolean => gates.every((g) => g(subCtx));
+  // Inherited effects that trigger when their own source card is discarded from a
+  // digivolution stack must keep that card as the watcher source. The host permanent
+  // remains on the field, but the source card moves to trash before the event fires;
+  // anchoring the watcher to the host would make `isSelfRef` compare against the host's
+  // top card and silently skip the inherited effect (BT7 Digi-Burst cards).
+  const discardedSelfSource =
+    sourceFilter?.isSelfRef === true &&
+    (event === "onDigiBurstCardDiscarded" ||
+      event === "onDigivolutionCardsDiscardedBatch" ||
+      event === "onDigivolutionCardDiscarded");
   ctx.fx.subscribeSubTrigger({
     event,
-    sourcePermanentId: anchorPermanentId,
+    ...(discardedSelfSource ? {} : { sourcePermanentId: anchorPermanentId }),
     ...(playerScoped
       ? { activationContext: ctx }
       : action.on !== undefined

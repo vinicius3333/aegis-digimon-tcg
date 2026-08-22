@@ -59,7 +59,8 @@ export const compiled: CompiledCard = {
             "isSelf": true
           },
           "immuneFrom": "opponentEffects",
-          "duration": "untilOpponentTurnEnd"
+          "duration": "untilOpponentTurnEnd",
+          "condition": { "kind": "ifThisEffectActed", "raw": "you did" }
         }
       ]
     },
@@ -115,7 +116,8 @@ export const compiled: CompiledCard = {
             "isSelf": true
           },
           "immuneFrom": "opponentEffects",
-          "duration": "untilOpponentTurnEnd"
+          "duration": "untilOpponentTurnEnd",
+          "condition": { "kind": "ifThisEffectActed", "raw": "you did" }
         }
       ]
     },

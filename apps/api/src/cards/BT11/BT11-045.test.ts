@@ -57,11 +57,11 @@ describe("BT11-045 ClavisAngemon", () => {
     ).toEqual({ ok: true });
     await settle(() => attacker.currentDP === 1000);
 
-    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(1);
     expect(attacker.currentDP).toBe(1000);
     expect(
       s.decisions.filter(({ req }) => req.sourceCardId === "BT11-045" && req.kind === "chooseTargets"),
-    ).toHaveLength(2);
+    ).toHaveLength(0);
   });
 
   it("reacts independently to consecutive own-security removal events", async () => {

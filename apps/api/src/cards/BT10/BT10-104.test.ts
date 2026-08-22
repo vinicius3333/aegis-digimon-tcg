@@ -1,12 +1,5 @@
 import { describe, it, expect } from "vitest";
-import {
-  CardKind,
-  EffectTiming,
-  type CardDefinition,
-  type GameState,
-  type Permanent,
-  type Seat,
-} from "@aegis/shared";
+import { CardKind, EffectTiming, type CardDefinition, type GameState, type Permanent, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
@@ -125,7 +118,9 @@ function makeContext(opts: {
   const fx: Primitives = {
     reveal: async (seat: Seat, n: number) => {
       record.revealCalls.push({ seat, n });
-      return revealReturns.slice(0, n).map((c) => ({ instanceId: c.instanceId, cardId: c.cardId, ownerSeat: 0, faceUp: true }) as never);
+      return revealReturns
+        .slice(0, n)
+        .map((c) => ({ instanceId: c.instanceId, cardId: c.cardId, ownerSeat: 0, faceUp: true }) as never);
     },
     trash: async (ids: string[]) => {
       record.trashCalls.push([...ids]);
@@ -236,13 +231,13 @@ describe("BT10-104 (Immortal Ruler)", () => {
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT10-066"));
 
     const darkKnightmon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-066")!;
-    expect(darkKnightmon.stack.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT7-058", "BT7-059"]),
-    );
+    expect(darkKnightmon.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT7-058", "BT7-059"]));
     expect(s.state.memory).toBe(6);
   });
 

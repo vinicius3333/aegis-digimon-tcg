@@ -1,5 +1,6 @@
 import {
   CardColor,
+  CardKind,
   EffectDuration,
   EffectTiming,
   isDigimon,
@@ -9,6 +10,7 @@ import {
   type Permanent,
 } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
+import { cardHasTrait } from "../../engine/cards/cardData.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
@@ -40,6 +42,15 @@ function mine(
     .battleArea.filter(
       (candidate) => candidate.topCard !== undefined && match(ctx.game.definitionOf(candidate.topCard), candidate),
     );
+}
+
+function sourcePermanent(ctx: EffectContext, source: CardSource): Permanent | undefined {
+  return (
+    source.permanent() ??
+    ctx.game.player(source.ownerSeat).battleArea.find(
+      (candidate) => candidate.topCard?.instanceId === source.instanceId,
+    )
+  );
 }
 
 function foes(
@@ -139,7 +150,7 @@ async function inheritedMinusDp(ctx: EffectContext, source: CardSource, amount =
 }
 
 function saveHost(ctx: EffectContext, source: CardSource): boolean {
-  const top = source.permanent()?.topCard;
+  const top = sourcePermanent(ctx, source)?.topCard;
   return top !== undefined && contains(ctx.game.definitionOf(top), "save");
 }
 
@@ -181,17 +192,23 @@ function inheritedSaveDp(cardId: string, source: CardSource): Effect {
     isInherited: true,
     when: (ctx) => source.isOwnersTurn() && saveHost(ctx, source),
     resolve: async (ctx) => {
-      const host = source.permanent();
+      const host = sourcePermanent(ctx, source);
       if (host) ctx.fx.modifyDP(host.permanentId, 2000, EffectDuration.Permanent);
     },
   });
 }
 
 function opponentDigimonWasDeletedByDpZero(ctx: EffectContext, source: CardSource): boolean {
-  if (ctx.trigger.removalCause !== "byRule") return false;
+  const zeroDpTopCards = new Set(ctx.trigger.deletedByDpZeroInstanceIds ?? []);
+  if (zeroDpTopCards.size === 0 && ctx.trigger.deletedByDpZero !== true) return false;
   const deleted = new Set(ctx.trigger.deletedInstanceIds ?? []);
+  const deletedStack = new Set(ctx.trigger.deletedWasStackInstanceIds ?? []);
   return ctx.game.player(ctx.game.opponentOf(source.ownerSeat)).trash.some(
-    (instance) => deleted.has(instance.instanceId) && isDigimon(ctx.game.definitionOf(instance)),
+    (instance) =>
+      deleted.has(instance.instanceId) &&
+      !deletedStack.has(instance.instanceId) &&
+      (zeroDpTopCards.size === 0 || zeroDpTopCards.has(instance.instanceId)) &&
+      isDigimon(ctx.game.definitionOf(instance)),
   );
 }
 
@@ -200,6 +217,28 @@ function ownTamerWasDeleted(ctx: EffectContext, source: CardSource): boolean {
   return ctx.game.player(source.ownerSeat).trash.some(
     (instance) => deleted.has(instance.instanceId) && isTamer(ctx.game.definitionOf(instance)),
   );
+}
+
+function recoverMarcus(cardId: string, source: CardSource, isInherited = false): Effect {
+  return turnTiming({
+    source,
+    effectKey: `${cardId}/${isInherited ? "inherited-" : ""}recover-marcus`,
+    description: "When your Tamer is deleted, place Marcus from trash atop security.",
+    isInherited,
+    maxPerTurn: 1,
+    canActivate: (ctx) => ownTamerWasDeleted(ctx, source),
+    resolve: async (ctx) => {
+      const [marcus] = await card(
+        ctx,
+        ctx.game
+          .player(source.ownerSeat)
+          .trash.filter((item) => ctx.game.definitionOf(item).nameEn === "Marcus Damon"),
+        1,
+        true,
+      );
+      if (marcus) await ctx.fx.addSecurity(source.ownerSeat, [marcus], { toTop: true, faceUp: false });
+    },
+  });
 }
 
 function endAttackMemory(cardId: string, source: CardSource): Effect {
@@ -380,7 +419,7 @@ export function midBt12Module(cardId: string): EffectModule {
                 description: "Reveal 3 and add a Free/Imperialdramon card plus the named Tamer.",
                 resolve: (ctx) =>
                   revealSearch(ctx, source, 3, [
-                    (d) => isDigimon(d) && (d.nameEn.includes("Imperialdramon") || contains(d, "free")),
+                    (d) => isDigimon(d) && (d.nameEn.includes("Imperialdramon") || cardHasTrait(d, "Free")),
                     (d) => isTamer(d) && d.nameEn.includes(cardId === "BT12-021" ? "Davis Motomiya" : "Ken Ichijoji"),
                   ]),
               }),
@@ -448,7 +487,7 @@ export function midBt12Module(cardId: string): EffectModule {
                     source.isOwnersTurn() &&
                     top !== undefined &&
                     (ctx.game.definitionOf(top).nameEn.includes("Imperialdramon") ||
-                      contains(ctx.game.definitionOf(top), "free"))
+                      cardHasTrait(ctx.game.definitionOf(top), "Free"))
                   );
                 },
                 resolve: async (ctx) => {
@@ -892,28 +931,35 @@ export function midBt12Module(cardId: string): EffectModule {
             ];
           if (timing === EffectTiming.OnDestroyedAnyone)
             return [
-              saveOnDeletion(cardId, source),
               onDeletion({
                 source,
                 effectKey: `${cardId}/place-save-from-trash`,
-                description: "Place a Save Digimon from trash under one of your Tamers.",
+                description: "Save this card, then place another Save Digimon from trash under one of your Tamers.",
                 resolve: async (ctx) => {
+                  if (await ctx.ask.optional(ctx, "Place this card under one of your Tamers?")) {
+                    const [saveTamer] = await permanent(
+                      ctx,
+                      mine(ctx, source, (definition) => isTamer(definition)),
+                      1,
+                      true,
+                    );
+                    if (saveTamer) await ctx.fx.placeUnder(saveTamer, [source.instanceId]);
+                  }
                   const [saved] = await card(
                     ctx,
                     ctx.game
                       .player(source.ownerSeat)
                       .trash.filter(
                         (item) =>
+                          item.instanceId !== source.instanceId &&
                           isDigimon(ctx.game.definitionOf(item)) && contains(ctx.game.definitionOf(item), "save"),
                       ),
                     1,
-                    true,
                   );
                   const [tamer] = await permanent(
                     ctx,
                     mine(ctx, source, (definition) => isTamer(definition)),
                     1,
-                    true,
                   );
                   if (saved && tamer) await ctx.fx.placeUnder(tamer, [saved]);
                 },
@@ -1000,7 +1046,8 @@ export function midBt12Module(cardId: string): EffectModule {
                 effectKey: `${cardId}/scaled-minus`,
                 description: "For every 2 sources, give an opposing Digimon -3000 DP.",
                 resolve: async (ctx) => {
-                  const times = Math.floor((source.permanent()?.stack.length ?? 0) / 2);
+                  const digivolutionCardCount = Math.max(0, (sourcePermanent(ctx, source)?.stack.length ?? 1) - 1);
+                  const times = Math.floor(digivolutionCardCount / 2);
                   for (let i = 0; i < times; i += 1) await inheritedMinusDp(ctx, source, 3000);
                 },
               }),
@@ -1036,26 +1083,7 @@ export function midBt12Module(cardId: string): EffectModule {
               }),
             ];
           if (timing === EffectTiming.OnDestroyedAnyone)
-            return [
-              turnTiming({
-                source,
-                effectKey: `${cardId}/recover-marcus`,
-                description: "When your Tamer is deleted, place Marcus from trash atop security.",
-                maxPerTurn: 1,
-                canActivate: (ctx) => ownTamerWasDeleted(ctx, source),
-                resolve: async (ctx) => {
-                  const [marcus] = await card(
-                    ctx,
-                    ctx.game
-                      .player(source.ownerSeat)
-                      .trash.filter((item) => ctx.game.definitionOf(item).nameEn === "Marcus Damon"),
-                    1,
-                    true,
-                  );
-                  if (marcus) await ctx.fx.addSecurity(source.ownerSeat, [marcus], { toTop: true, faceUp: false });
-                },
-              }),
-            ];
+            return [recoverMarcus(cardId, source), recoverMarcus(cardId, source, true)];
           return [];
         case "BT12-043":
           if (timing === EffectTiming.WhenDigivolving)
@@ -1071,13 +1099,12 @@ export function midBt12Module(cardId: string): EffectModule {
                     source,
                     (d) => isTamer(d) && (d.colors.includes(CardColor.Yellow) || d.colors.includes(CardColor.Red)),
                   ).length;
-                  for (let i = 0; i < count; i += 1) {
-                    const [target] = await permanent(ctx, foes(ctx, source), 1, true);
-                    if (target) ctx.fx.modifyDP(target, -3000, EffectDuration.UntilEachTurnEnd);
-                  }
+                  const [target] = count ? await permanent(ctx, foes(ctx, source)) : [];
+                  if (target) ctx.fx.modifyDP(target, -3000 * count, EffectDuration.UntilEachTurnEnd);
                   if (count)
                     ctx.fx.modifySecurityDp(ctx.game.opponentOf(source.ownerSeat), -3000 * count, {
                       continuous: false,
+                      duration: EffectDuration.UntilEachTurnEnd,
                     });
                 },
               }),
@@ -1091,7 +1118,10 @@ export function midBt12Module(cardId: string): EffectModule {
                 when: () => source.isOwnersTurn(),
                 resolve: async (ctx) => {
                   for (const p of mine(ctx, source, (d) => d.nameEn === "Marcus Damon")) {
-                    ctx.fx.modifyDP(p.permanentId, 3000, EffectDuration.Permanent);
+                    const definition = ctx.game.definitionOf(p.topCard!);
+                    const kinds = ctx.game.effectiveKinds?.(p.permanentId) ?? definition.kinds;
+                    if (kinds.includes(CardKind.Digimon))
+                      ctx.fx.modifyDP(p.permanentId, 3000, EffectDuration.Permanent);
                     ctx.fx.grantKeyword(p.permanentId, "SecurityAttack", EffectDuration.Permanent, 1);
                   }
                 },
@@ -1215,7 +1245,8 @@ export function midBt12Module(cardId: string): EffectModule {
                       if (target) await ctx.fx.suspend([target], { byEffectSeat: source.ownerSeat });
                       ctx.fx.modifyDP(self.permanentId, 3000, EffectDuration.UntilEachTurnEnd);
                     }
-                    if (target) await ctx.fx.forceAttack(self.permanentId);
+                    if (target && (await ctx.ask.optional(ctx, "Attack the targeted opponent's Digimon?")))
+                      await ctx.fx.forceAttack(self.permanentId);
                   }
                 },
               }),
@@ -1233,7 +1264,7 @@ export function midBt12Module(cardId: string): EffectModule {
                   if (host === undefined || !source.isOwnersTurn()) return false;
                   const definition = ctx.game.definitionOf(host);
                   return isDigimon(definition) &&
-                    (definition.nameEn.includes("Imperialdramon") || contains(definition, "free"));
+                    (definition.nameEn.includes("Imperialdramon") || cardHasTrait(definition, "Free"));
                 },
                 resolve: async (ctx) => {
                   await ctx.fx.trashFromSecurity(ctx.game.opponentOf(source.ownerSeat), 1, { fromTop: true });
@@ -1252,7 +1283,8 @@ export function midBt12Module(cardId: string): EffectModule {
                   const [target] = await permanent(ctx, foes(ctx, source));
                   if (target) await ctx.fx.suspend([target], { byEffectSeat: source.ownerSeat });
                   const self = source.permanent();
-                  if (self && target) await ctx.fx.forceAttack(self.permanentId);
+                  if (self && target && (await ctx.ask.optional(ctx, "Attack the targeted opponent's Digimon?")))
+                    await ctx.fx.forceAttack(self.permanentId);
                 },
               }),
             ];
@@ -1267,7 +1299,12 @@ export function midBt12Module(cardId: string): EffectModule {
                   const p = ctx.trigger.suspendedPermanentId
                     ? ctx.game.permanentById(ctx.trigger.suspendedPermanentId)
                     : undefined;
-                  return source.isOwnersTurn() && p?.controllerSeat === ctx.game.opponentOf(source.ownerSeat);
+                  return (
+                    source.isOwnersTurn() &&
+                    p?.controllerSeat === ctx.game.opponentOf(source.ownerSeat) &&
+                    p.topCard !== undefined &&
+                    isDigimon(ctx.game.definitionOf(p.topCard))
+                  );
                 },
                 resolve: async (ctx) => ctx.fx.gainMemory(1),
               }),

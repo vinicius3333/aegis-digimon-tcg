@@ -20,7 +20,8 @@ const compiled: CompiledCard = {
               ],
               "excludeSelf": true
             },
-            "count": 1
+            "count": 1,
+            "sameTarget": true
           },
           "cost": {
             "kind": "playFromDigivolutionCards",
@@ -67,7 +68,8 @@ const compiled: CompiledCard = {
               ],
               "excludeSelf": true
             },
-            "count": 1
+            "count": 1,
+            "sameTarget": true
           },
           "cost": {
             "kind": "playFromDigivolutionCards",
@@ -135,9 +137,10 @@ const compiled: CompiledCard = {
       "names": [
         "Nene Amano"
       ],
-      "traits": [
+      "minNameStackNames": [
         "Shademon"
       ],
+      "minNameStackCount": 1,
       "cost": 3,
       "isAlternate": true
     }
@@ -148,6 +151,12 @@ const compiled: CompiledCard = {
         {
           "names": [
             "Nene Amano"
+          ]
+        },
+        {
+          "names": [
+            "Luminamon",
+            "Shademon"
           ]
         }
       ],

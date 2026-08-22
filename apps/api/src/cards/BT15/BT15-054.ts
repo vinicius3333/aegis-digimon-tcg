@@ -21,7 +21,8 @@ const compiled: CompiledCard = {
                 "Digimon"
               ]
             },
-            "count": 1
+            "count": 1,
+            "bindAs": "digimonTarget"
           }
         },
         {
@@ -33,22 +34,19 @@ const compiled: CompiledCard = {
                 "Tamer"
               ]
             },
-            "count": 1
+            "count": 1,
+            "bindAs": "tamerTarget"
           }
         },
         {
           "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "suspended": true
-            },
-            "count": "all"
-          },
+          "target": { "fromSelectionRef": "digimonTarget" },
+          "restriction": "unsuspend",
+          "duration": "untilOpponentTurnEnd"
+        },
+        {
+          "kind": "Restrict",
+          "target": { "fromSelectionRef": "tamerTarget" },
           "restriction": "unsuspend",
           "duration": "untilOpponentTurnEnd"
         }

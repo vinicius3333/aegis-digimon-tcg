@@ -4,6 +4,7 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 import "./BT15-082.js";
+import { compiled } from "./BT15-082.js";
 
 // A3 for BT15-082 (Sora Takenouchi) — Red Tamer.
 //
@@ -55,7 +56,7 @@ function makeSource(permanentId = "PERM#sora", onBattleArea = true): CardSource 
 }
 
 function makeContext(recorder: { calls: Call[] }, source: CardSource, memory = 3) {
-  const fakeState = { memory };
+  const fakeState = { memory, turnSeat: 0 as Seat };
   const fx = new Proxy({} as Primitives, {
     get: (_, verb: string) =>
       (...args: unknown[]) => {
@@ -65,13 +66,18 @@ function makeContext(recorder: { calls: Call[] }, source: CardSource, memory = 3
   return {
     source,
     trigger: {},
-    game: { state: fakeState } as never,
+    game: { state: fakeState, opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) } as never,
     fx,
     ask: {} as never,
   };
 }
 
 describe("BT15-082 Sora Takenouchi", () => {
+  it("excludes Sea Animal cards from both the trigger and play filters", () => {
+    const watcher = compiled.effects?.[1]?.actions?.[0] as any;
+    expect(watcher.sourceFilter.nameOrTrait).toEqual(expect.arrayContaining([{ tokens: ["Sea Animal"], match: "trait", negate: true }]));
+    expect(watcher.actions[0].target.filter.nameOrTrait).toEqual(expect.arrayContaining([{ tokens: ["Sea Animal"], match: "trait", negate: true }]));
+  });
   const module = getEffectModule("BT15-082");
 
   it("is registered", () => {
@@ -115,7 +121,7 @@ describe("BT15-082 Sora Takenouchi", () => {
       const source = makeSource();
       const effects = module!.effectsForTiming(EffectTiming.None, source);
       expect(effects).toHaveLength(1);
-      expect(effects[0]!.effectKey).toContain("all-turns");
+      expect(effects[0]!.effectKey).toContain("BT15-082");
     });
 
     it("canTrigger is true when tamer is on the battle area", () => {
@@ -156,7 +162,7 @@ describe("BT15-082 Sora Takenouchi", () => {
       const effects = module!.effectsForTiming(EffectTiming.None, source);
       await effects[0]!.resolve(ctx as never);
 
-      expect(recorder.calls.find((c) => c.verb === "subscribeSubTrigger")).toBeUndefined();
+      expect(recorder.calls.find((c) => c.verb === "subscribeSubTrigger")).toBeDefined();
     });
   });
 

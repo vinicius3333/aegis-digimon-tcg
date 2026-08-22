@@ -9,6 +9,7 @@ describe("BT21-089 Takato Matsuki", () => {
         | { actions?: unknown[] }
         | undefined;
       expect(watcher).toBeDefined();
+      expect(watcher).toMatchObject({ sourceFilter: { controller: "mine", kind: ["Digimon"] } });
       const actions = watcher?.actions ?? [];
       expect(actions[0]).toMatchObject({
         kind: "SelectBind",
@@ -29,6 +30,14 @@ describe("BT21-089 Takato Matsuki", () => {
         condition: { kind: "combinedTrashCount", op: "gte", value: 10 },
       });
     }
-    expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "Security", isSecurity: true }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "Security",
+        isSecurity: true,
+        actions: [expect.objectContaining({ kind: "PlayWithoutCost", payCost: false })],
+      }),
+    );
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });

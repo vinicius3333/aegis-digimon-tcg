@@ -2,9 +2,14 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT5-101.js";
 
 describe("BT5-101 You Can't Actually Fly?", () => {
+  it("has complete residual-free runtime coverage", () => {
+    expect(runtimeCompiledCard("BT5-101")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("suspends an opponent and trashes their top security when they control a level 7", async () => {
     const s = setupEngine({ 0: { battleArea: ["BT5-046"], hand: [{ card: "BT5-101", as: "option" }] }, 1: { battleArea: [{ card: "BT5-085", as: "level7" }], security: [{ card: "BT5-001", as: "top" }, "BT5-002"] } }, { autoSelectCards: true });
     s.state.memory = 5;

@@ -39,8 +39,7 @@ const module: EffectModule = {
           effectKey: `${cardId}/on-deletion-memory`,
           description: "[On Deletion] If this Digimon has 2 or more colors, gain 2 memory.",
           isInherited: true,
-          canActivate: (ctx) =>
-            (ctx.trigger.deletedEffectiveColorsByInstanceId?.[source.instanceId]?.length ?? 0) >= 2,
+          canActivate: (ctx) => (ctx.trigger.deletedEffectiveColorsByInstanceId?.[source.instanceId]?.length ?? 0) >= 2,
           resolve: async (ctx) => {
             // [On Deletion] is unrestricted-turn (deletion can happen on either player's
             // turn, e.g. this Digimon dying in battle on the opponent's attack), so credit

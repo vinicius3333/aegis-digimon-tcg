@@ -12,7 +12,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // 3. Second WhenAttacking: cost places Tamer only (not Digimon+Tamer).
 // 4. Second WhenAttacking: cost uses SecurityManipulation placeAsSecurity (bottom),
 //    then trashSecurityTop scaled by number of placed cards.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Counter",

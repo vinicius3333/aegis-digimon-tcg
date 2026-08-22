@@ -33,12 +33,15 @@ const compiled: CompiledCard = {
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "colors": [
-                  "Blue"
-                ]
+              "kind": [
+                "Digimon"
+              ],
+              "colors": [
+                "Blue"
+              ],
+              "keywords": [
+                "Decode"
+              ]
               },
               "count": 1
             },

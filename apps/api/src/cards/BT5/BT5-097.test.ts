@@ -2,9 +2,14 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT5-097.js";
 
 describe("BT5-097 Absolute Blast", () => {
+  it("has complete residual-free runtime coverage", () => {
+    expect(runtimeCompiledCard("BT5-097")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("trashes a bottom source, then bottoms an opponent with no sources", async () => {
     const s = setupEngine({ 0: { battleArea: ["BT5-020"], hand: [{ card: "BT5-097", as: "option" }] }, 1: { battleArea: [{ card: "BT5-021", as: "stripped", under: [{ card: "BT5-001", as: "source" }] }], deck: ["BT5-002"] } }, { autoSelectCards: true });
     const returnedTopId = s.perm("stripped").topCard.instanceId;

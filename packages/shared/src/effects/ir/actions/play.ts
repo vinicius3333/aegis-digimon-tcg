@@ -18,6 +18,8 @@ export interface PlayWithoutCostAction extends ActionBase {
    * standalone CostModifier, and floored at 0. Ignored for a free play.
    */
   reduceCostBy?: number;
+  /** Dynamic paid-cost reduction, commonly sourced from a prior action's named count. */
+  reduceCostByScaling?: Scaling;
   /**
    * Source the played cards from the SOURCE permanent's OWN stack, not every permanent's
    * (BT22-007; KB Q4858/Q4859/Q4860 "play 3 or as many as possible"). `target.count` caps how

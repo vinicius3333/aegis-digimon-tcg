@@ -34,7 +34,7 @@ const module: EffectModule = {
           effectKey: `${cardId}/main-grant-delete-and-place`,
           description:
             "[Main] Until the end of your opponent's turn, 1 of their Digimon gains " +
-            "\"[End of Your Turn] Delete this Digimon.\" Then, place this card in the battle area.",
+            '"[End of Your Turn] Delete this Digimon." Then, place this card in the battle area.',
           optional: false,
           resolve: async (ctx) => {
             const opponent = ctx.game.opponentOf(source.ownerSeat);

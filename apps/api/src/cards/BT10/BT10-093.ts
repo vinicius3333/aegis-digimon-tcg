@@ -10,7 +10,7 @@ import { registerCard } from "../../engine/effects/registry.js";
  * BT10-093 — Yuu Amano (BT10, Purple Tamer).
  *
  *
- * Printed text (no errata):
+ * Printed text with the 2022-10-28 erratum applied:
  *   [All Turns][Once Per Turn] When a purple card is placed under this Tamer,
  *   ＜Draw 1＞ and gain 1 memory.
  *   [Your Turn][Once Per Turn] When playing a level 4 or higher Digimon with

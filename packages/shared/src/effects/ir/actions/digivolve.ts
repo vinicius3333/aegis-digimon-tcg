@@ -35,6 +35,8 @@ export interface DigivolveAction extends ActionBase {
   into?: Filter;
   /** Source zone for the card digivolved INTO; the interpreter resolves the pool. */
   from?: ZoneRef[];
+  /** Restrict the source card to the enclosing trigger's loose source instance. */
+  source?: "triggerSource";
   /**
    * A legacy prose-compiler encoding stores the fixed cost as a NUMBER, which the interpreter
    * normalizes to {@link DigivolveAction.costOverride}. New IR should use `true` + `costOverride`.
@@ -104,6 +106,8 @@ export interface PlaceUnderAction extends ActionBase {
    * rather than loose cards from hand or trash.
    */
   targetIsPermanent?: boolean;
+  /** Move every Digimon card from one selected permanent's stack under a selected host. */
+  fromSelectedPermanentDigivolutionCards?: boolean;
   /**
    * The host is itself a prior `Target.bindAs` selection (the second `Mode.Custom` select, whose
    * predicate is `permanent != selectedPermanent`). Used instead of resolving `underFilter`.
@@ -169,6 +173,8 @@ export interface TrashDigivolutionAction extends ActionBase {
    * of a deterministic `fromTop`/bottom slice.
    */
   choose?: boolean;
+  /** Store the number of cards actually trashed for a later named-count scaling. */
+  trackCount?: string;
 }
 
 /**

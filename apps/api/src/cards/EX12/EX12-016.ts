@@ -159,6 +159,33 @@ const compiled: CompiledCard = {
       "isAlternate": true,
       "level": 4
     }
+  ],
+  "assemblyRequirement": [
+    {
+      "materials": [
+        {
+          "count": 1,
+          "nameOrTrait": [
+            {
+              "tokens": [
+                "Agumon",
+                "Greymon"
+              ],
+              "match": "name"
+            },
+            {
+              "tokens": [
+                "ME",
+                "VB"
+              ],
+              "match": "trait"
+            }
+          ],
+          "levelMax": 4
+        }
+      ],
+      "reduceCost": 2
+    }
   ]
 };
 

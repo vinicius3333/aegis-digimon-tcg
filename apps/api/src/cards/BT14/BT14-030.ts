@@ -3,7 +3,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, whenDigivolving } from "../../engine/effects/builders.js";
+import { onPlay, staticModifier, whenDigivolving } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
 
 /**
@@ -23,10 +23,6 @@ import { registerCard } from "../../engine/effects/registry.js";
  *   Q2402/Q2404: Tokens/Mother D-Reaper that cannot actually go to hand still satisfy
  *                the cost condition.
  *
- * Residuals:
- *   [Your Turn][Once Per Turn] whenDigimonReturnsToHand: SubTrigger event is declared in
- *   EffectContext.ts and mapped in interpreter.ts but has no fire seam in primitives.ts —
- *   returnToHand does not fire it. Recovery will be active once the seam is added.
  */
 const cardId = "BT14-030";
 
@@ -137,6 +133,32 @@ const module: EffectModule = {
           optional: true,
           resolve: async (ctx) => {
             await resolveReturnEffect(ctx, source.ownerSeat);
+          },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/return-digimon-recovery`,
+          description: "[Your Turn][Once Per Turn] When another Digimon returns to the hand, ＜Recovery +1＞.",
+          maxPerTurn: 1,
+          when: (ctx) => source.isOnBattleArea() && source.isOwnersTurn() && ctx.game.state.turnSeat === source.ownerSeat,
+          resolve: async (ctx) => {
+            const self = source.permanent();
+            if (self === undefined) return;
+            ctx.fx.subscribeSubTrigger({
+              event: "whenDigimonReturnsToHand",
+              sourcePermanentId: self.permanentId,
+              once: false,
+              oncePerTurnKey: `${cardId}/return-digimon-recovery`,
+              matches: (subCtx) => subCtx.trigger.returnedDigimonToHandSeat === source.ownerSeat,
+              run: async (subCtx) => {
+                await subCtx.fx.recoverToSecurity(source.ownerSeat, 1);
+              },
+            });
           },
         }),
       ];

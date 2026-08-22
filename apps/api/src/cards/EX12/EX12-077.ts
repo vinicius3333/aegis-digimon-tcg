@@ -8,315 +8,281 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   or lower card"). Each effect also applies to Option cards ("play or use"), so
 //   the filter must not restrict to Digimon only — no kind filter is correct.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "SecurityAttack",
-          "amount": 1,
-          "raw": "＜Security Attack +1＞"
-        }
-      ]
+          keyword: "SecurityAttack",
+          amount: 1,
+          raw: "＜Security Attack +1＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Gammamon"
-                    ],
-                    "match": "text"
+                    tokens: ["Gammamon"],
+                    match: "text",
                   },
                   {
-                    "tokens": [
-                      "VB"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["VB"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 2,
-              "from": [
-                "hand",
-                "trash"
-              ]
+              count: 2,
+              from: ["hand", "trash"],
             },
-            "destination": "digivolutionStack",
-            "position": "choice",
-            "host": "target",
-            "underFilter": {
-              "controller": "mine",
-              "kind": ["Digimon"]
+            destination: "digivolutionStack",
+            position: "choice",
+            host: "target",
+            underFilter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "raw": "By placing 2 cards with [Gammamon] in their texts or the [VB] trait from your hand or trash as 1 of your Digimon's top or bottom digivolution cards"
-          }
-        }
-      ]
+            raw: "By placing 2 cards with [Gammamon] in their texts or the [VB] trait from your hand or trash as 1 of your Digimon's top or bottom digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ]
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon", "Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Gammamon"
-                    ],
-                    "match": "text"
+                    tokens: ["Gammamon"],
+                    match: "text",
                   },
                   {
-                    "tokens": [
-                      "VB"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["VB"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 2,
-              "from": [
-                "hand",
-                "trash"
-              ]
+              count: 2,
+              from: ["hand", "trash"],
             },
-            "destination": "digivolutionStack",
-            "position": "choice",
-            "host": "target",
-            "underFilter": {
-              "controller": "mine",
-              "kind": ["Digimon"]
+            destination: "digivolutionStack",
+            position: "choice",
+            host: "target",
+            underFilter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "raw": "By placing 2 cards with [Gammamon] in their texts or the [VB] trait from your hand or trash as 1 of your Digimon's top or bottom digivolution cards"
-          }
-        }
-      ]
+            raw: "By placing 2 cards with [Gammamon] in their texts or the [VB] trait from your hand or trash as 1 of your Digimon's top or bottom digivolution cards",
+          },
+        },
+      ],
     },
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Gammamon"
-                  ],
-                  "match": "text"
+                  tokens: ["Gammamon"],
+                  match: "text",
                 },
                 {
-                  "tokens": [
-                    "VB"
-                  ],
-                  "match": "trait"
-                }
+                  tokens: ["VB"],
+                  match: "trait",
+                },
               ],
-              "playCostLte": 10
+              playCostLte: 10,
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "digivolutionCards"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+          from: ["digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Gammamon"
-                  ],
-                  "match": "text"
+                  tokens: ["Gammamon"],
+                  match: "text",
                 },
                 {
-                  "tokens": [
-                    "VB"
-                  ],
-                  "match": "trait"
-                }
+                  tokens: ["VB"],
+                  match: "trait",
+                },
               ],
-              "playCostLte": 10
+              playCostLte: 10,
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "digivolutionCards"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+          from: ["digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "WhenAttacking",
-      "actions": [
+      trigger: "WhenAttacking",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Gammamon"
-                  ],
-                  "match": "text"
+                  tokens: ["Gammamon"],
+                  match: "text",
                 },
                 {
-                  "tokens": [
-                    "VB"
-                  ],
-                  "match": "trait"
-                }
+                  tokens: ["VB"],
+                  match: "trait",
+                },
               ],
-              "playCostLte": 10
+              playCostLte: 10,
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "digivolutionCards"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+          from: ["digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
     },
     {
-      "trigger": "Counter",
-      "actions": [
+      trigger: "Counter",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Gammamon"
-                  ],
-                  "match": "text"
+                  tokens: ["Gammamon"],
+                  match: "text",
                 },
                 {
-                  "tokens": [
-                    "VB"
-                  ],
-                  "match": "trait"
-                }
+                  tokens: ["VB"],
+                  match: "trait",
+                },
               ],
-              "playCostLte": 10
+              playCostLte: 10,
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "digivolutionCards"
-          ],
-          "payCost": false,
-          "optional": true
-        }
+          from: ["digivolutionCards"],
+          payCost: false,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn",
-      "sharedUseKey": "ir-shared-0"
-    }
+      frequency: "OncePerTurn",
+      sharedUseKey: "ir-shared-0",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "dnaDigivolveRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "cost": 0,
-      "materials": [
-        {
-          "color": "Red",
-          "level": 6
-        },
-        {
-          "color": "Blue",
-          "level": 6
-        }
-      ]
+      level: 6,
+      texts: ["Gammamon"],
+      cost: 5,
+      isAlternate: true,
     },
     {
-      "cost": 0,
-      "materials": [
+      level: 6,
+      traits: ["VB"],
+      cost: 5,
+      isAlternate: true,
+    },
+  ],
+  dnaDigivolveRequirement: [
+    {
+      cost: 0,
+      materials: [
         {
-          "color": "Black",
-          "level": 6
+          color: "Red",
+          level: 6,
         },
         {
-          "color": "Purple",
-          "level": 6
-        }
-      ]
-    }
-  ]
+          color: "Blue",
+          level: 6,
+        },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        {
+          color: "Black",
+          level: 6,
+        },
+        {
+          color: "Purple",
+          level: 6,
+        },
+      ],
+    },
+  ],
 };
 
 registerIrCard("EX12-077", compiled);

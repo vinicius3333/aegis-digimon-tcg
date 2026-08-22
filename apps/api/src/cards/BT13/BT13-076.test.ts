@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-076.js";
 
 describe("BT13-076 KingEtemon", () => {
@@ -23,5 +26,14 @@ describe("BT13-076 KingEtemon", () => {
       expect.objectContaining({ kind: "GainKeyword", keyword: expect.objectContaining({ keyword: "Blocker" }), duration: "permanent" }),
       expect.objectContaining({ kind: "Restrict", restriction: "cannotReturnToHandOrDeck", duration: "permanent" }),
     ]));
+  });
+
+  it("reduces an opposing Digimon when your Etemon is deleted", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-076", as: "king" }, { card: "BT11-041", as: "etemon" }] }, 1: { battleArea: [{ card: "BT1-015", as: "target" }] } });
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("etemon").permanentId]);
+
+    expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-1);
   });
 });

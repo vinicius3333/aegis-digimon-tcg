@@ -49,6 +49,8 @@ export interface RedirectAttackAction extends ActionBase {
   kind: "RedirectAttack";
   /** The Digimon to be attacked instead. */
   target: Target;
+  /** Also allow the defending player as a legal redirected target. */
+  includePlayer?: boolean;
   /**
    * `"controller"` (the default, and what every existing RedirectAttack card relies on) lets the
    * source's controller pick. `"opponent"` lets the ATTACKED player choose (BT4-075).

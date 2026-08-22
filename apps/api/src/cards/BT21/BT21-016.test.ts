@@ -15,4 +15,41 @@ describe("BT21-016 compiled implementation", () => {
       for (const action of effect.actions ?? []) expect(typeof action.kind).toBe("string");
     }
   });
+
+  it("preserves Raid, Piercing, optional On Deletion placement followed by Save, and DigiXros", () => {
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "Raid", raw: "＜Raid＞" }] }),
+    );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }] }),
+    );
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "OnDeletion",
+        actions: [
+          expect.objectContaining({
+            kind: "PlaceUnder",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [{ tokens: ["Xros Heart", "Blue Flare", "Hero"], match: "trait" }],
+              },
+              count: 1,
+              from: ["hand", "trash"],
+            },
+            underFilter: { controller: "mine", kind: ["Tamer"], excludeToken: true },
+            optional: true,
+            abortOnDecline: true,
+          }),
+          {
+            kind: "PlaceUnder",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            underFilter: { controller: "mine", kind: ["Tamer"], excludeToken: true },
+          },
+        ],
+      }),
+    );
+    expect(compiled.digiXrosRequirement).toEqual([{ materials: [{ traits: ["Xros Heart"] }], count: 1 }]);
+  });
 });

@@ -1,7 +1,7 @@
 import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import { onPlay, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const cardId = "BT12-009";
 const hasTrait = (def: { types?: string[]; forms?: string[]; attributes?: string[] }, names: string[]): boolean => {
@@ -13,5 +13,6 @@ const module: EffectModule = { cardId, effectsForTiming(timing, source) {
   if (timing === EffectTiming.None) return [staticModifier({ source, effectKey: `${cardId}/inherited-trait-dp`, description: "[Your Turn] Hybrid/Ten Warriors host gets +2000 DP.", isInherited: true, when: (ctx) => { const top = source.permanent()?.topCard; return source.isOwnersTurn() && top !== undefined && hasTrait(ctx.game.definitionOf(top), ["Hybrid", "Ten Warriors"]); }, resolve: async (ctx) => { const host = source.permanent(); if (host !== undefined) ctx.fx.modifyDP(host.permanentId, 2000, EffectDuration.Permanent); } })];
   return [];
 } };
-registerCard(module);
-export default module;
+const registered = registerIrCard(cardId, { effects: [], coverage: "full", residual: [] });
+registered.effectsForTiming = module.effectsForTiming;
+export default registered;

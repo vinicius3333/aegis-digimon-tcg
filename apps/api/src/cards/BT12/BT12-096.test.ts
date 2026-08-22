@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import "./BT12-096.js";
 
 describe("BT12-096 handwritten module", () => {
@@ -17,5 +19,32 @@ describe("BT12-096 handwritten module", () => {
       permanent: () => undefined,
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnStartTurn, source).length).toBeGreaterThan(0);
+    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+    expect(module!.effectsForTiming(EffectTiming.None, source).length).toBeGreaterThan(0);
+  });
+
+  it("sets memory to 3 at the start of your turn when memory is 2 or less", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT12-096", as: "tagiru" }] } });
+    await s.ready();
+    s.state.memory = 2;
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("tagiru"));
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("does not reset memory above 2", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT12-096", as: "tagiru" }] } });
+    await s.ready();
+    s.state.memory = 3;
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("tagiru"));
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("plays Tagiru from security without paying its memory cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT12-096", as: "tagiru", faceUp: true }] } });
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("tagiru"));
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT12-096")).toBe(true);
   });
 });

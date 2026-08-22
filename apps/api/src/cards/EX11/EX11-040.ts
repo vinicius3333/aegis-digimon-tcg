@@ -13,6 +13,10 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   - whenLinked SubTrigger: inner action was PlayWithoutCost (correct here for Unchained)
 //   - "if you have 1 or fewer Tamers" encoded as raw condition (no built-in atMost-count)
 const compiled: CompiledCard = {
+  "digivolutionRequirement": [
+    { "level": 3, "cost": 2, "isAlternate": true },
+    { "names": ["Maquinamon"], "cost": 2, "isAlternate": true }
+  ],
   "effects": [
     {
       "trigger": "OnPlay",
@@ -151,15 +155,6 @@ const compiled: CompiledCard = {
   ],
   "coverage": "full",
   "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "Maquinamon"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
 };
 
 registerIrCard("EX11-040", compiled);

@@ -7,97 +7,97 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // play 1 Wicked God Digimon from hand/trash at cost = (leaving Digimon's playCost + 1).
 // Player may pick 1 Millenniummon to base cost on when multiple would leave simultaneously (Q&A Q3175).
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "PlayFromZone",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [
+          kind: "PlayFromZone",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
                 {
-                  "tokens": ["Composite"],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Composite"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": ["trash"],
-          "costReduction": 4,
-          "optional": true
+          from: ["trash"],
+          costReduction: 4,
+          optional: true,
         },
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
-      ]
+          kind: "PlaceInBattleAreaSelf",
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenDigimonWouldLeave",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": ["Digimon"],
-            "nameOrTrait": [
+          kind: "SubTrigger",
+          event: "whenDigimonWouldLeave",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": ["Millenniummon"],
-                "match": "name"
-              }
-            ]
-          },
-          "pickOne": true,
-          "actions": [
-            {
-              "kind": "PlayFromZone",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": ["Digimon"],
-                  "nameOrTrait": [
-                    {
-                      "tokens": ["Wicked God"],
-                      "match": "trait"
-                    }
-                  ],
-                  "playCost": {
-                    "op": "eq",
-                    "relativeToLeavingDigimon": 1
-                  }
-                },
-                "count": 1
+                tokens: ["Millenniummon"],
+                match: "name",
               },
-              "from": ["hand", "trash"],
-              "payCost": false,
-              "optional": true
-            }
-          ]
-        }
+            ],
+          },
+          pickOne: true,
+          actions: [
+            {
+              kind: "PlayFromZone",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Wicked God"],
+                      match: "trait",
+                    },
+                  ],
+                  playCost: {
+                    op: "eq",
+                    relativeToLeavingDigimon: 1,
+                  },
+                },
+                count: 1,
+              },
+              from: ["hand", "trash"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
       ],
-      "keywords": [
+      keywords: [
         {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ]
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlaceInBattleAreaSelf"
-        }
+          kind: "PlaceInBattleAreaSelf",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT19-099", compiled);

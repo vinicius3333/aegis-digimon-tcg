@@ -482,6 +482,8 @@ export class GameEngine {
               deletedPermanentId: trigger.deletedPermanentId,
               deletedTopCardId: trigger.deletedTopCardId,
               deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
+              deletedByDpZero: trigger.deletedByDpZero,
+              deletedByDpZeroInstanceIds: trigger.deletedByDpZeroInstanceIds,
               deletedInstanceIds: trigger.deletedInstanceIds,
               deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
               battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
@@ -499,6 +501,8 @@ export class GameEngine {
           deletedPermanentId: trigger.deletedPermanentId,
           deletedTopCardId: trigger.deletedTopCardId,
           deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
+          deletedByDpZero: trigger.deletedByDpZero,
+          deletedByDpZeroInstanceIds: trigger.deletedByDpZeroInstanceIds,
           deletedInstanceIds: trigger.deletedInstanceIds,
           deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
           battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
@@ -737,6 +741,7 @@ export class GameEngine {
       (permanentId, printedTraits) => effectiveTraits(this.continuous, permanentId, printedTraits),
       (permanentId, printedKinds) => effectiveKinds(this.continuous, permanentId, printedKinds),
       (seat, base, evolving) => this.matchBaseGrantedDigivolve(seat, base, evolving),
+      (permanentId) => this.modifiers.rawDp(this.state, permanentId),
     );
     return this.gameAccess;
   }
@@ -814,6 +819,10 @@ export class GameEngine {
         permanentById: (id) => this.access.permanentById(id),
         buildContext: (srcPerm, leavingId) =>
           this.buildEffectContext(this.cardSourceOf(srcPerm.topCard!), { deletedPermanentId: leavingId }),
+        buildInstanceContext: (sourceInstanceId, leavingId) => {
+          const instance = this.findLooseInstance(sourceInstanceId);
+          return instance === undefined ? undefined : this.buildEffectContext(this.cardSourceOf(instance), { deletedPermanentId: leavingId });
+        },
         turnSeat: this.state.turnSeat,
         // Once-per-turn prevention ledger (＜Barrier＞), keyed in the shared per-turn UseTracker
         // (reset at each turn start alongside every other Once-Per-Turn limit).
@@ -1842,6 +1851,10 @@ export class GameEngine {
             // Preserve the exact card that installed the watcher. This matters for inherited
             // effects whose source card is later trashed from the host's stack: the body still
             // means "this card", not the host's current top card.
+            if (sub.sourceInstanceId !== undefined) {
+              const loose = this.findLooseInstance(sub.sourceInstanceId);
+              if (loose !== undefined) return this.buildEffectContext(this.cardSourceOf(loose), payload);
+            }
             if (sub.sourcePermanentId !== undefined) {
               const srcPerm = this.access.permanentById(sub.sourcePermanentId);
               if (srcPerm?.topCard === undefined) return undefined;
@@ -1864,7 +1877,10 @@ export class GameEngine {
           // ID of the outermost effect resolution currently in progress, so an `oncePerTiming`
           // watcher dedupes across multiple plays/events from ONE resolving effect (KB Q2814)
           // while still firing once per genuinely separate top-level resolution.
-          this.activeWindowToken,
+          this.activeWindowToken ??
+            (event === "whenAttacking" || event === "whenOpponentAttacks"
+              ? payload.attackSequence
+              : undefined),
           // `oncePerTurnKey` ledger: reuses the SAME per-turn UseTracker the kernel's
           // maxPerTurn and the leave-prevention "replacement" keys use, namespaced with
           // "subtrigger" so the three ledgers never collide. Resets with everything else at
@@ -1885,6 +1901,10 @@ export class GameEngine {
   }
 
   private buildSubTriggerContext(sub: SubTriggerSubscription, payload: TriggerInfo): EffectContext | undefined {
+    if (sub.sourceInstanceId !== undefined) {
+      const loose = this.findLooseInstance(sub.sourceInstanceId);
+      if (loose !== undefined) return this.buildEffectContext(this.cardSourceOf(loose), payload);
+    }
     if (sub.sourcePermanentId !== undefined) {
       const srcPerm = this.access.permanentById(sub.sourcePermanentId);
       if (srcPerm?.topCard === undefined) return undefined;
@@ -3423,11 +3443,11 @@ export class GameEngine {
       },
       securityCardDp: (card) => {
         const owner = card.ownerSeat;
-        return (lookupDefinition(card.cardId)?.dp ?? 0) + this.securityDp.deltaFor(owner);
+        const definition = lookupDefinition(card.cardId);
+        return (definition?.dp ?? 0) + this.securityDp.deltaForCard(owner, this.access.isDigimonCard(card));
       },
       isDigimon: (card) => {
         const result = this.access.isDigimonCard(card);
-        log("[securityCheck]", card.cardId, `isDigimon=${result} kinds=`, lookupDefinition(card.cardId)?.kinds);
         return result;
       },
       deletePermanents: async (permanentIds) => {
@@ -3474,7 +3494,7 @@ export class GameEngine {
   ): Promise<boolean> {
     const source = this.cardSourceOf(card);
     const securityEffects = effectsOf(EffectTiming.SecuritySkill, source).filter((effect) => {
-      const ctx = this.buildEffectContext(source, { securityWasFaceUp });
+      const ctx = this.buildEffectContext(source, { securityWasFaceUp, securityInstanceId: card.instanceId });
       return canTrigger(effect, ctx, this.tracker);
     });
     log(
@@ -3496,7 +3516,7 @@ export class GameEngine {
     }
 
     for (const effect of securityEffects) {
-      const ctx = this.buildEffectContext(source, { securityWasFaceUp });
+      const ctx = this.buildEffectContext(source, { securityWasFaceUp, securityInstanceId: card.instanceId });
       if (!canActivate(effect, ctx, this.tracker)) {
         log("[resolveSecurityEffect]", card.cardId, `canActivate=false for ${effect.effectKey}, skipping`);
         continue;

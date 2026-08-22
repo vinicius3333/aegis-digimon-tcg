@@ -71,13 +71,14 @@ describe("BT5-058 Argomon", () => {
   it("prevents all opposing Tamers from unsuspending while it is in play", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT5-058", as: "argomon" }] },
-      1: { battleArea: [{ card: "BT1-085", as: "a", suspended: true }, { card: "BT1-086", as: "b", suspended: true }] },
+      1: { battleArea: [{ card: "BT1-085", as: "a", suspended: true }, { card: "BT1-086", as: "b", suspended: true }, { card: "BT2-047", as: "digimon", suspended: true }] },
     });
 
     await s.engine.recomputeContinuousEffects();
 
     expect(observe(s.engine).isRestricted(s.perm("a"), "unsuspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("b"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("digimon"), "unsuspend")).toBe(false);
     expect(s.perm("a").isSuspended).toBe(true);
     expect(s.perm("b").isSuspended).toBe(true);
   });

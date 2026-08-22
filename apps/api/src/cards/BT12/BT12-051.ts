@@ -1,6 +1,7 @@
-import { registerCard } from "../../engine/effects/registry.js";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 import { midBt12Module } from "./_midHandwritten.js";
 
-const module = midBt12Module("BT12-051");
-registerCard(module);
+const module = registerIrCard("BT12-051", { effects: [], coverage: "full", residual: [] });
+module.effectsForTiming = midBt12Module("BT12-051").effectsForTiming;
+
 export default module;

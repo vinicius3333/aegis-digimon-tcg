@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-031.js";
 
 describe("BT13-031 MirageGaogamon", () => {
@@ -8,5 +11,19 @@ describe("BT13-031 MirageGaogamon", () => {
     expect(compiled.effects[0]).toMatchObject({ trigger: "Static", keywords: [expect.objectContaining({ keyword: "Evade" })] });
     expect(compiled.effects[1]).toMatchObject({ trigger: "WhenDigivolving", actions: [expect.objectContaining({ kind: "Return", to: "hand", target: expect.objectContaining({ filter: expect.objectContaining({ kind: ["Tamer"] }) }) })] });
     expect(compiled.effects[2]).toMatchObject({ trigger: "AllTurns", frequency: "OncePerTurn", actions: [expect.objectContaining({ kind: "SubTrigger", event: "whenEffectAddsToOpponentHand" })] });
+  });
+
+  it("plays Thomas when an effect adds a card to the opponent's hand", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-031", as: "mirage" }], hand: [{ card: "BT13-097", as: "thomas" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-097"), 3000);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-097")).toBe(true);
+  });
+
+  it("exposes Evade as an active keyword", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-031", as: "mirage" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("mirage"), "Evade")).toBe(true);
   });
 });

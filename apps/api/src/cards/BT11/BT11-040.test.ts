@@ -1,7 +1,8 @@
 import { describe, it, expect, vi } from "vitest";
 import type { GameEngine } from "../../engine/GameEngine.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "../index.js";
+import "./BT11-040.js";
+import "./BT11-106.js";
 
 /**
  * Q1g repro/diagnosis. Found incidentally in Q1f: deleting BT11-040 (Sukamon) after it received

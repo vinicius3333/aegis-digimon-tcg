@@ -95,17 +95,10 @@ const compiled: CompiledCard = {
           "target": {
             "filter": {
               "controller": "mine",
-              "kind": [
-                "Digimon",
-                "Tamer"
-              ],
-              "colors": [
-                "Red"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 5000
-              }
+              "or": [
+                { "kind": ["Digimon"], "colors": ["Red"], "dp": { "op": "lte", "value": 5000 } },
+                { "kind": ["Tamer"], "colors": ["Red"] }
+              ]
             },
             "count": 1
           },

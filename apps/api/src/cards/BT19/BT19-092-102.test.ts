@@ -19,12 +19,8 @@ describe("BT19-092 through BT19-102 audit contract", () => {
       "BT19-098", "BT19-099", "BT19-100", "BT19-101", "BT19-102",
     ]) {
       const compiled = runtimeCompiledCard(id);
-      expect(compiled?.coverage, id).toBe(id === "BT19-098" ? "partial" : "full");
-      if (id === "BT19-098") {
-        expect(compiled?.residual).toHaveLength(2);
-      } else {
-        expect(compiled?.residual, id).toEqual([]);
-      }
+      expect(compiled?.coverage, id).toBe("full");
+      expect(compiled?.residual, id).toEqual([]);
     }
   });
 

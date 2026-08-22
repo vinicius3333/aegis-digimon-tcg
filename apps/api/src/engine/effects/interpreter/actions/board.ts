@@ -135,6 +135,9 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
           duration,
           action.continuous === undefined ? undefined : { continuous: action.continuous },
         );
+        for (const keyword of action.alsoGainKeywords ?? []) {
+          ctx.fx.grantKeyword(id, keyword.keyword, duration, keyword.amount);
+        }
       }
       if (ids.length > 0 && action.target.bindAs !== undefined) {
         ctx.selections ??= new Map();
@@ -161,6 +164,15 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       }
       return false;
     }
+    case "AddDPFromTrashedCard": {
+      const amount = (ctx.lastTrashedCards ?? []).reduce((total, card) => total + card.dp, 0);
+      if (amount === 0) return false;
+      const targetIds = await resolvePermanentTargets(ctx, action.target);
+      for (const id of targetIds) {
+        ctx.fx.modifyDP(id, amount, toDuration(action.duration), { sourceInstanceId: ctx.source.instanceId });
+      }
+      return false;
+    }
     case "SetBaseDP": {
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
@@ -174,8 +186,16 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         return false;
       }
       const kw = keyword.keyword;
-      const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
+      if (action.playerWide === true) {
+        const seat =
+          action.target.filter.controller === "opponent"
+            ? ctx.game.opponentOf(ctx.source.ownerSeat)
+            : ctx.source.ownerSeat;
+        ctx.fx.grantPlayerKeyword(seat, kw, duration, keyword.amount);
+        return false;
+      }
+      const ids = await resolvePermanentTargets(ctx, action.target);
       // ＜Piercing＞ has a dedicated pierce store; every other CONTINUOUS keyword
       // ability is recorded in the continuous-effect ledger (real server state the
       // combat / keyword-abilities subsystem reads). ACTION-type keywords (those that
@@ -217,6 +237,24 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
           return false;
         }
         unsupported(ctx, action, `grant action-keyword ＜${kw}＞ needs its verb wired`);
+        return false;
+      }
+      // A Security effect that says "all of your Digimon gain ..." also applies
+      // to Digimon played after the security effect resolves. Model that as a
+      // player-scoped grant, rather than snapshotting only the permanents that
+      // existed when the security card was revealed (ST1-13 / KB Q607).
+      if (
+        ((action as Action & { playerScoped?: boolean }).playerScoped === true ||
+          ctx.trigger.securityInstanceId !== undefined ||
+          (ctx.activeTiming === "Security" &&
+            (action.target?.filter.controller === "mine" || action.target?.filter.controllerDefault === "mine"))) &&
+        kw === "SecurityAttack" &&
+        action.target?.count === "all" &&
+        action.target.filter.kind?.includes("Digimon")
+      ) {
+        const playerScopedController = (action as Action & { playerScopedController?: "mine" | "opponent" }).playerScopedController;
+        const playerSeat = playerScopedController === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
+        ctx.fx.grantPlayerKeyword(playerSeat, kw, duration, keyword.amount);
         return false;
       }
       // `count` grants the keyword N times to each target (default 1). Each call to

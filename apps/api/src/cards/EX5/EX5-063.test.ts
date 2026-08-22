@@ -20,8 +20,6 @@ import "../index.js";
  * Turns] clause should observe BOTH deletions in the single OnDestroyedAnyone window
  * they open and gain 2 memory.
  *
- * FAILS-WHEN-REVERTED: reverting the [All Turns] clause to its prior `canActivate: () =>
- * false` marker means memory stays at the post-play-cost baseline instead of gaining 2.
  */
 describe("EX5-063 [All Turns] gain 1 memory per opponent Digimon deleted (KB Q6037/Q6038)", () => {
   it("its own [On Play] deletes 2 opponent Digimon in one batch -> +2 memory", async () => {
@@ -123,8 +121,7 @@ describe("EX5-063 [All Turns] gain 1 memory per opponent Digimon deleted (KB Q60
     // turnSeat, so reading a seat's own-perspective value must account for whose turn
     // it is -- asserting on the raw sign of state.memory would silently pass for
     // whichever seat happens to be turnSeat, which is exactly the bug being caught here.
-    const memoryFor = (seat: 0 | 1): number =>
-      (seat === s.state.turnSeat ? s.state.memory : -s.state.memory) || 0; // normalize -0 -> 0
+    const memoryFor = (seat: 0 | 1): number => (seat === s.state.turnSeat ? s.state.memory : -s.state.memory) || 0; // normalize -0 -> 0
     expect(memoryFor(0)).toBe(0);
     expect(memoryFor(1)).toBe(0);
 

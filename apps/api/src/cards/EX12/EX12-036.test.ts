@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "../index.js";
 
 /**
@@ -26,11 +28,102 @@ import "../index.js";
  * bare `"activate"` string, and `hasRestriction(..., "cannotActivateWhenDigivolving")`
  * goes back to false even right after the watcher fires.
  */
-describe("EX12-036 [All Turns] played-Digimon watcher grants cannotActivateWhenDigivolving", () => {
+describe("EX12-036 Ryugumon", () => {
+  it("maps the evolution, keywords, shared once-per-turn timing, and both printed restrictions", () => {
+    const compiled = registeredCompiledCards.get("EX12-036")!;
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 5, traits: ["Aquatic", "Shambala"], cost: 3, isAlternate: true },
+    ]);
+    expect(compiled.effects).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "Barrier", raw: "＜Barrier＞" }] }),
+        expect.objectContaining({ trigger: "Static", keywords: [{ keyword: "Evade", raw: "＜Evade＞" }] }),
+        expect.objectContaining({
+          trigger: "Static",
+          keywords: [expect.objectContaining({ keyword: "Decode" })],
+        }),
+      ]),
+    );
+    for (const trigger of ["OnPlay", "WhenDigivolving", "WhenAttacking"]) {
+      expect(compiled.effects.find((effect) => effect.trigger === trigger)).toMatchObject({
+        frequency: "OncePerTurn",
+        sharedUseKey: "ir-shared-0",
+        actions: [
+          {
+            kind: "Unsuspend",
+            optional: true,
+            target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+            cost: {
+              kind: "place",
+              destination: "digivolutionStack",
+              position: "bottom",
+              host: "self",
+              target: {
+                filter: {
+                  zone: "hand",
+                  controller: "mine",
+                  levelComparison: { op: "lte", value: 6 },
+                  nameOrTrait: [
+                    { tokens: ["Aqua", "Sea Animal"], match: "trait" },
+                    { tokens: ["TB"], match: "trait" },
+                  ],
+                },
+                count: 1,
+                from: ["hand"],
+              },
+            },
+          },
+        ],
+      });
+    }
+    expect(compiled.effects.find((effect) => effect.trigger === "Rule")).toMatchObject({
+      actions: [{ kind: "GrantStatic", grant: "trait", tokens: ["Aquatic"] }],
+    });
+    const watcher = compiled.effects.find((effect) => effect.trigger === "AllTurns")!;
+    expect(watcher.frequency).toBe("OncePerTurn");
+    expect(watcher).toMatchObject({
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          actions: [
+            { kind: "Restrict", restriction: "suspend", duration: "untilOpponentTurnEnd" },
+            {
+              kind: "Restrict",
+              restriction: "cannotActivateWhenDigivolving",
+              duration: "untilOpponentTurnEnd",
+              target: { sameTarget: true },
+            },
+          ],
+        },
+        {
+          kind: "SubTrigger",
+          event: "whenOneOfYoursDigivolves",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          actions: [
+            { kind: "Restrict", restriction: "suspend", duration: "untilOpponentTurnEnd" },
+            {
+              kind: "Restrict",
+              restriction: "cannotActivateWhenDigivolving",
+              duration: "untilOpponentTurnEnd",
+              target: { sameTarget: true },
+            },
+          ],
+        },
+      ],
+    });
+  });
+
   it("restricts the chosen opponent Digimon from activating [When Digivolving] effects", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX12-036", as: "src" }, { card: "BT1-009", dp: 2000, as: "played" }] },
+        0: {
+          battleArea: [
+            { card: "EX12-036", as: "src" },
+            { card: "BT1-009", dp: 2000, as: "played" },
+          ],
+        },
         1: { battleArea: [{ card: "BT1-009", dp: 2000, as: "opp" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -48,13 +141,43 @@ describe("EX12-036 [All Turns] played-Digimon watcher grants cannotActivateWhenD
         continuous: { hasRestriction(id: string, restriction: string): boolean };
       }
     ).continuous;
+    expect(continuous.hasRestriction(opp.permanentId, "suspend")).toBe(true);
     expect(continuous.hasRestriction(opp.permanentId, "cannotActivateWhenDigivolving")).toBe(true);
+  });
+
+  it("fires the same restrictions when one of your Digimon digivolves", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-036", as: "src" },
+            { card: "BT1-009", as: "evolving" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", dp: 2000, as: "opp" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const opp = s.perm("opp");
+    await s.engine.recomputeContinuousEffects();
+    await (
+      s.engine as unknown as { fireSubTrigger: (event: string, payload: unknown) => Promise<void> }
+    ).fireSubTrigger("whenOneOfYoursDigivolves", { subjectPermanentId: s.perm("evolving").permanentId });
+    await settle(() => false, 60);
+
+    expect(observe(s.engine).isRestricted(opp, "suspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(opp, "cannotActivateWhenDigivolving")).toBe(true);
   });
 
   it("negative control: the restriction is never granted without the watcher firing", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX12-036", as: "src" }, { card: "BT1-009", dp: 2000, as: "played" }] },
+        0: {
+          battleArea: [
+            { card: "EX12-036", as: "src" },
+            { card: "BT1-009", dp: 2000, as: "played" },
+          ],
+        },
         1: { battleArea: [{ card: "BT1-009", dp: 2000, as: "opp" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -67,6 +190,7 @@ describe("EX12-036 [All Turns] played-Digimon watcher grants cannotActivateWhenD
         continuous: { hasRestriction(id: string, restriction: string): boolean };
       }
     ).continuous;
+    expect(continuous.hasRestriction(opp.permanentId, "suspend")).toBe(false);
     expect(continuous.hasRestriction(opp.permanentId, "cannotActivateWhenDigivolving")).toBe(false);
   });
 });

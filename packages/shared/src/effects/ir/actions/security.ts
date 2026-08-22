@@ -81,6 +81,8 @@ export interface SecurityManipulationAction extends ActionBase {
   leaveCount?: number;
   /** For trashTop: the controller picks any amount from 0 to the computed maximum. */
   upTo?: boolean;
+  /** For trashTop: the effect controller chooses the top or bottom card. */
+  chooseTopOrBottom?: boolean;
   /** For placeAsSecurity: which cards are placed. */
   source?: Target | "securityTop" | "deck" | "deckTop" | "revealed" | "reveal" | "rest" | "hand" | "handOrTrash";
   /** For placeAsSecurity: which zone the placed cards come from. */
@@ -153,6 +155,8 @@ export interface RecoverByTrashingMostSecurityAction extends ActionBase {
 export interface RecoverAction extends ActionBase {
   kind: "Recover";
   amount?: number;
+  /** Repeat recovery until this many security cards exist or the deck is empty. */
+  untilSecurityCount?: number;
 }
 
 /**

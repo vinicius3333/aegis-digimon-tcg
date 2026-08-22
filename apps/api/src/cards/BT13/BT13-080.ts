@@ -14,7 +14,15 @@ export const compiled: CompiledCard = {
           "kind": "Replacement",
           "event": "wouldBePlayed",
           "sourceFilter": {
-            "controllerDefault": "mine"
+            "controllerDefault": "mine",
+            "nameOrTrait": [
+              {
+                "tokens": [
+                  "ProtoGizmon"
+                ],
+                "match": "name"
+              }
+            ]
           },
           "actions": [
             {

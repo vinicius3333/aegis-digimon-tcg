@@ -11,7 +11,7 @@ describe("BT13-097 Thomas H. Norstein", () => {
     expect(watcher).toMatchObject({ kind: "SubTrigger", event: "whenAttacking", sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ match: "name", tokens: ["Gaomon", "GaoGamon"] }] } });
     expect(watcher.actions).toEqual([
       expect.objectContaining({ kind: "Draw", controller: "mine", amount: 1, cost: expect.objectContaining({ kind: "suspend" }) }),
-      { kind: "Draw", controller: "opponent", amount: 1 },
+      expect.objectContaining({ kind: "Draw", controller: "opponent", amount: 1, condition: expect.objectContaining({ kind: "ifThisEffectActed" }) }),
     ]);
   });
 });

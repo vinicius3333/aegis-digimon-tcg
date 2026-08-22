@@ -179,7 +179,11 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
             if (self === undefined || self.permanentId !== cand.hostPermanentId) continue;
           } else {
             const host = ctx.game.permanentById(cand.hostPermanentId);
-            if (host && !permanentMatchesFilter(ctx, host, hostFilter, ctx.source)) continue;
+            const boundRef = (hostFilter as { boundRef?: string }).boundRef;
+            if (boundRef !== undefined) {
+              const selectedHost = ctx.selections?.get(boundRef);
+              if (selectedHost === undefined || selectedHost !== cand.hostPermanentId) continue;
+            } else if (host && !permanentMatchesFilter(ctx, host, hostFilter, ctx.source)) continue;
           }
         }
         if (cand.hostPermanentId && target.filter.position === "top") {

@@ -12,15 +12,22 @@ function hasReptileOrDragonkin(def: CardDefinition): boolean {
   return (def.types ?? []).some((t) => t === "Reptile" || t === "Dragonkin");
 }
 
-async function subTriggerAction(subCtx: Parameters<NonNullable<Parameters<typeof turnTiming>[0]["resolve"]>>[0], source: CardSource): Promise<void> {
+function isProgressDigimon(def: CardDefinition): boolean {
+  return isDigimon(def) && (def.types ?? []).includes("Progress");
+}
+
+async function subTriggerAction(
+  subCtx: Parameters<NonNullable<Parameters<typeof turnTiming>[0]["resolve"]>>[0],
+  source: CardSource,
+): Promise<void> {
   const selfPerm = subCtx.source.permanent();
   if (selfPerm === undefined || selfPerm.isSuspended) return;
   const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
   if (!paid) return;
-  subCtx.fx.draw(source.ownerSeat, 1);
+  await subCtx.fx.draw(source.ownerSeat, 1);
   const owner = subCtx.game.player(source.ownerSeat);
   const progressDigimon = Array.from(owner.battleArea)
-    .filter((p) => p.topCard !== undefined && isDigimon(subCtx.game.definitionOf(p.topCard)))
+    .filter((p) => p.topCard !== undefined && isProgressDigimon(subCtx.game.definitionOf(p.topCard)))
     .map((p) => p.permanentId);
   if (progressDigimon.length > 0) {
     const chosen = await subCtx.ask.chooseTargets(subCtx, {

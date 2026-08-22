@@ -6,6 +6,10 @@ const modules = new Map<string, EffectModule>();
  * Register a card's EffectModule. Each card file calls this as an import
  * side-effect (card-module contract). Throws on a duplicate cardId so a
  * double-port fails loudly at boot.
+ *
+ * @deprecated Use `registerIrCard(cardId, compiled)` for card implementations.
+ * Keep this only for legacy handwritten modules, engine tests, and explicitly
+ * justified internal seams.
  */
 export function registerCard(module: EffectModule): void {
   if (modules.has(module.cardId)) {

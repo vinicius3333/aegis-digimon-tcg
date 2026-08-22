@@ -11,4 +11,13 @@ describe("BT12-005 Kozenimon", () => {
     await settle(() => s.state.players[0]!.hand.length === 1);
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
+
+  it("does not draw for a Digimon without Save", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT12-049", under: ["BT12-005"] }], hand: [{ card: "BT1-009", as: "plain" }], deck: ["BT1-010"] } });
+    s.state.memory = 10;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("plain").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT1-009"));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
 });

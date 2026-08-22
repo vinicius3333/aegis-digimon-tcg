@@ -13,6 +13,7 @@ import type {
   Primitives,
 } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 
 // BT5-112 (Omnimon Zwart Defeat) is a hand-authored IR override. These tests
 // exercise the REGISTERED module (getEffectModule, i.e. what registerIrCard put in
@@ -128,6 +129,10 @@ function makeSource(over: Partial<CardSource> = {}): CardSource {
 }
 
 describe("BT5-112 Omnimon Zwart Defeat (hand-authored IR override)", () => {
+  it("has complete residual-free runtime coverage", () => {
+    expect(runtimeCompiledCard("BT5-112")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   async function loadModule() {
     await import("./BT5-112.js"); // self-registers via registerIrCard
     const module = getEffectModule("BT5-112");

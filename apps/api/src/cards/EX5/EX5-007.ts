@@ -3,66 +3,58 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 1,
-          "condition": {
-            "kind": "youHave",
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Tamer"
-              ],
-              "nameOrTrait": [
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "youHave",
+            filter: {
+              controllerDefault: "mine",
+              kind: ["Tamer"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Light Fang",
-                    "Night Claw"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Light Fang", "Night Claw"],
+                  match: "trait",
+                },
+              ],
             },
-            "raw": "you have a Tamer with the [Light Fang]/[Night Claw] trait"
-          }
-        }
-      ]
+            raw: "you have a Tamer with the [Light Fang]/[Night Claw] trait",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "GainMemory",
-          "amount": 2,
-          "cost": {
-            "kind": "moveTopCardToBottom",
-            "target": {
-              "filter": {
-                "isSelfRef": true,
-                "topCardHasTrait": [
-                  "Light Fang",
-                  "Night Claw"
-                ]
+          kind: "GainMemory",
+          amount: 2,
+          cost: {
+            kind: "moveTopCardToBottom",
+            target: {
+              filter: {
+                isSelfRef: true,
+                topCardHasTrait: ["Light Fang", "Night Claw"],
               },
-              "count": 1,
-              "isSelf": true
+              count: 1,
+              isSelf: true,
             },
-            "raw": "By placing the top card of this Digimon with the [Light Fang]/[Night Claw] trait as this Digimon's bottom digivolution card"
+            raw: "By placing the top card of this Digimon with the [Light Fang]/[Night Claw] trait as this Digimon's bottom digivolution card",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
+          optional: true,
+          abortOnDecline: true,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX5-007", compiled);

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { type PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
+import { compiled } from "./BT16-020.js";
 import "../index.js"; // side-effect: registers cards + the @aegis/shared override
 
 // BT16-020 (GaoGamon, Blue Lv.4) alternate digivolution path:
@@ -22,6 +23,39 @@ const LV3_NIGHTCLAW = "BT22-069";
 const LV3_NO_TRAIT = "BT1-009";
 const LV4_NIGHTCLAW = "BT22-072";
 const ALT_COST = 2;
+
+describe("BT16-020 compiled contract", () => {
+  it("draws for both players before either memory condition is evaluated", () => {
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "WhenDigivolving",
+      actions: [
+        { kind: "Draw", controller: "both", amount: 1 },
+        {
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "anyOf",
+            conditions: [
+              { kind: "zoneCount", seat: "opponent", zone: "hand", op: "gte", value: 8 },
+              { kind: "selfDigivolutionCountAtLeast", value: 3 },
+            ],
+          },
+        },
+      ],
+    });
+  });
+
+  it("inherits Jamming and carries both alternate traits", () => {
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "Static",
+      isInherited: true,
+      keywords: [{ keyword: "Jamming" }],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 3, traits: ["Night Claw", "Light Fang"], cost: 2, isAlternate: true },
+    ]);
+  });
+});
 
 describe("BT16-020 alternate digivolution requirement (cardData matcher)", () => {
   it("matches a Lv.3 [Night Claw] base for cost 2", () => {

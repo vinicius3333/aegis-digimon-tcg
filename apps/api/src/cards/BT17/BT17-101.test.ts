@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { compiled } from "./BT17-101.js";
 import "../index.js";
 
@@ -10,7 +11,6 @@ import "../index.js";
 //   [When Attacking] By trashing the top card of your security stack, trash the top card
 //     of your opponent's security stack.
 //
-// FAILS-WHEN-REVERTED: the declarative effect record had both clauses as RawUnparsed no-ops.
 // Test: [When Attacking] trashes opponent's top security when owner spends a security card.
 
 const FENRILOOGAMON = "BT17-101";
@@ -40,6 +40,12 @@ describe("BT17-101 Fenriloogamon: Takemikazuchi — [When Attacking] security tr
       condition: { kind: "selfDigivolutionStackMatchesFilter", filter: { kind: ["Tamer"] } },
     });
     expect(effect?.actions[3]).toMatchObject({ kind: "GainKeyword", keyword: { keyword: "Recovery", amount: 1 } });
+  });
+
+  it("retains the handwritten opponent-memory assignment", () => {
+    const runtime = runtimeCompiledCard(FENRILOOGAMON)!;
+    const whenDigivolving = runtime.effects.find((effect) => effect.trigger === "WhenDigivolving");
+    expect(whenDigivolving?.actions[1]).toMatchObject({ kind: "SetMemory", value: 3 });
   });
 
   it("[When Attacking] trashes own top security to trash opponent's top security", async () => {

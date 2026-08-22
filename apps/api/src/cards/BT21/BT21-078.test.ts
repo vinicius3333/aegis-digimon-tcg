@@ -19,5 +19,24 @@ describe("BT21-078 WereGarurumon", () => {
         keywords: [{ keyword: "Alliance", raw: "＜Alliance＞" }],
       }),
     );
+    for (const trigger of ["OnPlay", "WhenDigivolving"]) {
+      const effect = compiled.effects.find((entry) => entry.trigger === trigger);
+      expect(effect?.actions[0]).toMatchObject({
+        kind: "Delete",
+        target: { filter: { levelComparison: { op: "lte", value: 5 } } },
+        condition: { kind: "zoneColorCount", cardType: "Tamer", op: "gte", value: 2 },
+      });
+      expect(effect?.actions[1]).toMatchObject({
+        kind: "Delete",
+        target: { filter: { levelComparison: { op: "lte", value: 4 } } },
+        condition: { kind: "not" },
+      });
+    }
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 4, names: ["Garurumon"], cost: 3, isAlternate: true },
+      { traits: ["ADVENTURE"], cost: 3, isAlternate: true, level: 4 },
+    ]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });

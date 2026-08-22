@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 
 // A3 behavioral test for BT15-038 (Angewomon):
@@ -10,8 +11,6 @@ import "../index.js";
 // Primary observable: playing BT15-038 with security available causes the target
 // opponent Digimon to have -6000 DP applied.
 //
-// FAILS-WHEN-REVERTED: remove the resolve body → opp Digimon DP stays unchanged.
-
 const ANGEWOMON = "BT15-038";
 const OPP_DIGIMON = "BT1-009"; // Monodramon Lv.3, 2000 DP
 const SECURITY_CARD = "BT1-001"; // any card for security stack
@@ -50,5 +49,22 @@ describe("BT15-038 Angewomon [On Play] -6000 DP with security trash cost", () =>
     expect(perm?.currentDP).toBe(2000); // 8000 - 6000
     // Security card was consumed.
     expect(p0.security.some((c) => c.instanceId === secCard.instanceId)).toBe(false);
+  });
+
+  it("recovers 1 when another effect removes a security card at 3 or fewer security", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: ANGEWOMON, as: "angewomon" }],
+        security: [{ card: SECURITY_CARD, as: "removed" }],
+        deck: [{ card: "BT1-001", as: "recovery" }],
+      },
+      1: { battleArea: [{ card: OPP_DIGIMON, as: "opponent" }] },
+    });
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    await settle(() => s.state.players[0]!.security.length === 1);
+
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security[0]!.cardId).toBe("BT1-001");
   });
 });

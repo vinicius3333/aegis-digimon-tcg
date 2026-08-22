@@ -10,9 +10,6 @@ import "./BT19-090.js";
 //          (B) by unsuspending 1 [Shoutmon EX6] + 1 [ShootingStarmon], attack a player.
 //   [Security] = branch A.
 //
-// FAILS-WHEN-REVERTED: the declarative effect carried a RawUnparsed residual for branch B
-// (unsuspend cost + forceAttack), so it emitted no unsuspend/forceAttack. Q3159: branch B
-// requires BOTH names — asserted that it aborts when only one is present.
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
@@ -133,7 +130,12 @@ describe("BT19-090 Meteor Rock Soul", () => {
     const source = makeSource();
     const recorder: Recorder = { calls: [] };
     const underCard = makeInstance("XROS", 0 as Seat);
-    const tamer = makePermanent({ permanentId: "TAMER", cardId: "TAMER-DEF", controllerSeat: 0 as Seat, stack: [underCard] });
+    const tamer = makePermanent({
+      permanentId: "TAMER",
+      cardId: "TAMER-DEF",
+      controllerSeat: 0 as Seat,
+      stack: [underCard],
+    });
     const defs = new Map<string, Partial<CardDefinition>>([
       ["TAMER-DEF", { kinds: ["Tamer"] as never }],
       ["XROS", digimonDef({ types: ["Xros Heart"] as never, dp: 4000 })],
@@ -144,7 +146,7 @@ describe("BT19-090 Meteor Rock Soul", () => {
 
     const play = recorder.calls.filter((c) => c.verb === "playInstances");
     expect(play).toHaveLength(1);
-    expect((play[0]!.args[0] as string[])).toContain(underCard.instanceId);
+    expect(play[0]!.args[0] as string[]).toContain(underCard.instanceId);
     expect(play[0]!.args[1]).toMatchObject({ payCost: false });
   });
 
@@ -153,7 +155,12 @@ describe("BT19-090 Meteor Rock Soul", () => {
     const recorder: Recorder = { calls: [] };
     const big = makeInstance("BIG", 0 as Seat);
     const plain = makeInstance("PLAIN", 0 as Seat);
-    const tamer = makePermanent({ permanentId: "TAMER", cardId: "TAMER-DEF", controllerSeat: 0 as Seat, stack: [big, plain] });
+    const tamer = makePermanent({
+      permanentId: "TAMER",
+      cardId: "TAMER-DEF",
+      controllerSeat: 0 as Seat,
+      stack: [big, plain],
+    });
     const defs = new Map<string, Partial<CardDefinition>>([
       ["TAMER-DEF", { kinds: ["Tamer"] as never }],
       ["BIG", digimonDef({ types: ["Xros Heart"] as never, dp: 5000 })],
@@ -168,8 +175,18 @@ describe("BT19-090 Meteor Rock Soul", () => {
   it("[Main] branch B unsuspends 1 Shoutmon EX6 + 1 ShootingStarmon, then attacks with a Digimon", async () => {
     const source = makeSource();
     const recorder: Recorder = { calls: [] };
-    const shoutmon = makePermanent({ permanentId: "SHOUT", cardId: "SHOUT-DEF", controllerSeat: 0 as Seat, isSuspended: true });
-    const starmon = makePermanent({ permanentId: "STAR", cardId: "STAR-DEF", controllerSeat: 0 as Seat, isSuspended: true });
+    const shoutmon = makePermanent({
+      permanentId: "SHOUT",
+      cardId: "SHOUT-DEF",
+      controllerSeat: 0 as Seat,
+      isSuspended: true,
+    });
+    const starmon = makePermanent({
+      permanentId: "STAR",
+      cardId: "STAR-DEF",
+      controllerSeat: 0 as Seat,
+      isSuspended: true,
+    });
     const attacker = makePermanent({ permanentId: "ATK", cardId: "ATK-DEF", controllerSeat: 0 as Seat });
     const defs = new Map<string, Partial<CardDefinition>>([
       ["SHOUT-DEF", digimonDef({ nameEn: "Shoutmon EX6" })],
@@ -182,7 +199,7 @@ describe("BT19-090 Meteor Rock Soul", () => {
 
     const uns = recorder.calls.filter((c) => c.verb === "unsuspend");
     expect(uns).toHaveLength(1);
-    expect((uns[0]!.args[0] as string[])).toEqual(expect.arrayContaining(["SHOUT", "STAR"]));
+    expect(uns[0]!.args[0] as string[]).toEqual(expect.arrayContaining(["SHOUT", "STAR"]));
     const atk = recorder.calls.filter((c) => c.verb === "forceAttack");
     expect(atk).toHaveLength(1);
     // "1 of your Digimon" — any of the controller's Digimon (incl. the just-unsuspended ones).
@@ -192,7 +209,12 @@ describe("BT19-090 Meteor Rock Soul", () => {
   it("[Main] branch B aborts when only one of the two required names is present (Q3159)", async () => {
     const source = makeSource();
     const recorder: Recorder = { calls: [] };
-    const shoutmon = makePermanent({ permanentId: "SHOUT", cardId: "SHOUT-DEF", controllerSeat: 0 as Seat, isSuspended: true });
+    const shoutmon = makePermanent({
+      permanentId: "SHOUT",
+      cardId: "SHOUT-DEF",
+      controllerSeat: 0 as Seat,
+      isSuspended: true,
+    });
     const attacker = makePermanent({ permanentId: "ATK", cardId: "ATK-DEF", controllerSeat: 0 as Seat });
     const defs = new Map<string, Partial<CardDefinition>>([
       ["SHOUT-DEF", digimonDef({ nameEn: "Shoutmon EX6" })],
@@ -210,7 +232,12 @@ describe("BT19-090 Meteor Rock Soul", () => {
     const source = makeSource();
     const recorder: Recorder = { calls: [] };
     const underCard = makeInstance("XROS", 0 as Seat);
-    const tamer = makePermanent({ permanentId: "TAMER", cardId: "TAMER-DEF", controllerSeat: 0 as Seat, stack: [underCard] });
+    const tamer = makePermanent({
+      permanentId: "TAMER",
+      cardId: "TAMER-DEF",
+      controllerSeat: 0 as Seat,
+      stack: [underCard],
+    });
     const defs = new Map<string, Partial<CardDefinition>>([
       ["TAMER-DEF", { kinds: ["Tamer"] as never }],
       ["XROS", digimonDef({ types: ["Xros Heart"] as never, dp: 3000 })],

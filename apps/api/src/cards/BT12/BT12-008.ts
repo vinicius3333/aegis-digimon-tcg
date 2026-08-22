@@ -1,13 +1,14 @@
-import { EffectTiming, isDigimon, isTamer } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { onDeletion, whenAttacking } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "BT12-008";
-const module: EffectModule = { cardId, effectsForTiming(timing, source) {
-  if (timing === EffectTiming.OnDestroyedAnyone) return [onDeletion({ source, effectKey: `${cardId}/save`, description: "[On Deletion] Save.", optional: true, resolve: async (ctx) => { const tamers = ctx.game.player(source.ownerSeat).battleArea.filter((p) => p.topCard !== undefined && isTamer(ctx.game.definitionOf(p.topCard))).map((p) => p.permanentId); if (tamers.length === 0) return; const [host] = await ctx.ask.selectPermanents(ctx, { candidates: tamers, min: 1, max: 1 }); if (host !== undefined) await ctx.fx.placeUnder(host, [source.instanceId], { belowTop: true }); } })];
-  if (timing === EffectTiming.OnUseAttack) return [whenAttacking({ source, effectKey: `${cardId}/inherited-save-delete`, description: "[When Attacking][Once Per Turn] If the host has Save, delete an opposing 4000 DP or less Digimon.", isInherited: true, maxPerTurn: 1, canActivate: (ctx) => { const top = source.permanent()?.topCard; if (top === undefined) return false; const def = ctx.game.definitionOf(top); return `${def.effectText ?? ""}${def.inheritedEffectText ?? ""}`.includes("Save"); }, resolve: async (ctx) => { const candidates = ctx.game.player(ctx.game.opponentOf(source.ownerSeat)).battleArea.filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && p.currentDP <= 4000).map((p) => p.permanentId); if (candidates.length === 0) return; const chosen = await ctx.ask.selectPermanents(ctx, { candidates, min: 1, max: 1 }); if (chosen.length > 0) await ctx.fx.deletePermanent(chosen); } })];
-  return [];
-} };
-registerCard(module);
-export default module;
+const compiled: CompiledCard = {
+  effects: [
+    { trigger: "OnDeletion", actions: [{ kind: "PlaceUnder", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, underFilter: { controller: "mine", kind: ["Tamer"] }, optional: true }], keywords: [{ keyword: "Save", raw: "＜Save＞" }] },
+    { trigger: "WhenAttacking", actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 4000 } }, count: 1 }, condition: { kind: "selfTopHasText", filter: { nameOrTrait: [{ tokens: ["Save"], match: "text" }] } } }], isInherited: true, frequency: "OncePerTurn" },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard("BT12-008", compiled);

@@ -1547,6 +1547,26 @@ describe("irCardModule timing routing", () => {
     expect(played).toHaveLength(1);
     expect(played[0]!.args[0]).toBe("INST#1");
   });
+
+  it("keeps compound [Security][Your Turn] effects in the continuous timing", () => {
+    const compiled: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "YourTurn",
+          isSecurity: true,
+          actions: [{ kind: "SubTrigger", event: "whenAttacking", actions: [] } as never],
+        },
+      ],
+    };
+    const module = irCardModule("TEST-SECURITY-YOUR-TURN", compiled);
+    const source = makeSource({ cardId: "TEST-SECURITY-YOUR-TURN" });
+
+    expect(module.effectsForTiming(EffectTiming.None, source)).toHaveLength(1);
+    expect(module.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(0);
+    expect(module.effectsForTiming(EffectTiming.None, source)[0]!.isSecurity).toBe(true);
+  });
 });
 
 describe("SearchSecurity action", () => {

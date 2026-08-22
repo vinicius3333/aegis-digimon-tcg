@@ -16,6 +16,15 @@ describe("BT5-063 Kurisarimon", () => {
     expect(player.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("arata").instanceId)).toBe(true);
   });
 
+  it("does not play another Arata Sanada when one is already in play", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT10-058", as: "base" }, { card: "BT5-090", as: "existing" }], hand: [{ card: "BT5-063", as: "evolving" }, { card: "BT5-090", as: "extra" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 2;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT5-063");
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT5-090")).toHaveLength(1);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("extra").instanceId)).toBe(true);
+  });
+
   it("grants Rush only to other Digimon with the host's current name", async () => {
     const s = setupEngine({ 0: { battleArea: [
       { card: "BT5-084", as: "host", under: ["BT5-063"] },

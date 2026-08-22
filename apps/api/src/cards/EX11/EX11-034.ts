@@ -6,6 +6,10 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
+  "digivolutionRequirement": [
+    { "level": 5, "cost": 4, "colors": ["Green", "Black"], "isAlternate": true },
+    { "level": 5, "traits": ["Royal Base"], "cost": 3, "isAlternate": true }
+  ],
   "effects": [
     {
       "trigger": "OnPlay",
@@ -16,7 +20,7 @@ const compiled: CompiledCard = {
           "source": "handOrTrash",
           "filter": {
             "nameOrTrait": [
-              "Royal Base"
+              { "tokens": ["Royal Base"], "match": "trait" }
             ]
           },
           "amount": 1,
@@ -55,7 +59,7 @@ const compiled: CompiledCard = {
           "source": "handOrTrash",
           "filter": {
             "nameOrTrait": [
-              "Royal Base"
+              { "tokens": ["Royal Base"], "match": "trait" }
             ]
           },
           "amount": 1,
@@ -94,7 +98,7 @@ const compiled: CompiledCard = {
           "source": "handOrTrash",
           "filter": {
             "nameOrTrait": [
-              "Royal Base"
+              { "tokens": ["Royal Base"], "match": "trait" }
             ]
           },
           "amount": 1,
@@ -201,16 +205,6 @@ const compiled: CompiledCard = {
   ],
   "coverage": "full",
   "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 5,
-      "traits": [
-        "Royal Base"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
 };
 
 registerIrCard("EX11-034", compiled);

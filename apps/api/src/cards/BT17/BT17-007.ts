@@ -56,18 +56,18 @@ const compiled: CompiledCard = {
       "actions": [
         {
           "kind": "DnaDigivolve",
-          "materials": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "excludeSelf": true
+          "materials": [
+            {
+              "filter": { "isSelfRef": true },
+              "count": 1,
+              "zone": "battleArea"
             },
-            "count": 2,
-            "isSelf": true,
-            "zone": "battleArea"
-          },
+            {
+              "filter": { "controller": "mine", "kind": ["Digimon"], "excludeSelf": true },
+              "count": 1,
+              "zone": "battleArea"
+            }
+          ],
           "into": {
             "controllerDefault": "mine",
             "kind": [
