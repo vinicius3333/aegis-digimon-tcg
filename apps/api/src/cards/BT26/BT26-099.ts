@@ -18,8 +18,8 @@ export const compiled: CompiledCard = {
     {
       trigger: "AllTurns",
       keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
-      actions: [{ kind: "SubTrigger", event: "onAddDigivolutionCards", sourceFilter: { controller: "mine", kind: ["Digimon"] }, actions: [
-        { kind: "Digivolve", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 }, into: dmLevelSix, from: ["hand"], payCost: false, optional: true },
+      actions: [{ kind: "SubTrigger", event: "onAddDigivolutionCards", sourceFilter: { controller: "mine", kind: ["Digimon"] }, addedDigivolutionCardFilter: { faceDown: true }, raw: "When face-down cards are placed under one of your Digimon, ＜Delay＞: that Digimon may digivolve into a level 6 or lower DM Digimon from hand without paying the cost.", actions: [
+        { kind: "Digivolve", target: { filter: { useTriggerSource: true }, count: 1 }, into: dmLevelSix, from: ["hand"], payCost: false, optional: true },
       ] }],
     },
     { trigger: "Security", isSecurity: true, actions: [
@@ -27,8 +27,8 @@ export const compiled: CompiledCard = {
       { kind: "PlaceInBattleAreaSelf" },
     ] },
   ],
-  coverage: "partial",
-  residual: ["Delay self-trash activation cost and cannot-activate-the-entry-turn guard are not expressible in the current SubTrigger IR."],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT26-099", compiled);
