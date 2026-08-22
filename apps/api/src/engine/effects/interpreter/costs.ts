@@ -837,8 +837,12 @@ export async function payCost(
         ctx.boundPlayed ??= new Map();
         ctx.boundPlayed.set(cost.bindResultAs, new Set(ids));
       }
-      await ctx.fx.deletePermanent(ids);
-      return true;
+      const deleted = await ctx.fx.deletePermanent(ids);
+      // A cost is paid only when every declared permanent actually leaves play. A
+      // leave-play replacement (or another deletion prevention) may reject one of
+      // the selected permanents; treating that attempt as paid would let the parent
+      // effect proceed while the printed cost card remains on the field.
+      return deleted === ids.length;
     }
     case "payMemory": {
       // "By paying N cost" — pay N memory (memory can go negative; the gauge handles
