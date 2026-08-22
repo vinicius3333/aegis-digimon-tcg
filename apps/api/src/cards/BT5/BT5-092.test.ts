@@ -31,6 +31,16 @@ describe("BT5-092 Nokia Shiramine", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it("does not reduce an unrelated digivolution", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-092", as: "nokia" }, { card: "BT5-063", as: "base" }], hand: [{ card: "BT5-067", as: "infermon" }] } }, { autoAcceptOptional: true });
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("infermon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT5-067");
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("nokia").isSuspended).toBe(false);
+  });
+
   it("plays itself from security without paying its cost", async () => {
     const s = setupEngine(
       { 0: { security: [{ card: "BT5-092", as: "securityTamer", faceUp: true }] } },
