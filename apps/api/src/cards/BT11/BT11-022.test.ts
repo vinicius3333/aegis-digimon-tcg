@@ -49,7 +49,7 @@ describe("BT11-022 Dracomon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT11-025", as: "carrier", under: ["BT11-022"] }],
-        hand: [{ card: "BT10-019", as: "qualifier" }],
+        hand: [{ card: "BT19-022", as: "qualifier" }],
       },
     });
     s.state.memory = 10;
@@ -57,8 +57,9 @@ describe("BT11-022 Dracomon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("qualifier").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.memory === 7);
+    await settle(() => s.state.memory === 6);
 
-    expect(s.state.memory).toBe(7);
+    // MailBirdramon costs 5 to play, then Dracomon's inherited effect gains 1.
+    expect(s.state.memory).toBe(6);
   });
 });

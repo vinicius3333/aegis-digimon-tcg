@@ -65,7 +65,7 @@ describe("BT11-083 LadyDevimon", () => {
       0: {
         battleArea: [
           { card: "BT11-083", as: "lady" },
-          { card: "BT11-042", as: "angewomon" },
+          { card: "BT2-037", as: "angewomon" },
           { card: "BT11-094", as: "mirei" },
         ],
       },

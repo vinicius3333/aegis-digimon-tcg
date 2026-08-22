@@ -2,7 +2,8 @@ import { describe, it, expect } from "vitest";
 import { type PlayerState } from "@aegis/shared";
 import "../index.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { observe, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 
 // A3 for BT11-065 (Snatchmon) — the inherited Vemmon-return clause.
 //
@@ -129,7 +130,7 @@ describe("BT11-065 when digivolving", () => {
     await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT11-105"));
 
     expect(s.perm("base").stack.filter(({ cardId }) => cardId === VEMMON)).toHaveLength(4);
-    expect(s.perm("neighbor").stack).toHaveLength(1);
+    expect(s.perm("neighbor").stack).toHaveLength(0);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT11-105");
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });

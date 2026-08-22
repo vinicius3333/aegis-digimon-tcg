@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
         kind: "Replacement",
         event: "wouldDigivolve",
         sourceFilter: { controller: "mine", kind: ["Digimon"] },
+        into: { nameOrTrait: [{ tokens: ["RustTyrannomon"], match: "name" }] },
         actions: [{
           kind: "Replacement",
           event: "wouldDigivolve",

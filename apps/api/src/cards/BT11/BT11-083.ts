@@ -37,6 +37,7 @@ const compiled: CompiledCard = {
           nameOrTrait: [{ tokens: ["Angewomon", "Mirei Mikagura"], match: "name" }],
         },
         actions: [{ kind: "GainMemory", amount: 1 }],
+        oncePerTurnKey: "when-angel-or-mirei-played",
       }],
       frequency: "OncePerTurn",
     },
