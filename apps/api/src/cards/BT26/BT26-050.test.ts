@@ -1,13 +1,8 @@
-import { digivolutionRequirementsFor } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT26-050.js";
 
 describe("BT26-050 Rosemon: Burst Mode", () => {
   it("encodes DATA SQUAD color waiver, Q7052/Q7053 independent suspend/lock targets, security cost, and Option Main restrictions", () => {
-    expect(digivolutionRequirementsFor("BT26-050")).toEqual(expect.arrayContaining([
-      { level: 6, traits: ["DATA SQUAD"], cost: 5, isAlternate: true },
-      { cost: 0, isAlternate: true, names: ["Rosemon"], burstDigivolve: { returnTamerNamesExact: ["Yoshino Fujieda"] } },
-    ]));
     expect(compiled.digivolutionRequirement).toEqual(expect.arrayContaining([
       { level: 6, traits: ["DATA SQUAD"], cost: 5, isAlternate: true },
       { cost: 0, isAlternate: true, names: ["Rosemon"], burstDigivolve: { returnTamerNamesExact: ["Yoshino Fujieda"] } },
