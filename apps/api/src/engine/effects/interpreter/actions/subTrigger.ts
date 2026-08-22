@@ -639,6 +639,7 @@ export async function runSubTrigger(
   ctx.fx.subscribeSubTrigger({
     event,
     sourcePermanentId: anchorPermanentId,
+    ...(ctx.continuousPass === true ? { continuous: true } : {}),
     ...(playerScoped
       ? { activationContext: ctx }
       : action.on !== undefined
@@ -834,6 +835,7 @@ export async function runGainTriggeredEffect(
       event,
       sourcePermanentId: targetPermanentId,
       once: false,
+      ...(ctx.continuousPass === true ? { continuous: true } : {}),
       ...(matches ? { matches } : {}),
       ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
       description: action.raw ?? `GainTriggeredEffect(${action.gainedTrigger}) on ${targetPermanentId}`,
