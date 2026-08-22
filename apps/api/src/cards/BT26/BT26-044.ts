@@ -32,7 +32,7 @@ export const compiled: CompiledCard = { effects: [
     kind: "Replacement", event: "wouldLeavePlay", sourceFilter: { isSelfRef: true },
     actions: [{ kind: "Prevent", optional: true, abortOnDecline: true, condition: { kind: "sourceNameOrTrait", nameOrTrait: [
       { tokens: ["Rosemon"], match: "name" }, { tokens: ["DATA SQUAD"], match: "trait" },
-    ] }, cost: { kind: "trash", target: { filter: { zone: "digivolutionCards", controller: "mine", faceDown: true, underKind: ["Tamer"] }, count: 1 } } }],
+    ] }, cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 } }],
   }] },
 ], coverage: "full", residual: [] };
 registerIrCard("BT26-044", compiled);
