@@ -30,6 +30,18 @@ export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: [returnLevelFour] },
     { trigger: "WhenAttacking", actions: [returnLevelFour] },
+    {
+      trigger: "WhenAttacking",
+      isInherited: true,
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          condition: { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 7 },
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
