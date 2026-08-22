@@ -240,6 +240,11 @@ export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
       raw = candidates.reduce((max, p) => Math.max(max, p.stack.length), 0);
       break;
     }
+    case "targetFaceDownDigivolutionCards":
+      // ModifyDP resolves this per target after selection; returning 1 keeps the generic
+      // dispatch path alive until each target's own stack is available.
+      raw = 1;
+      break;
     case "digivolutionCardColors": {
       // Distinct colors among the SOURCE permanent's digivolution-stack cards (BT18-018).
       const self = ctx.source.permanent();
