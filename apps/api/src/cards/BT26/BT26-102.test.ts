@@ -7,7 +7,32 @@ describe("BT26-102 compiled fidelity", () => {
     const card = compiled;
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
+    expect(card?.effects?.find((effect) => effect.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+          target: { filter: { playCostLte: 5, nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] } },
+        },
+        { kind: "AddToHandSelf" },
+      ],
+    });
     expect(card?.effects?.[0]?.actions).toMatchObject([{ kind: "WaiveColorRequirement" }]);
-    expect(card?.effects?.[1]?.actions).toMatchObject([{ kind: "PlaceUnder", mixedSources: { battleAreaPermanents: true, linkedCards: true, trash: true }, trackCount: "sevenCodeMaterials" }, { kind: "Digivolve", ignoreRequirements: true, payCost: false, condition: { kind: "namedCountAtLeast", countSource: "sevenCodeMaterials", count: 6 } }]);
+    expect(card?.effects?.[1]?.actions).toMatchObject([
+      {
+        kind: "PlaceUnder",
+        mixedSources: { battleAreaPermanents: true, linkedCards: true, trash: true },
+        trackCount: "sevenCodeMaterials",
+      },
+      {
+        kind: "Digivolve",
+        ignoreRequirements: true,
+        payCost: false,
+        condition: { kind: "namedCountAtLeast", countSource: "sevenCodeMaterials", count: 6 },
+      },
+    ]);
   });
 });
