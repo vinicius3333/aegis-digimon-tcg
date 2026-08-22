@@ -46,7 +46,7 @@ describe("BT26-005 Pinamon", () => {
         { card: "BT1-009", as: "host", under: [{ card: "BT26-005" }] },
         { card: "BT26-091", as: "tamer", under: [{ card: "BT26-039", as: "cost", faceUp: false }] },
       ], trash: [{ card: "BT26-072", as: "candidate" }] },
-    }, { autoAcceptOptional: false, autoSelectCards: true });
+    }, { autoDeclineOptional: true, autoSelectCards: true });
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009"));
