@@ -1571,6 +1571,8 @@ export interface EffectContext {
    * relevant printed clause instead of the card's full effect text. Display-only.
    */
   activeTiming?: string;
+  /** Internal marker for effects re-derived by the continuous-effect pass. */
+  continuousPass?: boolean;
   /** Exact rules clause currently resolving, including inherited/security provenance. Display-only. */
   activeEffectText?: string;
   /** Temporary restrictions installed by a RestrictEffect action in this resolution. */

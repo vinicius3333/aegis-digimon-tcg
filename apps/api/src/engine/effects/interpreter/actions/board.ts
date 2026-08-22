@@ -133,7 +133,9 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
           id,
           amount,
           duration,
-          action.continuous === undefined ? undefined : { continuous: action.continuous },
+          action.continuous === undefined
+            ? (ctx.continuousPass === true ? { continuous: true } : undefined)
+            : { continuous: action.continuous },
         );
       }
       if (ids.length > 0 && action.target.bindAs !== undefined) {
