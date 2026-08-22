@@ -13,6 +13,10 @@ if (endOfTurn !== undefined) {
   }];
 }
 const whenDigivolving = compiled.effects.find((effect) => effect.trigger === "WhenDigivolving");
+const saveRequirement = compiled.digivolutionRequirement?.find(
+  (requirement) => requirement.texts?.includes("Save"),
+);
+if (saveRequirement !== undefined) saveRequirement.colors = ["Red", "Black", "Purple"];
 const levelScaling = whenDigivolving?.actions[1];
 if (levelScaling?.kind === "CostModifier" && levelScaling.scaling !== undefined) {
   levelScaling.scaling.unit = "colors";

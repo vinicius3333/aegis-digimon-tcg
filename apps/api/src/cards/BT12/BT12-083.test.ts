@@ -4,6 +4,7 @@ import type { Permanent } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives, DecisionApi } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import "./BT12-083.js";
 
 // A3 for BT12-083 (Arresterdramon: Superior Mode):
@@ -129,6 +130,11 @@ describe("BT12-083 Arresterdramon: Superior Mode [End of Your Turn]", () => {
       kind: "CostModifier",
       scaling: { per: 1, unit: "colors" },
     });
+  });
+
+  it("limits the Save alternate evolution to red, black, or purple level 4 cards", () => {
+    expect(matchingAlternateDigivolutionRequirement("BT12-083", "BT12-011")?.cost).toBe(4);
+    expect(matchingAlternateDigivolutionRequirement("BT12-083", "BT12-037")).toBeUndefined();
   });
 
   it("calls forceAttack(withoutSuspending: true) when stack has 4+ digivolution cards", async () => {
