@@ -46,6 +46,7 @@ const compiled = {
     ),
     {
       trigger: "WhenAttacking" as const,
+      isInherited: true,
       actions: [
         {
           kind: "AddDPFromSuspendedCost" as const,
