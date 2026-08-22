@@ -91,6 +91,13 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
   // `linkCard` verb (actions/link.ts) never gates on headroom either — both paths must agree.
   const chosen = await pickLoose(ctx, action.target, eligibleCandidates);
   if (chosen.length === 0) return;
+  if (action.differentNames === true) {
+    const names = chosen.map((instanceId) => {
+      const candidate = eligibleCandidates.find((entry) => entry.instanceId === instanceId);
+      return candidate === undefined ? undefined : ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn;
+    });
+    if (names.some((name) => name === undefined) || new Set(names).size !== names.length) return;
+  }
   // Real link-cost calculation (the seam Phase 8's BT25-004/045 link-cost REDUCTION builds on).
   // Each link card carries a printed link cost ("Cost N" in linkRequirement); `costDelta` is a
   // signed adjustment ("with the cost reduced by N" => negative). Pay the floored cost per card

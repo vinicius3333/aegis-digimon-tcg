@@ -21,7 +21,8 @@ describe("BT26-086 compiled behavior", () => {
   });
 
   it("keeps the different-name and seven-link conditional seams explicit", () => {
-    expect(compiled.residual[0]).toContain("different-names");
+    expect(compiled.residual[0]).toContain("link-count");
+    expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions[0]).toMatchObject({ differentNames: true });
     expect(compiled.residual[0]).toContain("seven-link");
     expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true }, actions: [{ kind: "Delete", optional: true }, { kind: "RawUnparsed" }] }] });
   });

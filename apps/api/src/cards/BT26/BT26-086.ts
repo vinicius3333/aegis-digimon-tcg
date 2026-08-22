@@ -6,7 +6,7 @@ const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const appmonStack = { controller: "mine", zone: "digivolutionCards", nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] };
 
 const linkThenAttack = [
-  { kind: "Link", target: { filter: appmonStack, count: 7, upTo: true }, recipient: self, from: ["digivolutionCards"], payCost: false, optional: true },
+  { kind: "Link", target: { filter: appmonStack, count: 7, upTo: true }, differentNames: true, recipient: self, from: ["digivolutionCards"], payCost: false, optional: true },
   { kind: "Attack", target: self, withoutSuspending: true, optional: true },
 ];
 
@@ -26,7 +26,7 @@ export const compiled: CompiledCard = {
     ] }] },
   ],
   coverage: "partial",
-  residual: ["Link does not yet enforce the printed different-names constraint, and the conditional seven-link security return remains RawUnparsed until a link-count condition seam exists."],
+  residual: ["The conditional seven-link security return remains RawUnparsed until a reusable link-count condition seam exists."],
   assemblyRequirement: [{ reduceCost: 7, materials: [{ traits: ["Seven Code"], count: 7, differentNames: true }] }],
 };
 
