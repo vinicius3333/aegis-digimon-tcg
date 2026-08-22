@@ -1,13 +1,20 @@
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import module from "./BT26-023.js";
+import { compiled } from "./BT26-023.js";
 import "../index.js";
 
 describe("BT26-023 Mojyamon", () => {
+  it("encodes Training/Jamming, the face-down hand cost, and the inherited hand boundary", () => {
+    expect(compiled.keywords).toEqual(expect.arrayContaining([expect.objectContaining({ keyword: "Training" }), expect.objectContaining({ keyword: "Jamming" })]));
+    expect(compiled.effects).toMatchObject([
+      { trigger: "OnPlay", actions: [{ kind: "Return", to: "deckBottom", cost: { kind: "place", position: "bottom", faceDown: true } }] },
+      { trigger: "WhenAttacking", actions: [{ kind: "Return", to: "deckBottom" }] },
+      { trigger: "WhenAttacking", isInherited: true, actions: [{ kind: "Draw", amount: 1, condition: { kind: "zoneCount", value: 7 } }] },
+    ]);
+  });
+
   it("uses the exact level-3 DM alternate evolution for cost 2", async () => {
     expect(digivolutionRequirementsFor("BT26-023")).toContainEqual({
       level: 3,
@@ -49,43 +56,6 @@ describe("BT26-023 Mojyamon", () => {
         useAlternateCost: true,
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
-  });
-
-  it("places the hand card face down before bottom-decking an opponent's level-4 Digimon", async () => {
-    const self = { permanentId: "mojyamon", inBreeding: false, topCard: { cardId: "BT26-023" } };
-    const opponent = {
-      permanentId: "opponent",
-      inBreeding: false,
-      topCard: { instanceId: "opponent-card", cardId: "BT26-020" },
-    };
-    const source = {
-      ownerSeat: 0,
-      permanent: () => self,
-      isOnBattleArea: () => true,
-    } as unknown as CardSource;
-    const placeUnder = vi.fn<(...args: any[]) => any>(async () => [{ instanceId: "hand-card" }]);
-    const returnToDeck = vi.fn<(...args: any[]) => any>(async () => []);
-    const ctx = {
-      source,
-      game: {
-        opponentOf: () => 1,
-        player: (seat: number) => (seat === 0 ? { hand: [{ instanceId: "hand-card" }] } : { battleArea: [opponent] }),
-        definitionOf: (card: { cardId: string }) => ({
-          cardId: card.cardId,
-          kinds: ["Digimon"],
-          level: card.cardId === "BT26-020" ? 4 : 4,
-        }),
-        permanentById: (id: string) => (id === "opponent" ? opponent : undefined),
-      },
-      ask: { selectCards: vi.fn<(...args: any[]) => any>(async () => ["hand-card"]) },
-      fx: { placeUnder, returnToDeck },
-    } as unknown as EffectContext;
-
-    const effect = module.effectsForTiming(EffectTiming.OnPlay, source)[0]!;
-    await effect.resolve(ctx);
-
-    expect(placeUnder).toHaveBeenCalledWith("mojyamon", ["hand-card"], { faceUp: false });
-    expect(returnToDeck).toHaveBeenCalledWith(["opponent-card"], { toTop: false });
   });
 
   it("publicly pays with a face-down bottom card before bottom-decking a level-4 opponent", async () => {
