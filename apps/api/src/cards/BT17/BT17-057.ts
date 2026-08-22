@@ -129,6 +129,10 @@ export const compiled: CompiledCard = {
                 "target": {
                   "filter": {
                     "controllerDefault": "mine",
+                    "zone": "digivolutionCards",
+                    "hostFilter": {
+                      "isSelfRef": true
+                    },
                     "traits": [
                       "Cyborg",
                       "Machine",
