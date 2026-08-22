@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { getCompiledCard } from "@aegis/shared";
+import { compiled } from "./BT26-032.js";
 import "./BT26-032.js";
 
 describe("BT26-032 compiled fidelity", () => {
   it("encodes Alliance/Succession, suspended-Digimon DP reduction, suspend-paid play/use, Option mode, and the explicit turn-gate seam", () => {
-    const card = getCompiledCard("BT26-032");
+    const card = compiled;
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
     expect(card?.keywords?.map((keyword) => keyword.keyword)).toEqual(

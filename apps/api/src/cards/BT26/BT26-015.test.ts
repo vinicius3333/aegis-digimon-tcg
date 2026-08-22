@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { getCompiledCard } from "@aegis/shared";
+import { compiled } from "./BT26-015.js";
 import "./BT26-015.js";
 
 describe("BT26-015 compiled fidelity", () => {
   it("encodes the shared play/evolution debuff, trash return deletion, and deck-add buff attack", () => {
-    const card = getCompiledCard("BT26-015");
+    const card = compiled;
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
     expect(card?.effects?.[0]?.actions).toMatchObject([

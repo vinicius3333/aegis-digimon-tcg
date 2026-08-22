@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { getCompiledCard } from "@aegis/shared";
+import { compiled } from "./BT26-031.js";
 import "./BT26-031.js";
 
 describe("BT26-031 compiled fidelity", () => {
   it("encodes recovery, suspension restriction, and the attacking recovery window", () => {
-    const card = getCompiledCard("BT26-031");
+    const card = compiled;
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
     expect(card?.effects?.[0]?.actions).toMatchObject([

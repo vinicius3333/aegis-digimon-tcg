@@ -1,14 +1,14 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCompiledCard } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "./BT26-029.js";
+import { compiled } from "./BT26-029.js";
 import "../index.js";
 
 describe("BT26-029 compiled fidelity", () => {
   it("encodes Decode/Ascension, security-paid protection, both removal watchers, Angel rule trait, and inherited De-Digivolve", () => {
-    const card = getCompiledCard("BT26-029");
+    const card = compiled;
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
     expect(card?.keywords?.map((keyword) => keyword.keyword)).toEqual(expect.arrayContaining(["Decode", "Ascension"]));
