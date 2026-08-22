@@ -26,7 +26,11 @@ describe("BT13-112 Omnimon", () => {
       choose: 1,
       options: [
         [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } }],
-        [expect.objectContaining({ kind: "PlayWithoutCost", bindResultAs: "playedRoyalKnights" })],
+        [
+          expect.objectContaining({ kind: "PlayWithoutCost", bindResultAs: "playedRoyalKnights" }),
+          expect.objectContaining({ kind: "Trash" }),
+          expect.objectContaining({ kind: "GainKeyword" }),
+        ],
       ],
     });
 
@@ -58,9 +62,9 @@ describe("BT13-112 Omnimon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-111"));
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT13-007"));
 
-    expect(s.state.players[0]!.breeding).toBeUndefined();
+    expect(s.state.players[0]!.breeding?.topCard).toBeUndefined();
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-007")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-040")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-111")).toBe(true);
@@ -101,7 +105,7 @@ describe("BT13-112 Omnimon", () => {
         instanceId: s.inst("omnimon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard?.cardId === "BT13-112");
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === targetId));
 
     expect(s.perm("base").stack.some((card) => card.cardId === "BT13-111")).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetId)).toBe(true);

@@ -15,7 +15,7 @@ describe("BT13-111 Gallantmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-111"));
+    await settle(() => s.state.memory === 0);
     expect(s.state.memory).toBe(0);
     expect(observe(s.engine).hasKeyword(s.perm("gallantmon"), "Rush")).toBe(true);
 
@@ -34,10 +34,11 @@ describe("BT13-111 Gallantmon", () => {
   });
 
   it("reduces play cost by two for every five cards in both trash when no Digimon is present", () => {
-    const replacement = compiled.effects?.find((entry) => entry.trigger === "Static")?.actions?.[0];
+    const replacement = compiled.effects?.find((entry) => entry.trigger === "BeforePayCost")?.actions?.[0];
     expect(replacement).toMatchObject({
       kind: "Replacement",
       event: "wouldBePlayed",
+      sourceFilter: { isSelfRef: true },
       scaling: { per: 5, unit: "cards", filter: { controllerDefault: "both", zone: "trash" } },
     });
     expect((replacement as { actions?: unknown[] }).actions?.[0]).toMatchObject({
@@ -49,7 +50,7 @@ describe("BT13-111 Gallantmon", () => {
   });
 
   it("has Rush and the fallback delete when no level 6-or-lower target was deleted", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.actions?.[1]).toMatchObject({
+    expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.actions?.[0]).toMatchObject({
       kind: "GainKeyword",
       keyword: { keyword: "Rush" },
       duration: "permanent",
@@ -87,7 +88,7 @@ describe("BT13-111 Gallantmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-111"));
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === lowId));
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === lowId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === highId)).toBe(true);
   });
@@ -126,7 +127,7 @@ describe("BT13-111 Gallantmon", () => {
         instanceId: s.inst("gallantmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard?.cardId === "BT13-111");
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === targetId));
 
     expect(s.perm("base").stack.some((card) => card.cardId === "BT13-014")).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetId)).toBe(true);

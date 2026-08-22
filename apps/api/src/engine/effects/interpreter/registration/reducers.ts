@@ -83,6 +83,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT25-075", // fewer Digimon than your opponent -> -5 (Q6370-Q6372)
   "BT25-077", // condition: 12+ total Digimon levels -> -5 (Q7002 effect-driven stacking)
   "BT22-041", // condition: total cards in both security stacks <= 6 -> self play cost -6
+  "BT13-111", // scaling: -2 per five cards in both trashes when you have no Digimon
 ]);
 
 /**
@@ -283,15 +284,19 @@ function digivolveReducerScale(ctx: EffectContext, reducer: WouldDigivolveSelfRe
   if (reducer.scaling === undefined) return 1;
   if (target !== undefined && reducer.scaling.unit === "digivolutionCards") {
     const filter = reducer.scaling.filter ?? {};
-    const count = target.stack.filter((card) =>
-      (filter.faceDown !== true || card.faceUp !== true) && (filter.faceUp !== true || card.faceUp === true),
+    const count = target.stack.filter(
+      (card) => (filter.faceDown !== true || card.faceUp !== true) && (filter.faceUp !== true || card.faceUp === true),
     ).length;
     return Math.floor(count / Math.max(1, reducer.scaling.per));
   }
   return scaleFactor(ctx, reducer.scaling);
 }
 
-export function potentialWouldDigivolveSelfReduction(ctx: EffectContext, reducer: WouldDigivolveSelfReducer, target?: Permanent): number {
+export function potentialWouldDigivolveSelfReduction(
+  ctx: EffectContext,
+  reducer: WouldDigivolveSelfReducer,
+  target?: Permanent,
+): number {
   const scale = digivolveReducerScale(ctx, reducer, target);
   if (reducer.cost === undefined) return Math.max(0, reducer.amount * scale);
   if (reducer.cost.target?.upTo !== true || typeof reducer.cost.target.count !== "number") {

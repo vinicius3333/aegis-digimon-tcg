@@ -87,7 +87,11 @@ describe("BT13-110 Royal Knights of the Purge", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-110"));
+    await settle(
+      () =>
+        s.perm("drasil").stack.some((card) => card.cardId === "BT1-045") &&
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-110"),
+    );
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-045")).toBe(false);
     expect(s.perm("drasil").stack.some((card) => card.cardId === "BT1-045")).toBe(true);
@@ -129,15 +133,19 @@ describe("BT13-110 Royal Knights of the Purge", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    const optionId = s.inst("option").instanceId;
+    const optionId = s.perm("option").topCard!.instanceId;
     const entry = activatableEffects(s, optionId).find((effect) => effect.instanceId === optionId);
     expect(entry).toBeDefined();
     expect(
       s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: optionId, effectKey: entry!.effectKey }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-040"));
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-040") &&
+        !s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-110"),
+    );
 
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-110")).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-110")).toBe(true);
     expect(s.perm("drasil").stack.some((card) => card.cardId === "BT13-040")).toBe(false);
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT13-040");
     expect(played).toBeDefined();

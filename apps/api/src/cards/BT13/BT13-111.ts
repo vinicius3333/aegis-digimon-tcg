@@ -8,38 +8,6 @@ export const compiled: CompiledCard = {
       trigger: "Static",
       actions: [
         {
-          kind: "Replacement",
-          event: "wouldBePlayed",
-          sourceFilter: {
-            controllerDefault: "mine",
-          },
-          actions: [
-            {
-              kind: "Replacement",
-              event: "wouldBePlayed",
-              mode: "reduceCost",
-              amount: 2,
-              raw: "reduce the play cost by 2",
-              condition: {
-                kind: "youHaveNone",
-                filter: {
-                  controllerDefault: "mine",
-                  kind: ["Digimon"],
-                },
-                raw: "you have no Digimon",
-              },
-            },
-          ],
-          scaling: {
-            per: 5,
-            filter: {
-              controllerDefault: "both",
-              zone: "trash",
-            },
-            unit: "cards",
-          },
-        },
-        {
           kind: "GainKeyword",
           target: {
             filter: { isSelfRef: true },
@@ -51,6 +19,31 @@ export const compiled: CompiledCard = {
             raw: "＜Rush＞",
           },
           duration: "permanent",
+        },
+      ],
+    },
+    {
+      trigger: "BeforePayCost",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldBePlayed",
+              mode: "reduceCost",
+              amount: 2,
+              raw: "reduce the play cost by 2",
+              condition: {
+                kind: "youHaveNone",
+                filter: { controllerDefault: "mine", kind: ["Digimon"] },
+                raw: "you have no Digimon",
+              },
+            },
+          ],
+          scaling: { per: 5, filter: { controllerDefault: "both", zone: "trash" }, unit: "cards" },
         },
       ],
     },
