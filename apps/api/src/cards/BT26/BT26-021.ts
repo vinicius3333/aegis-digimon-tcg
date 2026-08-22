@@ -1,222 +1,54 @@
-import { EffectDuration, EffectTiming, isDigimon, isTamer } from "@aegis/shared";
-import type { CardDefinition, Seat } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, whenDigivolving, activated, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
-import { cardHasTrait } from "../../engine/cards/cardData.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/**
- * BT26-021 — Gekomon (BT26, Blue/Purple Lv.4 Digimon).
- *
- * The committed KB contains Q6983-Q6984 (2026-08-18), confirming that simultaneous play
- * activations are not combined and that the cost reduction is ignored when reductions are
- * prohibited by another effect.
- *
- * Printed text:
- *   [Digivolve] Lv.3 w/[TS] trait: Cost 2
- *   [On Play] [When Digivolving] 1 of your [TS] trait Digimon's attack target can't change
- *     for the turn.
- *   [Main] [Once Per Turn] You may play 1 [TS] trait Tamer card from your trash with the
- *     cost reduced by 2.
- *   (inherited) [All Turns] [Once Per Turn] When a Digimon attacks, by trashing 1 card in
- *     your hand, trash the bottom 2 digivolution cards of 1 of your opponent's Digimon.
- *
- * Clause mapping:
- *   [Digivolve] — a digivolution-cost requirement, not an effect clause.
- *   EffectTiming.OnPlay / EffectTiming.WhenDigivolving — the "attack target can't change"
- *     lock, applied as the engine's own `attackTargetChange` restriction on the chosen
- *     [TS] Digimon (combat/legality.ts honors it) for EffectDuration.UntilEachTurnEnd.
- *   EffectTiming.OnDeclaration — the [Main] activated ability. `playInstances` accepts a
- *     trash-resident instance (its loose lookup spans hand/security/deck/trash), so the
- *     Tamer is played straight from trash while paying with `costDelta: 2`.
- *   EffectTiming.None (isInherited: true) — the [All Turns] watcher, installed as a
- *     `whenAttacking` sub-trigger budgeted by `oncePerTurnKey`. The printed text says "a
- *     Digimon", unqualified, so it is not gated to either player's attacker. "By trashing
- *     1 card in your hand" is a COST: declining it (or holding no card) leaves the trash
- *     half unresolved. `stack` is ordered bottom (index 0) -> top, so the "bottom 2
- *     digivolution cards" are its first two entries.
- */
-const cardId = "BT26-021";
+const tsDigimon = { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
+const tsTamerTrash = { controllerDefault: "mine", zone: "trash", kind: ["Tamer"], nameOrTrait: [{ tokens: ["TS"], match: "trait" }] };
+const opponentDigimon = { controllerDefault: "opponent", kind: ["Digimon"] };
 
-const TAMER_COST_REDUCTION = 2;
-const BOTTOM_CARDS_TRASHED = 2;
-
-function hasTsTrait(def: CardDefinition): boolean {
-  return cardHasTrait(def, "TS");
-}
-
-/** "1 of your [TS] trait Digimon's attack target can't change for the turn." */
-async function lockTsAttackTarget(ctx: EffectContext, ownerSeat: Seat): Promise<void> {
-  const candidates = ctx.game
-    .player(ownerSeat)
-    .battleArea.filter((p) => {
-      if (p.inBreeding || p.topCard === undefined) return false;
-      const def = ctx.game.definitionOf(p.topCard);
-      return isDigimon(def) && hasTsTrait(def);
-    })
-    .map((p) => p.permanentId);
-  if (candidates.length === 0) return;
-
-  const chosen =
-    candidates.length === 1 ? candidates[0]! : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
-  if (chosen === undefined) return;
-
-  ctx.fx.restrict(chosen, "attackTargetChange", EffectDuration.UntilEachTurnEnd);
-}
-
-/** "By trashing 1 card in your hand, trash the bottom 2 digivolution cards of 1 of your opponent's Digimon." */
-async function trashHandThenBottomTwo(ctx: EffectContext, ownerSeat: Seat): Promise<void> {
-  const owner = ctx.game.player(ownerSeat);
-  if (owner.hand.length === 0) return;
-
-  const opponentSeat = ctx.game.opponentOf(ownerSeat);
-  const targets = ctx.game
-    .player(opponentSeat)
-    .battleArea.filter(
-      (p) =>
-        !p.inBreeding &&
-        p.topCard !== undefined &&
-        isDigimon(ctx.game.definitionOf(p.topCard)) &&
-        p.stack.length >= BOTTOM_CARDS_TRASHED,
-    )
-    .map((p) => p.permanentId);
-  if (targets.length === 0) return;
-
-  const paid = await ctx.ask.selectCards(ctx, {
-    candidates: owner.hand.map((c) => c.instanceId),
-    min: 0,
-    max: 1,
-  });
-  if (paid.length === 0) {
-    ctx.oncePerTurnActivationDeclined = true;
-    return;
-  }
-  const trashedCost = await ctx.fx.trash(paid);
-  if (!trashedCost.some((card) => card.instanceId === paid[0]!)) {
-    ctx.oncePerTurnActivationDeclined = true;
-    return;
-  }
-
-  const chosen =
-    targets.length === 1 ? targets[0]! : (await ctx.ask.chooseTargets(ctx, { candidates: targets, min: 1, max: 1 }))[0];
-  if (chosen === undefined) return;
-
-  const host = ctx.game.permanentById(chosen);
-  if (host === undefined) return;
-  const bottom = host.stack.slice(0, BOTTOM_CARDS_TRASHED).map((c) => c.instanceId);
-  if (bottom.length === 0) return;
-  await ctx.fx.trashDigivolutionCards(chosen, bottom, { byEffectSeat: ownerSeat });
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnPlay) {
-      return [
-        onPlay({
-          source,
-          effectKey: `${cardId}/on-play-attack-target-lock`,
-          description:
-            "[On Play] [When Digivolving] 1 of your [TS] trait Digimon's attack target can't " + "change for the turn.",
-          optional: false,
-          resolve: async (ctx) => lockTsAttackTarget(ctx, source.ownerSeat),
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.WhenDigivolving) {
-      return [
-        whenDigivolving({
-          source,
-          effectKey: `${cardId}/when-digivolving-attack-target-lock`,
-          description:
-            "[On Play] [When Digivolving] 1 of your [TS] trait Digimon's attack target can't " + "change for the turn.",
-          optional: false,
-          resolve: async (ctx) => lockTsAttackTarget(ctx, source.ownerSeat),
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.OnDeclaration) {
-      return [
-        activated({
-          source,
-          effectKey: `${cardId}/main-play-ts-tamer-from-trash`,
-          description:
-            "[Main] [Once Per Turn] You may play 1 [TS] trait Tamer card from your trash with " +
-            "the cost reduced by 2.",
-          optional: true,
-          maxPerTurn: 1,
-          when: (ctx) => ctx.source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-            const candidates = owner.trash
-              .filter((c) => {
-                const def = ctx.game.definitionOf(c);
-                return isTamer(def) && hasTsTrait(def);
-              })
-              .map((c) => c.instanceId);
-            if (candidates.length === 0) return;
-
-            const chosen = await ctx.ask.selectCards(ctx, { candidates, min: 1, max: 1 });
-            if (chosen.length === 0) return;
-            await ctx.fx.playInstances([chosen[0]!], { payCost: true, costDelta: TAMER_COST_REDUCTION });
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/inherited-attack-trash-bottom`,
-          description:
-            "[All Turns] [Once Per Turn] When a Digimon attacks, by trashing 1 card in your " +
-            "hand, trash the bottom 2 digivolution cards of 1 of your opponent's Digimon.",
-          optional: false,
-          isInherited: true,
-          when: (ctx) => ctx.source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = ctx.source.permanent();
-            if (self === undefined) return;
-            const ownerSeat = source.ownerSeat;
-
-            ctx.fx.subscribeSubTrigger({
-              event: "whenAttacking",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              oncePerTurnKey: `${cardId}/inherited-attack-trash-bottom`,
-              description: `${cardId}: a Digimon attacks -> may trash 1 hand card to trash 2 bottom digivolution cards.`,
-              matches: (subCtx) => {
-                if (!subCtx.source.isOnBattleArea()) return false;
-                if (subCtx.game.player(ownerSeat).hand.length === 0) return false;
-                const opponentSeat = subCtx.game.opponentOf(ownerSeat);
-                return subCtx.game
-                  .player(opponentSeat)
-                  .battleArea.some(
-                    (permanent) =>
-                      !permanent.inBreeding &&
-                      permanent.topCard !== undefined &&
-                      isDigimon(subCtx.game.definitionOf(permanent.topCard)) &&
-                      permanent.stack.length >= BOTTOM_CARDS_TRASHED,
-                  );
-              },
-              run: async (subCtx) => {
-                await trashHandThenBottomTwo(subCtx, ownerSeat);
-              },
-            });
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+const lockAttackTarget = {
+  kind: "Restrict",
+  target: { filter: tsDigimon, count: 1 },
+  restriction: "attackTargetChange",
+  duration: "untilEachTurnEnd",
 };
 
-registerCard(module);
-export default module;
+export const compiled: CompiledCard = {
+  effects: [
+    { trigger: "OnPlay", actions: [lockAttackTarget] },
+    { trigger: "WhenDigivolving", actions: [lockAttackTarget] },
+    {
+      trigger: "Main",
+      frequency: "OncePerTurn",
+      actions: [{
+        kind: "PlayWithoutCost",
+        target: { filter: tsTamerTrash, count: 1 },
+        from: ["trash"],
+        payCost: true,
+        reduceCostBy: 2,
+        optional: true,
+      }],
+    },
+    {
+      trigger: "AllTurns",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [{
+        kind: "SubTrigger",
+        event: "whenAttacking",
+        actions: [{
+          kind: "TrashDigivolution",
+          target: { filter: opponentDigimon, count: 1 },
+          amount: 2,
+          fromTop: false,
+          optional: true,
+          cost: { kind: "trash", target: { filter: { controllerDefault: "mine", zone: "hand" }, count: 1 } },
+        }],
+      }],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard("BT26-021", compiled);

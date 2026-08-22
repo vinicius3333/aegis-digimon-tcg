@@ -8,9 +8,19 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, SubTriggerInstall } from "../../engine/effects/EffectContext.js";
 import "./BT26-021.js";
 import "../index.js";
+import { compiled } from "./BT26-021.js";
 
 const CARD_ID = "BT26-021";
 const MAIN_KEY = "main-play-ts-tamer-from-trash";
+
+it("encodes normal TS targeting, reduced trash Tamer play, and inherited bottom-source cost", () => {
+  expect(compiled.effects).toMatchObject([
+    { trigger: "OnPlay", actions: [{ kind: "Restrict", restriction: "attackTargetChange" }] },
+    { trigger: "WhenDigivolving", actions: [{ kind: "Restrict", restriction: "attackTargetChange" }] },
+    { trigger: "Main", frequency: "OncePerTurn", actions: [{ kind: "PlayWithoutCost", from: ["trash"], reduceCostBy: 2 }] },
+    { trigger: "AllTurns", isInherited: true, actions: [{ kind: "SubTrigger", event: "whenAttacking", actions: [{ kind: "TrashDigivolution", amount: 2, fromTop: false }] }] },
+  ]);
+});
 
 function definition(over: Partial<CardDefinition> = {}): CardDefinition {
   return {
