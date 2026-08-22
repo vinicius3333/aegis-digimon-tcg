@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCompiledCard } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "./BT26-033.js";
+import { compiled } from "./BT26-033.js";
 import "../index.js";
 
 describe("BT26-033 compiled fidelity", () => {
   it("encodes keywords, security recovery, use-cost surcharge, leave prevention, lowest-DP deletion, and the explicit turn seam", () => {
-    const card = getCompiledCard("BT26-033");
+    const card = compiled;
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
     expect(card?.keywords?.map((keyword) => keyword.keyword)).toEqual(expect.arrayContaining(["Raid", "Alliance", "Engage"]));
