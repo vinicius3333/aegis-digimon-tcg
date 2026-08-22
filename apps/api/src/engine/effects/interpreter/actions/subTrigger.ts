@@ -74,6 +74,7 @@ export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefine
   whenEffectAddsToOpponentHand: "whenEffectAddsToOpponentHand",
   whenEffectAddsToDeck: "whenEffectAddsToDeck",
   whenCardReturnsFromTrashToHand: "whenCardReturnsFromTrashToHand",
+  whenCardReturnsFromTrashToDeck: "whenCardReturnsFromTrashToDeck",
   whenDigimonReturnsToHand: "whenDigimonReturnsToHand",
   whenEffectSuspends: "whenEffectSuspends",
   whenOpponentDraws: "whenOpponentDraws",
@@ -228,6 +229,7 @@ export async function runSubTrigger(
     event === "whenEffectAddsToHand" ||
     event === "whenEffectAddsToDeck" ||
     event === "whenCardReturnsFromTrashToHand" ||
+    event === "whenCardReturnsFromTrashToDeck" ||
     event === "whenDigimonReturnsToHand" ||
     // whenTrashedByEffect uses trashedByEffectPermanentId (not subjectPermanentId); the
     // isSelfRef + zone gates are handled entirely by whenTrashedByEffectGate below.
@@ -453,6 +455,13 @@ export async function runSubTrigger(
           });
         }
       : undefined;
+  // This event carries no permanent subject. Scope "your trash" to the returning
+  // cards' owner seat, mirroring the trash-to-hand event above.
+  const cardReturnsFromTrashToDeckGate =
+    event === "whenCardReturnsFromTrashToDeck"
+      ? (subCtx: EffectContext): boolean =>
+          subCtx.trigger?.returnedFromTrashToDeckSeat === subCtx.source.ownerSeat
+      : undefined;
   // Event payloads attributed to an effect carry the acting seat. `bySourceController`
   // enforces printed clauses such as "one of YOUR effects suspends" and "using one of YOUR
   // effects, trash a card in your hand" without conflating the affected card's controller
@@ -668,6 +677,7 @@ export async function runSubTrigger(
     effectAddsToHandGate,
     effectAddsToDeckGate,
     cardReturnsFromTrashToHandGate,
+    cardReturnsFromTrashToDeckGate,
     bySourceControllerGate,
     returnDestinationGate,
     whenTrashedByEffectGate,
