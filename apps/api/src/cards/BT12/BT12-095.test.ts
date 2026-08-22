@@ -20,6 +20,9 @@ describe("BT12-095 handwritten module", () => {
       permanent: () => undefined,
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnPlay, source).length).toBeGreaterThan(0);
+    expect(module!.effectsForTiming(EffectTiming.OnStartMainPhase, source).length).toBeGreaterThan(0);
+    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+    expect(module!.effectsForTiming(EffectTiming.OnEnterFieldAnyone, source).length).toBeGreaterThan(0);
   });
 
   it("gives an Agumon or Greymon +1000 DP and Blocker at the start of main phase", async () => {
