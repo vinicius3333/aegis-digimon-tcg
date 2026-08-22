@@ -2,7 +2,6 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "../index.js";
 import { compiled } from "./BT13-060.js";
 
 describe("BT13-060 Rosemon: Burst Mode", () => {
