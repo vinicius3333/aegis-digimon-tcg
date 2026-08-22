@@ -26,6 +26,6 @@ describe("BT26-096 Kosuke Misono", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("target").instanceId));
 
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("kosuke").instanceId);
+    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.perm("kosuke").topCard.instanceId);
   });
 });

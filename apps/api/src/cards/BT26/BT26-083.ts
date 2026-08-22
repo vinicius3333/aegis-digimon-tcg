@@ -9,7 +9,7 @@ const securityWipeAndDeletes = [
   { kind: "SecurityManipulation", op: "placeFromDeck", controller: "mine", source: "deck", amount: 3, raw: "＜Recovery +3＞ (Place the top 3 cards of your deck as your top security card.)" },
 ];
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   keywords: [
     { keyword: "Rush", raw: "＜Rush＞" },
     { keyword: "Piercing", raw: "＜Piercing＞" },
