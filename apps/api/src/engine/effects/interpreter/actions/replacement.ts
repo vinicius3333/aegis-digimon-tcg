@@ -39,6 +39,7 @@ export async function runReplacement(
     unsupported(ctx, action, `Replacement event "${action.event}" is not a known game event`);
     return;
   }
+  if (action.condition !== undefined && !evaluateCondition(ctx, action.condition)) return;
   if (action.sourceFilter?.zone === "battleArea" && !ctx.source.isOnBattleArea()) return;
   const self = ctx.source.permanent();
   if (event === "wouldTrashDigivolutionCard" && self !== undefined) {

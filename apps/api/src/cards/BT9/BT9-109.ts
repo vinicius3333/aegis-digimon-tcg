@@ -26,7 +26,7 @@ const compiled: CompiledCard = {
         {
           kind: "PlaceUnder",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          underFilter: { controller: "mine", kind: ["Digimon"], digivolutionCards: "hasNone", excludeNameOrTrait: [{ tokens: ["X Antibody"], match: "name" }] },
+          underFilter: { controller: "mine", kind: ["Digimon"], excludeCardsNamed: ["X Antibody"] },
           position: "bottom",
         },
       ],
