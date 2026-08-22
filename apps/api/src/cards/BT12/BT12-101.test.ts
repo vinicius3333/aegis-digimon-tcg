@@ -40,6 +40,20 @@ describe("BT12-101 handwritten module", () => {
       actions: [{ kind: "SubTrigger" }],
     });
   });
+
+  it("uses the structural Free trait for the optional blue Digimon play", async () => {
+    const source = {
+      instanceId: "source-101",
+      cardId: "BT12-101",
+      ownerSeat: 0,
+      isOnBattleArea: () => true,
+      isOwnersTurn: () => true,
+      permanent: () => undefined,
+    } as unknown as CardSource;
+    const effects = getEffectModule("BT12-101")!.effectsForTiming(EffectTiming.OnUseOption, source);
+    expect(effects).toHaveLength(1);
+    expect(effects[0]!.description).toContain("blue Free Digimon");
+  });
 });
 
 it("registers the printed Security activation for BT12-101", () => {
