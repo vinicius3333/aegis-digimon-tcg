@@ -256,8 +256,12 @@ export async function runSubTrigger(
         }
       : undefined;
   const deletionSourceFilterGate =
-    event === "onDeletionOf" && sourceFilter !== undefined
+      event === "onDeletionOf" && sourceFilter !== undefined
       ? (subCtx: EffectContext): boolean => {
+          if (sourceFilter.isSelfRef === true) {
+            const anchor = subCtx.source.permanent()?.permanentId;
+            if (anchor === undefined || subCtx.trigger.deletedPermanentId !== anchor) return false;
+          }
           const deletedSeat = subCtx.trigger.deletedControllerSeat;
           const scope = sourceFilter.controller ?? sourceFilter.controllerDefault;
           const seatMatches =

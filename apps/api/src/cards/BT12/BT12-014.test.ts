@@ -46,7 +46,7 @@ describe("BT12-014 OmniShoutmon", () => {
         },
         1: { battleArea: [{ card: "BT12-038", as: "victim", dp: 9000 }] },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("omni"));
