@@ -11,7 +11,7 @@ describe("BT7-085 Takuya Kanbara", () => {
       {
         0: {
           battleArea: [{ card: "BT7-085", as: "takuya" }],
-          hand: [{ card: "BT7-016", as: "emperor" }],
+          hand: [{ card: "BT12-017", as: "emperor" }],
           trash: ["BT7-011", "BT7-011", "BT7-011", "BT7-011", "BT7-011"],
         },
       },
@@ -32,7 +32,7 @@ describe("BT7-085 Takuya Kanbara", () => {
       observe(s.engine).keywordAmount(s.perm("takuya"), "SecurityAttack") === 1,
     );
 
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(1);
     expect(s.perm("takuya").stack).toHaveLength(6);
     expect(s.perm("takuya").currentDP).toBe(14000);
     expect(observe(s.engine).keywordAmount(s.perm("takuya"), "SecurityAttack")).toBe(1);
