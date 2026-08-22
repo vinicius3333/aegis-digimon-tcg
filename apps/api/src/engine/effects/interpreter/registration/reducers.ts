@@ -87,6 +87,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT11-099", // condition: you have a blue Tamer -> Option use cost -1
   "BT11-100", // condition: you have a yellow Tamer -> Option use cost -1
   "BT11-101", // condition: you have a yellow Tamer -> Option use cost -1
+  "BT11-103", // condition: you have a green Tamer -> Option use cost -1
 ]);
 
 /**
