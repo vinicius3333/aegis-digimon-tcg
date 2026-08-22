@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT5-082.js";
 
 describe("BT5-082 Tactimon", () => {
+  it("has complete residual-free runtime coverage", () => {
+    expect(runtimeCompiledCard("BT5-082")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("activates all 3 effects when no other own Digimon is in play", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT5-082", as: "tacti" }] }, 1: { battleArea: [{ card: "BT5-071", as: "a" }, { card: "BT5-072", as: "b" }, { card: "BT5-061", as: "c" }], security: ["BT1-009"] } }, { autoSelectCards: true });
     const tacti = s.perm("tacti");
