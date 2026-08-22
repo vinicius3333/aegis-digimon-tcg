@@ -22,7 +22,7 @@ describe("BT12-082 handwritten module", () => {
   });
 });
 
-it("returns X Antibody, trashes three cards, and deletes a low-level target with a matching stack", async () => {
+it("returns X Antibody and deletes a low-level target with a matching stack", async () => {
   const s = setupEngine({
     0: {
       battleArea: [{ card: "BT12-082", as: "baalx", under: ["BT10-081"] }],
@@ -33,15 +33,16 @@ it("returns X Antibody, trashes three cards, and deletes a low-level target with
   }, { autoSelectCards: true });
   await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("baalx"));
   expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT9-109");
-  expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-010", "BT1-011"]);
+  expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual([]);
   expect(s.state.players[1]!.battleArea).toHaveLength(0);
 });
 
-it("does not delete the target when the stack lacks Baalmon or X Antibody", async () => {
+it("trashes the top three cards when the stack lacks Baalmon or X Antibody", async () => {
   const s = setupEngine({
     0: { battleArea: [{ card: "BT12-082", as: "baalx", under: ["BT1-009"] }], deck: ["BT1-010", "BT1-011", "BT1-012"] },
     1: { battleArea: [{ card: "BT1-009", as: "target", level: 4 }] },
   });
   await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("baalx"));
+  expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-010", "BT1-011"]);
   expect(s.state.players[1]!.battleArea).toHaveLength(1);
 });
