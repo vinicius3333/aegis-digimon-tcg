@@ -18,7 +18,8 @@ const compiled: CompiledCard = {
               "unsuspended": true,
               "kind": [
                 "Digimon"
-              ]
+              ],
+              "levelComparison": { "op": "lte", "relativeTo": "lastDeleted" }
             },
             "count": 1
           },
