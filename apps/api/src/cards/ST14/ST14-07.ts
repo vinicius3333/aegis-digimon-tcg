@@ -47,8 +47,10 @@ const compiled: CompiledCard = {
             "amount": 2000
           },
           "while": {
-            "kind": "selfDigivolutionStackHasTrait",
-            "nameOrTrait": [{ "tokens": ["Wizard", "Demon Lord"], "match": "trait" }]
+            "kind": "selfHasTrait",
+            "filter": {
+              "nameOrTrait": [{ "tokens": ["Wizard", "Demon Lord"], "match": "trait" }]
+            }
           }
         }
       ],

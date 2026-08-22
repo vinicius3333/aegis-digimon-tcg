@@ -9,7 +9,7 @@ const compiled: CompiledCard = {
       kind: "TrashTopDeck",
       controller: "mine",
       amount: 2,
-      condition: { kind: "selfDigivolutionStackHasTrait", nameOrTrait: [{ tokens: ["Wizard", "Demon Lord"], match: "trait" }] },
+      condition: { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["Wizard", "Demon Lord"], match: "trait" }] } },
     }],
     isInherited: true,
     frequency: "OncePerTurn",
