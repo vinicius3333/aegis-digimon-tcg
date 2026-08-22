@@ -1,5 +1,5 @@
-import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import "./P-217.js";
 

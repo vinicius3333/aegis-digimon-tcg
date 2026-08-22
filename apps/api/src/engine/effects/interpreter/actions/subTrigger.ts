@@ -647,6 +647,20 @@ export async function runSubTrigger(
           return subjectName === hostName;
         }
       : undefined;
+  const linkedCardGate =
+    event === "whenLinked" && action.linkedCardFilter !== undefined
+      ? (subCtx: EffectContext): boolean => {
+          const subjectId = subCtx.trigger.subjectPermanentId;
+          const linkedIds = subCtx.trigger.linkedCardInstanceIds ?? [];
+          const subject = subjectId === undefined ? undefined : subCtx.game.permanentById(subjectId);
+          if (subject === undefined || linkedIds.length === 0) return false;
+          return subject.linked.some(
+            (card) =>
+              linkedIds.includes(card.instanceId) &&
+              definitionMatches(action.linkedCardFilter!, subCtx.game.definitionOf(card)),
+          );
+        }
+      : undefined;
   const sourceDeleteCause = (sourceFilter as (Filter & { deleteCause?: "dpReachedZero" }) | undefined)?.deleteCause;
   const deleteCauseGate =
     event === "onDeletionOf" && sourceDeleteCause === "dpReachedZero"
@@ -688,6 +702,7 @@ export async function runSubTrigger(
     effectSourceGate,
     triggerFilterGate,
     addedDigivolutionCardGate,
+    linkedCardGate,
     inheritedHostNameGate,
     hostFilterGate,
     deleteCauseGate,
