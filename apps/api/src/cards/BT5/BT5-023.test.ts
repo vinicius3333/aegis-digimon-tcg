@@ -13,6 +13,6 @@ describe("BT5-023 Gesomon", () => {
 
   it("is registered with complete, residual-free runtime coverage", () => {
     expect(getEffectModule("BT5-023")).toBeDefined();
-    expect(runtimeCompiledCard("BT5-023")).toMatchObject({ coverage: "full", residual: [] });
+    expect(runtimeCompiledCard("BT5-023")).toMatchObject({ effects: [], coverage: "full", residual: [] });
   });
 });
