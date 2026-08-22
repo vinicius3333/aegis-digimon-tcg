@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-062.js";
@@ -7,6 +7,7 @@ import "../index.js";
 
 describe("BT26-062 Ghostmon", () => {
   it("compiles the hand cost, draw, memory, and inherited DP effects", () => {
+    expect(digivolutionRequirementsFor("BT26-062")).toContainEqual({ level: 2, traits: ["NSo"], cost: 0, isAlternate: true });
     expect(compiled.coverage).toBe("full");
     expect(compiled.effects[0]!.actions.map((a) => a.kind)).toEqual(["Draw", "GainMemory"]);
     expect(compiled.effects[1]).toMatchObject({ trigger: "YourTurn", isInherited: true });

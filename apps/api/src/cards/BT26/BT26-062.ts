@@ -8,5 +8,5 @@ export const compiled: CompiledCard = { effects: [
     { kind: "GainMemory", amount: 1 },
   ] },
   { trigger: "YourTurn", isInherited: true, actions: [{ kind: "ModifyDP", target: { isSelf: true }, amount: 2000, duration: "forTheTurn" }] },
-], coverage: "full", residual: [] };
+], coverage: "full", residual: [], digivolutionRequirement: [{ level: 2, traits: ["NSo"], cost: 0, isAlternate: true }] };
 registerIrCard("BT26-062", compiled);
