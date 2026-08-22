@@ -59,4 +59,13 @@ describe("BT5-037 Gladimon", () => {
       { instanceId: s.inst("nonWarrior").instanceId, cardId: "BT1-009" },
     ]));
   });
+
+  it("does not recover when security has no eligible Warrior", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT5-037", as: "source" }], security: ["BT1-009"], deck: ["BT1-010"] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
 });
