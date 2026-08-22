@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT26-090.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
 
 describe("BT26-090 compiled behavior", () => {
   it("proves Q7143 memory threshold, suspended TS Option use shape, and Security play", () => {
@@ -13,5 +17,17 @@ describe("BT26-090 compiled behavior", () => {
   it("keeps the opponent-memory reduction gap explicit", () => {
     expect(compiled.effects.find((effect) => effect.trigger === "EndOfYourTurn")?.actions[0]).toMatchObject({ reduceCostByOpponentMemory: true });
     expect(compiled.effects.find((effect) => effect.trigger === "EndOfYourTurn")?.actions[0].raw).toContain("opponent has");
+  });
+
+  it("gains memory only when its controller has four or less", async () => {
+    const low = setupEngine({ 0: { battleArea: [{ card: "BT26-090", as: "kanan" }] } });
+    low.state.memory = 4;
+    await advance(low.engine).fire(EffectTiming.OnStartMainPhase, low.perm("kanan"));
+    expect(low.state.memory).toBe(5);
+
+    const high = setupEngine({ 0: { battleArea: [{ card: "BT26-090", as: "kanan" }] } });
+    high.state.memory = 5;
+    await advance(high.engine).fire(EffectTiming.OnStartMainPhase, high.perm("kanan"));
+    expect(high.state.memory).toBe(5);
   });
 });
