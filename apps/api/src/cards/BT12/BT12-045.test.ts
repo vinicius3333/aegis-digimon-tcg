@@ -46,3 +46,15 @@ it("bottoms a revealed non-green Digimon instead of adding it", async () => {
   expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("notGreen").instanceId)).toBe(false);
   expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("notGreen").instanceId);
 });
+
+it("bottoms a green non-Digimon card because the condition requires both traits", async () => {
+  const s = setupEngine({
+    0: { hand: [{ card: "BT12-045", as: "ebi" }], deck: [{ card: "AD1-020", as: "greenTamer" }, "BT1-009"] },
+  }, { autoSelectCards: true });
+  await s.ready();
+  s.state.memory = 3;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ebi").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.players[0]!.deck.at(-1)?.instanceId === s.inst("greenTamer").instanceId);
+  expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("greenTamer").instanceId)).toBe(false);
+  expect(s.state.players[0]!.deck.at(-1)?.faceUp).toBe(false);
+});
