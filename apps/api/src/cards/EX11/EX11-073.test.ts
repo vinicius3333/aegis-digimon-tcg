@@ -191,7 +191,7 @@ describe("EX11-073 When Digivolving: DNA gate for Maquinamon link", () => {
         opponentOf: (s: number) => (s === 0 ? 1 : 0),
         permanentById: (id: string) => id === self.permanentId ? self : undefined,
         definitionOf: (c: CardInstance) => {
-          if (c.cardId === "EX11-001") return { nameEn: "Maquinamon", kinds: ["Digimon"], types: [] } as never;
+          if (c.cardId === "EX11-001") return { nameEn: "Maquinamon", kinds: ["Digimon"], types: [], linkRequirement: "[Link] Maquinamon" } as never;
           return { nameEn: "Unknown", kinds: ["Digimon"], types: [] } as never;
         },
       } as never,
@@ -261,7 +261,7 @@ describe("EX11-073 End of Opponent's Turn: trash security + return Digimon per l
     const fakeCtxOwner: EffectContext = {
       source: sourceOwnerTurn,
       trigger: {},
-      game: { state: { turnSeat: 1 }, opponentOf: (seat: number) => seat === 0 ? 1 : 0 } as never,
+      game: { state: { turnSeat: 0 }, opponentOf: (seat: number) => seat === 0 ? 1 : 0 } as never,
       fx: {} as never,
       ask: { optional: async () => true } as never,
     };

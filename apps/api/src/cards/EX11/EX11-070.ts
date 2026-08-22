@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const maquinamonText = { nameOrTrait: [{ tokens: ["Maquinamon"], match: "text" }] };
 const hostGate = {
   kind: "selfTopHasText",
-  nameOrTrait: [{ tokens: ["Maquinamon"], match: "text" }],
+  filter: { nameOrTrait: [{ tokens: ["Maquinamon"], match: "text" }] },
   raw: "this Digimon has [Maquinamon] in its text",
 };
 

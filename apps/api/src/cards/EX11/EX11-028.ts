@@ -66,7 +66,7 @@ const compiled: CompiledCard = {
                       "tokens": [
                         "Shoto Kazama"
                       ],
-                      "match": "trait"
+              "match": "name"
                     }
                   ]
                 },

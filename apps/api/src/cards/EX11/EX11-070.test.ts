@@ -52,6 +52,7 @@ describe("EX11-070 DP-floor — a [Maquinamon]-text host can't have less than 10
     const host = s.perm("host");
 
     // The real continuous-recompute pass fires EX11-070's [All Turns] static, installing the floor.
+    await s.ready();
     await s.engine.recomputeContinuousEffects();
     expect(modifiersOf(s).minDpFloorsOf(host.permanentId).length).toBeGreaterThan(0);
 
@@ -72,6 +73,8 @@ describe("EX11-070 DP-floor — a [Maquinamon]-text host can't have less than 10
     });
     const host = s.perm("host");
 
+    await s.ready();
+    await s.ready();
     await s.engine.recomputeContinuousEffects();
     expect(modifiersOf(s).minDpFloorsOf(host.permanentId).length).toBe(0);
 
@@ -99,6 +102,8 @@ describe("EX11-070 stacked-trash-lock — opponent effects can't trash the host'
     const host = s.perm("host");
     const fillerId = s.inst("filler").instanceId;
 
+    await s.ready();
+    await s.ready();
     await s.engine.recomputeContinuousEffects();
     expect(continuousOf(s).stackTrashLocked(host.permanentId)).toBe(true);
 
@@ -160,9 +165,11 @@ describe("EX11-070 inherited End of All Turns play", () => {
     await effect.resolve({
       source,
       trigger: {},
-      game: { definitionOf: (card: { cardId: string }) => ({ nameEn: card.cardId === ESS_SOURCE ? "Unchained" : "Turbomon" }) },
+      game: {
+        definitionOf: (card: { cardId: string }) => ({ nameEn: card.cardId === ESS_SOURCE ? "Unchained" : "Turbomon", kinds: [card.cardId === ESS_SOURCE ? "Tamer" : "Digimon"] }),
+      },
       fx: { playInstances: async (ids: string[]) => { played.push(ids); return []; } },
-      ask: { selectCards: async (_ctx: unknown, options: { candidates: string[] }) => options.candidates.slice(0, 1) },
+      ask: { optional: async () => true, selectCards: async (_ctx: unknown, options: { candidates: string[] }) => options.candidates.slice(0, 1) },
     } as never);
     expect(played).toEqual([[host.stack[0]!.instanceId]]);
   });

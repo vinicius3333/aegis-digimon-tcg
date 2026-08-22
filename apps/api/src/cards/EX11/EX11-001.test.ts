@@ -13,7 +13,7 @@ describe("EX11-001 Koromon", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
 
