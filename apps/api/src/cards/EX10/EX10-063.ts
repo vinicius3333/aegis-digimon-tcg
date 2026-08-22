@@ -1,6 +1,6 @@
 // @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "EX10-063";
 
@@ -125,5 +125,5 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard("EX10-063", compiled);
-export default compiled;
+registerCard(module);
+export default module;

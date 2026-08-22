@@ -127,7 +127,7 @@ const compiled: CompiledCard = {
       "trigger": "WhenDigivolving",
       "actions": [
         {
-          "kind": "Suspend",
+          "kind": "SelectBind",
           "target": {
             "filter": {
               "controller": "opponent",
@@ -136,7 +136,19 @@ const compiled: CompiledCard = {
                 "Tamer"
               ]
             },
-            "count": 1
+            "count": 1,
+            "bindAs": "suspendedTarget"
+          }
+        },
+        {
+          "kind": "Suspend",
+          "target": {
+            "filter": {
+              "controller": "opponent",
+              "kind": ["Digimon", "Tamer"]
+            },
+            "count": 1,
+            "fromSelectionRef": "suspendedTarget"
           }
         },
         {
@@ -147,7 +159,7 @@ const compiled: CompiledCard = {
               "kind": ["Digimon", "Tamer"]
             },
             "count": 1,
-            "sameTarget": true
+            "fromSelectionRef": "suspendedTarget"
           },
           "restriction": "unsuspend",
           "duration": "untilOpponentTurnEnd"

@@ -96,5 +96,5 @@ const compiled: CompiledCard = {
   digiXrosRequirement: [{ materials: [{ traits: ["Bagra Army"] }], count: 2, costReduction: 2 }],
 };
 
-registerIrCard("EX10-058", compiled);
-export default compiled;
+registerCard(module);
+export default module;

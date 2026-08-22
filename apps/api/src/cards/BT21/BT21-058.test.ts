@@ -2,7 +2,8 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
-import "../index.js";
+import "./BT21-058.js";
+import "./BT21-056.js";
 
 // A3 for BT21-058 (Snatchmon) — [On Play] / [When Digivolving]:
 //   "Reveal the top 3 cards of your deck. Add 1 card with [Vemmon] in its text to your

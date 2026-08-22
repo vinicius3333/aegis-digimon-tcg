@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-061.js";
 
 describe("BT21-061 MetalGreymon", () => {
@@ -48,5 +49,30 @@ describe("BT21-061 MetalGreymon", () => {
         target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
       });
     }
+  });
+
+  it("de-digivolves one opponent for each two Tamer colors on play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-061", as: "metalgreymon" }],
+          battleArea: [
+            { card: "BT1-085", as: "redTamer" },
+            { card: "BT1-086", as: "blueTamer" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", under: ["BT1-010"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metalgreymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("opponent").stack.length === 1);
+
+    expect(s.perm("opponent").stack).toHaveLength(1);
   });
 });

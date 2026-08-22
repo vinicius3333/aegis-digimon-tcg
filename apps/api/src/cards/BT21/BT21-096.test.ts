@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-096.js";
-import "../index.js";
 
 describe("BT21-096 The Champion Ultimate Fighter!", () => {
   it("turns a Marcus Damon into a 12000 DP Rush Digimon and starts its Digimon attack", async () => {

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-054.js";
 
 describe("BT21-054 Shotmon", () => {
@@ -47,5 +48,27 @@ describe("BT21-054 Shotmon", () => {
         ],
       }),
     );
+  });
+
+  it("trashes a qualifying own stack card to de-digivolve an opponent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-054", as: "shotmon" }],
+          battleArea: [{ card: "BT1-009", as: "ownHost", under: [{ card: "BT21-041", as: "costCard" }] }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", under: ["BT1-010"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shotmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("opponent").stack.length === 1);
+
+    expect(s.perm("ownHost").stack.some((card) => card.instanceId === s.inst("costCard").instanceId)).toBe(true);
+    expect(s.perm("opponent").stack).toHaveLength(1);
   });
 });

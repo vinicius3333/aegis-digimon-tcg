@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
-import "../index.js";
+import "./index.js";
 import { compiled } from "./EX8-051.js";
 
 describe("EX8-051", () => {

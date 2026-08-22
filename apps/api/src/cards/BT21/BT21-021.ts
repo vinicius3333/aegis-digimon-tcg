@@ -92,8 +92,16 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
-          kind: "ActivateEffect",
-          effectType: "Save",
+          kind: "PlaceUnder",
+          target: {
+            filter: { isSelfRef: true },
+            count: 1,
+            isSelf: true,
+          },
+          underFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
+          },
           optional: true,
         },
       ],

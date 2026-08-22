@@ -1,6 +1,6 @@
 // @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
 // Q5101: gained attack effects still exist on unaffected Digimon, but only
 // trigger if that Digimon can resolve effects. Q5102 requires exactly two

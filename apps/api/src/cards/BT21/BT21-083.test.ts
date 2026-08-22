@@ -1,9 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./BT21-083.js";
-import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
-import "../index.js";
-import { compiled } from "./BT21-083.js";
+import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
 
 // A3 for BT21-083 (Taiki Kudo) — [Start of Your Main Phase]:
 //   "By placing 1 Digimon card with the [Xros Heart]/[Blue Flare]/[Hero] trait from your
