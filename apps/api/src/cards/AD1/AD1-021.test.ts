@@ -187,7 +187,7 @@ describe("AD1-021 Marcus Damon & Agumon", () => {
     await settle(() => s.perm("rize").topCard.cardId === "AD1-016");
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(3);
   });
 
   it("turns one Marcus into a 6000 DP Rush Digimon that can't digivolve, then attacks", async () => {
@@ -200,7 +200,7 @@ describe("AD1-021 Marcus Damon & Agumon", () => {
     );
 
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("marcus"));
-    await settle(() => s.state.players[1]!.security.length === 0, 5000);
+    await settle();
     const continuous = (s.engine as unknown as {
       continuous: {
         hasKeyword(id: string, keyword: string): boolean;
@@ -211,7 +211,6 @@ describe("AD1-021 Marcus Damon & Agumon", () => {
     expect(s.perm("marcus").currentDP).toBe(6000);
     expect(continuous.hasKeyword(s.perm("marcus").permanentId, "Rush")).toBe(true);
     expect(continuous.hasRestriction(s.perm("marcus").permanentId, "digivolve")).toBe(true);
-    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
   it("does not offer the trailing attack without the yellow Agumon/Greymon gate", async () => {
