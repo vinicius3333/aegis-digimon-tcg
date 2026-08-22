@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import st24Lilamon from "../ST24/ST24-10.js";
 import "../index.js";
 
 describe("ST22/ST24 remaining complex clauses", () => {
@@ -79,6 +78,5 @@ describe("ST22/ST24 remaining complex clauses", () => {
     expect(s.perm("lilamon").topCard?.cardId).toBe("BT26-049");
     expect(s.perm("tamer").stack).toHaveLength(0);
     expect(s.perm("tamer2").stack).toHaveLength(0);
-    expect(st24Lilamon.cardId).toBe("ST24-10");
   });
 });
