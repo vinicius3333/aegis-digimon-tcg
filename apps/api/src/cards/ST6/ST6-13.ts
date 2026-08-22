@@ -1,10 +1,38 @@
-import { CardColor, EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { activated, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
-const cardId = "ST6-13";
-const module: EffectModule = { cardId, effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] { if (timing === EffectTiming.None) return [staticModifier({ source, effectKey: `${cardId}/security-attack`, description: "Security Attack +1.", resolve: async (ctx) => { const self = source.permanent(); if (self) ctx.fx.grantKeyword(self.permanentId, "SecurityAttack", EffectDuration.Permanent, 1); } })]; if (timing === EffectTiming.OnDeclaration) return [activated({ source, effectKey: `${cardId}/digiburst`, description: "[Main] Digi-Burst 2 to play a purple level 3 Digimon from trash for free.", canActivate: () => (source.permanent()?.stack.length ?? 0) >= 2, resolve: async (ctx) => { const self = source.permanent(); if (!self || self.stack.length < 2) return; const paid = await ctx.ask.selectCards(ctx, { candidates: self.stack.map((card) => card.instanceId), min: 2, max: 2 }); if (paid.length !== 2) return; await ctx.fx.trashDigivolutionCards(self.permanentId, paid, { byEffectSeat: source.ownerSeat, byEffectCardId: cardId, isDigiBurst: true }); const candidates = ctx.game.player(source.ownerSeat).trash.filter((card) => { const def = ctx.game.definitionOf(card); return isDigimon(def) && def.level === 3 && def.colors.includes(CardColor.Purple); }).map((card) => card.instanceId); if (!candidates.length) return; const chosen = await ctx.ask.selectCards(ctx, { candidates, min: 1, max: 1 }); if (chosen.length) await ctx.fx.playInstances(chosen, { payCost: false }); } })]; return []; } };
-registerCard(module);
-export default module;
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Static",
+      keywords: [{ keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" }],
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: { controller: "mine", kind: ["Digimon"], colors: ["Purple"], levels: [3] },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+          abortOnDecline: true,
+          cost: {
+            kind: "trash",
+            target: { filter: { isSelfRef: true, zone: "digivolutionCards" }, count: 2 },
+            raw: "＜Digi-Burst 2＞",
+          },
+        },
+      ],
+      keywords: [{ keyword: "DigiBurst", amount: 2, raw: "＜Digi-Burst 2＞" }],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard("ST6-13", compiled);
