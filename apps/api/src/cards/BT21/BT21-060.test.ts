@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-060.js";
 
 describe("BT21-060 Destromon", () => {
@@ -47,5 +50,23 @@ describe("BT21-060 Destromon", () => {
         filter: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }] },
       },
     });
+  });
+
+  it("de-digivolves two cards when four Vemmon are in its stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-060", as: "destromon", under: ["BT21-056", "BT21-056", "BT21-056", "BT21-056"] }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", under: ["BT1-010", "BT1-010"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("destromon"));
+    await settle(() => s.perm("opponent").stack.length === 2);
+
+    expect(s.perm("opponent").stack).toHaveLength(2);
   });
 });

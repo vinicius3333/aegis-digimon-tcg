@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-049.js";
-import "../index.js";
 
 describe("BT21-049 Woodmon", () => {
   it("preserves the WG alternate Digivolution and inherited Piercing", () => {

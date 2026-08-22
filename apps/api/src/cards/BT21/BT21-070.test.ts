@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-070.js";
 describe("BT21-070 Gossipmon", () => {
   it("preserves the Appmon link requirement and linked recovery", () => {
@@ -56,5 +57,26 @@ describe("BT21-070 Gossipmon", () => {
     }
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual ?? []).toEqual([]);
+  });
+
+  it("returns an Appmon from trash through its public On Play effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-070", as: "gossipmon" }],
+          trash: [{ card: "BT21-041", as: "appmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gossipmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("appmon").instanceId));
+
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("appmon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("appmon").instanceId)).toBe(false);
   });
 });
