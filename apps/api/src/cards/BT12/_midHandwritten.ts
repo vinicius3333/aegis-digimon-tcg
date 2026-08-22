@@ -1037,7 +1037,7 @@ export function midBt12Module(cardId: string): EffectModule {
                 effectKey: `${cardId}/scaled-minus`,
                 description: "For every 2 sources, give an opposing Digimon -3000 DP.",
                 resolve: async (ctx) => {
-                const digivolutionCardCount = Math.max(0, (sourcePermanent(ctx, source)?.stack.length ?? 1) - 1);
+                  const digivolutionCardCount = Math.max(0, (sourcePermanent(ctx, source)?.stack.length ?? 1) - 1);
                   const times = Math.floor(digivolutionCardCount / 2);
                   for (let i = 0; i < times; i += 1) await inheritedMinusDp(ctx, source, 3000);
                 },
