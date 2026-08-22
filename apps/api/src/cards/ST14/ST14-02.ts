@@ -17,6 +17,7 @@ const compiled: CompiledCard = {
             "isSelf": true
           },
           "into": {
+            "controllerDefault": "mine",
             "kind": [
               "Digimon"
             ],
