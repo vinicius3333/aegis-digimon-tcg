@@ -20,17 +20,26 @@ export const compiled: CompiledCard = {
             isSelf: true,
           },
           condition: {
-            kind: "youHave",
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon", "Tamer"],
-              nameOrTrait: [
-                {
-                  tokens: ["TS"],
-                  match: "trait",
+            kind: "anyOf",
+            conditions: [
+              {
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon", "Tamer"],
+                  nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
                 },
-              ],
-            },
+              },
+              {
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  zone: "breeding",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
+                },
+              },
+            ],
             raw: "you have an [TS] trait Digimon or Tamer on the field",
           },
         },
@@ -101,6 +110,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["TS"], cost: 3 }],
 };
 
 registerIrCard("BT24-097", compiled);

@@ -2,9 +2,37 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT24-097.js";
 import "../index.js";
 
 describe("BT24-097 Soul Fear", () => {
+  it("records the printed TS Link requirement and breeding-aware color waiver", () => {
+    expect(compiled.linkRequirement).toEqual([{ traits: ["TS"], cost: 3 }]);
+    expect(compiled.effects[0]).toMatchObject({
+      actions: [{ condition: { kind: "anyOf", conditions: [{ kind: "youHave" }, { kind: "youHave" }] } }],
+    });
+  });
+
+  it("may be used with only a breeding-area TS color-waiver source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT24-009", as: "breedingTs" },
+          hand: [{ card: "BT24-097", as: "soulFear" }],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("soulFear").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("target").instanceId));
+  });
+
   it("declares its printed Link onto TS for cost 3 and rejects a non-TS host atomically", async () => {
     const valid = setupEngine({
       0: { hand: [{ card: "BT24-097", as: "soulFear" }], battleArea: [{ card: "BT24-009", as: "tsHost" }] },
