@@ -21,7 +21,7 @@ import {
 import { countMatching } from "./scaling.js";
 import { findLooseCandidateByInstance } from "./targeting/loose.js";
 import { candidatePermanents } from "./targeting/permanents.js";
-import { CardColor, CardKind, getCardDefinition, requireCardDefinition } from "@aegis/shared";
+import { CardColor, CardKind, getCardDefinition, isDigimon, requireCardDefinition } from "@aegis/shared";
 import type { Condition, Filter } from "@aegis/shared";
 
 /** Evaluate a parsed Condition. An unrecognized ("raw") condition is treated as
@@ -175,7 +175,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
         const top = permanent.topCard;
         if (top === undefined) return false;
         const definition = ctx.game.definitionOf(top);
-        return definition.kinds.includes(CardKind.Digimon) && definition.colors.includes(CardColor.Green) && (definition.level ?? 0) >= (cond.value ?? 5);
+        return isDigimon(definition) && definition.colors.includes(CardColor.Green) && (definition.level ?? 0) >= (cond.value ?? 5);
       });
     case "opponentHas": {
       const threshold = cond.countMin ?? cond.count ?? 1;
