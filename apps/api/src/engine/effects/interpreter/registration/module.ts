@@ -269,7 +269,16 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
  * mask a genuine conflict between two distinct IR cards. `registerCard` still throws
  * for a hand-written double-port that does not go through this bulk path.
  */
-export function registerIrCard(cardId: string, compiled: CompiledCard): EffectModule {
+export function registerIrCard(cardId: string, compiled: CompiledCard | EffectModule): EffectModule {
+  // Hand-authored overrides still enter through the single IR registration seam. Their
+  // executable module is already the audited source of truth; do not replace it with a
+  // stale generated residual merely to satisfy registration bookkeeping.
+  if ("effectsForTiming" in compiled) {
+    const existing = getEffectModule(cardId);
+    if (existing !== undefined) unregisterCard(cardId);
+    registerCard(compiled);
+    return compiled;
+  }
   registeredCompiledCards.set(cardId, compiled);
   const existing = getEffectModule(cardId);
   const previousIrModule = registeredIrModules.get(cardId);

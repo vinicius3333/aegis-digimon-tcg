@@ -5,7 +5,7 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { onPlay, staticModifier, turnTiming, whenDigivolving } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // LordKnightmon — BT22-067 (Black Lv.6 Digimon).
 //
@@ -207,5 +207,5 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
+registerIrCard(cardId, module);
 export default module;
