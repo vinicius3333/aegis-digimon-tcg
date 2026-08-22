@@ -9,6 +9,10 @@ describe("BT26-093 compiled fidelity", () => {
   it("registers the hand placement cost, global attack watcher, grants, and Security play", () => {
     const card = compiled;
     expect(card?.coverage).toBe("full");
+    expect(card?.effects?.find((effect) => effect.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
+    });
     expect(card?.effects?.find((effect) => effect.trigger === "StartOfYourMainPhase")?.actions).toMatchObject([
       { kind: "PlaceUnder", faceDown: true },
       { kind: "Draw", amount: 1 },
@@ -25,13 +29,16 @@ describe("BT26-093 compiled fidelity", () => {
   });
 
   it("places a BEATBREAK card under itself, draws, and gains memory at main-phase start", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT26-093", as: "reina" }],
-        hand: [{ card: "ST23-08", as: "beatbreak" }],
-        deck: ["BT1-001", "BT1-002"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-093", as: "reina" }],
+          hand: [{ card: "ST23-08", as: "beatbreak" }],
+          deck: ["BT1-001", "BT1-002"],
+        },
       },
-    }, { autoSelectCards: true });
+      { autoSelectCards: true },
+    );
     s.state.memory = 0;
 
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("reina"));
