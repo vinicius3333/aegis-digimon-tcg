@@ -28,6 +28,7 @@ describe("BT26-096 Kosuke Misono", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 1;
+    const kosukeId = s.perm("kosuke").topCard.instanceId;
 
     await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("kosuke"));
     await settle(() =>
@@ -35,6 +36,6 @@ describe("BT26-096 Kosuke Misono", () => {
     );
 
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.perm("kosuke").topCard.instanceId);
+    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(kosukeId);
   });
 });
