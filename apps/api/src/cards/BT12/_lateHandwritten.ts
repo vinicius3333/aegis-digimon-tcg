@@ -154,7 +154,7 @@ async function placeSaveFromHand(ctx: EffectContext, source: CardSource): Promis
   const cards = ctx.game
     .player(source.ownerSeat)
     .hand.filter((card) => isDigimon(ctx.game.definitionOf(card)) && hasText(ctx.game.definitionOf(card), "save"));
-  const picked = await chooseCard(ctx, cards, true);
+  const picked = await chooseCard(ctx, cards);
   const self = source.permanent();
   if (picked === undefined || self === undefined) return false;
   return (await ctx.fx.placeUnder(self.permanentId, [picked])).length === 1;
@@ -166,7 +166,6 @@ function saveTamerStart(cardId: string, source: CardSource, result: "draw" | "me
     effectKey: `${cardId}/start-main`,
     description:
       "[Start of Your Main Phase] Place a Save Digimon from hand under this Tamer to apply this card's effect.",
-    optional: true,
     resolve: async (ctx) => {
       if (!(await placeSaveFromHand(ctx, source))) return;
       if (result === "draw") await ctx.fx.draw(source.ownerSeat, 1);
@@ -211,8 +210,6 @@ function saveTamerDigivolveReducer(cardId: string, source: CardSource): Effect {
             cards.push(...permanent.stack);
           }
           if (self.isSuspended || cards.length === 0) return false;
-          if (!(await runtimeCtx.ask.optional(runtimeCtx, "Pay the Tamer's cost to reduce digivolution by 1?")))
-            return false;
           const picked = await chooseCard(runtimeCtx, cards);
           if (!picked || runtimeCtx.fx.payActivationCost?.(self.permanentId, "suspend") !== true) return false;
           return (await runtimeCtx.fx.placeUnder(target.permanentId, [picked])).length === 1;
