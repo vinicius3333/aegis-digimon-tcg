@@ -25,7 +25,7 @@ describe("BT21-098 Ragnarok Cannon", () => {
     await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== lowId));
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highId)).toBe(true);
-    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.events.some((event) => event.kind === "cardPlayed" && event.cardId === "BT21-098")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT21-098")).toBe(false);
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });

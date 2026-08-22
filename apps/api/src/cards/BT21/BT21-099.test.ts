@@ -8,7 +8,7 @@ describe("BT21-099 Xros Up", () => {
     const s = setup(
       {
         0: {
-          battleArea: [{ card: "BT12-087", as: "tamer" }],
+          battleArea: [{ card: "BT21-089", as: "tamer" }],
           hand: [{ card: "BT14-057", as: "save" }, { card: "BT21-099", as: "option" }],
         },
       },
