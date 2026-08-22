@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "../index.js";
+import "./index.js";
 import { compiled } from "./BT22-036.js";
 
 describe("BT22-036 Chaperomon", () => {
-  it("records the unresolved DigivolveViaPlacement runtime capability", () => {
-    expect(compiled.coverage).toBe("partial");
-    expect(compiled.residual).toEqual(["DigivolveViaPlacement runtime execution is unsupported"]);
+  it("has complete executable coverage for every printed clause", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 
   it("keeps the Arisa trash-placement digivolution and Puppet Overclock/leave replacement", () => {
@@ -48,35 +48,6 @@ describe("BT22-036 Chaperomon", () => {
         },
       ],
     });
-  });
-
-  it("exposes the unresolved runtime failure for the hand digivolution", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "EX7-024", as: "shoemon" }],
-          hand: [{ card: "BT22-036", as: "chaperomon" }, "BT22-088"],
-          trash: [{ card: "BT22-032", as: "shoeShoemon" }],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 3;
-    const source = (s.engine as any).cardSourceOf(s.inst("chaperomon"));
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
-      effect.effectKey.startsWith("BT22-036/"),
-    )!.effectKey;
-
-    expect(
-      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: s.inst("chaperomon").instanceId, effectKey }),
-    ).toEqual({
-      ok: false,
-      reason: "illegal-target",
-    });
-    await settle();
-    expect(s.state.memory).toBe(3);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT22-036")).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT22-032")).toBe(true);
   });
 
   it("does not expose the hand effect without Arisa Kinosaki", async () => {

@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-069.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT22-069 Lunamon", () => {
   it("reveals three and adds Night Claw plus Light Fang or Galaxy", () => {

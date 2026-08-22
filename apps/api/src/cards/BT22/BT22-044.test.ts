@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-044.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT22-044 Palmon", () => {
   it("gains memory when effects add a CS Digimon card to this stack", () => {
