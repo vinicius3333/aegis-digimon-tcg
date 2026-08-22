@@ -1,4 +1,4 @@
-import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
+import { EffectTiming, Phase, digivolutionRequirementsFor } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -51,5 +51,44 @@ describe("BT26-008 Kotemon", () => {
     expect(observe(s.engine).hasPierce(s.perm("chosen"))).toBe(true);
     expect(s.perm("other").currentDP).toBe(3000);
     expect(observe(s.engine).hasPierce(s.perm("other"))).toBe(false);
+  });
+
+  it("applies the same bound Piercing and DP bonus when Kotemon moves from breeding", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT26-008", as: "mover" },
+        battleArea: [
+          { card: "BT26-012", as: "chosen" },
+          { card: "BT26-013", as: "other" },
+        ],
+      },
+    }, { autoSelectCards: true, preferInstanceIds: preferred });
+    preferred.push(s.inst("chosen").instanceId);
+    s.state.phase = Phase.Breeding;
+
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("chosen").currentDP === 9000);
+
+    expect(observe(s.engine).hasPierce(s.perm("chosen"))).toBe(true);
+    expect(s.perm("other").currentDP).toBe(3000);
+    expect(observe(s.engine).hasPierce(s.perm("other"))).toBe(false);
+  });
+
+  it("grants the inherited +2000 DP only during its controller's turn", async () => {
+    const ownTurn = setupEngine({
+      0: { battleArea: [{ card: "BT26-013", as: "host", under: ["BT26-008"] }] },
+    });
+    await ownTurn.ready();
+    expect(ownTurn.perm("host").currentDP).toBe(5000);
+
+    const opponentTurn = setupEngine({
+      0: { battleArea: [{ card: "BT26-013", as: "host", under: ["BT26-008"] }] },
+    });
+    opponentTurn.state.turnSeat = 1;
+    await opponentTurn.ready();
+    expect(opponentTurn.perm("host").currentDP).toBe(3000);
   });
 });
