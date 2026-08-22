@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-044.js";
@@ -29,4 +30,23 @@ it("gains Security Attack for each opposing Digimon with that keyword", async ()
   });
   await s.ready();
   expect(observe(s.engine).hasKeyword(s.perm("lamp"), "SecurityAttack")).toBe(true);
+});
+
+it("does not gain Security Attack when no opposing Digimon has that keyword", async () => {
+  const s = setupEngine({
+    0: { battleArea: [{ card: "BT12-044", as: "lamp" }] },
+    1: { battleArea: [{ card: "BT1-009", as: "plain" }] },
+  });
+  await s.ready();
+  expect(observe(s.engine).hasKeyword(s.perm("lamp"), "SecurityAttack")).toBe(false);
+});
+
+it("gives one opposing Digimon Security Attack -2 when digivolving", async () => {
+  const s = setupEngine({
+    0: { battleArea: [{ card: "BT12-044", as: "lamp" }] },
+    1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+  });
+  await s.ready();
+  await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("lamp"));
+  expect(observe(s.engine).hasKeyword(s.perm("target"), "SecurityAttack")).toBe(true);
 });
