@@ -283,4 +283,28 @@ describe("BT26-019 Mailmon", () => {
       detachableLinkedCards(s.perm("host"), ["Seven Code"], definitionOf).map(({ instanceId }) => instanceId),
     ).toEqual([s.inst("sevenCode").instanceId]);
   });
+
+  it("uses printed Detach in battle to save Mailmon by trashing a Seven Code link", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "attacker", dp: 4000, linked: [{ card: "BT26-010", as: "link" }] }],
+        },
+        1: { battleArea: [{ card: "BT26-019", as: "defender", dp: 4000, suspended: true }] },
+      },
+      { autoSelectCards: true },
+    );
+    const defenderId = s.perm("defender").permanentId;
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "permanent", permanentId: defenderId },
+    })).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === defenderId));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.perm("attacker").linked).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("link").instanceId);
+  });
 });
