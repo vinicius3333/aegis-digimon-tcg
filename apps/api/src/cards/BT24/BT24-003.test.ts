@@ -16,6 +16,8 @@ describe("BT24-003 Tsunomon", () => {
     expect(inherited.actions[0].actions[0]).toMatchObject({
       kind: "Digivolve",
       from: ["hand"],
+      payCost: true,
+      useAlternateCost: true,
       reduceCost: 1,
       optional: true,
       target: { filter: { isSelfRef: true } },

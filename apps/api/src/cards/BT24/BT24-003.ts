@@ -38,6 +38,8 @@ export const compiled: CompiledCard = {
                 ],
               },
               from: ["hand"],
+              payCost: true,
+              useAlternateCost: true,
               reduceCost: 1,
               optional: true,
             },
