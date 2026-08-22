@@ -5,13 +5,11 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "YourTurn",
+      trigger: "Static",
       actions: [
         {
           kind: "Replacement",
           event: "wouldDigivolve",
-          mode: "reduceCost",
-          amount: 3,
           amountFromPaidCost: true,
           optional: false,
           sourceFilter: { isSelfRef: true },
@@ -19,15 +17,24 @@ const compiled: CompiledCard = {
             controllerDefault: "mine",
             nameOrTrait: [{ tokens: ["Shaman", "Wizard"], match: "trait" }],
           },
-          cost: {
-            kind: "trash",
-            target: {
-              filter: { zone: "security", controller: "mine" },
-              count: 3,
-              upTo: true,
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 3,
+              optional: false,
+              cost: {
+                kind: "trash",
+                target: {
+                  filter: { zone: "security", controller: "mine" },
+                  count: 3,
+                  upTo: true,
+                },
+                raw: "trash up to 3 of your security cards",
+              },
             },
-            raw: "trash up to 3 of your security cards",
-          },
+          ],
           raw: "reduce the digivolution cost by 1 for each security card trashed",
         },
       ],

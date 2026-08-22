@@ -118,7 +118,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
             permanentMatchesFilter(ctx, permanent, { ...cond.filter, controller: "mine" }, ctx.source),
         );
     case "breedingAreaEmpty":
-      return ctx.game.player(mine).breeding === undefined && ctx.game.player(mine).eggDeck.length > 0;
+      return ctx.game.player(mine).breeding === undefined;
     case "digivolutionCountCompare": {
       const ids = ctx.lastResolvedPermanentIds ?? [];
       const target = ids.length === 1 ? ctx.game.permanentById(ids[0]!) : undefined;

@@ -46,10 +46,7 @@ export function candidatePermanents(
   // action silently disables every later action in the same effect.
   if (target.isSelf || target.filter?.isSelfRef) {
     const self = source.permanent();
-    return self !== undefined &&
-      (target.filter === undefined || permanentMatchesFilter(ctx, self, target.filter, source))
-      ? [self]
-      : [];
+    return self ? [self] : [];
   }
   if (target.filter === undefined) return [];
   // A bound result is already an exact set of produced permanents. Resolve those ids

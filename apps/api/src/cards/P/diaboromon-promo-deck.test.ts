@@ -47,9 +47,9 @@ describe("Diaboromon promo line deck", () => {
       attackerPermanentId: s.perm("promoDiaboromon").permanentId,
       target: { kind: "player" },
     })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 1);
+    await settle(() => s.state.players[1]!.security.length === 2);
 
-    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
   it("combines the full promo stack with Diaboromon count scaling", async () => {

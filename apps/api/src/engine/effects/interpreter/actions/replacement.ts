@@ -316,6 +316,7 @@ export async function runReplacement(
       ...(interactiveCost !== undefined || interactiveOptional
         ? {
             controllerSeat: ownerSeat,
+            ...(self === undefined ? { activationContext: ctx } : {}),
             appliesTo: (target: Permanent) =>
               target.controllerSeat === ownerSeat &&
               !target.inBreeding &&
