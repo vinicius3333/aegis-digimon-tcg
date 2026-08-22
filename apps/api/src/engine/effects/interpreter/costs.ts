@@ -1405,7 +1405,7 @@ export async function payCost(
       // Older compiled records place the destination selector on the cost target,
       // while newer hand-authored IR uses the cost-level field. Both encode the
       // same printed "under this Digimon or one of your Tamers" destination.
-      const underFilter = cost.underFilter ?? cost.target.underFilter;
+      const underFilter = cost.underFilter ?? (cost.target as Target & { underFilter?: Filter }).underFilter;
       if (underFilter) {
         const destTarget: Target = { filter: underFilter, count: 1 };
         const destIds = await resolvePermanentTargets(ctx, destTarget);
