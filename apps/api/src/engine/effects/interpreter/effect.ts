@@ -190,7 +190,7 @@ export function timingsForTrigger(effect: CardEffect, isOptionPlayBody: boolean)
     return [EffectTiming.OnUseOption, EffectTiming.OnDeclaration];
   }
   if (effect.isInherited && effect.trigger === "WhenAttacking") {
-    return [primary, EffectTiming.OnAllyAttack];
+    return effect.attackScope === "ally" ? [EffectTiming.OnAllyAttack] : [primary];
   }
   if (effect.trigger === "AllTurns" && effect.actions.some((action) => action.kind === "Replacement")) {
     return [primary, EffectTiming.OnLeaveFieldAnyone];
