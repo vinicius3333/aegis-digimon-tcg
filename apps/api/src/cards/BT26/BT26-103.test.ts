@@ -16,10 +16,27 @@ describe("BT26-103 compiled fidelity", () => {
       expect.objectContaining({ keyword: "Blocker" }),
       expect.objectContaining({ keyword: "Succession" }),
     ]);
-    expect(card?.effects?.[0]).toMatchObject({ trigger: "WhenDigivolving", frequency: "OncePerTurn", sharedUseKey: "BT26-103/trash-recover" });
-    expect(card?.effects?.[1]).toMatchObject({ trigger: "Counter", frequency: "OncePerTurn", sharedUseKey: "BT26-103/trash-recover" });
-    expect(card?.effects?.[2]?.actions).toMatchObject([{ kind: "GrantStatic", grant: "effects", duration: "permanent" }]);
-    expect(card?.effects?.[3]?.actions).toMatchObject([{ kind: "SubTrigger", event: "whenSecurityRemoved" }, { kind: "SubTrigger", event: "whenEffectRemovesFromSecurity" }]);
+    expect(card?.effects?.[0]).toMatchObject({
+      trigger: "WhenDigivolving",
+      frequency: "OncePerTurn",
+      sharedUseKey: "BT26-103/trash-recover",
+    });
+    expect(card?.effects?.[1]).toMatchObject({
+      trigger: "Counter",
+      frequency: "OncePerTurn",
+      sharedUseKey: "BT26-103/trash-recover",
+    });
+    expect(card?.effects?.[2]?.actions).toMatchObject([
+      { kind: "GrantStatic", grant: "effects", duration: "permanent" },
+    ]);
+    expect(card?.effects?.[3]).toMatchObject({
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      actions: [
+        { kind: "SubTrigger", event: "whenSecurityRemoved" },
+        { kind: "SubTrigger", event: "whenEffectRemovesFromSecurity" },
+      ],
+    });
   });
 
   it("trashes one security card and recovers two when digivolving", async () => {
