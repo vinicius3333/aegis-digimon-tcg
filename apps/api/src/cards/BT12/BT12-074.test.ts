@@ -43,7 +43,7 @@ describe("BT12-074 Gumdramon", () => {
 
   it("draws from the inherited Save attack effect", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT12-074"] }], deck: ["BT1-010"] },
+      0: { battleArea: [{ card: "BT12-077", as: "host", under: ["BT12-074"] }], deck: ["BT1-010"] },
     });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
