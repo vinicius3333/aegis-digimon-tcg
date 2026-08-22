@@ -390,7 +390,10 @@ export async function runTrashDigivolution(
     const permanent = ctx.game.permanentById(pid);
     if (permanent === undefined) continue;
     const stack = permanent.stack;
-    const take = amount === "all" ? stack.length : Math.min(amount, stack.length);
+    const targetAmount = action.scaling?.unit === "targetColors"
+      ? new Set(ctx.game.definitionOf(permanent.topCard).colors).size
+      : amount;
+    const take = targetAmount === "all" ? stack.length : Math.min(targetAmount, stack.length);
     let ids: string[];
     if (action.choose === true) {
       // "trash any 1 card under [permanent]" (RB1-016, KB Q4094): the controller picks freely
@@ -421,5 +424,6 @@ export async function runTrashDigivolution(
     ctx.namedCounts.set(action.trackCount, totalTrashed);
   }
   if (amount === "all") return totalTrashed > 0;
+  if (action.scaling?.unit === "targetColors") return totalTrashed > 0;
   return totalTrashed === amount * permanentIds.length;
 }
