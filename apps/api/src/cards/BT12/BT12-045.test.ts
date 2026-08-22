@@ -39,7 +39,10 @@ it("bottoms a revealed non-green Digimon instead of adding it", async () => {
   await s.ready();
   s.state.memory = 3;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ebi").instanceId })).toEqual({ ok: true });
-  await settle(() => s.state.players[0]!.deck.some(({ instanceId }) => instanceId === s.inst("notGreen").instanceId));
+  await settle(() => {
+    const bottom = s.state.players[0]!.deck.at(-1);
+    return bottom?.instanceId === s.inst("notGreen").instanceId && bottom.faceUp === false;
+  });
   expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("notGreen").instanceId)).toBe(false);
   expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("notGreen").instanceId);
 });
