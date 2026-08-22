@@ -10,7 +10,7 @@ describe("EX11-005 Yaamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-006", as: "host", under: ["EX11-005"] }],
+          battleArea: [{ card: "BT1-009", as: "host", under: ["EX11-005"] }],
           hand: ["BT1-001", "BT1-002", "BT1-003"],
           trash: [{ card: "EX11-049", as: "evolution" }],
           deck: ["BT1-004"],
@@ -21,9 +21,9 @@ describe("EX11-005 Yaamon", () => {
     s.state.memory = 10;
 
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
-    await settle(() => s.perm("host").topCard?.cardId === "EX11-049");
-
-    expect(s.perm("host").topCard?.cardId).toBe("EX11-049");
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX11-049"));
+    const host = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "EX11-049");
+    expect(host?.topCard?.cardId).toBe("EX11-049");
     expect(s.state.players[0]!.hand).toHaveLength(2);
     expect(s.state.players[0]!.trash.length).toBeGreaterThanOrEqual(2);
   });

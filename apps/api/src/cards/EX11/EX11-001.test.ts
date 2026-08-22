@@ -8,7 +8,7 @@ describe("EX11-001 Koromon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-001", as: "host", under: ["EX11-001"] }],
+          battleArea: [{ card: "EX11-007", as: "host", under: ["EX11-001"] }],
           hand: [{ card: "EX11-009", as: "evolution" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
@@ -21,7 +21,7 @@ describe("EX11-001 Koromon", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "player", seat: 1 },
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
 
