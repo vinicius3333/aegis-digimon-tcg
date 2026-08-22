@@ -14,7 +14,7 @@ export const compiled: CompiledCard = {
   effects: [
     { trigger: "Static", actions: [{ kind: "WaiveColorRequirement", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, condition: { kind: "youHave", filter: glowingDawn } }] },
     { trigger: "WhenDigivolving", actions: [
-      { kind: "RawUnparsed", text: "Trash the top security card of 1 player with the most security cards, including a tied-player choice." },
+      { kind: "RecoverByTrashingMostSecurity", recover: false },
       { kind: "SelectBind", target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1, bindAs: "suspendLocked" } },
       { kind: "Restrict", target: { filter: { boundRef: "suspendLocked" }, count: 1 }, restriction: "suspend", duration: "untilOpponentTurnEnd" },
       { kind: "RawUnparsed", text: "The security-player selector is unresolved; the suspend lock is retained only when its required payment is available." },
@@ -29,7 +29,7 @@ export const compiled: CompiledCard = {
     ] },
   ],
   coverage: "partial",
-  residual: ["The When Digivolving selector for the player with the most security cards and ties has no executable IR action; it remains loud RawUnparsed."],
+  residual: ["The follow-up suspend lock still needs a proven payment/result seam after the most-security player choice; the executable most-security selector itself is now represented."],
   digivolutionRequirement: [{ level: 4, traits: ["Glowing Dawn"], cost: 3, isAlternate: true }],
 };
 
