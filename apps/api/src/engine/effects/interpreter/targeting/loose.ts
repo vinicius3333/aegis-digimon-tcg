@@ -423,7 +423,7 @@ export async function pickLoose(
   }
   if (target.count === "all" && cap === undefined && !requireDifferentColors)
     return candidates.map((c) => c.instanceId);
-  if (candidates.length <= want && !target.upTo && !requireDifferentColors)
+  if (candidates.length <= want && !target.upTo && !requireDifferentColors && target.forceSelection !== true)
     return candidates.slice(0, want).map((c) => c.instanceId);
   const ids = candidates.map((c) => c.instanceId);
   const min = target.upTo ? 0 : Math.min(want, candidates.length);
