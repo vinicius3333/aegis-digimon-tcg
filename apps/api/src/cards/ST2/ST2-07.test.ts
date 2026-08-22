@@ -1,9 +1,27 @@
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./ST2-07.js";
 
 describe("ST2-07 Grizzlymon", () => {
+  it("matches the Blocker and memory-loss contract", () => {
+    const definition = getCardDefinition("ST2-07")!;
+    const compiled = getCompiledCard("ST2-07")!;
+
+    expect(definition.effectText).toContain("Lose 2 memory");
+    expect(compiled.effects).toEqual([
+      {
+        trigger: "Static",
+        actions: [],
+        keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
+      },
+      { trigger: "WhenAttacking", actions: [{ kind: "GainMemory", amount: -2 }] },
+    ]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("has Blocker and loses 2 memory when attacking", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "ST2-07", as: "grizzlymon" }] }, 1: { security: ["BT1-001"] } });
     s.state.memory = 1;
