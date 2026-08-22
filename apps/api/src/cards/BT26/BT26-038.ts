@@ -20,11 +20,45 @@ const clause = [
     duration: "untilOpponentTurnEnd",
   },
 ];
+const inheritedDigivolve = {
+  kind: "SubTrigger",
+  event: "whenBattleWon",
+  actions: [
+    {
+      kind: "Digivolve",
+      target: {
+        filter: {
+          controllerDefault: "mine",
+          kind: ["Digimon"],
+          nameOrTrait: [
+            { tokens: ["Insectoid"], match: "trait" },
+            { tokens: ["Titan"], match: "trait" },
+          ],
+        },
+        count: 1,
+      },
+      into: {
+        controllerDefault: "mine",
+        zone: "hand",
+        kind: ["Digimon"],
+        nameOrTrait: [
+          { tokens: ["Insectoid"], match: "trait" },
+          { tokens: ["Titan"], match: "trait" },
+        ],
+      },
+      from: ["hand"],
+      payCost: true,
+      costDelta: -1,
+      optional: true,
+    },
+  ],
+};
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: clause },
     { trigger: "WhenDigivolving", actions: clause },
     { trigger: "WhenMoving", actions: clause },
+    { trigger: "YourTurn", isInherited: true, frequency: "OncePerTurn", actions: [inheritedDigivolve] },
   ],
   coverage: "full",
   residual: [],
