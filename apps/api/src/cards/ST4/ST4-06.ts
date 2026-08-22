@@ -1,6 +1,21 @@
-import module from "./ST4-04.js";
-import { registerCard } from "../../engine/effects/registry.js";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-const card: EffectModule = { ...module, cardId: "ST4-06" };
-registerCard(card);
-export default card;
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const compiled: CompiledCard = {
+  effects: [{
+    trigger: "WhenAttacking",
+    actions: [{
+      kind: "ModifyDP",
+      target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+      amount: 2000,
+      duration: "forTheTurn",
+      condition: { kind: "attackTargetMatchesFilter", filter: { controller: "opponent", kind: ["Digimon"] } },
+    }],
+    isInherited: true,
+  }],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard("ST4-06", compiled);

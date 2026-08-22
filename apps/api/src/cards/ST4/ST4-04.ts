@@ -1,10 +1,21 @@
-import { EffectDuration, EffectTiming } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { whenAttacking } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
-const cardId = "ST4-04";
-const module: EffectModule = { cardId, effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] { if (timing !== EffectTiming.OnUseAttack) return []; return [whenAttacking({ source, effectKey: `${cardId}/battle-dp`, description: "[When Attacking] Against a Digimon, this Digimon gets +2000 DP.", isInherited: true, when: (ctx) => ctx.trigger?.targetPermanentId !== undefined, resolve: async (ctx) => { const self = source.permanent(); if (self) ctx.fx.modifyDP(self.permanentId, 2000, EffectDuration.UntilEachTurnEnd); } })]; } };
-registerCard(module);
-export default module;
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const compiled: CompiledCard = {
+  effects: [{
+    trigger: "WhenAttacking",
+    actions: [{
+      kind: "ModifyDP",
+      target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+      amount: 2000,
+      duration: "forTheTurn",
+      condition: { kind: "attackTargetMatchesFilter", filter: { controller: "opponent", kind: ["Digimon"] } },
+    }],
+    isInherited: true,
+  }],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard("ST4-04", compiled);
