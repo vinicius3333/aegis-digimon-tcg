@@ -103,7 +103,14 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
       0: {
         battleArea: [
           { card: "BT1-009", as: "firstHost", under: [{ card: "BT10-074", as: "firstSource" }] },
-          { card: "BT1-009", as: "secondHost", under: [{ card: "BT10-074", as: "secondSource" }] },
+          {
+            card: "BT1-009",
+            as: "secondHost",
+            under: [
+              { card: "BT10-074", as: "secondSource" },
+              { card: "ST2-01", as: "secondOtherSource" },
+            ],
+          },
           { card: "BT1-027", as: "blueSource" },
         ],
         hand: [{ card: "ST2-15", as: "kaiserNail" }],
@@ -145,6 +152,7 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
     const sourceDecision = s.decisions.at(-1)!.req;
     expect(sourceDecision.options?.candidateInstanceIds).toEqual([
       s.inst("secondSource").instanceId,
+      s.inst("secondOtherSource").instanceId,
     ]);
     expect(s.engine.applyIntent(0, {
       type: "respondDecision",
@@ -161,7 +169,9 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
     expect(s.perm("firstHost").stack.map((card) => card.instanceId)).toEqual([
       s.inst("firstSource").instanceId,
     ]);
-    expect(s.perm("secondHost").stack).toHaveLength(0);
+    expect(s.perm("secondHost").stack.map((card) => card.instanceId)).toEqual([
+      s.inst("secondOtherSource").instanceId,
+    ]);
   });
 
   it("does NOT play when there are no Digimon digi-cards in any of your Digimon's stacks", async () => {
@@ -203,7 +213,7 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
           security: [{ card: "ST2-15", as: "securityOption", faceUp: true }],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     const playedId = s.inst("digiCard").instanceId;
 

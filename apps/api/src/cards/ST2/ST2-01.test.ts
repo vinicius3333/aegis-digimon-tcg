@@ -13,7 +13,9 @@ describe("ST2-01 Tsunomon", () => {
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: s.perm("defender").permanentId } })).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    // Tsunomon's +1000 DP turns the 2000-DP attacker into a 3000-DP tie;
+    // the attacker survives the tie while the 3000-DP defender is deleted.
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
