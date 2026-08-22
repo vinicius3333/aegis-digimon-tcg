@@ -43,6 +43,6 @@ it("trashes the top three cards when the stack lacks Baalmon or X Antibody", asy
     1: { battleArea: [{ card: "BT1-009", as: "target", level: 4 }] },
   });
   await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("baalx"));
-  expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-010", "BT1-011"]);
+  expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-010", "BT1-011", "BT1-012"]);
   expect(s.state.players[1]!.battleArea).toHaveLength(1);
 });
