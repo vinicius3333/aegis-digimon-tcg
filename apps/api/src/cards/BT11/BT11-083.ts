@@ -23,7 +23,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           to: "hand",
-          condition: { kind: "raw", raw: "you do" },
+          condition: { kind: "ifThisEffectActed", raw: "if you trashed a card" },
         },
       ],
     },
