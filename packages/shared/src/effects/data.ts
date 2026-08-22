@@ -277,10 +277,34 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
   // EX12-055 prints Black/Purple Lv.4 + Red/Yellow Lv.4: expand the color alternatives
   // into the four concrete material pairings consumed by the server legality seam.
   "EX12-055": [
-    { cost: 0, materials: [{ color: "Black", level: 4 }, { color: "Red", level: 4 }] },
-    { cost: 0, materials: [{ color: "Black", level: 4 }, { color: "Yellow", level: 4 }] },
-    { cost: 0, materials: [{ color: "Purple", level: 4 }, { color: "Red", level: 4 }] },
-    { cost: 0, materials: [{ color: "Purple", level: 4 }, { color: "Yellow", level: 4 }] },
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 4 },
+        { color: "Red", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Black", level: 4 },
+        { color: "Yellow", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Purple", level: 4 },
+        { color: "Red", level: 4 },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        { color: "Purple", level: 4 },
+        { color: "Yellow", level: 4 },
+      ],
+    },
   ],
   "BT17-078": [
     {
@@ -933,6 +957,13 @@ export function baseGrantedDigivolveFor(cardId: string): BaseGrantedDigivolve[] 
  * + cost) and CLIENT (material highlighting) read ONE source of truth.
  */
 export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[]> = {
+  // ST19-10: [Tyrannomon]/[Raremon] in name plus a Lv.4 [Puppet] Digimon.
+  "ST19-10": [
+    {
+      materials: [{ names: ["Tyrannomon", "Raremon"] }, { traits: ["Puppet"], level: 4 }],
+      count: 2,
+    },
+  ],
   // BT19-102: [Nene Amano] is a Tamer material and the second slot accepts either named Digimon.
   "BT19-102": [
     {

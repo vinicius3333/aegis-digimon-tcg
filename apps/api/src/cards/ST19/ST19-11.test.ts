@@ -1,6 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "./ST19-12.js";
 import "./ST19-11.js";
 
 describe("ST19-11 Chaperomon", () => {
