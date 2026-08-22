@@ -3,7 +3,8 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { whenDigivolving, whenAttacking } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import { compiledEffects } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
  * EX4-049 — Omnimon (EX4, Black Lv.6 Digimon).
@@ -18,6 +19,65 @@ import { registerCard } from "../../engine/effects/registry.js";
  *   return 1 opponent's Lv.≤5 Digimon to deck bottom.
  */
 const cardId = "EX4-049";
+
+const compiled = {
+  ...compiledEffects[cardId]!,
+  effects: compiledEffects[cardId]!.effects.map((effect) => {
+    if (effect.trigger !== "WhenDigivolving") return effect;
+    return {
+      ...effect,
+      actions: [
+        {
+          kind: "Modal" as const,
+          choose: 1,
+          options: [
+            [
+              {
+                kind: "Return" as const,
+                target: {
+                  filter: { controller: "opponent", kind: ["Digimon"] },
+                  count: "all" as const,
+                  totalPlayCostBudget: 6,
+                },
+                to: "deckBottom" as const,
+              },
+            ],
+            [
+              {
+                kind: "Digivolve" as const,
+                target: { filter: { controllerDefault: "mine", kind: ["Digimon"], excludeSelf: true }, count: 1 },
+                into: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon"],
+                  levelComparison: { op: "lte", value: 6 },
+                  nameOrTrait: [{ tokens: ["Greymon"], match: "name" }],
+                },
+                from: ["hand"],
+                payCost: false,
+                ignoreRequirements: true,
+                optional: true,
+              },
+            ],
+            [
+              {
+                kind: "DnaDigivolve" as const,
+                materials: [
+                  { filter: { isSelfRef: true }, count: 1, zone: "battleArea" },
+                  { filter: { controller: "mine", kind: ["Digimon"], excludeSelf: true }, count: 1, zone: "battleArea" },
+                ],
+                into: { controllerDefault: "mine", kind: ["Digimon"], zone: "hand" },
+                payCost: true,
+                optional: true,
+              },
+            ],
+          ],
+        },
+      ],
+    };
+  }),
+  coverage: "full" as const,
+  residual: [],
+};
 
 const MODAL_OPTIONS = [
   "Deck Bounce (opponent Digimon total cost ≤6)",
@@ -177,5 +237,5 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
+registerIrCard(cardId, compiled);
 export default module;

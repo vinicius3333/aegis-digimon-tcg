@@ -109,7 +109,7 @@ describe("EX4-069 Gaia Reactor", () => {
     };
     const effect = getEffectModule("EX4-069")!.effectsForTiming(EffectTiming.OnUseOption, source)[0]!;
     await effect.resolve({ source, trigger: {}, game, fx, ask } as unknown as EffectContext);
-    expect(deleted).toEqual([["ownLow", "oppLow"]]);
+    expect(deleted).toEqual([["ownLow"], ["oppLow"]]);
   });
 
   it("runs the same deletion effect when revealed in security", async () => {
@@ -173,7 +173,7 @@ describe("EX4-069 Gaia Reactor", () => {
       ask: {
         optional: async () => true,
         chooseOption: async () => 0,
-        chooseTargets: async (_ctx, options) => [options.candidates[0]!],
+        chooseTargets: async (_ctx: unknown, options: { candidates: string[] }) => [options.candidates[0]!],
         selectCards: async () => [],
         selectPermanents: async () => [],
       },

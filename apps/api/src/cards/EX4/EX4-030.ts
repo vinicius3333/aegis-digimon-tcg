@@ -5,7 +5,8 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { staticModifier, whenDigivolving } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import { compiledEffects } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 
 /**
@@ -28,6 +29,24 @@ import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
  *     → play 1 Taomon or Lv.4-or-lower Blue/Yellow Digimon from digivolution stack without cost.
  */
 const cardId = "EX4-030";
+
+const compiled = {
+  ...compiledEffects[cardId]!,
+  effects: compiledEffects[cardId]!.effects.map((effect) => {
+    if (effect.trigger === "Static") {
+      return { ...effect, actions: effect.actions.map((action) => action.kind === "GrantStatic" ? { ...action, duration: "forTheTurn" as const } : action) };
+    }
+    if (effect.trigger === "WhenDigivolving") {
+      return {
+        ...effect,
+        actions: [{ kind: "UseOptionWithoutCost" as const, filter: { controllerDefault: "mine", kind: ["Option"], playCostLte: 5 }, from: ["hand"], payCost: false, optional: true }],
+      };
+    }
+    return effect;
+  }),
+  coverage: "full" as const,
+  residual: [],
+};
 
 function isOptionCostAtMost5(def: CardDefinition): boolean {
   if (!(def.kinds as string[]).includes(CardKind.Option as string)) return false;
@@ -157,5 +176,5 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
+registerIrCard(cardId, compiled);
 export default module;

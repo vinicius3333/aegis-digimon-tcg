@@ -3,7 +3,8 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { whenDigivolving, whenAttacking } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import { compiledEffects } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
  * EX4-073 — Omnimon Merciful Mode (EX4, Black Lv.7 Digimon).
@@ -16,6 +17,63 @@ import { registerCard } from "../../engine/effects/registry.js";
  *   If exactly 3 trashed, trash top 2 of opponent's security.
  */
 const cardId = "EX4-073";
+
+const compiled = {
+  ...compiledEffects[cardId]!,
+  effects: [
+    {
+      trigger: "WhenDigivolving" as const,
+      actions: [
+        {
+          kind: "DeDigivolve" as const,
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          amount: 3,
+        },
+        {
+          kind: "DeleteBudget" as const,
+          filter: { controller: "opponent", kind: ["Digimon"] },
+          budget: 6,
+          upTo: true,
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking" as const,
+      isInherited: true,
+      optional: true,
+      actions: [
+        {
+          kind: "TrashDigivolution" as const,
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          amount: 3,
+          choose: true,
+          optional: true,
+          trackCount: "ex4-073-trashed",
+        },
+        {
+          kind: "RepeatPerCount" as const,
+          countSource: "ex4-073-trashed",
+          action: {
+            kind: "Delete" as const,
+            target: {
+              filter: { controller: "opponent", kind: ["Digimon", "Tamer"], superlative: "lowestPlayCost" },
+              count: 1,
+            },
+          },
+        },
+        {
+          kind: "SecurityManipulation" as const,
+          op: "trashTop" as const,
+          controller: "opponent" as const,
+          amount: 2,
+          condition: { kind: "namedCountAtLeast" as const, countSource: "ex4-073-trashed", count: 3 },
+        },
+      ],
+    },
+  ],
+  coverage: "full" as const,
+  residual: [],
+};
 
 const module: EffectModule = {
   cardId,
@@ -160,5 +218,5 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
+registerIrCard(cardId, compiled);
 export default module;

@@ -3,7 +3,8 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { whenDigivolving } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import { compiledEffects } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
  * EX4-059 — Jijimon (EX4, Purple Lv.6 Digimon).
@@ -16,6 +17,51 @@ import { registerCard } from "../../engine/effects/registry.js";
  *   without paying the cost."
  */
 const cardId = "EX4-059";
+
+const compiled = {
+  ...compiledEffects[cardId]!,
+  effects: [
+    ...compiledEffects[cardId]!.effects.map((effect) =>
+      effect.trigger === "WhenDigivolving"
+        ? {
+            ...effect,
+            actions: [
+              {
+                kind: "GainTriggeredEffect" as const,
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                gainedTrigger: "onDeletionOf",
+                gainedActions: [{ kind: "PlayWithoutCost" as const, target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false, optional: true }],
+                duration: "untilOpponentTurnEnd" as const,
+              },
+              {
+                kind: "GainTriggeredEffect" as const,
+                target: { filter: { controllerDefault: "mine", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 }, excludeSelf: true }, count: 1 },
+                gainedTrigger: "onDeletionOf",
+                gainedActions: [{ kind: "PlayWithoutCost" as const, target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false, optional: true }],
+                duration: "untilOpponentTurnEnd" as const,
+              },
+            ],
+          }
+        : effect,
+    ),
+    {
+      trigger: "WhenAttacking" as const,
+      isInherited: true,
+      actions: [
+        {
+          kind: "AddDPFromSuspendedCost" as const,
+          cost: { kind: "suspend" as const, target: { filter: { controller: "mine", kind: ["Digimon"], excludeSelf: true }, count: 1 } },
+          dpSource: { kind: "suspendedTarget" as const },
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          duration: "forThisAttack" as const,
+          alsoGainKeywords: [{ keyword: "Piercing" as const }],
+        },
+      ],
+    },
+  ],
+  coverage: "full" as const,
+  residual: [],
+};
 
 const module: EffectModule = {
   cardId,
@@ -121,5 +167,5 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
+registerIrCard(cardId, compiled);
 export default module;

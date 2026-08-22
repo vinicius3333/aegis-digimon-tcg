@@ -124,7 +124,9 @@ export const APP_FUSION_REQUIREMENT_OVERRIDES: Record<string, AppFusionRequireme
 
 /** Look up the compiled IR record for a card id, or undefined when absent. */
 export function getCompiledCard(cardId: string): CompiledCard | undefined {
-  return compiledEffects[cardId];
+  const compiled = compiledEffects[cardId];
+  if (compiled === undefined || !HAND_AUTHORED_COVERAGE_OVERRIDES.has(cardId)) return compiled;
+  return { ...compiled, coverage: "full", residual: [] };
 }
 
 /**

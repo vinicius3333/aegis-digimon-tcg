@@ -30,7 +30,7 @@ import { canPayCost } from "./costs.js";
 import { installEffectRunner, runAction } from "./dispatch.js";
 import { ACTION_TYPE_KEYWORDS } from "./errors.js";
 import { isBlastDigivolveMarker } from "./registration/keywords.js";
-import { EffectDuration, EffectTiming } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
 import type { Action, CardEffect } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
@@ -187,6 +187,12 @@ export function timingsForTrigger(effect: CardEffect, isOptionPlayBody: boolean)
   const isDelay = (effect.keywords ?? []).some((kw) => kw.keyword === "Delay");
   if (!effect.isSecurity && effect.trigger === "Main" && !isDelay && !isOptionPlayBody) {
     return [EffectTiming.OnUseOption, EffectTiming.OnDeclaration];
+  }
+  if (effect.isInherited && effect.trigger === "WhenAttacking") {
+    return [primary, EffectTiming.OnAllyAttack];
+  }
+  if (effect.trigger === "AllTurns" && effect.actions.some((action) => action.kind === "Replacement")) {
+    return [primary, EffectTiming.OnLeaveFieldAnyone];
   }
   return [primary];
 }

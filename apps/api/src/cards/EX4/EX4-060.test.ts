@@ -99,7 +99,7 @@ describe("EX4-060 Omnimon Alter-S", () => {
     const effect = getEffectModule("EX4-060")!.effectsForTiming(EffectTiming.WhenDigivolving, source)[0]!;
     await effect.resolve({ source, trigger: {}, game, fx, ask } as unknown as EffectContext);
     expect(deleted).toEqual([["low"]]);
-    expect(returned).toEqual([[["high"], { toTop: false }]]);
+    expect(returned).toEqual([[[high.topCard!.instanceId], { toTop: false }]]);
   });
 
   it("plays both named evolution cards when possible and places itself face-down in security", async () => {
@@ -121,7 +121,7 @@ describe("EX4-060 Omnimon Alter-S", () => {
       ["BLITZ", { ...def("BLITZ", 6), nameEn: "BlitzGreymon" }],
       ["CRES", { ...def("CRES", 6), nameEn: "CresGarurumon" }],
     ]);
-    const played: unknown[] = [];
+    const replacements: unknown[] = [];
     const secured: unknown[] = [];
     const game: GameAccess = {
       state: { memory: 0, players, turnSeat: 0 as Seat } as unknown as GameState,
@@ -146,18 +146,19 @@ describe("EX4-060 Omnimon Alter-S", () => {
       trigger: {},
       game,
       fx: {
-        playInstances: async (ids: string[], options: unknown) => played.push([ids, options]),
+        subscribeReplacement: (replacement: unknown) => replacements.push(replacement),
         addSecurity: async (...args: unknown[]) => secured.push(args),
       } as unknown as Primitives,
       ask: {
         chooseOption: async () => 0,
         chooseTargets: async () => [],
-        selectCards: async (_ctx, options) => [options.candidates[0]!],
+        selectCards: async (_ctx: unknown, options: { candidates: string[] }) => [options.candidates[0]!],
         selectPermanents: async () => [],
         optional: async () => true,
       },
     } as unknown as EffectContext);
-    expect(played).toEqual([[["BLITZ-0", "CRES-0"], { payCost: false }]]);
-    expect(secured).toEqual([[0, ["self"], { toTop: false, faceUp: false }]]);
+    expect(replacements).toHaveLength(1);
+    expect(replacements[0]).toMatchObject({ event: "wouldLeavePlay" });
+    expect(secured).toEqual([[0, [self.topCard!.instanceId], { toTop: false, faceUp: undefined, detachPermanentTop: undefined }]]);
   });
 });

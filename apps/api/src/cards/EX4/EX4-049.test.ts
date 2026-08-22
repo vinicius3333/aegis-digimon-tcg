@@ -102,7 +102,7 @@ describe("EX4-049 CresGarurumon", () => {
     const ctx = { source, trigger: {}, game, fx, ask } as unknown as EffectContext;
     const effect = getEffectModule("EX4-049")!.effectsForTiming(EffectTiming.WhenDigivolving, source)[0]!;
     await effect.resolve(ctx);
-    expect(returned).toEqual([[first.permanentId, second.permanentId]]);
+    expect(returned).toEqual([[first.topCard!.instanceId, second.topCard!.instanceId]]);
   });
 
   it("digivolves another Digimon into a level-six-or-lower Greymon without paying", async () => {
@@ -165,7 +165,8 @@ describe("EX4-049 CresGarurumon", () => {
         selectPermanents: async () => [],
       },
     } as unknown as EffectContext);
-    expect(calls).toEqual([["target", handCard.instanceId, { payCost: false }]]);
+    expect(calls[0]?.slice(0, 2)).toEqual(["target", handCard.instanceId]);
+    expect(calls[0]?.[2]).toMatchObject({ payCost: false, ignoreRequirements: true });
   });
 
   it("only returns level-five-or-lower opposing Digimon for the inherited Omnimon effect", async () => {
@@ -239,6 +240,6 @@ describe("EX4-049 CresGarurumon", () => {
         selectPermanents: async () => [],
       },
     } as unknown as EffectContext);
-    expect(returned).toEqual([["low"]]);
+    expect(returned).toEqual([[low.topCard!.instanceId]]);
   });
 });

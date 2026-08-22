@@ -45,6 +45,8 @@ export interface RepeatPerCountAction extends ActionBase {
   countSource: string;
   /** Alternatively derive the repeat count from the current board. */
   countFilter?: Filter;
+  /** Derive the repeat count with a scaling unit such as distinct colors. */
+  countScaling?: Scaling;
   action: Action;
 }
 

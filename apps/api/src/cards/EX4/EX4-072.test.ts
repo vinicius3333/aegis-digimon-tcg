@@ -49,6 +49,7 @@ describe("EX4-072 Digital Translator", () => {
           kinds: [CardKind.Option],
           colors: ["White"] as never,
           playCost: 3,
+          dp: 0,
           evoCosts: [],
           maxCountInDeck: 4,
         },

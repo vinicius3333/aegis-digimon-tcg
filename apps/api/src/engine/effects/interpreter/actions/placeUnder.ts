@@ -433,6 +433,10 @@ export async function runTrashDigivolution(
       if (ids.length > 0) await ctx.fx.trashDigivolutionCards(pid, ids, trashOptions);
     }
     ctx.lastEffectActed = chosen.length > 0;
+    if (action.trackCount !== undefined) {
+      if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
+      ctx.namedCounts.set(action.trackCount, chosen.length);
+    }
     return amount === "all" ? chosen.length > 0 : chosen.length === amount;
   }
 
@@ -446,7 +450,9 @@ export async function runTrashDigivolution(
   // reaction may collapse this whole operation onto ONE reacting Digimon's stack instead. The
   // loop below then re-applies the SAME fromTop/choose/amount logic to whichever ids come back,
   // which is what preserves the original action's count and selection kind after a redirect.
-  const permanentIds = await ctx.fx.redirectDigivolutionTrashHosts(resolvedIds);
+  const permanentIds = ctx.fx.redirectDigivolutionTrashHosts
+    ? await ctx.fx.redirectDigivolutionTrashHosts(resolvedIds)
+    : resolvedIds;
   // An optional fixed-count action that gates the rest of its effect is an atomic
   // activation cost (for example BT5-111: "by trashing 2 ... end the attack").
   // If any selected host cannot supply the printed count, do not partially trash its

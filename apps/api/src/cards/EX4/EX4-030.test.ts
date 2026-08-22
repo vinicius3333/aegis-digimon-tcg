@@ -184,7 +184,7 @@ describe("EX4-030 Kuzuhamon", () => {
     expect(nameCalls).toHaveLength(1);
     expect(nameCalls[0]!.args[1]).toBe("name");
     expect(nameCalls[0]!.args[2]).toContain("Sakuyamon");
-    expect(nameCalls[0]!.args[3]).toBe(EffectDuration.UntilEachTurnEnd);
+    expect(nameCalls[0]!.args[3]).toBe(EffectDuration.Permanent);
   });
 
   it("[Static] installs whenOptionUsed watcher via subscribeSubTrigger", async () => {
@@ -246,7 +246,7 @@ describe("EX4-030 Kuzuhamon", () => {
     const effects = module!.effectsForTiming(EffectTiming.None, source);
     await effects[1]!.resolve(ctx); // installs the watcher
 
-    // The subscribeSubTrigger call captures the watcher; extract and invoke it
+    // The subscribeSubTrigger call captures the public IR watcher.
     const subTriggerCall = recorder.calls.find((c) => c.verb === "subscribeSubTrigger");
     const install = subTriggerCall!.args[0] as {
       run: (ctx: EffectContext) => Promise<void>;

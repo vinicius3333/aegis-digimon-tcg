@@ -65,6 +65,7 @@ export const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "whenOneOfYoursDigivolves",
+          "sourceFilter": { "controller": "mine", "kind": ["Digimon"], "excludeSelf": true },
           "actions": [
             {
               "kind": "GainMemory",

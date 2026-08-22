@@ -6,6 +6,6 @@ describe("EX4-038 Agumon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions?.[0]).toMatchObject({ kind: "RevealAdd", revealCount: 3, rest: "deckTop", add: [{ filter: { nameOrTrait: [{ match: "name", tokens: ["Greymon"] }] } }, { filter: { nameOrTrait: [{ match: "name", tokens: ["Gabumon", "Garurumon", "Omnimon"] }] } }] });
   });
   it("gains memory once per turn when one of your Digimon digivolves", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")).toMatchObject({ isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenOneOfYoursDigivolves", actions: [{ kind: "GainMemory", amount: 1 }] }] });
+    expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")).toMatchObject({ isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenOneOfYoursDigivolves", sourceFilter: { controller: "mine", kind: ["Digimon"], excludeSelf: true }, actions: [{ kind: "GainMemory", amount: 1 }] }] });
   });
 });
