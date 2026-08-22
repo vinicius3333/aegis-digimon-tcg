@@ -58,7 +58,7 @@ const compiled: CompiledCard = {
               target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
               restriction: "suspend",
               duration: "untilOpponentTurnEnd",
-              condition: { kind: "raw", raw: "played by ＜Decode＞" }
+              condition: { kind: "triggerPlayedByDecode", raw: "played by ＜Decode＞" }
             }
           ]
         }
@@ -70,8 +70,8 @@ const compiled: CompiledCard = {
       isSecurity: true
     }
   ],
-  coverage: "partial",
-  residual: ["Decode provenance is retained as a raw condition because no structured trigger predicate currently distinguishes played-by-Decode from ordinary play; Q5911-Q5912 require that distinction."]
+  coverage: "full",
+  residual: []
 };
 
 registerIrCard("EX11-058", compiled);

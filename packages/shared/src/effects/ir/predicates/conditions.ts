@@ -74,6 +74,7 @@ export interface Condition {
     | "triggerPlayedOrDigivolvedByEffect" // either a whenPlayed effect event or an effect-driven digivolve (BT25-077)
     | "selfEnteredByEffect" // the live source permanent's current top entered by an effect (BT25-080)
     | "triggerPlayedByEffectSource" // the exact card named by `sourceCardId` drove the play
+    | "triggerPlayedByDecode" // the play was caused by an explicit Decode replacement payload
     | "triggerOptionCostAtLeast" // the Option's ORIGINAL use cost, not a reduced one (BT19-040; KB Q5471-Q5473)
     | "triggerSubjectHasColor" // evaluated POST-digivolve (BT25-026; KB Q6290/Q6291)
     | "triggerSubjectMatchesFilter" // non-color subject gates; later "then" branches still run (BT21-061)

@@ -699,6 +699,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       costDelta?: number;
       suppressOnPlayEffects?: boolean;
       effectSourceCardId?: string;
+      playedByDecode?: boolean;
       digiXrosMaterialInstanceIds?: string[];
     },
   ): Promise<Permanent[]> => {
@@ -798,6 +799,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
               ...(opts?.effectSourceCardId !== undefined
                 ? { playedByEffectSourceCardId: opts.effectSourceCardId }
                 : {}),
+              ...(opts?.playedByDecode === true ? { playedByDecode: true } : {}),
             },
           );
         }
@@ -817,6 +819,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         subjectPermanentIds: created.map((permanent) => permanent.permanentId),
         playedByEffect: true,
         ...(opts?.effectSourceCardId !== undefined ? { playedByEffectSourceCardId: opts.effectSourceCardId } : {}),
+        ...(opts?.playedByDecode === true ? { playedByDecode: true } : {}),
         ...(playedLevel !== undefined ? { playedLevel } : {}),
         ...(playedPlayCost !== undefined ? { playedPlayCost } : {}),
         ...(playedFromZone !== undefined ? { playedFromZone } : {}),

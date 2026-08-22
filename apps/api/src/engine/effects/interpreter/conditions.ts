@@ -657,6 +657,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return ctx.source.permanent()?.enteredByEffect === true;
     case "triggerPlayedByEffectSource":
       return cond.sourceCardId !== undefined && ctx.trigger.playedByEffectSourceCardId === cond.sourceCardId;
+    case "triggerPlayedByDecode":
+      return ctx.trigger.playedByDecode === true;
     case "isDnaDigivolving":
       // WhenDigivolving: the digivolve that reached this window was a DNA digivolve (two materials
       // merged). The DNA-digivolve fire seam sets TriggerInfo.isDnaDigivolve; a single digivolve and
