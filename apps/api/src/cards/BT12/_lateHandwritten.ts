@@ -799,10 +799,17 @@ export function lateBt12Module(cardId: string): EffectModule {
                   if (target) await ctx.fx.deletePermanent([target], "byEffect");
                   const hybrid = await choosePermanent(
                     ctx,
-                    myPermanents(ctx, source, (definition) => isDigimon(definition) && hasText(definition, "hybrid")),
+                    myPermanents(
+                      ctx,
+                      source,
+                      (definition) =>
+                        isDigimon(definition) &&
+                        ((definition.forms ?? []).some((form) => form.toLowerCase() === "hybrid") ||
+                          hasText(definition, "hybrid")),
+                    ),
                   );
                   if (hybrid) {
-                    ctx.fx.modifyDP(hybrid, 3000, EffectDuration.UntilEachTurnEnd);
+                    await ctx.fx.modifyDP(hybrid, 3000, EffectDuration.UntilEachTurnEnd);
                     await ctx.fx.forceAttack(hybrid, { attackPlayer: true });
                   }
                 },
