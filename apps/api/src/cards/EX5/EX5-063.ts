@@ -10,7 +10,9 @@ if (deletionWatcher) deletionWatcher.frequency = "OncePerTurn";
 const deletionTrigger = deletionWatcher?.actions.find((action) => action.kind === "SubTrigger");
 if (deletionTrigger?.kind === "SubTrigger") {
   const gain = deletionTrigger.actions.find((action) => action.kind === "GainMemory");
-  if (gain?.kind === "GainMemory") gain.scaling = undefined;
+  if (gain?.kind === "GainMemory") {
+    gain.scaling = { per: 1, unit: "cards", filter: { zone: "trash", controller: "opponent", kind: ["Digimon"] } };
+  }
 }
 compiled.coverage = "full";
 compiled.residual = [];
