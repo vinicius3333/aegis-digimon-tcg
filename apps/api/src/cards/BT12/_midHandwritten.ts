@@ -1274,7 +1274,8 @@ export function midBt12Module(cardId: string): EffectModule {
                   const [target] = await permanent(ctx, foes(ctx, source));
                   if (target) await ctx.fx.suspend([target], { byEffectSeat: source.ownerSeat });
                   const self = source.permanent();
-                  if (self && target) await ctx.fx.forceAttack(self.permanentId);
+                  if (self && target && (await ctx.ask.optional(ctx, "Attack the targeted opponent's Digimon?")))
+                    await ctx.fx.forceAttack(self.permanentId);
                 },
               }),
             ];
