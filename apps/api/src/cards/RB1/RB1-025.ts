@@ -27,7 +27,7 @@ export const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
-          kind: "Attack",
+          kind: "SelectBind",
           target: {
             filter: {
               controller: "mine",
@@ -36,9 +36,20 @@ export const compiled: CompiledCard = {
               nameOrTrait: [{ tokens: ["Angoramon"], match: "text" }],
             },
             count: 1,
+            bindAs: "angoramonAttacker",
           },
-          attackPlayer: false,
           optional: true,
+          abortOnDecline: true,
+        },
+        {
+          kind: "GrantCanAttackUnsuspended",
+          target: { filter: {}, count: 1, fromSelectionRef: "angoramonAttacker" },
+          duration: "untilEndAttack",
+        },
+        {
+          kind: "Attack",
+          target: { filter: {}, count: 1, fromSelectionRef: "angoramonAttacker" },
+          attackPlayer: false,
         },
       ],
     },

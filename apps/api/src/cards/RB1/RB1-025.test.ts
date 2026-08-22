@@ -38,10 +38,10 @@ describe("RB1-025 Diarbbitmon", () => {
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "EX2-045")).toBe(true);
   });
 
-  it("does not open the attack effect when no Angoramon-named Digimon is available", async () => {
+  it("does not open the attack effect when every Angoramon-text Digimon is suspended", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "RB1-025", as: "diarbbit" }] },
+        0: { battleArea: [{ card: "RB1-025", as: "diarbbit", suspended: true }] },
         1: { battleArea: [{ card: "EX2-045", as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
