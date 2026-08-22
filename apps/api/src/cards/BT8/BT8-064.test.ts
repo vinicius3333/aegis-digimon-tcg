@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT8-064.js";
 
@@ -9,5 +9,36 @@ describe("BT8-064 Greymon", () => {
     s.state.turnSeat = 1;
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
+  });
+
+  it("uses the inherited Blocker to protect security while a red Digimon is in play", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT8-067", as: "host", under: ["BT8-064"] }, "BT8-008"],
+        security: ["BT8-034"],
+      },
+      1: { battleArea: [{ card: "BT1-010", as: "attacker" }] },
+    }, { autoAcceptOptional: true });
+    s.state.turnSeat = 1;
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+
+    expect(s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: attackerId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some(permanent => permanent.permanentId === attackerId));
+
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.perm("host").isSuspended).toBe(true);
+  });
+
+  it("does not grant Blocker without a red Digimon in play", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT8-067", as: "host", under: ["BT8-064"] }] } });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(false);
   });
 });
