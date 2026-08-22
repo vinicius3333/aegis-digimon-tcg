@@ -85,6 +85,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT22-041", // condition: total cards in both security stacks <= 6 -> self play cost -6
   "BT11-096", // condition: you have a red Tamer -> Option use cost -1
   "BT11-099", // condition: you have a blue Tamer -> Option use cost -1
+  "BT11-100", // condition: you have a yellow Tamer -> Option use cost -1
 ]);
 
 /**
