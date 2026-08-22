@@ -31,6 +31,29 @@ describe("BT26-017 Zanbamon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("ally"), "SecurityAttack")).toBe(true);
   });
 
+  it("grants both temporary keywords when digivolving through a legal Shambala stack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-014", as: "base" }],
+        hand: [{ card: "BT26-017", as: "self" }],
+        deck: ["BT1-009"],
+      },
+    }, { autoSelectCards: true });
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("self").instanceId,
+      useAlternateCost: true,
+    })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("base"), "Progress"));
+
+    expect(s.perm("base").topCard.cardId).toBe("BT26-017");
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Progress")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "SecurityAttack")).toBe(true);
+  });
+
   it("publishes Blocker and Retaliation while Zanbamon is the top card", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT26-017", as: "self" }] } });
     await s.ready();
