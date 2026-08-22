@@ -177,6 +177,19 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
         latest.kind === "selectCards" && latest.sourceCardId === "ST2-15";
     });
 
+    const optionalDecision = s.state.pendingDecision;
+    expect(optionalDecision?.kind).toBe("optional");
+    expect(s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: optionalDecision!.decisionId,
+      response: { kind: "optional", accept: true },
+    })).toEqual({ ok: true });
+    await settle(() => {
+      const latest = s.decisions.at(-1)?.req;
+      return latest !== undefined &&
+        latest.decisionId === s.state.pendingDecision?.decisionId &&
+        latest.kind === "selectCards" && latest.sourceCardId === "ST2-15";
+    });
     const sourceDecision = s.state.pendingDecision;
     expect(sourceDecision?.kind).toBe("selectCards");
     const sourceOptions = JSON.parse(sourceDecision?.payloadJson ?? "{}");
