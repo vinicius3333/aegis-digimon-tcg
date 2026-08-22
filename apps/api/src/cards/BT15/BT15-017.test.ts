@@ -6,5 +6,8 @@ describe("BT15-017", () => {
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "OnPlay", actions: [{ kind: "Delete", condition: { kind: "zoneCount", op: "lte", value: 3 } }, { kind: "SecurityManipulation", op: "trashTop", condition: { kind: "zoneCount", op: "gte", value: 4 } }] });
     expect(compiled.effects?.[1]).toMatchObject({ trigger: "OnDeletion", actions: [{ kind: "Delete" }, { kind: "SecurityManipulation" }] });
   });
-  it("plays a red Digimon at 5000 DP or less or any red Tamer when digivolving", () => expect(compiled.effects?.[2]).toMatchObject({ trigger: "WhenDigivolving", actions: [{ kind: "PlayWithoutCost", from: ["hand"], payCost: false, optional: true, target: { filter: { or: [{ kind: ["Digimon"], colors: ["Red"], dp: { op: "lte", value: 5000 } }, { kind: ["Tamer"], colors: ["Red"] }] } }] }));
+  it("plays a red Digimon at 5000 DP or less or any red Tamer when digivolving", () => expect(compiled.effects?.[2]).toMatchObject({
+    trigger: "WhenDigivolving",
+    actions: [{ kind: "PlayWithoutCost", from: ["hand"], payCost: false, optional: true, target: { filter: { or: [{ kind: ["Digimon"], colors: ["Red"], dp: { op: "lte", value: 5000 } }, { kind: ["Tamer"], colors: ["Red"] }] } } }],
+  }));
 });
