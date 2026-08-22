@@ -944,7 +944,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                 effectKey: `${cardId}/hunter-color-waiver`,
                 description: "A Hunter Tamer waives this Option's color requirement.",
                 when: (ctx) =>
-                  myPermanents(ctx, source, (definition) => isTamer(definition) && hasText(definition, "hunter"))
+                  myPermanents(ctx, source, (definition) => isTamer(definition) && cardHasTrait(definition, "Hunter"))
                     .length > 0,
                 resolve: async (ctx) => ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.Permanent),
               }),
