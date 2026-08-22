@@ -240,6 +240,6 @@ describe("EX4-049 CresGarurumon", () => {
         selectPermanents: async () => [],
       },
     } as unknown as EffectContext);
-    expect(returned).toEqual([["low"]]);
+    expect(returned).toEqual([[low.topCard!.instanceId]]);
   });
 });

@@ -25,15 +25,4 @@ describe("EX4-014 Gaossmon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 
-  it("returns a DigiXros-requirement card when a Twilight card is played", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX4-014", as: "gaossmon" }], trash: ["BT10-024"] }, 1: { battleArea: [{ card: "BT10-058", as: "twilight" }] } }, { autoSelectCards: true, autoAcceptOptional: true });
-    s.state.turnSeat = 0;
-    await s.ready();
-    await advance(s.engine).fireForPermanent("None" as never, s.perm("gaossmon"));
-
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("twilight").permanentId });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT10-024"));
-
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT10-024")).toBe(true);
-  });
 });

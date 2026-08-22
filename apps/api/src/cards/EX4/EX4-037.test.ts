@@ -94,6 +94,7 @@ describe("EX4-037 BlackMegaGargomon", () => {
     await effect.resolve({
       source,
       game,
+      trigger: {},
       ask: { chooseTargets: async () => ["first", "second"] },
       fx: { grantKeyword: (...args: unknown[]) => grants.push(args) },
     } as unknown as EffectContext);

@@ -131,8 +131,7 @@ describe("EX4-060 Omnimon Alter-S", () => {
       ["BLITZ", { ...def("BLITZ", 6), nameEn: "BlitzGreymon" }],
       ["CRES", { ...def("CRES", 6), nameEn: "CresGarurumon" }],
     ]);
-    const played: unknown[] = [];
-    const secured: unknown[] = [];
+    const replacements: unknown[] = [];
     const game: GameAccess = {
       state: { memory: 0, players, turnSeat: 0 as Seat } as unknown as GameState,
       player: (seat: Seat) => players[seat] as never,
@@ -156,8 +155,7 @@ describe("EX4-060 Omnimon Alter-S", () => {
       trigger: {},
       game,
       fx: {
-        playInstances: async (ids: string[], options: unknown) => played.push([ids, options]),
-        addSecurity: async (...args: unknown[]) => secured.push(args),
+        subscribeReplacement: (replacement: unknown) => replacements.push(replacement),
       } as unknown as Primitives,
       ask: {
         chooseOption: async () => 0,
@@ -167,7 +165,7 @@ describe("EX4-060 Omnimon Alter-S", () => {
         optional: async () => true,
       },
     } as unknown as EffectContext);
-    expect(played).toEqual([[["BLITZ-0", "CRES-0"], { payCost: false }]]);
-    expect(secured).toEqual([[0, ["self"], { toTop: false, faceUp: false }]]);
+    expect(replacements).toHaveLength(1);
+    expect(replacements[0]).toMatchObject({ event: "wouldLeavePlay", mode: "instead" });
   });
 });
