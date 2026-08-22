@@ -13,6 +13,6 @@ export const compiled: CompiledCard = { effects: [
   { trigger: "WhenDigivolving", frequency: "OncePerTurn", sharedUseKey: "bt26-059-trash-play-titan", actions: shared },
   { trigger: "WhenAttacking", frequency: "OncePerTurn", sharedUseKey: "bt26-059-trash-play-titan", actions: shared },
   { trigger: "AllTurns", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenHandTrashed", actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], lowestLevel: true }, count: "all" }, optional: true }] }] },
-], coverage: "full", residual: [] };
+], coverage: "full", residual: [], digivolutionRequirement: [{ level: 5, traits: ["TS"], cost: 4, isAlternate: true }] };
 registerIrCard("BT26-059", compiled);
 export default compiled;
