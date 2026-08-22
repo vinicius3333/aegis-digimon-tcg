@@ -1,161 +1,29 @@
-import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, whenDigivolving, onDeletion, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/**
- * BT26-083 — Junomon: Hysteric Mode (BT26, Purple/Yellow Lv.7 Digimon).
- *
- * The committed KB contains Q7124 (2026-08-18), confirming that the effect still
- * performs Recovery +3 when its controller starts with 0 security cards.
- *
- * Printed text:
- *   [Digivolve] Lv.6 w/[TS] trait: Cost 4
- *   [Assembly -4] [Junomon]
- *   ＜Rush＞
- *   ＜Piercing＞
- *   ＜Execute＞
- *   ＜Decode ([Junomon]/Lv.5 or lower w/[Iliad] trait)＞
- *   [On Play] [When Digivolving] Trash all of your security cards. For each card this
- *     effect trashed, delete 1 of your opponent's Digimon. Then, ＜Recovery +3＞ (Place
- *     the top 3 cards of your deck as your top security card.)
- *   [On Deletion] Give all of your opponent's Digimon ＜Security A. -1＞ until their
- *     turn ends.
- *
- * Clause mapping:
- *   EffectTiming.None — ＜Rush＞/＜Piercing＞/＜Execute＞ static grants (`hasKeyword` on the
- *     continuous ledger, not the printed-text scan, is what combat legality actually
- *     reads — BT5-085/BT12-063 precedent). ＜Decode (...)＞ needs no grant: the Decode
- *     keyword mechanic has no gameplay implementation anywhere in this engine yet (only
- *     cosmetic keyword-name detection in `combat/keywords.ts`) — the same
- *     non-implementation as every other Decode-carrying card in the corpus.
- *   EffectTiming.OnPlay / EffectTiming.WhenDigivolving — "Trash all of your security
- *     cards. For each card this effect trashed, delete 1 of your opponent's Digimon.
- *     Then, <Recovery +3>." `ctx.fx.trashFromSecurity(seat, count, { fromTop: true })`
- *     for the whole stack, then up to that many `deletePermanent` targets chosen among
- *     the opponent's Digimon, then `ctx.fx.recoverToSecurity(seat, 3)`.
- *   EffectTiming.OnDestroyedAnyone — "Give all of your opponent's Digimon <Security A.
- *     -1> until their turn ends." A group grant (RB1-019/BT26-089 `grantKeyword(...,
- *     "SecurityAttack", EffectDuration.UntilOpponentTurnEnd, -1)` precedent), applied to
- *     every opponent Digimon rather than a single chosen one.
- */
-const cardId = "BT26-083";
+const opponentDigimon = { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 };
+const securityWipeAndDeletes = [
+  { kind: "SecurityManipulation", op: "trashTop", controller: "mine", leaveCount: 0, trackCount: "trashedSecurity" },
+  { kind: "RepeatPerCount", countSource: "trashedSecurity", action: { kind: "Delete", target: opponentDigimon }, raw: "For each card this effect trashed, delete 1 of your opponent's Digimon" },
+  { kind: "SecurityManipulation", op: "placeFromDeck", controller: "mine", source: "deck", amount: 3, raw: "＜Recovery +3＞ (Place the top 3 cards of your deck as your top security card.)" },
+];
 
-/** "Trash all of your security cards. For each card this effect trashed, delete 1 of your opponent's Digimon. Then, <Recovery +3>." */
-async function resolveSecurityWipeDelete(ctx: EffectContext, source: CardSource): Promise<void> {
-  const owner = ctx.game.player(source.ownerSeat);
-  const securityCount = owner.security.length;
-  if (securityCount > 0) {
-    const trashed = await ctx.fx.trashFromSecurity(source.ownerSeat, securityCount, { fromTop: true });
-
-    const opponent = ctx.game.opponentOf(source.ownerSeat);
-    for (let i = 0; i < trashed.length; i++) {
-      const candidates = ctx.game
-        .player(opponent)
-        .battleArea.filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)))
-        .map((p) => p.permanentId);
-      if (candidates.length === 0) break;
-      const chosen =
-        candidates.length === 1
-          ? candidates[0]!
-          : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
-      if (chosen === undefined) break;
-      await ctx.fx.deletePermanent([chosen]);
-    }
-  }
-
-  await ctx.fx.recoverToSecurity(source.ownerSeat, 3);
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/rush`,
-          description: "＜Rush＞",
-          resolve: async (ctx) => {
-            const self = ctx.source.permanent();
-            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Rush", EffectDuration.Permanent);
-          },
-        }),
-        staticModifier({
-          source,
-          effectKey: `${cardId}/piercing`,
-          description: "＜Piercing＞",
-          resolve: async (ctx) => {
-            const self = ctx.source.permanent();
-            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Piercing", EffectDuration.Permanent);
-          },
-        }),
-        staticModifier({
-          source,
-          effectKey: `${cardId}/execute`,
-          description: "＜Execute＞",
-          resolve: async (ctx) => {
-            const self = ctx.source.permanent();
-            if (self !== undefined) ctx.fx.grantKeyword(self.permanentId, "Execute", EffectDuration.Permanent);
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.OnPlay) {
-      return [
-        onPlay({
-          source,
-          effectKey: `${cardId}/on-play-security-wipe`,
-          description:
-            "[On Play] [When Digivolving] Trash all of your security cards. For each card " +
-            "this effect trashed, delete 1 of your opponent's Digimon. Then, ＜Recovery +3＞ " +
-            "(Place the top 3 cards of your deck as your top security card.)",
-          optional: false,
-          resolve: async (ctx) => resolveSecurityWipeDelete(ctx, source),
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.WhenDigivolving) {
-      return [
-        whenDigivolving({
-          source,
-          effectKey: `${cardId}/when-digivolving-security-wipe`,
-          description:
-            "[On Play] [When Digivolving] Trash all of your security cards. For each card " +
-            "this effect trashed, delete 1 of your opponent's Digimon. Then, ＜Recovery +3＞ " +
-            "(Place the top 3 cards of your deck as your top security card.)",
-          optional: false,
-          resolve: async (ctx) => resolveSecurityWipeDelete(ctx, source),
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.OnDestroyedAnyone) {
-      return [
-        onDeletion({
-          source,
-          effectKey: `${cardId}/on-deletion-security-attack-debuff`,
-          description: "[On Deletion] Give all of your opponent's Digimon ＜Security A. -1＞ until their turn ends.",
-          optional: false,
-          resolve: async (ctx) => {
-            const opponent = ctx.game.opponentOf(source.ownerSeat);
-            for (const permanent of ctx.game.player(opponent).battleArea) {
-              if (permanent.topCard === undefined || !isDigimon(ctx.game.definitionOf(permanent.topCard))) continue;
-              ctx.fx.grantKeyword(permanent.permanentId, "SecurityAttack", EffectDuration.UntilOpponentTurnEnd, -1);
-            }
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+const compiled: CompiledCard = {
+  keywords: [
+    { keyword: "Rush", raw: "＜Rush＞" },
+    { keyword: "Piercing", raw: "＜Piercing＞" },
+    { keyword: "Execute", raw: "＜Execute＞" },
+  ],
+  effects: [
+    { trigger: "OnPlay", actions: securityWipeAndDeletes },
+    { trigger: "WhenDigivolving", actions: securityWipeAndDeletes },
+    { trigger: "OnDeletion", actions: [{ kind: "GainKeyword", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" }, keyword: { keyword: "SecurityAttack", amount: -1 }, duration: "untilOpponentTurnEnd" }] },
+  ],
+  coverage: "full",
+  residual: ["Decode gameplay is not implemented by the engine; keyword remains catalog-only."],
+  digivolutionRequirement: [{ level: 6, traits: ["TS"], cost: 4, isAlternate: true }],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("BT26-083", compiled);
+export default compiled;
