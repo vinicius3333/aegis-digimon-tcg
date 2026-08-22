@@ -1,182 +1,22 @@
-import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, whenDigivolving, turnTiming } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
-import { cardHasTrait } from "../../engine/cards/cardData.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/**
- * BT26-047 — TyrantKabuterimon (BT26, Green Lv.6 Digimon).
- *
- * The committed KB contains Q7040-Q7049 (2026-08-18), covering immediate effect battle,
- * choosing effect-immune combatants, either player's Digimon as the suspend cost,
- * simultaneous trigger ordering, and the precise semantics of effect immunity.
- *
- * Printed text:
- *   [Digivolve] Lv.5 w/[Insectoid]/[TS] trait: Cost 3
- *   [Assembly -6] 4 [Larva]/[Insectoid]/[Titan] trait Digimon cards w/different levels
- *   [On Play] [When Digivolving] This Digimon may battle 1 of your opponent's Digimon.
- *   [Start of Your Main Phase] [On Play] [When Digivolving] By suspending 1 Digimon,
- *     until your opponent's turn ends, none of your suspended [Insectoid] or [Titan]
- *     trait Digimon are affected by your opponent's Option effects, and they get +3000 DP.
- *
- * Clause mapping:
- *   EffectTiming.OnPlay / EffectTiming.WhenDigivolving — BOTH abilities on these two
- *     timings: "This Digimon may battle 1 of your opponent's Digimon" (`ctx.fx.forceBattle`,
- *     the direct §14 battle primitive — no attack declaration/block/security) and the
- *     suspend-cost buff below.
- *   EffectTiming.OnStartMainPhase — only the suspend-cost buff.
- *   Suspend-cost buff: "By suspending 1 Digimon, until your opponent's turn ends, none of
- *     your suspended [Insectoid] or [Titan] trait Digimon are affected by your opponent's
- *     Option effects, and they get +3000 DP." Read literally as an instant snapshot: pay
- *     the cost (suspend 1 Digimon controlled by either player, chosen by the effect's
- *     controller), then apply the
- *     immunity (`ctx.fx.restrict(..., "beAffected", ..., { fromSourceKind: ["Option"],
- *     byOpponentEffectsOnly: true })`, EX9-021 precedent) and the +3000 DP to whichever of your Digimon are ALREADY
- *     suspended and carry the [Insectoid]/[Titan] trait at that moment (including the one
- *     just suspended as the cost) — not a continuously re-derived group grant, since the
- *     printed text reads as a one-time "get +3000 DP" rather than a persistent "while
- *     suspended" static.
- */
-const cardId = "BT26-047";
-
-function hasInsectoidOrTitan(def: CardDefinition): boolean {
-  return cardHasTrait(def, "Insectoid") || cardHasTrait(def, "Titan");
-}
-
-function digimonPermanentIds(ctx: EffectContext): string[] {
-  return [0, 1]
-    .flatMap((seat) => Array.from(ctx.game.player(seat as 0 | 1).battleArea))
-    .filter((p) => !p.inBreeding && p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)))
-    .map((p) => p.permanentId);
-}
-
-/** "This Digimon may battle 1 of your opponent's Digimon." */
-async function resolveMayBattle(ctx: EffectContext, source: CardSource): Promise<void> {
-  const self = ctx.source.permanent();
-  if (self === undefined) return;
-  const opponent = ctx.game.opponentOf(source.ownerSeat);
-  const candidates = ctx.game
-    .player(opponent)
-    .battleArea.filter((p) => !p.inBreeding && p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)))
-    .map((p) => p.permanentId);
-  if (candidates.length === 0) return;
-
-  const willBattle = await ctx.ask.optional(ctx, "Battle 1 of your opponent's Digimon?");
-  if (!willBattle) return;
-
-  const chosen =
-    candidates.length === 1 ? candidates[0]! : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
-  if (chosen === undefined) return;
-  await ctx.fx.forceBattle?.(self.permanentId, chosen);
-}
-
-/**
- * "By suspending 1 Digimon, until your opponent's turn ends, none of your suspended
- * [Insectoid] or [Titan] trait Digimon are affected by your opponent's Option effects,
- * and they get +3000 DP."
- */
-async function resolveSuspendBuff(ctx: EffectContext, source: CardSource): Promise<void> {
-  const candidates = digimonPermanentIds(ctx).filter((id) => {
-    const perm = ctx.game.permanentById(id);
-    return perm !== undefined && !perm.isSuspended;
-  });
-  if (candidates.length === 0) return;
-
-  const willPay = await ctx.ask.optional(ctx, "Suspend 1 Digimon for this effect?");
-  if (!willPay) return;
-
-  const chosen =
-    candidates.length === 1 ? candidates[0]! : (await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }))[0];
-  if (chosen === undefined) return;
-  const suspendedAsCost = await ctx.fx.suspend([chosen]);
-  if (!suspendedAsCost.includes(chosen)) return;
-
-  for (const permanentId of digimonPermanentIds(ctx)) {
-    const perm = ctx.game.permanentById(permanentId);
-    if (perm === undefined || !perm.isSuspended || perm.topCard === undefined) continue;
-    if (perm.controllerSeat !== source.ownerSeat) continue;
-    if (!hasInsectoidOrTitan(ctx.game.definitionOf(perm.topCard))) continue;
-    ctx.fx.restrict(permanentId, "beAffected", EffectDuration.UntilOpponentTurnEnd, {
-      fromSourceKind: ["Option"],
-      byOpponentEffectsOnly: true,
-    });
-    ctx.fx.modifyDP(permanentId, 3000, EffectDuration.UntilOpponentTurnEnd);
-  }
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnPlay) {
-      return [
-        onPlay({
-          source,
-          effectKey: `${cardId}/on-play-may-battle`,
-          description: "[On Play] [When Digivolving] This Digimon may battle 1 of your opponent's Digimon.",
-          optional: false,
-          resolve: async (ctx) => resolveMayBattle(ctx, source),
-        }),
-        onPlay({
-          source,
-          effectKey: `${cardId}/on-play-suspend-buff`,
-          description:
-            "[Start of Your Main Phase] [On Play] [When Digivolving] By suspending 1 Digimon, " +
-            "until your opponent's turn ends, none of your suspended [Insectoid] or [Titan] " +
-            "trait Digimon are affected by your opponent's Option effects, and they get " +
-            "+3000 DP.",
-          optional: false,
-          resolve: async (ctx) => resolveSuspendBuff(ctx, source),
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.WhenDigivolving) {
-      return [
-        whenDigivolving({
-          source,
-          effectKey: `${cardId}/when-digivolving-may-battle`,
-          description: "[On Play] [When Digivolving] This Digimon may battle 1 of your opponent's Digimon.",
-          optional: false,
-          resolve: async (ctx) => resolveMayBattle(ctx, source),
-        }),
-        whenDigivolving({
-          source,
-          effectKey: `${cardId}/when-digivolving-suspend-buff`,
-          description:
-            "[Start of Your Main Phase] [On Play] [When Digivolving] By suspending 1 Digimon, " +
-            "until your opponent's turn ends, none of your suspended [Insectoid] or [Titan] " +
-            "trait Digimon are affected by your opponent's Option effects, and they get " +
-            "+3000 DP.",
-          optional: false,
-          resolve: async (ctx) => resolveSuspendBuff(ctx, source),
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.OnStartMainPhase) {
-      return [
-        turnTiming({
-          source,
-          effectKey: `${cardId}/start-main-suspend-buff`,
-          description:
-            "[Start of Your Main Phase] [On Play] [When Digivolving] By suspending 1 Digimon, " +
-            "until your opponent's turn ends, none of your suspended [Insectoid] or [Titan] " +
-            "trait Digimon are affected by your opponent's Option effects, and they get " +
-            "+3000 DP.",
-          optional: false,
-          when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn(),
-          resolve: async (ctx) => resolveSuspendBuff(ctx, source),
-        }),
-      ];
-    }
-
-    return [];
-  },
-};
-
-registerCard(module);
-export default module;
+const opponentDigimon = { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 };
+const anyDigimon = { filter: { controller: "any", kind: ["Digimon"] }, count: 1 };
+const suspendedTraits = { filter: { controller: "mine", kind: ["Digimon"], suspended: true, nameOrTrait: [
+  { tokens: ["Insectoid"], match: "trait" }, { tokens: ["Titan"], match: "trait" },
+] }, count: "all" };
+const suspendBuff = [
+  { kind: "Suspend", target: anyDigimon, optional: true },
+  { kind: "Restrict", target: suspendedTraits, restriction: "beAffected", duration: "untilOpponentTurnEnd", fromSourceKind: ["Option"], byOpponentEffectsOnly: true },
+  { kind: "ModifyDP", target: suspendedTraits, amount: 3000, duration: "untilOpponentTurnEnd" },
+];
+const battle = { kind: "Battle", attacker: { filter: { isSelfRef: true }, count: 1, isSelf: true }, defender: opponentDigimon, optional: true };
+export const compiled: CompiledCard = { effects: [
+  { trigger: "OnPlay", actions: [battle, ...suspendBuff] },
+  { trigger: "WhenDigivolving", actions: [battle, ...suspendBuff] },
+  { trigger: "StartOfYourMainPhase", actions: suspendBuff },
+], coverage: "full", residual: [] };
+registerIrCard("BT26-047", compiled);
+export default compiled;
