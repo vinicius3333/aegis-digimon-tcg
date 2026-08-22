@@ -26,7 +26,7 @@ const compiled: CompiledCard = {
         {
           kind: "PlaceUnder",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          underFilter: { controller: "mine", kind: ["Digimon"], digivolutionCards: "hasNone", excludeNameOrTrait: [{ tokens: ["X Antibody"], match: "name" }] },
+          underFilter: { controller: "mine", kind: ["Digimon"], excludeCardsNamed: ["X Antibody"] },
           position: "bottom",
         },
       ],
@@ -36,7 +36,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "Restrict",
-          target: { filter: { zone: "digivolutionCards", isSelfRef: true, nameOrTrait: [{ tokens: ["X Antibody"], match: "name" }] }, count: "all" },
+          target: { filter: { zone: "digivolutionCards", isSelfRef: true, nameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }] }, count: "all" },
           restriction: "beTrashed",
           duration: "forTheTurn",
         },

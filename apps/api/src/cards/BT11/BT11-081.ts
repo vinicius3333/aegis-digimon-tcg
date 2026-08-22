@@ -34,7 +34,7 @@ const compiled: CompiledCard = {
       trigger: "OpponentsTurn",
       actions: [{
         kind: "SubTrigger",
-        event: "onDigivolutionCardDiscarded",
+        event: "onDigivolutionCardsDiscardedBatch",
         sourceFilter: { isSelfRef: true },
         actions: [{ kind: "GainMemory", amount: 1 }],
       }],
@@ -43,6 +43,10 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digiXrosRequirement: [{
+    materials: [{ names: ["MadLeomon"] }, { traits: ["Bagra Army"] }],
+    count: 2,
+  }],
 };
 
 registerIrCard("BT11-081", compiled);

@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT11-092.js";
 
@@ -29,5 +29,34 @@ describe("BT11-092 Analogman", () => {
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).subscriptions("whenOpponentAttacks", s.perm("analogman").permanentId)).toHaveLength(1);
+  });
+
+  it("suspends to redirect an opponent's player attack to an allied level 6 Machine", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-092", as: "analogman" },
+            { card: "BT11-072", as: "machine" },
+          ],
+          security: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 13000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    const machineId = s.perm("machine").permanentId;
+
+    expect(s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.every(({ permanentId }) => permanentId !== machineId));
+
+    expect(s.perm("analogman").isSuspended).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT11-072")).toBe(true);
   });
 });

@@ -434,6 +434,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
       if (action.grant === "immuneToOpponentDPReductionAndReturn") {
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
         for (const id of ids) {
+          ctx.fx.restoreDpReductions(id);
           ctx.fx.restrict(id, "dpImmune", grantDuration, { byOpponentEffectsOnly: true });
           ctx.fx.restrict(id, "beReturned", grantDuration, { byOpponentEffectsOnly: true });
         }

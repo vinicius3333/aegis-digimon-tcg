@@ -1,10 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./BT10-083.js";
 import "../BT4/BT4-079.js";
 
 describe("BT10-083 Minervamon", () => {
+  it("has Retaliation as a live keyword", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT10-083", as: "minervamon" }] } });
+
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("minervamon"), "Retaliation")).toBe(true);
+  });
+
   it("plays a purple level 4 or lower from trash without activating its On Play effect", async () => {
     const s = setupEngine(
       {
@@ -41,6 +50,57 @@ describe("BT10-083 Minervamon", () => {
     );
     await advance(s.engine).verb.deletePermanent([s.perm("minervamon").permanentId]);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("baalmon").instanceId)).toBe(true);
+  });
+
+  it("may play Mervamon from trash regardless of its level", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-083", as: "minervamon" }],
+          trash: [{ card: "BT11-086", as: "mervamon" }],
+        },
+        1: { battleArea: ["BT1-010", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).verb.deletePermanent([s.perm("minervamon").permanentId]);
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) =>
+      topCard.instanceId === s.inst("mervamon").instanceId
+    )).toBe(true);
+  });
+
+  it("does not offer its deletion play above 2 opposing Digimon and allows refusal at the boundary", async () => {
+    const above = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-083", as: "minervamon" }],
+          trash: [{ card: "BT10-081", as: "candidate" }],
+        },
+        1: { battleArea: ["BT1-009", "BT1-010", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(above.engine).verb.deletePermanent([above.perm("minervamon").permanentId]);
+    expect(above.state.players[0]!.trash.some(({ instanceId }) =>
+      instanceId === above.inst("candidate").instanceId
+    )).toBe(true);
+
+    const declined = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-083", as: "minervamon" }],
+          trash: [{ card: "BT10-081", as: "candidate" }],
+        },
+        1: { battleArea: ["BT1-010", "BT1-011"] },
+      },
+      { autoDeclineOptional: true },
+    );
+    await advance(declined.engine).verb.deletePermanent([declined.perm("minervamon").permanentId]);
+    expect(declined.state.players[0]!.trash.some(({ instanceId }) =>
+      instanceId === declined.inst("candidate").instanceId
+    )).toBe(true);
   });
 
   it("only observes an opposing Digimon, not your Digimon or an opposing Tamer", async () => {

@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, CardKind, CardColor, type CardDefinition, type GameState, type Seat } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
@@ -168,6 +168,60 @@ describe("AD1-021 Marcus Damon & Agumon", () => {
 
   it("is registered", () => {
     expect(module, "AD1-021 must self-register on import").toBeDefined();
+  });
+
+  it("draws and may digivolve for 3 less only when this Tamer suspends", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-021", as: "tamer" }, { card: "BT12-042", as: "rize" }],
+          hand: [{ card: "AD1-016", as: "shine" }],
+          deck: ["BT1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    await advance(s.engine).verb.suspend([s.perm("tamer").permanentId]);
+    await settle(() => s.perm("rize").topCard.cardId === "AD1-016");
+
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("turns one Marcus into a 6000 DP Rush Digimon that can't digivolve, then attacks", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-021", as: "marcus" }, { card: "BT12-034", as: "agumon" }] },
+        1: { security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("marcus"));
+    await settle();
+    const continuous = (s.engine as unknown as {
+      continuous: {
+        hasKeyword(id: string, keyword: string): boolean;
+        hasRestriction(id: string, restriction: string): boolean;
+      };
+    }).continuous;
+
+    expect(s.perm("marcus").currentDP).toBe(6000);
+    expect(continuous.hasKeyword(s.perm("marcus").permanentId, "Rush")).toBe(true);
+    expect(continuous.hasRestriction(s.perm("marcus").permanentId, "digivolve")).toBe(true);
+  });
+
+  it("does not offer the trailing attack without the yellow Agumon/Greymon gate", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "AD1-021", as: "marcus" }] }, 1: { security: ["BT1-001"] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("marcus"));
+    await settle();
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   // Q6111: [End of Your Turn] is mandatory and [Once Per Turn].

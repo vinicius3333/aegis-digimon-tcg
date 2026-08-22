@@ -82,7 +82,16 @@ const compiled: CompiledCard = {
     }
   ],
   "coverage": "full",
-  "residual": []
+  "residual": [],
+  "digivolutionRequirement": [
+    {
+      "namesExact": [
+        "Veemon"
+      ],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ]
 };
 
 registerIrCard("BT8-038", compiled);

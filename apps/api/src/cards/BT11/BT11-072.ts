@@ -16,18 +16,7 @@ const reveal: any = {
       count: 1,
       to: "hand",
       optional: true,
-      alternative: {
-        kind: "PlaceUnder",
-        target: {
-          filter: {
-            controllerDefault: "mine",
-            zone: "revealed",
-            nameOrTrait: [{ tokens: ["Cyborg", "Machine"], match: "trait" }],
-          },
-          count: 1,
-        },
-        asTop: false,
-      },
+      orDispositions: [{ to: "placeUnder", underFilter: { isSelfRef: true } }],
     },
   ],
   rest: "trash",
@@ -39,26 +28,24 @@ const compiled: CompiledCard = {
     { trigger: "OnPlay", actions: [reveal] },
     {
       trigger: "OnDeletion",
-      actions: [{
-        kind: "PlayWithoutCost",
-        target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Machinedramon"], match: "name" }] }, count: 1 },
-        from: ["hand"],
-        payCost: false,
-        cost: {
-          kind: "MovePermanent",
-          direction: "toDeckBottom",
+      actions: [
+        {
+          kind: "Return",
+          to: "deckBottom",
           target: {
-            filter: {
-              zone: "battleArea",
-              controller: "mine",
-              nameOrTrait: [{ tokens: ["Analogman"], match: "name" }],
-            },
+            filter: { zone: "battleArea", controller: "mine", nameOrTrait: [{ tokens: ["Analogman"], match: "name" }] },
             count: 1,
           },
+          optional: true,
+          abortOnDecline: true,
         },
-        optional: true,
-        abortOnDecline: true,
-      }],
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Machinedramon"], match: "name" }] }, count: 1 },
+          from: ["hand"],
+          payCost: false,
+        },
+      ],
     },
   ],
   coverage: "full",

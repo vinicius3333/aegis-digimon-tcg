@@ -43,7 +43,7 @@ describe("EX9-071", () => {
     expect(effect).toBeDefined();
     expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: s.perm("protein").topCard.instanceId, effectKey: effect.effectKey })).toEqual({ ok: true });
 
-    await settle(() => s.state.players[0]!.trash.length >= 3, 300);
+    await settle(() => !s.perm("target").isSuspended, 300);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX9-071", "EX9-007"]));
     expect(s.perm("target").isSuspended).toBe(false);
     expect(s.perm("target").stack).toHaveLength(0);

@@ -105,8 +105,26 @@ const compiled: CompiledCard = {
                 "count": 1,
                 "isSelf": true
               }
+            },
+            {
+              "kind": "Return",
+              "target": {
+                "filter": {
+                  "controller": "opponent",
+                  "suspended": true,
+                  "kind": ["Digimon"]
+                },
+                "count": 1
+              },
+              "to": "deckBottom",
+              "condition": {
+                "kind": "triggerPlayedOrDigivolvedByEffect",
+                "raw": "played or digivolved by effects"
+              },
+              "optional": true
             }
-          ]
+          ],
+          "oncePerTurnKey": "entry-response"
         },
         {
           "kind": "SubTrigger",
@@ -140,27 +158,26 @@ const compiled: CompiledCard = {
                 "count": 1,
                 "isSelf": true
               }
-            }
-          ]
-        },
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "suspended": true,
-              "kind": [
-                "Digimon"
-              ]
             },
-            "count": 1
-          },
-          "to": "deckBottom",
-          "condition": {
-            "kind": "triggerEnteredByEffect",
-            "raw": "played or digivolved by effects"
-          },
-          "optional": true
+            {
+              "kind": "Return",
+              "target": {
+                "filter": {
+                  "controller": "opponent",
+                  "suspended": true,
+                  "kind": ["Digimon"]
+                },
+                "count": 1
+              },
+              "to": "deckBottom",
+              "condition": {
+                "kind": "triggerPlayedOrDigivolvedByEffect",
+                "raw": "played or digivolved by effects"
+              },
+              "optional": true
+            }
+          ],
+          "oncePerTurnKey": "entry-response"
         }
       ],
       "frequency": "OncePerTurn"

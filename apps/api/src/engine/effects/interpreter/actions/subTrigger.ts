@@ -948,7 +948,7 @@ export async function runGainTriggeredEffect(
     ctx.fx.subscribeSubTrigger({
       event,
       sourcePermanentId: targetPermanentId,
-      once: false,
+      once: action.once === true,
       // A gained trigger is armed by a resolved effect and lasts for its printed duration;
       // it is not itself a static watcher even when the granting clause was reached through
       // a continuously installed SubTrigger.

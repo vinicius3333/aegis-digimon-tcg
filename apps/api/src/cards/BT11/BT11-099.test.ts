@@ -17,6 +17,7 @@ describe("BT11-099 Ice Statue", () => {
       ok: true,
     });
     await settle(() => s.state.players[1]!.hand.some(({ cardId }) => cardId === "BT1-081"));
+    expect(s.state.memory).toBe(5);
     expect(s.state.players[1]!.trash).toHaveLength(3);
     expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-081")).toBe(false);
   });

@@ -23,7 +23,7 @@ const compiled: CompiledCard = {
       actions: [{
         kind: "SubTrigger",
         event: "whenPlayed",
-        sourceFilter: { controllerDefault: "mine", excludeSelf: true, kind: ["Digimon"] },
+        sourceFilter: { controllerDefault: "mine", excludeSelf: true, kind: ["Digimon"], byEffect: true },
         actions: [{
           kind: "GainKeyword",
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },

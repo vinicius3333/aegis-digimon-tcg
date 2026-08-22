@@ -16,6 +16,13 @@ const compiled: CompiledCard = {
           "sourceFilter": {
             "isSelfRef": true
           },
+          "condition": {
+            "kind": "zoneCount",
+            "seat": "mine",
+            "zone": "security",
+            "op": "lte",
+            "value": 3
+          },
           "actions": [
             {
               "kind": "GainKeyword",

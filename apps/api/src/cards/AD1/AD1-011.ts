@@ -80,6 +80,7 @@ const compiled: CompiledCard = {
             "hand"
           ],
           "reduceCost": 2,
+          "payCost": true,
           "optional": true
         }
       ]

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { type PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 // Self-register every card module so the engine drives the REGISTERED BT11-059
 // hand-override (not a hand-built ledger — Pitfall 3).
 import "../index.js";
@@ -53,5 +54,40 @@ describe("A3 BT11-059 — digivolve cost reduced per green/black Tamer (Q2092 du
     expect(evolved).toBe(true);
     // NOT 3 (would be the wrong double-count of a 2-color Tamer): exactly 1 reduction.
     expect(paid).toBe(4);
+  });
+});
+
+describe("BT11-059 battle deletion trigger", () => {
+  it("unsuspends only when RustTyrannomon itself deletes in battle", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT11-059", as: "rust", suspended: true },
+          { card: "BT1-075", as: "other", suspended: true },
+        ],
+      },
+    });
+
+    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
+      attackerPermanentId: s.perm("other").permanentId,
+    });
+    expect(s.perm("rust").isSuspended).toBe(true);
+
+    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", {
+      attackerPermanentId: s.perm("rust").permanentId,
+    });
+    expect(s.perm("rust").isSuspended).toBe(false);
+  });
+
+  it("uses its battle-deletion trigger only once per turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT11-059", as: "rust", suspended: true }] } });
+    const payload = { attackerPermanentId: s.perm("rust").permanentId };
+
+    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", payload);
+    expect(s.perm("rust").isSuspended).toBe(false);
+
+    s.perm("rust").isSuspended = true;
+    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", payload);
+    expect(s.perm("rust").isSuspended).toBe(true);
   });
 });

@@ -3,6 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT8-069.js";
+import "./BT8-092.js";
 
 describe("BT8-069 Ouryumon", () => {
   it("places an X Antibody card from hand as its bottom source to delete a play-cost-7-or-less Digimon", async () => {
@@ -52,5 +53,34 @@ describe("BT8-069 Ouryumon", () => {
     );
 
     expect(s.perm("alphamon").isSuspended).toBe(false);
+  });
+
+  it("gains +2000 DP and opponent-effect deletion protection after an effect adds a source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT8-069", as: "ouryumon" },
+          { card: "BT8-092", as: "yuji" },
+          { card: "BT8-063", as: "attacker" },
+        ],
+        hand: [{ card: "BT8-060", as: "placed" }],
+      },
+      1: { security: ["BT8-034"] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const ouryumonId = s.perm("ouryumon").permanentId;
+    const baseDP = s.perm("ouryumon").baseDP;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("ouryumon").currentDP === baseDP + 2000);
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).verb.deletePermanent([ouryumonId], "byEffect");
+
+    expect(s.state.players[0]!.battleArea.some(permanent => permanent.permanentId === ouryumonId)).toBe(true);
   });
 });

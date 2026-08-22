@@ -23,6 +23,7 @@ const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "whenAttacking",
+          "sourceFilter": { "isSelfRef": true },
           "fireCondition": {
             "kind": "attackTargetsPlayer",
             "raw": "this Digimon attacks a player"

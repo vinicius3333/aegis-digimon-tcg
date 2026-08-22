@@ -28,4 +28,11 @@ describe("ST14-06 Witchmon", () => {
     });
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
   });
+
+  it("does not grant the inherited DP bonus on the opponent's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "ST14-08", as: "host", under: ["ST14-06"] }] } });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP);
+  });
 });

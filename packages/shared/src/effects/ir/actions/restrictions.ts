@@ -10,6 +10,7 @@ export type RestrictionKind =
   | "attack"
   | "attackPlayers"
   | "cantAttackDigimon" // players remain legal targets
+  | "attackOnlySuspendedDigimon"
   | "block"
   | "cantBeBlocked" // on the ATTACKER
   | "suspend"
@@ -53,6 +54,14 @@ export interface RestrictAction extends ActionBase {
    * "…by your opponent's effects" wording. Absent applies to any effect.
    */
   byOpponentEffectsOnly?: boolean;
+}
+
+/** Declare a card category, reveal the opponent's top deck card, and gain matching immunity. */
+export interface DeclareCategoryImmunityAction extends ActionBase {
+  kind: "DeclareCategoryImmunity";
+  target: Target;
+  controller: "opponent";
+  duration: EffectDurationRef;
 }
 
 /**

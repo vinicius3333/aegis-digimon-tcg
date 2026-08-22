@@ -226,7 +226,16 @@ export async function runUseOptionWithoutCost(
 
   // Cost cap: honor playCostLte from the resolved filter; fall back to 5 (historical EX8-037 default).
   const exactCosts = filter?.playCostOneOf ?? [];
-  const costCap = filter?.playCostLte ?? (exactCosts.length > 0 ? Math.max(...exactCosts) : 5);
+  const attackerLevelCap =
+    filter?.playCostLteAttackerLevel === true
+      ? (() => {
+          const attackerId = ctx.trigger.attackerPermanentId;
+          const attacker = attackerId === undefined ? undefined : ctx.game.permanentById(attackerId);
+          return attacker?.topCard === undefined ? undefined : ctx.game.definitionOf(attacker.topCard).level;
+        })()
+      : undefined;
+  const costCap =
+    attackerLevelCap ?? filter?.playCostLte ?? (exactCosts.length > 0 ? Math.max(...exactCosts) : 5);
   // Server-side eligibility: a single-color Option within the cost cap matching the filter, not
   // under a CanNotPlayThisOption play restriction.
   const candidates: string[] = [];
@@ -260,8 +269,9 @@ export async function runUseOptionWithoutCost(
     .flatMap((z) => looseCardsInZone(ctx, seat, z as ZoneRef))
     .find((c) => c.instanceId === chosenId);
 
-  // Pay cost before running the effect (mirrors normal Option use flow). The ORIGINAL printed
-  // cost is used for the whenOptionUsed watcher gate (KB Q5471-Q5473), not the reduced value.
+  // Pay the reduced cost here, then ask the lifecycle primitive to resolve the Option without
+  // charging it a second time. The ORIGINAL printed cost is still passed separately for the
+  // whenOptionUsed watcher gate (KB Q5471-Q5473), not the reduced value.
   if (action.payCost === true && chosenCard !== undefined) {
     const chosenDef = ctx.game.definitionOf({ cardId: chosenCard.cardId } as never);
     const dynamicReduction =
@@ -282,8 +292,7 @@ export async function runUseOptionWithoutCost(
   // (BT19-040; KB Q5471-Q5473 read the cost itself, not the paid/reduced value).
   const usedCost = chosenCard ? ctx.game.definitionOf({ cardId: chosenCard.cardId } as never).playCost : undefined;
   await ctx.fx.useOptionFromHand(ctx, chosenId, usedCost, {
-    payCost: action.payCost,
-    ...(action.reduceCostBy !== undefined ? { costDelta: -action.reduceCostBy } : {}),
+    payCost: false,
   });
   ctx.lastOptionUsed = true;
   ctx.lastOptionUsedInstanceId = chosenId;

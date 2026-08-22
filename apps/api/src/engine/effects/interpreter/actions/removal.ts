@@ -53,6 +53,14 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           },
         };
       }
+      if (action.totalDpCapScaling && target.totalDpCap !== undefined) {
+        target = {
+          ...target,
+          totalDpCap:
+            target.totalDpCap +
+            scaleFactor(ctx, action.totalDpCapScaling) * action.totalDpCapScaling.amount,
+        };
+      }
       target = raiseDeletionDpCap(ctx, target);
       if (action.playCostCeiling !== undefined) {
         const ceiling = action.playCostCeiling;

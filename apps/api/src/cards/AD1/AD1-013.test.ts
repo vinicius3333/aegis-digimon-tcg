@@ -27,4 +27,60 @@ describe("AD1-013 ZeigGreymon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[1]!.battleArea[0]?.permanentId).toBe(s.perm("with-source").permanentId);
   });
+
+  it("uses the Blue Flare alternate level-5 evolution route for cost 3 and deletes on evolution", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT10-024", as: "base" }], hand: [{ card: "AD1-013", as: "zeig" }] },
+      1: { battleArea: [{ card: "BT1-010", as: "no-sources" }, { card: "AD1-001", as: "with-source", under: ["BT1-010"] }] },
+    }, { autoSelectCards: true });
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("zeig").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[1]!.battleArea[0]?.permanentId).toBe(s.perm("with-source").permanentId);
+  });
+
+  it("plays an eligible Blue Flare source when it would leave, then still leaves", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-013", as: "zeig", under: [{ card: "BT10-024", as: "source" }] }] },
+        1: { battleArea: [{ card: "BT1-010", as: "red-source" }], hand: [{ card: "ST1-16", as: "gaia-force" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 8;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia-force").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-024"), 5000);
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "AD1-013")).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-024")).toBe(true);
+  });
+
+  it("gives a qualifying host +1000 DP per distinct color in its digivolution cards", async () => {
+    const qualified = setupEngine({
+      0: { battleArea: [{ card: "AD1-006", as: "host", under: ["AD1-013", "AD1-011"] }] },
+    });
+    await qualified.ready();
+    expect(qualified.perm("host").currentDP).toBe(16000);
+
+    const unqualified = setupEngine({
+      0: { battleArea: [{ card: "BT3-112", as: "host", under: ["AD1-013", "AD1-011"] }] },
+    });
+    await unqualified.ready();
+    expect(unqualified.perm("host").currentDP).toBe(15000);
+  });
+
+  it("publishes Reboot and Blocker on itself", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "AD1-013", as: "zeig" }] } });
+    await s.ready();
+    const continuous = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } }).continuous;
+    expect(continuous.hasKeyword(s.perm("zeig").permanentId, "Reboot")).toBe(true);
+    expect(continuous.hasKeyword(s.perm("zeig").permanentId, "Blocker")).toBe(true);
+  });
 });

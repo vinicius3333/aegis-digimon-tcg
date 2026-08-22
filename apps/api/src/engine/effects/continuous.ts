@@ -1256,6 +1256,13 @@ export class ContinuousEffectLedger {
     this.customEffectGrants.push({ instanceId, ownerSeat, token, duration });
   }
 
+  /** Keep effects granted to a Digimon attached when that Digimon changes its top card. */
+  reanchorCustomEffectGrants(priorTopInstanceId: string, newTopInstanceId: string): void {
+    for (const grant of this.customEffectGrants) {
+      if (grant.instanceId === priorTopInstanceId) grant.instanceId = newTopInstanceId;
+    }
+  }
+
   /** Active named custom effect grants (the collector compiles each token to a real Effect). */
   listCustomEffectGrants(): readonly CustomEffectGrant[] {
     return this.customEffectGrants;

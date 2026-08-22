@@ -235,6 +235,7 @@ export function unimplementedPrimitives(): Primitives {
     declareWinner: () => refuse("effect-primitives", "declareWinner"),
     setMemory: () => refuse("effect-primitives", "setMemory"),
     modifyDP: () => refuse("effect-primitives", "modifyDP"),
+    restoreDpReductions: () => refuse("effect-primitives", "restoreDpReductions"),
     setBaseDP: () => refuse("static-continuous-effects", "setBaseDP"),
     playFromHand: () => refuse("effect-primitives", "playFromHand"),
     playFromSecurity: () => refuse("effect-primitives", "playFromSecurity"),

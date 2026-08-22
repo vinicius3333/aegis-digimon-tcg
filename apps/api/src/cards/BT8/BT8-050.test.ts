@@ -12,4 +12,18 @@ describe("BT8-050 Exermon", () => {
     await settle(() => s.perm("target").isSuspended);
     expect(s.perm("cost").isSuspended).toBe(true);
   });
+
+  it("gives its host +1000 DP for each other suspended Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [
+        { card: "BT8-042", as: "host", under: ["BT8-050"], suspended: true },
+        { card: "BT8-034", suspended: true },
+        { card: "BT8-035", suspended: true },
+      ] },
+      1: { battleArea: [{ card: "BT8-034", suspended: true }] },
+    });
+    await s.ready();
+
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 2000);
+  });
 });

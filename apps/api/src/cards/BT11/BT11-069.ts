@@ -29,13 +29,17 @@ const compiled: CompiledCard = {
       actions: [{
         kind: "SubTrigger",
         event: "whenUnsuspended",
-        sourceFilter: { controllerDefault: "mine", kind: ["Digimon"] },
+        sourceFilter: { controller: "any", kind: ["Digimon"] },
         actions: [{
           kind: "SecurityManipulation",
           op: "trashTop",
           controller: "opponent",
           amount: 1,
-          condition: { kind: "raw", raw: "this Digimon has [Greymon] or [Omnimon] in its name" },
+          condition: {
+            kind: "selfHasNameContaining",
+            names: ["Greymon", "Omnimon"],
+            raw: "this Digimon has [Greymon] or [Omnimon] in its name",
+          },
         }],
       }],
       isInherited: true,

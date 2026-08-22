@@ -27,7 +27,7 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         { kind: "ModifyDP", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 3 }, amount: -5000, duration: "untilOpponentTurnEnd" },
-        { kind: "GainKeyword", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 3 }, keyword: { keyword: "SecurityAttack", amount: -1, raw: "＜Security Attack -1＞" }, duration: "untilOpponentTurnEnd" },
+        { kind: "GainKeyword", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 3, sameTarget: true }, keyword: { keyword: "SecurityAttack", amount: -1, raw: "＜Security Attack -1＞" }, duration: "untilOpponentTurnEnd" },
       ],
     },
     { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },

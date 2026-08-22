@@ -5,7 +5,7 @@ import { definitionMatches, matchNameOrTrait } from "../matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { effectiveTargetCount } from "./permanents.js";
 import { filterToDistinctColors } from "@aegis/shared";
-import type { Seat, Target, ZoneRef } from "@aegis/shared";
+import type { Filter, Seat, Target, ZoneRef } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
 // Loose-card (hand/trash/security/deck/under-permanent) resolution
@@ -174,6 +174,16 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
   const seats = [...seatSet];
   const seen = new Set<string>();
   const out: LooseCandidate[] = [];
+  const contextMatches = (filter: Filter, ownerSeat: Seat): boolean => {
+    const gate = filter.ownerTrashNameCountGte;
+    if (gate === undefined) return true;
+    const tokens = gate.tokens.map((token) => token.toLowerCase());
+    const matches = Array.from(ctx.game.player(ownerSeat).trash).filter((card) => {
+      const name = ctx.game.definitionOf(card).nameEn.toLowerCase();
+      return tokens.some((token) => name.includes(token));
+    }).length;
+    return matches >= gate.count;
+  };
   for (const seat of seats) {
     for (const zone of zones) {
       for (const cand of looseCardsInZone(ctx, seat, zone)) {
@@ -188,13 +198,15 @@ export function candidateLooseInstances(ctx: EffectContext, target: Target, zone
           if (!hostIsSelf) continue;
         }
         const def = ctx.game.definitionOf({ cardId: cand.cardId } as never);
-        if (!allFilters.some((f) => definitionMatches(f, def))) continue;
+        if (!allFilters.some((f) => definitionMatches(f, def) && contextMatches(f, cand.ownerSeat))) continue;
         // hostFilter: when sourcing from digivolutionCards, gate on the host permanent's kind
         // (e.g. "from under your Tamers" — BT10-093), OR require the host to BE the source's
         // own permanent ("this Digimon's digivolution cards" — BT9-111, hostFilter.isSelfRef).
         // Resolve it from the matching OR branch as well; cards such as BT13-019 combine
         // trash and breeding-area digivolution-card sources in one target.
-        const matchedFilter = allFilters.find((filter) => definitionMatches(filter, def));
+        const matchedFilter = allFilters.find(
+          (filter) => definitionMatches(filter, def) && contextMatches(filter, cand.ownerSeat),
+        );
         if (matchedFilter?.sameColorAsSelectionRef !== undefined) {
           const referenceId = ctx.selections?.get(matchedFilter.sameColorAsSelectionRef);
           const reference = referenceId === undefined ? undefined : ctx.game.permanentById(referenceId);
@@ -475,7 +487,9 @@ export async function pickLoose(
   if (candidates.length <= want && !target.upTo && !requireDifferentColors && target.forceSelection !== true)
     return candidates.slice(0, want).map((c) => c.instanceId);
   const ids = candidates.map((c) => c.instanceId);
-  const min = target.upTo ? 0 : Math.min(want, candidates.length);
+  const min = target.upTo
+    ? Math.min(target.minimum ?? 0, candidates.length)
+    : Math.min(want, candidates.length);
   const max = Math.min(want, candidates.length);
 
   let chosen = await asker.selectCards(ctx, {

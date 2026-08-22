@@ -18,7 +18,6 @@ const compiled: CompiledCard = {
           target: { filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } }, count: 1 },
           to: "deckBottom",
           condition: { kind: "youHave", filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Seadramon"], match: "name" }] }, raw: "you have a Digimon with [Seadramon] in its name in play" },
-          optional: true,
         },
       ],
     },

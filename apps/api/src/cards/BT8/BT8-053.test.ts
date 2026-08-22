@@ -7,12 +7,12 @@ describe("BT8-053 Lighdramon", () => {
   it("suspends an opposing level-4-or-lower Digimon", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-064", as: "base" }], hand: [{ card: "BT8-053", as: "evolving" }] },
-        1: { battleArea: [{ card: "BT1-015", as: "target" }] },
+        0: { battleArea: [{ card: "BT8-021", as: "base" }], hand: [{ card: "BT8-053", as: "evolving" }] },
+        1: { battleArea: [{ card: "BT1-015", as: "target" }, { card: "BT8-042", as: "levelFive" }] },
       },
       { autoSelectCards: true },
     );
-    s.state.memory = 2;
+    s.state.memory = 4;
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -21,7 +21,9 @@ describe("BT8-053 Lighdramon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("target").isSuspended);
+    expect(s.state.memory).toBe(2);
     expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.perm("levelFive").isSuspended).toBe(false);
   });
 
   it("activates Armor Purge to prevent effect deletion", async () => {
