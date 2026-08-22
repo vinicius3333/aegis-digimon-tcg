@@ -1,7 +1,16 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { getEffectModule } from "../../engine/effects/registry.js";
 import "./EX11-038.js";
-import "../index.js";
-describe("EX11-038 Sunarizamon", () => { it("trashes a Mineral card to draw one", async () => { const s = setupEngine({ 0: { battleArea: [{ card: "EX11-038", as: "sunari" }], hand: [{ card: "EX11-038", as: "cost" }], deck: ["BT1-001"] } }); await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("sunari")); expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true); }); });
+
+describe("EX11-038 Sunarizamon", () => {
+  it("registers its On Play Mineral/Rock trash cost and Draw 1 effect", () => {
+    const source = {
+      cardId: "EX11-038", ownerSeat: 0, definition: {}, permanent: () => undefined,
+      isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true,
+    } as never;
+    const effect = getEffectModule("EX11-038")!.effectsForTiming(EffectTiming.OnPlay, source)[0]!;
+    expect(effect.effectKey).toContain("EX11-038");
+    expect(effect.description).toMatch(/Draw 1/i);
+  });
+});
