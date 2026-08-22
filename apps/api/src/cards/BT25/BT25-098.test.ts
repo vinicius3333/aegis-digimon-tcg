@@ -55,7 +55,11 @@ describe("BT25-098 Cyber Engage", () => {
         effectKey: entry!.effectKey,
       }).ok,
     ).toBe(true);
-    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT25-098"));
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.cardId === "BT25-098") &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-061"),
+    );
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-061")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT25-098")).toBe(true);
     expect(s.state.memory).toBe(10);
