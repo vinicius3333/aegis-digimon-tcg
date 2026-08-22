@@ -1,4 +1,5 @@
 import { CardColor, CardKind, EffectTiming, type CardDefinition, type CardInstance, type Seat } from "@aegis/shared";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { describe, expect, it, vi } from "vitest";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
@@ -15,6 +16,10 @@ it("encodes the shared once-per-turn Titan Option use and inherited lowest-level
     expect(effect).toMatchObject({ frequency: "OncePerTurn", sharedUseKey: "bt26-074-use-titan-option", actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: true, reduceCostBy: 2, condition: { kind: "raw" } }] });
   }
   expect(compiled.effects?.[3]).toMatchObject({ isInherited: true, actions: [{ kind: "Delete", target: { superlative: "lowestLevel" } }] });
+});
+
+it("exposes the printed level-4 TS evolution requirement", () => {
+  expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({ level: 4, traits: ["TS"], cost: 3, isAlternate: true });
 });
 
 function definition(overrides: Partial<CardDefinition> = {}): CardDefinition {
