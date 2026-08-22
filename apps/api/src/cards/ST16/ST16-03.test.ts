@@ -46,31 +46,28 @@ describe("ST16-03 Gabumon", () => {
           hand: [{ card: "BT1-001" }, { card: "BT1-002" }],
           deck: [{ card: "BT1-003" }, { card: "BT1-004" }],
         },
-        1: {
-          battleArea: [
-            { card: "BT1-005", as: "firstTarget", suspended: true },
-            { card: "BT1-006", as: "secondTarget", suspended: true },
-          ],
-        },
+        1: { security: [{ card: "BT1-009" }, { card: "BT1-009" }, { card: "BT1-009" }] },
       },
       { autoSelectCards: true },
     );
+    s.state.memory = 10;
 
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("firstTarget").permanentId },
+        target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.length === 1);
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    await settle(() => s.state.players[0]!.trash.length === 1 && s.state.phase === "main");
     await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
 
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: s.perm("host").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("secondTarget").permanentId },
+        target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").isSuspended);
