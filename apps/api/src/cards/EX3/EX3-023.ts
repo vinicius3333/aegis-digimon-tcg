@@ -21,28 +21,23 @@ const compiled: CompiledCard = {
                 kind: ["Digimon"],
                 colors: ["Blue"],
               },
-            },
-            orFilters: [
-              {
-                controller: "mine",
-                kind: ["Digimon"],
-                levelComparison: {
-                  op: "lte",
-                  value: 4,
-                },
-                nameOrTrait: [
-                  {
-                    tokens: ["Aqua", "Sea Animal"],
-                    match: "trait",
-                  },
-                ],
-                hostFilter: {
-                  controllerDefault: "mine",
+              orFilters: [
+                {
+                  controller: "mine",
                   kind: ["Digimon"],
-                  colors: ["Blue"],
+                  levelComparison: {
+                    op: "lte",
+                    value: 4,
+                  },
+                  traitContains: ["Aqua", "Sea Animal"],
+                  hostFilter: {
+                    controllerDefault: "mine",
+                    kind: ["Digimon"],
+                    colors: ["Blue"],
+                  },
                 },
-              },
-            ],
+              ],
+            },
             count: 1,
           },
           from: ["digivolutionCards"],
