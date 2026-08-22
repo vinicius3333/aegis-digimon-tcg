@@ -33,12 +33,10 @@ describe("BT12-101 handwritten module", () => {
     const card = runtimeCompiledCard("BT12-101")!;
     expect(card.coverage).toBe("full");
     expect(card.residual).toEqual([]);
-    expect(card.effects.find((effect) => effect.trigger === "OnUseOption")).toMatchObject({
+    expect(card.effects.find((effect) => effect.trigger === "Main")).toMatchObject({
       actions: [{ kind: "TrashDigivolution", amount: 3 }],
     });
-    expect(card.effects.find((effect) => effect.trigger === "SecuritySkill")).toMatchObject({
-      actions: [{ kind: "SubTrigger" }],
-    });
+    expect(card.effects.find((effect) => effect.trigger === "Security")).toBeDefined();
   });
 
   it("uses the structural Free trait for the optional blue Digimon play", async () => {

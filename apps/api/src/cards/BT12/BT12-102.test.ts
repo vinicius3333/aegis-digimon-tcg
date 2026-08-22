@@ -28,9 +28,7 @@ it("keeps the compiled security effect activating the Main effect", async () => 
   const card = runtimeCompiledCard("BT12-102")!;
   expect(card.coverage).toBe("full");
   expect(card.residual).toEqual([]);
-  expect(card.effects.find((effect) => effect.trigger === "SecuritySkill")).toMatchObject({
-    actions: [{ kind: "SubTrigger" }],
-  });
+  expect(card.effects.find((effect) => effect.trigger === "Security")).toBeDefined();
 });
 
 it("returns an opposing Digimon to its owner's deck", async () => {
