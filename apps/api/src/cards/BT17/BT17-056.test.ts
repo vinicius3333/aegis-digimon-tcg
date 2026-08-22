@@ -46,7 +46,7 @@ describe("BT17-056 Locomon", () => {
     });
     await settle(() => s.perm("locomon").topCard?.instanceId === groundLocomonId);
 
-    expect(s.perm("locomon").digivolutionCards.some((card) => card.instanceId === eligibleId)).toBe(true);
+    expect(s.perm("locomon").stack.some((card) => card.instanceId === eligibleId)).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining(remainderIds));
     expect(s.state.memory).toBe(0);
   });

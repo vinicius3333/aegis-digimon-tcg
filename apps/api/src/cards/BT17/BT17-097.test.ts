@@ -46,7 +46,7 @@ describe("BT17-097 Return to the Primogenitor", () => {
   });
 
   it("places itself after the optional Main evolution is declined", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT17-097", as: "option" }] } }, { autoDeclineOptional: true });
+    const s = setupEngine({ 0: { battleArea: ["BT17-019", "BT17-030"], hand: [{ card: "BT17-097", as: "option" }] } }, { autoDeclineOptional: true });
     s.state.memory = 2;
     const optionId = s.inst("option").instanceId;
 

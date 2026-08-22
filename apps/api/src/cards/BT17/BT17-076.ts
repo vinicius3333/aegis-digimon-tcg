@@ -117,7 +117,7 @@ export const compiled: CompiledCard = {
       "trigger": "YourTurn",
       "actions": [
         {
-          "kind": "ModifyDP",
+          "kind": "Aura",
           "target": {
             "filter": {
               "controller": "mine",
@@ -132,8 +132,20 @@ export const compiled: CompiledCard = {
             },
             "count": "all"
           },
-          "amount": 1000,
-          "duration": "permanent",
+          "effect": {
+            "kind": "modifyDP",
+            "amount": 1000
+          },
+          "while": {
+            "kind": "youHave",
+            "filter": {
+              "controllerDefault": "mine",
+              "kind": [
+                "Tamer"
+              ]
+            },
+            "raw": "there is a Tamer"
+          },
           "scaling": {
             "per": 1,
             "filter": {

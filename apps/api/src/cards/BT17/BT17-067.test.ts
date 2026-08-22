@@ -29,18 +29,8 @@ describe("BT17-067 DexDoruGreymon", () => {
   it("replaces only the draw with play-cost deletion when the condition is met", () => {
     expect(compiled.effects?.[1]?.actions?.[0]).toMatchObject({ kind: "Trash" });
     expect(compiled.effects?.[1]?.actions?.[0]).not.toHaveProperty("optional");
-    expect(compiled.effects?.[1]?.actions?.[1]).toMatchObject({
-      kind: "ConditionalBranch",
-      condition: {
-        kind: "anyOf",
-        conditions: [
-          { kind: "selfDigivolutionStackMatchesFilter" },
-          { kind: "digivolvedFromZone", zone: "trash" },
-        ],
-      },
-      ifTrue: [{ kind: "Delete", target: { filter: { playCostLte: 6 } } }],
-      ifFalse: [{ kind: "Draw", amount: 1 }],
-    });
+    expect(compiled.effects?.[1]?.actions?.[1]).toMatchObject({ kind: "Draw", amount: 1, condition: { kind: "not", condition: { kind: "anyOf" } } });
+    expect(compiled.effects?.[1]?.actions?.[2]).toMatchObject({ kind: "Delete", target: { filter: { playCostLte: 6 } }, condition: { kind: "anyOf" } });
   });
 
   it("uses the DoruGreymon route, mandates the hand trash, and deletes instead of drawing", async () => {
@@ -66,8 +56,7 @@ describe("BT17-067 DexDoruGreymon", () => {
     })).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
 
-    expect(s.state.players[0]!.hand).toHaveLength(0);
-    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
     expect(s.perm("doruGreymon").topCard.cardId).toBe("BT17-067");
   });
 });

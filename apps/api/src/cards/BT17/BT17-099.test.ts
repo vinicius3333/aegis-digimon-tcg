@@ -29,7 +29,7 @@ describe("BT17-099 Awakening of the Sun", () => {
   });
 
   it("places itself after the optional Main play is declined", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT17-099", as: "option" }] } }, { autoDeclineOptional: true });
+    const s = setupEngine({ 0: { battleArea: ["BT17-036"], hand: [{ card: "BT17-099", as: "option" }] } }, { autoDeclineOptional: true });
     s.state.memory = 3;
     const optionId = s.inst("option").instanceId;
 

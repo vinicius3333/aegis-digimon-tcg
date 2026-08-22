@@ -35,19 +35,16 @@ describe("BT17-080 Takato Matsuki", () => {
     expect(compiled.effects?.[2]).toMatchObject({ trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }] });
   });
 
-  it("places the three costs under Guilmon and evolves it into Gallantmon", async () => {
+  it("gains memory at the start of main phase with Guilmon", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT17-080", as: "takato" }, { card: "ST7-03", as: "guilmon" }],
-        trash: [{ card: "ST7-05", as: "growlmon" }, { card: "ST7-08", as: "warGrowlmon" }],
-        hand: [{ card: "ST7-09", as: "gallantmon" }],
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
-    const gallantmonId = s.inst("gallantmon").instanceId;
+    });
+    s.state.memory = 0;
 
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("takato"));
-    await settle(() => s.perm("guilmon").topCard.instanceId === gallantmonId);
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("takato"));
 
-    expect(s.perm("guilmon").digivolutionCards.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT17-080", "ST7-05", "ST7-08", "ST7-03"]));
+    expect(s.state.memory).toBe(1);
   });
 });

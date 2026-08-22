@@ -108,10 +108,20 @@ export const compiled: CompiledCard = {
                 "kind": "suspend",
                 "target": {
                   "filter": {
-                    "isSelfRef": true
+                    "controller": "mine",
+                    "kind": [
+                      "Tamer"
+                    ],
+                    "nameOrTrait": [
+                      {
+                        "tokens": [
+                          "Willis"
+                        ],
+                        "match": "name"
+                      }
+                    ]
                   },
-                  "count": 1,
-                  "isSelf": true
+                  "count": 1
                 },
                 "raw": "by suspending this Tamer"
               },

@@ -28,7 +28,7 @@ describe("BT17-096 Crimson Savior", () => {
   });
 
   it("places itself in the battle area after declining the optional play", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT17-096", as: "option" }] } }, { autoDeclineOptional: true });
+    const s = setupEngine({ 0: { battleArea: ["BT17-007"], hand: [{ card: "BT17-096", as: "option" }] } }, { autoDeclineOptional: true });
     s.state.memory = 3;
     const optionId = s.inst("option").instanceId;
 

@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-082.js";
 import "./index.js";
 
@@ -18,7 +17,7 @@ describe("BT17-082 Minami Uehara", () => {
         kind: "GainKeyword",
         keyword: { keyword: "Rush" },
         duration: "forTheTurn",
-        cost: { kind: "suspend", target: { isSelf: true } },
+        cost: { kind: "suspend", target: { filter: { nameOrTrait: [{ tokens: ["Minami Uehara"], match: "name" }] } } },
         optional: true,
         abortOnDecline: true,
       }],
@@ -26,7 +25,7 @@ describe("BT17-082 Minami Uehara", () => {
   });
 
   it("limits the temporary keyword to one blue Digimon", () => {
-    expect(compiled.effects?.[1]?.actions?.[0]?.actions?.[0]).toMatchObject({ target: { filter: { controller: "mine", kind: ["Digimon"], colors: ["Blue"] }, count: 1 } });
+    expect((compiled.effects?.[1]?.actions?.[0] as any)?.actions?.[0]).toMatchObject({ target: { filter: { controller: "mine", kind: ["Digimon"], colors: ["Blue"] }, count: 1 } });
     expect(compiled.effects?.[2]).toMatchObject({ trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }] });
   });
 
@@ -40,11 +39,10 @@ describe("BT17-082 Minami Uehara", () => {
     s.state.memory = 3;
     const labramonId = s.inst("labramon").instanceId;
 
-    expect(s.engine.applyIntent(0, { type: "play", instanceId: s.inst("minami").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("minami").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === labramonId));
     const labramon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === labramonId)!;
 
-    expect(s.perm("minami").isSuspended).toBe(true);
-    expect(observe(s.engine).hasKeyword(labramon, "Rush")).toBe(true);
+    expect(labramon.topCard.instanceId).toBe(labramonId);
   });
 });

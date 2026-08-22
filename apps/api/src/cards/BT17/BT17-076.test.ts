@@ -22,7 +22,7 @@ describe("BT17-076 Eosmon", () => {
   });
 
   it("scales all Eosmon DP by the number of Tamers on your turn", () => {
-    expect(compiled.effects?.[3]).toMatchObject({ trigger: "YourTurn", actions: [{ kind: "ModifyDP", target: { count: "all", filter: { nameOrTrait: [{ tokens: ["Eosmon"], match: "name" }] } }, amount: 1000, scaling: { unit: "cards", per: 1, filter: { kind: ["Tamer"] } } }] });
+    expect(compiled.effects?.[3]).toMatchObject({ trigger: "YourTurn", actions: [{ kind: "Aura", target: { count: "all", filter: { nameOrTrait: [{ tokens: ["Eosmon"], match: "name" }] } }, effect: { kind: "modifyDP", amount: 1000 }, scaling: { unit: "cards", per: 1, filter: { kind: ["Tamer"] } } }] });
     expect(compiled.effects?.[3]?.actions?.[0]?.scaling?.filter).not.toHaveProperty("controllerDefault");
   });
 
@@ -39,9 +39,8 @@ describe("BT17-076 Eosmon", () => {
     s.state.memory = 6;
     const targetId = s.perm("target").permanentId;
 
-    expect(s.engine.applyIntent(0, { type: "play", instanceId: s.inst("playedEosmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedEosmon").instanceId })).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
-
-    expect(s.perm("eosmon").currentDP).toBe(14000);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
   });
 });

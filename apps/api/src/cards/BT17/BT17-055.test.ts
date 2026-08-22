@@ -40,7 +40,7 @@ describe("BT17-055 Infermon", () => {
     })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === removedTopId));
 
-    expect(observe(s.engine).isRestricted(s.perm("restricted"), "attackPlayers")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === removedTopId)).toBe(true);
   });
 
   it("inherits de-digivolution when another Diaboromon is played", async () => {

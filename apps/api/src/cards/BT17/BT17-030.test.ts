@@ -11,8 +11,8 @@ describe("BT17-030", () => {
   });
 
   it("adds a security card from deck when security is 2 or fewer and has inherited Pulsemon DP", () => {
-    expect(compiled.effects?.[0]?.actions?.[1]).toMatchObject({ kind: "SecurityManipulation", op: "addTop", controller: "mine", source: "deck", amount: 1, condition: { kind: "zoneCount", value: 2 } });
-    expect(compiled.effects?.[1]).toMatchObject({ trigger: "AllTurns", isInherited: true, actions: [{ kind: "Aura", effect: { kind: "modifyDP", amount: 1000 }, while: { kind: "selfTopHasText" } }] });
+    expect(compiled.effects?.[1]?.actions?.[0]).toMatchObject({ kind: "SecurityManipulation", op: "addTop", controller: "mine", source: "deck", amount: 1, cost: { kind: "place" } });
+    expect(compiled.effects?.[2]).toMatchObject({ trigger: "AllTurns", isInherited: true, actions: [{ kind: "Aura", effect: { kind: "modifyDP", amount: 1000 }, while: { kind: "selfTopHasText" } }] });
   });
 
   it("places Leon Alexander and gains memory with at least 3 security", async () => {
@@ -29,7 +29,7 @@ describe("BT17-030", () => {
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("pulsemon"));
 
     expect(s.state.memory).toBe(1);
-    expect(s.perm("pulsemon").digivolutionCards.map((card) => card.instanceId)).toEqual([leonId]);
+    expect(s.perm("pulsemon").stack.map((card) => card.instanceId)).toEqual([leonId]);
   });
 
   it("requires placing Leon Alexander before recovering at low security", async () => {
@@ -47,7 +47,7 @@ describe("BT17-030", () => {
     await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === recoveredId));
 
     expect(s.state.players[0]!.security).toHaveLength(3);
-    expect(s.perm("pulsemon").digivolutionCards.at(0)?.cardId).toBe("BT17-086");
+    expect(s.perm("pulsemon").stack.at(0)?.cardId).toBe("BT17-086");
   });
 
   it("grants inherited DP only when the host text mentions Pulsemon", async () => {

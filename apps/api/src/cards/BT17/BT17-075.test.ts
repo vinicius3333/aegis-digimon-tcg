@@ -36,7 +36,7 @@ describe("BT17-075 Eosmon", () => {
     }, { autoSelectCards: true });
     s.state.memory = 6;
 
-    expect(s.engine.applyIntent(0, { type: "play", instanceId: s.inst("eosmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("eosmon").instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("target").topCard.cardId === "BT17-063");
 
     expect(s.perm("target").topCard.cardId).toBe("BT17-063");

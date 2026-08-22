@@ -29,7 +29,7 @@ describe("BT17-091 Cracker Fang", () => {
     expect(compiled.effects?.[5]).toMatchObject({
       trigger: "EndOfAllTurns",
       isInherited: true,
-      actions: [{ kind: "PlayWithoutCost", from: ["digivolutionCards"], payCost: false, optional: true, target: { filter: { nameOrTrait: [{ tokens: ["Eiji Nagasumi"], match: "name" }] } } }],
+      actions: [{ kind: "PlayWithoutCost", from: ["digivolutionCards"], payCost: false, optional: true, target: { filter: { nameOrTrait: [{ tokens: ["Eiji Nagasumi", "Cracker Fang"], match: "name" }] } } }],
     });
   });
 

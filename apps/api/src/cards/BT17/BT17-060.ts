@@ -54,16 +54,21 @@ export const compiled: CompiledCard = {
                 "raw": "by placing up to 13 cards with the [Unidentified] trait or [Diaboromon] in its text from your trash at the bottom of your deck"
               },
               "optional": true,
-              "abortOnDecline": true
+              "abortOnDecline": true,
+              "scaling": {
+                "per": 1,
+                "filter": {
+                  "zone": "trash",
+                  "controllerDefault": "mine",
+                  "nameOrTrait": [
+                    { "tokens": ["Unidentified"], "match": "trait" },
+                    { "tokens": ["Diaboromon"], "match": "text", "orPrevious": true }
+                  ]
+                },
+                "unit": "cards"
+              }
             }
-          ],
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "mine"
-            },
-            "unit": "cards"
-          }
+          ]
         }
       ]
     },

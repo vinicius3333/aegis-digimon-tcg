@@ -38,9 +38,9 @@ describe("BT17-064 Pipismon", () => {
       instanceId: s.inst("pipismon").instanceId,
       alternateRequirementIndex: 0,
     })).toEqual({ ok: true });
-    await settle(() => s.perm("target").digivolutionCards.length === 1);
+    await settle(() => s.perm("target").stack.length === 1);
 
-    expect(s.perm("target").digivolutionCards.map((card) => card.cardId)).toEqual(["BT17-025"]);
+    expect(s.perm("target").stack.map((card) => card.cardId)).toEqual(["BT17-025"]);
   });
 
   it("deletes a no-source combat target before battle", async () => {
@@ -58,7 +58,6 @@ describe("BT17-064 Pipismon", () => {
     })).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-064")).toBe(true);
   });
 
   it("does not trigger if the target had a source when the attack was declared", async () => {

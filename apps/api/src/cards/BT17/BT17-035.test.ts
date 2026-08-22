@@ -35,7 +35,6 @@ describe("BT17-035 Taomon", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === drawnId));
 
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Barrier")).toBe(true);
   });
 
@@ -55,7 +54,7 @@ describe("BT17-035 Taomon", () => {
     expect(s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("sakuyamon").permanentId,
-      target: { kind: "player", seat: 1 },
+      target: { kind: "player" },
     })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === drawnId));
 

@@ -22,8 +22,8 @@ describe("BT17-028", () => {
       },
     }, { autoSelectCards: true });
     s.state.memory = 12;
-    const lowestId = s.inst("lowest").instanceId;
-    const higherId = s.inst("higher").instanceId;
+    const lowestId = s.perm("lowest").topCard.instanceId;
+    const higherId = s.perm("higher").topCard.instanceId;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ancient").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === lowestId));
@@ -38,12 +38,12 @@ describe("BT17-028", () => {
         hand: [{ card: "BT1-029", as: "gabumon" }],
         deck: ["BT1-011"],
       },
-      1: { security: [{ card: "BT1-010", as: "topSecurity" }, "BT1-011"] },
+      1: { security: ["BT1-011", { card: "BT1-010", as: "topSecurity" }] },
     }, { autoSelectCards: true, autoOrderTriggers: true });
     s.state.memory = 3;
     const topSecurityId = s.inst("topSecurity").instanceId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gabumon").instanceId })).toEqual({ ok: true });
+    await advance(s.engine).fireSubTrigger("whenEffectAddsToHand", { effectAddedToHandSeat: 0 });
     await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === topSecurityId));
 
     expect(s.state.players[1]!.security).toHaveLength(1);

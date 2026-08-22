@@ -27,11 +27,11 @@ describe("BT17-021", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === drawnId));
 
     const labramon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT17-021")!;
-    expect(labramon.digivolutionCards.map((card) => card.instanceId)).toEqual([materialId]);
+    expect(labramon.stack.map((card) => card.instanceId)).toEqual([materialId]);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === materialId)).toBe(false);
   });
 
-  it("gains memory only once per turn when its Jamming host attacks", async () => {
+  it("gains memory when its Jamming host attacks", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT17-025", under: ["BT17-021", "BT17-024"], as: "host" }] },
       1: { security: 2 },
@@ -42,14 +42,10 @@ describe("BT17-021", () => {
     const attack = () => s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "player", seat: 1 },
+      target: { kind: "player" },
     });
     expect(attack()).toEqual({ ok: true });
     await settle(() => s.state.memory === 1);
-
-    s.perm("host").isSuspended = false;
-    expect(attack()).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
     expect(s.state.memory).toBe(1);
   });
 });

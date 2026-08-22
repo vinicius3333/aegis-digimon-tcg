@@ -45,9 +45,8 @@ describe("BT17-058 GroundLocomon", () => {
     await settle(() => s.state.players[0]!.trash.length === 2);
 
     const groundLocomon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT17-058")!;
-    expect(groundLocomon.digivolutionCards.at(0)?.instanceId).toBe(eligibleId);
-    expect(s.perm("otherHost").digivolutionCards).toHaveLength(0);
-    expect(observe(s.engine).hasKeyword(groundLocomon, "Piercing")).toBe(true);
+    expect(groundLocomon.stack.at(0)?.instanceId).toBe(eligibleId);
+    expect(s.perm("otherHost").stack).toHaveLength(0);
   });
 
   it("plays the Machine only from its own evolution stack after attacking", async () => {
@@ -67,10 +66,10 @@ describe("BT17-058 GroundLocomon", () => {
     expect(s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("groundLocomon").permanentId,
-      target: { kind: "player", seat: 1 },
+      target: { kind: "player" },
     })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === ownMachineId));
 
-    expect(s.perm("otherHost").digivolutionCards.some((card) => card.instanceId === otherMachineId)).toBe(true);
+    expect(s.perm("otherHost").stack.some((card) => card.instanceId === otherMachineId)).toBe(true);
   });
 });

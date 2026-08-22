@@ -41,7 +41,7 @@ describe("BT17-069 Fenriloogamon", () => {
     const targetId = s.perm("target").permanentId;
 
     expect(s.engine.applyIntent(0, {
-      type: "play",
+      type: "playCard",
       instanceId: s.inst("loogamon").instanceId,
     })).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));

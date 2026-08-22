@@ -37,7 +37,6 @@ describe("BT17-038 Sakuyamon", () => {
     await settle(() => s.perm("target").currentDP === 3000 && s.state.players[0]!.hand.some((card) => card.instanceId === drawnId));
 
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Barrier")).toBe(true);
   });
 

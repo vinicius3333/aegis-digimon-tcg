@@ -46,7 +46,7 @@ describe("BT17-057 Chaosdramon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     const chaosdramon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT17-057")!;
-    expect(chaosdramon.digivolutionCards.at(0)?.instanceId).toBe(placedSourceId);
+    expect(chaosdramon.stack.at(0)?.instanceId).toBe(placedSourceId);
   });
 
   it("trashes two qualifying sources from itself to prevent opponent-effect deletion", async () => {
@@ -64,7 +64,7 @@ describe("BT17-057 Chaosdramon", () => {
     await settle();
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === chaosId)).toBe(true);
-    expect(s.perm("chaosdramon").digivolutionCards.map((card) => card.cardId)).toEqual(["BT17-055"]);
+    expect(s.perm("chaosdramon").stack.map((card) => card.cardId)).toEqual(["BT17-055"]);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === unrelatedId)).toBe(true);
   });
 });

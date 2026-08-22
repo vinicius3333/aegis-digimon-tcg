@@ -79,10 +79,12 @@ export const compiled: CompiledCard = {
             "kind": "place",
             "target": {
               "filter": {
-                "isSelfRef": true
+                "zone": "battleArea",
+                "controller": "mine",
+                "kind": ["Tamer"],
+                "nameOrTrait": [{ "tokens": ["Takato Matsuki"], "match": "name" }]
               },
-              "count": 1,
-              "isSelf": true
+              "count": 1
             },
             "raw": "By placing this Tamer and 1 [Growlmon] and 1 [WarGrowlmon] from your trash as the bottom digivolution cards of 1 of your [Guilmon]",
             "underFilter": {

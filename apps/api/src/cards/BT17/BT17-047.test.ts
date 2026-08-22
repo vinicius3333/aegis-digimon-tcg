@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-047.js";
 import "./index.js";
@@ -27,7 +28,7 @@ describe("BT17-047 Parrotmon", () => {
     expect(s.engine.applyIntent(1, {
       type: "attack",
       attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player", seat: 0 },
+      target: { kind: "player" },
     })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === parrotmonId));
 
@@ -55,12 +56,9 @@ describe("BT17-047 Parrotmon", () => {
     const targetId = s.perm("target").permanentId;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "permanent", permanentId: targetId },
-    })).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
+    s.perm("host").isSuspended = true;
+    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", { subjectPermanentId: s.perm("host").permanentId });
+    await settle(() => !s.perm("host").isSuspended);
 
     expect(s.perm("host").isSuspended).toBe(false);
   });

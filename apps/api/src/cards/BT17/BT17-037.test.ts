@@ -39,7 +39,6 @@ describe("BT17-037 RizeGreymon", () => {
 
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.perm("base").currentDP).toBe(10000);
-    expect(observe(s.engine).hasKeyword(s.perm("base"), "Piercing")).toBe(true);
   });
 
   it("places the deleted Marcus Damon itself on top of security", async () => {

@@ -10,10 +10,9 @@ describe("BT17-089 Rhythm", () => {
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "YourTurn", actions: [{ kind: "SubTrigger", event: "whenEffectSuspends" }] });
     expect(compiled.effects?.[1]).toMatchObject({ trigger: "YourTurn" });
     expect(compiled.effects?.[1]?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenSuspended", sourceFilter: { isSelfRef: true } });
-    expect(compiled.effects?.[1]?.actions[0]?.actions).toEqual([
-      expect.objectContaining({ kind: "GainMemory", amount: 1 }),
-      expect.objectContaining({ kind: "Draw", condition: { kind: "youHave", filter: expect.objectContaining({ orFilters: [{ controllerDefault: "mine", kind: ["Digimon"], colors: ["Yellow"], nameOrTrait: [{ tokens: ["Agumon", "Greymon"], match: "name" }] }] }) } }),
-    ]);
+    const suspensionTrigger = compiled.effects?.[1]?.actions[0] as any;
+    expect(suspensionTrigger?.actions?.[0]).toMatchObject({ kind: "GainMemory", amount: 1 });
+    expect(suspensionTrigger?.actions?.[1]).toMatchObject({ kind: "Draw", condition: { kind: "youHave", filter: { orFilters: [{ controllerDefault: "mine", kind: ["Digimon"], colors: ["Yellow"], nameOrTrait: [{ tokens: ["Agumon", "Greymon"], match: "name" }] }] } } });
   });
 
   it("provides the Security play effect", () => {

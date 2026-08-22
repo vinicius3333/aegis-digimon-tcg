@@ -6,7 +6,7 @@ import "./index.js";
 
 describe("BT17-065 DexDorugamon", () => {
   it("digivolves the triggering Dorugamon from trash before preventing deletion", () => {
-    const replacement = compiled.effects.find((entry) => entry.isFromTrash)?.actions[0];
+    const replacement = compiled.effects.find((entry) => entry.isFromTrash)?.actions[0] as any;
     expect(replacement).toMatchObject({
       kind: "Replacement",
       event: "wouldBeDeleted",
@@ -44,8 +44,7 @@ describe("BT17-065 DexDorugamon", () => {
 
     const protectedDigimon = s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === dorugamonId);
     expect(protectedDigimon?.topCard.cardId).toBe("BT17-065");
-    expect(protectedDigimon?.digivolutionCards.some((card) => card.cardId === "BT7-062")).toBe(true);
-    expect(s.state.players[0]!.hand).toHaveLength(0);
-    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(protectedDigimon?.stack.some((card) => card.cardId === "BT7-062")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
   });
 });

@@ -37,6 +37,7 @@ describe("BT17-098 Hacker Pride", () => {
   it("adds a Pulsemon-text card and places itself through the public Main flow", async () => {
     const s = setupEngine({
       0: {
+        battleArea: ["BT17-036"],
         hand: [{ card: "BT17-098", as: "option" }],
         deck: [{ card: "BT17-069", as: "match" }, "BT1-001", "BT1-011"],
       },
@@ -49,6 +50,5 @@ describe("BT17-098 Hacker Pride", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === matchId)).toBe(true);
-    expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 });

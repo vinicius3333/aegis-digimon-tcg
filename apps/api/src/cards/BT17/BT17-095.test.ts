@@ -35,7 +35,7 @@ describe("BT17-095 Miraculous Mega Knight", () => {
   });
 
   it("places itself in the battle area when the optional Digimon play is declined", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT17-095", as: "option" }] } }, { autoDeclineOptional: true });
+    const s = setupEngine({ 0: { battleArea: ["BT17-007", "BT17-019"], hand: [{ card: "BT17-095", as: "option" }] } }, { autoDeclineOptional: true });
     s.state.memory = 2;
     const optionId = s.inst("option").instanceId;
 

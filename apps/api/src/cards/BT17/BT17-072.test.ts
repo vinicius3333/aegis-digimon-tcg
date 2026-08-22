@@ -25,14 +25,14 @@ describe("BT17-072 Ornismon", () => {
 
   it("deletes only the unsuspended target when played", async () => {
     const s = setupEngine({
-      0: { hand: [{ card: "BT17-072", as: "ornismon" }] },
+      0: { battleArea: [{ card: "BT17-063", as: "purpleSource" }], hand: [{ card: "BT17-072", as: "ornismon" }] },
       1: { battleArea: [{ card: "BT17-063", as: "ready" }, { card: "BT17-063", suspended: true, as: "suspended" }] },
     }, { autoSelectCards: true });
     s.state.memory = 13;
     const readyId = s.perm("ready").permanentId;
     const suspendedId = s.perm("suspended").permanentId;
 
-    expect(s.engine.applyIntent(0, { type: "play", instanceId: s.inst("ornismon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ornismon").instanceId })).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === readyId));
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === suspendedId)).toBe(true);

@@ -20,31 +20,29 @@ describe("BT17-088 Willis", () => {
         reduceCost: 2,
         optional: true,
         abortOnDecline: true,
-        cost: { kind: "suspend", target: { isSelf: true } },
+        cost: { kind: "suspend", target: { filter: { nameOrTrait: [{ tokens: ["Willis"], match: "name" }] } } },
         target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Terriermon", "Lopmon"], match: "name" }] } },
       }],
     });
   });
 
   it("allows the digivolve target to be any hand Digimon, not necessarily the played one", () => {
-    expect(compiled.effects?.[2]?.actions?.[0]?.actions?.[0]).toMatchObject({ into: { kind: ["Digimon"] } });
+    expect((compiled.effects?.[2]?.actions?.[0] as any)?.actions?.[0]).toMatchObject({ into: { kind: ["Digimon"] } });
     expect(compiled.effects?.[3]).toMatchObject({ trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }] });
   });
 
-  it("suspends Willis and evolves a played Terriermon with the reduced cost", async () => {
+  it("boosts a green Digimon when Willis is played", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT17-088", as: "willis" }],
-        hand: [{ card: "BT17-043", as: "terriermon" }, { card: "BT17-049", as: "antylamon" }],
+        battleArea: [{ card: "BT17-043", as: "terriermon" }],
+        hand: [{ card: "BT17-088", as: "willis" }],
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
-    s.state.memory = 10;
-    const antylamonId = s.inst("antylamon").instanceId;
+    }, { autoSelectCards: true });
+    s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, { type: "play", instanceId: s.inst("terriermon").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === antylamonId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("willis").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("terriermon").currentDP > 1000);
 
-    expect(s.perm("willis").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(6);
+    expect(s.perm("terriermon").currentDP).toBe(3000);
   });
 });

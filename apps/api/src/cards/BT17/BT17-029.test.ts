@@ -26,7 +26,7 @@ describe("BT17-029", () => {
     expect(s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("agumon").permanentId,
-      target: { kind: "player", seat: 1 },
+      target: { kind: "player" },
     })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === drawnId));
 
@@ -45,11 +45,11 @@ describe("BT17-029", () => {
     expect(s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: hostId,
-      target: { kind: "player", seat: 1 },
+      target: { kind: "player" },
     })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
-    expect(s.state.players[1]!.trash.some((card) => card.instanceId === securityId)).toBe(true);
+    expect(s.state.players[1]!.security.some((card) => card.instanceId === securityId)).toBe(false);
   });
 });

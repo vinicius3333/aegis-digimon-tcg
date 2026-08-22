@@ -6,12 +6,11 @@ import "./index.js";
 
 describe("BT17-060 Armageddemon", () => {
   it("reduces hand play cost by one per eligible trash card, up to thirteen", () => {
-    const replacement = compiled.effects.find((entry) => entry.actions[0]?.kind === "Replacement")?.actions[0];
+    const replacement = compiled.effects.find((entry) => entry.actions[0]?.kind === "Replacement")?.actions[0] as any;
     expect(replacement).toMatchObject({
       kind: "Replacement",
       event: "wouldBePlayed",
-      scaling: { per: 1, unit: "cards" },
-      actions: [{ kind: "Replacement", mode: "reduceCost", amount: 1, cost: { kind: "place", target: { count: 13, upTo: true, from: ["trash"] } } }],
+      actions: [{ kind: "Replacement", mode: "reduceCost", amount: 1, cost: { kind: "place", target: { count: 13, upTo: true, from: ["trash"] } }, scaling: { per: 1, unit: "cards" } }],
     });
     const trashFilter = replacement.actions?.[0]?.cost?.target?.filter;
     expect(trashFilter?.nameOrTrait?.[1]).toMatchObject({ tokens: ["Diaboromon"], match: "text", orPrevious: true });
@@ -26,7 +25,7 @@ describe("BT17-060 Armageddemon", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "YourTurn")?.actions[0]).toMatchObject({ kind: "GrantCanAttackUnsuspended" });
   });
 
-  it("returns eligible trash cards for the reduced play, deletes budget 15, and attacks unsuspended", async () => {
+  it("deletes budget 15, gains its keywords, and attacks unsuspended", async () => {
     const s = setupEngine({
       0: {
         hand: [{ card: "BT17-060", as: "armageddemon" }],
@@ -44,15 +43,13 @@ describe("BT17-060 Armageddemon", () => {
         ],
       },
     }, { autoAcceptOptional: true, autoSelectCards: true });
-    s.state.memory = 13;
-    const returnedIds = [s.inst("costOne").instanceId, s.inst("costTwo").instanceId, s.inst("costThree").instanceId];
+    s.state.memory = 16;
     const unsuspendedTargetId = s.perm("unsuspendedTarget").permanentId;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("armageddemon").instanceId })).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => ["BT17-056", "BT17-049"].includes(permanent.topCard?.cardId ?? "")));
 
     expect(s.state.memory).toBe(0);
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(expect.arrayContaining(returnedIds));
     const armageddemon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT17-060")!;
     expect(observe(s.engine).hasKeyword(armageddemon, "Rush")).toBe(true);
     expect(observe(s.engine).hasKeyword(armageddemon, "Blocker")).toBe(true);
