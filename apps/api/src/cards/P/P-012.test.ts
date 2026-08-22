@@ -54,6 +54,54 @@ describe("P-012 Tai Kamiya (V-Tamer)", () => {
     expect(s.perm("recipient").currentDP).toBe(baseDP + 1000);
   });
 
+  it("does not activate when the only Veedramon is in the breeding area (Q4124)", async () => {
+    const s = setupEngine({
+      0: {
+        breedingArea: { card: "P-011" },
+        battleArea: [{ card: "P-012", as: "tai" }],
+      },
+    });
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.perm("tai").topCard.instanceId,
+      effectKey: "P-012/main",
+    })).toEqual({ ok: false, error: "Effect cannot be activated" });
+    expect(s.perm("tai").isSuspended).toBe(false);
+  });
+
+  it("may decline without suspending itself or resolving either branch", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-011" }, { card: "P-012", as: "tai" }],
+          deck: [{ card: "BT1-001", as: "deck-top" }],
+        },
+      },
+      { autoChooseOption: false },
+    );
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.perm("tai").topCard.instanceId,
+      effectKey: "P-012/main",
+    })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: decision.decisionId,
+      choice: false,
+    })).toEqual({ ok: true });
+    await settle();
+
+    expect(s.perm("tai").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+
   it("plays itself for free from security", async () => {
     const s = setupEngine({
       0: { security: [{ card: "P-012", as: "tai" }] },
