@@ -662,9 +662,16 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // "At the next end of your opponent's turn, delete it" after a PlayWithoutCost branch.
       // The target is the permanent(s) just created by the prior play action in this same
       // effect resolution, not the card currently resolving the effect.
-      const permanentIds = action.target === undefined
-        ? (ctx.lastPlayedPermanentIds ?? [])
-        : await resolvePermanentTargets(ctx, action.target);
+      // A delayed-delete clause following a play action refers to the permanent(s) that
+      // action created, even when the generated IR also carries an explicit self target.
+      // Resolving that self target against the current source loses the played permanent
+      // when the source is an option or a card still in another zone.
+      const permanentIds =
+        (ctx.lastPlayedPermanentIds?.length ?? 0) > 0
+          ? ctx.lastPlayedPermanentIds
+          : action.target === undefined
+            ? []
+            : await resolvePermanentTargets(ctx, action.target);
       for (const permanentId of permanentIds) {
         if (action.timing === "endOfOpponentTurn") {
           ctx.fx.delayedDeletePlayed?.(permanentId, "endOfOpponentTurn");
