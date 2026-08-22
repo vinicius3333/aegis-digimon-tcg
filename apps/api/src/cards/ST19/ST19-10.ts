@@ -44,9 +44,11 @@ const compiled: CompiledCard = {
       materials: [
         {
           names: ["Tyrannomon", "Raremon"],
+          level: 4,
         },
         {
           traits: ["Puppet"],
+          level: 4,
         },
       ],
       count: 2,

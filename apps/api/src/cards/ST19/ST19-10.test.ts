@@ -58,4 +58,27 @@ describe("ST19-10 ExTyrannomon", () => {
     );
     expect(s.state.memory).toBe(2);
   });
+
+  it("rejects a lower-level Puppet as the Lv.4 DigiXros material", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX3-060", as: "tyranno", dp: 5000 },
+          { card: "ST19-04", as: "lowPuppet", dp: 2000 },
+        ],
+        hand: [{ card: "ST19-10", as: "exty" }],
+      },
+    });
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("exty").instanceId,
+        digiXros: {
+          materialInstanceIds: [s.perm("tyranno").topCard.instanceId, s.perm("lowPuppet").topCard.instanceId],
+        },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("exty").instanceId)).toBe(true);
+  });
 });
