@@ -35,7 +35,10 @@ describe("BT13-102 Keenan Crier", () => {
 
   it("draws when the opponent declines the optional hand trash", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-102", as: "keenan" }], deck: [{ card: "BT1-001", as: "drawn" }] }, 1: {} },
+      {
+        0: { battleArea: [{ card: "BT13-102", as: "keenan" }], deck: [{ card: "BT1-001", as: "drawn" }] },
+        1: { hand: [{ card: "BT13-094", as: "opponentTamer" }] },
+      },
       { autoDeclineOptional: true },
     );
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("keenan"));
