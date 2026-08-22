@@ -1,15 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { getCompiledCard } from "@aegis/shared";
-import { assemblyRequirementFor } from "@aegis/shared";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "./BT26-083.js";
+import { compiled } from "./BT26-083.js";
 import "../index.js";
 
 describe("BT26-083 compiled fidelity", () => {
   it("registers the security wipe, per-card deletion, recovery, and deletion debuff", () => {
-    const card = getCompiledCard("BT26-083");
+    const card = compiled;
     expect(card?.coverage).toBe("full");
     expect(card?.keywords?.map(({ keyword }) => keyword)).toEqual(["Rush", "Piercing", "Execute"]);
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
@@ -23,7 +21,7 @@ describe("BT26-083 compiled fidelity", () => {
       { kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: -1 } },
     ]);
     expect(card?.digivolutionRequirement).toEqual([{ level: 6, traits: ["TS"], cost: 4, isAlternate: true }]);
-    expect(assemblyRequirementFor("BT26-083")).toEqual([{ reduceCost: 4, materials: [{ names: ["Junomon"], count: 1 }] }]);
+    expect(card.assemblyRequirement).toEqual([{ reduceCost: 4, materials: [{ names: ["Junomon"], count: 1 }] }]);
     expect(card?.residual).toEqual([]);
     expect(card?.effects?.[0]?.actions).toMatchObject([{ kind: "Replacement", event: "wouldLeavePlay", mode: "instead", leaveCause: "otherThanBattle", actions: [{ kind: "PlayWithoutCost", fromOwnDigivolutionStack: true, payCost: false, optional: true }] }]);
   });
