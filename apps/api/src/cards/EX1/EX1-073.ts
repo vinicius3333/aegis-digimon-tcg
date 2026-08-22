@@ -30,7 +30,7 @@ const compiled: CompiledCard = {
         {
           kind: "GainMemory",
           amount: 1,
-          scaling: { per: 1, unit: "cards", countSource: "placedCyborgs" },
+          scaling: { per: 1, unit: "namedCount", countSource: "placedCyborgs" },
         },
       ],
     },
