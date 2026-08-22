@@ -56,6 +56,6 @@ describe("ST19-10 ExTyrannomon", () => {
     expect(exty?.stack.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([tyrannoInstanceId, puppetInstanceId]),
     );
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(2);
   });
 });

@@ -97,6 +97,7 @@ const compiled: CompiledCard = {
                   {
                     kind: ["Digimon"],
                     isToken: true,
+                    includeToken: true,
                   },
                   {
                     kind: ["Digimon"],
