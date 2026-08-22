@@ -41,4 +41,76 @@ describe("AD1-009 BlitzGreymon", () => {
       { kind: "GrantStatic", grant: "immuneToOpponentDigimonEffects", duration: "untilOpponentTurnEnd" },
     ]);
   });
+
+  it("uses either printed alternate level-5 route for cost 3", async () => {
+    for (const baseCard of ["AD1-003", "AD1-011"]) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: baseCard, as: "base" }], hand: [{ card: "AD1-009", as: "blitz" }] },
+      });
+      s.state.memory = 5;
+
+      expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("blitz").instanceId })).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard?.cardId === "AD1-009");
+      expect(s.state.memory).toBe(2);
+    }
+  });
+
+  it("may attack at end of turn even when DNA digivolution is unavailable (Q6075)", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "AD1-009", as: "blitz" }] }, 1: { security: ["BT1-001"] } },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0, 5000);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("may attack with the unsuspended Omnimon Alter-S after DNA digivolving (Q6074)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-009", as: "blitz" }, { card: "AD1-012", as: "cres" }],
+          hand: [{ card: "EX4-060", as: "alter-s" }],
+        },
+        1: { security: ["BT1-001"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX4-060"));
+    await settle(() => s.state.players[1]!.security.length === 0, 5000);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("EX4-060");
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("uses Alliance and Piercing in the same battle", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-009", as: "blitz" }, { card: "BT1-010", as: "ally", dp: 3000 }] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 13000 }], security: ["BT1-001"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("blitz").permanentId, target: { kind: "permanent", permanentId: s.perm("target").permanentId } })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.security.length === 0, 5000);
+
+    expect(s.perm("ally").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("provides inherited Security Attack +1 to its host", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT3-112", as: "host", under: ["AD1-009"] }] },
+      1: { security: ["BT1-001", "BT1-001"] },
+    });
+
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0, 5000);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
 });
