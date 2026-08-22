@@ -143,4 +143,4 @@ const module: EffectModule = {
 };
 
 export { compiled };
-registerIrCard("BT10-094", compiled);
+registerIrCard("BT10-094", compiled, module);
