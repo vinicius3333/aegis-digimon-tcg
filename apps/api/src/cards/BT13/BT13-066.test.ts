@@ -6,7 +6,18 @@ describe("BT13-066 Dorugamon", () => {
   it("grants inherited DP while carrying X Antibody", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects[0]).toMatchObject({ trigger: "AllTurns", isInherited: true, actions: [expect.objectContaining({ kind: "Aura", effect: { kind: "modifyDP", amount: 1000 }, while: expect.objectContaining({ kind: "selfHasTrait" }) })] });
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "AllTurns",
+      isInherited: true,
+      actions: [
+        {
+          kind: "Aura",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          effect: { kind: "modifyDP", amount: 1000 },
+          while: { kind: "selfHasTrait", filter: { nameOrTrait: [{ match: "trait", tokens: ["X Antibody"] }] } },
+        },
+      ],
+    });
   });
 
   it("loads the compiled Dorugamon implementation into a live permanent", async () => {
