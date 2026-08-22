@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { CardColor, CardKind, EffectTiming, type CardDefinition, type CardInstance, type GameState, type Permanent, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import "./EX4-037.js";
@@ -9,6 +10,10 @@ const card = (id: string): CardInstance => ({ cardId: id, instanceId: id, ownerS
 const definition = (id: string, colors: CardColor[]): CardDefinition => ({ cardId: id, set: "TEST", nameEn: id, kinds: [CardKind.Digimon], colors, playCost: 5, dp: 1000, level: 5, evoCosts: [], maxCountInDeck: 4 });
 
 describe("EX4-037 BlackMegaGargomon", () => {
+  it("is represented by full residual-free IR", () => {
+    expect(runtimeCompiledCard("EX4-037")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("offers the end-of-turn Blocker/Reboot effect for two green-and-black Digimon", async () => {
     const self = { permanentId: "self", topCard: card("EX4-037"), stack: [], linked: [], isSuspended: false, inBreeding: false } as unknown as Permanent;
     const first = { permanentId: "first", topCard: card("FIRST"), stack: [], linked: [], isSuspended: false, inBreeding: false } as unknown as Permanent;
