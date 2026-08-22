@@ -246,7 +246,8 @@ export async function runSubTrigger(
     event === "onDeletionOf" ||
     event === "onDigivolutionCardDiscarded" ||
     event === "onDigivolutionCardsDiscardedBatch" ||
-    event === "onDigiBurstCardDiscarded"
+    event === "onDigiBurstCardDiscarded" ||
+    (event === "whenUnsuspended" && sourceFilter.isSelfRef === true && anchorPermanentId !== undefined)
       ? undefined
       : (subCtx: EffectContext): boolean => subjectMatchesFilter(subCtx, sourceFilter);
   // `onDigivolutionCardReturnToDeckBottom` fires for EVERY watcher (the bus is not host-scoped), so
@@ -338,6 +339,14 @@ export async function runSubTrigger(
             (subCtx.trigger.suspendedPermanentId !== undefined ? [subCtx.trigger.suspendedPermanentId] : []);
           return suspendedIds.includes(anchorPermanentId);
         }
+      : undefined;
+  // The source of an inherited effect is the card in the digivolution stack, while "this
+  // Digimon" means the permanent carrying that card. Bind an isSelfRef unsuspend watcher to
+  // the installed permanent anchor instead of asking CardSource.permanent() to resolve the
+  // stack card as though it were the current top card.
+  const whenUnsuspendedSelfGate =
+    event === "whenUnsuspended" && sourceFilter?.isSelfRef === true && anchorPermanentId !== undefined
+      ? (subCtx: EffectContext): boolean => subCtx.trigger.unsuspendedPermanentId === anchorPermanentId
       : undefined;
   // `whenOpponentDraws` carries no subject permanent — its payload names the seat that just drew.
   // The watcher reacts only when the DRAWING seat is the watcher controller's OPPONENT ("when YOUR
@@ -684,6 +693,7 @@ export async function runSubTrigger(
     securityBattleEndedGate,
     effectSuspendsSelfGate,
     whenSuspendedSelfGate,
+    whenUnsuspendedSelfGate,
     whenOpponentDrawsGate,
     endOfOpponentTurnGate,
     effectAddsToOpponentHandGate,

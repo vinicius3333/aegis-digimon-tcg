@@ -24,7 +24,13 @@ describe("BT24-020 Gomamon", () => {
       event: "whenUnsuspended",
       sourceFilter: { isSelfRef: true },
     });
-    expect(inherited.actions[0].actions[0].condition).toMatchObject({ kind: "handCount", op: "lte", value: 7 });
+    expect(inherited.actions[0].actions[0].condition).toMatchObject({
+      kind: "zoneCount",
+      seat: "mine",
+      zone: "hand",
+      op: "lte",
+      value: 7,
+    });
   });
 
   it("adds one Sea Beast Digimon and one TS card from the top three, bottom-decking the miss", async () => {
@@ -35,7 +41,7 @@ describe("BT24-020 Gomamon", () => {
           deck: [
             { card: "BT24-022", as: "seaBeast" },
             { card: "BT24-083", as: "tsTamer" },
-            { card: "BT1-001", as: "miss" },
+            { card: "BT1-009", as: "miss" },
           ],
         },
       },
@@ -57,13 +63,12 @@ describe("BT24-020 Gomamon", () => {
           { card: "BT24-022", as: "host", under: ["BT24-020"] },
           { card: "BT24-022", as: "other" },
         ],
-        hand: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-        deck: ["BT1-002", "BT1-003"],
+        hand: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: ["BT1-010", "BT1-011"],
       },
     });
     s.state.turnSeat = 0;
     await s.ready();
-
     await advance(s.engine).fireSubTrigger("whenUnsuspended", {
       unsuspendedPermanentId: s.perm("other").permanentId,
     });
@@ -83,8 +88,8 @@ describe("BT24-020 Gomamon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT24-022", as: "host", under: ["BT24-020"] }],
-        hand: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-        deck: ["BT1-002"],
+        hand: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: ["BT1-010"],
       },
     });
     await s.ready();
@@ -100,7 +105,7 @@ describe("BT24-020 Gomamon", () => {
   it("digivolves from a non-blue level 2 TS Digi-Egg for cost 0", async () => {
     const s = setupEngine({
       0: {
-        breeding: { card: "BT24-001", as: "tsEgg" },
+        breeding: { card: "BT24-003", as: "tsEgg" },
         hand: [{ card: "BT24-020", as: "gomamon" }],
       },
     });
