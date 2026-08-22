@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-050.js";
 
@@ -26,4 +26,29 @@ it("grants Piercing to a Free inherited host during its controller's turn", asyn
   const s = setupEngine({ 0: { battleArea: [{ card: "BT12-022", as: "host", under: ["BT12-050"] }] } });
   await s.ready();
   expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
+});
+
+it("gains 1 memory when it DNA digivolves into a blue Digimon", async () => {
+  const s = setupEngine({
+    0: {
+      battleArea: [
+        { card: "BT12-022", as: "exveemon" },
+        { card: "BT12-050", as: "stingmon" },
+      ],
+      hand: [{ card: "BT12-028", as: "paildramon" }],
+    },
+  });
+  s.state.memory = 0;
+  await s.ready();
+
+  expect(
+    s.engine.applyIntent(0, {
+      type: "dnaDigivolve",
+      materialPermanentIds: [s.perm("exveemon").permanentId, s.perm("stingmon").permanentId],
+      instanceId: s.inst("paildramon").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.memory === 1 && s.state.players[0]!.battleArea[0]?.topCard.cardId === "BT12-028");
+
+  expect(s.state.memory).toBe(1);
 });
