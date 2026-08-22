@@ -106,7 +106,7 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
       cost.target.filter.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
     const available = ctx.game.player(seat).security.length;
     const n = cost.target.count === "all" ? available : cost.target.count;
-    return n > 0 && available >= n;
+    return cost.target.upTo === true ? true : n > 0 && available >= n;
   }
   if (cost.kind === "return" && cost.target !== undefined && cost.target.filter.zone === "trash") {
     const candidates = candidateLooseInstances(ctx, cost.target, ["trash"]);
@@ -466,7 +466,18 @@ export async function payCost(
           cost.target.filter.controller === "opponent"
             ? ctx.game.opponentOf(ctx.source.ownerSeat)
             : ctx.source.ownerSeat;
-        const n = cost.target.count === "all" ? ctx.game.player(seat).security.length : cost.target.count;
+        let n = cost.target.count === "all" ? ctx.game.player(seat).security.length : cost.target.count;
+        if (cost.target.upTo === true) {
+          const cap = Math.min(n, ctx.game.player(seat).security.length);
+          n = await ctx.ask.chooseOption(
+            ctx,
+            Array.from({ length: cap + 1 }, (_, count) => `Trash ${count} security`),
+          );
+          if (n === 0) {
+            if (out) out.paidCount = 0;
+            return true;
+          }
+        }
         if (n <= 0 || ctx.game.player(seat).security.length < n) return false;
         // "the top OR bottom card" is a CONTROLLER CHOICE, not a fixed end (BT15-003, BT8-044):
         // prompt per trashed card via the shared binary-choice helper (index 0 = top, 1 = bottom),
@@ -485,7 +496,8 @@ export async function payCost(
         const isBottom =
           cost.target.filter.position === "bottom" ||
           (cost.target.filter.position === undefined && /bottom/i.test(raw));
-        await ctx.fx.trashFromSecurity(seat, n, { fromTop: !isBottom });
+        const moved = await ctx.fx.trashFromSecurity(seat, n, { fromTop: !isBottom });
+        if (out) out.paidCount = moved.length;
         return true;
       }
       // "By trashing 1 of your Digimon's link cards" (BT25-073) — the cost trashes a ＜Link＞

@@ -341,6 +341,11 @@ export async function runReplacement(
               ) {
                 return self !== undefined && runtimeCtx.fx.payActivationCost?.(self.permanentId, "suspend") === true;
               }
+              if (action.amountFromPaidCost === true) {
+                const paid = { paidCount: 0 };
+                const succeeded = await payCost(runtimeCtx, interactiveCost, paid);
+                return succeeded ? paid.paidCount : false;
+              }
               return payCost(runtimeCtx, interactiveCost);
             },
             consumeOnActivate: true,
