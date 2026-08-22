@@ -10,6 +10,6 @@ describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
     const watcher = compiled.effects?.find((entry) => entry.trigger === "AllTurns")?.actions?.[0] as { sourceFilter?: unknown; actions?: unknown[] };
     expect(watcher).toMatchObject({ kind: "SubTrigger", event: "whenPlayed", sourceFilter: { controllerDefault: "mine", kind: ["Digimon"], multicolor: true, colors: ["Yellow", "Black"] } });
     expect(watcher.actions?.[0]).toMatchObject({ kind: "Draw", controller: "mine", amount: 1, cost: expect.objectContaining({ kind: "suspend" }), abortOnDecline: true });
-    expect(watcher.actions?.[1]).toMatchObject({ kind: "GainMemory", amount: 1 });
+    expect(watcher.actions?.[1]).toMatchObject({ kind: "GainMemory", amount: 1, condition: { kind: "ifThisEffectActed" } });
   });
 });
