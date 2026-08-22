@@ -3,20 +3,32 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const anyDigimon = { controller: "any", kind: ["Digimon"] };
-const insectoidOrNsp = [{ tokens: ["Insectoid"], match: "trait" }, { tokens: ["NSp"], match: "trait" }];
+const insectoidOrNsp = [
+  { tokens: ["Insectoid"], match: "trait" },
+  { tokens: ["NSp"], match: "trait" },
+];
 const suspend = { kind: "Suspend", target: { filter: anyDigimon, count: 1 }, optional: true };
-const inheritedDigivolve = { kind: "SubTrigger", event: "whenBattleWon", frequency: "OncePerTurn", actions: [{
-  kind: "Digivolve",
-  target: { filter: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: insectoidOrNsp }, count: 1 },
-  into: { controllerDefault: "mine", zone: "hand", kind: ["Digimon"], nameOrTrait: insectoidOrNsp },
-  from: ["hand"], payCost: true, costDelta: -1, optional: true,
-}] };
+const inheritedDigivolve = {
+  kind: "SubTrigger",
+  event: "whenBattleWon",
+  frequency: "OncePerTurn",
+  actions: [
+    {
+      kind: "Digivolve",
+      target: { filter: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: insectoidOrNsp }, count: 1 },
+      into: { controllerDefault: "mine", zone: "hand", kind: ["Digimon"], nameOrTrait: insectoidOrNsp },
+      from: ["hand"],
+      payCost: true,
+      costDelta: -1,
+      optional: true,
+    },
+  ],
+};
 
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: [suspend] },
     { trigger: "WhenMoving", actions: [suspend] },
-    { trigger: "YourTurn", isInherited: true, actions: [inheritedDigivolve] },
   ],
   coverage: "full",
   residual: [],
