@@ -18,7 +18,7 @@ describe("BT11-109 Astral Snatcher", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
