@@ -34,4 +34,13 @@ describe("BT12-094 handwritten module", () => {
     expect(s.perm("yuu").stack.map(({ cardId }) => cardId)).toContain("BT12-008");
     expect(s.state.memory).toBe(1);
   });
+
+  it("plays Yuu from security without paying its memory cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT12-094", as: "yuu", faceUp: true }] } });
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("yuu"));
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT12-094")).toBe(true);
+  });
 });
