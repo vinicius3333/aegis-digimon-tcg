@@ -22,47 +22,64 @@ describe("BT24-046 Garurumon", () => {
     });
   });
 
-  it("has Jamming and suspends an opponent Digimon on play", async () => {
+  it("has Jamming and suspends an opponent Digimon through a public play", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT24-046", as: "garurumon" }] },
+        0: { hand: [{ card: "BT24-046", as: "garurumon" }] },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
       { autoSelectCards: true },
     );
-    await s.ready();
-
-    expect(observe(s.engine).hasKeyword(s.perm("garurumon"), "Jamming")).toBe(true);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("garurumon"));
-    expect(s.perm("target").isSuspended).toBe(true);
-  });
-
-  it("digivolves from Gabumon for cost 2 and resolves When Digivolving", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT2-069", as: "gabumon" }],
-          hand: [{ card: "BT24-046", as: "garurumon" }],
-        },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
-      },
-      { autoSelectCards: true },
-    );
-    s.state.memory = 5;
+    s.state.memory = 4;
     await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("gabumon").permanentId,
+        type: "playCard",
         instanceId: s.inst("garurumon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("gabumon").topCard.instanceId === s.inst("garurumon").instanceId);
     await settle(() => s.perm("target").isSuspended);
 
-    expect(s.state.memory).toBe(3);
+    const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT24-046")!;
+    expect(observe(s.engine).hasKeyword(played, "Jamming")).toBe(true);
+    expect(s.state.memory).toBe(0);
   });
+
+  it.each([
+    ["normal green requirement", "BT1-065", false, undefined, 3],
+    ["Gabumon in name requirement", "BT2-069", true, 0, 2],
+    ["TS requirement", "BT24-031", true, 1, 2],
+  ])(
+    "uses the %s and resolves When Digivolving",
+    async (_label, baseCard, useAlternateCost, alternateRequirementIndex, expectedCost) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: baseCard, as: "base" }],
+            hand: [{ card: "BT24-046", as: "garurumon" }],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("garurumon").instanceId,
+          ...(useAlternateCost ? { useAlternateCost: true, alternateRequirementIndex } : {}),
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.instanceId === s.inst("garurumon").instanceId);
+      await settle(() => s.perm("target").isSuspended);
+
+      expect(s.state.memory).toBe(5 - expectedCost);
+    },
+  );
 
   it("inherited suspension activates only once per turn", async () => {
     const preferred: string[] = [];
@@ -78,7 +95,7 @@ describe("BT24-046 Garurumon", () => {
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.perm("first").topCard.instanceId, s.perm("second").topCard.instanceId);
+    preferred.push(s.perm("first").permanentId, s.perm("second").permanentId);
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
