@@ -21,6 +21,12 @@ describe("BT12-110 handwritten module", () => {
     expect(module!.effectsForTiming(EffectTiming.OnUseOption, source).length).toBeGreaterThan(0);
   });
 
+  it("registers its printed Security activation", () => {
+    const module = getEffectModule("BT12-110");
+    const source = { instanceId: "source-110", cardId: "BT12-110", ownerSeat: 0, isOnBattleArea: () => false } as never;
+    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+  });
+
   it("activates from trash when Beelzemon (X Antibody) digivolves", async () => {
     const s = setupEngine(
       {

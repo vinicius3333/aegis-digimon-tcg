@@ -1215,6 +1215,15 @@ export function lateBt12Module(cardId: string): EffectModule {
                 resolve,
               }),
             ];
+          if (timing === EffectTiming.SecuritySkill)
+            return [
+              security({
+                source,
+                effectKey: `${cardId}/security-activate-main`,
+                description: "[Security] Activate this card's [Main] effect.",
+                resolve,
+              }),
+            ];
           if (timing === EffectTiming.None)
             return [
               inTrash({
