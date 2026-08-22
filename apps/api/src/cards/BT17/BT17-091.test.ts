@@ -1,5 +1,10 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-091.js";
+import "./index.js";
 
 describe("BT17-091 Cracker Fang", () => {
   it("models Security, start-of-turn memory, Mind Link, and the Rule name", () => {
@@ -26,5 +31,21 @@ describe("BT17-091 Cracker Fang", () => {
       isInherited: true,
       actions: [{ kind: "PlayWithoutCost", from: ["digivolutionCards"], payCost: false, optional: true, target: { filter: { nameOrTrait: [{ tokens: ["Eiji Nagasumi"], match: "name" }] } } }],
     });
+  });
+
+  it("grants both inherited keywords and plays itself from the host at turn end", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT17-069", under: [{ card: "BT17-091", as: "crackerFang" }], as: "host" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const crackerFangId = s.inst("crackerFang").instanceId;
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Alliance")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("host"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === crackerFangId));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === crackerFangId)).toBe(true);
   });
 });
