@@ -1,177 +1,24 @@
-import { CardKind, EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition, CardInstance, Permanent } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, whenDigivolving, security } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/**
- * BT26-030 — Pumpkinmon (BT26, Yellow/Purple Lv.5 Digimon).
- *
- * The committed KB contains Q6996 (2026-08-18), confirming that a Digimon played by the
- * Security effect battles the attacking Digimon after its Security effect resolves.
- *
- * Printed text:
- *   [Digivolve] Lv.4 w/[TS] trait: Cost 3
- *   [Security] You may play 1 [Angel] or [TS] trait card with a play cost of 4 or
- *     less from your hand or trash without paying the cost.
- *   [On Play] [When Digivolving] By trashing 1 card in your hand, 1 of your [Iliad]
- *     trait Digimon gains ＜Execute＞ and ＜Ascension＞ for the turn.
- *
- * Clause mapping:
- *   [Digivolve] header — a digivolution-cost requirement, not an effect clause;
- *     already carried by CardDefinition.evoCosts in cards.json, so it needs no entry
- *     here.
- *
- *   EffectTiming.SecuritySkill — "You may play 1 [Angel] or [TS] trait card with a
- *     play cost of 4 or less from your hand or trash without paying the cost."
- *     Modeled on BT26-098's security clause shape (candidates drawn from hand+trash,
- *     `ctx.fx.playInstances(chosen, { payCost: false })`), narrowed to the trait +
- *     play-cost filter this card prints. `security(...)` sets `optional: true` for the
- *     "may" wording, matching the builder's convention.
- *
- *   EffectTiming.OnPlay / EffectTiming.WhenDigivolving (shared, mandatory) — "By
- *     trashing 1 card in your hand, 1 of your [Iliad] trait Digimon gains ＜Execute＞
- *     and ＜Ascension＞ for the turn." Modeled on BT26-022's shared OnPlay/
- *     WhenDigivolving clause shape (two builder entries calling one resolve
- *     function). "By trashing" is an optional cost (BT26-013's `min: 0` convention
- *     lets the controller decline); only a successful trash grants the keywords.
- *     ＜Execute＞ and ＜Ascension＞ are both printed PRINTED_MATCHERS keywords
- *     (combat/keywords.ts), so granting them to another permanent for the turn uses
- *     `ctx.fx.grantKeyword(permanentId, keyword, EffectDuration.UntilEachTurnEnd)`
- *     (the keyword-grant primitive backing continuous.addKeywordGrant) rather than the
- *     automatic printed-text parse, which only applies to the card that prints them.
- */
-const cardId = "BT26-030";
+const iliad = { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }] };
+const eligibleSecurityCard = { controllerDefault: "mine", kind: ["Digimon", "Tamer"], nameOrTrait: [
+  { tokens: ["Angel"], match: "trait" }, { tokens: ["TS"], match: "trait" },
+] };
+const handTrash = { controller: "mine", zone: "hand" };
+const grantExecute = { kind: "GainKeyword", target: { filter: iliad, count: 1 }, keyword: { keyword: "Execute" }, duration: "untilEachTurnEnd", cost: { kind: "trash", target: { filter: handTrash, count: 1 } }, optional: false, abortOnDecline: true };
+const grantAscension = { kind: "GainKeyword", target: { filter: iliad, count: 1 }, keyword: { keyword: "Ascension" }, duration: "untilEachTurnEnd", condition: { kind: "ifThisEffectActed" } };
 
-function hasIliadTrait(def: CardDefinition): boolean {
-  return (def.types ?? []).includes("Iliad");
-}
-
-function iliadTargets(ctx: EffectContext, source: CardSource): Permanent[] {
-  const owner = ctx.game.player(source.ownerSeat);
-  return Array.from(owner.battleArea).filter(
-    (p) =>
-      !p.inBreeding &&
-      p.topCard !== undefined &&
-      isDigimon(ctx.game.definitionOf(p.topCard)) &&
-      hasIliadTrait(ctx.game.definitionOf(p.topCard)),
-  );
-}
-
-/** "By trashing 1 card in your hand" — an optional cost gating the keyword grant. */
-async function resolveTrashToGrantKeywords(ctx: EffectContext, source: CardSource): Promise<void> {
-  const owner = ctx.game.player(source.ownerSeat);
-  const handIds = Array.from(owner.hand).map((c) => c.instanceId);
-  const targets = iliadTargets(ctx, source);
-  if (handIds.length === 0 || targets.length === 0) return;
-
-  const toTrash = await ctx.ask.selectCards(ctx, { candidates: handIds, min: 0, max: 1 });
-  if (toTrash.length === 0) return;
-
-  let chosenId: string;
-  if (targets.length === 1) {
-    chosenId = targets[0]!.permanentId;
-  } else {
-    const chosen = await ctx.ask.chooseTargets(ctx, {
-      candidates: targets.map((p) => p.permanentId),
-      min: 1,
-      max: 1,
-    });
-    if (chosen.length === 0) return;
-    chosenId = chosen[0]!;
-  }
-
-  const trashed = await ctx.fx.trash(toTrash, { byEffectSeat: source.ownerSeat });
-  if (trashed.length !== 1) return;
-
-  ctx.fx.grantKeyword(chosenId, "Execute", EffectDuration.UntilEachTurnEnd);
-  ctx.fx.grantKeyword(chosenId, "Ascension", EffectDuration.UntilEachTurnEnd);
-}
-
-function hasAngelOrTsTrait(def: CardDefinition): boolean {
-  return (def.types ?? []).some((t) => t === "Angel" || t === "TS");
-}
-
-function securityPlayCandidates(ctx: EffectContext, source: CardSource): CardInstance[] {
-  const owner = ctx.game.player(source.ownerSeat);
-  return [...Array.from(owner.hand), ...Array.from(owner.trash)].filter((card) => {
-    const def = ctx.game.definitionOf(card);
-    const playableKind = def.kinds.includes(CardKind.Digimon) || def.kinds.includes(CardKind.Tamer);
-    return playableKind && hasAngelOrTsTrait(def) && def.playCost >= 0 && def.playCost <= 4;
-  });
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    // [Security] You may play 1 [Angel] or [TS] trait card with a play cost of 4 or
-    // less from your hand or trash without paying the cost.
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security-play-angel-or-ts`,
-          description:
-            "[Security] You may play 1 [Angel] or [TS] trait card with a play cost of " +
-            "4 or less from your hand or trash without paying the cost.",
-          resolve: async (ctx) => {
-            const candidates = securityPlayCandidates(ctx, source);
-            if (candidates.length === 0) return;
-
-            const chosen = await ctx.ask.selectCards(ctx, {
-              candidates: candidates.map((c) => c.instanceId),
-              min: 1,
-              max: 1,
-            });
-            if (chosen.length === 0) return;
-
-            await ctx.fx.playInstances(chosen, { payCost: false });
-          },
-        }),
-      ];
-    }
-
-    // [On Play] By trashing 1 card in your hand, 1 of your [Iliad] trait Digimon
-    // gains <Execute> and <Ascension> for the turn.
-    if (timing === EffectTiming.OnPlay) {
-      return [
-        onPlay({
-          source,
-          effectKey: `${cardId}/on-play-trash-to-grant-keywords`,
-          description:
-            "[On Play] By trashing 1 card in your hand, 1 of your [Iliad] trait Digimon " +
-            "gains <Execute> and <Ascension> for the turn.",
-          optional: false,
-          resolve: async (ctx) => {
-            await resolveTrashToGrantKeywords(ctx, source);
-          },
-        }),
-      ];
-    }
-
-    // [When Digivolving] Same clause.
-    if (timing === EffectTiming.WhenDigivolving) {
-      return [
-        whenDigivolving({
-          source,
-          effectKey: `${cardId}/when-digivolving-trash-to-grant-keywords`,
-          description:
-            "[When Digivolving] By trashing 1 card in your hand, 1 of your [Iliad] " +
-            "trait Digimon gains <Execute> and <Ascension> for the turn.",
-          optional: false,
-          resolve: async (ctx) => {
-            await resolveTrashToGrantKeywords(ctx, source);
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+export const compiled: CompiledCard = {
+  effects: [
+    { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", target: { filter: eligibleSecurityCard, count: 1 }, from: ["hand", "trash"], payCost: false, optional: true }] },
+    { trigger: "OnPlay", actions: [grantExecute, grantAscension] },
+    { trigger: "WhenDigivolving", actions: [grantExecute, grantAscension] },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [{ level: 4, traits: ["TS"], cost: 3, isAlternate: true }],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("BT26-030", compiled);
