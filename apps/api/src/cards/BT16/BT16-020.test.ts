@@ -124,4 +124,29 @@ describe("BT16-020 [Digivolve] alternate path onto an off-color [Light Fang] bas
     // Memory gate passed (opp hand >= 8): +1 memory over the post-payment baseline (paid 2 from 2 → 0).
     expect(s.state.memory).toBe(1);
   });
+
+  it("gains memory from the three-digivolution-card condition when the hand condition fails", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: LV3_LIGHTFANG_YELLOW, as: "base", under: [LV3_NO_TRAIT, LV3_NO_TRAIT] }],
+        hand: [{ card: GAOGAMON, as: "gao" }],
+        deck: Array.from({ length: 3 }, () => LV3_NO_TRAIT),
+      },
+      1: { deck: Array.from({ length: 3 }, () => LV3_NO_TRAIT) },
+    });
+    s.state.memory = ALT_COST;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gao").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === GAOGAMON && s.state.memory === 1);
+
+    expect(s.state.players[1]!.hand).toHaveLength(1);
+    expect(s.state.memory).toBe(1);
+  });
 });
