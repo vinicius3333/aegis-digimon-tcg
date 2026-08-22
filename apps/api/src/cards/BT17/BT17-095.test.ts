@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-095.js";
+import "./index.js";
 
 describe("BT17-095 Miraculous Mega Knight", () => {
   it("keeps the Main play clause separate from the Omnimon Delay DNA effect", () => {
@@ -15,6 +17,7 @@ describe("BT17-095 Miraculous Mega Knight", () => {
         into: { nameOrTrait: [{ tokens: ["Omnimon"], match: "name" }] },
       }],
     });
+    expect(compiled.effects?.[0]?.actions?.[1]).not.toHaveProperty("optional");
   });
 
   it("grants Delay only for an owned level 6 Greymon or Garurumon leaving outside battle", () => {
@@ -29,5 +32,16 @@ describe("BT17-095 Miraculous Mega Knight", () => {
 
   it("adds itself to hand after the Security Tamer play option", () => {
     expect(compiled.effects?.[3]).toMatchObject({ trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost" }, { kind: "AddToHandSelf" }] });
+  });
+
+  it("places itself in the battle area when the optional Digimon play is declined", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT17-095", as: "option" }] } }, { autoDeclineOptional: true });
+    s.state.memory = 2;
+    const optionId = s.inst("option").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId)).toBe(true);
   });
 });
