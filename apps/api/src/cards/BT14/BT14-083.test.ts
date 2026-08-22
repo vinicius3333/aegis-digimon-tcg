@@ -1,13 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import "./BT14-083.js";
+import { compiled } from "./BT14-083.js";
 
 describe("BT14-083", () => {
-  const source = { instanceId: "source", cardId: "BT14-083", ownerSeat: 0, definition: {}, permanent: () => undefined, isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true } as never;
   it("registers on-play trashing, opponent-source response, and security play", () => {
-    expect(getEffectModule("BT14-083")!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(1);
-    expect(getEffectModule("BT14-083")!.effectsForTiming(EffectTiming.None, source)).toHaveLength(1);
-    expect(getEffectModule("BT14-083")!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+    expect(compiled.effects[0]?.actions[0]).toMatchObject({ kind: "TrashDigivolution", amount: 1 });
+    expect(compiled.effects[1]?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "onDigivolutionCardDiscarded" });
+    expect(compiled.effects[2]).toMatchObject({ isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] });
   });
 });
