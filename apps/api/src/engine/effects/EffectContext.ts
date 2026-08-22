@@ -1318,6 +1318,8 @@ export interface Primitives {
    * in tests need no change.
    */
   payActivationCost?(permanentId: string, costKind: "suspend"): boolean;
+  /** Check an activation cost without mutating the permanent. */
+  canPayActivationCost?(permanentId: string, costKind: "suspend"): boolean;
   /**
    * Re-activate one (or, with `chooseOne: false`, ALL) of a target permanent's own effects at
    * the given timing(s) — the "activate 1 of that Digimon's [X] effects" family (EX3-065 "[On
