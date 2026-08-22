@@ -21,7 +21,8 @@ describe("EX4-050 ShadowSeraphimon", () => {
     }, { autoSelectCards: true });
     await s.engine.recomputeContinuousEffects();
 
-    await advance(s.engine).fire(EffectTiming.OnDeletion, s.perm("source"));
+    const sourceId = s.perm("source").permanentId;
+    await advance(s.engine).verb.deletePermanent([sourceId], "byEffect");
     await settle(() => s.perm("target").currentDP === 8000);
 
     expect(s.state.players[0]!.security).toHaveLength(3);

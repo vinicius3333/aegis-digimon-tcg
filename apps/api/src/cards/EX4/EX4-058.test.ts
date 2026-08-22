@@ -21,7 +21,7 @@ describe("EX4-058 Ravemon", () => {
     }, { autoSelectCards: true });
     await s.engine.recomputeContinuousEffects();
 
-    await advance(s.engine).fire(EffectTiming.OnDeletion, s.perm("source"));
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
     await settle(() => s.state.players[1]!.hand.length === 7);
 
     expect(s.state.players[1]!.hand).toHaveLength(7);

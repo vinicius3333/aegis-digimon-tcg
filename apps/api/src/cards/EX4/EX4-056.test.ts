@@ -17,11 +17,12 @@ describe("EX4-056 Crowmon", () => {
       0: { battleArea: [{ card: "BT1-009", as: "host", under: ["EX4-056"] }] },
       1: { battleArea: [{ card: "BT5-042", as: "target" }] },
     }, { autoSelectCards: true });
+    const targetInstanceId = s.perm("target").topCard.instanceId;
     await s.engine.recomputeContinuousEffects();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnDeletion, s.perm("host"), { removalCause: "byEffect" });
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
-    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetInstanceId)).toBe(true);
   });
 });
