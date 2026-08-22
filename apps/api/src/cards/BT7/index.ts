@@ -65,6 +65,7 @@ import "./BT7-063.js";
 import "./BT7-064.js";
 import "./BT7-065.js";
 import "./BT7-066.js";
+import "./BT7-067.js";
 import "./BT7-068.js";
 import "./BT7-069.js";
 import "./BT7-070.js";
