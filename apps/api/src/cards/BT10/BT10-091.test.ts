@@ -33,6 +33,7 @@ describe("BT10-091 Ruli Tsukiyono", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: false },
     );
+    s.state.memory = 10;
     await s.ready();
 
     expect(
@@ -94,6 +95,7 @@ describe("BT10-091 Ruli Tsukiyono", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
 
     expect(
