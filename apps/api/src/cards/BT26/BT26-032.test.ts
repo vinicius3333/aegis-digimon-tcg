@@ -39,7 +39,7 @@ describe("BT26-032 compiled fidelity", () => {
           { card: "BT1-010", as: "unsuspended", suspended: false, dp: 11000 },
         ],
       },
-    });
+    }, { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true });
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ceresmon"));

@@ -28,14 +28,14 @@ const compiled: CompiledCard = {
           "duration": "untilYourTurnEnd"
         },
         {
-          "kind": "GainTriggeredEffect",
-          "target": {
+          "kind": "SubTrigger",
+          "event": "whenAttacking",
+          "on": {
             "filter": {},
             "count": 1,
             "fromSelectionRef": "boostedDigimon"
           },
-          "gainedTrigger": "whenAttacking",
-          "gainedActions": [
+          "actions": [
             {
               "kind": "Return",
               "target": {

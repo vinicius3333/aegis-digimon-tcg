@@ -6,6 +6,7 @@ import { unsupported } from "../errors.js";
 import { matchNameOrTrait } from "../matching/definition.js";
 import { LooseCandidate, candidateLooseInstances, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
+import { EffectDuration } from "@aegis/shared";
 import type { Action, Target, ZoneRef } from "@aegis/shared";
 
 /**
@@ -294,6 +295,9 @@ export async function runPlaceUnder(
   if (chosen.length > 0) {
     const placementIds = action.position === "bottom" && action.order === "any" ? [...chosen].reverse() : chosen;
     await ctx.fx.placeUnder(hostId, placementIds, { belowTop: action.position !== "bottom", faceUp: action.faceDown !== true });
+    for (const instanceId of placementIds) {
+      ctx.fx.conferStackEffects?.(hostId, instanceId, EffectDuration.Permanent, { inheritedOnly: true });
+    }
   }
   if (action.bindHostAs && chosen.length > 0) {
     ctx.boundPlayed ??= new Map();

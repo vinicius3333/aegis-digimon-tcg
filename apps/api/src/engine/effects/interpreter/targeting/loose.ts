@@ -151,6 +151,14 @@ export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef):
  * `hasLinkRequirement` ＜Link＞-capability gate over hand/digivolution link material).
  */
 export function candidateLooseInstances(ctx: EffectContext, target: Target, zones: ZoneRef[]): LooseCandidate[] {
+  if (target.fromSelectionRef !== undefined) {
+    const boundInstanceId = ctx.selections?.get(target.fromSelectionRef);
+    if (boundInstanceId === undefined) return [];
+    const bound = findLooseCandidateByInstance(ctx, boundInstanceId);
+    if (bound === undefined || !zones.some((zone) => looseCardsInZone(ctx, bound.ownerSeat, zone).some((card) => card.instanceId === boundInstanceId))) return [];
+    const def = ctx.game.definitionOf({ cardId: bound.cardId } as never);
+    return definitionMatches(target.filter, def) ? [bound] : [];
+  }
   // `orFilters`: a card qualifies if it matches the primary filter OR any alternative
   // ("play 1 [X] or 1 [Y]", BT17-074). Union the controller scope across all alternatives.
   const allFilters = [target.filter, ...(target.orFilters ?? []), ...(target.filter.orFilters ?? [])];

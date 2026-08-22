@@ -42,6 +42,8 @@ export interface RevealAddAction extends ActionBase {
     /** Added to numeric `count` when a condition/scaling clause applies. */
     countModifier?: Target["countModifier"];
     to?: "hand" | "trash" | "play" | "useOption" | "digivolve" | "placeUnder" | "underTamer" | "security";
+    /** For `to:"useOption"`: whether the Option's memory cost is paid. */
+    payCost?: boolean;
     /** For `to:"digivolve"`: which battle-area Digimon may receive the revealed card. */
     digivolveTarget?: Target;
     /** Place the selected card at the TOP of security (BT6-100). */

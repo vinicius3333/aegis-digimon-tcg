@@ -9,7 +9,7 @@ const immuneAndDp = [
 ];
 const unsuspend = { kind: "Unsuspend", target: self, optional: true };
 export const compiled: CompiledCard = { effects: [
-  { trigger: "WhenDigivolving", actions: [{ kind: "TrashDigivolution", target: { filter: { controller: "mine", zone: "digivolutionCards", faceDown: true, underKind: ["Tamer"] }, count: 1 }, amount: 1, fromTop: false, optional: true }, ...immuneAndDp] },
+  { trigger: "WhenDigivolving", actions: [{ kind: "TrashDigivolution", target: { filter: { controller: "mine", kind: ["Tamer"], digivolutionCards: "hasAny" }, count: 1 }, amount: 1, fromTop: false, optional: true }, ...immuneAndDp] },
   { trigger: "AllTurns", frequency: "OncePerTurn", actions: [
     { kind: "SubTrigger", event: "whenAttackTargetSwitched", actions: [unsuspend] },
     { kind: "SubTrigger", event: "whenDigivolutionTrashed", sourceFilter: { controller: "mine", kind: ["Tamer"], byEffect: true }, actions: [unsuspend] },

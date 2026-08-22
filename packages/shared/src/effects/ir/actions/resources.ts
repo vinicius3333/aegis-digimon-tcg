@@ -4,13 +4,12 @@ import type { EffectDurationRef } from "../durations.js";
 import type { Filter, Target } from "../filters/filter.js";
 import type { Controller } from "../filters/zones.js";
 import type { Cost } from "../predicates/costs.js";
-import type { Condition } from "../predicates/conditions.js";
 import type { Action } from "./action.js";
 import type { ActionBase } from "./base.js";
 
 export interface DrawAction extends ActionBase {
   kind: "Draw";
-  controller: Controller | "both";
+  controller: Controller;
   amount: number;
   /** Draw only enough cards to reach this hand size. */
   untilHandSize?: number;
@@ -28,9 +27,13 @@ export interface GainMemoryAction extends ActionBase {
   at?: "endOfTurn";
 }
 
-/** Gain one memory for each opponent Digimon deleted in the current deletion event. */
-export interface GainMemoryForDeletedDigimonsAction extends ActionBase {
-  kind: "GainMemoryForDeletedDigimons";
+/** Pay any amount from zero through maxMemory, applying amount DP per memory paid. */
+export interface PayMemoryUpToAction extends ActionBase {
+  kind: "PayMemoryUpTo";
+  maxMemory: number;
+  target: Target;
+  amount: number;
+  duration: EffectDurationRef;
 }
 
 export interface SetMemoryAction extends ActionBase {
@@ -141,20 +144,8 @@ export interface ReducePlayCostAction extends ActionBase {
         /** "By deleting 1 of your play-cost-≤11 [Negamon] Digimon" (BT25-076). */
         kind: "sacrificePermanent";
         target: Target;
-      }
-    | {
-        kind: "automatic";
-        condition: Condition;
-      }
-    | {
-        kind: "returnFromTrashToDeckTop";
-        target: Target;
-      }
-    | {
-        kind: "trashSecurityTopUpToLeave";
-        leaveCount: number;
       };
-  amount: { kind: "fixed"; value: number } | { kind: "perPaid"; value: number } | { kind: "deletedSacrificePlayCost" };
+  amount: { kind: "fixed"; value: number } | { kind: "deletedSacrificePlayCost" };
 }
 
 /** Run a group of actions only once one shared activation cost is paid. */

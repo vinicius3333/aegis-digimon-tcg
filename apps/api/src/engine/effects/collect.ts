@@ -99,10 +99,11 @@ export function collectConferredEffects(
   tracker: UseTracker,
 ): CollectedEffect[] {
   const collected: CollectedEffect[] = [];
-  for (const { targetPermanentId, stackInstanceId, trigger } of conferrals) {
+  for (const { targetPermanentId, stackInstanceId, trigger, inheritedOnly } of conferrals) {
     const source = instanceById(stackInstanceId);
     if (source === undefined) continue;
     for (const effect of effectsOf(timing, source)) {
+      if (inheritedOnly === true && effect.isInherited !== true) continue;
       if (trigger !== undefined && effect.irTrigger !== trigger) continue;
       const ctx = makeContext(source, effect, targetPermanentId);
       if (canTrigger(effect, ctx, tracker) && canActivate(effect, ctx, tracker)) {

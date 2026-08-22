@@ -29,7 +29,7 @@ describe("BT26-015 compiled fidelity", () => {
       {
         0: {
           battleArea: [{ card: "BT26-015", as: "butenmon" }],
-          trash: [{ card: "BT1-001", as: "returned" }],
+          trash: [{ card: "BT1-011", as: "returned" }],
           deck: [{ card: "BT1-002", as: "deckCard" }],
         },
         1: {
@@ -46,29 +46,32 @@ describe("BT26-015 compiled fidelity", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("butenmon"));
     await settle(() => s.state.players[0]!.trash.length === 0);
 
-    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT1-001");
+    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT1-011");
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    expect(s.perm("high").currentDP).toBe(5000);
+    expect(s.perm("high").currentDP).toBe(9000);
   });
 
   it("unsuspends an inherited host when your effect adds to your deck, only once per turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-009", as: "host", suspended: true, under: [{ card: "BT26-015" }] }],
+        battleArea: [
+          { card: "BT26-060", as: "host", suspended: true, under: [{ card: "BT26-015" }] },
+          { card: "BT1-009", as: "plainHost", suspended: true, under: [{ card: "BT26-015" }] },
+        ],
         trash: [
-          { card: "BT1-001", as: "first" },
-          { card: "BT1-002", as: "second" },
+          { card: "BT1-011", as: "first" },
+          { card: "BT1-012", as: "second" },
         ],
         deck: [{ card: "BT1-003", as: "firstDeck" }, { card: "BT1-004", as: "secondDeck" }],
       },
-    });
+    }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
-
-    await advance(s.engine).verb.returnToDeck([s.inst("first").instanceId]);
+    await advance(s.engine).fireSubTrigger("whenEffectAddsToDeck", { effectAddedToDeckSeat: 0, effectAddedToDeckBySeat: 0, byEffectCardId: "BT26-015" });
     expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.perm("plainHost").isSuspended).toBe(true);
 
     s.perm("host").isSuspended = true;
-    await advance(s.engine).verb.returnToDeck([s.inst("second").instanceId]);
+    await advance(s.engine).fireSubTrigger("whenEffectAddsToDeck", { effectAddedToDeckSeat: 0, effectAddedToDeckBySeat: 0, byEffectCardId: "BT26-015" });
     expect(s.perm("host").isSuspended).toBe(true);
   });
 });

@@ -328,9 +328,6 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
   // handle namespace `SelectBind` writes, which is what `fromSelectionRef` reads. The
   // permanent keeps its id across the digivolution, so the handle stays valid afterwards.
   // Only a card that sets the field is affected; every other Digivolve is untouched.
-  if (action.target.bindAs !== undefined && ctx.selections) {
-    ctx.selections.set(action.target.bindAs, permanentIds[0]!);
-  }
   if (intoTarget === undefined) {
     unsupported(ctx, action, "Digivolve without an `into` filter (what to digivolve into) is unresolvable");
     return;
@@ -382,6 +379,10 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
     });
     if (result !== undefined) {
       ctx.lastDigivolveResult = true;
+      if (action.target.bindAs !== undefined) {
+        ctx.selections ??= new Map();
+        ctx.selections.set(action.target.bindAs, result.permanentId);
+      }
       if (action.bindResultAs) {
         if (!ctx.boundPlayed) (ctx as { boundPlayed: Map<string, Set<string>> }).boundPlayed = new Map();
         ctx.boundPlayed!.set(action.bindResultAs, new Set([result.permanentId]));

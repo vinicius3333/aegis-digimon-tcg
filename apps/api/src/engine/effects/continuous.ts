@@ -293,6 +293,7 @@ export interface StackEffectConferral {
   continuous?: boolean;
   /** Limit the copied effects to the printed trigger (for example, only [Main]). */
   trigger?: string;
+  inheritedOnly?: boolean;
 }
 
 /**
@@ -1221,13 +1222,13 @@ export class ContinuousEffectLedger {
   conferStackEffects(
     targetPermanentId: string,
     stackInstanceId: string,
-    opts?: { continuous?: boolean; trigger?: string },
+    opts?: { continuous?: boolean; trigger?: string; inheritedOnly?: boolean },
   ): void {
     const exists = this.stackEffectConferrals.some(
       (c) =>
         c.targetPermanentId === targetPermanentId &&
         c.stackInstanceId === stackInstanceId &&
-        c.trigger === opts?.trigger,
+        c.trigger === opts?.trigger && c.inheritedOnly === opts?.inheritedOnly,
     );
     if (exists) return;
     this.stackEffectConferrals.push({
@@ -1235,6 +1236,7 @@ export class ContinuousEffectLedger {
       stackInstanceId,
       continuous: opts?.continuous,
       trigger: opts?.trigger,
+      inheritedOnly: opts?.inheritedOnly,
     });
   }
 

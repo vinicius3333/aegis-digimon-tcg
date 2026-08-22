@@ -60,6 +60,21 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
       });
       return false;
     }
+    case "PayMemoryUpTo": {
+      const maximum = Math.min(action.maxMemory, Math.max(0, ctx.game.state.memory));
+      const paid = await ctx.ask.chooseOption(
+        ctx,
+        Array.from({ length: maximum + 1 }, (_, amount) => `Pay ${amount} memory`),
+      );
+      if (paid > 0) {
+        ctx.fx.gainMemoryForSeat(ctx.source.ownerSeat, -paid);
+        const targets = await resolvePermanentTargets(ctx, action.target);
+        for (const permanentId of targets) {
+          ctx.fx.modifyDP(permanentId, paid * action.amount, action.duration);
+        }
+      }
+      return false;
+    }
     case "SetMemory":
       ctx.fx.setMemory(action.value);
       return false;

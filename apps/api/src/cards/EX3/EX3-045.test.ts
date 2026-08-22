@@ -302,7 +302,12 @@ describe("EX3-045 Hydramon", () => {
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("hydramon"));
-    await settle(() => !s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-028"));
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-028") &&
+        s.state.players[1]!.deck.some(({ cardId }) => cardId === "BT1-028") &&
+        s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT1-003"),
+    );
 
     expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT1-028");
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-003");
