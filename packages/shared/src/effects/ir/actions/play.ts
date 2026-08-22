@@ -120,6 +120,8 @@ export interface PlayFromZoneAction extends ActionBase {
   kind: "PlayFromZone";
   target: Target;
   from: ZoneRef[];
+  /** Allow optional DigiXros material selection from these loose zones before the play. */
+  digiXrosMaterialsFrom?: ZoneRef[];
   /** Floored at 0, default 0. Ignored when `payCost` is false. */
   costReduction?: number;
   /**

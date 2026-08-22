@@ -7,8 +7,9 @@ import { permanentMatchesFilter, seatsForController } from "../matching/permanen
 import { countMatching, scaleFactor } from "../scaling.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { runPlayPerLevel } from "./dna.js";
-import { CardKind, effectiveStaticNames } from "@aegis/shared";
+import { CardKind, digiXrosRequirementFor, effectiveStaticNames } from "@aegis/shared";
 import type { Action, Seat, Target } from "@aegis/shared";
+import { materialsSatisfyRecipe } from "../../../actions/digiXros.js";
 
 export async function runPlayAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
@@ -374,8 +375,26 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       const costDelta = payCost ? (action.costReduction ?? 0) + scaledReduction : 0;
       const pfzChosen = await pickLoose(ctx, action.target, pfzCandidates);
       if (pfzChosen.length > 0) {
+        let digiXrosMaterialInstanceIds: string[] = [];
+        if (action.digiXrosMaterialsFrom !== undefined && pfzChosen.length === 1) {
+          const chosenCard = pfzCandidates.find((card) => card.instanceId === pfzChosen[0]);
+          const requirement = chosenCard === undefined ? undefined : digiXrosRequirementFor(chosenCard.cardId)?.[0];
+          if (requirement !== undefined) {
+            const materialCandidates = action.digiXrosMaterialsFrom
+              .flatMap((zone) => looseCardsInZone(ctx, ctx.source.ownerSeat, zone))
+              .filter((card) => card.instanceId !== pfzChosen[0]);
+            const selected = await ctx.ask.selectCards(ctx, {
+              candidates: materialCandidates.map((card) => card.instanceId),
+              min: 0,
+              max: requirement.materials.length,
+            });
+            const selectedDefinitions = selected.map((id) => ctx.game.definitionOf(materialCandidates.find((card) => card.instanceId === id)!));
+            if (materialsSatisfyRecipe(selectedDefinitions, requirement.materials)) digiXrosMaterialInstanceIds = selected;
+          }
+        }
         const played = await ctx.fx.playInstances(pfzChosen, {
           payCost,
+          ...(digiXrosMaterialInstanceIds.length > 0 ? { digiXrosMaterialInstanceIds } : {}),
           ...(costDelta > 0 ? { costDelta } : {}),
           ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
         });

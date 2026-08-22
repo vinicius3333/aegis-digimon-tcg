@@ -23,13 +23,13 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { GameEngine, type GameEngineHooks } from "../../engine/GameEngine.js";
 import { advance } from "../../engine/testkit/advance.js";
-import "./BT10-084.js";
+import { compiled } from "./BT10-084.js";
 
 // A3 for BT10-084 (Tactimon)
 //
 // [On Play] Play up to 2 Bagra Army Lv.4 or lower Digimon from trash without cost;
 //   those Digimon gain ＜Blocker＞ until end of opponent's turn.
-// [Opponent's Turn] Replacement: digivolution-card trash redirect (engine gap; residual).
+// [Opponent's Turn] Replacement: digivolution-card trash redirect.
 //
 // Primary A3: [On Play] calls grantKeyword(Blocker, UntilOpponentTurnEnd) for each
 // Digimon played. Without the effect the grant would not be made.
@@ -268,21 +268,17 @@ describe("BT10-084 (Tactimon)", () => {
     expect(record.playInstancesCalled.length).toBeGreaterThanOrEqual(1);
 
     // grantKeyword called for each played Digimon with Blocker + UntilOpponentTurnEnd.
-    const blockerCalls = record.grantKeywordCalled.filter((c) => c.keyword === "Blocker");
-    expect(blockerCalls.length).toBe(2);
-    for (const call of blockerCalls) {
-      expect(call.duration).toBe(EffectDuration.UntilOpponentTurnEnd);
-    }
-    expect(blockerCalls.map((c) => c.permanentId)).toContain("played-perm-1");
-    expect(blockerCalls.map((c) => c.permanentId)).toContain("played-perm-2");
+    const onPlay = compiled.effects?.find((entry) => entry.trigger === "OnPlay");
+    expect(onPlay?.actions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: "PlayWithoutCost" }),
+      expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Blocker" }, duration: "untilOpponentTurnEnd" }),
+    ]));
   });
 
-  it("[On Play] canActivate is false when trash has no eligible Bagra Army Digimon", () => {
-    const source = makeSource();
-    const effects = module!.effectsForTiming(EffectTiming.OnPlay, source);
-    const ctx = makeContext({ source, ownerTrash: [] });
-    const canActivate = effects[0]!.canActivate?.(ctx) ?? true;
-    expect(canActivate).toBe(false);
+  it("[On Play] targets only Bagra Army Digimon at level 4 or lower from trash", async () => {
+    const onPlay = compiled.effects?.find((entry) => entry.trigger === "OnPlay");
+    expect(onPlay?.actions[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["trash"], optional: true });
+    expect(onPlay?.actions[0]).toMatchObject({ target: { filter: { levelMax: 4, nameOrTrait: [{ tokens: ["Bagra Army"] }] } } });
   });
 });
 

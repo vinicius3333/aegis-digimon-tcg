@@ -17,6 +17,7 @@ export type ReplacementEvent =
   | "wouldLeavePlay"
   | "wouldBeDeleted"
   | "wouldBePlayed"
+  | "wouldTrashDigivolutionCard"
   | "wouldDigivolve"
   | "wouldLeaveBattleArea"
   | "raw";

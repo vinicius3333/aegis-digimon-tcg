@@ -102,7 +102,7 @@ describe("BT10-019 Greymon", () => {
           deck: ["BT10-018", "BT10-020", "BT1-009", "BT1-010"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 10;
     const originalDeck = s.state.players[0]!.deck.map((card) => card.instanceId);

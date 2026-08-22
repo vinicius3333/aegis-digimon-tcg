@@ -14,6 +14,7 @@ const REPLACEMENT_EVENT_MAP: Record<string, ReplacementEventName | undefined> = 
   wouldLeavePlay: "wouldLeavePlay",
   wouldBeDeleted: "wouldBeDeleted",
   wouldBePlayed: "wouldBePlayed",
+  wouldTrashDigivolutionCard: "wouldTrashDigivolutionCard",
   wouldDigivolve: "wouldDigivolve",
   // Hand-authored EX5 wording names the destination explicitly; the engine's
   // replacement seam is the same pre-digivolution window.
@@ -39,6 +40,22 @@ export async function runReplacement(
   }
   if (action.sourceFilter?.zone === "battleArea" && !ctx.source.isOnBattleArea()) return;
   const self = ctx.source.permanent();
+  if (event === "wouldTrashDigivolutionCard" && self !== undefined) {
+    ctx.fx.subscribeReplacement({
+      ...replacementBudget,
+      event,
+      sourcePermanentId: self.permanentId,
+      mode: "redirect",
+      description: action.raw,
+      appliesTo: (subCtx, originalHostId) => {
+        const original = subCtx.game.permanentById(originalHostId);
+        return original !== undefined && original.controllerSeat === ctx.source.ownerSeat &&
+          originalHostId !== self.permanentId && subCtx.game.state.turnSeat !== ctx.source.ownerSeat;
+      },
+      redirectTo: async (subCtx) => (await subCtx.ask.optional(subCtx, action.raw)) ? self.permanentId : undefined,
+    });
+    return;
+  }
   // The prose compiler often emits the prevention as a NESTED `{kind:"Prevent"}` inner action
   // (carrying the prevention's cost) rather than setting `mode:"prevent"` on the Replacement
   // itself — BT18-082 "by trashing the bottom card of your security stack, it doesn't leave".
