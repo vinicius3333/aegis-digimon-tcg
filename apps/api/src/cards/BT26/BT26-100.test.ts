@@ -8,10 +8,26 @@ describe("BT26-100 compiled fidelity", () => {
     const card = compiled;
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
-    expect(card?.effects?.[0]).toMatchObject({ trigger: "Static", actions: [{ kind: "WaiveColorRequirement", condition: { kind: "securityAtMost", value: 0 } }] });
-    expect(card?.effects?.[1]).toMatchObject({ trigger: "Static", isSecurity: true, actions: [{ kind: "GainKeyword", keyword: { keyword: "Blocker" } }, { kind: "ModifyDP", amount: 3000 }] });
-    expect(card?.effects?.[2]?.actions).toMatchObject([{ kind: "SecurityManipulation", op: "toHand", toTop: false }, { kind: "SecurityManipulation", op: "placeAsSecurity", toTop: false, faceUp: true }, { kind: "PlayWithoutCost", from: ["hand", "trash"], payCost: false, optional: true }]);
-    expect(card?.effects?.[3]?.actions).toMatchObject([{ kind: "PlayWithoutCost", from: ["hand", "trash"], payCost: false, optional: true }]);
+    expect(card?.effects?.[0]).toMatchObject({
+      trigger: "Static",
+      actions: [{ kind: "WaiveColorRequirement", condition: { kind: "securityAtMost", value: 0 } }],
+    });
+    expect(card?.effects?.[1]).toMatchObject({
+      trigger: "AllTurns",
+      isSecurity: true,
+      actions: [
+        { kind: "GainKeyword", keyword: { keyword: "Blocker" } },
+        { kind: "ModifyDP", amount: 3000 },
+      ],
+    });
+    expect(card?.effects?.[2]?.actions).toMatchObject([
+      { kind: "SecurityManipulation", op: "toHand", toTop: false },
+      { kind: "SecurityManipulation", op: "placeAsSecurity", toTop: false, faceUp: true },
+      { kind: "PlayWithoutCost", from: ["hand", "trash"], payCost: false, optional: true },
+    ]);
+    expect(card?.effects?.[3]?.actions).toMatchObject([
+      { kind: "PlayWithoutCost", from: ["hand", "trash"], payCost: false, optional: true },
+    ]);
   });
 
   it("grants Blocker and +3000 DP to own Titan Digimon while face up in security", async () => {
