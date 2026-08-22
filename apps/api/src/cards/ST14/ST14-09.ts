@@ -11,7 +11,7 @@ const compiled: CompiledCard = {
           "kind": "Replacement",
           "event": "wouldBePlayed",
           "sourceFilter": {
-            "isSelfRef": true
+            "controllerDefault": "mine"
           },
           "actions": [
             {

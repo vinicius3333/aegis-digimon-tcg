@@ -26,7 +26,31 @@ const compiled: CompiledCard = {
             "count": 1,
             "isSelf": true
           },
-          "effectText": "GRANTEFFECT58TOKEN"
+          "event": "onDeletionOf",
+          "actions": [
+            {
+              "kind": "PlayWithoutCost",
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "kind": ["Digimon"],
+                  "nameOrTrait": [{ "tokens": ["Beelzemon"], "match": "nameExact" }]
+                },
+                "count": 1
+              },
+              "from": ["trash"],
+              "payCost": false,
+              "optional": true
+            }
+          ],
+          "condition": {
+            "kind": "zoneCount",
+            "seat": "mine",
+            "zone": "trash",
+            "op": "gte",
+            "value": 10,
+            "raw": "there are 10 or more cards in your trash"
+          }
         }
       ]
     },

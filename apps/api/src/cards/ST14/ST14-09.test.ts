@@ -29,7 +29,7 @@ describe("ST14-09 BeelStarmon", () => {
           trash: [{ card: "ST14-02", as: "impmon" }],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     await advance(s.engine).fireSubTrigger("onDiscardLibrary", {
