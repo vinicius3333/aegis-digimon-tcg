@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-052.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT26-052 Pristimon", () => {
@@ -20,5 +21,14 @@ describe("BT26-052 Pristimon", () => {
     await settle(() => s.state.players[0]!.deck.length === 1);
     expect(s.state.players[0]!.hand.map((c) => c.cardId).sort()).toEqual(["BT25-035", "BT26-093"]);
     expect(s.state.players[0]!.deck.map((c) => c.cardId)).toEqual(["BT1-009"]);
+  });
+
+  it("grants inherited Reboot to its evolution host", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT26-055", as: "host", under: ["BT26-052"] }] },
+    });
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Reboot")).toBe(true);
   });
 });
