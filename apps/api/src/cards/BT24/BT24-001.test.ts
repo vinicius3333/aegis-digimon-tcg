@@ -1,3 +1,4 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -11,6 +12,7 @@ describe("BT24-001 Gigimon", () => {
     expect(inherited.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenSecurityRemoved",
+      sourceFilter: { controller: "opponent" },
       fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "opponent" },
     });
     expect(inherited.actions[0].actions[0]).toMatchObject({
@@ -36,6 +38,7 @@ describe("BT24-001 Gigimon", () => {
     );
     s.state.turnSeat = 0;
     await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
 
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
     expect(s.state.players[1]!.battleArea).toHaveLength(3);
@@ -62,6 +65,7 @@ describe("BT24-001 Gigimon", () => {
     );
     s.state.turnSeat = 0;
     await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
 
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 1 });
 
