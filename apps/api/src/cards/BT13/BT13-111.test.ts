@@ -1,7 +1,30 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../index.js";
 import { compiled } from "./BT13-111.js";
 
 describe("BT13-111 Gallantmon", () => {
+  it("plays for the combined-trash reduction only while its controller has no Digimon", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT13-111", as: "gallantmon" }], trash: Array.from({ length: 12 }, () => "BT1-009") },
+      1: { trash: Array.from({ length: 8 }, () => "BT1-009") },
+    });
+    s.state.memory = 5;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-111"));
+    expect(s.state.memory).toBe(0);
+    expect(observe(s.engine).hasKeyword(s.perm("gallantmon"), "Rush")).toBe(true);
+
+    const blocked = setupEngine({
+      0: { hand: [{ card: "BT13-111", as: "gallantmon" }], battleArea: [{ card: "BT1-009", as: "ownDigimon" }], trash: Array.from({ length: 20 }, () => "BT1-009") },
+    });
+    blocked.state.memory = 12;
+    await blocked.engine.recomputeContinuousEffects();
+    expect(blocked.engine.applyIntent(0, { type: "playCard", instanceId: blocked.inst("gallantmon").instanceId })).toEqual({ ok: false });
+  });
+
   it("reduces play cost by two for every five cards in both trash when no Digimon is present", () => {
     const replacement = compiled.effects?.find((entry) => entry.trigger === "Static")?.actions?.[0];
     expect(replacement).toMatchObject({ kind: "Replacement", event: "wouldBePlayed", scaling: { per: 5, unit: "cards", filter: { controllerDefault: "both", zone: "trash" } } });
@@ -15,5 +38,31 @@ describe("BT13-111 Gallantmon", () => {
       expect(actions[0]).toMatchObject({ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } }, count: 1 } });
       expect(actions[1]).toMatchObject({ kind: "Delete", condition: { kind: "ifThisEffectDidNotDelete" }, target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "gte", value: 13000 } }, count: 1 } });
     }
+  });
+
+  it("deletes a 6000 DP-or-less Digimon and skips the 13000 DP fallback", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT13-111", as: "gallantmon" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "low" }, { card: "BT13-111", as: "high" }] },
+    }, { autoSelectCards: true });
+    s.state.memory = 13;
+    const lowId = s.perm("low").topCard!.instanceId;
+    const highId = s.perm("high").topCard!.instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-111"));
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === lowId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === highId)).toBe(true);
+  });
+
+  it("uses the 13000 DP-or-more fallback only when the first deletion found no target", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT13-111", as: "gallantmon" }] },
+      1: { battleArea: [{ card: "BT13-111", as: "high" }] },
+    }, { autoSelectCards: true });
+    s.state.memory = 13;
+    const highId = s.perm("high").topCard!.instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === highId));
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === highId)).toBe(false);
   });
 });
