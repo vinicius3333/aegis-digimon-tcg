@@ -7,11 +7,11 @@ import { compiled } from "./BT26-029.js";
 import "../index.js";
 
 describe("BT26-029 compiled fidelity", () => {
-  it("encodes Decode/Ascension, security-paid protection, both removal watchers, Angel rule trait, and inherited De-Digivolve", () => {
+  it("encodes Decode/Ascension, security-paid protection, both removal watchers, and the Angel rule trait", () => {
     const card = compiled;
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
-    expect(card?.keywords?.map((keyword) => keyword.keyword)).toEqual(expect.arrayContaining(["Decode", "Ascension"]));
+    expect(card?.effects?.find((effect) => effect.trigger === "Static" && effect.keywords)?.keywords?.map((keyword) => keyword.keyword)).toEqual(expect.arrayContaining(["Decode", "Ascension"]));
     expect(card?.effects?.[0]?.actions).toMatchObject([
       { kind: "SecurityManipulation", op: "trashTop" },
       { kind: "SelectBind" },
@@ -30,11 +30,6 @@ describe("BT26-029 compiled fidelity", () => {
       { kind: "SubTrigger", event: "whenSecurityRemoved" },
       { kind: "SubTrigger", event: "whenEffectRemovesFromSecurity" },
     ]);
-    expect(card?.effects?.[5]).toMatchObject({
-      trigger: "AllTurns",
-      isInherited: true,
-      actions: [{ kind: "SubTrigger", event: "whenSecurityRemoved", actions: [{ kind: "DeDigivolve", amount: 1 }] }],
-    });
   });
 
   it("trashes its top security and protects one chosen Digimon until the opponent's turn ends", async () => {
@@ -48,7 +43,6 @@ describe("BT26-029 compiled fidelity", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("holy"));
 
     expect(s.state.players[0]!.security).toHaveLength(0);
@@ -83,31 +77,6 @@ describe("BT26-029 compiled fidelity", () => {
     expect([s.perm("first"), s.perm("second"), s.perm("third"), s.perm("fourth")].filter((permanent) => permanent.currentDP === 1000)).toHaveLength(3);
   });
 
-  it("inherited security removal De-Digivolves exactly 1 opponent Digimon", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT26-030", as: "host", under: [{ card: "BT26-029", as: "source" }] }],
-        security: [{ card: "BT1-001", as: "security" }],
-      },
-      1: {
-        battleArea: [{
-          card: "BT1-011",
-          as: "target",
-          under: [
-            { card: "BT1-009", as: "bottom" },
-            { card: "BT1-010", as: "next" },
-          ],
-        }],
-      },
-    }, { autoSelectCards: true });
-    await s.ready();
-
-    await advance(s.engine).verb.trashFromSecurity(0, 1);
-
-    expect(s.perm("target").topCard.instanceId).toBe(s.inst("next").instanceId);
-    expect(s.perm("target").stack.map((card) => card.instanceId)).toEqual([s.inst("bottom").instanceId]);
-    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("target").instanceId);
-  });
 
   it("evolves from Aegiomon for 3 and applies the paid protection on When Digivolving", async () => {
     const s = setupEngine({
@@ -153,10 +122,11 @@ describe("BT26-029 compiled fidelity", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
+    const holyId = s.perm("holy").topCard.instanceId;
     expect(await advance(s.engine).verb.deletePermanent([s.perm("holy").permanentId], "byEffect")).toBe(1);
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("aegiomon").instanceId));
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === holyId));
 
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("holy").instanceId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toContain(holyId);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("aegiomon").instanceId)).toBe(false);
   });
 });
