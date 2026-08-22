@@ -41,7 +41,7 @@ describe("BT25 persisted IR", () => {
     ).toBe(true);
 
     const main = effects.find((effect) => effect.trigger === "Main")!;
-    expect(main.actions.some((action) => action.kind === "PlayWithoutCost" && action.costReduction === 3)).toBe(true);
+    expect(main.actions.some((action) => action.kind === "PlayWithoutCost" && action.reduceCostBy === 3)).toBe(true);
   });
 
   it.each([
