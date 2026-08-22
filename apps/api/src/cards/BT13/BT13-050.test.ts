@@ -6,8 +6,45 @@ describe("BT13-050 Sunflowmon", () => {
   it("charges suspension for the Fairy digivolution and reduces its cost by two", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects[0]).toMatchObject({ trigger: "Main", actions: expect.arrayContaining([expect.objectContaining({ kind: "Digivolve", optional: true, abortOnDecline: true, cost: expect.objectContaining({ kind: "suspend" }), into: expect.objectContaining({ nameOrTrait: [{ tokens: ["Fairy"], match: "trait" }] }) })]) });
-    expect(compiled.effects[1]).toMatchObject({ trigger: "YourTurn", isInherited: true, frequency: "OncePerTurn", actions: [expect.objectContaining({ kind: "Replacement", event: "wouldDigivolve" })] });
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "Main",
+      actions: [
+        {
+          kind: "Digivolve",
+          from: ["hand"],
+          optional: true,
+          abortOnDecline: true,
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          into: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ match: "trait", tokens: ["Fairy"] }] },
+          cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+        },
+        {
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: { isSelfRef: true },
+          actions: [{ mode: "reduceCost", amount: 2 }],
+        },
+      ],
+    });
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "YourTurn",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              mode: "reduceCost",
+              amount: 1,
+              condition: { kind: "youHave", filter: { kind: ["Tamer"], colors: ["Green"] } },
+            },
+          ],
+        },
+      ],
+    });
   });
 
   it("loads the compiled Sunflowmon implementation into a live permanent", async () => {
