@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-071.js";
 import "../index.js";
 
 describe("BT26-071 Flarerizamon", () => {
   it("compiles inherited Raid and both delete triggers", () => {
+    expect(digivolutionRequirementsFor("BT26-071")).toContainEqual({ level: 3, traits: ["NSo"], cost: 2, isAlternate: true });
     expect(compiled.coverage).toBe("full");
     expect(compiled.effects.map((e) => e.trigger)).toEqual(["Static", "OnPlay", "WhenDigivolving"]);
   });

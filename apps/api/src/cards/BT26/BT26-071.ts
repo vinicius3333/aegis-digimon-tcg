@@ -7,5 +7,5 @@ export const compiled: CompiledCard = { effects: [
   { trigger: "Static", isInherited: true, actions: [], keywords: [{ keyword: "Raid", raw: "＜Raid＞" }] },
   { trigger: "OnPlay", actions: [deleteAction] },
   { trigger: "WhenDigivolving", actions: [deleteAction] },
-], coverage: "full", residual: [] };
+], coverage: "full", residual: [], digivolutionRequirement: [{ level: 3, traits: ["NSo"], cost: 2, isAlternate: true }] };
 registerIrCard("BT26-071", compiled);
