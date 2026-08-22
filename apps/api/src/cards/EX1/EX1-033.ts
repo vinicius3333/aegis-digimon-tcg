@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [{
     trigger: "WhenAttacking",
-    attackScope: "self",
+    timingOverride: "OnAllyAttack",
     actions: [{
       kind: "CostModifier",
       mode: "reduce",
