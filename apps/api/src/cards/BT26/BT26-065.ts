@@ -7,5 +7,5 @@ export const compiled: CompiledCard = { effects: [
     { filter: { colors: ["Purple"], nameOrTrait: [{ tokens: ["Ravemon"], match: "name" }, { tokens: ["Avian"], match: "trait" }, { tokens: ["Bird"], match: "trait" }] }, count: 1, to: "hand" },
   ], rest: "deckBottom" }] },
   { trigger: "WhenAttacking", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "Draw", controller: "mine", amount: 1 }, { kind: "Trash", target: { count: 1, filter: { controller: "mine", zone: "hand" } }, optional: false }] },
-], coverage: "full", residual: [] };
+], coverage: "full", residual: [], digivolutionRequirement: [{ level: 2, traits: ["DATA SQUAD"], cost: 0, isAlternate: true }] };
 registerIrCard("BT26-065", compiled);
