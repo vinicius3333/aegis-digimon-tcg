@@ -79,4 +79,15 @@ describe("BT13-111 Gallantmon", () => {
     expect(s.perm("base").stack.some((card) => card.cardId === "BT13-014")).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetId)).toBe(true);
   });
+
+  it("fires the deletion effect when attacking the opponent", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-111", as: "attacker" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target" }], security: ["BT1-001"] },
+    }, { autoSelectCards: true });
+    const targetId = s.perm("target").topCard!.instanceId;
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === targetId));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === targetId)).toBe(false);
+  });
 });
