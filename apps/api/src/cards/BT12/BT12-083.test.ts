@@ -6,7 +6,7 @@ import type { EffectContext, GameAccess, Primitives, DecisionApi } from "../../e
 import { getEffectModule } from "../../engine/effects/registry.js";
 import "./BT12-083.js";
 
-// A3 for BT12-083 (Machinedramon):
+// A3 for BT12-083 (Arresterdramon: Superior Mode):
 //   [End of Your Turn][Once Per Turn] If there are 4 or more digivolution cards under this
 //   Digimon, you may attack with this Digimon without suspending it.
 //
@@ -112,7 +112,7 @@ function makeCtx(opts: {
   } as unknown as EffectContext;
 }
 
-describe("BT12-083 Machinedramon [End of Your Turn]", () => {
+describe("BT12-083 Arresterdramon: Superior Mode [End of Your Turn]", () => {
   it("registers the end-of-turn attack clause without a residual gap", async () => {
     const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
     const card = runtimeCompiledCard("BT12-083")!;
