@@ -58,7 +58,10 @@ describe("ST2-09 Zudomon", () => {
         instanceId: s.inst("zudomon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("target").stack.length === 0);
+    await settle(() =>
+      s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("onlySource").instanceId),
+    );
+    expect(s.perm("target").stack).toHaveLength(0);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(
       s.inst("onlySource").instanceId,
     );
