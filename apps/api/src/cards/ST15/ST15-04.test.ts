@@ -12,7 +12,9 @@ describe("ST15-04 Solarmon", () => {
       },
     });
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("solarmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("solarmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ST15-02").instanceId));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ST15-02").instanceId)).toBe(true);
@@ -27,7 +29,9 @@ describe("ST15-04 Solarmon", () => {
       },
     });
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("solarmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("solarmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001"));
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(false);
@@ -35,8 +39,6 @@ describe("ST15-04 Solarmon", () => {
   });
 
   it("keeps its black level-2 evolution requirement", () => {
-    expect(getCardDefinition("ST15-04")?.evoCosts).toEqual([
-      { color: "Black", level: 2, memoryCost: 0 },
-    ]);
+    expect(getCardDefinition("ST15-04")?.evoCosts).toEqual([{ color: "Black", level: 2, memoryCost: 0 }]);
   });
 });
