@@ -32,6 +32,20 @@ it("gains Security Attack for each opposing Digimon with that keyword", async ()
   expect(observe(s.engine).hasKeyword(s.perm("lamp"), "SecurityAttack")).toBe(true);
 });
 
+it("counts every opposing Digimon affected by Security Attack", async () => {
+  const s = setupEngine({
+    0: { battleArea: [{ card: "BT12-044", as: "lamp" }] },
+    1: {
+      battleArea: [
+        { card: "BT12-017", as: "first" },
+        { card: "BT12-017", as: "second" },
+      ],
+    },
+  });
+  await s.ready();
+  expect(observe(s.engine).keywordAmount(s.perm("lamp"), "SecurityAttack")).toBe(2);
+});
+
 it("does not gain Security Attack when no opposing Digimon has that keyword", async () => {
   const s = setupEngine({
     0: { battleArea: [{ card: "BT12-044", as: "lamp" }] },
