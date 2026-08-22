@@ -99,6 +99,10 @@ const compiled: CompiledCard = {
                   },
                   {
                     kind: ["Digimon"],
+                    nameOrTrait: [{ tokens: ["Familiar Token"], match: "name" }],
+                  },
+                  {
+                    kind: ["Digimon"],
                     nameOrTrait: [
                       {
                         tokens: ["Puppet"],
