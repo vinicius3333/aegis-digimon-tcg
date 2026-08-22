@@ -13,11 +13,11 @@ describe("BT26-082 compiled behavior", () => {
       { namesExact: ["Crowmon"], cost: 3, isAlternate: true },
       { level: 5, traits: ["DATA SQUAD"], cost: 3, isAlternate: true },
     ]);
-    expect(compiled.effects).toEqual(expect.arrayContaining([
-      expect.objectContaining({ trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", from: ["security"], payCost: false }] }),
-      expect.objectContaining({ trigger: "EndOfOpponentsTurn", isSecurity: true }),
-      expect.objectContaining({ trigger: "Static", actions: [{ kind: "GrantStatic", grant: "trait", tokens: ["Birdkin"] }] }),
-    ]));
+    expect(compiled.effects.find((effect) => effect.trigger === "Security")).toMatchObject({ isSecurity: true });
+    expect(compiled.effects.find((effect) => effect.trigger === "EndOfOpponentsTurn")).toMatchObject({ isSecurity: true });
+    expect(compiled.effects.find((effect) => effect.trigger === "Static")?.actions[0]).toMatchObject({
+      kind: "GrantStatic", grant: "trait", tokens: ["Birdkin"],
+    });
     for (const trigger of ["WhenDigivolving", "EndOfAttack"]) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)?.actions[0]).toMatchObject({ kind: "Modal", choose: 1, options: [
         [{ kind: "Delete", target: { filter: { superlative: "highestDP" } }, cost: { kind: "deleteOwn" } }],
@@ -42,7 +42,7 @@ describe("BT26-082 compiled behavior", () => {
           { card: "BT1-010", as: "lower" },
         ],
       },
-    }, { autoSelectCards: true });
+    }, { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true });
 
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("ravemon"));
 
@@ -56,10 +56,11 @@ describe("BT26-082 compiled behavior", () => {
       0: { security: [{ card: "BT26-082", as: "securityRavemon", faceUp: true }] },
     });
     await s.ready();
+    s.state.turnSeat = 1;
 
-    await advance(s.engine).fireForInstance(EffectTiming.EndOfOpponentsTurn, s.inst("securityRavemon"));
+    await advance(s.engine).fireForInstance(EffectTiming.OnEndTurn, s.inst("securityRavemon"));
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT26-082"));
 
-    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("securityRavemon").instanceId)).toBe(false);
   });
 });

@@ -51,7 +51,7 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
   ) {
     return EffectTiming.None;
   }
-  if (effect.isSecurity) return EffectTiming.SecuritySkill;
+  if (effect.isSecurity && effect.trigger === "Security") return EffectTiming.SecuritySkill;
   // A printed [Your Turn] clause whose payload is an effect-driven digivolution is a
   // player-declared ability, not a continuous modifier. Keep the turn ownership guard from
   // the original trigger, but surface it in the Main-phase activation window so the player can
