@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-067.js";
 import "../index.js";
 
@@ -32,5 +34,21 @@ describe("BT26-067 Wizardmon", () => {
       trigger: "Static",
       keywords: [{ keyword: "Retaliation" }],
     });
+  });
+
+  it("publicly draws one and trashes one card on play", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-067", as: "wizardmon" }],
+        deck: [{ card: "BT1-001", as: "drawn" }],
+        hand: [{ card: "BT1-002", as: "discarded" }],
+      },
+    }, { autoSelectCards: true });
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("wizardmon"));
+
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-002");
   });
 });
