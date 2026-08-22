@@ -8,29 +8,31 @@ import "../index.js";
 describe("BT24-044 Muchomon", () => {
   it("suspends either side, searches two distinct printed categories only after suspending your Digimon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
-    expect(compiled.effects[0]).toMatchObject({
-      trigger: "OnPlay",
-      actions: [
-        expect.objectContaining({
-          kind: "Suspend",
-          optional: true,
-          target: { filter: { controllerDefault: "any", levelComparison: { op: "lte", value: 6 } } },
-        }),
-        expect.objectContaining({
-          kind: "RevealAdd",
-          revealCount: 3,
-          condition: { kind: "lastSuspendedIsMine" },
-          add: [{ to: "hand" }, { to: "hand" }],
-          rest: "deckBottom",
-        }),
-      ],
+    const [suspend, reveal] = compiled.effects[0]!.actions;
+    expect(compiled.effects[0]!.trigger).toBe("OnPlay");
+    expect(suspend).toMatchObject({
+      kind: "Suspend",
+      optional: true,
+      target: { filter: { controllerDefault: "any", levelComparison: { op: "lte", value: 6 } } },
     });
+    expect(reveal).toMatchObject({
+      kind: "RevealAdd",
+      revealCount: 3,
+      condition: { kind: "lastSuspendedIsMine" },
+      rest: "deckBottom",
+    });
+    expect((reveal as any).add).toHaveLength(2);
     expect(compiled.effects[1]).toMatchObject({ trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn" });
   });
 
   it("reveals Shoto and an Avian after suspending its own Digimon", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "BT24-044", as: "source" }], deck: ["P-133", "ST1-02", "BT1-009"] } },
+      {
+        0: {
+          battleArea: [{ card: "BT24-044", as: "source" }],
+          deck: ["P-133", { card: "BT1-022", as: "birdkin" }, { card: "BT1-009", as: "rest" }],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
     );
 
@@ -38,8 +40,8 @@ describe("BT24-044 Muchomon", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "P-133"));
 
     expect(s.perm("source").isSuspended).toBe(true);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["P-133", "ST1-02"]));
-    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["P-133", "BT1-022"]));
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("rest").instanceId]);
   });
 
   it("does not reveal when it suspends an opponent Digimon", async () => {
@@ -51,7 +53,7 @@ describe("BT24-044 Muchomon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.perm("opponent").topCard.instanceId);
+    preferred.push(s.perm("opponent").permanentId);
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
 

@@ -2,7 +2,12 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const avian = { nameOrTrait: [{ tokens: ["Avian", "Bird", "Vortex Warriors"], match: "trait" }] };
+const avian = {
+  or: [
+    { nameOrTrait: [{ tokens: ["Avian", "Bird"], match: "traitContains" }] },
+    { nameOrTrait: [{ tokens: ["Vortex Warriors"], match: "trait" }] },
+  ],
+};
 
 export const compiled: CompiledCard = {
   effects: [
