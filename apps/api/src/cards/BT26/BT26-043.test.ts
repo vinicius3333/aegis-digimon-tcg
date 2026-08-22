@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { digivolutionRequirementsFor } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT26-043.js";
 import "../index.js";
 
@@ -42,5 +43,27 @@ describe("BT26-043 Piximon", () => {
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "unsuspend"));
     expect(s.perm("target").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
+  });
+
+  it("may suspend an opponent Digimon when another Digimon is played", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-044", as: "host", under: ["BT26-043"] },
+            { card: "BT26-040", as: "played" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT5-022", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", {
+      subjectPermanentId: s.perm("played").permanentId,
+    });
+
+    expect(s.perm("target").isSuspended).toBe(true);
   });
 });
