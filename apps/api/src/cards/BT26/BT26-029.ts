@@ -26,6 +26,14 @@ const protection = [
     duration: "untilOpponentTurnEnd",
     condition: { kind: "namedCountAtLeast", countSource: "trashedSecurity", count: 1 },
   },
+  {
+    kind: "Restrict",
+    target: { filter: { boundRef: "protectedDigimon" }, count: 1 },
+    restriction: "returnToHandOrDeck",
+    duration: "untilOpponentTurnEnd",
+    byOpponentEffectsOnly: true,
+    condition: { kind: "namedCountAtLeast", countSource: "trashedSecurity", count: 1 },
+  },
 ];
 
 export const compiled: CompiledCard = {

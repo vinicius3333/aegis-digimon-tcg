@@ -17,6 +17,7 @@ describe("BT26-029 compiled fidelity", () => {
       { kind: "SelectBind" },
       { kind: "Restrict", restriction: "dpImmune" },
       { kind: "StackTrashLock" },
+      { kind: "Restrict", restriction: "returnToHandOrDeck" },
     ]);
     expect(card?.effects?.[2]?.actions).toMatchObject([
       {
@@ -52,5 +53,59 @@ describe("BT26-029 compiled fidelity", () => {
 
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(observe(s.engine).isRestricted(s.perm("holy"), "dpImmune")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("holy"), "beReturned")).toBe(true);
+  });
+
+  it("when its security is removed gives exactly 3 opponent Digimon -5000 DP only once", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-029", as: "holy" }],
+        security: [
+          { card: "BT1-001", as: "firstSecurity" },
+          { card: "BT1-002", as: "secondSecurity" },
+        ],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "first", dp: 6000 },
+          { card: "BT1-010", as: "second", dp: 6000 },
+          { card: "BT1-011", as: "third", dp: 6000 },
+          { card: "BT1-012", as: "fourth", dp: 6000 },
+        ],
+      },
+    }, { autoSelectCards: true });
+    await s.ready();
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1);
+    expect([s.perm("first"), s.perm("second"), s.perm("third"), s.perm("fourth")].filter((permanent) => permanent.currentDP === 1000)).toHaveLength(3);
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1);
+    expect([s.perm("first"), s.perm("second"), s.perm("third"), s.perm("fourth")].filter((permanent) => permanent.currentDP === 1000)).toHaveLength(3);
+  });
+
+  it("inherited security removal De-Digivolves exactly 1 opponent Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-030", as: "host", under: [{ card: "BT26-029", as: "source" }] }],
+        security: [{ card: "BT1-001", as: "security" }],
+      },
+      1: {
+        battleArea: [{
+          card: "BT1-011",
+          as: "target",
+          under: [
+            { card: "BT1-009", as: "bottom" },
+            { card: "BT1-010", as: "next" },
+          ],
+        }],
+      },
+    }, { autoSelectCards: true });
+    await s.ready();
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1);
+
+    expect(s.perm("target").topCard.instanceId).toBe(s.inst("next").instanceId);
+    expect(s.perm("target").stack.map((card) => card.instanceId)).toEqual([s.inst("bottom").instanceId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("target").instanceId);
   });
 });
