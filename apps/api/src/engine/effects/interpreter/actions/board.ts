@@ -143,13 +143,27 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       return false;
     }
     case "AddDPFromTrashedCard": {
-      const candidates = candidateLooseInstances(ctx, action.cost.target, ["hand"]);
-      const chosen = await pickLoose(ctx, action.cost.target, candidates);
-      if (chosen.length === 0) return action.abortOnDecline === true;
-      const dp = ctx.game.definitionOf(chosen[0]!).dp ?? 0;
-      const moved = await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
-      if (moved.length !== chosen.length) return action.abortOnDecline === true;
-      for (const id of await resolvePermanentTargets(ctx, action.target)) ctx.fx.modifyDP(id, dp, toDuration(action.duration));
+      const costTarget = action.cost.target;
+      if (costTarget === undefined) return action.abortOnDecline === true;
+      const candidates = candidateLooseInstances(ctx, costTarget, ["hand"]);
+      const chosen = await pickLoose(ctx, costTarget, candidates);
+      let dp = 0;
+      if (chosen.length > 0) {
+        const hand = ctx.game.player(ctx.source.ownerSeat).hand;
+        const cards = chosen
+          .map((id) => hand.find((card) => card.instanceId === id))
+          .filter((card) => card !== undefined);
+        dp = ctx.game.definitionOf(cards[0]!).dp ?? 0;
+        const moved = await ctx.fx.trash(cards, { byEffectSeat: ctx.source.ownerSeat });
+        if (moved.length !== cards.length) return action.abortOnDecline === true;
+      } else {
+        const trash = ctx.game.player(ctx.source.ownerSeat).trash;
+        const last = trash[trash.length - 1];
+        if (last === undefined) return action.abortOnDecline === true;
+        dp = ctx.game.definitionOf(last).dp ?? 0;
+      }
+      for (const id of await resolvePermanentTargets(ctx, action.target))
+        ctx.fx.modifyDP(id, dp, toDuration(action.duration));
       return false;
     }
     case "AddDPFromSuspendedCost": {
