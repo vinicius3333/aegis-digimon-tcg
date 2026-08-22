@@ -24,11 +24,11 @@ describe("BT24-058 Blimpmon", () => {
     expect(BT24_058.effects?.find((entry) => entry.isInherited)?.keywords?.[0]?.keyword).toBe("Reboot");
   });
 
-  it("adds an eligible Tamer to hand and returns the other cards to the deck", async () => {
+  it("public play pays 5, adds an eligible Tamer, and returns the other cards to the deck", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT24-058", as: "blimpmon" }],
+          hand: [{ card: "BT24-058", as: "blimpmon" }],
           deck: [
             { card: "P-133", as: "tamer" },
             { card: "BT1-001", as: "miss1" },
@@ -38,11 +38,20 @@ describe("BT24-058 Blimpmon", () => {
       },
       { autoSelectCards: true, autoChooseOption: true, autoOrderCards: true },
     );
+    s.state.memory = 5;
+    await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("blimpmon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blimpmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tamer").instanceId));
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("tamer").instanceId);
     expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("miss1").instanceId, s.inst("miss2").instanceId].sort(),
+    );
+    expect(s.state.memory).toBe(0);
   });
 
   it("may place the selected eligible card under a Machine Digimon instead", async () => {
@@ -66,10 +75,13 @@ describe("BT24-058 Blimpmon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
-  it("digivolves from a level-3 TS Digimon for cost 2", async () => {
+  it.each([
+    ["normal black level-3 requirement", "BT11-036", false],
+    ["alternate TS requirement", "BT24-043", true],
+  ])("uses the %s for cost 2", async (_label, baseCard, useAlternateCost) => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT24-043", as: "ts" }],
+        battleArea: [{ card: baseCard, as: "base" }],
         hand: [{ card: "BT24-058", as: "blimpmon" }],
       },
     });
@@ -79,11 +91,12 @@ describe("BT24-058 Blimpmon", () => {
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
-        permanentId: s.perm("ts").permanentId,
+        permanentId: s.perm("base").permanentId,
         instanceId: s.inst("blimpmon").instanceId,
+        ...(useAlternateCost ? { useAlternateCost: true, alternateRequirementIndex: 0 } : {}),
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("ts").topCard.instanceId === s.inst("blimpmon").instanceId);
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("blimpmon").instanceId);
 
     expect(s.state.memory).toBe(3);
   });
