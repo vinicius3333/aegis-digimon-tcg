@@ -118,7 +118,7 @@ describe("BT26-040 Drimogemon", () => {
       },
     });
     await s.ready();
-    expect(observe(s.engine).hasKeyword(s.perm("host"), "Piercing")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
     expect([...s.perm("standalone").keywords]).toEqual(expect.arrayContaining(["Training", "Piercing"]));
   });
 });
