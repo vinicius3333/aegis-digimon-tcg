@@ -416,6 +416,13 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
         for (const id of ids) ctx.fx.restrict(id, "cantBeBlocked", grantDuration);
         return false;
       }
+      if (typeof action.grant === "object" && action.grant !== null && action.grant.keyword !== undefined) {
+        const duration = toDuration(action.duration ?? "permanent");
+        for (const id of ids) {
+          ctx.fx.grantKeyword(id, action.grant.keyword, duration, action.grant.amount, { sourceCardId: ctx.source.cardId });
+        }
+        return false;
+      }
       // "dpReductionImmunity" (BT11-069): "can't have its DP reduced by your opponent's
       // effects" — dpImmune scoped to the opponent. An optional "DeDigivolveImmunity" token
       // layers on the (unscoped, per the printed "isn't affected by <De-Digivolve> effects")

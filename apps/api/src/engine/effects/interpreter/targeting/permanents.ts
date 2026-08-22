@@ -408,7 +408,11 @@ export async function resolvePermanentTargets(
   }
 
   const want = effectiveTargetCount(ctx, target);
-  if (candidates.length <= want && !target.upTo && (target as Target & { forceSelection?: boolean }).forceSelection !== true) {
+  if (candidates.length < want && !target.upTo) {
+    ctx.lastResolvedPermanentIds = [];
+    return [];
+  }
+  if (candidates.length === want && !target.upTo && (target as Target & { forceSelection?: boolean }).forceSelection !== true) {
     const result = finalize(candidates.map((p) => p.permanentId));
     ctx.lastResolvedPermanentIds = result;
     return result;

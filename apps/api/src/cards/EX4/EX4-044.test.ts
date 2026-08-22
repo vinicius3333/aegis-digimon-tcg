@@ -14,7 +14,7 @@ describe("EX4-044 Greymon", () => {
 
   it("can digivolve another own Digimon into a Garurumon from hand", async () => {
     const s = setupEngine({
-      0: { hand: [{ card: "EX4-043", as: "garurumon" }], battleArea: [{ card: "EX4-044", as: "source" }, { card: "BT1-009", as: "other" }] },
+      0: { hand: [{ card: "EX4-043", as: "garurumon" }], battleArea: [{ card: "EX4-044", as: "source" }, { card: "BT10-058", as: "other" }] },
     }, { autoSelectCards: true, autoAcceptOptional: true });
     s.state.memory = 10;
 

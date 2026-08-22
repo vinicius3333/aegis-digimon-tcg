@@ -93,15 +93,13 @@ describe("EX4-037 BlackMegaGargomon", () => {
     const grants: unknown[][] = [];
     await effect.resolve({
       source,
+      trigger: {},
       game,
       ask: { chooseTargets: async () => ["first", "second"] },
       fx: { grantKeyword: (...args: unknown[]) => grants.push(args) },
     } as unknown as EffectContext);
-    expect(grants).toEqual([
-      ["first", "Blocker", expect.anything()],
-      ["first", "Reboot", expect.anything()],
-      ["second", "Blocker", expect.anything()],
-      ["second", "Reboot", expect.anything()],
+    expect(grants.map(([id, keyword]) => [id, keyword])).toEqual([
+      ["first", "Blocker"], ["second", "Blocker"], ["first", "Reboot"], ["second", "Reboot"],
     ]);
   });
 });
