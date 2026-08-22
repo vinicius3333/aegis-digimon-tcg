@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { getCompiledCard } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCompiledCard } from "@aegis/shared";
 import "./BT26-060.js";
 
 describe("BT26-060 compiled fidelity", () => {
   it("encodes printed keywords, Succession, the deck-add delete watcher, and the explicit stacked-return seam", () => {
+    expect(digivolutionRequirementsFor("BT26-060")).toEqual([
+      { level: 6, texts: ["Chronomon"], cost: 5, isAlternate: true },
+      { level: 6, namesExact: ["Giant Slayer"], cost: 5, isAlternate: true },
+    ]);
     const card = getCompiledCard("BT26-060");
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);

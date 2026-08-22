@@ -15,7 +15,10 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [{ level: 6, names: ["Chronomon", "Giant Slayer"], cost: 5, isAlternate: true }],
+  digivolutionRequirement: [
+    { level: 6, texts: ["Chronomon"], cost: 5, isAlternate: true },
+    { level: 6, namesExact: ["Giant Slayer"], cost: 5, isAlternate: true },
+  ],
 };
 
 registerIrCard("BT26-060", compiled);
