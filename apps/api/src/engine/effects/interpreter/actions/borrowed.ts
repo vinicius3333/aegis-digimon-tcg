@@ -279,7 +279,10 @@ export async function runUseOptionWithoutCost(
   // Option's ORIGINAL use cost so a whenOptionUsed watcher can gate on "a cost of 2 or more"
   // (BT19-040; KB Q5471-Q5473 read the cost itself, not the paid/reduced value).
   const usedCost = chosenCard ? ctx.game.definitionOf({ cardId: chosenCard.cardId } as never).playCost : undefined;
-  await ctx.fx.useOptionFromHand(ctx, chosenId, usedCost);
+  await ctx.fx.useOptionFromHand(ctx, chosenId, usedCost, {
+    payCost: action.payCost,
+    ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
+  });
   ctx.lastOptionUsed = true;
 }
 
