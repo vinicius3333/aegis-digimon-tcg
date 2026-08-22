@@ -2,8 +2,6 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./BT21-086.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./BT21-086.js";
-import { compiled } from "./BT21-086.js";
 
 describe("BT21-086 Marcus Damon", () => {
   it("registers the three printed timing windows and a real On Play suspension effect", () => {
