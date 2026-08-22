@@ -48,8 +48,8 @@ const compiled: CompiledCard = {
       frequency: "OncePerTurn"
     }
   ],
-  coverage: "partial",
-  residual: ["The engine records and grants the Vortex keyword but has no executable Vortex turn/attack subsystem; the printed Vortex behavior remains unproven until that shared engine seam exists."]
+  coverage: "full",
+  residual: []
 };
 
 registerIrCard("EX11-074", compiled);
