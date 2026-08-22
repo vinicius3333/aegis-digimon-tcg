@@ -5,7 +5,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { activated } from "../../engine/effects/builders.js";
 import { registerCard, unregisterCard } from "../../engine/effects/registry.js";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import "../index.js";
+import "./index.js";
 
 // A3 for BT22-092 (Jimmy KEN):
 //   [Start of Your Turn] If you have 2 or less memory, set your memory to 3.

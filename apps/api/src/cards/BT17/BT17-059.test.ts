@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-059.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT17-059 Diaboromon", () => {
   it("redirects an opponent's attack once per turn to one of your named Diaboromon", () => {

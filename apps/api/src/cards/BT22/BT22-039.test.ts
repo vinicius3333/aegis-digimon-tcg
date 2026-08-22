@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-039.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT22-039 Ouranosmon", () => {
   it("keeps Alliance/Link +1, shared once-per-turn play effects, and links an Appmon from this stack to an owned Digimon", () => {

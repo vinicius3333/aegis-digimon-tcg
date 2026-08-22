@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-088.js";
+import "./BT13-091.js";
 
 describe("BT13-088 Belphemon: Sleep Mode", () => {
   it("requires placing Belphemon: Rage Mode from trash before restricting attacks and granting immunity", () => {
@@ -44,5 +48,15 @@ describe("BT13-088 Belphemon: Sleep Mode", () => {
       abortOnDecline: true,
       cost: { kind: "trash", target: { filter: { zone: "hand", controller: "mine" }, count: 2 } },
     });
+  });
+
+  it("places Rage Mode from trash before granting the play restrictions", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT13-088", as: "sleep" }], trash: [{ card: "BT13-091", as: "rage" }] } },
+      { autoAcceptOptional: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sleep"));
+    await settle(() => s.perm("sleep").stack.some((card) => card.cardId === "BT13-091"));
+    expect(s.perm("sleep").stack.at(-1)?.cardId).toBe("BT13-091");
   });
 });
