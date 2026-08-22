@@ -71,9 +71,9 @@ describe("AD1-018 LordKnightmon", () => {
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lord").instanceId })).toEqual({ ok: true });
     await settle();
-    const continuous = (s.engine as unknown as { continuous: { hasRestriction(id: string, restriction: string): boolean } }).continuous;
-    await settle(() => continuous.hasRestriction(s.perm("protected").permanentId, "beAffected"));
-    expect(continuous.hasRestriction(s.perm("protected").permanentId, "beAffected")).toBe(true);
+    const continuous = (s.engine as unknown as { continuous: { hasRestriction(id: string, restriction: string, sourceKind?: string): boolean } }).continuous;
+    await settle(() => continuous.hasRestriction(s.perm("protected").permanentId, "beAffected", "Digimon"));
+    expect(continuous.hasRestriction(s.perm("protected").permanentId, "beAffected", "Digimon")).toBe(true);
   });
 
   it("de-digivolves before deleting the promoted low-cost attacker from security (Q6095)", async () => {
