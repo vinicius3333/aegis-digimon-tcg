@@ -16,6 +16,15 @@ describe("BT26-035 Morphomon", () => {
           ],
         }),
         expect.objectContaining({ trigger: "WhenMoving" }),
+        expect.objectContaining({
+          trigger: "YourTurn",
+          isInherited: true,
+          actions: [expect.objectContaining({
+            kind: "SubTrigger",
+            event: "whenBattleWon",
+            sourceFilter: { isSelfRef: true },
+          })],
+        }),
       ]),
     );
   });
@@ -34,5 +43,46 @@ describe("BT26-035 Morphomon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("morphomon"));
 
     expect(s.perm("opponent").isSuspended).toBe(true);
+  });
+
+  it("inherited evolution ignores an ally's battle win and reacts only when its own host wins", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-035", as: "host", dp: 10000, under: [{ card: "BT26-035", as: "source" }] },
+            { card: "BT1-009", as: "ally", dp: 10000 },
+          ],
+          hand: [{ card: "BT1-073", as: "evolution" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "allyVictim", dp: 1000, suspended: true },
+            { card: "BT1-011", as: "hostVictim", dp: 1000, suspended: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("ally").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("allyVictim").permanentId },
+    })).toEqual({ ok: true });
+    await new Promise<void>((resolve) => queueMicrotask(resolve));
+    expect(s.perm("host").topCard.cardId).toBe("BT26-035");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolution").instanceId);
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("host").permanentId,
+      target: { kind: "permanent", permanentId: s.perm("hostVictim").permanentId },
+    })).toEqual({ ok: true });
+    for (let i = 0; i < 20 && s.perm("host").topCard.cardId !== "BT1-073"; i += 1) await Promise.resolve();
+
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("evolution").instanceId);
+    expect(s.state.memory).toBe(0);
   });
 });
