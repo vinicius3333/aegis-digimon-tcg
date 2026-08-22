@@ -3,6 +3,9 @@ import { setupEngine } from "../../engine/testkit/harness.js";
 import { settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-112.js";
+import "./BT13-007.js";
+import "./BT13-040.js";
+import "./BT13-111.js";
 
 describe("BT13-112 Omnimon", () => {
   it("has complete compiled coverage and no residual gaps", () => {
