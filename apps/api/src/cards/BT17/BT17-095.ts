@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Main",
@@ -41,11 +41,26 @@ const compiled: CompiledCard = {
       ]
     },
     {
+      "trigger": "Main",
+      "actions": [
+        {
+          "kind": "DnaDigivolve",
+          "materials": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+          "looseMaterials": { "filter": { "zone": "hand", "controller": "mine", "kind": ["Digimon"] }, "count": 1, "from": ["hand"] },
+          "into": { "controllerDefault": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Omnimon"], "match": "name" }] },
+          "payCost": false,
+          "optional": true
+        }
+      ],
+      "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }]
+    },
+    {
       "trigger": "AllTurns",
       "actions": [
         {
           "kind": "Replacement",
           "event": "wouldLeavePlay",
+          "leaveCause": "otherThanBattle",
           "sourceFilter": {
             "controller": "mine",
             "kind": [
@@ -81,35 +96,6 @@ const compiled: CompiledCard = {
               "duration": "permanent"
             }
           ]
-        },
-        {
-          "kind": "DnaDigivolve",
-          "materials": {
-            "filter": {
-              "zone": "hand",
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Omnimon"
-                ],
-                "match": "name"
-              }
-            ]
-          },
-          "payCost": true,
-          "optional": true
         }
       ]
     },

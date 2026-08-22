@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Main",
@@ -64,8 +64,11 @@ const compiled: CompiledCard = {
                   }
                 ]
               },
-              "count": 1
+              "count": 1,
+              "topCardOnly": true
             },
+            "destination": "security",
+            "position": "top",
             "raw": "By placing the top card of 1 of your level 4 or higher Digimon with [Pulsemon] in its text on top of your security stack"
           },
           "optional": true,

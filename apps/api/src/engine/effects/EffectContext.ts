@@ -1375,6 +1375,8 @@ export interface SubTriggerInstall {
 export interface ReplacementInstallBase {
   event: ReplacementEventName;
   sourcePermanentId?: string;
+  /** Anchor for a replacement sourced from a loose card in hand/trash. */
+  sourceInstanceId?: string;
   /** Stable per-turn budget key for a persistent `[Once Per Turn]` replacement. */
   oncePerTurnKey?: string;
   /**

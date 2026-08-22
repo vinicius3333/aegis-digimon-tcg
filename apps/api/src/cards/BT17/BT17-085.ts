@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "StartOfYourMainPhase",
@@ -19,7 +19,8 @@ const compiled: CompiledCard = {
               "controllerDefault": "opponent",
               "kind": [
                 "Digimon"
-              ]
+              ],
+              "nameOrTrait": [{ "tokens": ["Renamon"], "match": "name" }]
             },
             "raw": "your opponent has a Digimon"
           }
@@ -36,7 +37,8 @@ const compiled: CompiledCard = {
               "controllerDefault": "mine",
               "kind": [
                 "Digimon"
-              ]
+              ],
+              "nameOrTrait": [{ "tokens": ["Renamon"], "match": "name" }]
             },
             "count": 1
           },
@@ -86,7 +88,25 @@ const compiled: CompiledCard = {
             "position": "bottom",
             "host": "target"
           },
-          "abortOnDecline": true
+          "abortOnDecline": true,
+          "additionalCosts": [
+            {
+              "kind": "place",
+              "target": { "filter": { "zone": "trash", "controller": "mine", "nameOrTrait": [{ "tokens": ["Kyubimon"], "match": "name" }] }, "count": 1, "from": ["trash"] },
+              "underFilter": { "controller": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Renamon"], "match": "name" }] },
+              "destination": "digivolutionStack",
+              "position": "bottom",
+              "host": "target"
+            },
+            {
+              "kind": "place",
+              "target": { "filter": { "zone": "trash", "controller": "mine", "nameOrTrait": [{ "tokens": ["Taomon"], "match": "name" }] }, "count": 1, "from": ["trash"] },
+              "underFilter": { "controller": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Renamon"], "match": "name" }] },
+              "destination": "digivolutionStack",
+              "position": "bottom",
+              "host": "target"
+            }
+          ]
         },
         {
           "kind": "Return",

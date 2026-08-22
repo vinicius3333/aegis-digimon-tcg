@@ -9,7 +9,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   (Can gain up to 2 memory if you have both; Q&A Q2855)
 // [End of Your Turn] Once per turn, you may have 1 of your unsuspended Digimon with
 //   [Omnimon] in its name attack your opponent directly.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "AllTurns",
