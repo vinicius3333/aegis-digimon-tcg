@@ -3593,7 +3593,7 @@ describe("BT12-014 — dynamic DP deletion budget", () => {
         instanceId: omniShoutmon.instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => !p1.battleArea.some((p) => p.permanentId === dp5000.permanentId));
+    await settle(() => !p1.battleArea.some((p) => p.permanentId === dp3000a.permanentId));
 
     expect(p1.battleArea.some((p) => p.permanentId === dp3000a.permanentId)).toBe(false);
     expect(p1.battleArea.some((p) => p.permanentId === dp3000b.permanentId)).toBe(false);
