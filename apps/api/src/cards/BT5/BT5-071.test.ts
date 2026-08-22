@@ -1,8 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT5-071.js";
 
 describe("BT5-071 Guilmon", () => {
+  it("has complete residual-free runtime coverage", () => {
+    expect(runtimeCompiledCard("BT5-071")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("gains 1 memory when deleted by an effect", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT5-071", as: "guilmon" }] } });
     await (s.engine as any).primitives.deletePermanent([s.perm("guilmon").permanentId], "byEffect");
