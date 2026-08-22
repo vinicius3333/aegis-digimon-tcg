@@ -57,7 +57,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
         const trashed = ctx.lastTrashedCards ?? [];
         const grantDuration = toDuration(action.duration ?? "forTheTurn");
         for (const record of trashed) {
-          const colors = ctx.game.definitionOf({ cardId: record.cardId } as never).colors;
+          const colors = ctx.game.definitionOf(record.cardId).colors;
           for (const id of ids) {
             for (const color of colors) ctx.fx.addColorGrant(id, color, grantDuration);
           }
