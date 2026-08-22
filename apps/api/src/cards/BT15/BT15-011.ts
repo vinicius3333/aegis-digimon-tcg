@@ -39,9 +39,10 @@ const compiled: CompiledCard = {
             {
               "filter": {
                 "controllerDefault": "mine",
-                "kind": [
-                  "Tamer"
-                ]
+              "kind": [
+                "Tamer"
+              ],
+              "nameOrTrait": [{ "tokens": ["SoC"], "match": "trait" }]
               },
               "count": 1,
               "to": "hand"
