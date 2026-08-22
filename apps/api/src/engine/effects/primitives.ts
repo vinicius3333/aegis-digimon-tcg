@@ -3231,7 +3231,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
    */
   const returnToDeck = async (
     instanceIds: string[],
-    opts?: { toTop?: boolean; byEffectSeat?: Seat },
+    opts?: { toTop?: boolean; byEffectSeat?: Seat; byEffectCardId?: string },
   ): Promise<CardInstance[]> => {
     instanceIds = filterLockedStackReturns(instanceIds, opts?.byEffectSeat ?? effectSeatStack.at(-1));
     instanceIds = await filterBouncePrevented(instanceIds);
@@ -3328,6 +3328,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         await engine.fireSubTrigger?.("whenEffectAddsToDeck", {
           effectAddedToDeckSeat: seat,
           effectAddedToDeckBySeat: effectSeatStack.at(-1) ?? engine.controllerSeat(),
+          ...(opts?.byEffectCardId !== undefined ? { byEffectCardId: opts.byEffectCardId } : {}),
         });
       }
     }
