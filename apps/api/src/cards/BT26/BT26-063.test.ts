@@ -1,4 +1,4 @@
-import { CardColor, CardKind, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
+import { CardColor, CardKind, digivolutionRequirementsFor, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
 import { describe, expect, it, vi } from "vitest";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives, SubTriggerInstall } from "../../engine/effects/EffectContext.js";
@@ -58,6 +58,11 @@ async function installedWatcher(cardSource: CardSource): Promise<SubTriggerInsta
 }
 
 describe("BT26-063 Tellermon", () => {
+  it("exposes the Appmon evolution and Link requirements", () => {
+    expect(digivolutionRequirementsFor("BT26-063")).toContainEqual({ level: 2, traits: ["Appmon"], cost: 0, isAlternate: true });
+    expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 3 }]);
+  });
+
   it("encodes the linked reveal and lowest-level deletion effects in IR", () => {
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "YourTurn",
