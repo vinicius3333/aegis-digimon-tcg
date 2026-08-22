@@ -12,6 +12,6 @@ export const compiled: CompiledCard = { effects: [
     { kind: "ModifyDP", target: grantTarget, amount: 3000, duration: "untilEachTurnEnd" },
   ] }] },
   { trigger: "Static", isLinked: true, actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true }, actions: [{ kind: "DeDigivolve", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, amount: 2 }] }] },
-], coverage: "full", residual: [] };
+], coverage: "full", residual: [], digivolutionRequirement: [{ level: 2, traits: ["Appmon"], cost: 0, isAlternate: true }], linkRequirement: [{ traits: ["Appmon"], cost: 3 }] };
 registerIrCard("BT26-051", compiled);
 export default compiled;
