@@ -74,6 +74,8 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
       return effect.attackScope === "ally" ? EffectTiming.OnAllyAttack : EffectTiming.OnUseAttack;
     case "WhenBlocked":
       return EffectTiming.OnBlockAnyone;
+    case "OnSecurityCheck":
+      return EffectTiming.OnSecurityCheck;
     case "OnDeletion":
       return EffectTiming.OnDestroyedAnyone;
     case "EndOfAttack":

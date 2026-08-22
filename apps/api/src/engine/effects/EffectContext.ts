@@ -739,6 +739,8 @@ export interface Primitives {
    * sequences before control returns (WR-01). Non-link trashes resolve synchronously-fast.
    */
   trash(instanceIds: string[], opts?: { byEffectSeat?: Seat }): Promise<CardInstance[]>;
+  /** Trash a breeding permanent as a whole without treating the move as deletion. */
+  trashBreedingPermanent?(seat: Seat, opts?: { byEffectSeat?: Seat }): Promise<CardInstance[]>;
   /**
    * Trash digivolution-stack cards (`instanceIds`) of `hostPermanentId` BY AN EFFECT, firing the
    * whenDigivolutionTrashed SubTrigger once per card actually trashed (carrying the host as the

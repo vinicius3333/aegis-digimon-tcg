@@ -1902,6 +1902,34 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     return moved;
   };
 
+  /** Trash the complete breeding stack without firing deletion windows. */
+  const trashBreedingPermanent = async (seat: Seat, opts?: { byEffectSeat?: Seat }): Promise<CardInstance[]> => {
+    const owner = player(seat);
+    const permanent = owner.breeding;
+    if (permanent?.topCard === undefined || isRestricted(permanent.permanentId, "beTrashed")) return [];
+    owner.breeding = undefined;
+    dropPermanentLedgers(permanent.permanentId);
+    const moved = [permanent.topCard, ...permanent.stack, ...permanent.linked];
+    for (const card of moved) {
+      card.faceUp = true;
+      insertCard(player(card.ownerSeat), Zone.Trash, card);
+    }
+    applyOverflow(engine.memory, moved, state.turnSeat);
+    engine.emit({
+      kind: "cardsMoved",
+      instanceIds: moved.map((card) => card.instanceId),
+      from: Zone.Breeding,
+      to: Zone.Trash,
+    });
+    if (opts?.byEffectSeat !== undefined) {
+      await engine.fireSubTrigger?.("whenTrashedByEffect", {
+        trashedByEffectPermanentId: permanent.permanentId,
+        byEffectSeat: opts.byEffectSeat,
+      });
+    }
+    return moved;
+  };
+
   /**
    * Trash digivolution-stack cards of `hostPermanentId` BY AN EFFECT (the producing site for
    * the whenDigivolutionTrashed SubTrigger; KB P-004 Q4113). Moves the cards via `trash`, then
@@ -4405,6 +4433,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     placeAsTopFromEggDeck,
     link,
     trash,
+    trashBreedingPermanent,
     trashDigivolutionCards,
     trashDigivolutionCardsAtomic,
     canTrashDigivolutionCard,

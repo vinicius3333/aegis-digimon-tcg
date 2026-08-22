@@ -26,7 +26,15 @@ export async function runRecoverByTrashingMostSecurity(
 }
 
 export async function runRecover(ctx: EffectContext, action: Extract<Action, { kind: "Recover" }>): Promise<void> {
-  await ctx.fx.recoverToSecurity(ctx.source.ownerSeat, action.amount ?? 1);
+  const seat = ctx.source.ownerSeat;
+  if (action.untilSecurityCount === undefined) {
+    await ctx.fx.recoverToSecurity(seat, action.amount ?? 1);
+    return;
+  }
+  while (ctx.game.player(seat).security.length < action.untilSecurityCount) {
+    const moved = await ctx.fx.recoverToSecurity(seat, action.amount ?? 1);
+    if (moved.length === 0) break;
+  }
 }
 
 /** Security-stack manipulation: shuffle / trash top N / place cards as security. */
@@ -45,10 +53,9 @@ export async function runSecurityManipulation(
         const amount =
           action.leaveCount !== undefined
             ? Math.max(0, ctx.game.player(s).security.length - action.leaveCount)
-            : action.amount ?? 1;
+            : (action.amount ?? 1);
         if (amount > 0) await ctx.fx.trashFromSecurity(s, amount, { fromTop: true });
-      }
-      else ctx.fx.shuffleSecurity(s);
+      } else ctx.fx.shuffleSecurity(s);
     }
     return;
   }
@@ -117,8 +124,12 @@ export async function runSecurityManipulation(
               })
             : [];
       }
+      const fromTop =
+        action.chooseTopOrBottom === true
+          ? (await ctx.ask.chooseOption(ctx, ["Security Top", "Security Bottom"])) === 0
+          : true;
       const trashed = await ctx.fx.trashFromSecurity(seat, amount, {
-        fromTop: true,
+        fromTop,
         ...(selectedSecurityIds !== undefined ? { instanceIds: selectedSecurityIds } : {}),
       });
       ctx.lastEffectActed = trashed.length > 0;

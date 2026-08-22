@@ -42,6 +42,12 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   if (cost.kind === "compound") {
     return cost.costs !== undefined && cost.costs.length > 0 && cost.costs.every((nested) => canPayCost(ctx, nested));
   }
+  if (cost.kind === "trashBreeding") {
+    const breeding = ctx.game.player(ctx.source.ownerSeat).breeding;
+    if (breeding?.topCard === undefined) return false;
+    const definition = ctx.game.definitionOf(breeding.topCard);
+    return definition.kinds.includes(CardKind.Digimon) || definition.kinds.includes(CardKind.DigiEgg);
+  }
   if (cost.kind === "trashBottomFaceDownUnderTamer") {
     const seat = cost.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
     const candidates = ctx.game.player(seat).battleArea.filter((permanent) => {
@@ -232,6 +238,16 @@ export async function payCost(
         if (!(await payCost(ctx, nested, undefined, opts))) return false;
       }
       return true;
+    }
+    case "trashBreeding": {
+      const breeding = ctx.game.player(ctx.source.ownerSeat).breeding;
+      if (breeding?.topCard === undefined) return false;
+      const definition = ctx.game.definitionOf(breeding.topCard);
+      if (!definition.kinds.includes(CardKind.Digimon) && !definition.kinds.includes(CardKind.DigiEgg)) return false;
+      const moved = await ctx.fx.trashBreedingPermanent?.(ctx.source.ownerSeat, {
+        byEffectSeat: ctx.source.ownerSeat,
+      });
+      return (moved?.length ?? 0) > 0;
     }
     case "trashBottomFaceDownUnderTamer": {
       const seat = cost.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;

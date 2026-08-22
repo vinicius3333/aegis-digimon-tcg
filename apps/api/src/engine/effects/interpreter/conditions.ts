@@ -208,12 +208,14 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const seat = cond.seat === "opponent" ? opp : mine;
       const player = ctx.game.player(seat);
       const zone = cond.zone ?? "hand";
-      const size = zone === "battleArea"
-        ? player.battleArea.filter((permanent) =>
-            permanent.topCard !== undefined &&
-            (cond.filter === undefined || definitionMatches(cond.filter, ctx.game.definitionOf(permanent.topCard))),
-          ).length
-        : player[zone].length;
+      const size =
+        zone === "battleArea"
+          ? player.battleArea.filter(
+              (permanent) =>
+                permanent.topCard !== undefined &&
+                (cond.filter === undefined || definitionMatches(cond.filter, ctx.game.definitionOf(permanent.topCard))),
+            ).length
+          : player[zone].length;
       const value = cond.value ?? 0;
       if (cond.op === "eq") return size === value;
       if (cond.op === "lt") return size < value;
@@ -619,6 +621,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     case "triggerSecurityIsYours":
       // whenAddSecurity: the stack that grew is the watcher controller's own (documented behavior
       return ctx.trigger.addedToSecuritySeat === mine;
+    case "triggerSecurityIsOpponents":
+      return ctx.trigger.addedToSecuritySeat === opp;
     case "triggerAddedSecurityHasTrait":
       // whenAddSecurity: at least one card just added to security is FACE-UP and matches the
       // A face-down add (＜Recovery＞) never satisfies the gate.

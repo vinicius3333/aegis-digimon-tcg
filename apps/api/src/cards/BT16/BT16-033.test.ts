@@ -1,75 +1,63 @@
-import { describe, it, expect } from "vitest";
-import { EffectTiming, CardKind, CardColor, type Seat } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import "./BT16-033.js";
+import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT16-033.js";
+import "../index.js";
 
-// BT16-033 — Harpymon (Yellow Lv.4 Digimon).
-//
-// Implementable clause: <Armor Purge> static keyword (EffectTiming.None).
-// OnSecurityCheck is a normal timing fired for each security check and carries
-// the attacking permanent id, so both branches are directly executable.
-
-function makeSource(overrides: Partial<CardSource> = {}): CardSource {
-  return {
-    instanceId: "INST#BT16-033",
-    cardId: "BT16-033",
-    ownerSeat: 0 as Seat,
-    definition: {
-      cardId: "BT16-033",
-      set: "BT16",
-      nameEn: "Harpymon",
-      kinds: [CardKind.Digimon],
-      colors: [CardColor.Yellow],
-      playCost: 5,
-      dp: 5000,
-      evoCosts: [],
-      maxCountInDeck: 4,
-    },
-    permanent: () => undefined,
-    isOnBattleArea: () => true,
-    isOwnersTurn: () => true,
-    hasColor: (c) => c === CardColor.Yellow,
-    ...overrides,
-  };
-}
+const HARPYMON = "BT16-033";
+const NEUTRAL = "BT1-009";
 
 describe("BT16-033 Harpymon", () => {
-  const module = getEffectModule("BT16-033");
-
-  it("is registered", () => {
-    expect(module, "BT16-033 must self-register on import").toBeDefined();
+  it("carries Armor Purge and the exact Hawkmon evolution route", () => {
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "Static",
+      keywords: [{ keyword: "Armor Purge" }],
+    });
+    expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Hawkmon"], cost: 2, isAlternate: true }]);
   });
 
-  it("has cardId BT16-033", () => {
-    expect(module!.cardId).toBe("BT16-033");
+  it("gains 1 memory when this Digimon checks with 3 security cards", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: HARPYMON, as: "harpymon" }],
+        security: [NEUTRAL, NEUTRAL, NEUTRAL],
+      },
+      1: { security: [NEUTRAL] },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("harpymon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]?.security).toHaveLength(3);
   });
 
-  // <Armor Purge> is a static keyword routed to EffectTiming.None.
-  it("exposes exactly one effect at EffectTiming.None (Armor Purge)", () => {
-    const source = makeSource();
-    expect(module!.effectsForTiming(EffectTiming.None, source)).toHaveLength(1);
-  });
+  it("recovers 1 instead when this Digimon checks with 2 security cards", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: HARPYMON, as: "harpymon" }],
+        deck: [NEUTRAL],
+        security: [NEUTRAL, NEUTRAL],
+      },
+      1: { security: [NEUTRAL] },
+    });
 
-  it("Armor Purge effect key contains 'armor-purge'", () => {
-    const source = makeSource();
-    const effects = module!.effectsForTiming(EffectTiming.None, source);
-    expect(effects[0]?.effectKey).toContain("armor-purge");
-  });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("harpymon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
 
-  // No effects at timings this card does not implement.
-  it("returns no effects at OnPlay", () => {
-    expect(module!.effectsForTiming(EffectTiming.OnPlay, makeSource())).toHaveLength(0);
-  });
-
-  it("exposes both OnSecurityCheck branches", () => {
-    const effects = module!.effectsForTiming(EffectTiming.OnSecurityCheck, makeSource());
-    expect(effects).toHaveLength(1);
-    expect(effects[0]?.description).toContain("recover 1");
-    expect(effects[0]?.maxPerTurn).toBe(-1);
-  });
-
-  it("returns no effects at WhenDigivolving", () => {
-    expect(module!.effectsForTiming(EffectTiming.WhenDigivolving, makeSource())).toHaveLength(0);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]?.security).toHaveLength(3);
+    expect(s.state.players[0]?.deck).toHaveLength(0);
   });
 });
