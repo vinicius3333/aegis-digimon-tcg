@@ -27,6 +27,19 @@ describe("BT12-101 handwritten module", () => {
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnUseOption, source).length).toBeGreaterThan(0);
   });
+
+  it("keeps the compiled Main and Security semantics aligned with the catalog", async () => {
+    const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
+    const card = runtimeCompiledCard("BT12-101")!;
+    expect(card.coverage).toBe("full");
+    expect(card.residual).toEqual([]);
+    expect(card.effects.find((effect) => effect.trigger === "OnUseOption")).toMatchObject({
+      actions: [{ kind: "TrashDigivolution", amount: 3 }],
+    });
+    expect(card.effects.find((effect) => effect.trigger === "SecuritySkill")).toMatchObject({
+      actions: [{ kind: "SubTrigger" }],
+    });
+  });
 });
 
 it("registers the printed Security activation for BT12-101", () => {
