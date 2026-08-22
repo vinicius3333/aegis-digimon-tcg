@@ -143,6 +143,11 @@ describe("playCostLte — 'play cost N or less' actually bounds the candidate po
  * because `nameOrTrait` arrays are OR-ed.
  */
 describe("nameOrTrait — name/trait gates actually reject non-matching cards", () => {
+  it("accepts a legacy single-string trait filter", () => {
+    expect(definitionMatches({ trait: "Mamemon" } as Filter, facts({ types: ["Mamemon"] }))).toBe(true);
+    expect(definitionMatches({ trait: "Mamemon" } as Filter, facts({ types: ["Reptile"] }))).toBe(false);
+  });
+
   it("BT13-019 plays only a [Sistermon] (nameContains)", () => {
     assertKeysGone("BT13-019", ["nameContains"]);
     const filter = filterWith("BT13-019", "nameOrTrait");
