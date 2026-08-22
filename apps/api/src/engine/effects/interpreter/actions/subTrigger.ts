@@ -793,7 +793,10 @@ export async function runSubTrigger(
             subCtx,
             action.raw ?? activationCost?.raw ?? "Activate this triggered effect?",
           );
-          if (!yes) return;
+          if (!yes) {
+            subCtx.oncePerTurnActivationDeclined = true;
+            return;
+          }
         }
         if (activationCostOptions.length > 0) {
           if (!(await payOneCostOption(subCtx, activationCostOptions))) return;

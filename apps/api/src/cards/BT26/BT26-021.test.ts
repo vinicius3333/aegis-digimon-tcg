@@ -83,18 +83,19 @@ describe("BT26-021 inherited watcher boundaries", () => {
     };
     const ctx = {
       source: cardSource,
+      trigger: { attackerPermanentId: "attacker" },
       game: {
         player: (seat: Seat) => (seat === 0 ? { hand, battleArea: [] } : { hand: [], battleArea: [target] }),
         opponentOf: () => 1 as Seat,
         permanentById: (permanentId: string) => (permanentId === target.permanentId ? target : undefined),
         definitionOf: () => definition(),
       },
-      ask: { selectCards: async () => [] },
+      ask: { optional: async () => false, selectCards: async () => [] },
       fx: { subscribeSubTrigger: (subscription: SubTriggerInstall) => (watcher = subscription) },
     } as unknown as EffectContext;
 
     await getEffectModule(CARD_ID)!.effectsForTiming(EffectTiming.None, cardSource)[0]!.resolve(ctx);
-    expect(watcher?.matches?.(ctx)).toBe(true);
+    expect(watcher?.matches).toBeUndefined();
     await watcher!.run(ctx);
 
     expect(ctx.oncePerTurnActivationDeclined).toBe(true);
@@ -217,6 +218,7 @@ describe("BT26-021 public engine behavior", () => {
   });
 
   it("on either player's attack pays one hand card, trashes exactly the bottom 2 sources, and is once per turn", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -242,8 +244,9 @@ describe("BT26-021 public engine behavior", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("target").permanentId);
     await s.ready();
 
     await advance(s.engine).fireSubTrigger("whenAttacking", {
