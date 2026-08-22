@@ -425,13 +425,13 @@ export async function runSubTrigger(
           });
         }
       : undefined;
-  // `whenEffectAddsToDeck` ("[Your Turn] when your effects add to decks", BT26-015): mirrors
-  // whenEffectAddsToHand one zone over, fired from returnToDeck's seam (effectAddedToDeckSeat).
-  // "Mine" direction by the same convention (the recipient deck's owner matching the watcher).
+  // `whenEffectAddsToDeck` ("when your effects add to decks", BT26-001/BT26-015) is scoped to
+  // the controller of the effect, not to the owner of the recipient deck. Q6948 explicitly
+  // includes cards added to the opponent's deck by one of your effects.
   const effectAddsToDeckGate =
     event === "whenEffectAddsToDeck"
       ? (subCtx: EffectContext): boolean => {
-          const seat = subCtx.trigger?.effectAddedToDeckSeat;
+          const seat = subCtx.trigger?.effectAddedToDeckBySeat;
           return seat !== undefined && seat === subCtx.source.ownerSeat;
         }
       : undefined;

@@ -82,7 +82,7 @@ describe("BT26-001 Yokomon", () => {
           deck: ["BT1-002"],
         },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.memory = 3;
     await s.ready();
