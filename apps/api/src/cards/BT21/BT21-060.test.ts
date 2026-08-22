@@ -62,6 +62,7 @@ describe("BT21-060 Destromon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("destromon"));
     await settle(() => s.perm("opponent").stack.length === 0);

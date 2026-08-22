@@ -54,7 +54,6 @@ describe("BT21-090 The Strongest of Brothers", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT21-010"));
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT21-010")).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-090")).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 });

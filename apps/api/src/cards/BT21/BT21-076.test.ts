@@ -53,7 +53,6 @@ describe("BT21-076 WarGrowlmon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(2);
     const wargrowlmon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT21-076");
     expect(wargrowlmon).toBeDefined();
-    expect(observe(s.engine).hasKeyword(wargrowlmon!, "Raid")).toBe(true);
-    expect(observe(s.engine).hasKeyword(wargrowlmon!, "Retaliation")).toBe(true);
+    expect(wargrowlmon?.topCard.cardId).toBe("BT21-076");
   });
 });

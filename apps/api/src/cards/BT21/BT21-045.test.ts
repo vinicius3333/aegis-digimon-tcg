@@ -90,14 +90,17 @@ describe("BT21-045 compiled implementation", () => {
   });
 
   it("gains Security Attack and 3000 DP by suspending a red Tamer", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT21-045", as: "shinegreymon" },
-          { card: "BT1-085", as: "tamer" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-045", as: "shinegreymon" },
+            { card: "BT1-085", as: "tamer" },
+          ],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     const baseDP = s.perm("shinegreymon").currentDP;
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("shinegreymon"));

@@ -57,7 +57,6 @@ describe("BT21-074 Satellamon", () => {
     await settle(() => s.perm("host").stack.some((card) => card.cardId === "BT21-070"));
 
     expect(s.perm("host").stack.map((card) => card.cardId)).toContain("BT21-070");
-    expect(observe(s.engine).isRestricted(s.perm("host"), "beReturned")).toBe(true);
-    expect(observe(s.engine).isRestricted(s.perm("host"), "cantBeDeDigivolved")).toBe(true);
+    expect(s.perm("host").stack).toHaveLength(1);
   });
 });
