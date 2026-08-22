@@ -171,9 +171,16 @@ describe("LM-020 Quantumon", () => {
     }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("quantumon").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "LM-020"));
+    await settle(
+      () =>
+        s.state.players[0]!.security.some((card) => card.cardId === "LM-020") &&
+        s.state.players[1]!.security.length === 1 &&
+        s.state.players[1]!.deck.length === 1,
+    );
     expect(s.state.players[0]!.security.some((card) => card.cardId === "LM-020")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "LM-020")).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.deck).toHaveLength(1);
   });
 
   it("still places the chosen Digimon when the opponent has no security cards", async () => {

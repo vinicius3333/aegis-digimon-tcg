@@ -32,6 +32,7 @@ describe("LM-019 Bokomon", () => {
       0: { battleArea: [{ card: "LM-019", as: "bokomon" }, { card: "AD1-007", as: "gammamon" }] },
     }, { autoAcceptOptional: true, autoSelectCards: true });
     const protectedId = s.perm("gammamon").permanentId;
+    s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();
     const fx = (s.engine as unknown as { primitives: { deletePermanent(ids: string[]): Promise<number> } }).primitives;
     await fx.deletePermanent([protectedId]);

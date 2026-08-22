@@ -124,6 +124,7 @@ const IMPLEMENTED_ACTION_KINDS = {
 } satisfies Record<ActionKind, true>;
 
 const KNOWN_UNIMPLEMENTED_ACTION_KINDS = {
+  DigiXrosExtraMaterial: true,
   AddToHand: true,
   ChooseTarget: true,
   HandSizeReduction: true,
@@ -142,7 +143,7 @@ type CompiledAction = {
   then?: CompiledAction[];
   additionalEffects?: CompiledAction[];
   gainedActions?: CompiledAction[];
-  options?: CompiledAction[][];
+  options?: (CompiledAction | CompiledAction[])[];
 };
 type CompiledCard = { effects?: { actions?: CompiledAction[] }[] };
 
@@ -157,7 +158,11 @@ function collectActionKinds(action: CompiledAction, out: Set<string>): void {
   }
   if (Array.isArray(action.options)) {
     for (const option of action.options) {
-      for (const child of option) collectActionKinds(child, out);
+      if (Array.isArray(option)) {
+        for (const child of option) collectActionKinds(child, out);
+      } else {
+        collectActionKinds(option, out);
+      }
     }
   }
 }

@@ -83,8 +83,15 @@ export interface ReplacementAction extends ActionBase {
    * consumes the grant and trashes the source before the payload runs.
    */
   requiresDelayArmed?: true;
-  /** Prevent only when the replacement payload completed an observable action. */
-  requireActionsActed?: boolean;
+  /**
+   * Play a matching card from this Digimon's digivolution cards or its owner's trash, then
+   * relocate this Digimon beneath the played permanent. The relocation is part of the active
+   * leave replacement, so it must not open a second leave-prevention window.
+   */
+  playAndRelocateSourceUnder?: {
+    filter: Filter;
+    from: ("trash" | "digivolutionCards")[];
+  };
   raw: string;
 }
 

@@ -111,7 +111,12 @@ export async function runSecurityManipulation(
         visibleCards: security.map((card) => ({ instanceId: card.instanceId, cardId: card.cardId })),
       });
       if (selected.length === 0) return;
-      await ctx.fx.returnToDeck(selected, { toTop: true });
+      const selectedIndex = security.findIndex((card) => card.instanceId === selected[0]);
+      if (selectedIndex < 0) return;
+      const [toDeck] = security.splice(selectedIndex, 1);
+      if (toDeck === undefined) return;
+      toDeck.faceUp = false;
+      ctx.game.player(seat).deck.unshift(toDeck);
       ctx.fx.shuffleSecurity(seat);
       ctx.lastEffectActed = true;
       return;

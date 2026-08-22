@@ -182,9 +182,8 @@ export async function runPlaceUnder(
       // primitive only handles loose cards and cannot remove a permanent's top card.
       const sourcePerm = ctx.source.permanent();
       if (sourcePerm !== undefined) {
-        ctx.lastEffectActed = await relocateByEffect(ctx, chosen[0]!, sourcePerm.permanentId, {
-          belowTop: action.position !== "bottom",
-        });
+        const options = { belowTop: action.position !== "bottom" };
+        await relocateByEffect(ctx, chosen[0]!, sourcePerm.permanentId, options);
       } else {
         const placed = await ctx.fx.placeUnder(chosen[0]!, [ctx.source.instanceId], {
           belowTop: action.position !== "bottom",

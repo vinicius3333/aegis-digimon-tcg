@@ -14,11 +14,7 @@ describe("LM-026 Megidramon", () => {
           kind: "Replacement",
           event: "wouldLeavePlay",
           mode: "prevent",
-          requireActionsActed: true,
-          actions: [
-            { kind: "PlayWithoutCost", from: ["digivolutionCards", "trash"], payCost: false },
-            { kind: "PlaceUnder", position: "bottom" },
-          ],
+          playAndRelocateSourceUnder: { from: ["digivolutionCards", "trash"] },
         },
       ],
     });
@@ -31,7 +27,7 @@ describe("LM-026 Megidramon", () => {
     const s = setupEngine({
       0: { hand: [{ card: "LM-026", as: "megidramon" }] },
       1: { battleArea: [{ card: "BT1-081", as: "low" }, { card: "BT1-082", as: "high" }] },
-    }, { autoSelectCards: true });
+    }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 10;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("megidramon").instanceId })).toEqual({ ok: true });
@@ -42,11 +38,22 @@ describe("LM-026 Megidramon", () => {
 
   it("replaces its own leave with a Guilmon host", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "LM-026", as: "megidramon", under: ["BT4-009"] }], trash: ["BT2-009"] },
-    }, { autoSelectCards: true });
+      0: { battleArea: [{ card: "LM-026", as: "megidramon" }], trash: ["BT2-009"] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("megidramon").permanentId], "byEffect");
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT2-009")).toBe(true);
-    expect(s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "BT2-009")!.stack.map((card) => card.cardId)).toEqual(["LM-026", "BT4-009"]);
+    expect(s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "BT2-009")!.stack.map((card) => card.cardId)).toEqual(["LM-026"]);
+  });
+
+  it("can play the Guilmon from its own digivolution cards for the replacement", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "LM-026", under: ["BT2-009"], as: "megidramon" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("megidramon").permanentId], "byEffect");
+    const guilmon = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "BT2-009");
+    expect(guilmon?.stack.map((card) => card.cardId)).toEqual(["LM-026"]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 });

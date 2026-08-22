@@ -38,26 +38,10 @@ export const compiled: CompiledCard = {
           mode: "prevent",
           target: self,
           optional: true,
-          requireActionsActed: true,
-          actions: [
-            {
-              kind: "PlayWithoutCost",
-              target: {
-                filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Guilmon"], match: "name" }] },
-                count: 1,
-              },
-              from: ["digivolutionCards", "trash"],
-              payCost: false,
-              bindResultAs: "playedGuilmon",
-              abortOnDecline: true,
-            },
-            {
-              kind: "PlaceUnder",
-              target: self,
-              underFilter: { controller: "mine", kind: ["Digimon"], lastPlayed: true },
-              position: "bottom",
-            },
-          ],
+          playAndRelocateSourceUnder: {
+            filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Guilmon"], match: "name" }] },
+            from: ["digivolutionCards", "trash"],
+          },
           raw: "play 1 Guilmon and place this Digimon as its bottom digivolution card",
         },
       ],

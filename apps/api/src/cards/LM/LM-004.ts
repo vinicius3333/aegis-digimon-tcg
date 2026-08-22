@@ -10,7 +10,7 @@ const trashTwoBlue = {
 const entranceActions = [
   {
     kind: "Unsuspend" as const,
-    target: { filter: { controller: "mine" as const, kind: ["Digimon" as const] }, count: 1 },
+    target: { filter: { controller: "mine" as const, kind: ["Digimon" as const], suspended: true }, count: 1 },
     cost: trashTwoBlue,
     optional: true,
     abortOnDecline: true,
@@ -21,6 +21,7 @@ const entranceActions = [
       filter: {
         controller: "mine" as const,
         kind: ["Tamer" as const],
+        suspended: true,
         nameOrTrait: [{ tokens: ["Kiyoshiro Higashimitarai"], match: "name" as const }],
       },
       count: 1,
