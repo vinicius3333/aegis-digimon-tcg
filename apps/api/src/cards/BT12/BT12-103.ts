@@ -6,8 +6,14 @@ const main = compiled.effects.find((effect) => effect.trigger === "Main");
 const securityAttackReduction = main?.actions[1];
 if (securityAttackReduction !== undefined) {
   securityAttackReduction.condition = {
-    kind: "selfDigivolutionCountAtLeast",
-    value: 4,
+    kind: "youHave",
+    filter: {
+      zone: "battleArea",
+      controllerDefault: "mine",
+      kind: ["Digimon"],
+      digivolutionCardsAtLeast: 4,
+    },
+    raw: "you have a Digimon with 4 or more digivolution cards in play",
   };
 }
 

@@ -39,6 +39,9 @@ it("gates Security Attack -1 on four or more digivolution cards", async () => {
   const reduction = card.effects.find((effect) => effect.trigger === "Main")?.actions[1];
   expect(reduction).toMatchObject({
     kind: "GainKeyword",
-    condition: { kind: "selfDigivolutionCountAtLeast", value: 4 },
+    condition: {
+      kind: "youHave",
+      filter: { zone: "battleArea", kind: ["Digimon"], digivolutionCardsAtLeast: 4 },
+    },
   });
 });
