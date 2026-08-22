@@ -1340,7 +1340,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                 },
               }),
             ];
-          if (timing === EffectTiming.OnUseAttack || timing === EffectTiming.OnEnterFieldAnyone)
+          if (timing === EffectTiming.OnAllyAttack || timing === EffectTiming.OnEnterFieldAnyone)
             return [
               turnTiming({
                 source,
