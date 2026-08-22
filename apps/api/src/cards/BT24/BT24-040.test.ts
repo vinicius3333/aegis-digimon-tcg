@@ -44,22 +44,34 @@ describe("BT24-040 Venusmon", () => {
 
   it("reduces its actual play cost by 5 at 3 security but not at 4", async () => {
     const reduced = setupEngine({
-      0: { hand: [{ card: "BT24-040", as: "venusmon" }], security: ["BT1-001", "BT1-002", "BT1-003"] },
+      0: { hand: [{ card: "BT24-040", as: "venusmon" }], security: ["BT1-009", "BT1-010", "BT1-011"] },
     });
     reduced.state.memory = 12;
     await reduced.ready();
-    await advance(reduced.engine).verb.playInstances([reduced.inst("venusmon").instanceId]);
+    expect(
+      reduced.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: reduced.inst("venusmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => reduced.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-040"));
     expect(reduced.state.memory).toBe(5);
 
     const full = setupEngine({
       0: {
         hand: [{ card: "BT24-040", as: "venusmon" }],
-        security: ["BT1-001", "BT1-002", "BT1-003", "BT1-004"],
+        security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
       },
     });
     full.state.memory = 12;
     await full.ready();
-    await advance(full.engine).verb.playInstances([full.inst("venusmon").instanceId]);
+    expect(
+      full.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: full.inst("venusmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => full.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-040"));
     expect(full.state.memory).toBe(0);
   });
 
@@ -89,7 +101,7 @@ describe("BT24-040 Venusmon", () => {
     expect(s.perm("stacked").stack).toHaveLength(0);
     for (const permanent of [s.perm("stacked"), s.perm("tamer")]) {
       expect(observe(s.engine).isRestricted(permanent, "suspend")).toBe(true);
-      expect(observe(s.engine).timingEffectDisabled(permanent, "whenDigivolving")).toBe(true);
+      expect(observe(s.engine).isRestricted(permanent, "cannotActivateWhenDigivolving")).toBe(true);
     }
   });
 
@@ -97,15 +109,15 @@ describe("BT24-040 Venusmon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT24-040", as: "venusmon" }],
-        hand: [{ card: "BT1-001", as: "moved" }],
-        security: [{ card: "BT1-002", as: "trashed" }],
+        hand: [{ card: "BT1-009", as: "moved" }],
+        security: [{ card: "BT1-010", as: "trashed" }],
       },
       1: { battleArea: [{ card: "BT24-016", as: "lamiamon" }] },
     });
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("venusmon"));
-    expect(observe(s.engine).timingEffectDisabled(s.perm("lamiamon"), "whenDigivolving")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("lamiamon"), "cannotActivateWhenDigivolving")).toBe(true);
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("lamiamon"));
     expect(s.state.players[0]!.hand).toHaveLength(1);
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("lamiamon"));
@@ -130,7 +142,7 @@ describe("BT24-040 Venusmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.perm("cost").topCard.instanceId);
+    preferred.push(s.perm("cost").permanentId);
     s.state.turnSeat = 1;
     await s.ready();
 
@@ -164,7 +176,7 @@ describe("BT24-040 Venusmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.perm("venusmon").topCard.instanceId);
+    preferred.push(s.perm("venusmon").permanentId);
     s.state.turnSeat = 1;
     await s.ready();
 
@@ -190,7 +202,7 @@ describe("BT24-040 Venusmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.perm("second").topCard.instanceId);
+    preferred.push(s.perm("second").permanentId);
     s.state.turnSeat = 1;
     await s.ready();
 
@@ -205,5 +217,31 @@ describe("BT24-040 Venusmon", () => {
       s.perm("first").permanentId,
     );
     expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("second").instanceId);
+  });
+
+  it.each([
+    ["normal yellow requirement", false, 4],
+    ["alternate TS requirement (Q5604)", true, 3],
+  ])("may use the %s", async (_label, useAlternateCost, expectedCost) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-039", as: "base" }],
+        hand: [{ card: "BT24-040", as: "venusmon" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("venusmon").instanceId,
+        ...(useAlternateCost ? { useAlternateCost: true, alternateRequirementIndex: 0 } : {}),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("venusmon").instanceId);
+
+    expect(s.state.memory).toBe(5 - expectedCost);
   });
 });
