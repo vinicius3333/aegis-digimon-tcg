@@ -28,6 +28,7 @@ describe("BT24-008 Elizamon", () => {
     expect(inherited.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenSecurityRemoved",
+      sourceFilter: { controller: "opponent" },
       fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "opponent" },
     });
     expect(inherited.actions[0].actions[0]).toMatchObject({ kind: "GainMemory", amount: 1 });
@@ -86,6 +87,7 @@ describe("BT24-008 Elizamon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT24-008"] }] } });
     s.state.memory = 0;
     await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
 
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
     expect(s.state.memory).toBe(0);
