@@ -540,10 +540,11 @@ export function permanentMatchesFilter(
   // GameAccess.effectiveKinds is available, check effective kinds first; fall back
   // to the static CardDefinition.kinds when it isn't (test fakes / lightweight calls).
   if (filter.kind?.includes("Digimon")) {
-    const effective = ctx.game.effectiveKinds?.(permanent.permanentId);
+    const effective = ctx.game.effectiveKinds?.(permanent.permanentId, def.kinds) ?? def.kinds;
     if (effective !== undefined) {
       const wanted = filter.kind.map((k) => KIND_MAP[k]);
-      if (!wanted.some((k) => effective.includes(k))) return false;
+      const tokenAsDigimon = filter.allowTokens === true && def.isToken === true && wanted.includes(CardKind.Digimon);
+      if (!tokenAsDigimon && !wanted.some((k) => effective.includes(k))) return false;
       // Strip kind from filter so definitionMatches doesn't double-check against static def.kinds
       const { kind: _k, ...rest } = filter;
       return definitionMatches(rest, def);

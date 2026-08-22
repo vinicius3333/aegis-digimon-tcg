@@ -566,7 +566,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     opts?: { setFixed?: boolean; once?: boolean; continuous?: boolean; onConsume?: (match: EvoCostMatch) => void },
   ): void => {
     ledger.addEvoCostAdjustment(filter, delta, opts?.setFixed ?? false, {
-      ...(opts?.continuous === true ? { continuous: true } : continuousOpt() ?? {}),
+      ...(opts?.continuous === true ? { continuous: true } : (continuousOpt() ?? {})),
       once: opts?.once,
       onConsume: opts?.onConsume,
     });
@@ -2500,7 +2500,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // Default-safe: the consult returns empty unless a matching prevent-replacement is active.
     let toDelete = permanentIds;
     if (engine.consultLeavePrevention) {
-      const prevented = await engine.consultLeavePrevention(permanentIds, cause, engine.controllerSeat());
+      // A nested effect may be resolving for the non-turn player (for example an
+      // opponent's When Digivolving effect).  The turn seat is only the fallback;
+      // leave-cause gates such as "other than by your effects" must see the effect
+      // resolution owner that was pushed by the interpreter.
+      const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
+      const prevented = await engine.consultLeavePrevention(permanentIds, cause, resolvingSeat);
       if (prevented.size > 0) toDelete = permanentIds.filter((id) => !prevented.has(id));
     }
     // ＜Evade＞ keyword: when this Digimon would be deleted by an effect, you MAY suspend
@@ -2562,7 +2567,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
           if (decoyCostPermanentIds.has(permanentId)) continue;
           const perm = access.permanentById(permanentId);
           if (perm === undefined || perm.topCard === undefined) continue;
-          const resolvingSeat = engine.controllerSeat();
+          const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
           if (resolvingSeat === perm.controllerSeat) continue; // must be an OPPONENT's effect
           const targetDef = requireCardDefinition(perm.topCard.cardId);
           const holders = access
@@ -2707,7 +2712,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         if (!continuous.hasKeyword(permanentId, "Scapegoat")) continue;
         const perm = access.permanentById(permanentId);
         if (perm === undefined) continue;
-        if (cause === "byEffect" && engine.controllerSeat() === perm.controllerSeat) continue;
+        const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
+        if (cause === "byEffect" && resolvingSeat === perm.controllerSeat) continue;
         const candidates = access
           .battleAreaPermanents(perm.controllerSeat)
           .filter((p) => p.permanentId !== permanentId && p.topCard !== undefined && access.isBattleAreaDigimon(p));
@@ -2824,7 +2830,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         const perm = access.permanentById(permanentId);
         if (perm === undefined || perm.topCard === undefined) return undefined;
         if (!continuous.hasKeyword(permanentId, "Partition")) return undefined;
-        if (cause === "byEffect" && engine.controllerSeat() === perm.controllerSeat) return undefined;
+        const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
+        if (cause === "byEffect" && resolvingSeat === perm.controllerSeat) return undefined;
         const spec = partitionSpecOf(perm.topCard.cardId);
         if (spec === undefined) return undefined;
         const remaining = [...perm.stack];
