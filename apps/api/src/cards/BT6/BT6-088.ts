@@ -94,7 +94,7 @@ const compiled: CompiledCard = {
           ],
           "costOverride": 3,
           "ignoreRequirements": true,
-          "optional": true
+          "optional": false
         },
         {
           "kind": "SecurityManipulation",
@@ -109,6 +109,8 @@ const compiled: CompiledCard = {
           "kind": "SubTrigger",
           "event": "endOfTurn",
           "once": true,
+          "playerScoped": true,
+          "duration": "untilYourTurnEnd",
           "condition": {
             "kind": "securityAtLeast",
             "value": 1

@@ -35,8 +35,7 @@ const compiled: CompiledCard = {
               "payCost": false
             }
           ],
-          "rest": "trash",
-          "optional": true
+          "rest": "trash"
         },
         {
           "kind": "Delete",
