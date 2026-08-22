@@ -9,7 +9,7 @@ describe("BT13-088 Belphemon: Sleep Mode", () => {
         kind: "Restrict", restriction: "attack", duration: "untilOpponentTurnEnd", optional: true, abortOnDecline: true,
         cost: { kind: "place", destination: "digivolutionStack", position: "top", host: "self", target: { filter: { zone: "trash", controller: "mine", nameOrTrait: [{ match: "name", tokens: ["Belphemon: Rage Mode"] }] }, count: 1 } },
       });
-      expect(actions[1]).toMatchObject({ kind: "GrantImmunity", immuneFrom: "opponentEffects", duration: "untilOpponentTurnEnd" });
+      expect(actions[1]).toMatchObject({ kind: "GrantImmunity", immuneFrom: "opponentEffects", duration: "untilOpponentTurnEnd", condition: { kind: "ifThisEffectActed" } });
     }
   });
 

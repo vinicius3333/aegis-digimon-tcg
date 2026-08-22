@@ -1,30 +1,25 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import "./BT13-089.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT13-089.js";
 
-describe("BT13-089 Ravemon", () => {
-  it("uses the end-of-your-turn effect to delete first and defer Ravemon until the opponent's turn ends", () => {
-    const module = getEffectModule("BT13-089");
-    expect(module).toBeDefined();
-    const effect = module!.effectsForTiming(EffectTiming.OnEndTurn, {
-      cardId: "BT13-089",
-      instanceId: "BT13-089#1",
-      ownerSeat: 0,
-      definition: {} as never,
-    } as never)[0];
-    expect(effect).toBeDefined();
-    expect(effect!.description).toContain("at the end of your opponent's turn");
+describe("BT13-089 BT13-089", () => {
+  it("has complete compiled coverage and no residual gaps", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects.length).toBeGreaterThan(0);
   });
 
-  it("keeps the separate On Deletion play for Falcomon or Keenan Crier", () => {
-    const module = getEffectModule("BT13-089");
-    const effect = module!.effectsForTiming(EffectTiming.OnDestroyedAnyone, {
-      cardId: "BT13-089",
-      instanceId: "BT13-089#1",
-      ownerSeat: 0,
-      definition: {} as never,
-    } as never)[0];
-    expect(effect!.description).toContain("Falcomon or Keenan Crier");
+  it("only plays Ravemon after deleting a Ravemon with a Bird or Avian stack card", () => {
+    const effect = compiled.effects?.find((entry) => entry.trigger === "EndOfYourTurn");
+    expect(effect?.actions?.[0]).toMatchObject({
+      kind: "PlayWithoutCost", from: ["trash"], target: { filter: { controller: "mine", name: "Ravemon" } },
+      condition: { kind: "selfDigivolutionStackHasTrait", filter: { nameOrTrait: [{ match: "trait", tokens: ["Bird"] }, { match: "trait", tokens: ["Avian"] }] } },
+    });
+  });
+
+  it("loads the compiled implementation into a live permanent", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-089", as: "card" }] } });
+    await s.ready();
+    expect(s.perm("card").topCard?.cardId).toBe("BT13-089");
   });
 });

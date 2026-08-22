@@ -40,7 +40,7 @@ export const compiled: CompiledCard = {
           "duration": "untilOpponentTurnEnd"
         },
         {
-          "kind": "RestrictDigivolveInto",
+          "kind": "Restrict",
           "target": {
             "filter": {
               "controller": "mine",
@@ -58,12 +58,7 @@ export const compiled: CompiledCard = {
             },
             "count": 1
           },
-          "into": {
-            "not": true,
-            "kind": [
-              "Digimon"
-            ]
-          },
+          "restriction": "digivolve",
           "duration": "untilOpponentTurnEnd"
         },
         {
@@ -126,7 +121,7 @@ export const compiled: CompiledCard = {
           "duration": "untilOpponentTurnEnd"
         },
         {
-          "kind": "RestrictDigivolveInto",
+          "kind": "Restrict",
           "target": {
             "filter": {
               "controller": "mine",
@@ -144,12 +139,7 @@ export const compiled: CompiledCard = {
             },
             "count": 1
           },
-          "into": {
-            "not": true,
-            "kind": [
-              "Digimon"
-            ]
-          },
+          "restriction": "digivolve",
           "duration": "untilOpponentTurnEnd"
         },
         {

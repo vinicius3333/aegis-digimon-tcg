@@ -10,6 +10,7 @@ import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
 import { scaleFactor } from "../scaling.js";
 import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
+import { permanentMatchesFilter } from "../matching/permanent.js";
 import { resolvePermanentTargets, topInstanceIds } from "../targeting/permanents.js";
 import type { Action, Filter, Seat, Target, ZoneRef } from "@aegis/shared";
 
@@ -218,7 +219,22 @@ export async function runSecurityManipulation(
         const sourceScale = action.scaling === undefined ? 1 : scaleFactor(ctx, action.scaling);
         const baseCount = action.source.count === "all" ? "all" : action.source.count;
         const scaledSource = baseCount === "all" ? action.source : { ...action.source, count: baseCount * sourceScale };
-        const candidates = candidateLooseInstances(ctx, scaledSource, zones);
+        let candidates = candidateLooseInstances(ctx, scaledSource, zones);
+        // Deletion observers are matched while the subject is still live so their printed
+        // controller/kind/color filters remain available. A follow-up that places that same
+        // card "from trash" (BT13-015 Q2274) therefore resolves one step before the generic
+        // deletion mover has put it there. Admit only the currently-deleting permanent's top
+        // card as a virtual trash candidate; addSecurity relocates that exact instance, and
+        // the deletion pass then removes only what remains of the permanent.
+        if (candidates.length === 0 && zones.includes("trash") && ctx.trigger.deletedPermanentId !== undefined) {
+          const deleting = ctx.game.permanentById(ctx.trigger.deletedPermanentId);
+          if (
+            deleting?.topCard !== undefined &&
+            permanentMatchesFilter(ctx, deleting, scaledSource.filter, ctx.source)
+          ) {
+            candidates = [deleting.topCard];
+          }
+        }
         const chosen = await pickLoose(ctx, scaledSource, candidates);
         if (chosen.length > 0)
           await ctx.fx.addSecurity(seat, chosen, { toTop: action.toTop ?? true, faceUp: action.faceUp });

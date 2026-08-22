@@ -63,7 +63,8 @@ export const compiled: CompiledCard = {
             {
               "kind": "Draw",
               "controller": "opponent",
-              "amount": 1
+              "amount": 1,
+              "condition": { "kind": "ifThisEffectActed", "raw": "you did" }
             }
           ]
         }
