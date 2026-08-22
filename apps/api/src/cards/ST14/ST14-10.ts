@@ -1,43 +1,70 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { whenDigivolving } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "ST14-10";
-const module: EffectModule = {
-  cardId,
-  async onTrashedFromDeck(ctx) {
-    const ceiling = 3 + Math.floor(ctx.game.player(ctx.source.ownerSeat).trash.length / 10);
-    const opponent = ctx.game.opponentOf(ctx.source.ownerSeat);
-    const candidates = ctx.game
-      .player(opponent)
-      .battleArea.filter(
-        (permanent) =>
-          permanent.topCard !== undefined &&
-          isDigimon(ctx.game.definitionOf(permanent.topCard)) &&
-          (ctx.game.definitionOf(permanent.topCard).level ?? 99) <= ceiling,
-      )
-      .map(({ permanentId }) => permanentId);
-    if (!candidates.length) return;
-    const [picked] =
-      candidates.length === 1 ? candidates : await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 });
-    if (picked) await ctx.fx.deletePermanent([picked]);
-  },
-  effectsForTiming(timing, source) {
-    if (timing !== EffectTiming.WhenDigivolving) return [];
-    return [
-      whenDigivolving({
-        source,
-        effectKey: `${cardId}/unsuspend-memory`,
-        description: "[When Digivolving] Unsuspend; with 20 cards in trash, gain 3 memory.",
-        resolve: async (ctx) => {
-          const self = source.permanent();
-          if (self) await ctx.fx.unsuspend([self.permanentId]);
-          if (ctx.game.player(source.ownerSeat).trash.length >= 20) ctx.fx.gainMemory(3);
+const compiled: CompiledCard = {
+  "effects": [
+    {
+      "trigger": "Static",
+      "actions": [
+        {
+          "kind": "Delete",
+          "target": {
+            "filter": {
+              "controller": "opponent",
+              "kind": [
+                "Digimon"
+              ]
+            },
+            "count": 1
+          }
         },
-      }),
-    ];
-  },
+        {
+          "kind": "CostModifier",
+          "mode": "raiseCeiling",
+          "costType": "level",
+          "amount": 1,
+          "scaling": {
+            "per": 10,
+            "filter": {
+              "zone": "trash",
+              "controller": "mine"
+            },
+            "unit": "trash"
+          }
+        }
+      ]
+    },
+    {
+      "trigger": "WhenDigivolving",
+      "actions": [
+        {
+          "kind": "Unsuspend",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          }
+        },
+        {
+          "kind": "GainMemory",
+          "amount": 3,
+          "condition": {
+            "kind": "zoneCount",
+            "seat": "mine",
+            "zone": "trash",
+            "op": "gte",
+            "value": 20,
+            "raw": "you have 20 or more cards in your trash"
+          }
+        }
+      ]
+    }
+  ],
+  "coverage": "full",
+  "residual": []
 };
-registerCard(module);
-export default module;
+
+registerIrCard("ST14-10", compiled);
