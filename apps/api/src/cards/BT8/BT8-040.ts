@@ -10,7 +10,7 @@ const compiled: CompiledCard = {
     actions: [
       {
         kind: "Trash",
-        target: { filter: { zone: "hand", controller: "mine" }, count: 1 },
+        target: { filter: { zone: "hand", controller: "mine", kind: ["Digimon", "Tamer", "Option"] }, count: 1 },
         bindResultAs: "trashedCard",
         optional: true,
       },

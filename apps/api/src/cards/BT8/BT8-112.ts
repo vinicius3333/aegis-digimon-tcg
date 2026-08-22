@@ -61,7 +61,7 @@ export const compiled: CompiledCard = {
               cost: {
                 kind: "return",
                 target: {
-                  filter: { zone: "trash", controller: "mine", kind: ["Digimon"], levelComparison: { op: "eq", value: 7 }, colors: ["White"] },
+                  filter: { zone: "trash", controller: "mine", kind: ["Digimon"], levels: [7], colors: ["White"] },
                   count: 1,
                 },
                 to: "deckBottom",

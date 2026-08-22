@@ -41,7 +41,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
         const trashedIds = ctx.boundPlayed?.get("trashedCard") ?? new Set<string>();
         const grantDuration = toDuration(action.duration ?? "forTheTurn");
         for (const trashedId of trashedIds) {
-          const trashed = ctx.game.state.players.flatMap((player) => player.trash).find((card) => card.instanceId === trashedId);
+          const trashed = ctx.game.player(ctx.source.ownerSeat).trash.find((card) => card.instanceId === trashedId);
           if (trashed === undefined) continue;
           const colors = ctx.game.definitionOf(trashed).colors as (keyof typeof COLOR_MAP)[];
           for (const id of ids) {
