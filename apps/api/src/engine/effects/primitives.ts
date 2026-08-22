@@ -3483,7 +3483,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
             (candidate) => candidate.permanentId === permanent!.permanentId,
           );
           if (index >= 0) {
-            battleOwner.battleArea.splice(index, 1);
+            extractPermanentAt(battleOwner, index);
             dropPermanentLedgers(permanent.permanentId);
           }
         } else {
