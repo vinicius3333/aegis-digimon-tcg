@@ -82,6 +82,20 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: securityPlayable, count: 1 },
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
+        { kind: "AddToHandSelf" },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],

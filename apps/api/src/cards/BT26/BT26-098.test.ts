@@ -7,6 +7,27 @@ describe("BT26-098 compiled fidelity", () => {
     const card = compiled;
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
+    expect(card?.effects?.find((effect) => effect.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+          target: {
+            filter: {
+              kind: ["Digimon", "Tamer"],
+              orFilters: [
+                { nameOrTrait: [{ tokens: ["Lalamon"], match: "name" }] },
+                { nameOrTrait: [{ tokens: ["Yoshino Fujieda"], match: "name" }] },
+              ],
+            },
+          },
+        },
+        { kind: "AddToHandSelf" },
+      ],
+    });
 
     const beforePayCost = card?.effects?.find((effect) => effect.trigger === "BeforePayCost")?.actions ?? [];
     expect(beforePayCost).toMatchObject([
