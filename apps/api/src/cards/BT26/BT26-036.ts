@@ -24,7 +24,13 @@ const revealAdd = {
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: [revealAdd] },
-    { trigger: "OnMove", actions: [revealAdd] },
+    { trigger: "WhenMoving", actions: [revealAdd] },
+    {
+      trigger: "WhenAttacking",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [{ kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } }],
+    },
   ],
   coverage: "full",
   residual: [],
