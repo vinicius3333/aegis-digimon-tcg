@@ -81,6 +81,7 @@ const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          mode: "prevent",
           leaveCause: "otherThanYourEffect",
           sourceFilter: {
             isSelfRef: true,
