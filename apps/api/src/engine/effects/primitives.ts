@@ -3810,6 +3810,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     });
   };
 
+  let delayedMemorySequence = 0;
   const delayedGainMemory = (seat: Seat, amount: number): void => {
     // BT1-021 "at the end of your turn, lose 3 memory": a one-shot `endOfTurn` watcher with
     // NO source anchor — per KB Q882/Q883 the delayed loss still fires if the installing
@@ -3819,7 +3820,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       event: "endOfTurn",
       once: true,
       expiresOnTurnEndOf: seat,
-      description: `At end of turn, ${amount >= 0 ? "gain" : "lose"} ${Math.abs(amount)} memory (delayed one-shot).`,
+      description: `At end of turn, ${amount >= 0 ? "gain" : "lose"} ${Math.abs(amount)} memory (delayed one-shot #${++delayedMemorySequence}).`,
       run: async () => {
         engine.memory.addMemoryForSeat(seat, amount, "gainMemory", { isTamerEffect: false });
       },
