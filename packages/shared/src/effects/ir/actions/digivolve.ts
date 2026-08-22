@@ -76,6 +76,10 @@ export interface DigivolveAction extends ActionBase {
   ignoreLevelRequirement?: boolean;
   /** The card digivolved into must share a color with the chosen base. */
   colorsMatchDigivolvingSource?: boolean;
+  /** Destination name must include the selected base permanent's name (EX4-072). */
+  nameIncludesDigivolvingTarget?: boolean;
+  /** Destination name must differ from the selected base permanent's name. */
+  differentNameFromDigivolvingTarget?: boolean;
   /** Store the resulting permanent id for a downstream `filter.boundRef` or condition. */
   bindResultAs?: string;
 }
