@@ -13,6 +13,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenEffectSuspends",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "ModifyDP",

@@ -25,7 +25,7 @@ describe("ST18-05 Muchomon", () => {
     );
   });
 
-  it("reacts to an effect suspending a Digimon, regardless of which player caused it", async () => {
+  it("reacts only when this Digimon is suspended by an effect", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
@@ -40,6 +40,14 @@ describe("ST18-05 Muchomon", () => {
     await advance(s.engine).fireSubTrigger("whenEffectSuspends", {
       subjectPermanentId: s.perm("victim").permanentId,
       suspendedPermanentId: s.perm("victim").permanentId,
+      effectSuspendSeat: 1,
+    });
+    await settle(() => false, 60);
+    expect(s.perm("vortexTarget").currentDP).toBe(before);
+
+    await advance(s.engine).fireSubTrigger("whenEffectSuspends", {
+      subjectPermanentId: s.perm("muchomon").permanentId,
+      suspendedPermanentId: s.perm("muchomon").permanentId,
       effectSuspendSeat: 1,
     });
     await settle(() => s.perm("vortexTarget").currentDP === before + 3000);
