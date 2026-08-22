@@ -30,14 +30,18 @@ const linkingEffect = [
     sourceFilter: { isSelfRef: true },
     actions: [
       {
+        kind: "SelectBind",
+        target: { filter: opponentDigimon, count: 1, bindAs: "medicmonLinkedTarget" },
+      },
+      {
         kind: "Restrict",
-        target: { filter: opponentDigimon, count: 1 },
+        target: { fromSelectionRef: "medicmonLinkedTarget" },
         restriction: "cannotActivateWhenDigivolving",
         duration: "untilOpponentTurnEnd",
       },
       {
         kind: "ModifyDP",
-        target: { filter: opponentDigimon, count: 1 },
+        target: { fromSelectionRef: "medicmonLinkedTarget" },
         amount: -3000,
         duration: "untilOpponentTurnEnd",
       },

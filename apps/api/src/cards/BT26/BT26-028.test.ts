@@ -37,14 +37,24 @@ describe("BT26-028 Medicmon", () => {
               kind: "SubTrigger",
               event: "whenLinked",
               sourceFilter: { isSelfRef: true },
-              actions: expect.arrayContaining([
+              actions: [
+                expect.objectContaining({
+                  kind: "SelectBind",
+                  target: expect.objectContaining({ bindAs: "medicmonLinkedTarget" }),
+                }),
                 expect.objectContaining({
                   kind: "Restrict",
+                  target: { fromSelectionRef: "medicmonLinkedTarget" },
                   restriction: "cannotActivateWhenDigivolving",
                   duration: "untilOpponentTurnEnd",
                 }),
-                expect.objectContaining({ kind: "ModifyDP", amount: -3000, duration: "untilOpponentTurnEnd" }),
-              ]),
+                expect.objectContaining({
+                  kind: "ModifyDP",
+                  target: { fromSelectionRef: "medicmonLinkedTarget" },
+                  amount: -3000,
+                  duration: "untilOpponentTurnEnd",
+                }),
+              ],
             },
           ],
         }),
@@ -75,5 +85,34 @@ describe("BT26-028 Medicmon", () => {
     expect(s.perm("second").currentDP).toBe(7000);
     expect(observe(s.engine).isRestricted(s.perm("first"), "cannotActivateWhenDigivolving")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("second"), "cannotActivateWhenDigivolving")).toBe(false);
+  });
+
+  it("when digivolving links a legal source from the evolved stack and applies both debuffs together", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-025", as: "base", under: [{ card: "BT26-084", as: "linkSource" }] }],
+          hand: [{ card: "BT26-028", as: "medicmon" }],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 7000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("medicmon").instanceId,
+    })).toEqual({ ok: true });
+    await advance(s.engine).recompute();
+    await new Promise<void>((resolve) => queueMicrotask(resolve));
+    await advance(s.engine).recompute();
+
+    expect(s.perm("base").topCard.cardId).toBe("BT26-028");
+    expect(s.perm("base").linked.map((card) => card.instanceId)).toContain(s.inst("linkSource").instanceId);
+    expect(s.perm("target").currentDP).toBe(4000);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving")).toBe(true);
   });
 });
