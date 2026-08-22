@@ -8,7 +8,21 @@ describe("BT19-090 Meteor Rock Soul", () => {
     expect(card?.coverage).toBe("full");
     expect(card?.residual).toEqual([]);
     const modal = card?.effects.find((entry) => entry.trigger === "Main")?.actions[0];
-    expect(modal).toMatchObject({ kind: "Modal", choose: 1, options: [[{ kind: "PlayWithoutCost" }], [{ kind: "Attack", attackPlayer: true, mandatory: true, cost: { kind: "unsuspendNamed", targets: expect.any(Array) } }]] });
+    expect(modal).toMatchObject({
+      kind: "Modal",
+      choose: 1,
+      options: [
+        [{ kind: "PlayWithoutCost" }],
+        [
+          {
+            kind: "Attack",
+            attackPlayer: true,
+            mandatory: true,
+            cost: { kind: "unsuspendNamed", targets: expect.any(Array) },
+          },
+        ],
+      ],
+    });
     const security = card?.effects.find((entry) => entry.trigger === "Security");
     expect(security).toMatchObject({ isSecurity: true, actions: [{ kind: "PlayWithoutCost", from: ["underTamers"] }] });
   });
