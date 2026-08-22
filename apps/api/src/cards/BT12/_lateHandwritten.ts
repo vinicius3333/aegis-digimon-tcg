@@ -950,7 +950,7 @@ export function lateBt12Module(cardId: string): EffectModule {
           const resolve = async (ctx: EffectContext) => {
             const first = await choosePermanent(ctx, opposingDigimon(ctx, source));
             if (first) await ctx.fx.modifyDP(first, -4000, EffectDuration.UntilEachTurnEnd);
-            if (myPermanents(ctx, source, (d, p) => isDigimon(d) && p.stack.length >= 4).length) {
+            if (myPermanents(ctx, source, (d, p) => isDigimon(d) && p.stack.length - 1 >= 4).length) {
               const second = await choosePermanent(ctx, opposingDigimon(ctx, source));
               if (second) ctx.fx.grantKeyword(second, "SecurityAttack", EffectDuration.UntilEachTurnEnd, -1);
             }
