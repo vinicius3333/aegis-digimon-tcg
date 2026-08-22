@@ -1,6 +1,6 @@
 // @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
 /**
  * BT10-093 — Yuu Amano (BT10, Purple Tamer).
@@ -86,4 +86,4 @@ export const module: EffectModule = {
   },
 };
 
-registerIrCard("BT10-093", compiled);
+registerCard(module);
