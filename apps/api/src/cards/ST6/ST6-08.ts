@@ -6,6 +6,7 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
+      actions: [],
       keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
     },
     {

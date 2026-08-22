@@ -15,7 +15,7 @@ describe("ST6-16 Nail Bone", () => {
   });
 
   it("plays one purple level 4 or lower from trash from security", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "ST6-16", as: "option", faceUp: true }], trash: [{ card: "ST6-08", as: "digimon" }] } }, { autoSelectCards: true });
+    const s = setupEngine({ 0: { security: [{ card: "ST6-16", as: "option", faceUp: true }], trash: [{ card: "ST6-08", as: "digimon" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("digimon").instanceId)).toBe(true);
   });
