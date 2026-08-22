@@ -1,142 +1,37 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { activated, inTrash, security } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/**
- * EX8-072 — Seventh Jewelrize (EX8, Purple Option).
- *
- *   EffectTiming.None [Trash][Your Turn]: When your Digimon digivolves into [Barbamon (X Antibody)],
- *     return this card to deck bottom to activate this card's [Main] effects.
- *
- *   EffectTiming.OptionSkill → OnUseOption (`activated`), fired by play-card on this
- *     Option's resolution:
- *     If opponent has ≥5 hand cards, they trash 1. Then delete 1 opponent Digimon with
- *     level ≤ (7 - floor(handCount / 3)). Per KB Q4740: the delete step is unconditional.
- *
- * KB rulings (binding):
- *   Q4740: Even if opponent has fewer than 5 cards (trash step skipped), still delete the Digimon.
- */
-const cardId = "EX8-072";
-const BARBAMON_X_ANTIBODY = "Barbamon (X Antibody)";
+const opponentHand = { zone: "hand", controller: "opponent" };
+const opponentDigimon = { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 7, scaling: { per: 3, unit: "cards", filter: opponentHand, levelCeilingAdd: -1 } } };
 
-async function resolveMain(ctx: EffectContext, source: CardSource): Promise<void> {
-  const opponentSeat = ctx.game.opponentOf(source.ownerSeat);
-  const handCount = ctx.game.player(opponentSeat).hand.length;
-
-  // Step 1: if opponent has ≥5 hand cards, they must trash 1 (mandatory).
-  if (handCount >= 5) {
-    const handCandidates = Array.from(ctx.game.player(opponentSeat).hand).map((c) => c.instanceId);
-    const chosen = await ctx.ask.selectCards(ctx, {
-      candidates: handCandidates,
-      min: 1,
-      max: 1,
-    });
-    if (chosen.length > 0) {
-      await ctx.fx.trash(chosen);
-    }
-  }
-
-  // The level maximum is part of the effect after the "Then" instruction, so
-  // count the opponent's hand after the mandatory trash has resolved.
-  const levelMax = 7 - Math.floor(ctx.game.player(opponentSeat).hand.length / 3);
-
-  // Step 2: delete 1 opponent Digimon with level ≤ levelMax (mandatory per KB Q4740).
-  const deleteCandidates = Array.from(ctx.game.player(opponentSeat).battleArea)
-    .filter((p) => {
-      if (p.topCard === undefined) return false;
-      const def = ctx.game.definitionOf(p.topCard);
-      if (!isDigimon(def)) return false;
-      if (def.level === undefined || def.level > levelMax) return false;
-      return true;
-    })
-    .map((p) => p.permanentId);
-
-  if (deleteCandidates.length > 0) {
-    const [target] = await ctx.ask.chooseTargets(ctx, {
-      candidates: deleteCandidates,
-      min: 1,
-      max: 1,
-    });
-    if (target !== undefined) {
-      await ctx.fx.deletePermanent([target]);
-    }
-  }
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    // [Main] If opponent has ≥5 hand cards, they trash 1. Delete 1 opponent Digimon
-    // with level ≤ 7 - floor(handCount / 3).
-    if (timing === EffectTiming.OnUseOption) {
-      return [
-        activated({
-          source,
-          effectKey: `${cardId}/main-trash-and-delete`,
-          description:
-            "[Main] If your opponent has 5 or more cards in hand, they trash 1. " +
-            "Delete 1 of your opponent's Digimon with level ≤ 7 - floor(handCount / 3).",
-          optional: false,
-          resolve: (ctx) => resolveMain(ctx, source),
-        }),
-      ];
-    }
-
-    // [Trash] [Your Turn] When one of your Digimon digivolves into Barbamon
-    // (X Antibody), return this card to the bottom of the deck and activate
-    // this card's [Main] effects.
-    if (timing === EffectTiming.None) {
-      return [
-        inTrash({
-          source,
-          effectKey: `${cardId}/trash-your-turn-barbamon-x-antibody`,
-          description:
-            "[Trash] [Your Turn] When your Digimon digivolves into [Barbamon (X Antibody)], " +
-            "by returning this card to the bottom of the deck, activate this card's [Main] effects.",
-          when: (ctx) => ctx.source.isOwnersTurn(),
-          resolve: async (ctx) => {
-            const ownerSeat = source.ownerSeat as 0 | 1;
-            ctx.fx.subscribeSubTrigger({
-              event: "whenOneOfYoursDigivolves",
-              sourceInstanceId: ctx.source.instanceId,
-              once: false,
-              description: `${cardId}: [Trash] watches for a Digimon digivolving into ${BARBAMON_X_ANTIBODY}.`,
-              matches: (subCtx) => {
-                const subjectId = subCtx.trigger?.subjectPermanentId;
-                if (subjectId === undefined) return false;
-                const subject = subCtx.game.permanentById(subjectId);
-                if (subject === undefined || subject.controllerSeat !== ownerSeat) return false;
-                if (subject.topCard === undefined) return false;
-                return subCtx.game.definitionOf(subject.topCard).nameEn === BARBAMON_X_ANTIBODY;
-              },
-              run: async (subCtx) => {
-                await subCtx.fx.returnToDeck([subCtx.source.instanceId]);
-                await resolveMain(subCtx, source);
-              },
-            });
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security-activate-main`,
-          description: "[Security] Activate this card's [Main] effect.",
-          resolve: (ctx) => resolveMain(ctx, source),
-        }),
-      ];
-    }
-
-    return [];
-  },
+export const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "YourTurn",
+      isFromTrash: true,
+      actions: [{
+        kind: "SubTrigger",
+        event: "whenOneOfYoursDigivolves",
+        sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Barbamon (X Antibody)"], match: "nameExact" }] },
+        raw: "when your Digimon digivolves into [Barbamon (X Antibody)]",
+        actions: [
+          { kind: "Return", to: "deckBottom", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+          { kind: "ActivateMain" },
+        ],
+      }],
+    },
+    {
+      trigger: "Main",
+      actions: [
+        { kind: "Trash", chooser: "opponent", target: { filter: opponentHand, count: 1 }, condition: { kind: "handAtLeast", seat: "opponent", value: 5 } },
+        { kind: "Delete", target: { filter: opponentDigimon, count: 1 } },
+      ],
+    },
+    { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("EX8-072", compiled);
