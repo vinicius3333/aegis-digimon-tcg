@@ -151,7 +151,12 @@ const compiled: CompiledCard = {
             "isSelf": true
           },
           "withoutSuspending": true,
-          "optional": true
+          "optional": true,
+          "condition": {
+            "kind": "selfDigivolutionCountAtLeast",
+            "value": 5,
+            "raw": "This Digimon with 5 or more digivolution cards"
+          }
         }
       ],
       "frequency": "OncePerTurn"

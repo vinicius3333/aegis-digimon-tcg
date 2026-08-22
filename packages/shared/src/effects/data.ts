@@ -1021,6 +1021,16 @@ export function baseGrantedDigivolveFor(cardId: string): BaseGrantedDigivolve[] 
  * + cost) and CLIENT (material highlighting) read ONE source of truth.
  */
 export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[]> = {
+  // AD1-006: DigiXros -2 requires all six distinct named slots. The generated aggregate retained
+  // only OmniShoutmon, which made the server accept an incomplete recipe.
+  "AD1-006": [
+    {
+      materials: ["OmniShoutmon", "ZeigGreymon", "Ballistamon", "Dorulumon", "Starmons", "Sparrowmon"].map(
+        (name) => ({ names: [name] }),
+      ),
+      count: 2,
+    },
+  ],
   // ST19-10: [Tyrannomon]/[Raremon] in name plus a Lv.4 [Puppet] Digimon.
   "ST19-10": [
     {

@@ -414,6 +414,9 @@ export async function runReplacement(
       return true;
     },
     apply: async (subCtx) => {
+      if (action.optional === true && !(await subCtx.ask.optional(subCtx, action.raw ?? "Use this effect?"))) {
+        return;
+      }
       for (const a of action.actions ?? []) {
         const abort = await runAction(subCtx, a);
         if (abort) break;

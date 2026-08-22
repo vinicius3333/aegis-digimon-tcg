@@ -1429,8 +1429,12 @@ export async function payCost(
       );
       if (chosen.length < want) return false;
       let hostId: string | undefined;
-      if (cost.underFilter) {
-        const destTarget: Target = { filter: cost.underFilter, count: 1 };
+      // Older compiled records place the destination selector on the cost target,
+      // while newer hand-authored IR uses the cost-level field. Both encode the
+      // same printed "under this Digimon or one of your Tamers" destination.
+      const underFilter = cost.underFilter ?? (cost.target as Target & { underFilter?: Filter }).underFilter;
+      if (underFilter) {
+        const destTarget: Target = { filter: underFilter, count: 1 };
         const destIds = await resolvePermanentTargets(ctx, destTarget);
         if (destIds.length === 0) return false;
         hostId =

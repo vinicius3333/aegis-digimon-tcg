@@ -117,15 +117,27 @@ const compiled: CompiledCard = {
               "target": {
                 "filter": {
                   "zone": "battleArea",
-                  "controllerDefault": "mine",
+                  "controller": "opponent",
                   "kind": [
                     "Option"
                   ]
                 },
                 "count": 1
               }
+            },
+            {
+              "kind": "Trash",
+              "target": {
+                "filter": {
+                  "zone": "security",
+                  "controller": "opponent",
+                  "position": "top"
+                },
+                "count": 1
+              }
             }
-          ]
+          ],
+          "oncePerTurnKey": "opponent-leaves"
         }
       ],
       "frequency": "OncePerTurn"

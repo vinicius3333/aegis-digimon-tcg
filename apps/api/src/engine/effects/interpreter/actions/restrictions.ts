@@ -1,6 +1,7 @@
 // Continuous prohibitions and immunities.
 
 import type { EffectContext, Restriction } from "../../EffectContext.js";
+import type { ActionScope } from "../dispatch.js";
 import { toDuration } from "../duration.js";
 import { definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
@@ -9,7 +10,7 @@ import { candidateLooseInstances } from "../targeting/loose.js";
 import { evaluateCondition } from "../conditions.js";
 import type { Action } from "@aegis/shared";
 
-export async function runRestrictionAction(ctx: EffectContext, action: Action): Promise<boolean> {
+export async function runRestrictionAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   switch (action.kind) {
     case "DeclareCategoryImmunity": {
       const categories = ["Digimon", "Tamer", "Option", "DigiEgg"] as const;
@@ -45,16 +46,20 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action): 
       const duration = toDuration(action.duration);
       const continuous = action.while !== undefined ? true : undefined;
       const dynamicTargetFilter = (action as typeof action & { whileMatchesTargetFilter?: boolean }).whileMatchesTargetFilter === true;
-      const filter = action.target.filter;
+      const scaledTarget =
+        scope.scale !== undefined && typeof action.target.count === "number"
+          ? { ...action.target, count: action.target.count * scope.scale }
+          : action.target;
+      const filter = scaledTarget.filter;
       const restriction = (action.restriction === "returnToHandOrDeck" || action.restriction === "cannotReturnToHandOrDeck"
         ? "beReturned"
         : action.restriction) as Restriction;
       if (restriction === "beTrashed" && filter.zone === "digivolutionCards") {
-        const cards = candidateLooseInstances(ctx, action.target, ["digivolutionCards"]);
+        const cards = candidateLooseInstances(ctx, scaledTarget, ["digivolutionCards"]);
         for (const card of cards) ctx.fx.stackCardTrashLock?.(card.instanceId, card.ownerSeat, duration);
         return false;
       }
-      if (dynamicTargetFilter && action.target.count === "all" && ctx.fx.restrictPlayer !== undefined && filter !== undefined) {
+      if (dynamicTargetFilter && scaledTarget.count === "all" && ctx.fx.restrictPlayer !== undefined && filter !== undefined) {
         for (const seat of seatsForController(ctx, filter)) {
           ctx.fx.restrictPlayer(seat, restriction, duration, (permanentId) => {
             const permanent = ctx.game.permanentById(permanentId);
@@ -63,7 +68,7 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action): 
         }
         return false;
       }
-      const ids = await resolvePermanentTargets(ctx, action.target);
+      const ids = await resolvePermanentTargets(ctx, scaledTarget);
       // Target-scoped prohibition (BT10-042): affected Digimon can't attack THIS source,
       // but may still attack the player or a different Digimon. A plain `attack`
       // restriction would incorrectly suppress the entire declaration.

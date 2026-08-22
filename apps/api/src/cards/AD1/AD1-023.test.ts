@@ -25,7 +25,7 @@ describe("AD1-023 J.P., Koji, & Koichi", () => {
           from: ["hand", "trash"],
           filter: { differentColors: true, nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] },
         },
-        underFilter: { controllerDefault: "mine", kind: ["Tamer"] },
+        underFilter: { isSelfRef: true },
         trackCount: "placedHybrid",
       });
       expect(effect.actions[1]).toMatchObject({
@@ -103,6 +103,23 @@ describe("AD1-023 J.P., Koji, & Koichi", () => {
     expect(s.perm("tamer").stack).toHaveLength(4);
   });
 
+  it("assigns different colors to two identical multicolor Hybrid cards (Q6113)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "tamer" }],
+          hand: [{ card: "BT18-022", as: "hybrid-a" }, { card: "BT18-022", as: "hybrid-b" }],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("tamer"));
+    await settle(() => s.perm("tamer").stack.length === 2);
+    expect(s.perm("tamer").stack).toHaveLength(2);
+  });
+
   it("prevents a Hybrid Digimon from leaving by adding the top security card to hand", async () => {
     const s = setupEngine(
       {
@@ -121,5 +138,11 @@ describe("AD1-023 J.P., Koji, & Koichi", () => {
     ).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-101")).toBe(true);
+  });
+
+  it("plays itself from security without paying the cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: CARD_ID, as: "tamer", faceUp: true }] } });
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("tamer"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === CARD_ID)).toBe(true);
   });
 });
