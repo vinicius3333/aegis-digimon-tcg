@@ -177,18 +177,16 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
         latest.kind === "selectCards" && latest.sourceCardId === "ST2-15";
     });
 
-    // The harness records the live request at the tail; pendingDecision is the
-    // wire-state mirror and does not carry the richer request options.
-    const sourceDecision = s.decisions
-      .filter(({ req }) => req.kind === "selectCards")
-      .at(-1)!.req;
-    expect(sourceDecision.options?.candidateInstanceIds).toEqual([
+    const sourceDecision = s.state.pendingDecision;
+    expect(sourceDecision?.kind).toBe("selectCards");
+    const sourceOptions = JSON.parse(sourceDecision?.payloadJson ?? "{}");
+    expect(sourceOptions.candidateInstanceIds).toEqual([
       s.inst("secondSource").instanceId,
       s.inst("secondOtherSource").instanceId,
     ]);
     expect(s.engine.applyIntent(0, {
       type: "respondDecision",
-      decisionId: sourceDecision.decisionId,
+      decisionId: sourceDecision!.decisionId,
       response: {
         kind: "selectCards",
         instanceIds: [s.inst("secondSource").instanceId],
