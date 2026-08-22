@@ -5,7 +5,7 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { staticModifier, whenDigivolving } from "../../engine/effects/builders.js";
-import { compiledEffects } from "@aegis/shared";
+import { getCompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 
@@ -158,6 +158,6 @@ const module: EffectModule = {
   },
 };
 
-const compiled = compiledEffects[cardId]!;
+const compiled = getCompiledCard(cardId)!;
 registerIrCard(cardId, compiled);
 export default module;

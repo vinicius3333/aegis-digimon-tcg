@@ -21,7 +21,7 @@ describe("EX4-025 Turuiemon", () => {
 
   it("reduces an opponent's Digimon by 2000 after an attack when another own Digimon is suspended", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX4-025", as: "source" }, { card: "BT1-009", as: "other", suspended: true }] },
+      0: { battleArea: [{ card: "BT1-009", as: "source", under: ["EX4-025"] }, { card: "BT1-009", as: "other", suspended: true }] },
       1: { battleArea: [{ card: "BT1-011", as: "target", dp: 8000 }] },
     }, { autoSelectCards: true });
     await s.engine.recomputeContinuousEffects();

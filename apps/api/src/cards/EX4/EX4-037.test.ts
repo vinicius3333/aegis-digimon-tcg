@@ -72,6 +72,8 @@ describe("EX4-037 BlackMegaGargomon", () => {
     const game = {
       state: { memory: 0, players, turnSeat: 0 as Seat } as unknown as GameState,
       player: (seat: Seat) => players[seat],
+      opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
+      permanentById: (id: string) => [self, first, second].find((p) => p.permanentId === id),
       definitionOf: (c: CardInstance) => defs.get(c.cardId)!,
     };
     const source: CardSource = {

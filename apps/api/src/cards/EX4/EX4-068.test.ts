@@ -33,9 +33,9 @@ const definition = (id: string, colors: CardColor[]): CardDefinition => ({
 describe("EX4-068 Heaven's Judgement", () => {
   it("is represented by full residual-free IR with distinct-color repetition", () => {
     expect(runtimeCompiledCard("EX4-068")).toMatchObject({ coverage: "full", residual: [] });
-    expect(runtimeCompiledCard("EX4-068")?.effects?.[1]?.actions?.[0]).toMatchObject({
+    expect(runtimeCompiledCard("EX4-068")?.effects?.find((effect) => effect.trigger === "Main")?.actions?.[1]).toMatchObject({
       kind: "RepeatPerCount",
-      countUnit: "colors",
+      countScaling: { unit: "colors" },
     });
   });
 

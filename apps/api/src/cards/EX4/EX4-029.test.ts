@@ -17,7 +17,7 @@ describe("EX4-029 Antylamon", () => {
       0: {
         deck: ["BT1-001"],
         security: ["BT1-001", "BT1-001", "BT1-001"],
-        battleArea: [{ card: "EX4-029", as: "source" }, { card: "BT1-009", as: "other", suspended: true }],
+        battleArea: [{ card: "BT1-009", as: "source", under: ["EX4-029"] }, { card: "BT1-009", as: "other", suspended: true }],
       },
       1: { battleArea: [{ card: "BT1-011", as: "target", dp: 8000 }] },
     }, { autoSelectCards: true, autoOrderTriggers: true });

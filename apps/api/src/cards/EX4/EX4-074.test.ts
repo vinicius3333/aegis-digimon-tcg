@@ -21,10 +21,11 @@ describe("EX4-074 ShineGreymon: Ruin Mode", () => {
     }, { autoSelectCards: true });
     await s.engine.recomputeContinuousEffects();
 
+    const sourceInstanceId = s.perm("source").topCard.instanceId;
     await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("source"));
     await settle(() => s.state.players[0]!.battleArea.every((perm) => perm.topCard?.cardId !== "EX4-074"));
 
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("source").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === sourceInstanceId)).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[0]!.breedingArea).toHaveLength(1);
   });

@@ -9,13 +9,32 @@ import {
   type Seat,
 } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Primitives } from "../../engine/effects/EffectContext.js";
 import "./EX4-059.js";
+
+const card = (cardId: string, seat: Seat): CardInstance =>
+  ({ cardId, instanceId: `${cardId}-${seat}`, ownerSeat: seat, faceUp: true }) as CardInstance;
+
+const def = (cardId: string): CardDefinition => ({
+  cardId,
+  set: "TEST",
+  nameEn: cardId,
+  kinds: [CardKind.Digimon],
+  colors: [],
+  playCost: 5,
+  level: 5,
+  dp: 5000,
+  evoCosts: [],
+  maxCountInDeck: 4,
+});
 
 describe("EX4-059 Cherubimon", () => {
   it("registers full residual-free IR with Alliance", () => {
     expect(getEffectModule("EX4-059")).toBeDefined();
     expect(runtimeCompiledCard("EX4-059")).toMatchObject({ coverage: "full", residual: [] });
-    expect(runtimeCompiledCard("EX4-059")?.effects?.[0]?.keywords).toContainEqual({ keyword: "Alliance", raw: "＜Alliance＞" });
+    expect(runtimeCompiledCard("EX4-059")?.effects?.some((effect) => effect.keywords?.some((keyword) => keyword.keyword === "Alliance"))).toBe(true);
   });
 
   it("grants the optional On Deletion play effect to itself and one level-5-or-lower ally", async () => {

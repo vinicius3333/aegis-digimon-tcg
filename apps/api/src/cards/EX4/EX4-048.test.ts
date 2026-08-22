@@ -17,9 +17,10 @@ describe("EX4-048 Gaiomon", () => {
 
   it("deletes an opposing Digimon with play cost thirteen or more", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX4-048", as: "source" }] }, 1: { battleArea: [{ card: "EX4-074", as: "target" }] } }, { autoSelectCards: true });
+    const targetInstanceId = s.perm("target").topCard.instanceId;
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
-    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetInstanceId)).toBe(true);
   });
 });

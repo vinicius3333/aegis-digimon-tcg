@@ -35,7 +35,7 @@ describe("EX4-060 Omnimon Alter-S", () => {
     expect(runtimeCompiledCard("EX4-060")?.effects?.[1]?.actions?.[0]).toMatchObject({
       kind: "Replacement",
       event: "wouldLeavePlay",
-      leaveCause: "otherThanYourEffect",
+      sourceFilter: { isSelfRef: true },
     });
   });
 

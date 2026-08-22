@@ -12,7 +12,7 @@ describe("EX4-067 Full Metal Blaze", () => {
 
   it("returns the low-level targets and bottoms a high-level target after reaching eight cards", async () => {
     const s = setupEngine({
-      0: { hand: [{ card: "EX4-067", as: "option" }] },
+      0: { hand: [{ card: "EX4-067", as: "option" }], battleArea: [{ card: "EX4-014", as: "blue" }] },
       1: {
         hand: Array(7).fill("BT1-001"),
         battleArea: [
@@ -28,6 +28,6 @@ describe("EX4-067 Full Metal Blaze", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[1]!.hand).toHaveLength(9);
-    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(s.inst("high").instanceId);
+    expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("EX4-049");
   });
 });

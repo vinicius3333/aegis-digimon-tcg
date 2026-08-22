@@ -526,6 +526,16 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
         }
         return false;
       }
+      if (action.grant === "keyword" && action.keyword?.keyword !== undefined) {
+        const duration = toDuration(action.duration ?? "permanent");
+        for (const id of ids) {
+          ctx.fx.grantKeyword(id, action.keyword.keyword, duration, action.keyword.amount, {
+            sourceCardId: ctx.source.cardId,
+            sourceEffectText: action.raw,
+          });
+        }
+        return false;
+      }
       // String grants with no enforcement path yet (would need a new subsystem — DNA-digivolve
       // level overrides, attacking a Digimon directly, DigiXros-from-trash, an alternate-color
       // rules layer, etc.), not just a missing primitive wire-up. Failing loudly here — instead

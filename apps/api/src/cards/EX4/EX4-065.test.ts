@@ -13,7 +13,7 @@ describe("EX4-065 Trident Gaia", () => {
 
   it("deletes the highest-DP Digimon and trashes security at 13000 DP", async () => {
     const s = setupEngine({
-      0: { hand: [{ card: "EX4-065", as: "option" }] },
+      0: { hand: [{ card: "EX4-065", as: "option" }], battleArea: [{ card: "EX4-005", as: "red" }] },
       1: { security: ["BT1-001", "BT1-001"], battleArea: [{ card: "BT1-011", as: "highest", dp: 13000 }, { card: "BT1-009", as: "lower", dp: 12000 }] },
     }, { autoSelectCards: true });
     s.state.memory = 10;
