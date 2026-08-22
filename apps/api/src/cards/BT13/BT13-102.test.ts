@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-102.js";
 
 describe("BT13-102 Keenan Crier", () => {
@@ -28,5 +31,15 @@ describe("BT13-102 Keenan Crier", () => {
       cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
       actions: [{ kind: "GainMemory", amount: 1 }],
     });
+  });
+
+  it("draws when the opponent declines the optional hand trash", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT13-102", as: "keenan" }], deck: [{ card: "BT1-001", as: "drawn" }] }, 1: {} },
+      { autoDeclineOptional: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("keenan"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-001");
   });
 });
