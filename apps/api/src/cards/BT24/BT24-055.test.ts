@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT24_055 } from "./BT24-055.js";
 import "../index.js";
@@ -34,22 +34,68 @@ describe("BT24-055 Ginryumon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
+          battleArea: [{ card: "BT24-054", as: "target" }],
+          hand: [
             { card: "BT24-055", as: "ginryumon" },
-            { card: "BT24-054", as: "target" },
+            { card: "BT15-087", as: "shuu" },
           ],
-          hand: [{ card: "BT15-087", as: "shuu" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.perm("target").topCard.instanceId);
+    preferred.push(s.perm("target").permanentId);
+    s.state.memory = 4;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("ginryumon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ginryumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-055"));
+    const ginryumon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT24-055")!;
+    await settle(() => ginryumon.stack.some((card) => card.instanceId === s.inst("shuu").instanceId));
+    await settle(() => observe(s.engine).hasRestriction(s.perm("target"), "cantBeDeDigivolved", "Digimon"));
 
-    expect(s.perm("ginryumon").stack[0]!.instanceId).toBe(s.inst("shuu").instanceId);
+    expect(ginryumon.stack[0]!.instanceId).toBe(s.inst("shuu").instanceId);
     expect(observe(s.engine).hasRestriction(s.perm("target"), "cantBeDeDigivolved", "Digimon")).toBe(true);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it.each([
+    ["normal black level-3 requirement", "BT11-036", false, 3],
+    ["alternate DigiPolice/SEEKERS requirement", "BT24-054", true, 2],
+  ])("uses the %s and resolves When Digivolving", async (_label, baseCard, useAlternateCost, expectedCost) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: baseCard, as: "base" }],
+          hand: [
+            { card: "BT24-055", as: "ginryumon" },
+            { card: "BT15-087", as: "shuu" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("base").permanentId);
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("ginryumon").instanceId,
+        ...(useAlternateCost ? { useAlternateCost: true, alternateRequirementIndex: 0 } : {}),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("ginryumon").instanceId);
+    await settle(() => s.perm("base").stack.some((card) => card.instanceId === s.inst("shuu").instanceId));
+    await settle(() => observe(s.engine).hasRestriction(s.perm("base"), "cantBeDeDigivolved", "Digimon"));
+
+    expect(s.state.memory).toBe(5 - expectedCost);
+    expect(s.perm("base").stack[0]!.instanceId).toBe(s.inst("shuu").instanceId);
+    expect(observe(s.engine).hasRestriction(s.perm("base"), "cantBeDeDigivolved", "Digimon")).toBe(true);
   });
 
   it("may decline the placement cost and grants no protection", async () => {
