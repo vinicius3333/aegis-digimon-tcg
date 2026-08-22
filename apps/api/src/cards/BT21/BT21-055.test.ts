@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-055.js";
+import "../index.js";
 
 describe("BT21-055 Sunarizamon", () => {
   it("reduces eligible digivolution costs and deletes after its stack card is trashed", () => {
@@ -33,5 +36,33 @@ describe("BT21-055 Sunarizamon", () => {
         ],
       },
     ]);
+  });
+
+  it("deletes an opposing low-play-cost Digimon when the inherited card is trashed", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-055", as: "host", under: [{ card: "BT21-055", as: "stacked" }] },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "eligible" },
+            { card: "BT1-010", as: "tooExpensive" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).verb.trashDigivolutionCards(
+      s.perm("host").permanentId,
+      [s.inst("stacked").instanceId],
+      0,
+    );
+
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("eligible").permanentId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("tooExpensive").permanentId)).toBe(true);
   });
 });
