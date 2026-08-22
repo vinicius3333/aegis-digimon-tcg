@@ -5,7 +5,16 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Main",
-      actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 4000 } }, count: 2, upTo: true } }],
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 4000 } },
+            count: 2,
+            upTo: true,
+          },
+        },
+      ],
     },
     { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },
   ],

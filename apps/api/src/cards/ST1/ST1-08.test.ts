@@ -11,7 +11,14 @@ describe("ST1-08 Garudamon", () => {
       effects: [
         {
           trigger: "WhenDigivolving",
-          actions: [{ kind: "ModifyDP", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 }, amount: 3000, duration: "forTheTurn" }],
+          actions: [
+            {
+              kind: "ModifyDP",
+              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              amount: 3000,
+              duration: "forTheTurn",
+            },
+          ],
         },
       ],
     });

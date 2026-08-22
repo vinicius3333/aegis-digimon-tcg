@@ -6,10 +6,22 @@ import { compiled } from "./ST1-15.js";
 
 describe("ST1-15 Giga Destroyer", () => {
   it("registers the up-to-two DP boundary and Security activation as complete IR", () => {
-    expect(compiled).toMatchObject({ coverage: "full", residual: [], effects: [
-      { trigger: "Main", actions: [{ kind: "Delete", target: { count: 2, upTo: true, filter: { controller: "opponent", dp: { op: "lte", value: 4000 } } } }] },
-      { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
-    ] });
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "Delete",
+              target: { count: 2, upTo: true, filter: { controller: "opponent", dp: { op: "lte", value: 4000 } } },
+            },
+          ],
+        },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
+      ],
+    });
   });
 
   it("deletes up to two opposing Digimon with 4000 DP or less", async () => {

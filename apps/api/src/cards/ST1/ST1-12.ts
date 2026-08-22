@@ -5,11 +5,20 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "YourTurn",
-      actions: [{ kind: "ModifyDP", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" }, amount: 1000, duration: "permanent" }],
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
+          amount: 1000,
+          duration: "permanent",
+        },
+      ],
     },
     {
       trigger: "Security",
-      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+      ],
       isSecurity: true,
     },
   ],

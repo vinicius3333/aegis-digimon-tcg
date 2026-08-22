@@ -6,10 +6,17 @@ import { compiled } from "./ST1-16.js";
 
 describe("ST1-16 Gaia Force", () => {
   it("registers exact unrestricted deletion and Security activation as complete IR", () => {
-    expect(compiled).toMatchObject({ coverage: "full", residual: [], effects: [
-      { trigger: "Main", actions: [{ kind: "Delete", target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } } }] },
-      { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
-    ] });
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [{ kind: "Delete", target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"] } } }],
+        },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
+      ],
+    });
   });
 
   it("deletes any one opposing Digimon", async () => {

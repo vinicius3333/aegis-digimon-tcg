@@ -6,10 +6,14 @@ import { compiled } from "./ST1-12.js";
 
 describe("ST1-12 Tai Kamiya", () => {
   it("registers the team DP aura and free security play as complete IR", () => {
-    expect(compiled).toMatchObject({ coverage: "full", residual: [], effects: [
-      { trigger: "YourTurn", actions: [{ kind: "ModifyDP", target: { count: "all" }, amount: 1000 }] },
-      { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
-    ] });
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        { trigger: "YourTurn", actions: [{ kind: "ModifyDP", target: { count: "all" }, amount: 1000 }] },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] },
+      ],
+    });
   });
 
   it("multiple copies stack for all of your Digimon only during your turn (Q606)", async () => {
