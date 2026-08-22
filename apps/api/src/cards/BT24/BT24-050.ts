@@ -83,7 +83,7 @@ export const compiled: CompiledCard = {
               excludeNameOrTrait: [
                 {
                   tokens: ["Sea Animal"],
-                  match: "trait",
+                  match: "traitContains",
                 },
               ],
               controller: "mine",
@@ -92,15 +92,9 @@ export const compiled: CompiledCard = {
                 op: "lte",
                 value: 4000,
               },
-              nameOrTrait: [
-                {
-                  tokens: ["Iliad"],
-                  match: "trait",
-                },
-                {
-                  tokens: ["Beast", "Animal", "Sovereign"],
-                  match: "trait",
-                },
+              or: [
+                { nameOrTrait: [{ tokens: ["Iliad"], match: "trait" }] },
+                { nameOrTrait: [{ tokens: ["Beast", "Animal", "Sovereign"], match: "traitContains" }] },
               ],
             },
             count: 1,
