@@ -225,7 +225,7 @@ export function synthesizedOverclockTrait(
 export function registerTamerOntoFromEffects(cardId: string, effects: readonly CardEffect[]): void {
   for (const effect of effects) {
     if (effect.trigger !== "Static") continue;
-    for (const action of effect.actions) {
+    for (const action of effect.actions ?? []) {
       if (action.kind !== "Digivolve" || typeof action.asLevel !== "number") continue;
       const onto = action.onto as { filter?: { kind?: unknown } } | { kind?: unknown } | undefined;
       const ontoKind = (onto as { filter?: { kind?: unknown } })?.filter
@@ -258,7 +258,7 @@ export function allowsExtraDigiXrosMaterials(cardId: string): boolean {
 
 export function detectAllowDigiXrosMaterialsFromTrash(cardId: string, effects: readonly CardEffect[]): void {
   for (const effect of effects) {
-    for (const action of effect.actions) {
+    for (const action of effect.actions ?? []) {
       if (action.kind !== "Replacement" || action.event !== "wouldBePlayed") continue;
       const extras = (action as { additionalEffects?: Array<{ kind: string }> }).additionalEffects;
       const hasExtra = extras?.some((e) => e.kind === "DigiXrosExtraMaterial");
@@ -286,7 +286,7 @@ export function detectAllowDigiXrosMaterialsFromTrash(cardId: string, effects: r
  */
 export function registerDigisorptionFromEffects(cardId: string, effects: readonly CardEffect[]): void {
   for (const effect of effects) {
-    for (const action of effect.actions) {
+    for (const action of effect.actions ?? []) {
       if (
         action.kind === "Replacement" &&
         action.event === "wouldDigivolve" &&
