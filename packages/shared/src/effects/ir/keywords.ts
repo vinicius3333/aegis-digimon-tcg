@@ -59,7 +59,9 @@ export type Keyword =
    * refreshes. See `apps/api/src/engine/effects/detach.ts` for the eligibility predicate its trait
    * parameter drives and the open questions.
    */
-  | "Detach";
+  | "Detach"
+  /** Temporary DigiXros material substitution granted by BT10-111 and similar cards. */
+  | "DigiXrosSubstitute";
 
 /** A keyword reference: the base keyword plus an optional numeric parameter. */
 export interface KeywordRef {
