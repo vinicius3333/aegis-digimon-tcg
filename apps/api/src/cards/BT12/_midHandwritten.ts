@@ -486,8 +486,8 @@ export function midBt12Module(cardId: string): EffectModule {
                   return (
                     source.isOwnersTurn() &&
                     top !== undefined &&
-                    (ctx.game.definitionOf(top).nameEn.includes("Imperialdramon") ||
-                      contains(ctx.game.definitionOf(top), "free"))
+                      (ctx.game.definitionOf(top).nameEn.includes("Imperialdramon") ||
+                      cardHasTrait(ctx.game.definitionOf(top), "Free"))
                   );
                 },
                 resolve: async (ctx) => {
