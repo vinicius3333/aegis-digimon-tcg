@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const dm = { controller: "mine", nameOrTrait: [{ tokens: ["DM"], match: "trait" }] };
 const dmDigimon = { ...dm, kind: ["Digimon"] };
-const dmLevelSix = { ...dmDigimon, level: { op: "lte", value: 6 } };
+const dmLevelSix = { ...dmDigimon, levelLte: 6 };
 
 export const compiled: CompiledCard = {
   effects: [
