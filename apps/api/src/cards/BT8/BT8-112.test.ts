@@ -8,6 +8,7 @@ import type {
   Primitives,
 } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { wouldDigivolveSelfReducersFor } from "../../engine/effects/interpreter/registration/reducers.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT8-112.js";
 
@@ -307,6 +308,12 @@ describe("BT8-112 Imperialdramon: Paladin Mode", () => {
     const reductions = recorder.calls.filter((c) => c.verb === "subscribeReplacement");
     expect(reductions).toHaveLength(1);
     expect((reductions[0]!.args[0] as { amount: number }).amount).toBe(4);
+  });
+
+  it("[BeforePayCost] is collected as a self reducer for the BT8-112 card", () => {
+    const reducers = wouldDigivolveSelfReducersFor("BT8-112");
+    expect(reducers).toHaveLength(1);
+    expect(reducers[0]).toMatchObject({ amount: 4, cost: { kind: "return" } });
   });
 
   it("[BeforePayCost] does NOT call changeEvoCost when trash has no white Lv7", async () => {

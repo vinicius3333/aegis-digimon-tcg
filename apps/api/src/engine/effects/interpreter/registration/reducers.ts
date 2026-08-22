@@ -257,6 +257,7 @@ const WOULD_DIGIVOLVE_SELF_REDUCERS = new Map<string, WouldDigivolveSelfReducer[
 const VERIFIED_DIGIVOLVE_SELF_REDUCER_CARDS = new Set([
   "EX3-054", // return up to 5 [D-Brigade] cards from trash to deck top -> -1 each (KB Q3423)
   "BT22-038", // -1 for each face-down digivolution card on the Ver.1 base (KB Q4884/Q5196)
+  "BT8-112", // return 1 white Lv7 from trash to deck bottom -> -4 (BT8-112)
 ]);
 
 export function collectWouldDigivolveSelfReducers(cardId: string, effects: readonly CardEffect[]): void {
