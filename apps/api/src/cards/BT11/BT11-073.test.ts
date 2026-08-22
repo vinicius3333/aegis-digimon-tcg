@@ -2,6 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import "../BT10/BT10-067.js";
 import "./BT11-073.js";
 describe("BT11-073 Justimon: Accel Arm", () => {
   it("returns a level 6 source when its digivolving effect is accepted", async () => {
@@ -28,7 +29,11 @@ describe("BT11-073 Justimon: Accel Arm", () => {
     );
     s.state.memory = 2;
 
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("justimon"));
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("justimon").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
     await settle(() => s.perm("justimon").topCard.cardId === "BT10-067");
 
     expect(s.perm("justimon").topCard.cardId).toBe("BT10-067");
@@ -47,7 +52,11 @@ describe("BT11-073 Justimon: Accel Arm", () => {
     );
     s.state.memory = 2;
 
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("justimon"));
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("justimon").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
     await settle(() => false, 20);
 
     expect(s.perm("justimon").topCard.cardId).toBe("BT11-073");

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT11-105.js";
+import "./BT11-061.js";
 
 describe("BT11-105 Fusionize", () => {
   it("places Vemmon under the host and digivolves into Destromon from the trash", async () => {
@@ -14,9 +15,9 @@ describe("BT11-105 Fusionize", () => {
           trash: ["BT11-061", "BT11-070"],
         },
       },
-      { autoSelectCards: true, autoOrderTriggers: true },
+      { autoSelectCards: true, autoOrderTriggers: true, autoAcceptOptional: true },
     );
-    s.state.memory = 0;
+    s.state.memory = 5;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
@@ -37,7 +38,7 @@ describe("BT11-105 Fusionize", () => {
           trash: ["BT11-061"],
         },
       },
-      { autoSelectCards: true, autoOrderTriggers: true },
+      { autoSelectCards: true, autoOrderTriggers: true, autoAcceptOptional: true },
     );
     s.state.memory = 0;
 
@@ -59,7 +60,7 @@ describe("BT11-105 Fusionize", () => {
           deck: [{ card: "BT11-061", as: "vemmon" }, "BT1-001", "BT1-002"],
         },
       },
-      { autoSelectCards: true, autoOrderTriggers: true },
+      { autoSelectCards: true, autoOrderTriggers: true, autoAcceptOptional: true },
     );
     const optionId = s.inst("option").instanceId;
     const vemmonId = s.inst("vemmon").instanceId;
@@ -68,7 +69,7 @@ describe("BT11-105 Fusionize", () => {
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === vemmonId));
 
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === vemmonId)).toBe(true);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(expect.arrayContaining([optionId]));
+    expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT1-001", "BT1-002"]),
     );

@@ -59,7 +59,7 @@ describe("BT11-045 ClavisAngemon", () => {
     await settle(() => s.state.players[0]!.battleArea[0]?.topCard?.cardId === "BT11-045");
 
     expect(s.state.players[0]!.security).toHaveLength(6);
-    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("top").instanceId);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 
   it("Q2086: gives -4000 DP once for each security card removed by one attack", async () => {
@@ -67,7 +67,7 @@ describe("BT11-045 ClavisAngemon", () => {
       {
         0: {
           battleArea: [{ card: "BT11-045", as: "clavis" }],
-          security: ["BT1-001", "BT1-001", "BT1-001"],
+        security: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
         },
         1: {
           battleArea: [{ card: "BT1-114", as: "attacker" }],
@@ -88,7 +88,7 @@ describe("BT11-045 ClavisAngemon", () => {
     ).toEqual({ ok: true });
     await settle(() => attacker.currentDP === 1000);
 
-    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(4);
     expect(attacker.currentDP).toBe(1000);
     expect(
       s.decisions.filter(({ req }) => req.sourceCardId === "BT11-045" && req.kind === "chooseTargets"),

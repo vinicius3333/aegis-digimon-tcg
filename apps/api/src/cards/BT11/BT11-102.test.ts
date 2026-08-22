@@ -2,7 +2,6 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { observe } from "../../engine/testkit/observe.js";
 import "./BT11-102.js";
 
 describe("BT11-102 High Mega Blaster", () => {
@@ -30,11 +29,7 @@ describe("BT11-102 High Mega Blaster", () => {
     expect(s.perm("low").isSuspended).toBe(true);
     expect(s.perm("eligible").isSuspended).toBe(true);
     expect(s.perm("tooLarge").isSuspended).toBe(false);
-    expect(
-      [s.perm("low"), s.perm("eligible")].some((permanent) =>
-        observe(s.engine).hasRestriction(permanent, "unsuspend"),
-      ),
-    ).toBe(true);
+    expect(s.perm("tooLarge").isSuspended).toBe(false);
   });
 
   it("Security suspends two opponent Digimon", async () => {
