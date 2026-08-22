@@ -38,7 +38,7 @@ registerWouldBePlayedSelfReducer("BT12-112", {
         (permanent) =>
           permanent.topCard !== undefined &&
           isDigimon(ctx.game.definitionOf(permanent.topCard)) &&
-          cardHasTrait(ctx.game.definitionOf(permanent.topCard), "Shoutmon"),
+          ctx.game.definitionOf(permanent.topCard).nameEn.includes("Shoutmon"),
       );
     const chosen = await choosePermanent(ctx, candidates);
     if (chosen === undefined) return false;

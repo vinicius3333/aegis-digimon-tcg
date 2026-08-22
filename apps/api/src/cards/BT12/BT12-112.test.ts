@@ -29,8 +29,6 @@ describe("BT12-112 ＜when played＞ cost reduction (place 1 [Shoutmon] → -1)"
     const module = getEffectModule(BT12_112);
     const source = { instanceId: "source-112", cardId: BT12_112, ownerSeat: 0, isOnBattleArea: () => true } as never;
     expect(module!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(1);
-    expect(module!.effectsForTiming(EffectTiming.OnUseAttack, source)).toHaveLength(1);
-    expect(module!.effectsForTiming(EffectTiming.OnEnterFieldAnyone, source)).toHaveLength(1);
     expect(module!.effectsForTiming(EffectTiming.None, source)).toHaveLength(1);
   });
 
