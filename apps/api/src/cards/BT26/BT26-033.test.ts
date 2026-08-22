@@ -18,6 +18,15 @@ describe("BT26-033 compiled fidelity", () => {
         options: [[{ kind: "PlayWithoutCost", reduceCostBy: 5 }], [{ kind: "UseOptionWithoutCost", reduceCostBy: 5 }]],
       },
     ]);
-    expect(card?.effects?.[1]?.actions).toMatchObject([{ kind: "Replacement", mode: "prevent" }]);
+    expect(card?.effects?.[1]).toMatchObject({
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          mode: "prevent",
+          cost: { kind: "placeAsSecurity", position: "bottom", target: { filter: { isSelfRef: true }, isSelf: true } },
+        },
+      ],
+    });
   });
 });

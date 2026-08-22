@@ -49,7 +49,7 @@ export const compiled: CompiledCard = {
       ],
     },
     {
-      trigger: "Static",
+      trigger: "AllTurns",
       actions: [
         {
           kind: "Replacement",
@@ -59,7 +59,7 @@ export const compiled: CompiledCard = {
           raw: "When your TS Digimon or Tamer would leave, by placing this Digimon's top stacked card as bottom security, it doesn't leave.",
           cost: {
             kind: "placeAsSecurity",
-            target: { filter: { isSelfRef: true, zone: "digivolutionCards", position: "top" }, count: 1 },
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
             position: "bottom",
           },
           actions: [],
