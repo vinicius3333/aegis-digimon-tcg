@@ -308,11 +308,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           const candidate = candidates.find((c) => c.instanceId === optionId);
           const usedCost =
             candidate === undefined ? undefined : ctx.game.definitionOf({ cardId: candidate.cardId } as never).playCost;
-<<<<<<< HEAD
           await ctx.fx.useOptionFromHand(ctx, optionId, usedCost);
-=======
-          await ctx.fx.useOptionFromHand(ctx, optionId, usedCost);
->>>>>>> e465e0096 (Port BT21-092 to compiled IR)
         }
         const permanentIds = chosen.filter((instanceId) => !optionIds.includes(instanceId));
         const played =
