@@ -1,47 +1,46 @@
-import { CardKind, EffectDuration, EffectTiming, type CompiledCard } from "@aegis/shared";
+import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { turnTiming, security, beforePayCost, staticModifier } from "../../engine/effects/builders.js";
-import { compiledEffects } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
-// EX4-062 — Kiriha Aonuma & Nene Amano.
-const compiled: CompiledCard = {
-  effects: [
-    {
-      trigger: "Static",
-      actions: [
-        {
-          kind: "GrantStatic",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          grant: "name",
-          tokens: ["Kiriha Aonuma", "Nene Amano"],
-          duration: "permanent",
-        },
-      ],
-    },
-    {
-      trigger: "StartOfYourMainPhase",
-      actions: [
-        {
-          kind: "GainMemory",
-          amount: 1,
-          condition: { kind: "totalDigimonGte", count: 2, raw: "there are 2 or more total Digimon in play" },
-        },
-      ],
-    },
-    {
-      trigger: "AllTurns",
-      optional: true,
-      actions: [
-        {
-          kind: "DigiXrosMaterialZoneExpansion",
-          zones: ["tamerCards", "trash"],
-          duration: "permanent",
-          cost: {
-            kind: "suspend",
-            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+const cardId = "EX4-062";
+
+/**
+ * EX4-062 — Nene Amano & Kiriha Aonuma (EX4 Tamer).
+ *
+ * 1. [None] Name treatment: Also treated as [Kiriha Aonuma] and [Nene Amano]
+ *    (documented behavior).
+ * 2. [Start of Your Main Phase] If 2+ Digimon in play, gain 1 memory
+ *    (documented behavior).
+ * 3. [All Turns] When playing a [Blue Flare]/[Twilight] DigiXros Digimon, by suspending this
+ *    Tamer, place 1 card from under Tamers + 1 from trash as DigiXros materials
+ *    (documented behavior). This source-zone expansion is consumed by the DigiXros play subsystem:
+ *    EX4-062 is registered in `engine/digiXros/zoneExpanders.ts` (under-Tamer max 1 + trash max 1,
+ *    [Blue Flare]/[Twilight] gate) and `engine/actions/digiXros.ts` reads it when the player
+ *    suspends this Tamer (`expanderPermanentIds`). The BeforePayCost clause below predates the
+ *    subsystem and is inert for cross-card plays (BeforePayCost fires only for the played card's own
+ *    effects); the registry is the authoritative consumer. A3: `EX4-062.test.ts`.
+ * 4. [Security] Play this card.
+ */
+
+const module: EffectModule = {
+  cardId,
+  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
+    // [None] Name treatment: Also treated as [Kiriha Aonuma] and [Nene Amano]
+    if (timing === EffectTiming.None) {
+      return [
+        staticModifier({
+          source,
+          effectKey: `${cardId}/name-kiriha`,
+          description: "Also treated as [Kiriha Aonuma].",
+          when: () => true,
+          resolve: async (ctx) => {
+            const selfPerm = ctx.source.permanent();
+            if (selfPerm !== undefined) {
+              ctx.fx.grantNameTrait(selfPerm.permanentId, "name", ["Kiriha Aonuma"], EffectDuration.Permanent);
+            }
           },
         }),
         staticModifier({
@@ -185,18 +184,5 @@ const compiled: CompiledCard = {
   },
 };
 
-const compiled = JSON.parse(JSON.stringify(compiledEffects[cardId]!)) as CompiledCard;
-const staticEffect = compiled.effects.find((effect) => effect.trigger === "Static");
-const rawAction = staticEffect?.actions[0];
-if (rawAction?.kind === "RawUnparsed") {
-  staticEffect.actions[0] = {
-    kind: "GrantStatic",
-    target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-    grant: "name",
-    tokens: ["Kiriha Aonuma", "Nene Amano"],
-  };
-}
-compiled.coverage = "full";
-compiled.residual = [];
-registerIrCard(cardId, compiled);
+registerCard(module);
 export default module;

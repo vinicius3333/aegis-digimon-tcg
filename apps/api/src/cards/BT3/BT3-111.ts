@@ -6,6 +6,7 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
+      keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }],
       actions: [
         {
           kind: "Replacement",

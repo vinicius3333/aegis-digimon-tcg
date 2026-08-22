@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-057.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT22-057 Kurisarimon", () => {
   it("limits the optional Arata Sanada play to one or fewer Tamers", () => {

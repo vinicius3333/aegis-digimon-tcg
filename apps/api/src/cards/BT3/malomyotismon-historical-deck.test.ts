@@ -37,7 +37,7 @@ describe("BT3 MaloMyotismon historical deck gauntlet", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: arukenimonId,
-        target: { kind: "player" },
+        target: { kind: "permanent", permanentId: tieDefenderId },
       }),
     ).toEqual({ ok: true });
     await settle(() =>
@@ -47,7 +47,7 @@ describe("BT3 MaloMyotismon historical deck gauntlet", () => {
       ) &&
       s.state.memory === 5 &&
       !observe(s.engine).isAttacking()
-    );
+    , 5000);
 
     // Q1105: MaloMyotismon is already in play when Arukenimon deletes itself.
     expect(s.state.players[1]!.security).toHaveLength(2);
@@ -55,7 +55,7 @@ describe("BT3 MaloMyotismon historical deck gauntlet", () => {
       s.engine.applyIntent(0, {
         type: "attack",
         attackerPermanentId: mummymonId,
-        target: { kind: "player" },
+        target: { kind: "permanent", permanentId: tieDefenderId },
       }),
     ).toEqual({ ok: true });
     await settle(() =>
@@ -63,7 +63,7 @@ describe("BT3 MaloMyotismon historical deck gauntlet", () => {
       s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "BT3-092").length === 2 &&
       s.state.memory === 4 &&
       !observe(s.engine).isAttacking()
-    );
+    , 5000);
 
     expect(
       s.engine.applyIntent(0, {

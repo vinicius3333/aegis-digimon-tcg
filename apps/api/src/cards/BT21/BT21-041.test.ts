@@ -3,7 +3,6 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-041.js";
-import "../index.js";
 
 describe("BT21-041 compiled implementation", () => {
   it("exposes complete effect coverage with no residual clauses", () => {

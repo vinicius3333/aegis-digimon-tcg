@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-091.js";
-import "../index.js";
+import "./index.js";
 
 // A3 for BT20-091 (Cool Boy) — [Your Turn] Tamer: when your Digimon are played or
 // digivolve, if any of them have the [Royal Knight] trait, by suspending this Tamer,

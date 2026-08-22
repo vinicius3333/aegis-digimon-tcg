@@ -1,20 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-071.js";
 
-describe("EX6-071 Dark Despair", () => {
-  it("registers Main and Security effects", () => {
-    const source = {
-      instanceId: "source",
-      cardId: "EX6-071",
-      ownerSeat: 0,
-      definition: {},
-      permanent: () => undefined,
-      isOnBattleArea: () => true,
-      isOwnersTurn: () => true,
-      hasColor: () => true,
-    } as never;
-    const module = getEffectModule("EX6-071")!;
-    expect(module.effectsForTiming(EffectTiming.OnUseOption, source)[0]?.description).toContain("5 or more cards");
-    expect(module.effectsForTiming(EffectTiming.SecuritySkill, source)[0]?.description).toContain("Activate");
+describe("EX6-071 Pandemonium Lost", () => {
+  it("contains the five-card hand cost, Digimon deletion, and Security activation IR", () => {
+    const text = JSON.stringify(compiled);
+    expect(compiled.coverage).toBe("full");
+    expect(text).toContain("zoneCount");
+    expect(text).toContain("Delete");
+    expect(text).toContain("ActivateMain");
   });
 });

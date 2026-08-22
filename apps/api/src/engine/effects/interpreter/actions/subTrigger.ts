@@ -723,7 +723,13 @@ export async function runSubTrigger(
           })}`,
         }
       : {}),
-    ...(action.oncePerTurnKey ? { oncePerTurnKey: `${ctx.source.instanceId}/${action.oncePerTurnKey}` } : {}),
+    ...(action.oncePerTurnKey
+      ? {
+          oncePerTurnKey: action.oncePerTurnKey.startsWith("global:")
+            ? action.oncePerTurnKey.slice("global:".length)
+            : `${ctx.source.instanceId}/${action.oncePerTurnKey}`,
+        }
+      : {}),
     description: playerScoped ? `${action.raw ?? event} [${ctx.source.instanceId}]` : action.raw,
     run: async (subCtx) => {
       // Preserve the printed clause timing on every decision opened by the future watcher.
@@ -748,7 +754,10 @@ export async function runSubTrigger(
       // A freshly-built watcher context has no map by default; without initializing it,
       // SelectBind silently drops the chosen permanent and every following
       // fromSelectionRef action no-ops (BT8-081's +3000 DP / unsuspend pair).
-      subCtx.selections ??= new Map();
+      // Carry effect-local bindings across the delayed boundary. A Bond effect, for example,
+      // binds the Digimon that actually received the Bond and uses that same handle at end of
+      // turn; rebuilding an empty map here loses the selected host before the watcher runs.
+      subCtx.selections = new Map(ctx.selections ?? []);
       // CAP-E14: an intrinsic ＜Delay＞ gate (`withIntrinsicDelayGate`, comprehensive rules
       // §16-17) — this watcher belongs to a card printing ＜Delay＞ directly on a continuous
       // trigger. Its OWN optional-ask/cost supersedes `action.optional` below: §16-17-1 makes

@@ -2,8 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming, type Seat } from "@aegis/shared";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
-// Boot side-effect: self-register every compiled-IR card module (so BT23-083's real IR loads).
-import "../index.js";
+import "./BT23-083.js";
 
 /**
  * Full-engine A3 for BT23-083 Fei's [All Turns] when-add-security clause (plan 08-02),

@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-046.js";
+import "../index.js";
 
 describe("BT26-046 Gryphonmon", () => {
   it("encodes printed Piercing/Vortex, suspended-Digimon cost reduction, and Q7039 independent targets", () => {
@@ -15,5 +18,20 @@ describe("BT26-046 Gryphonmon", () => {
     expect(compiled.effects?.[0]?.actions).toEqual(expect.arrayContaining([
       expect.objectContaining({ kind: "GrantStatic", grant: "trait", tokens: ["Avian"] }),
     ]));
+  });
+
+  it("publicly suspends and locks an opponent target while protecting one of your Digimon in battle", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT26-046", as: "gryphonmon" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+    }, { autoSelectCards: true });
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("gryphonmon"));
+
+    expect(s.perm("opponent").isSuspended).toBe(true);
+    const continuous = (s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string) => boolean } }).continuous;
+    expect(continuous.hasRestriction(s.perm("opponent").permanentId, "unsuspend")).toBe(true);
+    expect(continuous.hasRestriction(s.perm("gryphonmon").permanentId, "beDeletedInBattle")).toBe(true);
   });
 });

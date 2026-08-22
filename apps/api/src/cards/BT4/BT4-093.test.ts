@@ -27,6 +27,25 @@ describe("BT4-093 Thomas H. Norstein", () => {
     expect(s.perm("gao").isSuspended).toBe(false);
   });
 
+  it("does not activate the unsuspend effect at 7 opposing hand cards", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT4-093", as: "thomas" }, { card: "BT4-035", as: "gao", suspended: true }] },
+      1: { hand: Array.from({ length: 7 }, () => "BT1-001") as string[] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const source = (s.engine as any).cardSourceOf(s.perm("thomas").topCard);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.includes("BT4-093"))!.effectKey;
+
+    expect(s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.perm("thomas").topCard.instanceId,
+      effectKey,
+    })).toEqual({ ok: false, reason: "illegal-target" });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("thomas").isSuspended).toBe(false);
+    expect(s.perm("gao").isSuspended).toBe(true);
+  });
+
   it("plays itself from security", async () => {
     const s = setupEngine({ 0: { security: [{ card: "BT4-093", as: "securityTamer", faceUp: true }] } });
     const id = s.inst("securityTamer").instanceId;

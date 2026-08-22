@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { GameEngine } from "../../engine/GameEngine.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 // Self-register every card module so the engine drives the REGISTERED BT20-065 IR.
-import "../index.js";
+import "./index.js";
 import { compiled } from "./BT20-065.js";
 
 /**

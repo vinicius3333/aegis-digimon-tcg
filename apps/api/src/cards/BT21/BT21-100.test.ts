@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-100.js";
-import "../index.js";
 
 describe("BT21-100 The Digimon I Designed", () => {
   it("executes Main draw, hand trash, and battle-area placement when Takato waives the color requirement", async () => {
@@ -9,14 +8,19 @@ describe("BT21-100 The Digimon I Designed", () => {
       {
         0: {
           battleArea: [{ card: "BT21-089", as: "takato" }],
-          hand: [{ card: "BT21-100", as: "option" }, { card: "BT1-009", as: "filler" }],
+          hand: [
+            { card: "BT21-100", as: "option" },
+            { card: "BT1-009", as: "filler" },
+          ],
           deck: [{ card: "BT1-010", as: "drawn" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.length === 2);
 
     expect(s.state.players[0]!.battleArea.length).toBe(2);

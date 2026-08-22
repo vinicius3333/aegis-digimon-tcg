@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-058.js";
+import "../index.js";
 
 describe("BT26-058 HiAndromon", () => {
   it("encodes Reboot/Blocker, shared CS protection, and leave prevention paid by rotating its stack", () => {
@@ -11,5 +14,17 @@ describe("BT26-058 HiAndromon", () => {
     expect(compiled.effects?.[1]?.sharedUseKey).toBe("bt26-058-protect-cs");
     expect(compiled.effects?.[2]?.sharedUseKey).toBe("bt26-058-protect-cs");
     expect(compiled.effects?.[3]).toMatchObject({ trigger: "AllTurns", actions: [{ kind: "Replacement", event: "wouldLeavePlay", sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["CS"], match: "trait" }] }, actions: [{ kind: "Prevent", cost: { kind: "placeOwnTopAtStackBottom" } }] }] });
+  });
+
+  it("publicly protects a CS Digimon from opposing Digimon effects during its protection window", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT26-058", as: "hiAndromon" }] },
+    }, { autoSelectCards: true });
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("hiAndromon"));
+
+    const continuous = (s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string, source?: string) => boolean } }).continuous;
+    expect(continuous.hasRestriction(s.perm("hiAndromon").permanentId, "beAffected", "Digimon")).toBe(true);
   });
 });

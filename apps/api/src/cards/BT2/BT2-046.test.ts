@@ -1,8 +1,23 @@
+import { getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT2-046.js";
 
 describe("BT2-046 MetalTyrannomon", () => {
+  it("publishes full IR for the inherited battle-delete unsuspend effect", () => {
+    expect(getCompiledCard("BT2-046")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "YourTurn",
+          isInherited: true,
+          actions: [{ kind: "SubTrigger", event: "whenDeletesInBattle" }],
+        },
+      ],
+    });
+  });
+
   it("unsuspends its host after deleting an opposing level 6 Digimon in battle", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT2-047", as: "attacker", dp: 20000, under: ["BT2-046"] }] },

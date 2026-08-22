@@ -1,6 +1,11 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
+import type { Permanent, Seat } from "@aegis/shared";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { EffectContext } from "../../engine/effects/EffectContext.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import { staticModifier, turnTiming, whenAttacking, whenDigivolving } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
 // Vortexdramon — EX11-074 (Green Lv.7 Digimon).
 //
@@ -105,9 +110,11 @@ const module: EffectModule = {
     //   - ＜Blocker＞: grantKeyword -> continuous-effect ledger; the attack/block subsystem
     //     reads it (combat/legality.ts hasBlocker: printed OR granted).
     //   - ＜Piercing＞: grantPierce -> ModifierLedger's dedicated pierce store (hasPierce).
-    //   - ＜Vortex＞: grantKeyword recorded as real server state and consumed by the
-    //     combat legality and resolution subsystems (including same-turn attacks and
-    //     the optional player-target relaxation grant used by EX11-062).
+    //   - ＜Vortex＞: grantKeyword recorded as real server state. The Vortex BEHAVIOR
+    //     (take another turn after deleting an opponent's Digimon in battle, and the
+    //     attack-players permission) has no runtime subsystem yet — an engine-wide gap
+    //     shared by every ＜Vortex＞ card (EX7-036 / ST18-12 / EX11-062). Recorded, not
+    //     faked; it activates once a Vortex subsystem reads the grant.
     if (timing === EffectTiming.None) {
       const keyword = (
         key: string,
@@ -125,9 +132,13 @@ const module: EffectModule = {
           },
         });
       return [
-        keyword("blocker", "＜Blocker＞", (ctx, id) => ctx.fx.grantKeyword(id, "Blocker", EffectDuration.Permanent)),
-        keyword("piercing", "＜Piercing＞", (ctx, id) => ctx.fx.grantPierce(id, EffectDuration.Permanent)),
-        keyword("vortex", "＜Vortex＞", (ctx, id) => ctx.fx.grantKeyword(id, "Vortex", EffectDuration.Permanent)),
+        keyword("blocker", "＜Blocker＞", (ctx, id) =>
+          ctx.fx.grantKeyword(id, "Blocker", EffectDuration.UntilEachTurnEnd),
+        ),
+        keyword("piercing", "＜Piercing＞", (ctx, id) => ctx.fx.grantPierce(id, EffectDuration.UntilEachTurnEnd)),
+        keyword("vortex", "＜Vortex＞", (ctx, id) =>
+          ctx.fx.grantKeyword(id, "Vortex", EffectDuration.UntilEachTurnEnd),
+        ),
       ];
     }
 
@@ -213,53 +224,7 @@ const module: EffectModule = {
 
     return [];
   },
-  { kind: "ModifyDP", target: self, amount: 6000, duration: "untilOpponentTurnEnd" },
-];
-const suspendChoice = [
-  { kind: "Suspend", target: { filter: { kind: ["Digimon"] }, count: 1 }, optional: true, abortOnDecline: true },
-  ...reward.map((action) => ({ ...action, condition: { kind: "lastSuspendedIsMine" } })),
-];
-
-const compiled: CompiledCard = {
-  effects: [
-    {
-      trigger: "Static",
-      actions: [],
-      effectKey: "EX11-074/piercing",
-      keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }],
-    },
-    {
-      trigger: "Static",
-      actions: [],
-      effectKey: "EX11-074/vortex",
-      keywords: [{ keyword: "Vortex", raw: "＜Vortex＞" }],
-    },
-    {
-      trigger: "Static",
-      actions: [],
-      effectKey: "EX11-074/blocker",
-      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
-    },
-    { trigger: "WhenDigivolving", optional: true, actions: suspendChoice },
-    { trigger: "WhenAttacking", optional: true, actions: suspendChoice },
-    {
-      trigger: "AllTurns",
-      timingOverride: "OnTappedAnyone",
-      actions: [
-        {
-          kind: "SubTrigger",
-          event: "whenSuspended",
-          actions: [
-            { kind: "Unsuspend", target: self, optional: true },
-            { kind: "Battle", attacker: self, defender: opponentDigimon, optional: true },
-          ],
-        },
-      ],
-      frequency: "OncePerTurn",
-    },
-  ],
-  coverage: "full",
-  residual: [],
 };
 
-export default registerIrCard("EX11-074", compiled);
+registerCard(module);
+export default module;

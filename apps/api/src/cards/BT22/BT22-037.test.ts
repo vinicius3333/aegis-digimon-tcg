@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
-import "../index.js";
+import "./index.js";
 import { setupEngine, settle, assertNoLoudGap } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import module from "./BT22-037.js";

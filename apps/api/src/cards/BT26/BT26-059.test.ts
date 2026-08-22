@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-059.js";
+import "../index.js";
 
 describe("BT26-059 Plutomon", () => {
   it("encodes hand-size cost reduction, shared three-window trash/play, and all-hand-trash lowest-level deletion", () => {
@@ -13,5 +17,23 @@ describe("BT26-059 Plutomon", () => {
       expect.objectContaining({ kind: "PlayWithoutCost", condition: { kind: "isYourTurn" } }),
     ]);
     expect(compiled.effects?.[4]).toMatchObject({ trigger: "AllTurns", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenHandTrashed", actions: [{ kind: "Delete", target: { count: "all" } }] }] });
+  });
+
+  it("publicly trashes a hand card, plays a Titan from trash, and deletes the opponent's lowest-level Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-059", as: "plutomon" }],
+        hand: [{ card: "BT1-001", as: "cost" }],
+        trash: [{ card: "BT26-021", as: "titan" }],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "lowest" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("plutomon"));
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-021");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });

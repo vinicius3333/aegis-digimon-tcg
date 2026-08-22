@@ -1,14 +1,15 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming, isDigimon } from "@aegis/shared";
+import type { CardDefinition } from "@aegis/shared";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import { onPlay, turnTiming, security, staticModifier } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
-const vemmonText = { nameOrTrait: [{ tokens: ["Vemmon"], match: "text" }] };
-const vemmonDigimon = { controller: "mine", kind: ["Digimon"], ...vemmonText };
-const trashCost = { kind: "trash", target: { filter: { zone: "hand", controller: "mine", ...vemmonText }, count: 1 }, raw: "By trashing 1 card with [Vemmon] in its text from your hand" };
-const suspendCost = { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, raw: "by suspending this Tamer" };
+const cardId = "EX11-066";
 
 function hasVemmonInText(def: CardDefinition): boolean {
-  return JSON.stringify(def).includes("Vemmon");
+  return def.nameEn.includes("Vemmon");
 }
 
 const module: EffectModule = {
@@ -35,8 +36,14 @@ const module: EffectModule = {
             });
             if (chosen.length > 0) {
               await ctx.fx.trash(chosen);
-              await ctx.fx.draw(source.ownerSeat, 1);
-              ctx.fx.gainMemoryForSeat(source.ownerSeat, 1);
+              ctx.fx.draw(source.ownerSeat, 1);
+              const willGain = await ctx.ask.optional(ctx, "Gain 1 memory?");
+              if (willGain) {
+                // `when` only gates isOnBattleArea(), not isOwnersTurn(), so this clause
+                // is also a candidate at the OPPONENT's Start-of-Main-Phase firing; credit
+                // this Tamer's owner explicitly rather than the turn player.
+                ctx.fx.gainMemoryForSeat(source.ownerSeat, 1);
+              }
             }
           },
         }),
@@ -64,8 +71,11 @@ const module: EffectModule = {
             });
             if (chosen.length > 0) {
               await ctx.fx.trash(chosen);
-              await ctx.fx.draw(source.ownerSeat, 1);
-              ctx.fx.gainMemoryForSeat(source.ownerSeat, 1);
+              ctx.fx.draw(source.ownerSeat, 1);
+              const willGain = await ctx.ask.optional(ctx, "Gain 1 memory?");
+              if (willGain) {
+                ctx.fx.gainMemory(1);
+              }
             }
           },
         }),
@@ -196,4 +206,5 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard("EX11-066", compiled);
+registerCard(module);
+export default module;

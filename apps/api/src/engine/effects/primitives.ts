@@ -1394,6 +1394,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       subjectPermanentId: permanentId,
       addedDigivolutionCardInstanceIds: [oldTop.instanceId],
       addedDigivolutionCardsPosition: "bottom",
+      placedOwnTopAtStackBottom: true,
     });
     return true;
   };
@@ -3294,7 +3295,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
    */
   const returnToDeck = async (
     instanceIds: string[],
-    opts?: { toTop?: boolean; byEffectSeat?: Seat },
+    opts?: { toTop?: boolean; byEffectSeat?: Seat; byEffectCardId?: string },
   ): Promise<CardInstance[]> => {
     instanceIds = filterLockedStackReturns(instanceIds, opts?.byEffectSeat ?? effectSeatStack.at(-1));
     instanceIds = await filterBouncePrevented(instanceIds);
@@ -3391,6 +3392,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         await engine.fireSubTrigger?.("whenEffectAddsToDeck", {
           effectAddedToDeckSeat: seat,
           effectAddedToDeckBySeat: effectSeatStack.at(-1) ?? engine.controllerSeat(),
+          ...(opts?.byEffectCardId !== undefined ? { byEffectCardId: opts.byEffectCardId } : {}),
         });
       }
     }
@@ -3979,11 +3981,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     targetPermanentId: string,
     stackInstanceId: string,
     _duration: EffectDuration,
-    opts?: { trigger?: string },
+    opts?: { trigger?: string; inheritedOnly?: boolean },
   ): void => {
     continuous.conferStackEffects(targetPermanentId, stackInstanceId, {
       ...continuousOpt(),
       trigger: opts?.trigger,
+      inheritedOnly: opts?.inheritedOnly,
     });
   };
 

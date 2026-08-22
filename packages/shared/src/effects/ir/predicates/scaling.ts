@@ -8,6 +8,8 @@ export interface Scaling {
   per: number;
   /** Add this per computed unit instead of multiplying the action's base amount. */
   bonus?: number;
+  /** Subtract this many units from a runtime ceiling per computed unit. */
+  subtract?: number;
   /** Add this to a Delete action's maximum level per computed unit. */
   levelCeilingAdd?: number;
   /** The counted pool. Not needed for `digivolutionCards` or `usePaidCount`. */

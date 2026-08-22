@@ -57,6 +57,7 @@ export const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "whenEffectAddsToDeck",
           effectSourceFilter: { controller: "mine" },
+          fireCondition: { kind: "selfTopHasText", filter: { nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }] } },
           actions: [{ kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } }],
         },
       ],

@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "../index.js"; // register the compiled cards so the real activateEffect path runs
+import "./index.js"; // register the BT20 compiled cards so the real activateEffect path runs
 import { compiled } from "./BT20-102.js";
 
 /**

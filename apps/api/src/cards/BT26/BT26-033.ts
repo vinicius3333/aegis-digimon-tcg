@@ -56,6 +56,7 @@ export const compiled: CompiledCard = {
           event: "wouldLeavePlay",
           mode: "prevent",
           sourceFilter: ts,
+          target: { filter: ts, count: 1 },
           raw: "When your TS Digimon or Tamer would leave, by placing this Digimon's top stacked card as bottom security, it doesn't leave.",
           cost: {
             kind: "placeAsSecurity",

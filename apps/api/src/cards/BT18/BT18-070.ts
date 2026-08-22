@@ -8,7 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   "effects": [
     {
-      "trigger": "Hand",
+      "trigger": "Main",
       "actions": [
         {
           "kind": "Digivolve",

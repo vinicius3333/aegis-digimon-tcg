@@ -4,7 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { revealedDefinition } from "../../engine/effects/interpreter/actions/reveal.js";
 import { getCardDefinition } from "@aegis/shared";
 import { compiled } from "./BT17-068.js";
-import "../index.js";
+import "./index.js";
 
 const MEPHISTOMON = "BT17-068";
 const GULFMON = "BT17-070"; // Gulfmon Lv6 — eligible for [On Deletion]
@@ -43,10 +43,11 @@ describe("BT17-068 Mephistomon — [On Deletion] play Gulfmon from hand", () => 
     expect(gulfInBattle).toBe(true);
   });
 
-  it("keeps the revealed-from-deck level override explicitly machine-readable as unresolved", async () => {
+  it("keeps the revealed-from-deck level override resolved in runtime metadata", async () => {
     const { runtimeCompiledCard } = await import("../../engine/effects/interpreter.js");
     const compiled = runtimeCompiledCard(MEPHISTOMON)!;
-    expect(compiled.residual).toEqual(["missing-primitive(unaudited): this card is also treated as level 6"]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });
 
