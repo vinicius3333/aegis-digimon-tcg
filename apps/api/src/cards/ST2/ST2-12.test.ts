@@ -1,10 +1,39 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import "./ST2-12.js";
 
 describe("ST2-12 Matt Ishida", () => {
+  it("matches the start-of-turn and security-play contract", () => {
+    const definition = getCardDefinition("ST2-12")!;
+    const compiled = getCompiledCard("ST2-12")!;
+
+    expect(definition.effectText).toContain("gain 1 memory");
+    expect(definition.securityEffectText).toContain("Play this card without paying");
+    expect(compiled.effects).toEqual([
+      {
+        trigger: "StartOfYourTurn",
+        actions: [{
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "opponentHas",
+            filter: { digivolutionCards: "none", controller: "opponent", zone: "battleArea", kind: ["Digimon"] },
+            raw: "your opponent has a Digimon with no digivolution cards",
+          },
+        }],
+      },
+      {
+        trigger: "Security",
+        actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
+        isSecurity: true,
+      },
+    ]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("gains 1 memory at the start of your turn when the opponent has a source-less Digimon", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "ST2-12", as: "matt" }] }, 1: { battleArea: ["ST2-03"] } });
     s.state.memory = 0;
