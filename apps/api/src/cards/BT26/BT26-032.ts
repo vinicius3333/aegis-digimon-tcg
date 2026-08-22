@@ -3,7 +3,6 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const opponentSuspendedDigimon = { controller: "opponent", kind: ["Digimon"], suspended: true };
-const opponentDigimonOrTamer = { controller: "opponent", kind: ["Digimon", "Tamer"] };
 const playable = { controller: "mine", zone: "hand", nameOrTrait: [{ tokens: ["Vegetation", "TS"], match: "trait" }] };
 const ceresmon = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Ceresmon"], match: "name" }] };
 
@@ -24,10 +23,6 @@ export const compiled: CompiledCard = {
       { kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "effects", filter: ceresmon, duration: "permanent" },
       { kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "trait", tokens: ["Vegetation"], duration: "permanent" },
       { kind: "WaiveColorRequirement", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, condition: { kind: "youHave", filter: { controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] } } },
-    ] },
-    { trigger: "Main", actions: [
-      { kind: "Suspend", target: { filter: opponentDigimonOrTamer, count: 2 }, optional: true },
-      { kind: "Restrict", target: { filter: opponentDigimonOrTamer, count: 3 }, restriction: "unsuspend", duration: "untilOpponentTurnEnd", condition: { kind: "ifThisEffectActed" } },
     ] },
   ],
   coverage: "full",

@@ -9,6 +9,10 @@ describe("BT26-032 compiled fidelity", () => {
     expect(card?.residual).toEqual([]);
     expect(card?.keywords?.map((keyword) => keyword.keyword)).toEqual(expect.arrayContaining(["Alliance", "Succession"]));
     expect(card?.effects?.[0]?.actions).toMatchObject([{ kind: "ModifyDP", amount: -5000 }, { kind: "Suspend" }, { kind: "Modal", choose: 1, condition: { kind: "allOf", conditions: [{ kind: "ifThisEffectActed" }, { kind: "isYourTurn" }] } }]);
-    expect(card?.effects?.[2]?.actions).toMatchObject([{ kind: "Suspend", optional: true }, { kind: "Restrict", restriction: "unsuspend" }]);
+    expect(card?.effects).toHaveLength(2);
+    expect(card?.effects?.[1]?.actions).toEqual(expect.arrayContaining([
+      expect.objectContaining({ kind: "GrantStatic", grant: "trait", tokens: ["Vegetation"] }),
+      expect.objectContaining({ kind: "WaiveColorRequirement" }),
+    ]));
   });
 });
