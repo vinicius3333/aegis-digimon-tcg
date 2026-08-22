@@ -65,4 +65,18 @@ describe("BT13-111 Gallantmon", () => {
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === highId));
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === highId)).toBe(false);
   });
+
+  it("fires the same ordered deletion effect when digivolving from a legal level-5 red Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-014", as: "base" }], hand: [{ card: "BT13-111", as: "gallantmon" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+    }, { autoSelectCards: true });
+    s.state.memory = 5;
+    const targetId = s.perm("target").topCard!.instanceId;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("gallantmon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT13-111");
+
+    expect(s.perm("base").stack.some((card) => card.cardId === "BT13-014")).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetId)).toBe(true);
+  });
 });
