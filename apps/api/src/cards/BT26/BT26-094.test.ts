@@ -11,6 +11,12 @@ function primitives(s: ReturnType<typeof setupEngine>): Primitives {
 }
 
 describe("BT26-094 Keenan Crier", () => {
+  it("requires the printed DATA SQUAD placement cost", async () => {
+    const { getEffectModule } = await import("../../engine/effects/registry.js");
+    const effect = getEffectModule("BT26-094")!.effectsForTiming(EffectTiming.OnStartMainPhase, {} as never)[0]!;
+    expect(effect.optional).toBe(false);
+  });
+
   it("places the DATA SQUAD cost face down at the stack bottom before drawing and gaining memory", async () => {
     const s = setupEngine(
       {
