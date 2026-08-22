@@ -837,7 +837,10 @@ export async function payCost(
         ctx.boundPlayed ??= new Map();
         ctx.boundPlayed.set(cost.bindResultAs, new Set(ids));
       }
-      await ctx.fx.deletePermanent(ids);
+      // A deletion paid as an effect cost is still an effect deletion: preserve the
+      // cause explicitly so the normal OnDeletion/OnDestroyedAnyone window fires for
+      // cards such as BT4-083 that are deleted to pay another card's On Play cost.
+      await ctx.fx.deletePermanent(ids, "byEffect");
       return true;
     }
     case "payMemory": {
