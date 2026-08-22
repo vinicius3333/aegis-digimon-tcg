@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { getCompiledCard } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import "./BT26-097.js";
+import "../index.js";
 
 describe("BT26-097 compiled fidelity", () => {
   it("encodes the live security surcharge, permanent placement cost, authorized free evolution, and gated tail", () => {
@@ -17,5 +21,19 @@ describe("BT26-097 compiled fidelity", () => {
       { kind: "PlayWithoutCost", from: ["hand"], payCost: false, optional: true },
       { kind: "AddToHandSelf" },
     ]);
+  });
+
+  it("plays a low-cost TS card from hand and returns itself to hand from Security", async () => {
+    const s = setupEngine({
+      0: {
+        security: [{ card: "BT26-097", as: "securityOption", faceUp: true }],
+        hand: [{ card: "BT26-008", as: "tsCard" }],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT26-008")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("securityOption").instanceId)).toBe(true);
   });
 });
