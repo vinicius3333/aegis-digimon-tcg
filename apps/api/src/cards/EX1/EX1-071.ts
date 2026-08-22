@@ -48,16 +48,6 @@ const compiled: CompiledCard = {
           "zone": "battleArea",
           "cost": {
             "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "hand",
-                "kind": [
-                  "Digimon"
-                ]
-              },
-              "count": 1
-            },
             "raw": "by trashing 1 Digimon card in your hand of the same color as the digivolving Digimon"
           },
           "optional": true

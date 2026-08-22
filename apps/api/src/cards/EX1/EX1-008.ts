@@ -6,17 +6,16 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenAttacking",
-      actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 4000 } }, count: 1 }, attackPlayer: true }],
+      actions: [{ kind: "SubTrigger", event: "whenAttacking", actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 4000 } }, count: 1 } }] }],
     },
     {
       trigger: "YourTurn",
       isInherited: true,
       actions: [{
-        kind: "GainKeyword",
+        kind: "Aura",
         target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
-        duration: "permanent",
-        condition: { kind: "or", conditions: [{ kind: "sourceHasTrait", trait: "Machine" }, { kind: "sourceHasTrait", trait: "Dragonkin" }] },
+        effect: { kind: "keyword", keyword: { keyword: "Piercing", raw: "＜Piercing＞" } },
+        while: { kind: "raw", raw: "this Digimon has [Machine] or [Dragonkin] in its traits" },
       }],
     },
   ],
