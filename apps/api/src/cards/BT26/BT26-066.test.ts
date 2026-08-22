@@ -29,7 +29,7 @@ describe("BT26-066 Salamon", () => {
     s.state.memory = 10;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("salamon"));
+      await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("salamon"));
 
     expect(s.perm("titanHost").topCard.cardId).toBe("BT26-059");
   });
