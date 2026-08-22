@@ -11,11 +11,11 @@ export const compiled: CompiledCard = {
           kind: "Return",
           target: {
             filter: { controller: "mine", zone: "trash", kind: ["Digimon"], nameOrTrait: [{ tokens: ["D-Brigade"], match: "trait" }] },
+          },
           count: 5,
           upTo: true,
           order: "any",
           trackCount: "returnedDBrigade",
-          },
           to: "deckTop",
         },
         { kind: "GainMemory", amount: 2, scaling: { per: 1, unit: "namedCount", countSource: "returnedDBrigade" } },
