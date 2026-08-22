@@ -943,6 +943,7 @@ export function midBt12Module(cardId: string): EffectModule {
                       .player(source.ownerSeat)
                       .trash.filter(
                         (item) =>
+                          item.instanceId !== source.instanceId &&
                           isDigimon(ctx.game.definitionOf(item)) && contains(ctx.game.definitionOf(item), "save"),
                       ),
                     1,
