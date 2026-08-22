@@ -27,4 +27,23 @@ describe("BT11-100 Megalo Spark", () => {
     expect(s.state.memory).toBe(1); // printed cost 5, reduced to 4
     expect(s.perm("other").currentDP).toBe(10000);
   });
+
+  it("pays full cost without a yellow Tamer while retaining the opponent-turn duration", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT11-100", as: "option" }] },
+        1: { battleArea: [{ card: "BT1-081", as: "target", dp: 10000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 2000);
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("target").currentDP).toBe(2000);
+  });
 });
