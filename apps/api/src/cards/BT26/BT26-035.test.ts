@@ -15,9 +15,11 @@ describe("BT26-035 Morphomon", () => {
   });
 
   it("publicly evolves an eligible NSp battle winner with the one-memory reduction", async () => {
+    const preferred: string[] = [];
     const s = setupEngine({
       0: { battleArea: [{ card: "BT26-035", as: "winner", under: ["BT26-035"] }], hand: [{ card: "BT26-041", as: "candidate" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    }, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred });
+    preferred.push(s.inst("candidate").instanceId);
     s.state.memory = 2;
     await s.ready();
 
@@ -28,10 +30,12 @@ describe("BT26-035 Morphomon", () => {
   });
 
   it("suspends one Digimon through the public On Play window", async () => {
+    const preferred: string[] = [];
     const s = setupEngine({
       0: { battleArea: [{ card: "BT26-035", as: "morphomon" }] },
       1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+    }, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred });
+    preferred.push(s.perm("opponent").topCard.instanceId);
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("morphomon"));
 
