@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST16-07.js";
 
@@ -7,7 +8,7 @@ describe("ST16-07 Meramon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "ST16-07", as: "meramon" }] } });
     s.state.memory = 0;
 
-    await s.engine.deletePermanent(s.perm("meramon").permanentId, "effect");
+    await advance(s.engine).verb.deletePermanent([s.perm("meramon").permanentId], "effect");
     await settle(() => s.state.memory === 1);
 
     expect(s.state.memory).toBe(1);
