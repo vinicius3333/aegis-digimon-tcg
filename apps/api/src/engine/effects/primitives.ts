@@ -3036,7 +3036,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
    * pattern, HARD-05). Explicit parameters — NEVER reads ctx.source.permanent().
    * Validates the permanent is unsuspended, on the battle area, and affectable.
    */
-  const payActivationCost: NonNullable<Primitives["payActivationCost"]> = (
+  const canPayActivationCost: NonNullable<Primitives["canPayActivationCost"]> = (
     permanentId: string,
     costKind: "suspend",
   ): boolean => {
@@ -3052,7 +3052,11 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // do not block here. That is intentional: suspend-as-cost is a controller-side cost
     // verb, not the core opponent-Digimon-effect targeting path.
     if (continuous.hasRestriction(permanentId, "beAffected")) return false;
-    access.suspend(permanent);
+    return true;
+  };
+  const payActivationCost: NonNullable<Primitives["payActivationCost"]> = (permanentId, costKind): boolean => {
+    if (!canPayActivationCost(permanentId, costKind)) return false;
+    access.suspend(access.permanentById(permanentId)!);
     return true;
   };
 
@@ -4498,6 +4502,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     deletePermanent,
     suspend,
     fireSuspensionTriggers,
+    canPayActivationCost,
     payActivationCost,
     reactivateOnPlay,
     unsuspend,

@@ -2,7 +2,7 @@
 
 import type { EffectContext, ReplacementEventName } from "../../EffectContext.js";
 import { evaluateCondition } from "../conditions.js";
-import { payCost, payOneCostOption } from "../costs.js";
+import { canPayCost, payCost, payOneCostOption } from "../costs.js";
 import { runAction } from "../dispatch.js";
 import { unsupported } from "../errors.js";
 import { scaleFactor } from "../scaling.js";
@@ -46,8 +46,11 @@ export async function runReplacement(
       ...replacementBudget,
       event,
       sourcePermanentId: self.permanentId,
+      sourceInstanceId: ctx.source.instanceId,
+      ...(ctx.activeTiming !== undefined ? { activationTiming: ctx.activeTiming } : {}),
+      ...(ctx.activeEffectText !== undefined ? { activationEffectText: ctx.activeEffectText } : {}),
       mode: "redirect",
-      description: action.raw,
+      description: action.raw ?? ctx.activeEffectText ?? nestedCostModifier?.raw ?? "",
       appliesTo: (subCtx, originalHostId) => {
         const original = subCtx.game.permanentById(originalHostId);
         return original !== undefined && original.controllerSeat === ctx.source.ownerSeat &&
@@ -162,10 +165,10 @@ export async function runReplacement(
       ...replacementBudget,
       event,
       sourcePermanentId: self?.permanentId,
-      sourceInstanceId: self === undefined ? ctx.source.instanceId : undefined,
+      sourceInstanceId: ctx.source.instanceId,
       mode: "prevent",
       affectsAll: action.affectsAll,
-      description: action.raw,
+      description: action.raw ?? ctx.activeEffectText ?? nestedCostModifier?.raw ?? "",
       causeAllows: (cause, resolvingSeat, isBounce) => {
         // "Can't leave EXCEPT by deletion" (EX6-044): a deletion (a non-bounce removal) is
         // allowed through; only a move/bounce is prevented (KB EX6-044 Q3771).
@@ -277,10 +280,13 @@ export async function runReplacement(
       ...replacementBudget,
       event,
       sourcePermanentId: self?.permanentId,
+      sourceInstanceId: ctx.source.instanceId,
+      ...(ctx.activeTiming !== undefined ? { activationTiming: ctx.activeTiming } : {}),
+      ...(ctx.activeEffectText !== undefined ? { activationEffectText: ctx.activeEffectText } : {}),
       mode: "reduceCost",
       amount: mode === "increaseCost" ? -(amount ?? 0) : amount,
       ...(scalesIntoColors ? { amountForInto: (def: import("@aegis/shared").CardDefinition) => (amount ?? 0) * def.colors.length } : {}),
-      description: action.raw,
+      description: action.raw ?? ctx.activeEffectText ?? nestedCostModifier?.raw ?? "",
       digisorptionRedirect: action.digisorptionRedirect,
       // "when this Digimon would digivolve INTO a card with [X] trait/name": restrict the
       // cost reduction to only when the digivolution target satisfies the into-filter.
@@ -312,10 +318,18 @@ export async function runReplacement(
                 ? definitionMatches(replacementSourceFilter ?? {}, ctx.game.definitionOf(target.topCard))
                 : permanentMatchesFilter(ctx, target, replacementSourceFilter ?? {}, ctx.source)),
             activate: async (runtimeCtx: EffectContext) => {
+              if (interactiveCost !== undefined && !canPayCost(runtimeCtx, interactiveCost)) return false;
+              if (
+                interactiveCost?.kind === "suspend" &&
+                (interactiveCost.target?.isSelf === true || interactiveCost.target?.filter.isSelfRef === true) &&
+                self !== undefined &&
+                runtimeCtx.fx.canPayActivationCost?.(self.permanentId, "suspend") === false
+              )
+                return false;
               if (interactiveOptional || action.optional !== false) {
                 const accepted = await runtimeCtx.ask.optional(
                   runtimeCtx,
-                  action.raw ?? "Pay the cost to reduce the digivolution cost?",
+                  action.raw ?? nestedCostModifier?.raw ?? "Pay the cost to reduce the cost?",
                 );
                 if (!accepted) return false;
               }
@@ -338,9 +352,10 @@ export async function runReplacement(
   // (not instead of, despite the name — see ReplacementInstallInstead's doc comment) the
   // event; it never itself blocks the removal.
   ctx.fx.subscribeReplacement({
-    ...replacementBudget,
-    event,
-    sourcePermanentId: self?.permanentId,
+      ...replacementBudget,
+      event,
+      sourcePermanentId: self?.permanentId,
+      sourceInstanceId: ctx.source.instanceId,
     mode: "instead",
     description: action.raw,
     digisorptionRedirect: action.digisorptionRedirect,

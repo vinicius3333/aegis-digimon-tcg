@@ -15,11 +15,11 @@ const compiled: CompiledCard = {
           controller: "mine",
           amount: 1,
           condition: {
-            kind: "selfTopHasText",
+            kind: "selfHasTrait",
             filter: {
               nameOrTrait: [
                 { tokens: ["Dragon"], match: "trait" },
-                { tokens: ["saur"], match: "trait" },
+                { tokens: ["saur"], match: "any" },
                 { tokens: ["Ceratopsian"], match: "trait" },
                 { tokens: ["Dragonkin"], match: "trait" },
               ],

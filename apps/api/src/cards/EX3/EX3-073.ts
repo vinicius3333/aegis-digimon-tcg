@@ -7,23 +7,33 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }],
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: self,
+          keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
+          duration: "untilEachTurnEnd",
+        },
+      ],
     },
     {
       trigger: "WhenDigivolving",
+      condition: {
+        kind: "selfDigivolutionStackMatchesFilter",
+        filter: { nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "nameExact" }] },
+      },
       actions: [
         {
           kind: "Return",
           target: {
             filter: {
               zone: "digivolutionCards",
-              controller: "mine",
               nameOrTrait: [{ tokens: ["Imperialdramon: Dragon Mode"], match: "nameExact" }],
-              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },
           to: "deckBottom",
+          from: ["digivolutionCards"],
           bindResultAs: "returnedDragonMode",
         },
         {
@@ -31,16 +41,41 @@ const compiled: CompiledCard = {
           target: self,
           sourceKind: "any",
           duration: "forTheTurn",
-          condition: { kind: "bindingExists", ref: "returnedDragonMode" },
+          scope: "seat",
         },
       ],
     },
     {
       trigger: "OnDeletion",
+      condition: {
+        kind: "allOf",
+        conditions: [
+          { kind: "selfHasMinTrash", count: 1, filter: { nameOrTrait: [{ tokens: ["Wormmon"], match: "nameExact" }] } },
+          { kind: "selfHasMinTrash", count: 1, filter: { nameOrTrait: [{ tokens: ["Veemon"], match: "nameExact" }] } },
+        ],
+      },
       optional: true,
       actions: [
-        { kind: "PlayWithoutCost", target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Wormmon"], match: "nameExact" }] }, count: 1 }, from: ["trash"], payCost: false, optional: true },
-        { kind: "PlayWithoutCost", target: { filter: { controller: "mine", nameOrTrait: [{ tokens: ["Veemon"], match: "nameExact" }] }, count: 1 }, from: ["trash"], payCost: false, optional: true },
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Wormmon"], match: "nameExact" }] },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Veemon"], match: "nameExact" }] },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
       ],
     },
   ],

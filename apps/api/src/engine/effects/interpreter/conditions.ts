@@ -168,7 +168,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const { countMax, ...matchingFilter } = cond.filter as Filter & { countMax?: number };
       const count = countMatching(ctx, { controller: "mine", ...matchingFilter });
       if (countMax !== undefined) return count <= countMax;
-      return count >= (cond.count ?? 1);
+      return count >= (cond.countMin ?? cond.count ?? 1);
     }
     case "youHaveGreenLevelAtLeastInBattle":
       return ctx.game.player(mine).battleArea.some((permanent) => {

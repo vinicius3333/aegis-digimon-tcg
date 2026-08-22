@@ -250,11 +250,7 @@ describe("EX3-073 Imperialdramon: Fighter Mode", () => {
     expect(s.perm("fighterMode").stack.some(({ instanceId }) => instanceId === dragonMode.instanceId)).toBe(false);
     expect(observe(s.engine).suppressesSecurityEffect(s.perm("fighterMode"), "P-067")).toBe(true);
     expect(observe(s.engine).suppressesSecurityEffect(s.perm("ally"), "P-067")).toBe(true);
-    expect(s.decisions.at(-1)?.req).toMatchObject({
-      sourceCardId: "EX3-073",
-      kind: "chooseTargets",
-      options: { candidateInstanceIds: [dragonMode.instanceId], min: 1, max: 1 },
-    });
+    expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-073" && req.kind === "chooseTargets")).toHaveLength(0);
 
     const opponentDeckSize = s.state.players[1]!.deck.length;
     expect(
@@ -317,7 +313,7 @@ describe("EX3-073 Imperialdramon: Fighter Mode", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("unrelated").instanceId);
     expect(
       s.decisions.filter(({ req }) => req.sourceCardId === "EX3-073" && req.kind === "chooseTargets"),
-    ).toHaveLength(2);
+    ).toHaveLength(0);
     assertNoLoudGap(s);
   });
 

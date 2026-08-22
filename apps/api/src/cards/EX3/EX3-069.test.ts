@@ -179,6 +179,7 @@ describe("EX3-069 Trial of the Four Great Dragons", () => {
       const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX3-025");
       return played !== undefined && observe(s.engine).hasRestriction(played, "digivolveToLevel7" as never);
     });
+    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX3-069"));
 
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("EX3-069");
     // Azulongmon's own On Play recognizes Trial provenance and gains 2 memory.

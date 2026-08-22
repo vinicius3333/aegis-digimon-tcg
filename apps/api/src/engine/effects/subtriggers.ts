@@ -163,6 +163,9 @@ export interface ReplacementSubscriptionReduceCost extends ReplacementSubscripti
   controllerSeat?: Seat;
   /** Live context retained by one-shot reducers whose source is no longer a permanent. */
   activationContext?: EffectContext;
+  /** Printed timing/provenance retained for an interactive reducer opened at play time. */
+  activationTiming?: string;
+  activationEffectText?: string;
   /** Interactive cost gate paid immediately before the memory cost is calculated. */
   activate?: (
     ctx: EffectContext,
@@ -342,6 +345,7 @@ export class SubTriggerRegistry {
         replacement.event === sub.event &&
         replacement.mode === sub.mode &&
         replacement.sourcePermanentId === sub.sourcePermanentId &&
+        replacement.sourceInstanceId === sub.sourceInstanceId &&
         replacement.description === sub.description,
     );
     if (existing !== undefined) return existing.id;
@@ -583,6 +587,8 @@ export class SubTriggerRegistry {
       const sourcePermanentId = replacement.sourcePermanentId;
       const ctx = sourcePermanentId === undefined ? replacement.activationContext : buildContext(sourcePermanentId);
       if (ctx === undefined) continue;
+      if (replacement.activationTiming !== undefined) ctx.activeTiming = replacement.activationTiming;
+      if (replacement.activationEffectText !== undefined) ctx.activeEffectText = replacement.activationEffectText;
       const activated = await replacement.activate(ctx, target, into, evolvingInstanceId);
       if (!activated) continue;
       reduction += typeof activated === "number" ? activated : (replacement.amount ?? 0);

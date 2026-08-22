@@ -58,6 +58,10 @@ export interface Cost {
    * later `levelLte` can compare against it (BT19-002 "returnedDigimonLevel").
    */
   storeAs?: string;
+  /** Stop a compound cost when an up-to component is paid with zero cards. */
+  stopIfZero?: boolean;
+  /** Order cards selected by a compound bottom-deck return as one final choice. */
+  orderReturnedCards?: boolean;
   /**
    * Store how many cards the cost actually moved, for a later scaling or `countSource`
    * ("by placing up to N cards ... reduce by X for each card placed").

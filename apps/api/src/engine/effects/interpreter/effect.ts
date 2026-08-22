@@ -447,12 +447,15 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
   // and put back afterwards: a nested or subsequent effect must not retain this card's restriction.
   const outerRestrictions = ctxWithSelections.effectRestrictions;
   ctxWithSelections.effectRestrictions = new Set(ctx.effectRestrictions ?? []);
-  ctxWithSelections.activeTiming = effect.trigger;
-  ctxWithSelections.activeEffectText = effect.isInherited
-    ? ctx.source.definition.inheritedEffectText
-    : effect.isSecurity
-      ? ctx.source.definition.securityEffectText
-      : ctx.source.definition.effectText;
+  const sourceDefinition = ctx.source.definition ?? ctx.game.definitionOf({ cardId: ctx.source.cardId } as never);
+  ctxWithSelections.activeTiming = effect.timingOverride ?? effect.trigger;
+  ctxWithSelections.activeEffectText =
+    effect.description ??
+    (effect.isInherited
+      ? sourceDefinition?.inheritedEffectText
+      : effect.isSecurity
+        ? sourceDefinition?.securityEffectText
+        : sourceDefinition?.effectText);
   const actions = effect.actions ?? [];
   if (actions.length === 0 && (effect.keywords?.length ?? 0) > 0) {
     const durationStr =
