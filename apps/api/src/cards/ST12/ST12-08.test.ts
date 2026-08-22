@@ -179,6 +179,32 @@ describe("ST12-08 [When Attacking][Inherited] plays Sistermon for a Royal Knight
       }),
     ).toEqual({ ok: true });
 
+    await settle(() => {
+      const latest = s.decisions.at(-1)?.req;
+      return latest?.kind === "optional" && latest.decisionId === s.state.pendingDecision?.decisionId;
+    });
+    const blancCost = s.decisions.at(-1)!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: blancCost.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => {
+      const latest = s.decisions.at(-1)?.req;
+      return latest?.kind === "selectCards" && latest.decisionId === s.state.pendingDecision?.decisionId;
+    });
+    const costSelection = s.decisions.at(-1)!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: costSelection.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("cost").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === sisterId));
     expect(s.state.players[0]!.trash.some((c) => c.instanceId === sisterId)).toBe(false);
   });
