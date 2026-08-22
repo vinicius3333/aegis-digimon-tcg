@@ -283,6 +283,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   switch (action.kind) {
     case "Draw":
     case "GainMemory":
+    case "GainMemoryForDeletedDigimons":
     case "SetMemory":
     case "SetTurnEndMemory":
     case "TrashTopDeck":
