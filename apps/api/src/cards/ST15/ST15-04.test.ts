@@ -5,12 +5,15 @@ import "../index.js";
 
 describe("ST15-04 Solarmon", () => {
   it("adds a revealed black card to hand", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "ST15-04", as: "solarmon" }],
-        deck: ["ST15-02"],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "ST15-04", as: "solarmon" }],
+          deck: ["ST15-02"],
+        },
       },
-    });
+      { autoSelectCards: true },
+    );
 
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("solarmon").instanceId })).toEqual({
