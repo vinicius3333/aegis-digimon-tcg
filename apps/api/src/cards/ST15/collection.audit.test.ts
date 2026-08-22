@@ -22,11 +22,11 @@ describe("ST15 collection audit ledger guards", () => {
     expect(missingIr).toEqual([]);
   });
 
-  it("keeps the direct-module exception explicit", () => {
-    expect(runtimeCompiledCard("ST15-13")).toBeDefined();
-    expect(getCompiledCard("ST15-13")?.residual?.length).toBeGreaterThan(0);
-    for (const card of st15Cards.filter((card) => card.cardId !== "ST15-13")) {
+  it("keeps every compiled card free of residual gaps", () => {
+    for (const card of st15Cards) {
       expect(runtimeCompiledCard(card.cardId), card.cardId).toBeDefined();
+      expect(getCompiledCard(card.cardId)?.coverage, card.cardId).toBe("full");
+      expect(getCompiledCard(card.cardId)?.residual, card.cardId).toEqual([]);
     }
   });
 });
