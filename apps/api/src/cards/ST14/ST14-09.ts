@@ -11,7 +11,7 @@ const compiled: CompiledCard = {
           "kind": "Replacement",
           "event": "wouldBePlayed",
           "sourceFilter": {
-            "controllerDefault": "mine"
+            "isSelfRef": true
           },
           "actions": [
             {
@@ -38,7 +38,8 @@ const compiled: CompiledCard = {
       "actions": [
         {
           "kind": "SubTrigger",
-          "event": "whenDeckTrashed",
+          "event": "onDiscardLibrary",
+          "sourceFilter": { "controller": "mine" },
           "actions": [
             {
               "kind": "PlayWithoutCost",

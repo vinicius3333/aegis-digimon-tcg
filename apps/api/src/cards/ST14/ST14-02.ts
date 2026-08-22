@@ -17,22 +17,23 @@ const compiled: CompiledCard = {
             "isSelf": true
           },
           "into": {
-            "filter": {
-              "zone": "trash",
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Beelzemon"
-                  ],
-                  "match": "nameExact"
-                }
-              ]
-            },
-            "count": 1
+            "zone": "trash",
+            "controller": "mine",
+            "kind": [
+              "Digimon"
+            ],
+            "nameOrTrait": [
+              {
+                "tokens": [
+                  "Beelzemon"
+                ],
+                "match": "nameExact"
+              }
+            ]
           },
           "payCost": true,
           "costOverride": 3,
+          "ignoreRequirements": true,
           "optional": true,
           "condition": {
             "kind": "zoneCount",
@@ -41,7 +42,10 @@ const compiled: CompiledCard = {
             "op": "gte",
             "value": 20,
             "raw": "you have 20 or more cards in your trash"
-          }
+          },
+          "from": [
+            "trash"
+          ]
         }
       ]
     },

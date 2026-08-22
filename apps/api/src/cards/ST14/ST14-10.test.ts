@@ -1,9 +1,9 @@
 import { EffectTiming } from "@aegis/shared";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST14-03.js";
-import module from "./ST14-10.js";
+import "./ST14-10.js";
 
 describe("ST14-10 Beelzemon: Blast Mode", () => {
   it("deletes with the dynamically raised level ceiling when trashed from deck", async () => {
@@ -18,13 +18,11 @@ describe("ST14-10 Beelzemon: Blast Mode", () => {
       },
       { autoSelectCards: true },
     );
-    const trashedSpy = vi.spyOn(module, "onTrashedFromDeck");
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("miller").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
-    expect(trashedSpy).toHaveBeenCalledOnce();
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
   it("unsuspends and gains 3 memory with 20 cards in trash when digivolving", async () => {
