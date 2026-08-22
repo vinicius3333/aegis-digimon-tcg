@@ -17,8 +17,8 @@ export const compiled: CompiledCard = {
       frequency: "OncePerTurn",
       actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true }, actions: [
         { kind: "RevealAdd", revealCount: 3, add: [
-          { filter: { controller: "mine", kind: ["Digimon"], ...sevenCode }, count: 1, to: "play", costDelta: 3, optional: true },
-          { filter: { controller: "mine", kind: ["Option"], ...sevenCode }, count: 1, to: "useOption", costDelta: 3, optional: true },
+          { filter: { controller: "mine", kind: ["Digimon"], ...sevenCode }, count: 1, to: "play", costDelta: -3, optional: true },
+          { filter: { controller: "mine", kind: ["Option"], ...sevenCode }, count: 1, to: "useOption", costDelta: -3, optional: true },
         ], rest: "deckTopOrBottom" },
       ] }],
     },

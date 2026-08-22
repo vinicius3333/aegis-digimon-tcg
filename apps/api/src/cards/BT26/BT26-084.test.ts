@@ -13,8 +13,8 @@ describe("BT26-084 compiled behavior", () => {
     expect(compiled.keywords).toEqual([{ keyword: "Detach", raw: "＜Detach ([Seven Code] trait)＞" }]);
     const yourTurn = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
     expect(yourTurn).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true }, actions: [{ kind: "RevealAdd", revealCount: 3, rest: "deckTopOrBottom" }] }] });
-    expect(yourTurn.actions[0].actions[0].add[0]).toMatchObject({ to: "play", costDelta: 3, optional: true, filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] } });
-    expect(yourTurn.actions[0].actions[0].add[1]).toMatchObject({ to: "useOption", costDelta: 3, optional: true, filter: { kind: ["Option"], nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] } });
+    expect(yourTurn.actions[0].actions[0].add[0]).toMatchObject({ to: "play", costDelta: -3, optional: true, filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] } });
+    expect(yourTurn.actions[0].actions[0].add[1]).toMatchObject({ to: "useOption", costDelta: -3, optional: true, filter: { kind: ["Option"], nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] } });
   });
 
   it("links one non-white level-four-or-lower System or Seven Code card from trash", () => {
