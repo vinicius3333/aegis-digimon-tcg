@@ -105,6 +105,13 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
       const owner = ctx.game.player(ctx.source.ownerSeat);
       if (owner.breeding !== undefined || owner.eggDeck.length === 0) return false;
     }
+    if (
+      action.kind === "SecurityManipulation" &&
+      action.op === "toHand" &&
+      ctx.game.player(ctx.source.ownerSeat).security.length === 0
+    ) {
+      return false;
+    }
     // Do not offer an optional play when no legal loose card exists. Besides avoiding a
     // meaningless UI prompt, this is required for nested entry windows: Nokia played from
     // security must finish resolving when the controller has no Agumon/Gabumon to play.

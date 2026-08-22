@@ -9,7 +9,10 @@ const placeAndRecover = [{
   amount: 1,
   cost: {
     kind: "place",
-    target: { count: 1, filter: { zone: "security", controller: "mine" } },
+    target: { count: 1, filter: { zone: "security", controller: "mine" }, from: ["security"] },
+    destination: "digivolutionStack",
+    position: "bottom",
+    host: "target",
     underFilter: { controller: "mine", kind: ["Tamer"], nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }] },
     faceDown: true,
   },
