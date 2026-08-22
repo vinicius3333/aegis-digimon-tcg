@@ -18,7 +18,7 @@ import "./BT8-096.js";
 // (Q1769/Q1770) only concerns timing/interaction, not the ownerSeat/controllerSeat
 // distinction, so the fix is a pure field-name correction, not a behavior invention.
 
-describe("BT8-094 [Opponent's Turn] gain 2 memory on opponent's Lv3 breeding->battle move", () => {
+describe("BT8-094 Digimon Emperor [Opponent's Turn] gain 2 memory on opponent's Lv3 breeding->battle move", () => {
   it("suspends and draws when an opposing level 5 or lower Digimon is deleted", async () => {
     const s = setup({
       0: {

@@ -205,7 +205,7 @@ function makeCtx(
   return { ctx, recorder };
 }
 
-describe("BT8-112 Imperialdramon Paladin Mode", () => {
+describe("BT8-112 Imperialdramon: Paladin Mode", () => {
   const module = getEffectModule("BT8-112");
 
   it("uses one cancellable card selection for its single optional cost reduction", async () => {

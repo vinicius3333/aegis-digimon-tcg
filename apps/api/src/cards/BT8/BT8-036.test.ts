@@ -18,7 +18,7 @@ import "./BT8-036.js";
 const BT8_036 = "BT8-036"; // cost 4
 const BLUE_DIGIMON = "BT1-030"; // Gomamon — any blue Digimon satisfying the condition
 
-describe("BT8-036 ＜when played＞ cost reduction (blue Digimon in play → -1, automatic)", () => {
+describe("BT8-036 Ankylomon ＜when played＞ cost reduction (blue Digimon in play → -1, automatic)", () => {
   it("plays at cost 3 (4 - 1) with a blue Digimon in play, no prompt required", async () => {
     const s = setupEngine({
       0: {
