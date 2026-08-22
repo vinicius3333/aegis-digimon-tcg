@@ -40,4 +40,31 @@ describe("BT12-089 handwritten module", () => {
     const module = getEffectModule("BT12-089");
     expect(module!.effectsForTiming(EffectTiming.SecuritySkill, s.perm("takato"))).toHaveLength(1);
   });
+
+  it("places the required cards under Guilmon, digivolves to Gallantmon, and grants +2000 DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-089", as: "takato" },
+            { card: "BT12-007", as: "guilmon" },
+          ],
+          hand: [{ card: "BT12-018", as: "gallantmon" }],
+          trash: ["BT12-010", "BT12-016"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const before = s.perm("guilmon").currentDP;
+
+    await advance(s.engine).fire(EffectTiming.OnUseOption, s.perm("takato"));
+    await settle(() => s.perm("guilmon").topCard?.cardId === "BT12-018");
+
+    expect(s.perm("guilmon").topCard?.cardId).toBe("BT12-018");
+    expect(s.perm("guilmon").stack.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT12-089", "BT12-010", "BT12-016"]),
+    );
+    expect(s.perm("guilmon").currentDP).toBe(before + 2000);
+  });
 });
