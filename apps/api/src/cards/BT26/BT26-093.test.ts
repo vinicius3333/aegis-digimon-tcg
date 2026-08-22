@@ -6,6 +6,12 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("BT26-093 Reina Sakuya", () => {
+  it("requires the printed BEATBREAK placement cost", async () => {
+    const { getEffectModule } = await import("../../engine/effects/registry.js");
+    const effect = getEffectModule("BT26-093")!.effectsForTiming(EffectTiming.OnStartMainPhase, {} as never)[0]!;
+    expect(effect.optional).toBe(false);
+  });
+
   it("places the BEATBREAK hand card face down at the existing stack bottom", async () => {
     const s = setupEngine(
       {
