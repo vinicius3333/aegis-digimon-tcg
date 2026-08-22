@@ -78,4 +78,36 @@ describe("BT10-039 Taomon", () => {
     expect(s.state.memory).toBe(0);
     assertNoLoudGap(s);
   });
+
+  it("offers only Option cards with Plug-In in their name", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-051", as: "base" }],
+          hand: [
+            { card: "BT10-039", as: "evolving" },
+            { card: "BT10-109", as: "plugin" },
+            { card: "BT1-109", as: "otherOption" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: false },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("evolving").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+
+    expect(s.decisions.at(-1)!.req.options?.candidateInstanceIds).toEqual([
+      s.inst("plugin").instanceId,
+    ]);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) =>
+      instanceId === s.inst("otherOption").instanceId
+    )).toBe(true);
+    assertNoLoudGap(s);
+  });
 });

@@ -60,4 +60,54 @@ describe("BT10-080 SkullBaluchimon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
   });
+
+  it("may decline the trash evolution and leave both the base and trashed card unchanged", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT3-083", as: "base" }],
+          hand: [{ card: "BT10-080", as: "skull" }],
+        },
+      },
+      { autoDeclineOptional: true, autoOrderTriggers: true },
+    );
+    const baseTopId = s.perm("base").topCard.instanceId;
+    const skullId = s.inst("skull").instanceId;
+
+    await advance(s.engine).verb.trash([skullId], 0);
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === skullId));
+
+    expect(s.perm("base").topCard.instanceId).toBe(baseTopId);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === skullId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  it("does not gain the deletion trigger when digivolving from hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT3-083", as: "base" }],
+          hand: [{ card: "BT10-080", as: "skull" }],
+        },
+        1: { battleArea: [{ card: "BT1-015", as: "victim" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("skull").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("skull").instanceId);
+    expect(observe(s.engine).subscriptions("onDeletionOf", s.perm("base").permanentId)).toHaveLength(0);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("base").permanentId], "byEffect")).toBe(1);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) =>
+      permanentId === s.perm("victim").permanentId
+    )).toBe(true);
+    assertNoLoudGap(s);
+  });
 });
