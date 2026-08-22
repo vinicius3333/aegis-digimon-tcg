@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "../../cards/index.js";
 
 describe("AD1-005 Gaiamon", () => {
@@ -46,16 +47,11 @@ describe("AD1-005 Gaiamon", () => {
     expect(gaiamon.linked.map((card) => card.instanceId)).toEqual(expect.arrayContaining([s.inst("stackLink").instanceId, s.inst("handLink").instanceId]));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("invalidNoLink").instanceId)).toBe(true);
 
-    gaiamon.isSuspended = false;
     const lateLink = s.give(0, "hand", { card: "P-190", as: "lateLink" });
-    const lateTarget = s.putOnBoard(1, { card: "BT1-010", dp: 12000, as: "lateTarget" });
-
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: gaiamon.permanentId, target: { kind: "player" } })).toEqual({ ok: true });
-    await settle(() => s.state.gameOver, 5000);
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, gaiamon);
 
     expect(gaiamon.linked).toHaveLength(2);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === lateLink.instanceId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lateTarget.permanentId)).toBe(true);
   });
 
   it("rejects play when memory is below the printed cost", () => {

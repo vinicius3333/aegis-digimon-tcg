@@ -56,6 +56,7 @@ describe("AD1-013 ZeigGreymon", () => {
 
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia-force").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-024"), 5000);
+    await settle();
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "AD1-013")).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-024")).toBe(true);

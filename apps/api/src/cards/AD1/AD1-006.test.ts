@@ -82,11 +82,12 @@ describe("AD1-006 Shoutmon X7", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    const eligibleInstanceId = s.perm("eligible").topCard!.instanceId;
 
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("x7").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1 && s.perm("x7").isSuspended === false);
 
-    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(s.inst("eligible").instanceId);
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(eligibleInstanceId);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("tooLarge").permanentId)).toBe(true);
     expect(s.perm("x7").isSuspended).toBe(false);
   });
@@ -104,6 +105,7 @@ describe("AD1-006 Shoutmon X7", () => {
 
     expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: x7Id } })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT10-009"), 5000);
+    await settle();
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === x7Id)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT10-009")).toBe(true);
@@ -128,6 +130,7 @@ describe("AD1-006 Shoutmon X7", () => {
 
     expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: x7Id } })).toEqual({ ok: true });
     await settle(() => s.perm("tamer").stack.some((card) => card.instanceId === s.inst("onlySource").instanceId), 5000);
+    await settle();
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === x7Id)).toBe(false);
     expect(s.perm("tamer").stack.some((card) => card.instanceId === s.inst("onlySource").instanceId)).toBe(true);

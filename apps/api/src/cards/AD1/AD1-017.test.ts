@@ -37,7 +37,7 @@ describe("AD1-017 Dynasmon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-010", as: "red-source" }],
-        trash: ["BT4-115", "BT4-115", "BT4-115", "BT4-115"],
+        trash: ["AD1-017", "AD1-017", "AD1-017", "AD1-017"],
         hand: [{ card: "AD1-017", as: "dynasmon" }],
       },
     });
@@ -53,7 +53,7 @@ describe("AD1-017 Dynasmon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-051", as: "base" }],
+          battleArea: [{ card: "BT1-057", as: "base" }],
           hand: [{ card: "AD1-017", as: "dynasmon" }],
           security: ["BT1-028"],
         },
@@ -90,7 +90,7 @@ describe("AD1-017 Dynasmon", () => {
     const s = setupEngine(
       {
         0: { security: ["AD1-017"] },
-        1: { battleArea: [{ card: "AD1-014", as: "attacker", dp: 12000 }] },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 12000 }] },
       },
       { autoSelectCards: true },
     );

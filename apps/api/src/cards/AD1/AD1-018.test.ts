@@ -46,7 +46,7 @@ describe("AD1-018 LordKnightmon", () => {
   it("reduces its play cost by 5 with four Knightmon/Lucemon-text cards in trash", async () => {
     const s = setupEngine({
       0: {
-        trash: ["BT4-115", "BT4-115", "BT4-115", "BT4-115"],
+        trash: ["AD1-018", "AD1-018", "AD1-018", "AD1-018"],
         hand: [{ card: "AD1-018", as: "lord" }],
       },
     });
@@ -59,12 +59,14 @@ describe("AD1-018 LordKnightmon", () => {
   });
 
   it("grants one chosen Digimon opponent-Digimon-effect immunity through their turn", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: { hand: [{ card: "AD1-018", as: "lord" }], battleArea: [{ card: "BT1-010", as: "protected" }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("protected").topCard!.instanceId);
     s.state.memory = 11;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lord").instanceId })).toEqual({ ok: true });

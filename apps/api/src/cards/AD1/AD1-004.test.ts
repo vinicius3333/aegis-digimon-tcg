@@ -38,7 +38,7 @@ describe("AD1-004 WarGreymon", () => {
   it("gets +1000 DP per distinct Tamer color and Security Attack +1 per three colors", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "AD1-004", dp: 12000, as: "wargreymon" }, { card: "AD1-020", as: "threeColorTamer" }] },
-      1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
+      1: { security: ["BT1-010", "BT1-010", "BT1-010"] },
     });
     await s.ready();
 

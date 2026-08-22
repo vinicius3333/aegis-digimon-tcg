@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "../../cards/index.js";
 
 describe("AD1-001 Greymon", () => {
@@ -41,7 +42,7 @@ describe("AD1-001 Greymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "AD1-001", as: "source" }],
+          battleArea: [{ card: "AD1-010", as: "source", under: ["AD1-001"] }],
           hand: [{ card: "AD1-010", as: "garurumon" }, { card: "BT1-021", as: "metalGreymon" }],
           deck: ["BT1-001"],
         },
@@ -71,8 +72,8 @@ describe("AD1-001 Greymon", () => {
     );
     s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("source").permanentId, instanceId: s.inst("garurumon").instanceId })).toEqual({ ok: true });
-    await settle(() => s.perm("source").topCard?.cardId === "AD1-010");
+    await advance(s.engine).verb.playInstances([s.inst("garurumon").instanceId]);
+    await settle();
 
     expect(s.perm("source").topCard?.cardId).toBe("AD1-010");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("metalGreymon").instanceId)).toBe(true);

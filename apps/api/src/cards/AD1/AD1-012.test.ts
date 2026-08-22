@@ -25,6 +25,7 @@ describe("AD1-012 CresGarurumon", () => {
     s.state.memory = 12;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cres").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
+    await settle();
     expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT1-010")).toBe(true);
     expect(s.state.players[1]!.battleArea[0]?.permanentId).toBe(s.perm("higher").permanentId);
     expect(s.perm("greymon").isSuspended).toBe(false);
@@ -41,6 +42,7 @@ describe("AD1-012 CresGarurumon", () => {
 
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("cres").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
+    await settle();
 
     expect(s.perm("cres").isSuspended).toBe(false);
     expect(s.perm("greymon").isSuspended).toBe(false);
@@ -66,7 +68,7 @@ describe("AD1-012 CresGarurumon", () => {
   });
 
   it("uses either printed alternate level-5 route for cost 3", async () => {
-    for (const baseCard of ["BT1-040", "AD1-011"]) {
+    for (const baseCard of ["BT1-040", "ST21-04"]) {
       const s = setupEngine({
         0: { battleArea: [{ card: baseCard, as: "base" }], hand: [{ card: "AD1-012", as: "cres" }] },
       });

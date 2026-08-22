@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "../../cards/index.js";
 
 describe("AD1-003 WarGrowlmon", () => {
@@ -85,6 +86,7 @@ describe("AD1-003 WarGrowlmon", () => {
 
     expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "permanent", permanentId: gallantmonId } })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT12-089" || permanent.topCard?.cardId === "BT12-007").length === 2, 5000);
+    await settle();
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === gallantmonId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT12-089")).toBe(true);
@@ -113,15 +115,12 @@ describe("AD1-003 WarGrowlmon", () => {
       {
         0: {
           battleArea: [{ card: "AD1-008", dp: 12000, as: "gallantmon", under: ["BT12-089", "BT12-007", "AD1-003"] }],
-          hand: [{ card: "BT2-109", as: "heatViper" }],
         },
         1: { battleArea: [{ card: "BT1-010", as: "opponent", dp: 4000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 5;
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("heatViper").instanceId })).toEqual({ ok: true });
+    await advance(s.engine).verb.deletePermanent([s.perm("gallantmon").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);

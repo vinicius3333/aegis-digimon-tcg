@@ -44,7 +44,7 @@ describe("AD1-009 BlitzGreymon", () => {
   });
 
   it("uses either printed alternate level-5 route for cost 3", async () => {
-    for (const baseCard of ["BT1-021", "AD1-011"]) {
+    for (const baseCard of ["BT1-021", "ST21-04"]) {
       const s = setupEngine({
         0: { battleArea: [{ card: baseCard, as: "base" }], hand: [{ card: "AD1-009", as: "blitz" }] },
       });
@@ -95,6 +95,9 @@ describe("AD1-009 BlitzGreymon", () => {
     );
 
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("blitz").permanentId, target: { kind: "permanent", permanentId: s.perm("target").permanentId } })).toEqual({ ok: true });
+    const combat = (s.engine as unknown as { combat: { hasOpenAllianceDecision: boolean } }).combat;
+    await settle(() => combat.hasOpenAllianceDecision);
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("ally").permanentId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.security.length === 0, 5000);
 
     expect(s.perm("ally").isSuspended).toBe(true);
@@ -104,7 +107,7 @@ describe("AD1-009 BlitzGreymon", () => {
   it("provides inherited Security Attack +1 to its host", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT3-112", as: "host", under: ["AD1-009"] }] },
-      1: { security: ["BT1-001", "BT1-001"] },
+      1: { security: ["BT1-010", "BT1-010"] },
     });
 
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });

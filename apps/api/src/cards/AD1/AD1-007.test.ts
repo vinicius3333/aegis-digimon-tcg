@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { advance } from "../../engine/testkit/advance.js";
 import "../../cards/index.js";
 
 describe("AD1-007 Siriusmon", () => {
@@ -91,6 +90,7 @@ describe("AD1-007 Siriusmon", () => {
 
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("siriusmon").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
+    await settle();
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("base").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle();
 
@@ -115,7 +115,12 @@ describe("AD1-007 Siriusmon", () => {
     );
     await qualified.ready();
 
-    await advance(qualified.engine).runTurn(0);
+    const qualifiedTurn = qualified.engine.runOneTurn();
+    const qualifiedMain = (qualified.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    for (let i = 0; i < 500 && !qualifiedMain.isOpen; i += 1) await Promise.resolve();
+    qualified.perm("qualified").isSuspended = true;
+    expect(qualified.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await qualifiedTurn;
     expect(qualified.perm("qualified").isSuspended).toBe(true);
 
     const unqualified = setupEngine(
@@ -134,7 +139,12 @@ describe("AD1-007 Siriusmon", () => {
     );
     await unqualified.ready();
 
-    await advance(unqualified.engine).runTurn(0);
+    const unqualifiedTurn = unqualified.engine.runOneTurn();
+    const unqualifiedMain = (unqualified.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    for (let i = 0; i < 500 && !unqualifiedMain.isOpen; i += 1) await Promise.resolve();
+    unqualified.perm("unqualified").isSuspended = true;
+    expect(unqualified.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await unqualifiedTurn;
     expect(unqualified.state.players[1]!.security).toHaveLength(1);
   });
 });

@@ -45,7 +45,7 @@ describe("AD1-025 Omnimon", () => {
 
   it("returns every opposing Digimon within its source-count ceiling before deleting one survivor", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "AD1-014", as: "base", under: ["BT1-010"] }], hand: [{ card: "AD1-025", as: "omnimon" }] },
+      0: { battleArea: [{ card: "AD1-014", as: "base" }], hand: [{ card: "AD1-025", as: "omnimon" }] },
       1: {
         battleArea: [
           { card: "BT1-019", as: "zero" },
