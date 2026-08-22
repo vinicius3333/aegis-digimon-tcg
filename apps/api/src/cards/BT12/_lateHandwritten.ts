@@ -1022,7 +1022,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                     isDigimon(d) &&
                     (d.level ?? Infinity) <= 4 &&
                     d.colors.includes("Green" as never) &&
-                    hasText(d, "free")
+                    cardHasTrait(d, "Free")
                   );
                 }),
                 true,
