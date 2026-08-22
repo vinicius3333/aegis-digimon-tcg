@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-012.js";
 
 describe("BT17-012", () => {
@@ -13,5 +14,15 @@ describe("BT17-012", () => {
 
   it("has inherited permanent DP", () => {
     expect(compiled.effects?.[3]).toMatchObject({ trigger: "YourTurn", isInherited: true, actions: [{ kind: "ModifyDP", amount: 2000, duration: "permanent" }] });
+  });
+
+  it("applies inherited DP only during its controller's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT17-013", as: "host", under: ["BT17-012"] }] } });
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(8000);
+
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(6000);
   });
 });
