@@ -155,21 +155,23 @@ describe("BT25-101 Divine Arms Version Ω", () => {
               as: "vulcanus",
               linked: [
                 { card: CARD_ID, as: "divineArms" },
-                { card: "BT26-010", as: "piercingLink" },
+                { card: "BT25-100", as: "piercingLink" },
               ],
             },
           ],
         },
         1: {
-          battleArea: [{ card: "BT25-020", as: "equalDpOpponent", suspended: true }],
+          battleArea: [{ card: "BT25-020", as: "equalDpOpponent", dp: 14000, suspended: true }],
           security: [{ card: "AD1-001", as: "security" }],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("piercingLink").instanceId);
     await s.ready();
-    expect(observe(s.engine).hasKeyword(s.perm("vulcanus"), "Piercing")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("vulcanus"))).toBe(true);
+    s.perm("equalDpOpponent").baseDP = s.perm("vulcanus").currentDP;
+    s.perm("equalDpOpponent").currentDP = s.perm("vulcanus").currentDP;
 
     expect(
       s.engine.applyIntent(0, {
@@ -178,11 +180,16 @@ describe("BT25-101 Divine Arms Version Ω", () => {
         target: { kind: "permanent", permanentId: s.perm("equalDpOpponent").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("piercingLink").instanceId),
+      5_000,
+    );
 
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("vulcanus").permanentId)).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("piercingLink").instanceId);
-    expect(observe(s.engine).hasKeyword(s.perm("vulcanus"), "Piercing")).toBe(false);
+    expect(observe(s.engine).hasPierce(s.perm("vulcanus"))).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 

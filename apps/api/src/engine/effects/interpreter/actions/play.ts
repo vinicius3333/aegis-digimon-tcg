@@ -113,7 +113,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           const played = await ctx.fx.playInstances([self.instanceId], {
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
-            ...(action.reduceCostBy !== undefined ? { costDelta: -action.reduceCostBy } : {}),
+            ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
           });
           ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);
         } else {
@@ -125,7 +125,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           const played = await ctx.fx.playInstances([self.instanceId], {
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
-            ...(action.reduceCostBy !== undefined ? { costDelta: -action.reduceCostBy } : {}),
+            ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
           });
           ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);
         }
@@ -348,7 +348,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             candidate === undefined ? undefined : ctx.game.definitionOf({ cardId: candidate.cardId } as never).playCost;
           await ctx.fx.useOptionFromHand(ctx, optionId, usedCost, {
             payCost: action.payCost,
-            ...(action.reduceCostBy !== undefined ? { costDelta: -action.reduceCostBy } : {}),
+            ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
           });
         }
         const permanentIds = chosen.filter((instanceId) => !optionIds.includes(instanceId));

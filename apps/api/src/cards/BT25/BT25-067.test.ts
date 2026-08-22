@@ -86,13 +86,14 @@ describe("BT25-067 Sealsdramon", () => {
     );
     s.state.memory = 6;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("seals").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-074"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT25-074" && p.currentDP === 8000),
+    );
     const evolved = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT25-074")!;
 
     expect(evolved.topCard?.cardId).toBe("BT25-074");
     expect(evolved.stack.map((card) => card.cardId)).toContain(CARD_ID);
     expect(s.state.memory).toBe(0); // play 4, then Tankdramon's 4-cost evolution reduced by 2
-    await advance(s.engine).recompute();
     expect(evolved.currentDP).toBe(8000); // Tankdramon 7000 + Sealsdramon inherited +1000
   });
 

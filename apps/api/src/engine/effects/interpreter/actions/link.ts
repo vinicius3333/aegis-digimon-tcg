@@ -10,6 +10,28 @@ import { candidatePermanents } from "../targeting/permanents.js";
 import { isTamer } from "@aegis/shared";
 import type { Action, CardDefinition, Filter, Permanent } from "@aegis/shared";
 
+/** Whether a declared Link action currently has both legal material and a legal recipient. */
+export function canAttemptLink(ctx: EffectContext, action: Extract<Action, { kind: "Link" }>): boolean {
+  const material = candidateLooseInstances(ctx, action.target, action.from ?? ["hand", "digivolutionCards"]).some(
+    (candidate) => linkEligible(ctx.game.definitionOf({ cardId: candidate.cardId } as never)),
+  );
+  if (!material) return false;
+
+  if (action.recipient === undefined) return ctx.source.permanent() !== undefined;
+  const recipientFilter: Filter = { controller: "mine", kind: ["Digimon"], ...action.recipient.filter };
+  const matches = (permanent: Permanent, filter: Filter): boolean =>
+    permanentMatchesFilter(ctx, permanent, filter, ctx.source);
+  return candidatePermanents(ctx, { ...action.recipient, filter: recipientFilter }).some((permanent) =>
+    canLinkToTargetPermanent(
+      permanent,
+      recipientFilter,
+      matches,
+      ctx.game.definitionOf,
+      action.allowBreedingRecipient === true,
+    ),
+  );
+}
+
 /**
  * "Link N [X] from your hand or this Digimon's digivolution cards to this Digimon".
  * The cards to link are loose cards matching the target filter; they join the SOURCE
