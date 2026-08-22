@@ -579,6 +579,10 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const self = ctx.source.permanent();
       return (self?.stack.length ?? 0) >= (cond.value ?? 0);
     }
+    case "selfLinkCountAtLeast": {
+      const self = ctx.source.permanent();
+      return (self?.linked.length ?? 0) >= (cond.value ?? 0);
+    }
     case "selfDigivolutionCountExactly": {
       const self = ctx.source.permanent();
       return (self?.stack.length ?? 0) === (cond.value ?? 0);
