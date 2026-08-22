@@ -8,17 +8,35 @@ import "../index.js";
 describe("BT26-087 Toya Kuga", () => {
   it("compiles start-main return/memory, on-play draw, and Security play", () => {
     expect(compiled.coverage).toBe("full");
-    expect(compiled.effects.map((e) => e.trigger)).toEqual(["StartOfYourMainPhase", "OnPlay"]);
+    expect(compiled.effects.map((e) => e.trigger)).toEqual(["StartOfYourMainPhase", "OnPlay", "Security"]);
     expect(compiled.effects[0]?.actions[0]).toMatchObject({ optional: false });
-    expect(compiled.effects[0]?.actions[1]).toMatchObject({ target: { filter: { nameOrTrait: [{ tokens: ["Giant Slayer"], match: "nameExact" }] } } });
+    expect(compiled.effects[0]?.actions[1]).toMatchObject({
+      target: { filter: { nameOrTrait: [{ tokens: ["Giant Slayer"], match: "nameExact" }] } },
+    });
     expect(compiled.effects[1]?.actions[0]).toMatchObject({ optional: false });
+    expect(compiled.effects[2]).toMatchObject({
+      isSecurity: true,
+      actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
+    });
   });
   it("returns a TS Digimon for memory and trashes a TS card for two draws", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT26-087", as: "toya" }], trash: [{ card: "BT26-021", as: "tsTrash" }], hand: [{ card: "BT26-021", as: "handTs" }], deck: [{ card: "BT1-001" }, { card: "BT1-002" }, { card: "BT1-003" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-087", as: "toya" }],
+          trash: [{ card: "BT26-021", as: "tsTrash" }],
+          hand: [{ card: "BT26-021", as: "handTs" }],
+          deck: [{ card: "BT1-001" }, { card: "BT1-002" }, { card: "BT1-003" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 0;
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("toya"));
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.deck.some((c) => c.instanceId === s.inst("tsTrash").instanceId)).toBe(true);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("handTs").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("handTs").instanceId })).toEqual({
+      ok: true,
+    });
   });
 });
