@@ -16,4 +16,14 @@ describe("BT5-049 Kiwimon", () => {
     await settle(() => added.every((id) => player.hand.some((card) => card.instanceId === id)));
     expect(player.deck.map((card) => card.instanceId)).toEqual([s.inst("remainder").instanceId]);
   });
+
+  it("bottoms all revealed cards when none has Digisorption", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT5-049", as: "source" }], deck: ["BT5-050", "BT5-051", "BT5-052"] } }, { autoSelectCards: true });
+    const player = s.state.players[0] as PlayerState;
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    await settle(() => player.deck.length === 3);
+    expect(player.hand).toHaveLength(0);
+    expect(player.deck).toHaveLength(3);
+  });
 });
