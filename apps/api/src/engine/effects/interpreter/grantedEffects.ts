@@ -359,6 +359,48 @@ export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect> = {
       } as Action,
     ],
   },
+  "[Opponent's Turn] When this Digimon becomes suspended, delete all of your opponent's Digimon with a play cost less than or equal to this Digimon's":
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenSuspended",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "SelectBind",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              bindAs: "grantSource",
+            } as Action,
+            {
+              kind: "Delete",
+              target: {
+                filter: {
+                  controller: "opponent",
+                  kind: ["Digimon"],
+                  relativeTo: { attr: "playCost", op: "lte", selectionRef: "grantSource" },
+                },
+                count: "all",
+              },
+            } as Action,
+          ],
+        } as Action,
+      ],
+    },
+  "[Opponent's Turn] This Digimon isn't affected by your opponent's Option cards.": {
+    trigger: "OpponentsTurn",
+    actions: [
+      {
+        kind: "Restrict",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        restriction: "beAffected",
+        fromSourceKind: ["Option"],
+        byOpponentEffectsOnly: true,
+        duration: "untilOpponentTurnEnd",
+      } as Action,
+    ],
+  },
 };
 
 /**
