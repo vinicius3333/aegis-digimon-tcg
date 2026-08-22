@@ -11,10 +11,37 @@ describe("BT13-064 PawnChessmon", () => {
       trigger: "OnDeletion",
       keywords: [expect.objectContaining({ keyword: "Blocker" })],
       actions: [
-        expect.objectContaining({ kind: "CostModifier", mode: "raiseCeiling", costType: "level", amount: 2 }),
+        {
+          kind: "CostModifier",
+          mode: "raiseCeiling",
+          costType: "level",
+          amount: 2,
+          condition: {
+            kind: "youHave",
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ match: "name", tokens: ["Chessmon"] }],
+            },
+            count: 8,
+          },
+        },
         expect.objectContaining({
           kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              levelComparison: { op: "lte", value: 3 },
+              nameOrTrait: [{ match: "name", tokens: ["Chessmon"] }],
+            },
+            count: 1,
+          },
+          from: ["hand"],
+          payCost: false,
           condition: expect.objectContaining({ kind: "isOpponentsTurn" }),
+          optional: true,
         }),
       ],
     });
