@@ -81,6 +81,7 @@ export interface Condition {
     | "triggerDefenderIsSelf"
     | "triggerDefenderMatchesFilter" // the originally declared defender, before Blocker redirection
     | "triggerRemovedSecuritySeat"
+    | "triggerHandTrashedSeat"
     | "triggerRemovalCause"
     | "noTamerInDigivolution"
     | "selfHasNoDigivolutionCards" // played directly, not digivolved into (BT19-101). Off-field source => false.
