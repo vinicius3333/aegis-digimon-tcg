@@ -164,6 +164,9 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenHandTrashed",
+          sourceFilter: {
+            controller: "mine",
+          },
           actions: [
             {
               kind: "Digivolve",
