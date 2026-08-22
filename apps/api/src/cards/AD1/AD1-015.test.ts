@@ -62,6 +62,7 @@ describe("AD1-015 Beowolfmon", () => {
 
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia-force").instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("koji").stack.some((card) => card.cardId === "BT12-009"));
+    await settle(() => s.state.players[0]!.hand.length === 2);
 
     expect(s.perm("koji").stack.some((card) => card.cardId === "BT12-009")).toBe(true);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-001", "BT1-002"]));
