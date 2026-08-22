@@ -2024,6 +2024,7 @@ export class GameEngine {
         (source, effect, conferredToPermanentId) => ({
           ...this.buildEffectContext(source, {}, noPromptAsk),
           activeTiming: EffectTiming[EffectTiming.None],
+          continuousPass: true,
           activeEffectText: effect.description,
           conferredToPermanentId,
         }),
@@ -2033,6 +2034,7 @@ export class GameEngine {
         const ctx: EffectContext = {
           ...this.buildEffectContext(source, {}, noPromptAsk),
           activeTiming: EffectTiming[EffectTiming.None],
+          continuousPass: true,
           activeEffectText: effect.description,
           conferredToPermanentId,
         };
@@ -2052,6 +2054,7 @@ export class GameEngine {
         (source, effect) => ({
           ...this.buildEffectContext(source, {}, noPromptAsk),
           activeTiming: EffectTiming[EffectTiming.None],
+          continuousPass: true,
           activeEffectText: effect.description,
         }),
         this.tracker,
@@ -2060,6 +2063,7 @@ export class GameEngine {
         const ctx: EffectContext = {
           ...this.buildEffectContext(source, {}, noPromptAsk),
           activeTiming: EffectTiming[EffectTiming.None],
+          continuousPass: true,
           activeEffectText: effect.description,
         };
         if (!canActivate(effect, ctx, this.tracker)) continue;
