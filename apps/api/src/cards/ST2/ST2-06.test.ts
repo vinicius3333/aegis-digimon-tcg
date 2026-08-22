@@ -17,4 +17,21 @@ describe("ST2-06 Garurumon", () => {
       s.inst("top").instanceId,
     ]);
   });
+
+  it("does nothing when the opponent has no digivolution card to trash", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST2-08", as: "attacker", under: ["ST2-06"] }] },
+      1: { battleArea: [{ card: "ST1-03", as: "sourceLess" }], security: ["BT1-001"] },
+    }, { autoSelectCards: true });
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.perm("sourceLess").stack).toHaveLength(0);
+  });
 });
