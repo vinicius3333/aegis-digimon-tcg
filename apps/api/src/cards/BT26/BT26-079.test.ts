@@ -25,8 +25,8 @@ describe("BT26-079 compiled behavior", () => {
     expect(compiled.effects.find((effect) => effect.trigger === "Static")?.actions[0]).toMatchObject({ kind: "Replacement", event: "wouldLeavePlay", mode: "instead", actions: [{ kind: "PlayWithoutCost", fromOwnDigivolutionStack: true, payCost: false }] });
   });
 
-  it("keeps Q7111's unresolved dynamic hand-trim seam explicit", () => {
-    expect(compiled.residual[0]).toContain("dynamic TrashUntilHandSize");
+  it("uses the supported dynamic hand-trim action", () => {
+    expect(compiled.residual).toEqual([]);
     expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions).toEqual(expect.arrayContaining([
       expect.objectContaining({ kind: "SubTrigger", event: "whenPlayed", sourceFilter: { controller: "opponent", kind: ["Digimon"] } }),
       expect.objectContaining({ kind: "SubTrigger", event: "whenAnyDigivolves", sourceFilter: { controller: "opponent", kind: ["Digimon"] } }),
