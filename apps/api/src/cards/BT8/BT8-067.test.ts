@@ -21,6 +21,9 @@ describe("BT8-067 MetalGreymon", () => {
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Vortex")).toBe(false);
+    await settle(() =>
+      s.perm("host").attackablePermanentIds.includes(s.perm("unsuspendedTarget").permanentId),
+    );
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -28,7 +31,7 @@ describe("BT8-067 MetalGreymon", () => {
         target: { kind: "permanent", permanentId: s.perm("unsuspendedTarget").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-016"));
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-016")).toBe(true);
   });
 
