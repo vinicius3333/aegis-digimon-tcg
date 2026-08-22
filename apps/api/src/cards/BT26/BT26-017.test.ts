@@ -73,12 +73,13 @@ describe("BT26-017 Zanbamon", () => {
       },
     }, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred });
     preferred.push(s.inst("eligible").instanceId);
+    const selfId = s.perm("self").topCard.instanceId;
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("self").permanentId], "byEffect")).toBe(1);
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("eligible").instanceId));
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining([
-      s.inst("self").instanceId,
+      selfId,
       s.inst("tooExpensive").instanceId,
     ]));
   });
