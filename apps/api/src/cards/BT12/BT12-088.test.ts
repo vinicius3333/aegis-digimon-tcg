@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-088.js";
 
 describe("BT12-088 handwritten module", () => {
@@ -38,16 +38,16 @@ describe("BT12-088 handwritten module", () => {
   it("gains 2 memory once when an inherited host with 10000 or more DP checks security", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT12-017", as: "host", under: ["BT12-088"] }] },
-      1: { security: ["BT1-009", "BT1-010"] },
-    });
+      1: { security: ["BT1-010", "BT1-010"] },
+    }, { autoSelectCards: true });
     await s.ready();
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.OnLoseSecurity, s.perm("host"), {
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
       attackerPermanentId: s.perm("host").permanentId,
-    });
-    await advance(s.engine).fire(EffectTiming.OnLoseSecurity, s.perm("host"), {
-      attackerPermanentId: s.perm("host").permanentId,
-    });
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.memory === 2);
     expect(s.state.memory).toBe(2);
   });
 });
