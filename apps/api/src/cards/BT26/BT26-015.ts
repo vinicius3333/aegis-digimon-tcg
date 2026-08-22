@@ -24,10 +24,10 @@ export const compiled: CompiledCard = {
     { trigger: "OnPlay", actions: onPlayBody },
     { trigger: "WhenDigivolving", actions: onPlayBody },
     { trigger: "YourTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenEffectAddsToDeck", effectSourceFilter: { controller: "mine" }, actions: reactiveBuff, raw: "When your effect adds cards to a deck, 1 of your Digimon may get +3000 DP and attack." }] },
-    { trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenEffectAddsToDeck", effectSourceFilter: { controller: "mine" }, actions: [{ kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1 }, optional: true }], raw: "When your effect adds cards to a deck, this Digimon with Chronomon in its text may unsuspend." }] },
+    { trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenEffectAddsToDeck", effectSourceFilter: { controller: "mine" }, hostFilter: { isSelfRef: true, nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }] }, actions: [{ kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1 }, optional: true }], raw: "When your effect adds cards to a deck, this Digimon with Chronomon in its text may unsuspend." }] },
   ],
-  coverage: "partial",
-  residual: ["The inherited watcher still lacks a host-text predicate for 'this Digimon with Chronomon in its text'; the unsuspend action is retained without silently claiming that gate."],
+  coverage: "full",
+  residual: [],
   digivolutionRequirement: [{ level: 4, traits: ["TS"], cost: 3, isAlternate: true }],
 };
 
