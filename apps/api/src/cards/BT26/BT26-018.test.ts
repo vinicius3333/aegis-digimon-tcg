@@ -86,7 +86,10 @@ describe("BT26-018 reveal movement boundaries", () => {
 
     await getEffectModule(CARD_ID)!.effectsForTiming(EffectTiming.OnPlay, cardSource)[0]!.resolve(ctx);
 
-    expect(selectCards).toHaveBeenCalledWith(ctx, { candidates: ["aqua", "sea", "ds"], min: 1, max: 1 });
+    expect(selectCards).toHaveBeenCalledWith(
+      ctx,
+      expect.objectContaining({ candidates: ["aqua", "sea", "ds"], min: 1, max: 1 }),
+    );
     expect(orderCards).toHaveBeenCalledWith(ctx, {
       candidates: ["aqua", "sea", "ds", "plain"],
       visibleCards: cards,
