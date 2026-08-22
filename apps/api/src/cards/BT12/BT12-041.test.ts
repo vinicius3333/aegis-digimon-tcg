@@ -79,6 +79,18 @@ it("does not draw outside its controller's turn", async () => {
   expect(s.state.players[0]!.hand.length).toBe(handBefore);
 });
 
+it("does not treat a Digimon in a deleted non-Digimon stack as the deleted Digimon", async () => {
+  const s = setupEngine({
+    0: { battleArea: [{ card: "BT12-041", as: "cho" }], deck: ["BT1-009"] },
+    1: { battleArea: [{ card: "BT12-092", as: "tamer", under: ["BT1-009"], dp: 0 }] },
+  });
+  await s.ready();
+  const handBefore = s.state.players[0]!.hand.length;
+  await advance(s.engine).verb.deletePermanent([s.perm("tamer").permanentId], "byRule");
+  await settle(() => s.state.players[1]!.battleArea.length === 0);
+  expect(s.state.players[0]!.hand.length).toBe(handBefore);
+});
+
 it("applies minus 3000 DP once for each pair of digivolution cards", async () => {
   const s = setupEngine(
     {
