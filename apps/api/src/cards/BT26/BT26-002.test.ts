@@ -50,10 +50,19 @@ describe("BT26-002 Budmon", () => {
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("notDrawn").instanceId]);
   });
 
-  it("ignores cards trashed under an opponent Tamer and all events during the opponent turn", async () => {
+  it("ignores cards under Digimon, cards under an opponent Tamer, and all events during the opponent turn", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "BT26-002" }] }],
+        battleArea: [
+          {
+            card: "BT1-009",
+            as: "host",
+            under: [
+              { card: "BT26-002" },
+              { card: "BT1-008", as: "digimonUnder" },
+            ],
+          },
+        ],
         deck: ["BT1-012"],
       },
       1: {
@@ -64,6 +73,11 @@ describe("BT26-002 Budmon", () => {
       },
     });
     await s.ready();
+    await primitives(s).trashDigivolutionCards(s.perm("host").permanentId, [s.inst("digimonUnder").instanceId], {
+      byEffectSeat: 0,
+    });
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+
     await primitives(s).trashDigivolutionCards(s.perm("opponentTamer").permanentId, [s.inst("oppUnder").instanceId], {
       byEffectSeat: 0,
     });
