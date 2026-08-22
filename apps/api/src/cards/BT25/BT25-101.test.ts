@@ -169,7 +169,7 @@ describe("BT25-101 Divine Arms Version Ω", () => {
     );
     preferred.push(s.inst("piercingLink").instanceId);
     await s.ready();
-    expect(observe(s.engine).hasKeyword(s.perm("vulcanus"), "Piercing")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("vulcanus"))).toBe(true);
 
     expect(
       s.engine.applyIntent(0, {
@@ -182,7 +182,7 @@ describe("BT25-101 Divine Arms Version Ω", () => {
 
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("vulcanus").permanentId)).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("piercingLink").instanceId);
-    expect(observe(s.engine).hasKeyword(s.perm("vulcanus"), "Piercing")).toBe(false);
+    expect(observe(s.engine).hasPierce(s.perm("vulcanus"))).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
