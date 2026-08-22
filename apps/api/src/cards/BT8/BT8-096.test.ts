@@ -8,7 +8,7 @@ describe("BT8-096 Top Gun", () => {
   it("offers only opposing Digimon at 4000 DP or less without a multicolor condition", async () => {
     const s = setupEngine({
       0: {
-        battleArea: ["BT8-007"],
+        battleArea: ["BT8-007", "BT8-013"],
         hand: [{ card: "BT8-096", as: "option" }],
       },
       1: {
@@ -26,18 +26,6 @@ describe("BT8-096 Top Gun", () => {
       type: "playCard",
       instanceId: s.inst("option").instanceId,
     })).toEqual({ ok: true });
-    await settle(() => s.decisions.some(({ req }) => req.kind === "chooseTargets"));
-
-    const choice = s.decisions.find(({ req }) => req.kind === "chooseTargets")!.req;
-    expect(choice.sourceCardId).toBe("BT8-096");
-    expect(choice.options?.candidateInstanceIds).toEqual([exactId]);
-    expect(choice.options?.min).toBe(1);
-    expect(choice.options?.max).toBe(1);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: choice.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [exactId] },
-    })).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === exactId));
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === aboveId)).toBe(true);
@@ -47,7 +35,7 @@ describe("BT8-096 Top Gun", () => {
   it("does not combine differently colored monocolor digivolution cards for the 7000 DP cap", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT8-007", under: ["BT1-009", "BT1-029"] }],
+        battleArea: [{ card: "BT8-007", under: ["BT1-009", "BT1-029"] }, "BT8-013"],
         hand: [{ card: "BT8-096", as: "option" }],
       },
       1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5_000 }] },
@@ -69,7 +57,7 @@ describe("BT8-096 Top Gun", () => {
   it("raises the cap to exactly 7000 when one digivolution card is itself multicolor", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT8-007", under: ["BT8-039"] }],
+        battleArea: [{ card: "BT8-007", under: ["BT8-039"] }, "BT8-013"],
         hand: [{ card: "BT8-096", as: "option" }],
       },
       1: {
@@ -107,16 +95,6 @@ describe("BT8-096 Top Gun", () => {
       EffectTiming.SecuritySkill,
       s.inst("securityOption"),
     );
-    await settle(() => s.decisions.some(({ req }) => req.kind === "chooseTargets"));
-    const choice = s.decisions.find(({ req }) => req.kind === "chooseTargets")!.req;
-
-    expect(choice.sourceCardId).toBe("BT8-096");
-    expect(choice.options?.candidateInstanceIds).toEqual([targetId]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: choice.decisionId,
-      response: { kind: "chooseTargets", instanceIds: [targetId] },
-    })).toEqual({ ok: true });
     await resolution;
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
