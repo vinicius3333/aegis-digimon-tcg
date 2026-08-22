@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { appFusionCostFor, assemblyRequirementFor, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-028.js";
 import "../index.js";
 
@@ -106,13 +106,18 @@ describe("BT26-028 Medicmon", () => {
       permanentId: s.perm("base").permanentId,
       instanceId: s.inst("medicmon").instanceId,
     })).toEqual({ ok: true });
-    await advance(s.engine).recompute();
-    await new Promise<void>((resolve) => queueMicrotask(resolve));
-    await advance(s.engine).recompute();
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving"));
 
     expect(s.perm("base").topCard.cardId).toBe("BT26-028");
     expect(s.perm("base").linked.map((card) => card.instanceId)).toContain(s.inst("linkSource").instanceId);
     expect(s.perm("target").currentDP).toBe(4000);
     expect(observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving")).toBe(true);
+  });
+
+  it("publishes Barrier and Detach while Medicmon is the top card", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT26-028", as: "medicmon" }] } });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("medicmon"), "Barrier")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("medicmon"), "Detach")).toBe(true);
   });
 });
