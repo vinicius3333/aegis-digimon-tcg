@@ -99,6 +99,14 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
           definitionMatches(cond.filter!, ctx.game.definitionOf(card as never)),
         )
       );
+    case "triggerAllRevealedMatchFilter":
+      return (
+        cond.filter !== undefined &&
+        (ctx.lastRevealedCards ?? []).length > 0 &&
+        (ctx.lastRevealedCards ?? []).every((card) =>
+          definitionMatches(cond.filter!, ctx.game.definitionOf(card as never)),
+        )
+      );
     case "triggerAttackBy":
       return ctx.trigger.attackMechanic === cond.keyword;
     case "allYoursMatchFilter":
