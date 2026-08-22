@@ -19,7 +19,7 @@ describe("BT10-082 Beelzemon", () => {
     const s = setupEngine({
       0: {
         hand: [{ card: "BT10-082", as: "source" }],
-        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        deck: ["BT1-009", "BT1-010", "BT1-011"],
         trash: Array.from({ length: 20 }, () => "BT1-004"),
       },
       1: {
@@ -48,7 +48,7 @@ describe("BT10-082 Beelzemon", () => {
       0: {
         battleArea: [{ card: "BT10-012", as: "xrosHeartBase" }],
         hand: [{ card: "BT10-082", as: "evolving" }],
-        deck: ["BT1-009", "BT1-010", "BT1-011"],
+        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         trash: Array.from({ length: 7 }, () => "BT1-009"),
       },
       1: { battleArea: [{ card: "BT1-015", as: "level4" }] },
