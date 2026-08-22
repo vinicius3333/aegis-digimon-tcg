@@ -461,6 +461,16 @@ export function permanentMatchesFilter(
     if (selfName === "" || selfName !== candName) return false;
   }
 
+  if (filter.sameNameAsSelection !== undefined) {
+    const selectedId = ctx.selections?.get(filter.sameNameAsSelection);
+    const selected = selectedId === undefined ? undefined : ctx.game.permanentById(selectedId);
+    const selectedTop = selected?.topCard;
+    if (selectedTop === undefined || permanent.topCard === undefined) return false;
+    const selectedName = (ctx.game.definitionOf(selectedTop).nameEn ?? "").toLowerCase();
+    const candidateName = (def.nameEn ?? "").toLowerCase();
+    if (selectedName === "" || selectedName !== candidateName) return false;
+  }
+
   // Comparative digivolution-stack-size filter relative to the effect source ("a Digimon with as
   // many or fewer digivolution cards as this Digimon" — AD1-025, BT16-027). Compare the candidate's
   // stack size to the source Digimon's; an unresolvable source excludes the candidate.
