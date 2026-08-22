@@ -56,4 +56,27 @@ describe("ST19-08 ShoeShoemon", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST19-12")).toBe(false);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("eligible").instanceId)).toBe(false);
   });
+
+  it("does not play a LIBERATOR Digi-Egg from trash", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "AD1-001", as: "attacker", dp: 7000 }] },
+        1: {
+          security: [{ card: "ST19-08", as: "shoe" }],
+          trash: [{ card: "ST19-01", as: "egg" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST19-01")).toBe(false);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("egg").instanceId)).toBe(true);
+  });
 });
