@@ -3581,9 +3581,21 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         ledger.dropSourceInstances(state, [detached.instanceId]);
         added.push(detached);
         continue;
+    }
+    const collected = collectForReturn(state, instanceId, dropPermanentLedgers);
+      if (collected === undefined) {
+        const resolvingOwner = state.players.find((owner) => owner.resolvingOption?.instanceId === instanceId);
+        if (resolvingOwner?.resolvingOption !== undefined) {
+          const resolving = resolvingOwner.resolvingOption;
+          resolvingOwner.resolvingOption = undefined;
+          resolving.faceUp = faceUp;
+          if (toTop) insertCard(p, Zone.Security, resolving, "top");
+          else insertCard(p, Zone.Security, resolving);
+          ledger.dropSourceInstances(state, [resolving.instanceId]);
+          added.push(resolving);
+        }
+        continue;
       }
-      const collected = collectForReturn(state, instanceId, dropPermanentLedgers);
-      if (collected === undefined) continue;
       for (const card of collected) {
         if (card.instanceId === instanceId || collected.length === 1) {
           card.faceUp = faceUp;

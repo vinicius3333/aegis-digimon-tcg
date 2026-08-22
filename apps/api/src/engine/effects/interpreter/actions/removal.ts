@@ -413,7 +413,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             asker,
           );
         }
-        const moved = chosen.length > 0 ? await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat }) : [];
+        const moved = chosen.length > 0 ? ((await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat })) ?? []) : [];
         ctx.lastTrashedCards = moved.map((card) => ({
           instanceId: card.instanceId,
           cardId: card.cardId,

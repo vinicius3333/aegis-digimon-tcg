@@ -1,5 +1,5 @@
 // @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
+import { getCompiledCard, type CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
@@ -152,4 +152,5 @@ const module: EffectModule = {
 };
 
 export { compiled };
-registerIrCard("BT10-104", compiled);
+const compiled = getCompiledCard("BT10-104") as CompiledCard;
+registerIrCard("BT10-104", compiled, module);
