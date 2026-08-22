@@ -222,6 +222,7 @@ describe("BT26-019 Mailmon", () => {
       { autoSelectCards: true, autoOrderTriggers: true, autoChooseOption: true },
     );
     s.state.memory = 3;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {

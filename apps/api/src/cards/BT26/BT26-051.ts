@@ -7,7 +7,7 @@ const grantTarget = { filter: { controller: "mine", kind: ["Digimon"], nameOrTra
 ] }, count: 1 };
 export const compiled: CompiledCard = { effects: [
   { trigger: "Static", keywords: [{ keyword: "Detach", raw: "＜Detach ([Seven Code] trait)＞" }], actions: [] },
-  { trigger: "YourTurn", isLinked: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true }, actions: [
+  { trigger: "YourTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true }, actions: [
     { kind: "GainKeyword", keyword: { keyword: "Collision" }, target: grantTarget, duration: "untilEachTurnEnd" },
     { kind: "ModifyDP", target: grantTarget, amount: 3000, duration: "untilEachTurnEnd" },
   ] }] },
