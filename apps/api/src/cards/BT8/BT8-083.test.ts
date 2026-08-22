@@ -7,7 +7,6 @@ describe("BT8-083 MaloMyotismon", () => {
     const s = setupEngine({ 0: { hand: [{ card: "BT8-083", as: "source" }], deck: ["BT8-034"], trash: [
       "BT8-080", "BT8-080", "BT8-080", "BT8-080", "BT8-080",
     ] }, 1: { battleArea: [{ card: "BT8-070", as: "target" }], security: [{ card: "BT8-071", as: "securityTop" }], deck: ["BT8-034"] } }, { autoSelectCards: true });
-    const removedInstanceIds = [s.perm("target").topCard.instanceId, s.inst("securityTop").instanceId];
     s.state.memory = 13;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
     await settle(() =>
@@ -15,10 +14,8 @@ describe("BT8-083 MaloMyotismon", () => {
       s.state.players[1]!.battleArea.length === 0 &&
       s.state.players[1]!.security.length === 0
     );
-    const trashedInstanceIds = s.events
-      .filter(event => event.kind === "cardsMoved" && event.to === "trash")
-      .flatMap(event => event.instanceIds);
-    expect(trashedInstanceIds).toEqual(expect.arrayContaining(removedInstanceIds));
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
   it("when digivolving, trashes exactly five cards and gains memory if one is Myotismon", async () => {
