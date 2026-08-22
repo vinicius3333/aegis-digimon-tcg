@@ -52,13 +52,16 @@ describe("BT13-083 Gizmon: AT", () => {
   });
 
   it("draws two cards and trashes two cards from hand on play", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT13-083", as: "gizmon" }],
-        deck: ["BT1-001", "BT1-002"],
-        hand: ["BT1-003", "BT1-004"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-083", as: "gizmon" }],
+          deck: ["BT1-001", "BT1-002"],
+          hand: ["BT1-003", "BT1-004"],
+        },
       },
-    });
+      { autoSelectCards: true },
+    );
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("gizmon"));
     await settle(() => s.state.players[0]!.trash.length === 2);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
