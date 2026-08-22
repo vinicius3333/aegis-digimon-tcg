@@ -19,14 +19,14 @@ describe("ST13-01 Sakuttomon", () => {
   it("does not gain memory when a Legend-Arms Digimon is played normally", async () => {
     const s = setupEngine({ 0: {
       battleArea: [{ card: "ST13-12", under: ["ST13-01"] }],
-      hand: ["ST13-04"],
+      hand: [{ card: "ST13-04", as: "legend-arm" }],
     } }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 10;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ST13-04").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.card.cardId === "ST13-04"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("legend-arm").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "ST13-04"));
 
-    expect(s.state.memory).toBe(7);
+    expect(s.state.memory).toBe(3);
   });
 });
