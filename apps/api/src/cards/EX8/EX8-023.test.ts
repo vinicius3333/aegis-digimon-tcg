@@ -22,8 +22,8 @@ describe("EX8-023", () => {
       1: { battleArea: [{ card: "BT1-009", as: "empty" }] },
     });
     await open.ready();
-    await settle(() => observe(open.engine).hasKeyword(open.perm("host"), "Piercing"));
-    expect(observe(open.engine).hasKeyword(open.perm("host"), "Piercing")).toBe(true);
+    await settle(() => observe(open.engine).hasPierce(open.perm("host")));
+    expect(observe(open.engine).hasPierce(open.perm("host"))).toBe(true);
     expect(observe(open.engine).keywordAmount(open.perm("host"), "SecurityAttack")).toBe(1);
 
     const stacked = setupEngine({
@@ -31,7 +31,7 @@ describe("EX8-023", () => {
       1: { battleArea: [{ card: "BT1-009", as: "stacked", under: ["BT1-009"] }] },
     });
     await stacked.ready();
-    expect(observe(stacked.engine).hasKeyword(stacked.perm("host"), "Piercing")).toBe(false);
+    expect(observe(stacked.engine).hasPierce(stacked.perm("host"))).toBe(false);
     expect(observe(stacked.engine).keywordAmount(stacked.perm("host"), "SecurityAttack")).toBe(0);
   });
 
