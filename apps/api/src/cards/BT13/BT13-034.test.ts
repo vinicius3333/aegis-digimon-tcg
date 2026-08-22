@@ -1,4 +1,8 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT13-034.js";
 
 describe("BT13-034 Kudamon", () => {
@@ -36,5 +40,20 @@ describe("BT13-034 Kudamon", () => {
         },
       ],
     });
+  });
+
+  it("adds a yellow Vaccine and Tamer from the top three cards and bottoms the rest", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-034", as: "kudamon" }], deck: ["BT13-036", "BT13-094", "BT1-001"] },
+      },
+      { autoSelectCards: true },
+    );
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("kudamon"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT13-036"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT13-036", "BT13-094"]),
+    );
+    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT1-001");
   });
 });
