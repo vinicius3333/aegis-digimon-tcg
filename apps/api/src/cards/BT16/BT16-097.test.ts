@@ -23,7 +23,7 @@ describe("BT16-097", () => {
     );
     await s.ready();
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" } as never)).toEqual({ ok: true });
     await settle(() => s.state.players[0]?.battleArea.some((p) => p.topCard?.cardId === "BT16-019"));
     expect(s.state.players[0]?.battleArea.some((p) => p.topCard?.cardId === "BT16-019")).toBe(true);
   });

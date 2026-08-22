@@ -31,7 +31,7 @@ describe("BT16-098", () => {
     );
     await s.ready();
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" } as never)).toEqual({ ok: true });
     await settle(() => s.state.players[1]?.battleArea.length === 1);
     expect(s.state.players[1]?.battleArea).toHaveLength(1);
     expect(s.state.players[1]?.battleArea[0]?.topCard?.cardId).toBe("BT16-101");

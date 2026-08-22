@@ -36,7 +36,7 @@ describe("BT16-087", () => {
     expect(s.engine.applyIntent(0, {
       type: "activateEffect",
       sourceInstanceId: s.perm("kosuke").topCard.instanceId,
-      effectKey: `BT16-087/ir-${EffectTiming.OnDeclaration}-2`,
+      effectKey: `BT16-087/ir-${EffectTiming.OnDeclaration}-0`,
     })).toEqual({ ok: true });
     expect(s.perm("dorumon").stack.some((card) => card.cardId === "BT16-087")).toBe(true);
   });
