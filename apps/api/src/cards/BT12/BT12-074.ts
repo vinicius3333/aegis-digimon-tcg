@@ -1,6 +1,13 @@
 import { getCompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const module = registerIrCard("BT12-074", getCompiledCard("BT12-074")!);
+const compiled = structuredClone(getCompiledCard("BT12-074")!);
+const inherited = compiled.effects.find((effect) => effect.trigger === "WhenAttacking");
+const draw = inherited?.actions[0];
+if (draw?.kind === "Draw") {
+  draw.condition = { kind: "selfTopHasText", filter: { nameOrTrait: [{ tokens: ["Save"], match: "text" }] } };
+}
+
+const module = registerIrCard("BT12-074", compiled);
 
 export default module;
