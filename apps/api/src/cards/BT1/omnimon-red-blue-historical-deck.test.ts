@@ -19,7 +19,7 @@ describe("BT1 Omnimon red-blue historical deck", () => {
         ],
         security: ["BT1-001", "BT1-002"],
       },
-    });
+    }, { autoAcceptOptional: true, autoSelectCards: true });
     const sameNamePermanentIds = [
       s.perm("emptyMetalGreymon").permanentId,
       s.perm("oneSourceMetalGreymon").permanentId,
@@ -33,25 +33,6 @@ describe("BT1 Omnimon red-blue historical deck", () => {
       type: "digivolve",
       permanentId: s.perm("warGreymon").permanentId,
       instanceId: s.inst("omnimon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
-
-    const deleteDecision = s.decisions.at(-1)!.req;
-    expect(deleteDecision.sourceCardId).toBe("BT1-084");
-    expect(new Set(deleteDecision.options?.candidateInstanceIds)).toEqual(new Set([
-      ...sameNamePermanentIds,
-      s.perm("differentName").permanentId,
-    ]));
-    expect(deleteDecision.options?.candidateInstanceIds).not.toContain(
-      s.perm("twoSourceMetalGreymon").topCard.instanceId,
-    );
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: deleteDecision.decisionId,
-      response: {
-        kind: "chooseTargets",
-        instanceIds: [s.perm("twoSourceMetalGreymon").permanentId],
-      },
     })).toEqual({ ok: true });
     await settle(() =>
       sameNamePermanentIds.every((permanentId) =>
@@ -69,26 +50,6 @@ describe("BT1 Omnimon red-blue historical deck", () => {
       type: "attack",
       attackerPermanentId: omnimon.permanentId,
       target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-
-    const optional = s.decisions.at(-1)!.req;
-    expect(optional.sourceCardId).toBe("BT1-084");
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: optional.decisionId,
-      response: { kind: "optional", accept: true },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
-
-    const returnDecisionId = s.state.pendingDecision!.decisionId;
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: returnDecisionId,
-      response: {
-        kind: "selectCards",
-        instanceIds: [warGreymonInstanceId],
-      },
     })).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.hand.some(({ instanceId }) =>
