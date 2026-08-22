@@ -8,4 +8,4 @@ const compiled: CompiledCard = {
   residual: [],
 };
 
-registerIrCard("BT5-073", compiled);
+registerIrCard("BT5-023", compiled);

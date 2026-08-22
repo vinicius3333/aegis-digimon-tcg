@@ -30,9 +30,9 @@ export interface SubTriggerSubscription {
   sourcePermanentId?: string;
   /**
    * Anchor for a hand/trash-resident source with no live Permanent. See
-   * {@link SubTriggerInstall.sourceInstanceId}. Mutually exclusive with
-   * `sourcePermanentId` in practice — the engine's context builder tries the
-   * permanent anchor first and falls back to this only when it is absent.
+   * {@link SubTriggerInstall.sourceInstanceId}. When both are present, the
+   * permanent anchors the subscription lifecycle while the instance preserves
+   * the printed source card (including an inherited card in a stack).
    */
   sourceInstanceId?: string;
   /**
