@@ -38,7 +38,7 @@ describe("BT13-105 Full Moon Meteor Impact", () => {
       },
       { autoSelectCards: true },
     );
-    s.state.memory = 0;
+    s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
