@@ -18,7 +18,7 @@ describe("BT8-080 Myotismon", () => {
 
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("yukio").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("yukio").instanceId && permanent.isSuspended)).toBe(true);
   });
 
   it("does not play Yukio Oikawa when the deleted host is not Myotismon-named", async () => {
