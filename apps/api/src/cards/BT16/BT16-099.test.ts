@@ -26,6 +26,6 @@ describe("BT16-099", () => {
     await settle(() => s.state.players[0]?.battleArea.some((p) => p.topCard?.cardId === "BT16-099"));
     expect(s.state.players[0]?.hand.some((card) => card.cardId === "BT16-051")).toBe(true);
     expect(s.state.players[0]?.hand).toHaveLength(2);
-    expect(s.state.players[0]?.deck).toHaveLength(3);
+    expect(s.state.players[0]?.deck).toHaveLength(0);
   });
 });
