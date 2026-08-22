@@ -845,6 +845,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                 resolve,
               }),
             ];
+          if (timing === EffectTiming.SecuritySkill) return [_deleteByDp(cardId, source, Infinity, true)];
           return [];
         }
         case "BT12-101": {
