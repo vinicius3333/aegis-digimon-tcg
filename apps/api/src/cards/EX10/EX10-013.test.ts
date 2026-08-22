@@ -1,11 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectDuration, EffectTiming } from "@aegis/shared";
-import type { CardInstance, Permanent } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { definitionOf } from "../../engine/cards/cardData.js";
-import "./EX10-013.js";
+import compiled from "./EX10-013.js";
 
 // EX10-013 Lucemon: ＜Blocker＞ (own + ESS), [Breeding][When Digivolving] may move
 // and [End of Your Turn] return-5-[Lucemon]-text-then-digivolve-into-Chaos-Mode.

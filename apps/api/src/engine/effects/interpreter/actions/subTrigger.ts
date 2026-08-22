@@ -83,6 +83,10 @@ export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefine
   startOfYourMainPhase: "startOfYourMainPhase",
   // GainTriggeredEffect in card IR may encode the trigger with a capital 'S' (runtime record output).
   StartOfYourMainPhase: "startOfYourMainPhase",
+  // A gained printed [End of Your Turn] clause uses the same live end-of-turn bus as
+  // hand-authored EndOfYourTurn effects; runGainTriggeredEffect adds the granted owner's
+  // turn/battle-area gate below so it cannot fire on the granter's turn (EX10-058, Q5159).
+  EndOfYourTurn: "endOfTurn",
   endOfTurn: "endOfTurn",
   endOfOpponentTurn: "endOfOpponentTurn",
   // "When [matching Digimon] WOULD BE returned to hand/deck" — fires before the return executes.
@@ -263,7 +267,7 @@ export async function runSubTrigger(
         }
       : undefined;
   const deletionSourceFilterGate =
-      event === "onDeletionOf" && sourceFilter !== undefined
+    event === "onDeletionOf" && sourceFilter !== undefined
       ? (subCtx: EffectContext): boolean => {
           if (sourceFilter.isSelfRef === true) {
             const anchor = subCtx.source.permanent()?.permanentId;
@@ -275,7 +279,7 @@ export async function runSubTrigger(
             deletedSeat === undefined ||
             scope === undefined ||
             scope === "any" ||
-            deletedSeat === subCtx.source.ownerSeat === (scope === "mine");
+            (deletedSeat === subCtx.source.ownerSeat) === (scope === "mine");
           if (!seatMatches) return false;
           const deletedCardId = subCtx.trigger.deletedTopCardId;
           if (sourceFilter.kind === undefined || deletedCardId === undefined) return true;
@@ -855,6 +859,10 @@ export async function runGainTriggeredEffect(
       event === "startOfYourMainPhase"
         ? (subCtx: EffectContext): boolean => subCtx.source.isOwnersTurn() && subCtx.source.isOnBattleArea()
         : undefined;
+    const ownerTurnEndGate =
+      event === "endOfTurn"
+        ? (subCtx: EffectContext): boolean => subCtx.source.isOwnersTurn() && subCtx.source.isOnBattleArea()
+        : undefined;
     const grantedPermanentDeletionGate =
       event === "onDeletionOf"
         ? (subCtx: EffectContext): boolean => subCtx.trigger.deletedPermanentId === targetPermanentId
@@ -867,7 +875,7 @@ export async function runGainTriggeredEffect(
     const grantedPermanentBattleDeleteGate =
       event === "whenDeletesInBattle"
         ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === targetPermanentId
-      : undefined;
+        : undefined;
     const whenDeletesInBattleSelfGate =
       event === "whenDeletesInBattle" && sourceFilter?.isSelfRef === true && anchorPermanentId !== undefined
         ? (subCtx: EffectContext): boolean => subCtx.trigger.attackerPermanentId === anchorPermanentId
@@ -880,6 +888,7 @@ export async function runGainTriggeredEffect(
     };
     const gates = [
       ownerMainPhaseGate,
+      ownerTurnEndGate,
       grantedPermanentDeletionGate,
       grantedPermanentBattleDeleteGate,
       whenDeletesInBattleSelfGate,

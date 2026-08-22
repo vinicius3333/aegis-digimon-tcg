@@ -46,25 +46,32 @@ const module: EffectModule = {
               (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),
             );
           },
-          resolve: async (ctx) => {
-            // `when` only gates isOnBattleArea(), not isOwnersTurn(), so this clause is
-            // also a candidate at the OPPONENT's Start-of-Main-Phase firing; credit this
-            // owner explicitly rather than the turn player.
-            ctx.fx.gainMemoryForSeat(source.ownerSeat, 1);
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.OnEndTurn) {
-      return [
-        turnTiming({
-          source,
-          effectKey: `${cardId}/end-turn-dna`,
-          description:
-            "[End of Your Turn] [Once Per Turn] 1 of your Digimon may DNA digivolve into a " +
-            "Digimon card in your hand without paying the cost.",
-          maxPerTurn: 1,
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinkTrashed",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          actions: [
+            { kind: "Draw", controller: "mine", amount: 1, cost: { kind: "suspend", raw: "by suspending this Tamer" } },
+          ],
+          raw: "[All Turns] When effects trash any of your Digimon's link cards, by suspending this Tamer, <Draw 1>",
+        },
+      ],
+    },
+    {
+      trigger: "EndOfYourTurn",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "AppFuse",
+          source: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          into: { controller: "mine", kind: ["Digimon"] },
+          from: ["hand"],
           optional: true,
           when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
           resolve: async (ctx) => {
@@ -144,5 +151,5 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
-export default module;
+registerIrCard("EX10-062", compiled);
+export default compiled;

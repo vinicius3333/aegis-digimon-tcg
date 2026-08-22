@@ -1,9 +1,6 @@
-import { EffectTiming } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { onPlay, whenDigivolving } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
  * EX10-056 — Bagramon (EX10, Dark-Area/Bagra-Army DigiXros Digimon).
@@ -175,7 +172,35 @@ const module: EffectModule = {
 
     return [];
   },
+];
+
+const compiled: CompiledCard = {
+  effects: [
+    ...["OnPlay", "WhenDigivolving"].map((trigger) => ({
+      trigger,
+      actions: [{
+        kind: "PlaceUnder",
+        target: { filter: { controller: "opponent", kind: ["Digimon"], zone: "battleArea" }, from: ["battleArea"], count: 1 },
+        underFilter: { controller: "opponent", kind: ["Digimon", "Tamer"], excludeSelf: true },
+        targetIsPermanent: true,
+        position: "bottom",
+        optional: true,
+      }],
+    })),
+    {
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      actions: [
+        { kind: "SubTrigger", event: "whenOneOfYoursDigivolves", sourceFilter: { controller: "opponent", kind: ["Digimon"] }, actions: watcherActions, oncePerTurnKey: "EX10-056/all-turns" },
+        { kind: "SubTrigger", event: "onAddDigivolutionCards", sourceFilter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, actions: watcherActions, oncePerTurnKey: "EX10-056/all-turns" },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [{ level: 5, colors: ["Purple"], cost: 5 }],
+  digiXrosRequirement: [{ materials: [{ traits: ["Bagra Army"] }], count: 2, costReduction: 2 }],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("EX10-056", compiled);
+export default compiled;

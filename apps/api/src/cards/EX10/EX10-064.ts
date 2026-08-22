@@ -3,124 +3,111 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-            "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                controller: "mine",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Bagra Army",
-                      "Twilight"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Bagra Army", "Twilight"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "from": ["hand", "trash"]
+              count: 1,
+              from: ["hand", "trash"],
             },
-            "underTarget": {
-              "filter": {
-                "isSelfRef": true
+            underTarget: {
+              filter: {
+                isSelfRef: true,
               },
-              "count": 1,
-              "isSelf": true
+              count: 1,
+              isSelf: true,
             },
-            "position": "bottom",
-            "raw": "By placing 1 [Bagra Army] or [Twilight] trait Digimon card from your hand or trash under this Tamer"
-          }
-        }
-      ]
+            position: "bottom",
+            raw: "By placing 1 [Bagra Army] or [Twilight] trait Digimon card from your hand or trash under this Tamer",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldBePlayed",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Bagra Army",
-                  "Twilight"
-                ],
-                "match": "trait"
-              }
-            ],
-            "hasDigiXros": true
-          },
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "isSelfRef": true
+                tokens: ["Bagra Army", "Twilight"],
+                match: "trait",
               },
-              "count": 1,
-              "isSelf": true
-            },
-            "raw": "by suspending this Tamer"
+            ],
+            hasDigiXros: true,
           },
-          "actions": [
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                isSelfRef: true,
+              },
+              count: 1,
+              isSelf: true,
+            },
+            raw: "by suspending this Tamer",
+          },
+          actions: [
             {
-              "kind": "DigiXrosExtraMaterial",
-              "options": [
+              kind: "DigiXrosExtraMaterial",
+              options: [
                 {
-                  "from": "underTamers",
-                  "count": 1
+                  from: "underTamers",
+                  count: 1,
                 },
                 {
-                  "from": "trash",
-                  "count": 1
-                }
+                  from: "trash",
+                  count: 1,
+                },
               ],
-              "raw": "1 card from under your Tamers and 1 card in your trash can also be placed for their DigiXros"
-            }
+              raw: "1 card from under your Tamers and 1 card in your trash can also be placed for their DigiXros",
+            },
           ],
-          "additionalEffects": [
-            { "kind": "AllowDigiXrosMaterialsFromTrash" },
-            { "kind": "DigiXrosExtraMaterial" }
-          ]
-        }
-      ]
+          additionalEffects: [{ kind: "AllowDigiXrosMaterialsFromTrash" }, { kind: "DigiXrosExtraMaterial" }],
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
+          payCost: false,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX10-064", compiled);
