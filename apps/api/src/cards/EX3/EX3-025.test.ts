@@ -193,7 +193,8 @@ describe("EX3-025 Azulongmon", () => {
       () =>
         s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-025") &&
         s.state.players[0]!.deck.length === 0 &&
-        s.state.memory === 2,
+        s.state.memory === 2 &&
+        s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX3-069"),
     );
 
     expect(s.state.memory).toBe(2);
