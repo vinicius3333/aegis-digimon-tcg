@@ -29,7 +29,7 @@ export const compiled: CompiledCard = {
     { trigger: "OnPlay", actions: revealAndTrash },
     { trigger: "OnMove", actions: revealAndTrash },
     { trigger: "Static", isInherited: true, actions: [], keywords: [{ keyword: "Jamming", raw: "＜Jamming＞" }] },
-    { trigger: "Static", actions: [{ kind: "GrantTrait", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, trait: "Aquatic", duration: "permanent" }] },
+    { trigger: "Static", actions: [{ kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "trait", tokens: ["Aquatic"], duration: "permanent" }] },
   ],
   coverage: "full",
   residual: [],

@@ -24,7 +24,7 @@ it("encodes BT26-073's exclusive cost choice and static clauses in IR", () => {
   });
   expect(compiled.effects?.[2]?.actions?.[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["hand", "trash"], payCost: false, optional: true });
   expect(compiled.effects?.[3]).toMatchObject({ isInherited: true, actions: [{ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: 1 } }] });
-  expect(compiled.effects?.[4]?.actions?.[0]).toMatchObject({ kind: "GrantTrait", trait: "Wizard" });
+  expect(compiled.effects?.[4]?.actions?.[0]).toMatchObject({ kind: "GrantStatic", grant: "trait", tokens: ["Wizard"] });
 });
 
 function fakeDef(over: Partial<CardDefinition> = {}): CardDefinition {

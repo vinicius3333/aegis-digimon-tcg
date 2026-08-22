@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = { effects: [
   { trigger: "Static", keywords: [
     { keyword: "Jamming", raw: "＜Jamming＞" }, { keyword: "Reboot", raw: "＜Reboot＞" }, { keyword: "Blocker", raw: "＜Blocker＞" },
-  ], actions: [{ kind: "GrantTrait", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, trait: "Dark Animal", duration: "permanent" }] },
+  ], actions: [{ kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "trait", tokens: ["Dark Animal"], duration: "permanent" }] },
   { trigger: "OnDeletion", actions: [{ kind: "PlayWithoutCost", target: { filter: { controller: "mine", zone: "trash", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 }, nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] }, count: 1 }, from: ["trash"], payCost: false, optional: true }] },
   { trigger: "Static", actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave", filter: { controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] } } }] },
   { trigger: "Main", actions: [

@@ -43,7 +43,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "Static",
-      actions: [{ kind: "GrantTrait", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, trait: "Wizard", duration: "permanent" }],
+      actions: [{ kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "trait", tokens: ["Wizard"], duration: "permanent" }],
     },
   ],
   coverage: "full",
