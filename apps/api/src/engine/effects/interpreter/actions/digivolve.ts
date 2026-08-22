@@ -140,6 +140,9 @@ function visibleDigivolveSourceIds(
   zones: ZoneRef[],
 ): string[] {
   let visible = candidateLooseInstances(ctx, { filter: { controllerDefault: "mine" }, count: "all" }, zones);
+  if (action.source === "triggerSource") {
+    visible = visible.filter((candidate) => candidate.instanceId === ctx.source.instanceId);
+  }
   if (action.amongPreviousSearch) {
     const searched = new Set((ctx.lastRevealedCards ?? []).map((card) => card.instanceId));
     visible = visible.filter((candidate) => searched.has(candidate.instanceId));
@@ -318,9 +321,6 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
   // Only a card that sets the field is affected; every other Digivolve is untouched.
   if (action.target.bindAs !== undefined && ctx.selections) {
     ctx.selections.set(action.target.bindAs, permanentIds[0]!);
-  }
-  if (action.source === "triggerSource") {
-    visible = visible.filter((candidate) => candidate.instanceId === ctx.source.instanceId);
   }
   if (intoTarget === undefined) {
     unsupported(ctx, action, "Digivolve without an `into` filter (what to digivolve into) is unresolvable");
