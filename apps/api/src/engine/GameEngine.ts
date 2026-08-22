@@ -1008,10 +1008,6 @@ export class GameEngine {
     switch (boundary) {
       case "ownerTurnEnd":
         sweep("ownerTurnEnd");
-        // GRANTED timed watchers (BT23-056's [Start of Your Main Phase] install) expire at
-        // their owner's turn end. `seat` is the seat whose turn
-        // just ended, so a watcher anchored on that seat's permanent is now dropped.
-        this.subTriggers.sweepExpired(seat);
         break;
       case "opponentTurnEnd":
         sweep("opponentTurnEnd");
@@ -1680,6 +1676,10 @@ export class GameEngine {
         // seat, mirroring whenOpponentDrawsGate's "read ambient state, not a payload field"
         // pattern for a seat-scoped event with no natural subject permanent.
         await this.fireSubTrigger("endOfOpponentTurn");
+        // Expire granted end-of-turn watchers only after the matching window has fired.
+        // The boundary cleanup runs before this timing window, so sweeping here preserves
+        // effects such as EX10-058's granted [End of Your Turn] clause for its owner's turn.
+        this.subTriggers.sweepExpired(this.state.turnSeat);
         await this.processPendingBurstDigivolveTrash();
       }
       await this.recomputeContinuousEffects();
