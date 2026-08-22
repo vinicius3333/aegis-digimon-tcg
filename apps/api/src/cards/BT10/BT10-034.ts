@@ -79,27 +79,6 @@ const compiled: CompiledCard = {
       "trigger": "YourTurn",
       "actions": [
         {
-          "kind": "Aura",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": "all"
-          },
-          "effect": {
-            "kind": "modifyDP",
-            "amount": -2000
-          },
-          "while": {
-            "kind": "selfHasNameContaining",
-            "names": ["Shoutmon"],
-            "raw": "this Digimon has [Shoutmon] in its name"
-          }
-        },
-        {
           "kind": "ModifySecurityDP",
           "controller": "opponent",
           "amount": -2000,
