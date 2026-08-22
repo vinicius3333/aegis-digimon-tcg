@@ -32,15 +32,15 @@ describe("BT26-034 Palmon", () => {
       {
         0: {
           battleArea: [{ card: "BT26-034", as: "palmon", under: ["BT26-001"] }],
-          hand: [{ card: "BT25-047", as: "vegetation" }],
+          hand: [{ card: "BT26-039", as: "vegetation" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 4;
 
-    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("palmon"));
-    expect(s.perm("palmon").topCard.cardId).toBe("BT25-047");
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("palmon"));
+    expect(s.perm("palmon").topCard.cardId).toBe("BT26-039");
   });
 
   it("Q7007 does not offer the free digivolution at five memory", async () => {
@@ -48,14 +48,14 @@ describe("BT26-034 Palmon", () => {
       {
         0: {
           battleArea: [{ card: "BT26-034", as: "palmon", under: ["BT26-001"] }],
-          hand: [{ card: "BT25-047", as: "vegetation" }],
+          hand: [{ card: "BT26-039", as: "vegetation" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
 
-    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("palmon"));
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("palmon"));
 
     expect(s.perm("palmon").topCard.cardId).toBe("BT26-034");
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("vegetation").instanceId]);

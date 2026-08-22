@@ -8,7 +8,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "Digivolve",
-          target: { count: 1, filter: { isSelf: true } },
+          target: { count: 1, filter: { isSelfRef: true }, isSelf: true },
           from: ["hand"],
           into: {
             kind: ["Digimon"],
