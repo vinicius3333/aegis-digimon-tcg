@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { compiled } from "./BT26-067.js";
 import "../index.js";
 
 describe("BT26-067 Wizardmon", () => {
   it("draws then mandates one hand trash on play and digivolving", () => {
+    expect(digivolutionRequirementsFor("BT26-067")).toContainEqual({ level: 3, traits: ["TS"], cost: 2, isAlternate: true });
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       expect(compiled.effects.find((entry) => entry.trigger === trigger)?.actions).toEqual([
         { kind: "Draw", controller: "mine", amount: 1 },
