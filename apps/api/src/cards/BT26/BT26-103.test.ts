@@ -53,4 +53,32 @@ describe("BT26-103 compiled fidelity", () => {
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-001")).toBe(true);
   });
+
+  it("applies the security-removal DP penalty only once across both event routes", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-103", as: "wrathMode" }],
+          security: ["BT1-001", "BT1-002"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first", dp: 16000 },
+            { card: "BT1-010", as: "second", dp: 16000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("first").permanentId);
+    await s.ready();
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1);
+    preferred.splice(0, preferred.length, s.perm("second").permanentId);
+    await advance(s.engine).verb.trashFromSecurity(0, 1);
+
+    expect(s.perm("first").currentDP).toBe(1000);
+    expect(s.perm("second").currentDP).toBe(16000);
+  });
 });
