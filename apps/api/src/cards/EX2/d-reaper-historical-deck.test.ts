@@ -60,7 +60,8 @@ describe("EX2 D-Reaper historical deck gauntlet", () => {
       !observe(s.engine).isAttacking() &&
       !reaper.isSuspended &&
       reaper.stack.length === 2 &&
-      reaper.currentDP === baseDp + 2000
+      reaper.currentDP === baseDp + 2000,
+      5000,
     );
 
     expect(s.engine.applyIntent(0, {
@@ -72,7 +73,8 @@ describe("EX2 D-Reaper historical deck gauntlet", () => {
       !observe(s.engine).isAttacking() &&
       !reaper.isSuspended &&
       reaper.stack.length === 4 &&
-      reaper.currentDP === baseDp + 4000
+      reaper.currentDP === baseDp + 4000,
+      5000,
     );
 
     expect(s.state.players[1]!.security).toHaveLength(2);

@@ -109,6 +109,8 @@ export interface SecurityManipulationAction extends ActionBase {
   faceUp?: boolean;
   /** For addTop/addBottom/addTopOrBottom: explicitly return a revealed card face down. */
   faceDown?: boolean;
+  /** Maximum security size for recovery-like add operations. */
+  maxSecurity?: number;
   /**
    * For placeAsSecurity: detach only the source's current top card, promoting the top
    * digivolution card and leaving the permanent in play. BT9-044 uses it as a deletion-prevention

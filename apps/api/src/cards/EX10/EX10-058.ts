@@ -52,7 +52,11 @@ const cardId = "EX10-058";
 // Digivolving] grant (source PermanentCondition: IsPermanentExistsOnOpponentBattleArea
 // Digimon || ...Tamer). Retained as the documented selection model for the blocked
 // clause so it is ready once a grant-triggered-ability primitive lands.
-const isOpponentDigimonOrTamer = (ctx: EffectContext, source: CardSource, permanent: Permanent): boolean => {
+const isOpponentDigimonOrTamer = (
+  ctx: EffectContext,
+  source: CardSource,
+  permanent: Permanent,
+): boolean => {
   const opponent = ctx.game.opponentOf(source.ownerSeat);
   if (permanent.controllerSeat !== opponent || permanent.topCard === undefined) return false;
   const def = ctx.game.definitionOf(permanent.topCard);
@@ -60,8 +64,8 @@ const isOpponentDigimonOrTamer = (ctx: EffectContext, source: CardSource, perman
 };
 
 const opponentDigimonsOrTamers = (ctx: EffectContext, source: CardSource): Permanent[] =>
-  Array.from(ctx.game.player(ctx.game.opponentOf(source.ownerSeat)).battleArea).filter((permanent) =>
-    isOpponentDigimonOrTamer(ctx, source, permanent),
+  Array.from(ctx.game.player(ctx.game.opponentOf(source.ownerSeat)).battleArea).filter(
+    (permanent) => isOpponentDigimonOrTamer(ctx, source, permanent),
   );
 
 // The count of the OPPONENT's Digimon whose top card actually left the field in this
@@ -269,7 +273,10 @@ const module: EffectModule = {
             const eligible = owner.trash.filter((c) => {
               const def = ctx.game.definitionOf(c);
               return (
-                isDigimon(def) && def.colors.includes(CardColor.Purple) && def.level !== undefined && def.level <= 4
+                isDigimon(def) &&
+                def.colors.includes(CardColor.Purple) &&
+                def.level !== undefined &&
+                def.level <= 4
               );
             });
             if (eligible.length === 0) return;
@@ -308,5 +315,5 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard("EX10-058", compiled);
-export { compiled };
+registerCard(module);
+export default module;

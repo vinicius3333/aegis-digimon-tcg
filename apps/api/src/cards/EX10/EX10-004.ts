@@ -69,5 +69,5 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard("EX10-004", compiled);
-export { compiled };
+registerCard(module);
+export default module;

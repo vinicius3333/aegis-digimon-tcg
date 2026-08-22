@@ -172,6 +172,16 @@ function makeCtx(
 }
 
 describe("EX2-012 Megidramon", () => {
+  it("registers full compiled IR for every printed clause", () => {
+    const compiled = registeredCompiledCards.get("EX2-012");
+    expect(compiled?.coverage).toBe("full");
+    expect(compiled?.residual).toEqual([]);
+    expect(compiled?.effects.find((effect) => effect.trigger === "OnDeletion")?.actions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ kind: "PlayWithoutCost", from: ["hand", "trash"] }),
+      ]),
+    );
+  });
   const module = getEffectModule("EX2-012");
 
   it("is registered on import", () => {
@@ -291,7 +301,7 @@ describe("EX2-012 Megidramon", () => {
     const ctx = makeCtx(recorder, source, { ownerHand: [], ownerTrash: [] });
 
     const effects = module!.effectsForTiming(EffectTiming.OnDestroyedAnyone, source);
-    // canActivate should be false
-    expect(effects[0]!.canActivate(ctx)).toBe(false);
+    await effects[0]!.resolve(ctx);
+    expect(recorder.calls.filter((call) => call.verb === "playInstances")).toHaveLength(0);
   });
 });

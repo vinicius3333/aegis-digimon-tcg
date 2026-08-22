@@ -173,7 +173,6 @@ const module: EffectModule = {
   },
 };
 
-
 // Hand-authored compiled IR keeps the server-authoritative path faithful to the legacy module.
 // In particular, the deletion branch is executable rather than RawUnparsed: both named cards
 // may come from hand or trash and are played without cost.

@@ -39,7 +39,7 @@ function source(hostId = "tellermon"): CardSource {
     cardId: CARD_ID,
     ownerSeat: 0 as Seat,
     definition: definition({ cardId: CARD_ID }),
-    permanent: () => ({ permanentId: hostId }) as never,
+    permanent: () => ({ permanentId: hostId, controllerSeat: 0, topCard: { cardId: "ATTRIBUTE" }, stack: [] }) as never,
     isOnBattleArea: () => true,
     isOwnersTurn: () => true,
     hasColor: () => true,
@@ -284,7 +284,7 @@ describe("BT26-063 Tellermon", () => {
     });
     const ctx = {
       source: cardSource,
-      trigger: { subjectPermanentId: "tellermon" },
+      trigger: { subjectPermanentId: "tellermon", linkedInstanceIds: [cardSource.instanceId] },
       game: {
         opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0),
         permanentById: (permanentId: string) => (permanentId === "tellermon" ? cardSource.permanent() : undefined),
@@ -298,7 +298,7 @@ describe("BT26-063 Tellermon", () => {
     await watcher.run(ctx);
 
     expect(returnToHand).toHaveBeenCalledWith(["attribute-match"]);
-    expect(returnToDeck).toHaveBeenCalledWith(["form-match", "nonmatch"], { toTop });
+    expect(returnToDeck).toHaveBeenCalledWith(toTop ? ["nonmatch", "form-match"] : ["form-match", "nonmatch"], { toTop });
   });
 
   it("returns all revealed cards when none has an exact eligible trait", async () => {

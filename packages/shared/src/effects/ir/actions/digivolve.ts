@@ -158,7 +158,7 @@ export interface PlaceUnderAction extends ActionBase {
   /** Select a single exact count from battle-area permanents, their linked cards, and trash.
    * Battle-area permanents are relocated with their stacks; loose cards are placed normally.
    * Used by BT26-102's mixed Seven Code material cost. */
-  mixedSources?: { battleAreaPermanents?: boolean; linkedCards?: boolean; trash?: boolean };
+  mixedSources?: { battleAreaPermanents?: boolean; linkedCards?: boolean; trash?: boolean; hand?: boolean };
   /**
    * Place as DigiXros materials for the Digimon being played — the trigger source of the
    * enclosing `wouldBePlayed` Replacement — via the materials slot rather than the digivolution

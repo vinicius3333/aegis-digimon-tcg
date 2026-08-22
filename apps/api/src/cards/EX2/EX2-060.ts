@@ -143,6 +143,7 @@ const compiled: CompiledCard = {
     { trigger: "StartOfYourTurn", actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } }] },
     {
       trigger: "YourTurn",
+      frequency: "OncePerTurn",
       actions: [{ kind: "SubTrigger", event: "whenAttacking", sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [
         { tokens: ["Renamon", "Kyubimon", "Taomon", "Sakuyamon"], match: "name" },
       ] }, actions: [

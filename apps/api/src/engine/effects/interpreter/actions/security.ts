@@ -440,6 +440,12 @@ async function runSecurityAdd(
     return;
   }
   if (source === undefined || source === "deck") {
+    if (action.maxSecurity !== undefined) {
+      const room = action.maxSecurity - ctx.game.player(seat).security.length;
+      if (room <= 0) return;
+      await ctx.fx.recoverToSecurity(seat, Math.min(count, room));
+      return;
+    }
     if (!toTop) {
       unsupported(ctx, action, `SecurityManipulation ${action.op} from the deck to the bottom unsupported`);
       return;

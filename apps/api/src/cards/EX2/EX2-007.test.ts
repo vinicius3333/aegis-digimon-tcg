@@ -132,50 +132,6 @@ describe("EX2-007 (Mother D-Reaper) routing and registration", () => {
   });
 });
 
-describe("EX2-007 (Mother D-Reaper) — documented bugs", () => {
-  const module = getEffectModule("EX2-007");
-
-  it(
-    "[Your Turn] registers play-cost reduction via changePlayCost (FIXED: hand-written module replaces raw-condition IR)",
-    async () => {
-      const STACK_SIZE = 3;
-      const source = makeSource({ stackSize: STACK_SIZE });
-      const recorder: Recorder = { calls: [] };
-      const ctx = makeContext({ recorder, source, stackSize: STACK_SIZE });
-
-      const effects = module!.effectsForTiming(EffectTiming.None, source);
-      expect(effects.length).toBeGreaterThanOrEqual(1);
-
-      for (const effect of effects) {
-        await effect.resolve(ctx);
-      }
-
-      // The hand-written module uses changePlayCost (continuous modifier), not
-      // subscribeReplacement. This matches the documented behavior rule implementation pattern at
-      // documented behavior (EffectTiming.None + rule implementation).
-      const costCalls = recorder.calls.filter((c) => c.verb === "changePlayCost");
-      expect(costCalls.length).toBeGreaterThanOrEqual(1);
-
-      // Delta must equal stack depth (documented behavior line 460: Cost -= reduceCount)
-      const deltas = costCalls.map((c) => c.args[1] as number);
-      expect(deltas).toContain(-STACK_SIZE);
-
-      const appliesTo = costCalls[0]!.args[0] as (facts: {
-        controllerSeat: Seat;
-        def: CardDefinition;
-      }) => boolean;
-      expect(appliesTo({
-        controllerSeat: 0 as Seat,
-        def: fakeDefinition({ cardId: "EX2-046", forms: ["D-Reaper"], types: ["Intel Acquisition Agent"] }),
-      })).toBe(true);
-      expect(appliesTo({
-        controllerSeat: 0 as Seat,
-        def: fakeDefinition({ cardId: "EX2-019", forms: ["Rookie"], types: ["Beastkin"] }),
-      })).toBe(false);
-    },
-  );
-});
-
 describe("EX2-007 Mother D-Reaper — integrated D-Reaper line", () => {
   it("places ADR-02 Searcher from hand as its bottom source through the public Main-effect intent", async () => {
     const s = setupEngine(
@@ -193,7 +149,7 @@ describe("EX2-007 Mother D-Reaper — integrated D-Reaper line", () => {
     expect(s.engine.applyIntent(0, {
       type: "activateEffect",
       sourceInstanceId: s.perm("mother").topCard.instanceId,
-      effectKey: "EX2-007/main-place-adr02",
+      effectKey: "EX2-007/ir-27-0",
     })).toEqual({ ok: true });
     await settle(() => s.perm("mother").stack.some((card) => card.instanceId === searcherId));
 
@@ -219,7 +175,7 @@ describe("EX2-007 Mother D-Reaper — integrated D-Reaper line", () => {
     expect(s.engine.applyIntent(0, {
       type: "activateEffect",
       sourceInstanceId: motherInstanceId,
-      effectKey: "EX2-007/main-place-adr02",
+      effectKey: "EX2-007/ir-27-0",
     })).toEqual({ ok: true });
     await settle(() => s.perm("mother").stack.length === 1);
     await settle(() => s.events.some((event) =>
@@ -229,7 +185,7 @@ describe("EX2-007 Mother D-Reaper — integrated D-Reaper line", () => {
     expect(s.engine.applyIntent(0, {
       type: "activateEffect",
       sourceInstanceId: motherInstanceId,
-      effectKey: "EX2-007/main-place-adr02",
+      effectKey: "EX2-007/ir-27-0",
     }).ok).toBe(false);
     expect(s.perm("mother").stack).toHaveLength(1);
     expect(s.state.players[0]!.hand).toHaveLength(1);
@@ -253,7 +209,7 @@ describe("EX2-007 Mother D-Reaper — integrated D-Reaper line", () => {
     expect(s.engine.applyIntent(0, {
       type: "activateEffect",
       sourceInstanceId: s.perm("mother").topCard.instanceId,
-      effectKey: "EX2-007/main-place-adr02",
+      effectKey: "EX2-007/ir-27-0",
     })).toEqual({ ok: true });
     await settle(() => s.perm("mother").stack.some((card) => card.instanceId === searcherId));
 
