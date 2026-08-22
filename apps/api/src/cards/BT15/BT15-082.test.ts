@@ -56,7 +56,7 @@ function makeSource(permanentId = "PERM#sora", onBattleArea = true): CardSource 
 }
 
 function makeContext(recorder: { calls: Call[] }, source: CardSource, memory = 3) {
-  const fakeState = { memory };
+  const fakeState = { memory, turnSeat: 0 as Seat };
   const fx = new Proxy({} as Primitives, {
     get: (_, verb: string) =>
       (...args: unknown[]) => {
