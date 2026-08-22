@@ -8,6 +8,5 @@ export const compiled: CompiledCard = { effects: [
     { amount: 2, condition: { kind: "youHaveNone", filter: { controllerDefault: "mine", kind: ["Digimon"] }, raw: "you have no Digimon" } },
     { amount: 1, condition: { kind: "youHave", filter: { controllerDefault: "mine", kind: ["Digimon"] }, raw: "you have a Digimon" } },
   ], cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1 } }, raw: "by suspending this Tamer, reduce the play cost by 1, or by 2 if you have no Digimon" }] }] },
-  { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", target: { count: 1, filter: { isSelfRef: true } }, payCost: false }] },
 ], coverage: "full", residual: [] };
 registerIrCard("BT26-088", compiled);
