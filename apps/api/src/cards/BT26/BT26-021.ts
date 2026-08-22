@@ -10,6 +10,13 @@ const tsTamerTrash = {
   nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
 };
 const opponentDigimon = { controllerDefault: "opponent", kind: ["Digimon"] };
+const inheritedAttack = {
+  kind: "TrashDigivolution",
+  target: { filter: opponentDigimon, count: 1 },
+  amount: 2,
+  fromTop: false,
+  cost: { kind: "trash", target: { filter: { controllerDefault: "mine", zone: "hand" }, count: 1 } },
+};
 
 const lockAttackTarget = {
   kind: "Restrict",
@@ -35,6 +42,12 @@ export const compiled: CompiledCard = {
           optional: true,
         },
       ],
+    },
+    {
+      trigger: "AllTurns",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [{ kind: "SubTrigger", event: "whenAttacking", actions: [inheritedAttack] }],
     },
   ],
   coverage: "full",
