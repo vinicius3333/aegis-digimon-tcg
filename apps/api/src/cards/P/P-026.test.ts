@@ -23,7 +23,7 @@ describe("P-026 BlackWarGreymon", () => {
     expect(s.engine.applyIntent(0, {
       type: "activateEffect",
       sourceInstanceId: s.perm("blackWarGreymon").topCard.instanceId,
-      effectKey: "P-026/digi-burst-2-unsuspend",
+      effectKey: "P-026/main",
     })).toEqual({ ok: true });
     await settle(() => !s.perm("blackWarGreymon").isSuspended);
 
@@ -45,8 +45,28 @@ describe("P-026 BlackWarGreymon", () => {
     expect(s.engine.applyIntent(0, {
       type: "activateEffect",
       sourceInstanceId: s.perm("blackWarGreymon").topCard.instanceId,
-      effectKey: "P-026/digi-burst-2-unsuspend",
+      effectKey: "P-026/main",
     })).toEqual({ ok: false, reason: "illegal-target" });
     expect(s.perm("blackWarGreymon").isSuspended).toBe(true);
+  });
+
+  it("can't activate after turn ownership passes (Q4135)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "P-026", as: "blackWarGreymon", suspended: true, under: ["P-032", "P-010"] },
+        ],
+      },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.perm("blackWarGreymon").topCard.instanceId,
+      effectKey: "P-026/main",
+    })).toEqual({ ok: false, reason: "not-your-turn" });
+    expect(s.perm("blackWarGreymon").isSuspended).toBe(true);
+    expect(s.perm("blackWarGreymon").stack).toHaveLength(2);
   });
 });
