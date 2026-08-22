@@ -28,6 +28,23 @@ describe("ST19-03 Shoemon", () => {
     });
   });
 
+  it("adds the only eligible card when the reveal has no second matching trait", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "ST19-03", as: "shoemon" }],
+        deck: [{ card: "ST19-02", as: "puppet" }, { card: "BT1-010", as: "first" }, { card: "BT1-011", as: "second" }],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 20;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shoemon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("puppet").instanceId));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("puppet").instanceId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("first").instanceId,
+      s.inst("second").instanceId,
+    ]);
+  });
+
   it("applies the inherited -3000 security-Digimon modifier from a real stack", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "ST19-10", as: "host", under: ["ST19-03"] }] },
