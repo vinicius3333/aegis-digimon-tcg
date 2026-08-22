@@ -70,7 +70,7 @@ describe("BT13-103 Akihiro Kurata", () => {
           ],
         },
       },
-      { autoDeclineOptional: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.turnSeat = 1;
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("akihiro"));
