@@ -21,7 +21,7 @@ import "../index.js";
 //   BT11-087  — Lilithmon (the card under test, Purple Lv.6; playCost 6)
 //   BT10-076  — Troopmon (Bagra Army Digimon Lv.4) — will be milled, then added to hand
 //   BT10-073  — ChuuChuumon (Bagra Army Digimon Lv.3) — will be milled, then placed under Tamer
-//   BT10-093  — Yuu Amano (Bagra Army Tamer) — the Tamer to place cards under
+//   BT12-094  — Yuu Amano (Bagra Army Tamer) — the Tamer to place cards under
 //   BT1-001   — filler deck cards (non-Bagra)
 
 describe("BT11-087 Lilithmon [On Play]", () => {
@@ -39,7 +39,7 @@ describe("BT11-087 Lilithmon [On Play]", () => {
       {
         0: {
           // Owner has a Tamer on the battle area (Yuu Amano, Bagra Army Tamer).
-          battleArea: [{ card: "BT10-093", dp: 0, as: "tamer" }],
+          battleArea: [{ card: "BT12-094", dp: 0, as: "tamer" }],
           deck: [
           { card: "BT10-076" }, // Bagra Army Digimon — one copy added to hand
           { card: "BT10-073" }, // Bagra Army Digimon — one copy placed under tamer

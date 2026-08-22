@@ -19,6 +19,8 @@ const compiled: CompiledCard = {
           kind: "deleteOwn",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
         },
+        optional: true,
+        abortOnDecline: true,
       }],
     },
     {
@@ -35,7 +37,7 @@ const compiled: CompiledCard = {
       trigger: "OpponentsTurn",
       actions: [{
         kind: "SubTrigger",
-        event: "onDigivolutionCardDiscarded",
+        event: "onDigivolutionCardsDiscardedBatch",
         sourceFilter: { isSelfRef: true },
         actions: [{ kind: "GainMemory", amount: 1 }],
       }],

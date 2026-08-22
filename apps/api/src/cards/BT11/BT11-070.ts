@@ -38,16 +38,22 @@ const compiled: CompiledCard = {
           kind: "RedirectAttack",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           cost: {
-            kind: "place",
+            kind: "return",
             target: {
               filter: {
+                zone: "digivolutionCards",
                 controller: "mine",
                 nameOrTrait: [{ tokens: ["Vemmon"], match: "name" }],
-                digivolutionCardsOf: { filter: { name: "Galacticmon" } },
+                hostFilter: {
+                  controller: "mine",
+                  nameOrTrait: [{ tokens: ["Galacticmon"], match: "name" }],
+                },
+                sameHost: true,
               },
               count: 2,
-              from: ["digivolutionCards"],
             },
+            to: "deckBottom",
+            raw: "place 2 [Vemmon] from 1 of your [Galacticmon]'s digivolution cards at the bottom of their owners' decks",
           },
           optional: true,
           abortOnDecline: true,

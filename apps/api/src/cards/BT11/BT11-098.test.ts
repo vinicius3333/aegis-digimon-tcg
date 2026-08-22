@@ -26,4 +26,24 @@ describe("BT11-098 Maelstrom", () => {
     );
     expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-015")).toBe(false);
   });
+
+  it("still performs the mandatory return when the optional source play is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-085", as: "seadramon", under: ["BT1-029"] }],
+          hand: [{ card: "BT11-098", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT1-015", as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.deck.some(({ cardId }) => cardId === "BT1-015"));
+
+    expect(s.perm("seadramon").stack).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
 });

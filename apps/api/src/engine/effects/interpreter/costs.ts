@@ -877,9 +877,29 @@ export async function payCost(
       // battle-area permanent top cards. Resolve them through the loose-card path so
       // returnToDeck can remove the selected stack cards from their hosts.
       if (cost.target.filter.zone === "digivolutionCards") {
-        const candidates = candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
+        let candidates = candidateLooseInstances(ctx, cost.target, ["digivolutionCards"]);
         const n = cost.target.count === "all" ? candidates.length : cost.target.count;
         if (n <= 0 || candidates.length < n) return false;
+        if (cost.target.filter.sameHost === true) {
+          const byHost = new Map<string, LooseCandidate[]>();
+          for (const candidate of candidates) {
+            if (candidate.hostPermanentId === undefined) continue;
+            const group = byHost.get(candidate.hostPermanentId) ?? [];
+            group.push(candidate);
+            byHost.set(candidate.hostPermanentId, group);
+          }
+          const eligibleHosts = [...byHost.entries()].filter(([, group]) => group.length >= n);
+          if (eligibleHosts.length === 0) return false;
+          const hostId = eligibleHosts.length === 1
+            ? eligibleHosts[0]![0]
+            : (await ctx.ask.chooseTargets(ctx, {
+                candidates: eligibleHosts.map(([id]) => id),
+                min: 1,
+                max: 1,
+              }))[0];
+          if (hostId === undefined) return false;
+          candidates = byHost.get(hostId) ?? [];
+        }
         const chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
         if (chosen.length < n) return false;
         if (cost.to === "deckBottom") {

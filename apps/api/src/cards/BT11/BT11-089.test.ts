@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import {
   makeInstance as instance,
   setupEngine as setup,
@@ -41,5 +43,32 @@ describe("BT11-089 [On Play] reveal 4 -> add 1 red Vaccine Digimon to hand", () 
 
     expect(p0.hand.some((c) => c.cardId === "AD1-004")).toBe(true);
     expect(p0.deck.some((c) => c.cardId === "AD1-004")).toBe(false);
+  });
+
+  it("suspends itself to give Rush to the eligible red Digimon played by an effect", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-089", as: "akiho" },
+            { card: "BT1-012", as: "played-bird" },
+            { card: "BT11-008", as: "other-beast" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const payload = { subjectPermanentId: s.perm("played-bird").permanentId };
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", payload);
+    expect(s.perm("akiho").isSuspended).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("played-bird"), "Rush")).toBe(false);
+
+    await advance(s.engine).fireSubTrigger("whenPlayed", { ...payload, playedByEffect: true });
+
+    expect(s.perm("akiho").isSuspended).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("played-bird"), "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("other-beast"), "Rush")).toBe(false);
   });
 });

@@ -13,6 +13,7 @@ describe("BT11-101 Holy Sunshine", () => {
             { card: "BT1-081", as: "a", dp: 10000 },
             { card: "BT1-081", as: "b", dp: 10000 },
             { card: "BT1-081", as: "c", dp: 10000 },
+            { card: "BT1-081", as: "unselected", dp: 10000 },
           ],
         },
       },
@@ -25,8 +26,11 @@ describe("BT11-101 Holy Sunshine", () => {
     });
     await settle(() => ["a", "b", "c"].every((alias) => s.perm(alias).currentDP === 5000));
     await settle(() => ["a", "b", "c"].every((alias) => observe(s.engine).keywordAmount(s.perm(alias), "SecurityAttack") === -1));
+    expect(s.state.memory).toBe(3);
     for (const alias of ["a", "b", "c"]) {
       expect(observe(s.engine).keywordAmount(s.perm(alias), "SecurityAttack")).toBe(-1);
     }
+    expect(s.perm("unselected").currentDP).toBe(10000);
+    expect(observe(s.engine).keywordAmount(s.perm("unselected"), "SecurityAttack")).toBe(0);
   });
 });

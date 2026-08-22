@@ -4,15 +4,16 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const enter: any[] = [
   {
+    kind: "Trash",
+    target: { filter: { zone: "hand", controller: "opponent" }, count: 1 },
+    condition: { kind: "opponentHas", filter: { zone: "battleArea", kind: ["Digimon"] }, countMax: 1 },
+  },
+  {
     kind: "PlaceUnder",
     target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
     targetIsPermanent: true,
     underFilter: { controller: "opponent", excludeSelf: true, kind: ["Digimon"] },
-  },
-  {
-    kind: "Trash",
-    target: { filter: { zone: "hand", controller: "opponent" }, count: 1 },
-    condition: { kind: "opponentHas", filter: { zone: "battleArea", kind: ["Digimon"] }, countMax: 1 },
+    condition: { kind: "opponentHas", filter: { zone: "battleArea", kind: ["Digimon"] }, countMin: 2 },
   },
 ];
 const stackCost = { kind: "trash", target: { filter: { zone: "digivolutionCards", hostFilter: { isSelfRef: true } }, count: 1 } };

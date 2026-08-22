@@ -15,6 +15,26 @@ describe("BT11-095 Taiki, Kiriha, & Nene", () => {
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 
+  it("does not gain memory or draw when the placement cost is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-095", as: "tamer" }],
+          hand: [{ card: "BT10-008", as: "material" }],
+          deck: [{ card: "BT1-001", as: "deck-card" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 0;
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tamer"));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("material").instanceId);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("deck-card").instanceId);
+  });
+
   it("suspends itself to use a card under another Tamer for DigiXros", async () => {
     const s = setupEngine({
       0: {

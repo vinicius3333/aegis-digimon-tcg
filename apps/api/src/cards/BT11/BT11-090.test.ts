@@ -14,4 +14,33 @@ describe("BT11-090 Nicolai Petrov", () => {
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.state.players[0]!.battleArea[0]!);
     expect(observe(s.engine).hasKeyword(s.perm("gaogamon"), "Jamming")).toBe(true);
   });
+
+  it("suspends itself to gain 1 memory when an effect adds cards to the opponent's hand on its turn", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT11-090", as: "nicolai" }] } },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
+
+    expect(s.perm("nicolai").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("does not gain memory from the same event on the opponent's turn", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT11-090", as: "nicolai" }] } },
+      { autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
+
+    expect(s.perm("nicolai").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(0);
+  });
 });
