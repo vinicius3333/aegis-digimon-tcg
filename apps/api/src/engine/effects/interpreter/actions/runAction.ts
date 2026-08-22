@@ -344,7 +344,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "GrantImmunity":
     case "ArmSuspendRestriction":
     case "DisableTimingEffect":
-      return await runRestrictionAction(ctx, action);
+      return await runRestrictionAction(ctx, action, scope);
     case "Aura":
     case "GrantAuraToOpponents":
     case "WaiveColorRequirement":
