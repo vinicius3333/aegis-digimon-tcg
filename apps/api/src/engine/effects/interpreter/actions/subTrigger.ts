@@ -723,7 +723,13 @@ export async function runSubTrigger(
           })}`,
         }
       : {}),
-    ...(action.oncePerTurnKey ? { oncePerTurnKey: `${ctx.source.instanceId}/${action.oncePerTurnKey}` } : {}),
+    ...(action.oncePerTurnKey
+      ? {
+          oncePerTurnKey: action.oncePerTurnKey.startsWith("global:")
+            ? action.oncePerTurnKey.slice("global:".length)
+            : `${ctx.source.instanceId}/${action.oncePerTurnKey}`,
+        }
+      : {}),
     description: action.raw,
     run: async (subCtx) => {
       // Preserve the printed clause timing on every decision opened by the future watcher.

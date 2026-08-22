@@ -46,10 +46,10 @@ const compiled: CompiledCard = {
             "kind": ["Digimon"],
             "nameOrTrait": [{"tokens": ["Three Musketeers", "ThreeMusketeers"], "match": "trait"}]
           },
-          "payCost": 6,
+          "payCost": true,
+          "costOverride": 6,
           "from": ["hand"],
-          "ignoreRequirements": true,
-          "optional": true
+          "ignoreRequirements": true
         }
       ]
     }

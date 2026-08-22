@@ -30,6 +30,7 @@ const compiled: CompiledCard = {
               ]
             },
             "count": 0,
+            "upTo": true,
             "countModifier": {
               "amount": 1,
               "scaling": {

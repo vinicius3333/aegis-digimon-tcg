@@ -49,19 +49,15 @@ const compiled: CompiledCard = {
                 "Option"
               ]
             },
-            "count": 1
+            "count": 1,
+            "upTo": true
           },
           "to": "hand"
         },
         {
           "kind": "PlayWithoutCost",
           "target": {
-            "filter": {
-              "kind": [
-                "Option"
-              ],
-              "memoryCost": 7
-            },
+            "filter": {"kind": ["Option"], "playCostOneOf": [7]},
             "count": 1,
             "location": "hand"
           },

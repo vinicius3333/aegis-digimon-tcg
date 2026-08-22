@@ -614,6 +614,10 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         if (action.bindResultAs) {
           ctx.boundPlayed ??= new Map();
           ctx.boundPlayed.set(action.bindResultAs, new Set(moved.map((card) => card.instanceId)));
+          if (moved.length > 0) {
+            ctx.selections ??= new Map();
+            ctx.selections.set(action.bindResultAs, moved[0]!.instanceId);
+          }
         }
         if (action.trackCount !== undefined) {
           if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();

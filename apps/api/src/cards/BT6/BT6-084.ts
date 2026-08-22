@@ -36,7 +36,8 @@ const compiled: CompiledCard = {
             "count": "all"
           },
           "amount": 2000,
-          "duration": "permanent"
+          "duration": "permanent",
+          "continuous": true
         }
       ]
     },
