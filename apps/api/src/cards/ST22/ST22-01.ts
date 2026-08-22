@@ -26,7 +26,7 @@ const compiled: CompiledCard = {
               },
               payCost: true,
               from: ["hand"],
-              reduceCost: 3,
+              reduceCostBy: 3,
               optional: true,
             },
           ],

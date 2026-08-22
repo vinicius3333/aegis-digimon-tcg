@@ -120,6 +120,7 @@ const compiled: CompiledCard = {
             position: "bottom",
             targetIsPermanent: true,
             from: ["battleArea"],
+            from: ["battleArea"],
             raw: "by placing 1 of your opponent's Digimon with the lowest DP as the bottom security card",
           },
         },
