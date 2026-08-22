@@ -63,7 +63,7 @@ export function describeAction(action: Action): string {
 
 export function describeEffect(effect: CardEffect): string {
   if (effect.description?.trim()) return effect.description.trim();
-  const kw = effect.keywords?.map((k) => k.keyword).join(", ");
-  const acts = effect.actions.map((action) => describeAction(action)).join(", ");
+  const kw = (effect.keywords ?? []).map((k) => k.keyword).join(", ");
+  const acts = (effect.actions ?? []).map((action) => describeAction(action)).join(", ");
   return `[${effect.trigger}]${kw ? ` ＜${kw}＞` : ""}${acts ? ` ${acts}` : ""}`;
 }
