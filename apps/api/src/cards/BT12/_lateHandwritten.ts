@@ -983,7 +983,7 @@ export function lateBt12Module(cardId: string): EffectModule {
             const candidates = opposingDigimon(ctx, source);
             const targets = await ctx.ask.chooseTargets(ctx, {
               candidates: candidates.map(({ permanentId }) => permanentId),
-              min: 0,
+              min: Math.min(3, candidates.length),
               max: Math.min(3, candidates.length),
             });
             for (const target of targets) ctx.fx.modifyDP(target, -2000 * tamers, EffectDuration.UntilEachTurnEnd);
