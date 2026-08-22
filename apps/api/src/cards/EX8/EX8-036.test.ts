@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { PlayerState } from "@aegis/shared";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
-import "../index.js";
+import "./index.js";
 import { compiled } from "./EX8-036.js";
 
 describe("EX8-036", () => {

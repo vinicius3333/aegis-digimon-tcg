@@ -2749,6 +2749,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         await engine.fireSubTrigger("onDeletionOf", {
           deletedPermanentId: permanentId,
           deletedPermanentIds: toDelete,
+          deletedControllerSeat: deleted.controllerSeat,
           deletedTopCardId: access.permanentById(permanentId)?.topCard?.cardId,
           removalCause: cause,
           deletedByDpZero: cause === "byRule" && deleted.currentDP === 0,
