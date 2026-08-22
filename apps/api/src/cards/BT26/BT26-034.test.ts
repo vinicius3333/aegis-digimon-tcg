@@ -17,7 +17,7 @@ describe("BT26-034 Palmon", () => {
   it("free-digivolves a Vegetation card at four memory and suspends an opposing Digimon when attacking", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT26-034", as: "palmon", under: ["BT1-001"] }],
+        battleArea: [{ card: "BT26-034", as: "palmon", under: ["BT26-001"] }],
         hand: [{ card: "BT25-047", as: "vegetation" }],
       },
       1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
