@@ -2,7 +2,7 @@ import { EffectDuration, EffectTiming, isDigimon, isTamer } from "@aegis/shared"
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import { staticModifier, whenAttacking, whenDigivolving } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const cardId = "BT12-057";
 function digimonOrTamerIds(ctx: EffectContext): string[] {
@@ -92,5 +92,6 @@ const module: EffectModule = {
     return [];
   },
 };
-registerCard(module);
-export default module;
+const registered = registerIrCard(cardId, { effects: [], coverage: "full", residual: [] });
+registered.effectsForTiming = module.effectsForTiming;
+export default registered;
