@@ -25,9 +25,10 @@ it("places up to three revealed Tamers from hand at deck bottom and draws that m
     await settle(() => s.state.players[0]!.hand.length === handBefore);
 
     expect(s.state.players[0]!.hand).toHaveLength(handBefore);
-    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual(
-      expect.arrayContaining([s.inst("tamer1").instanceId, s.inst("tamer2").instanceId]),
-  );
+    expect(s.state.players[0]!.deck.slice(-2).map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("tamer1").instanceId,
+      s.inst("tamer2").instanceId,
+    ]);
 });
 
 it("does not draw or move cards when the hand has no Tamers", async () => {
