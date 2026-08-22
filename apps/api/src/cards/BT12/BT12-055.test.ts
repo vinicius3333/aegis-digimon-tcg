@@ -22,7 +22,7 @@ describe("BT12-055 handwritten module", () => {
   });
 });
 
-it("still permits the follow-up attack when the digivolution was not DNA", async () => {
+it("does not apply the DNA-only effect during a non-DNA digivolution window", async () => {
   const s = setupEngine(
     {
       0: { battleArea: [{ card: "BT12-055", as: "dino" }] },
@@ -35,4 +35,21 @@ it("still permits the follow-up attack when the digivolution was not DNA", async
   await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("dino"));
   expect(s.perm("dino").currentDP).toBe(before);
   expect(s.perm("target").isSuspended).toBe(false);
+});
+
+it("suspends an opponent and gains 3000 DP during DNA digivolution", async () => {
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: "BT12-055", as: "dino" }] },
+      1: { battleArea: [{ card: "BT12-043", as: "target", dp: 15000 }] },
+    },
+    { autoSelectCards: true, autoAcceptOptional: true },
+  );
+  await s.ready();
+  const before = s.perm("dino").currentDP;
+  await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("dino"), {
+    isDnaDigivolve: true,
+  });
+  expect(s.perm("dino").currentDP).toBe(before + 3000);
+  expect(s.perm("target").isSuspended).toBe(true);
 });
