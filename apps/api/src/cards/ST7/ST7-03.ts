@@ -34,6 +34,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onDeletionOf",
+          notSimultaneous: true,
           sourceFilter: { controller: "opponent", kind: ["Digimon"] },
           actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
         },

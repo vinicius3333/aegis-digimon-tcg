@@ -58,6 +58,7 @@ export interface Condition {
     // Effect-result bindings written during THIS resolution; see EffectContext.lastDeleteCount /
     // lastDigivolveResult / lastOptionUsed.
     | "ifThisEffectDidNotDelete" // an immune or prevented target counts as not deleted (KB BT23-069 Q5338)
+    | "ifThisEffectDidNotDeleteChosenTarget" // a chosen protected target satisfies an otherwise branch
     | "ifThisEffectDidNotSuspend"
     | "ifThisEffectUsed" // an Option-use happened this resolution (KB EX8-037 Q4737)
     | "ifThisEffectDigivolved" // KB BT19-084 Q3146-Q3150

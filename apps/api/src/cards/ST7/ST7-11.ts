@@ -18,10 +18,7 @@ const compiled: CompiledCard = {
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
           duration: "forTheTurn",
-          condition: {
-            kind: "raw",
-            raw: "the number of cards in your security stack is less than or equal to your opponent's",
-          },
+          condition: { kind: "not", condition: { kind: "securityCompare", op: "gt" } },
         },
       ],
     },

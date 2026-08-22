@@ -601,6 +601,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // True when the prior Delete removed 0 (an immune/prevented target counts as not deleted —
       // KB BT23-069 Q5338). Unset (no Delete ran) => 0 => true.
       return (ctx.lastDeleteCount ?? 0) === 0;
+    case "ifThisEffectDidNotDeleteChosenTarget":
+      return ctx.lastDeleteTargetSelected !== true;
     case "ifThisEffectUsed":
       // True when an Option-use happened this resolution (bool set by the 08-06 use verb).
       return ctx.lastOptionUsed === true;
