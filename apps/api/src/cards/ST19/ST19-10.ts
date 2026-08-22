@@ -6,58 +6,50 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Armor Purge",
-          "raw": "＜Armor Purge＞"
-        }
-      ]
+          keyword: "Armor Purge",
+          raw: "＜Armor Purge＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "isInherited": true,
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      isInherited: true,
+      keywords: [
         {
-          "keyword": "Barrier",
-          "raw": "＜Barrier＞"
-        }
-      ]
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 4,
-      "names": [
-        "Tyrannomon",
-        "Raremon"
+          keyword: "Barrier",
+          raw: "＜Barrier＞",
+        },
       ],
-      "cost": 3,
-      "isAlternate": true
-    }
+    },
   ],
-  "digiXrosRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "materials": [
+      level: 4,
+      names: ["Tyrannomon", "Raremon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
+  digiXrosRequirement: [
+    {
+      materials: [
         {
-          "names": [
-            "Tyrannomon",
-            "Raremon"
-          ],
-          "traits": [
-            "Puppet"
-          ]
-        }
+          names: ["Tyrannomon", "Raremon"],
+          traits: ["Puppet"],
+        },
       ],
-      "count": 2
-    }
-  ]
+      count: 2,
+    },
+  ],
 };
 
 registerIrCard("ST19-10", compiled);

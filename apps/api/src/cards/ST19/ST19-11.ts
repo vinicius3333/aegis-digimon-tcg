@@ -4,135 +4,121 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -3000,
-          "duration": "forTheTurn"
+          amount: -3000,
+          duration: "forTheTurn",
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "sameAsPrev": true
+            count: 1,
+            sameAsPrev: true,
           },
-          "amount": -3000,
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "totalDigimonGte",
-            "count": 3,
-            "raw": "there are 3 or more total Digimon between both players"
-          }
-        }
-      ]
+          amount: -3000,
+          duration: "forTheTurn",
+          condition: {
+            kind: "totalDigimonGte",
+            count: 3,
+            raw: "there are 3 or more total Digimon between both players",
+          },
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -3000,
-          "duration": "forTheTurn"
+          amount: -3000,
+          duration: "forTheTurn",
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "sameAsPrev": true
+            count: 1,
+            sameAsPrev: true,
           },
-          "amount": -3000,
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "totalDigimonGte",
-            "count": 3,
-            "raw": "there are 3 or more total Digimon between both players"
-          }
-        }
-      ]
+          amount: -3000,
+          duration: "forTheTurn",
+          condition: {
+            kind: "totalDigimonGte",
+            count: 3,
+            raw: "there are 3 or more total Digimon between both players",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "leaveCause": "otherThanYourEffect",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          leaveCause: "otherThanYourEffect",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "actions": [],
-          "cost": {
-            "kind": "deleteOwn",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "excludeSelf": true,
-                "orFilters": [
+          actions: [],
+          cost: {
+            kind: "deleteOwn",
+            target: {
+              filter: {
+                controller: "mine",
+                excludeSelf: true,
+                orFilters: [
                   {
-                    "kind": [
-                      "Digimon"
-                    ],
-                    "isToken": true
+                    kind: ["Digimon"],
+                    isToken: true,
                   },
                   {
-                    "kind": [
-                      "Digimon"
-                    ],
-                    "nameOrTrait": [
+                    kind: ["Digimon"],
+                    nameOrTrait: [
                       {
-                        "tokens": [
-                          "Puppet"
-                        ],
-                        "match": "trait"
-                      }
-                    ]
-                  }
-                ]
+                        tokens: ["Puppet"],
+                        match: "trait",
+                      },
+                    ],
+                  },
+                ],
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "by deleting 1 of your Tokens or 1 of your other Digimon with the [Puppet] trait, prevent it from leaving"
-          }
-        }
+            raw: "by deleting 1 of your Tokens or 1 of your other Digimon with the [Puppet] trait, prevent it from leaving",
+          },
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 registerIrCard("ST19-11", compiled);

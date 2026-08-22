@@ -27,5 +27,4 @@ describe("ST19-07 Tobucatmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("tobu"), "Jamming")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Barrier")).toBe(true);
   });
-
 });

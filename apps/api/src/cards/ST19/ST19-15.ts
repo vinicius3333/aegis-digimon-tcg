@@ -8,59 +8,55 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // the DP reduction of this effect by -6000 (so -12000 total to same target).
 // KB Q863/Q864 confirm: counts all Digimon both sides; -12000 total to same 1 opponent Digimon.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": -6000,
-          "duration": "forTheTurn"
+          amount: -6000,
+          duration: "forTheTurn",
         },
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "sameTarget": true
+            count: 1,
+            sameTarget: true,
           },
-          "amount": -6000,
-          "duration": "forTheTurn",
-          "condition": {
-            "kind": "totalDigimonCount",
-            "op": "gte",
-            "value": 3,
-            "raw": "if there are 3 or more total Digimon (both players combined) — KB Q863"
-          }
-        }
-      ]
+          amount: -6000,
+          duration: "forTheTurn",
+          condition: {
+            kind: "totalDigimonCount",
+            op: "gte",
+            value: 3,
+            raw: "if there are 3 or more total Digimon (both players combined) — KB Q863",
+          },
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "ActivateMain"
-        }
+          kind: "ActivateMain",
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST19-15", compiled);
