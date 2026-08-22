@@ -36,6 +36,7 @@ export const compiled: CompiledCard = {
                 op: "lte",
                 value: 4,
               },
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },
@@ -65,6 +66,7 @@ export const compiled: CompiledCard = {
                 op: "lte",
                 value: 4,
               },
+              hostFilter: { isSelfRef: true },
             },
             count: 1,
           },
@@ -109,6 +111,23 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "WhenLinking",
+      isLinked: true,
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              superlative: "lowestDP",
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
@@ -118,6 +137,7 @@ export const compiled: CompiledCard = {
       cost: 0,
     },
   ],
+  linkRequirement: [{ traits: ["Appmon"], cost: 3 }],
 };
 
 registerIrCard("BT24-077", compiled);
