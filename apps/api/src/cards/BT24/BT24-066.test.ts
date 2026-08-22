@@ -8,7 +8,12 @@ describe("BT24-066 Guilmon", () => {
     expect(compiled.effects[0]).toMatchObject({
       trigger: "OnPlay",
       actions: [
-        { kind: "RevealAdd", revealCount: 3, add: [{ to: "hand" }, { to: "trash", requiresMinRevealed: 2 }], rest: "deckBottom" },
+        {
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [{ to: "hand" }, { to: "trash", requiresMinRevealed: 2 }],
+          rest: "deckBottom",
+        },
         { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
       ],
     });
