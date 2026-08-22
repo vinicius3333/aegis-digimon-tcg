@@ -35,6 +35,9 @@ export const HAND_AUTHORED_COVERAGE_OVERRIDES: ReadonlySet<string> = new Set([
   "EX6-071",
   "EX6-073",
   "BT4-030",
+  "BT4-095",
+  "BT4-096",
+  "BT4-098",
 ]);
 
 // ST15-13's printed Blocker clause is implemented by the hand-authored module
