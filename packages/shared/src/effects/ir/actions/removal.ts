@@ -42,6 +42,8 @@ export interface DeleteUntilCountAction extends ActionBase {
   target: Target;
   untilCountSource: "mineSecurityCount";
   trackCount?: string;
+  /** Store the returned card's level for a later levelEq/levelLte filter. */
+  storeAs?: string;
 }
 
 /**
