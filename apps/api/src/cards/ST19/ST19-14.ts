@@ -29,7 +29,7 @@ const compiled: CompiledCard = {
           actions: [
             {
               kind: "GainKeyword",
-              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              target: { filter: {}, count: 1, sourceRef: "triggerSubject" },
               keyword: { keyword: "Rush", raw: "＜Rush＞" },
               duration: "forTheTurn",
               cost: {
