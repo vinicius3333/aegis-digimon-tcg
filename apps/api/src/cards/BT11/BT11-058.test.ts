@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT11-058.js";
 
 describe("BT11-058 HerculesKabuterimon (X Antibody)", () => {
@@ -17,6 +17,7 @@ describe("BT11-058 HerculesKabuterimon (X Antibody)", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 3;
+    const memoryBefore = s.state.memory;
 
     expect(
       s.engine.applyIntent(0, {
@@ -33,6 +34,8 @@ describe("BT11-058 HerculesKabuterimon (X Antibody)", () => {
 
     expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT1-010")).toBe(false);
     expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT1-010");
+    expect(memoryBefore - s.state.memory).toBe(1);
+    expect(observe(s.engine).keywordAmount(s.perm("base"), "SecurityAttack")).toBe(1);
   });
 
   it("does not bottom-deck without a matching card in its stack", async () => {
