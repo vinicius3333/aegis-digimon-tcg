@@ -35,7 +35,7 @@ const compiled: CompiledCard = {
           "ignoreRequirements": true,
           "optional": true,
           "condition": {
-            "kind": "orCondition",
+            "kind": "orConditions",
             "conditions": [
               {
                 "kind": "opponentHas",

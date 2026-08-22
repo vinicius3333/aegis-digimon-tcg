@@ -9,7 +9,7 @@ describe("ST21-10", () => {
     const action = effect?.actions[0];
     expect(action).toMatchObject({ kind: "Digivolve", payCost: true, from: ["hand"] });
     expect(action.into.nameOrTrait).toEqual([{ tokens: ["MetalGarurumon"], match: "name" }]);
-    expect(action.condition).toMatchObject({ kind: "orCondition" });
+    expect(action.condition).toMatchObject({ kind: "orConditions" });
     expect(action.condition.conditions).toEqual(expect.arrayContaining([
       expect.objectContaining({ kind: "opponentHas" }),
       expect.objectContaining({ kind: "zoneColorCount", value: 3 }),
