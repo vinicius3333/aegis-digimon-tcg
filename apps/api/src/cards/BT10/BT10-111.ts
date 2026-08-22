@@ -110,6 +110,5 @@ const module: EffectModule = {
   },
 };
 
-const compiled = getCompiledCard("BT10-111") as CompiledCard;
-registerIrCard("BT10-111", compiled, module);
+registerIrCard("BT10-111", compiled);
 export { compiled };

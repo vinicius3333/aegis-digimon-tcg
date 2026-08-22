@@ -31,12 +31,9 @@ const compiled: CompiledCard = {
           ],
           "payCost": false,
           "condition": {
-            "kind": "permanentCount",
-            "seat": "mine",
-            "zone": "battleArea",
-            "op": "lte",
-            "value": 1,
+            "kind": "youHave",
             "filter": {
+              "controllerDefault": "mine",
               "kind": [
                 "Tamer"
               ]

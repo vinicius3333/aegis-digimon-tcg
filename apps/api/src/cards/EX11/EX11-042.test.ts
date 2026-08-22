@@ -1,5 +1,17 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./EX11-042.js";
-import "../index.js";
-describe("EX11-042 MockingBirdmon", () => { it("plays a Maquinamon from hand on play", async () => { const s = setupEngine({ 0: { hand: [{ card: "EX11-042", as: "mocking" }, { card: "EX11-027", as: "maquina" }] } }, { autoSelectCards: true, autoAcceptOptional: true }); s.state.memory = 10; expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mocking").instanceId })).toEqual({ ok: true }); await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX11-027")); expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX11-027")).toBe(true); }); });
+
+describe("EX11-042 MockingBirdmon", () => {
+  it("preserves both evolution requirements and linked deletion/redirect effects", () => {
+    const compiled = runtimeCompiledCard("EX11-042")!;
+    expect(compiled.digivolutionRequirement).toEqual([
+      { level: 4, cost: 3, isAlternate: true },
+      { level: 4, texts: ["Maquinamon"], cost: 3, isAlternate: true },
+    ]);
+    const linked = compiled.effects.find((effect) => effect.trigger === "YourTurn")!;
+    expect(linked).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenLinked", actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 5 }, count: 1 } }] }] });
+    const inherited = compiled.effects.find((effect) => effect.isInherited)!;
+    expect(inherited).toMatchObject({ trigger: "OpponentsTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenOpponentAttacks", actions: [{ kind: "RedirectAttack" }] }] });
+  });
+});

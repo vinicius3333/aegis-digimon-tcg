@@ -15,25 +15,51 @@ export const compiled: CompiledCard = {
         actions: [
           {
             kind: "SearchSecurity",
-            target: { filter: { zone: "security", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 }, nameOrTrait: [{ tokens: ["Angel", "Archangel"], match: "trait" }] }, count: 1 },
+            target: {
+              filter: {
+                zone: "security",
+                kind: ["Digimon"],
+                levelComparison: { op: "lte", value: 5 },
+                nameOrTrait: [{ tokens: ["Angel", "Archangel"], match: "trait" }],
+              },
+              count: 1,
+            },
             then: { kind: "PlayWithoutCost", source: "security", payCost: false, optional: true },
             optional: true,
-            raw: "Search your security stack. You may play 1 level 5 or lower Digimon card with the [Angel]/[Archangel] trait among them without paying the cost."
+            raw: "Search your security stack. You may play 1 level 5 or lower Digimon card with the [Angel]/[Archangel] trait among them without paying the cost.",
           },
-          { kind: "ModifyDP", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, amount: -7000, duration: "untilEachTurnEnd", optional: true }
-        ]
+          {
+            kind: "ModifyDP",
+            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+            amount: -7000,
+            duration: "untilEachTurnEnd",
+            optional: true,
+          },
+        ],
       };
     }
     if (effect.trigger === "AllTurns") {
       return {
         ...effect,
-        actions: effect.actions.map((action) => action.kind === "Replacement" ? { ...action, cost: { kind: "trashSecurityTop", controller: "mine", count: 1, raw: "by trashing the top card of your security stack" } } : action)
+        actions: effect.actions.map((action) =>
+          action.kind === "Replacement"
+            ? {
+                ...action,
+                cost: {
+                  kind: "trashSecurityTop",
+                  controller: "mine",
+                  count: 1,
+                  raw: "by trashing the top card of your security stack",
+                },
+              }
+            : action,
+        ),
       };
     }
     return effect;
   }),
   coverage: "full",
-  residual: []
+  residual: [],
 };
 
 registerIrCard("EX6-030", compiled);

@@ -16,27 +16,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
  *   traits and your opponent has 2 or more Digimon in play, unsuspend this Digimon.
  */
 const cardId = "BT10-019";
-const compiled = {
-  effects: [
-    {
-      trigger: "OnPlay",
-      actions: [{ kind: "RevealAdd", revealCount: 4, add: [{ filter: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Blue Flare"], match: "trait" }] }, count: 2, to: "hand" }], rest: "deckBottom" }],
-    },
-    {
-      trigger: "OnDeletion",
-      actions: [{ kind: "PlaceUnder", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, underFilter: { controller: "mine", kind: ["Tamer"] }, optional: true }],
-      keywords: [{ keyword: "Save", raw: "＜Save＞" }],
-    },
-    {
-      trigger: "WhenAttacking",
-      actions: [{ kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, condition: { kind: "opponentHas", filter: { zone: "battleArea", controller: "opponent", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Blue Flare"], match: "trait" }] } } }],
-      isInherited: true,
-      frequency: "OncePerTurn",
-    },
-  ],
-  coverage: "full",
-  residual: [],
-};
+const compiled = getCompiledCard(cardId) as CompiledCard;
 
 function hasBlueFlare(def: { types?: string[] }): boolean {
   const types = def.types as string[] | undefined;
@@ -239,7 +219,5 @@ const module: EffectModule = {
   },
 };
 
-const compiled = getCompiledCard(cardId) as CompiledCard;
-
 export { compiled };
-registerIrCard(cardId, compiled, module);
+registerIrCard("BT10-019", compiled);

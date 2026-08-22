@@ -73,7 +73,7 @@ const compiled: CompiledCard = {
                       "tokens": [
                         "Shoto Kazama"
                       ],
-              "match": "name"
+                      "match": "trait"
                     }
                   ]
                 },
@@ -84,8 +84,7 @@ const compiled: CompiledCard = {
               ],
               "payCost": false,
               "condition": {
-                "kind": "youHaveFewOrEqual",
-                "count": 1,
+                "kind": "youHave",
                 "filter": {
                   "controllerDefault": "mine",
                   "kind": [

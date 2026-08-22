@@ -16,6 +16,7 @@ const compiled: CompiledCard = {
             },
             count: 1,
             isSelf: true,
+            noDigivolutionCards: true,
           },
           duration: "permanent",
           condition: {

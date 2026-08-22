@@ -74,7 +74,6 @@ interface Calls {
   restrict: { permanentId: string; restriction: string; duration: EffectDuration }[];
   modifyDP: { permanentId: string; amount: number; duration: EffectDuration }[];
   forceBattle: { attackerId: string; defenderId: string }[];
-  subscriptions: unknown[];
 }
 
 /**
@@ -98,7 +97,6 @@ function makeCtx(args: {
     restrict: [],
     modifyDP: [],
     forceBattle: [],
-    subscriptions: [],
   };
   const mine = args.mineBattle ?? [];
   const opp = args.oppBattle ?? [];
@@ -115,11 +113,9 @@ function makeCtx(args: {
       definitionOf: (c: CardInstance) => definitionOf(c.cardId),
     },
     fx: {
-      subscribeSubTrigger: (subscription: unknown) => { calls.subscriptions.push(subscription); return 1; },
       grantKeyword: (permanentId: string, keyword: string, duration: EffectDuration) =>
         calls.grantKeyword.push({ permanentId, keyword, duration }),
-      grantPierce: (permanentId: string, duration: EffectDuration) =>
-        calls.grantPierce.push({ permanentId, duration }),
+      grantPierce: (permanentId: string, duration: EffectDuration) => calls.grantPierce.push({ permanentId, duration }),
       suspend: async (ids: string[]) => {
         calls.suspend.push(ids);
         for (const id of ids) {
@@ -213,9 +209,7 @@ describe("EX11-074 Vortexdramon", () => {
         { permanentId: "p-self", keyword: "Vortex", duration: EffectDuration.Permanent },
       ]),
     );
-    expect(calls.grantPierce).toEqual([
-      { permanentId: "p-self", duration: EffectDuration.Permanent },
-    ]);
+    expect(calls.grantPierce).toEqual([{ permanentId: "p-self", duration: EffectDuration.Permanent }]);
   });
 
   it("[When Digivolving] and [When Attacking] are both optional and present", () => {
@@ -297,7 +291,8 @@ describe("EX11-074 Vortexdramon", () => {
       optionalAnswer: true,
     });
     await expect(eff.resolve(ctx)).resolves.toBeUndefined();
-    expect(calls.subscriptions).toHaveLength(1);
+    expect(calls.unsuspend).toEqual([["p-self"]]);
+    expect(calls.forceBattle).toEqual([{ attackerId: "p-self", defenderId: "p-opp" }]);
   });
 
   it("declining the optional battle performs no direct battle", async () => {
@@ -311,7 +306,7 @@ describe("EX11-074 Vortexdramon", () => {
       chooseAnswer: [],
     });
     await eff.resolve(ctx);
-    expect(calls.subscriptions).toHaveLength(1);
+    expect(calls.forceBattle).toHaveLength(0);
   });
 
   it("offers only opponent Digimon as direct-battle targets", async () => {
@@ -330,7 +325,8 @@ describe("EX11-074 Vortexdramon", () => {
       return ["p-opp"];
     };
     await eff.resolve(ctx);
-    expect(calls.subscriptions).toHaveLength(1);
+    expect(offered).toEqual(["p-opp"]);
+    expect(calls.forceBattle).toEqual([{ attackerId: "p-self", defenderId: "p-opp" }]);
   });
 
   it("[All Turns] does not unsuspend when this Digimon is already unsuspended", async () => {

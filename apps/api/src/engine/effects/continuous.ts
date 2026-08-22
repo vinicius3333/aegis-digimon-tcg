@@ -371,8 +371,6 @@ export interface PlayMatch {
   kinds?: ("Digimon" | "Tamer" | "Option" | "DigiEgg")[];
   /** Upper DP bound for the "Digimon with N DP or less" form (printed DP). */
   dpAtMost?: number;
-  /** Optional source-zone scope, e.g. "trash" for effects that prohibit trash plays only. */
-  zone?: "trash" | "hand" | "security";
 }
 
 /** A timing window a `DisableTimingEffect` masks (mirrors the IR `DisableTiming`). */
@@ -757,13 +755,13 @@ export class ContinuousEffectLedger {
    * `byEffectOnly: true` are honored; when false/absent those prohibitions are skipped so
    * normal hand-play is unaffected (KB Q4665–Q4668, Q6245 BT20-020).
    */
-  isPlayBlocked(seat: Seat, cardDef: CardDefinition, requestedMode: "play" | "move", effectPlay?: boolean, sourceZone?: string): boolean {
+  isPlayBlocked(seat: Seat, cardDef: CardDefinition, requestedMode: "play" | "move", effectPlay?: boolean): boolean {
     if (cardDef.isToken === true) return false; // Q3834: token plays are exempt
     return this.playProhibitions.some(
       (p) =>
         p.seat === seat &&
         modeMatches(p.mode, requestedMode) &&
-      playMatchesCard(p.match, cardDef, sourceZone) &&
+        playMatchesCard(p.match, cardDef) &&
         (effectPlay === true || !p.byEffectOnly),
     );
   }
@@ -1425,12 +1423,11 @@ function modeMatches(mode: "play" | "move" | "playOrMove", requested: "play" | "
 }
 
 /** Does a card definition satisfy a PlayMatch predicate (kind AND optional DP cap)? */
-function playMatchesCard(match: PlayMatch, def: CardDefinition, sourceZone?: string): boolean {
+function playMatchesCard(match: PlayMatch, def: CardDefinition): boolean {
   if (match.kinds !== undefined && match.kinds.length > 0) {
     if (!match.kinds.some((k) => def.kinds.includes(k as CardKind))) return false;
   }
   if (match.dpAtMost !== undefined && def.dp > match.dpAtMost) return false;
-  if (match.zone !== undefined && match.zone !== sourceZone) return false;
   return true;
 }
 
