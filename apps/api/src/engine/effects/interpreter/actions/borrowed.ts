@@ -263,9 +263,10 @@ export async function runUseOptionWithoutCost(
   // cost is used for the whenOptionUsed watcher gate (KB Q5471-Q5473), not the reduced value.
   if (action.payCost === true && chosenCard !== undefined) {
     const chosenDef = ctx.game.definitionOf({ cardId: chosenCard.cardId } as never);
-    const dynamicReduction = action.reduceCostByOpponentMemory === true
-      ? Math.max(0, new MemoryGauge(ctx.game.state).memoryFor(ctx.game.opponentOf(seat)))
-      : 0;
+    const dynamicReduction =
+      action.reduceCostByOpponentMemory === true
+        ? Math.max(0, new MemoryGauge(ctx.game.state).memoryFor(ctx.game.opponentOf(seat)))
+        : 0;
     const reducedCost = Math.max(0, chosenDef.playCost - (action.reduceCostBy ?? 0) - dynamicReduction);
     if (reducedCost > 0) ctx.fx.gainMemory(-reducedCost);
   }
@@ -281,7 +282,7 @@ export async function runUseOptionWithoutCost(
   const usedCost = chosenCard ? ctx.game.definitionOf({ cardId: chosenCard.cardId } as never).playCost : undefined;
   await ctx.fx.useOptionFromHand(ctx, chosenId, usedCost, {
     payCost: action.payCost,
-    ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
+    ...(action.reduceCostBy !== undefined ? { costDelta: -action.reduceCostBy } : {}),
   });
   ctx.lastOptionUsed = true;
 }
