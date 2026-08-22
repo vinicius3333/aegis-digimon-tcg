@@ -62,7 +62,7 @@ describe("BT24-039 Piximon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT24-040", as: "host", under: ["BT24-039"] }],
-        deck: [{ card: "BT1-001", as: "recovered" }],
+        deck: [{ card: "BT1-009", as: "recovered" }],
       },
     });
     await s.ready();
@@ -76,7 +76,7 @@ describe("BT24-039 Piximon", () => {
   it("digivolves from a level-4 TS Digimon for cost 3", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT24-034", as: "base" }],
+        battleArea: [{ card: "BT24-011", as: "base" }],
         hand: [{ card: "BT24-039", as: "piximon" }],
       },
     });
@@ -88,6 +88,8 @@ describe("BT24-039 Piximon", () => {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("piximon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("piximon").instanceId);
