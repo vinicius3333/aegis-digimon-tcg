@@ -22,8 +22,9 @@ describe("BT26-003 Kyaromon", () => {
     }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.turnSeat = 1;
     const redirectId = s.perm("redirect").permanentId;
+    const attackerId = s.perm("attacker").topCard.instanceId;
     expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.trash.some((c) => c.instanceId === s.inst("attacker").instanceId));
+    await settle(() => s.state.players[1]!.trash.some((c) => c.instanceId === attackerId));
     expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(s.inst("bottom").instanceId);
     expect(s.perm("tamer").stack.map((c) => c.instanceId)).toEqual([s.inst("upper").instanceId]);
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === redirectId)).toBe(true);
