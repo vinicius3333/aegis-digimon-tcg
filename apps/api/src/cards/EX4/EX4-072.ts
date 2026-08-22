@@ -6,42 +6,28 @@ import { security } from "../../engine/effects/builders.js";
 import { compiledEffects } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-/**
- * EX4-072 — X Antibody PF (EX4, White Option).
- *
- * Rule: This card is also treated as [Plug-In] in name.
- * Static: Ignore color requirements if you have a Tamer in play.
- * [Main] Choose 1 of your Lv.6 Gallantmon/Sakuyamon/MegaGargomon. From hand,
- *   ignoring digivolution requirements and without paying cost, it may digivolve
- *   into a Lv.6 Digimon with a different name that includes the chosen name.
- * [Security] Return 1 Digimon from trash to hand + add this card to hand.
- */
-const cardId = "EX4-072";
-
-const VALID_NAMES = new Set(["Gallantmon", "Sakuyamon", "MegaGargomon"]);
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    const out: Effect[] = [];
-
-    // Static: rename + ignore color requirement.
-    if (timing === EffectTiming.None) {
-      out.push({
-        effectKey: `${cardId}/static-name-and-color`,
-        description: "This card is also treated as [Plug-In]. Ignore color requirements if you have a Tamer.",
-        optional: false,
-        isInherited: false,
-        isSecurity: false,
-        isLinked: false,
-        maxPerTurn: -1,
-        canTrigger: () => true,
-        canActivate: () => true,
-        resolve: async (ctx) => {
-          const mine = ctx.game.player(source.ownerSeat).battleArea;
-          if (mine.some((p) => p.topCard !== undefined && isTamer(ctx.game.definitionOf(p.topCard)))) {
-            ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.UntilEachTurnEnd);
-          }
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Static",
+      actions: [
+        { kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "name", tokens: ["Plug-In"] },
+        { kind: "WaiveColorRequirement", condition: { kind: "youHave", filter: { controllerDefault: "mine", kind: ["Tamer"] } } },
+      ],
+    },
+    {
+      trigger: "Main",
+      actions: [
+        {
+          kind: "Digivolve",
+          target: { filter: { controllerDefault: "mine", kind: ["Digimon"], levels: [6], nameOrTrait: [{ tokens: ["Gallantmon", "Sakuyamon", "MegaGargomon"], match: "name" }] }, count: 1, upTo: true, bindAs: "chosenBase" },
+          into: { controllerDefault: "mine", kind: ["Digimon"], levels: [6] },
+          from: ["hand"],
+          payCost: false,
+          ignoreRequirements: true,
+          nameIncludesDigivolvingTarget: true,
+          differentNameFromDigivolvingTarget: true,
+          optional: true,
         },
       });
     }

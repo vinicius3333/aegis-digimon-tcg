@@ -9,6 +9,7 @@ import {
   type Seat,
 } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./EX4-060.js";
@@ -29,6 +30,15 @@ const def = (id: string, level: number): CardDefinition => ({
 });
 
 describe("EX4-060 Omnimon Alter-S", () => {
+  it("registers full residual-free IR with the non-owner-effect leave gate", () => {
+    expect(runtimeCompiledCard("EX4-060")).toMatchObject({ coverage: "full", residual: [] });
+    expect(runtimeCompiledCard("EX4-060")?.effects?.[1]?.actions?.[0]).toMatchObject({
+      kind: "Replacement",
+      event: "wouldLeavePlay",
+      leaveCause: "otherThanYourEffect",
+    });
+  });
+
   it("deletes an opposing Digimon at 8000 DP or less and returns a level six opponent to deck bottom", async () => {
     const self = {
       permanentId: "self",

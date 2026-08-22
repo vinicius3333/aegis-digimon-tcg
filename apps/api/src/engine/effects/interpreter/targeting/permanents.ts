@@ -246,6 +246,7 @@ export async function resolveTotalDpCapTargets(ctx: EffectContext, target: Targe
   }
 
   const affectable = filterAffectable(ctx, selected);
+  if (target.minimum !== undefined && affectable.length < target.minimum) return [];
   ctx.lastResolvedPermanentIds = affectable;
   return affectable;
 }

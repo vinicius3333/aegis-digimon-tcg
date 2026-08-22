@@ -90,90 +90,58 @@ const module: EffectModule = {
           if (perm === undefined) return;
           ctx.fx.grantNameTrait(perm.permanentId, "name", ["Sakuyamon"], EffectDuration.UntilEachTurnEnd);
         },
-      });
-
-      // [Your Turn][Once Per Turn] whenOptionUsed watcher (cost ≥2):
-      // install once, runs for the card's lifetime.
-      const watcherInstallEffect: Effect = staticModifier({
-        source,
-        effectKey: `${cardId}/install-option-used-watcher`,
-        description:
-          "[Your Turn][Once Per Turn] When you use an Option card with a cost of 2 or more, " +
-          "you may play 1 [Taomon] or 1 level 4 or lower yellow or blue Digimon from this " +
-          "Digimon's digivolution cards without paying the cost.",
-        maxPerTurn: -1,
-        when: (ctx) => ctx.source.isOnBattleArea(),
-        resolve: async (ctx) => {
-          const perm = ctx.source.permanent?.();
-          if (perm === undefined) return;
-
-          ctx.fx.subscribeSubTrigger({
-            event: "whenOptionUsed",
-            sourcePermanentId: perm.permanentId,
-            once: false,
-            oncePerTiming: false,
-            description: `${cardId} whenOptionUsed play Taomon/Lv4 from digi stack`,
-            matches: (subCtx) => {
-              // Gate: on battle area, owner's turn, option cost ≥ 2
-              if (!subCtx.source.isOnBattleArea() || !subCtx.source.isOwnersTurn()) return false;
-              const usedCost = subCtx.trigger.usedOptionCost;
-              return usedCost !== undefined && usedCost >= 2;
-            },
-            run: async (subCtx) => {
-              const candidates = eligibleStackCandidates(subCtx);
-              if (candidates.length === 0) return;
-
-              const chosen = await subCtx.ask.chooseTargets(subCtx, {
-                candidates,
-                min: 0,
-                max: 1,
-              });
-              if (chosen.length === 0) return;
-              await subCtx.fx.playInstances(chosen, { payCost: false });
-            },
-          });
-        },
-      });
-
-      return [nameEffect, watcherInstallEffect];
-    }
-
-    // [When Digivolving] You may use an Option card with a cost of 5 or less from hand without
-    // paying the cost.
-    if (timing === EffectTiming.WhenDigivolving) {
-      return [
-        whenDigivolving({
-          source,
-          effectKey: `${cardId}/when-digivolving-use-option`,
-          description:
-            "[When Digivolving] You may use an Option card with a cost of 5 or less in your " +
-            "hand without paying the cost.",
+      ],
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "UseOptionWithoutCost",
+          filter: { controller: "mine", kind: ["Option"], playCostLte: 5 },
+          payCost: false,
+          from: ["hand"],
           optional: true,
-          canActivate: (ctx) => {
-            if (!ctx.source.isOnBattleArea()) return false;
-            return optionCandidatesFromHand(ctx, ownerSeat).length > 0;
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenOptionUsed",
+          fireCondition: {
+            kind: "triggerOptionCostAtLeast",
+            value: 2,
+            raw: "when you use an Option card with a cost of 2 or more",
           },
-          resolve: async (ctx) => {
-            const candidates = optionCandidatesFromHand(ctx, ownerSeat);
-            if (candidates.length === 0) return;
-
-            const chosen = await ctx.ask.selectCards(ctx, {
-              candidates: candidates.map((c) => c.instanceId),
-              min: 0,
-              max: 1,
-            });
-            if (chosen.length === 0) return;
-
-            const chosenCard = candidates.find((c) => c.instanceId === chosen[0]!);
-            const originalCost = chosenCard ? ctx.game.definitionOf(chosenCard).playCost : undefined;
-            await ctx.fx.useOptionFromHand(ctx, chosen[0]!, originalCost);
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  zone: "digivolutionCards",
+                  or: [
+                    { nameOrTrait: [{ tokens: ["Taomon"], match: "nameExact" }] },
+                    { colors: ["Blue", "Yellow"], levelComparison: { op: "lte", value: 4 } },
+                  ],
+                },
+                count: 1,
+              },
+              from: ["digivolutionCards"],
+              payCost: false,
+              optional: true,
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard(cardId, compiled);

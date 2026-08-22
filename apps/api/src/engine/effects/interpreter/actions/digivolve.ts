@@ -288,6 +288,15 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
   };
   const legalIntoForBase = (basePermanentId: string, pool: LooseCandidate[]): LooseCandidate[] => {
     let candidates = pool;
+    if (action.nameIncludesDigivolvingTarget === true || action.differentNameFromDigivolvingTarget === true) {
+      const base = ctx.game.permanentById(basePermanentId);
+      const baseName = base?.topCard === undefined ? undefined : ctx.game.definitionOf(base.topCard).nameEn.toLowerCase();
+      candidates = baseName === undefined ? [] : candidates.filter((candidate) => {
+        const candidateName = ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn.toLowerCase();
+        return (action.nameIncludesDigivolvingTarget !== true || candidateName.includes(baseName)) &&
+          (action.differentNameFromDigivolvingTarget !== true || candidateName !== baseName);
+      });
+    }
     if (action.colorsMatchDigivolvingSource === true) {
       const base = ctx.game.permanentById(basePermanentId);
       const baseColors = base?.topCard ? ctx.game.definitionOf(base.topCard).colors : [];

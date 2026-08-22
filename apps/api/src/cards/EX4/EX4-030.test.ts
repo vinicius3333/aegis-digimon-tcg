@@ -155,15 +155,20 @@ function makeCtx(
 }
 
 describe("EX4-030 Kuzuhamon", () => {
-  const module = getEffectModule("EX4-030");
-
-  it("is registered on import", () => {
-    expect(module).toBeDefined();
+  it("registers full residual-free IR", () => {
+    expect(getEffectModule("EX4-030")).toBeDefined();
+    expect(runtimeCompiledCard("EX4-030")).toMatchObject({ coverage: "full", residual: [] });
   });
 
-  it("produces 2 None effects (name grant + watcher install)", () => {
-    const source = makeSource();
-    expect(module!.effectsForTiming(EffectTiming.None, source)).toHaveLength(2);
+  it("uses one optional hand Option costing 5 or less when digivolving", () => {
+    const effect = runtimeCompiledCard("EX4-030")?.effects?.find((entry) => entry.trigger === "WhenDigivolving");
+    expect(effect?.actions?.[0]).toMatchObject({
+      kind: "UseOptionWithoutCost",
+      filter: { kind: ["Option"], playCostLte: 5 },
+      payCost: false,
+      from: ["hand"],
+      optional: true,
+    });
   });
 
   it("produces 1 WhenDigivolving effect", () => {

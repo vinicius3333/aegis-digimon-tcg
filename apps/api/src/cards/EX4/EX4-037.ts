@@ -72,38 +72,39 @@ const module: EffectModule = {
     if (timing === EffectTiming.OnUnTappedAnyone) {
       return [
         {
-          effectKey: `${cardId}/unsuspend-self`,
-          description:
-            "[All Turns][Once Per Turn] When another Digimon becomes suspended, you may unsuspend this Digimon.",
-          optional: true,
-          isInherited: false,
-          isSecurity: false,
-          isLinked: false,
-          maxPerTurn: 1,
-          canTrigger: (ctx) => {
-            if (!ctx.source.isOnBattleArea()) return false;
-            const suspendedId = ctx.trigger.suspendedPermanentId;
-            if (suspendedId === undefined) return false;
-            if (suspendedId === ctx.source.instanceId) return false;
-            const suspended = ctx.game.permanentById(suspendedId);
-            if (!suspended) return false;
-            return suspended.topCard !== undefined && isDigimon(ctx.game.definitionOf(suspended.topCard));
-          },
-          canActivate: (ctx) => {
-            const self = ctx.source.permanent();
-            return self !== undefined && self.isSuspended;
-          },
-          resolve: async (ctx) => {
-            const self = ctx.source.permanent();
-            if (!self) return;
-            await ctx.fx.unsuspend([self.permanentId]);
-          },
+          kind: "GainKeyword",
+          target: { filter: { controller: "mine", kind: ["Digimon"], multicolor: true, colors: ["Green", "Black"] }, count: 2 },
+          keyword: { keyword: "Blocker", raw: "＜Blocker＞" },
+          duration: "untilOpponentTurnEnd",
         },
-      ];
-    }
-
-    return [];
-  },
+        {
+          kind: "GainKeyword",
+          target: { filter: { controller: "mine", kind: ["Digimon"], multicolor: true, colors: ["Green", "Black"] }, count: 2 },
+          keyword: { keyword: "Reboot", raw: "＜Reboot＞" },
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onSuspend",
+          sourceFilter: { kind: ["Digimon"], excludeSelf: true },
+          actions: [{ kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true }],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    { level: 5, multicolor: true, colors: ["Green"], cost: 4, isAlternate: true },
+    { level: 5, names: ["Rapidmon"], cost: 4, isAlternate: true },
+  ],
 };
 
 const compiled: CompiledCard = {

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
 // A3 for EX4-021 (DexDorugoramon) — [DigiXros -2]: "Blue MetalGreymon" + "DarkKnightmon".
@@ -11,6 +12,14 @@ const BLUE_METALGREYMON = "BT10-024"; // "MetalGreymon", Blue L5
 const DARKKNIGHTMON = "BT10-066"; // "DarkKnightmon", Black L5
 
 describe("EX4-021 [DigiXros -2] play by placing Blue MetalGreymon + DarkKnightmon", () => {
+  it("registers full residual-free IR for the printed effects", () => {
+    expect(runtimeCompiledCard("EX4-021")).toMatchObject({ coverage: "full", residual: [] });
+    expect(runtimeCompiledCard("EX4-021")?.effects?.[1]?.actions?.[0]).toMatchObject({
+      kind: "Replacement",
+      event: "wouldLeavePlay",
+    });
+  });
+
   it("plays at cost 8 (12 - 2×2) with both materials placed under it", async () => {
     const s = setupEngine(
       {

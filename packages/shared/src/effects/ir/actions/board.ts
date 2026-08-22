@@ -2,6 +2,7 @@
 
 import type { EffectDurationRef } from "../durations.js";
 import type { Filter, Target } from "../filters/filter.js";
+import type { Scaling } from "../predicates/scaling.js";
 import type { Controller } from "../filters/zones.js";
 import type { KeywordRef } from "../keywords.js";
 import type { Cost } from "../predicates/costs.js";

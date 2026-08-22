@@ -194,6 +194,10 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         filter: action.filter,
         count: "all",
       } as Target);
+      if (action.minimum !== undefined && candidates.length < action.minimum) {
+        ctx.lastDeleteCount = 0;
+        return false;
+      }
       if (candidates.length === 0) {
         ctx.lastDeleteCount = 0;
         return false;
@@ -246,6 +250,10 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           spent += candidate.cost;
         }
         if (spent >= effectiveBudget && !action.upTo) break;
+      }
+      if (action.minimum !== undefined && selected.length < action.minimum) {
+        ctx.lastDeleteCount = 0;
+        return false;
       }
       ctx.lastDeleteCount = selected.length > 0 ? await ctx.fx.deletePermanent(selected) : 0;
       return false;
