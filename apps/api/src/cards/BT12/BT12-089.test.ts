@@ -57,8 +57,6 @@ describe("BT12-089 handwritten module", () => {
     );
     await s.ready();
     s.state.memory = 4;
-    const before = s.perm("guilmon").currentDP;
-
     await advance(s.engine).fire(EffectTiming.OnUseOption, s.perm("takato"));
     await settle(() => s.perm("guilmon").topCard?.cardId === "BT12-018");
 
@@ -66,6 +64,6 @@ describe("BT12-089 handwritten module", () => {
     expect(s.perm("guilmon").stack.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["BT12-089", "BT12-010", "BT12-016"]),
     );
-    expect(s.perm("guilmon").currentDP).toBe(before + 2000);
+    expect(s.perm("guilmon").currentDP).toBe(s.perm("guilmon").baseDP + 2000);
   });
 });

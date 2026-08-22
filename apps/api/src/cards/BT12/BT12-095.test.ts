@@ -34,7 +34,10 @@ describe("BT12-095 handwritten module", () => {
   });
 
   it("gives an Agumon or Greymon +1000 DP and Blocker at the start of main phase", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT12-095", as: "tai" }, { card: "BT12-034", as: "agumon" }] } });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT12-095", as: "tai" }, { card: "BT12-034", as: "agumon" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     const before = s.perm("agumon").currentDP;
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tai"));
@@ -43,9 +46,12 @@ describe("BT12-095 handwritten module", () => {
   });
 
   it("applies the same +1000 DP and Blocker effect when Tai is played", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT12-034", as: "agumon" }], hand: [{ card: "BT12-095", as: "tai" }] },
-    });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT12-034", as: "agumon" }], hand: [{ card: "BT12-095", as: "tai" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     const before = s.perm("agumon").currentDP;
 

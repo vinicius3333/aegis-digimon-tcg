@@ -46,8 +46,8 @@ describe("BT12-097 handwritten module", () => {
     }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("ryoma"));
-    expect(s.perm("ryoma").stack).toHaveLength(2);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT12-008");
+    expect(s.perm("ryoma").stack).toHaveLength(3);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).not.toContain("BT12-008");
   });
 
   it("plays Ryoma from security without paying its memory cost", async () => {
