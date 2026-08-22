@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-072.js";
+import "./index.js";
 
 describe("BT17-072 Ornismon", () => {
   it("deletes one opposing unsuspended Digimon on play and digivolving", () => {
@@ -18,5 +21,28 @@ describe("BT17-072 Ornismon", () => {
       expect.objectContaining({ effect: { kind: "modifyDP", amount: 2000 }, while: expect.objectContaining({ kind: "youHave", filter: expect.objectContaining({ levels: [6], excludeSelf: true }) }) }),
       expect.objectContaining({ effect: { kind: "keyword", keyword: expect.objectContaining({ keyword: "SecurityAttack", amount: 1 }) }, while: expect.objectContaining({ kind: "youHave", filter: expect.objectContaining({ levels: [6], excludeSelf: true }) }) }),
     ]);
+  });
+
+  it("deletes only the unsuspended target when played", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT17-072", as: "ornismon" }] },
+      1: { battleArea: [{ card: "BT17-063", as: "ready" }, { card: "BT17-063", suspended: true, as: "suspended" }] },
+    }, { autoSelectCards: true });
+    s.state.memory = 13;
+    const readyId = s.perm("ready").permanentId;
+    const suspendedId = s.perm("suspended").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "play", instanceId: s.inst("ornismon").instanceId })).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === readyId));
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === suspendedId)).toBe(true);
+  });
+
+  it("observes the DP and security-attack bonuses with another level 6", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT17-072", as: "ornismon" }, { card: "BT17-071", as: "otherLevel6" }] } });
+    await s.ready();
+
+    expect(s.perm("ornismon").currentDP).toBe(15000);
+    expect(observe(s.engine).hasKeyword(s.perm("ornismon"), "SecurityAttack")).toBe(true);
   });
 });
