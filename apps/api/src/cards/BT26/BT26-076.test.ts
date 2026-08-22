@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-076.js";
+import "../index.js";
 
 describe("BT26-076 Crowmon", () => {
   it("models the delete-plus-Tamer cost and both once-per-turn reactions", () => {
@@ -34,5 +38,24 @@ describe("BT26-076 Crowmon", () => {
         }),
       ]),
     );
+  });
+
+  it("publicly deletes a level 4 opponent Digimon and trashes a face-down Tamer card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT26-076", as: "crowmon" },
+          { card: "BT1-089", as: "tamer", under: [{ card: "BT1-010", as: "faceDown", faceUp: false }] },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "victim" }], hand: [{ card: "BT1-011", as: "discarded" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("crowmon"));
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-010");
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-011");
   });
 });
