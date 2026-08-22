@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT26-082.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
 
 describe("BT26-082 compiled behavior", () => {
   it("proves security timing, both alternate evolutions, indivisible alternate costs, deletion, and Birdkin rule trait", () => {
@@ -27,5 +31,23 @@ describe("BT26-082 compiled behavior", () => {
       expect.objectContaining({ kind: "Trash", chooser: "opponent", target: { filter: { controller: "opponent", zone: "hand" }, count: 1 } }),
       expect.objectContaining({ kind: "SecurityManipulation", op: "placeAsSecurity", from: ["trash"], toTop: false, faceUp: true, optional: true, condition: { kind: "handAtMost", controller: "opponent", value: 7 } }),
     ]);
+  });
+
+  it("resolves the printed delete-self cost against the opponent's highest-DP Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT26-082", as: "ravemon" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-084", as: "highest" },
+          { card: "BT1-010", as: "lower" },
+        ],
+      },
+    }, { autoSelectCards: true });
+
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("ravemon"));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT26-082")).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-084")).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-010")).toBe(true);
   });
 });
