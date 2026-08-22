@@ -58,7 +58,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       // Bind "the Digimon this effect played" from whichever branch resolves the play, so a later
       // action (e.g. BT16-015's Delete with dp.valueFrom) can reference exactly what was played.
       const bindPlayWithoutCost = (playedPermanentIds = ctx.lastPlayedPermanentIds) => {
-        if (action.bindResultAs && playedPermanentIds && playedPermanentIds.length > 0) {
+        if (action.bindResultAs && playedPermanentIds !== undefined) {
           ctx.boundPlayed ??= new Map();
           ctx.boundPlayed.set(action.bindResultAs, new Set(playedPermanentIds));
         }
