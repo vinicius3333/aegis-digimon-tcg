@@ -41,7 +41,8 @@ describe("BT13-062 Chuumon", () => {
           payCost: false,
           suspended: true,
           optional: true,
-          condition: { kind: "selfHasNameContaining", names: ["Sukamon", "Etemon"] },
+          condition: expect.objectContaining({ kind: "selfHasNameContaining", names: ["Sukamon", "Etemon"] }),
+          target: expect.objectContaining({ count: 1 }),
         }),
       ],
     });
