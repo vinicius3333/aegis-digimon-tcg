@@ -36,13 +36,27 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "Security",
-      actions: [{
-        kind: "Aura",
-        target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
-        effect: { kind: "keyword", keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" } },
-        duration: "untilOwnerTurnEnd",
-        while: { kind: "true" },
-      }],
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
+          keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
+          duration: "untilOwnerTurnEnd",
+        },
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          playerScoped: true,
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          duration: "untilOwnerTurnEnd",
+          actions: [{
+            kind: "GainKeyword",
+            target: { filter: { isTriggerSource: true }, count: 1 },
+            keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
+            duration: "untilOwnerTurnEnd",
+          }],
+        },
+      ],
       isSecurity: true,
     },
   ],
