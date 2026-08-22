@@ -4112,6 +4112,11 @@ export class GameEngine {
     // whether the restored-memory turn remains open.
     if (this.combat.isAttacking) return;
 
+    // A continuation can finish after the turn machine has advanced its seat. The
+    // open Main phase is authoritative for this callback; evaluating the new
+    // turn's actions can incorrectly auto-close the still-open phase.
+    if (this.state.phase !== Phase.Main || this.mainPhase.seat === undefined) return;
+
     // ＜Blitz＞ (§16-22): when memory has crossed to the opponent but the turn
     // player has an unsuspended Blitz Digimon that hasn't attacked this turn, keep
     // the Main phase open for one more attack. Skip the turn-end check so the
@@ -4152,8 +4157,9 @@ export class GameEngine {
       }
     }
     this.mainPhase.checkTurnEnd();
-    if (this.mainPhase.isOpen && !this.hasAnyMainPhaseAction(this.state.turnSeat)) {
-      this.mainPhase.endPhaseRequested(this.state.turnSeat);
+    const mainSeat = this.mainPhase.seat;
+    if (this.mainPhase.isOpen && mainSeat !== undefined && !this.hasAnyMainPhaseAction(mainSeat)) {
+      this.mainPhase.endPhaseRequested(mainSeat);
     }
   }
 
