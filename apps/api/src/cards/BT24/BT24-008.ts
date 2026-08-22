@@ -34,6 +34,8 @@ export const compiled: CompiledCard = {
             },
             raw: "By trashing 1 card with the [Reptile], [Dragonkin] or [LIBERATOR] trait from your hand",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },
