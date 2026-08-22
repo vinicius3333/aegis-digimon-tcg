@@ -29,9 +29,14 @@ describe("BT12-101 handwritten module", () => {
   });
 });
 
-it("does not register unprinted Security effects for BT12-101 through BT12-110", () => {
+it("registers the printed Security activation for BT12-101", () => {
+  const module = getEffectModule("BT12-101");
+  const source = { instanceId: "source-101", cardId: "BT12-101", ownerSeat: 0, isOnBattleArea: () => false } as never;
+  expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+});
+
+it("does not register unprinted Security effects for BT12-102 through BT12-110", () => {
   for (const cardId of [
-    "BT12-101",
     "BT12-102",
     "BT12-103",
     "BT12-104",
