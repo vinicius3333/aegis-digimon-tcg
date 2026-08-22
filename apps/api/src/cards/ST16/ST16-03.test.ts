@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST16-03.js";
 
 describe("ST16-03 Gabumon", () => {
@@ -36,5 +36,46 @@ describe("ST16-03 Gabumon", () => {
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("gabumon"));
 
     expect(s.state.memory).toBe(0);
+  });
+
+  it("draws then trashes only once per turn from an evolution stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host", dp: 10000, under: [{ card: "ST16-03" }] }],
+          hand: [{ card: "BT1-001" }, { card: "BT1-002" }],
+          deck: [{ card: "BT1-003" }, { card: "BT1-004" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-005", as: "firstTarget", suspended: true },
+            { card: "BT1-006", as: "secondTarget", suspended: true },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("firstTarget").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.length === 1);
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("secondTarget").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").isSuspended);
+
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.trash).toHaveLength(1);
   });
 });
