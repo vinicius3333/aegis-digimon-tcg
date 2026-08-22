@@ -56,3 +56,30 @@ it("scales the digivolution DP reduction for each yellow or red Tamer", async ()
   expect(s.perm("target").currentDP).toBe(4000);
   expect(observe(s.engine).securityDp(1)).toBe(-6000);
 });
+
+it("chooses one opposing Digimon for the complete per-Tamer reduction", async () => {
+  const preferred: string[] = [];
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT12-043", as: "shine" },
+          { card: "BT12-092", as: "yellowTamer" },
+          { card: "BT12-092", as: "redTamer" },
+        ],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "chosen", dp: 10000 },
+          { card: "BT1-009", as: "spared", dp: 10000 },
+        ],
+      },
+    },
+    { autoSelectCards: true, preferInstanceIds: preferred },
+  );
+  preferred.push(s.perm("chosen").topCard!.instanceId);
+  await s.ready();
+  await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("shine"));
+  expect(s.perm("chosen").currentDP).toBe(4000);
+  expect(s.perm("spared").currentDP).toBe(10000);
+});
