@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT5-061.js";
 
 describe("BT5-061 Commandramon", () => {
@@ -8,5 +8,19 @@ describe("BT5-061 Commandramon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT5-061", as: "command" }] } });
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).hasKeyword(s.perm("command"), "Blocker")).toBe(true);
+  });
+
+  it("can redirect an opposing attack as a Blocker", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT5-061", as: "command" }], security: ["BT1-009"] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("command").permanentId })).toEqual({ ok: true });
+    await settle(() => s.perm("command").isSuspended);
+    expect(s.perm("command").isSuspended).toBe(true);
   });
 });
