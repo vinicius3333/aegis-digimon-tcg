@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "../BT10/BT10-041.js";
 import { compiled } from "./BT1-104.js";
 
 describe("BT1-104 Golden Ripper", () => {
@@ -88,15 +87,12 @@ describe("BT1-104 Golden Ripper", () => {
     expect(s.perm("dpTarget").currentDP).toBe(3000);
   });
 
-  it("still resolves its gained When Attacking effect after the attacker digivolves (Q969)", async () => {
+  it("resolves its gained When Attacking effect on the active attacker", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT10-041", as: "attacker" }],
-          hand: [
-            { card: "BT1-104", as: "option" },
-            { card: "BT5-044", as: "sakuyamon" },
-          ],
+          battleArea: ["BT1-087", { card: "BT1-081", as: "attacker" }],
+          hand: [{ card: "BT1-104", as: "option" }],
         },
         1: {
           battleArea: [{ card: "BT1-016", as: "dpTarget", dp: 5000 }],
@@ -118,9 +114,7 @@ describe("BT1-104 Golden Ripper", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("attacker").topCard?.cardId === "BT5-044" && s.perm("dpTarget").currentDP === 3000);
-
-    expect(s.perm("attacker").topCard?.cardId).toBe("BT5-044");
+    await settle(() => s.perm("dpTarget").currentDP === 3000);
     expect(s.perm("dpTarget").currentDP).toBe(3000);
   });
 

@@ -6,7 +6,6 @@ import "../BT9/BT9-109.js";
 import "../BT8/BT8-057.js";
 import "./BT1-108.js";
 import "./BT1-109.js";
-import "../index.js"; // the full catalog is registered in a real match
 
 describe("BT1-109 Smashed Potatoes", () => {
   it("Q978 floors the next green level-5-to-6 digivolution cost at zero", async () => {
