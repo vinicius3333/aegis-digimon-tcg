@@ -14,6 +14,15 @@ describe("ST10-09 Witchmon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
+  it("does not return a purple level 6 Digimon", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "ST10-09", as: "witchmon" }], trash: [{ card: "ST10-06", as: "tooLarge" }] } }, { autoOrderTriggers: true, autoSelectCards: true });
+    s.state.memory = 6;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("witchmon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "ST10-09"));
+    expect(s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("tooLarge").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("tooLarge").instanceId)).toBe(false);
+  });
+
   it("plays itself from security and resolves its On Play effect", async () => {
     const s = setupEngine({ 0: { security: [{ card: "ST10-09", as: "witchmon", faceUp: true }], trash: [{ card: "ST10-11", as: "returned" }] } }, { autoOrderTriggers: true, autoSelectCards: true });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("witchmon"));
