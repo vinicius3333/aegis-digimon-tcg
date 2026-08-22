@@ -25,4 +25,19 @@ describe("ST19-08 ShoeShoemon", () => {
       effectText: expect.stringContaining("＜Overclock ([Puppet] trait)＞"),
     });
   });
+
+  it("also accepts the LIBERATOR card from trash and rejects a play-cost overflow", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-001", as: "attacker", dp: 7000 }] },
+      1: { security: [{ card: "ST19-08", as: "shoe" }], trash: [{ card: "ST19-14", as: "eligible" }, { card: "ST19-12", as: "tooExpensive" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST19-14"));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST19-12")).toBe(false);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("eligible").instanceId)).toBe(false);
+  });
 });
