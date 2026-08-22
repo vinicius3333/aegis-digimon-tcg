@@ -22,9 +22,9 @@ invented.
 - Module/test: all 74 module paths and all 74 co-located test paths exist.
 - IR: all 74 IDs have an entry in the committed effects registry; direct
   modules are the runtime authority for their listed cards.
-- Runtime blocker: `pnpm` is not installed (`pnpm: command not found`), no
-  local Vitest or TypeScript binaries were present, so Vitest, typecheck, and
-  runtime execution remain unverified.
+- Runtime blocker: `pnpm` is installed, but the workspace dependencies are not
+  installed (`node_modules` is absent and `tsc` cannot be found). Therefore
+  Vitest, typecheck, and runtime execution remain unverified.
 - `git diff --check`: passed after the EX6-001 correction.
 
 ## Per-card inventory
@@ -116,9 +116,10 @@ catalog-inconsistent “Kokuwamon” to “Sakuttomon”.
 
 ## Remaining blockers
 
-The focused serial Vitest command could not start because `pnpm` is absent.
-No runtime, Vitest, or typecheck result is claimed. The ledger therefore
+The permitted `pnpm typecheck` command was attempted, but stopped at the
+shared build because `tsc` is unavailable and `node_modules` is absent. No
+runtime, Vitest, or typecheck result is claimed. The ledger therefore
 intentionally leaves every score as NR, including cards whose static module
 reports `coverage: "full"`. Re-run the serial focused suite, affected engine
 suite, `pnpm typecheck`, and `git diff --check` in an environment with the
-workspace toolchain before assigning numeric scores.
+workspace dependencies before assigning numeric scores.
