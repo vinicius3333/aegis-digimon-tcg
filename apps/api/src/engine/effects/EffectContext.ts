@@ -1315,11 +1315,11 @@ export interface SubTriggerInstall {
   /**
    * Anchor for a watcher installed by a card that is NOT a live battle-area Permanent —
    * a hand- or trash-resident source ("when this card is trashed from the hand", a
-   * `[Trash]` continuous reaction). Absent when `sourcePermanentId` is set (the two are
-   * mutually exclusive in practice: a permanent-anchored watcher never needs this
-   * fallback). The engine resolves it against the loose CardInstance wherever it
-   * currently sits (hand/trash/security), binding `ctx.source` from it instead of
-   * requiring a Permanent. See `SubTriggerRegistry.subscribe`'s loud-failure guard: a
+   * `[Trash]` continuous reaction). When paired with `sourcePermanentId`, it preserves
+   * the exact printed source card while the permanent id anchors lifecycle. Otherwise,
+   * the engine resolves it against the loose CardInstance wherever it currently sits
+   * (hand/trash/security), binding `ctx.source` from it instead of requiring a Permanent.
+   * See `SubTriggerRegistry.subscribe`'s loud-failure guard: a
    * watcher with a `matches` predicate and NEITHER anchor can never fire and is now a
    * hard error at install time, not a silent no-op.
    */
