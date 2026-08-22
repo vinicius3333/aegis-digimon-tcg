@@ -1,8 +1,9 @@
 // @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { getCompiledCard, type CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const cardId = "BT10-111";
+const compiled = getCompiledCard(cardId) as CompiledCard;
 
 function hasDigiXrosRequirement(def: CardDefinition): boolean {
   return (digiXrosRequirementFor(def.cardId)?.length ?? 0) > 0;
@@ -109,5 +110,6 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard("BT10-111", runtimeCompiledCard("BT10-111")!, module);
+const compiled = getCompiledCard("BT10-111") as CompiledCard;
+registerIrCard("BT10-111", compiled, module);
 export { compiled };

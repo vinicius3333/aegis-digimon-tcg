@@ -1,159 +1,48 @@
 // @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
-const cardId = "EX10-034";
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnEnterFieldAnyone) {
-      return [
-        onPlay({
-          source,
-          effectKey: `${cardId}/on-play-grant-attack`,
-          description:
-            "[On Play] Until the end of your opponent's turn, 1 of your opponent's Digimon " +
-            'gains "[Start of Your Main Phase] This Digimon attacks."',
-          canActivate: (ctx) => ctx.source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const opponent = ctx.game.opponentOf(source.ownerSeat);
-            const oppCandidates = Array.from(ctx.game.player(opponent).battleArea)
-              .filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)))
-              .map((p) => p.permanentId);
-            if (oppCandidates.length === 0) return;
-            const chosen = await ctx.ask.chooseTargets(ctx, { candidates: oppCandidates, min: 1, max: 1 });
-            if (chosen.length === 0) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "startOfYourMainPhase",
-              sourcePermanentId: chosen[0]!,
-              once: true,
-              expiresOnTurnEndOf: opponent,
-              description: `${cardId}: [Start of Your Main Phase] This Digimon attacks.`,
-              matches: (subCtx) => subCtx.game.state.turnSeat === opponent,
-              run: async (subCtx) => {
-                await subCtx.fx.forceAttack(chosen[0]!);
-              },
-            });
+// Q5101: gained attack effects still exist on unaffected Digimon, but only
+// trigger if that Digimon can resolve effects. Q5102 requires exactly two
+// digivolution cards; Q5103 watches attacks by either player.
+const compiled: CompiledCard = {
+  effects: [
+    { trigger: "Static", actions: [], keywords: [{ keyword: "Collision", raw: "＜Collision＞" }, { keyword: "Fragment", amount: 3, raw: "＜Fragment (3)＞" }, { keyword: "Blocker", raw: "＜Blocker＞" }] },
+    ...["OnPlay", "WhenDigivolving"].map((trigger) => ({
+      trigger,
+      actions: [{
+        kind: "GainTriggeredEffect",
+        target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+        gainedTrigger: "StartOfYourMainPhase",
+        gainedActions: [{ kind: "Attack", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } }],
+        duration: "untilOpponentTurnEnd",
+      }],
+    })),
+    {
+      trigger: "AllTurns",
+      actions: [{
+        kind: "SubTrigger",
+        event: "whenAttacking",
+        sourceFilter: { controller: "any", kind: ["Digimon"] },
+        actions: [
+          {
+            kind: "GainKeyword",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security A. +1＞" },
+            duration: "untilOwnerTurnEnd",
+            cost: { kind: "trash", target: { filter: { isSelfRef: true, zone: "digivolutionCards" }, count: 2 }, raw: "By trashing any 2 of this Digimon's digivolution cards" },
           },
-        }),
-        whenDigivolving({
-          source,
-          effectKey: `${cardId}/when-digivolving-grant-attack`,
-          description:
-            "[When Digivolving] Until the end of your opponent's turn, 1 of your opponent's " +
-            'Digimon gains "[Start of Your Main Phase] This Digimon attacks."',
-          canActivate: (ctx) => ctx.source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const opponent = ctx.game.opponentOf(source.ownerSeat);
-            const oppCandidates = Array.from(ctx.game.player(opponent).battleArea)
-              .filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)))
-              .map((p) => p.permanentId);
-            if (oppCandidates.length === 0) return;
-            const chosen = await ctx.ask.chooseTargets(ctx, { candidates: oppCandidates, min: 1, max: 1 });
-            if (chosen.length === 0) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "startOfYourMainPhase",
-              sourcePermanentId: chosen[0]!,
-              once: true,
-              expiresOnTurnEndOf: opponent,
-              description: `${cardId}: [Start of Your Main Phase] This Digimon attacks.`,
-              matches: (subCtx) => subCtx.game.state.turnSeat === opponent,
-              run: async (subCtx) => {
-                await subCtx.fx.forceAttack(chosen[0]!);
-              },
-            });
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/collision`,
-          description: "＜Collision＞",
-          when: (_ctx) => source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self !== undefined) {
-              ctx.fx.grantKeyword(self.permanentId, "Collision", EffectDuration.UntilEachTurnEnd);
-            }
-          },
-        }),
-        staticModifier({
-          source,
-          effectKey: `${cardId}/fragment`,
-          description: "＜Fragment (3)＞",
-          when: (_ctx) => source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self !== undefined) {
-              ctx.fx.grantKeyword(self.permanentId, "Fragment", EffectDuration.UntilEachTurnEnd, 3);
-            }
-          },
-        }),
-        staticModifier({
-          source,
-          effectKey: `${cardId}/blocker`,
-          description: "＜Blocker＞",
-          when: (_ctx) => source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self !== undefined) {
-              ctx.fx.grantKeyword(self.permanentId, "Blocker", EffectDuration.UntilEachTurnEnd);
-            }
-          },
-        }),
-        staticModifier({
-          source,
-          effectKey: `${cardId}/all-turns-sa-dp`,
-          description:
-            "[All Turns] [Once Per Turn] When Digimon attack, by trashing any 2 of this " +
-            "Digimon's digivolution cards, this Digimon gains ＜Security A. +1＞ and +3000 DP " +
-            "until your turn ends.",
-          maxPerTurn: 1,
-          when: (_ctx) => source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "whenAttacking",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              oncePerTiming: true,
-              oncePerTurnKey: `${cardId}/all-turns-sa-dp`,
-              description: `${cardId}: When Digimon attack, trash 2 digivolution cards for SA+1 and +3000 DP.`,
-              run: async (subCtx) => {
-                const currentSelf = subCtx.game.permanentById(self.permanentId);
-                if (currentSelf === undefined || currentSelf.stack.length < 2) return;
-                const yes = await subCtx.ask.optional(
-                  subCtx,
-                  "Trash 2 of this Digimon's digivolution cards to gain SA+1 and +3000 DP?",
-                );
-                if (!yes) return;
-                const toTrash = await subCtx.ask.selectCards(subCtx, {
-                  candidates: currentSelf.stack.map((c) => c.instanceId),
-                  min: 2,
-                  max: 2,
-                });
-                if (toTrash.length < 2) return;
-                await subCtx.fx.trashDigivolutionCards(currentSelf.permanentId, toTrash);
-                subCtx.fx.grantKeyword(currentSelf.permanentId, "SecurityAttack", EffectDuration.UntilOwnerTurnEnd, 1);
-                subCtx.fx.modifyDP(currentSelf.permanentId, 3000, EffectDuration.UntilOwnerTurnEnd);
-              },
-            });
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+          { kind: "ModifyDP", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, amount: 3000, duration: "untilOwnerTurnEnd", condition: { kind: "ifThisEffectActed", raw: "if you did" } },
+        ],
+      }],
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [{ level: 5, colors: ["Black"], cost: 5 }, { level: 5, colors: ["Purple"], cost: 5 }],
+  digiXrosRequirement: [{ materials: [{ traits: ["Bagra Army"] }], count: 2, costReduction: 2 }],
 };
 
-registerIrCard(cardId, module);
-
-export { module };
-export default module;
+registerIrCard("EX10-034", compiled);
+export default compiled;

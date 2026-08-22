@@ -1,9 +1,9 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCompiledCard, type CompiledCard } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { staticModifier } from "../../engine/effects/builders.js";
-import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
  * BT22-006 — Moonmon (Purple Lv.2 Digi-Egg).
@@ -13,6 +13,11 @@ import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interp
  * as its bottom digivolution card, <Draw 1> and trash 1 card in your hand.
  */
 const cardId = "BT22-006";
+const compiled: CompiledCard = {
+  ...getCompiledCard(cardId)!,
+  coverage: "full",
+  residual: [],
+};
 
 const module: EffectModule = {
   cardId,
@@ -47,7 +52,8 @@ const module: EffectModule = {
                 return (
                   subCtx.source.isOnBattleArea() &&
                   subCtx.source.isOwnersTurn() &&
-                  subCtx.trigger.addedDigivolutionCardsPosition === "bottom"
+                  subCtx.trigger.addedDigivolutionCardsPosition === "bottom" &&
+                  subCtx.trigger.placedOwnTopAtStackBottom === true
                 );
               },
               run: async (subCtx) => {
@@ -74,5 +80,5 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard(cardId, runtimeCompiledCard(cardId)!, module);
+registerIrCard(cardId, compiled, module);
 export default module;

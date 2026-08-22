@@ -1,6 +1,6 @@
 // @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { getCompiledCard, type CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
  * BT10-094 — Breaclaw (BT10, Red Option).
@@ -20,6 +20,7 @@ import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interp
  *     - Optional: select and play 1 Gammamon from hand or trash without cost.
  */
 const cardId = "BT10-094";
+const compiled = getCompiledCard(cardId) as CompiledCard;
 
 function isGammamon(def: CardDefinition): boolean {
   if (!(def.kinds as string[]).includes(CardKind.Digimon as string)) return false;
@@ -141,4 +142,6 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard("BT10-094", runtimeCompiledCard("BT10-094")!, module);
+export { compiled };
+const compiled = getCompiledCard("BT10-094") as CompiledCard;
+registerIrCard("BT10-094", compiled, module);

@@ -36,7 +36,7 @@ const compiled: CompiledCard = {
               from: ["digivolutionCards"],
             },
             preventCheck: async (subCtx) => {
-              const current = subCtx.game.permanentById(hostId);
+              const current = subCtx.source.permanent();
               if (current === undefined) return false;
 
               // Cost candidates: this Digimon's digivolution cards (the host stack),
