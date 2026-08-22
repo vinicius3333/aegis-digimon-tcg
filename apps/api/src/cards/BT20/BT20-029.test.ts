@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT20-029.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT20-029 Pulsemon", () => {
   it("covers the printed alternate evolution requirements and both clauses", () => {
