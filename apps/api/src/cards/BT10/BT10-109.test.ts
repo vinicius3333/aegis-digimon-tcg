@@ -26,10 +26,10 @@ describe("BT10-109 Reinforcement Plug-In O", () => {
     })).toEqual({ ok: true });
     await settle(() => s.perm("chosen").currentDP === 7000);
 
-    s.state.turnSeat = 1;
-    await s.engine.recomputeContinuousEffects();
+    await advance(s.engine).runTurn(0);
     expect(s.perm("chosen").currentDP).toBe(7000);
 
+    s.state.turnSeat = 1;
     s.state.memory = -s.state.memory;
     await advance(s.engine).runTurn(1);
     expect(s.perm("chosen").currentDP).toBe(4000);
@@ -38,7 +38,7 @@ describe("BT10-109 Reinforcement Plug-In O", () => {
   it("does not waive its white color requirement without a Tamer", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT10-085", as: "target" }],
+        battleArea: [{ card: "BT10-083", as: "target" }],
         hand: [{ card: "BT10-109", as: "option" }],
       },
     });
