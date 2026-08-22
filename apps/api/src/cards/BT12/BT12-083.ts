@@ -12,6 +12,11 @@ if (endOfTurn !== undefined) {
     condition: { kind: "selfDigivolutionCountAtLeast", value: 4 },
   }];
 }
+const whenDigivolving = compiled.effects.find((effect) => effect.trigger === "WhenDigivolving");
+const levelScaling = whenDigivolving?.actions[1];
+if (levelScaling?.kind === "CostModifier" && levelScaling.scaling !== undefined) {
+  levelScaling.scaling.unit = "colors";
+}
 compiled.coverage = "full";
 compiled.residual = [];
 registerIrCard("BT12-083", compiled);

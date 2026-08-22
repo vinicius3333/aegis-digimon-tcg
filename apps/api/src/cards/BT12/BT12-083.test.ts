@@ -121,6 +121,16 @@ describe("BT12-083 Machinedramon [End of Your Turn]", () => {
     expect(JSON.stringify(card)).not.toContain("RawUnparsed");
   });
 
+  it("counts distinct Tamer colors for the level ceiling", async () => {
+    const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
+    const card = runtimeCompiledCard("BT12-083")!;
+    const whenDigivolving = card.effects.find((effect) => effect.trigger === "WhenDigivolving");
+    expect(whenDigivolving?.actions[1]).toMatchObject({
+      kind: "CostModifier",
+      scaling: { per: 1, unit: "colors" },
+    });
+  });
+
   it("calls forceAttack(withoutSuspending: true) when stack has 4+ digivolution cards", async () => {
     const forceAttackCalls: ForceAttackCall[] = [];
     const selfPerm = makeStackedPerm(4); // exactly 4 cards
