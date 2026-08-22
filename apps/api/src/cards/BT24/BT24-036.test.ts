@@ -12,7 +12,7 @@ describe("BT24-036 Medicmon", () => {
       payCost: false,
     });
     for (const trigger of ["OnPlay", "OnDeletion"]) {
-      expect(BT24_036.effects?.find((entry) => entry.trigger === trigger)?.actions?.[0]).toMatchObject({
+      expect(BT24_036.effects?.find((entry) => entry.trigger === trigger && !entry.isLinked)?.actions?.[0]).toMatchObject({
         kind: "ModifyDP",
         amount: -3000,
         duration: "forTheTurn",
@@ -70,6 +70,22 @@ describe("BT24-036 Medicmon", () => {
     expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
     await settle(() => s.perm("target").currentDP === 1000);
     expect(s.perm("target").currentDP).toBe(1000);
+  });
+
+  it("applies the card's own -3000 DP effect when Medicmon is deleted", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-036", as: "medicmon" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 6000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("medicmon").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.perm("target").currentDP === 3000);
+
+    expect(s.perm("target").currentDP).toBe(3000);
   });
 
   it("cancels the linked effect when BT7-107 returns its deleted host first (Q5615)", async () => {

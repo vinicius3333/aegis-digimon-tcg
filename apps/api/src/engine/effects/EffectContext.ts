@@ -189,6 +189,8 @@ export interface TriggerInfo {
    * permanent is gone.
    */
   deletedWasStackInstanceIds?: string[];
+  /** Subset of deletedInstanceIds that were linked cards before their host left play. */
+  deletedWasLinkedInstanceIds?: string[];
   /** Battle opponent for each card instance deleted in a battle. */
   battleOpponentPermanentIdByInstanceId?: Record<string, string>;
   /** Why the cards in this deletion window left play. */

@@ -484,6 +484,7 @@ export class GameEngine {
               deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
               deletedInstanceIds: trigger.deletedInstanceIds,
               deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
+              deletedWasLinkedInstanceIds: trigger.deletedWasLinkedInstanceIds,
               battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
             });
             return;
@@ -501,6 +502,7 @@ export class GameEngine {
           deletedEffectiveColorsByInstanceId: trigger.deletedEffectiveColorsByInstanceId,
           deletedInstanceIds: trigger.deletedInstanceIds,
           deletedWasStackInstanceIds: trigger.deletedWasStackInstanceIds,
+          deletedWasLinkedInstanceIds: trigger.deletedWasLinkedInstanceIds,
           battleOpponentPermanentIdByInstanceId: trigger.battleOpponentPermanentIdByInstanceId,
         });
       },
