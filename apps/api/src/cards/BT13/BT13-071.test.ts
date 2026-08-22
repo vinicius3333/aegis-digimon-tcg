@@ -7,7 +7,8 @@ describe("BT13-071 Giromon", () => {
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects[0]).toMatchObject({
       trigger: "Static",
-      keywords: [expect.objectContaining({ keyword: "Blocker" })],
+      actions: [],
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
     });
     expect(compiled.effects[1]).toMatchObject({
       trigger: "OpponentsTurn",
