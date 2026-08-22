@@ -60,7 +60,8 @@ const compiled: CompiledCard = {
                 "trash"
               ],
               "payCost": false,
-              "optional": true
+              "optional": true,
+              "bindResultAs": "playedImpmon"
             }
           ]
         },
@@ -68,10 +69,8 @@ const compiled: CompiledCard = {
           "kind": "GainKeyword",
           "target": {
             "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
+              "boundRef": "playedImpmon",
+              "kind": ["Digimon"]
             },
             "count": 1
           },
