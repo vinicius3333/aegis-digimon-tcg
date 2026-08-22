@@ -1,13 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import "./EX6-071.js";
+import { compiled } from "./EX6-071.js";
 
-describe("EX6-071 Dark Despair", () => {
-  it("registers Main and Security effects", () => {
-    const source = { instanceId: "source", cardId: "EX6-071", ownerSeat: 0, definition: {}, permanent: () => undefined, isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true } as never;
-    const module = getEffectModule("EX6-071")!;
-    expect(module.effectsForTiming(EffectTiming.OnUseOption, source)[0]?.description).toContain("5 or more cards");
-    expect(module.effectsForTiming(EffectTiming.SecuritySkill, source)[0]?.description).toContain("Activate");
+describe("EX6-071 Pandemonium Lost", () => {
+  it("exposes complete IR for the conditional opponent hand cost and level boundary", () => {
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    const main = compiled.effects.find((effect) => effect.trigger === "Main");
+    expect(main?.actions[0]).toMatchObject({
+      kind: "Delete",
+      cost: { kind: "trash", target: { chooser: "opponent" } },
+      condition: { kind: "zoneCount", seat: "opponent", zone: "hand", value: 5 },
+    });
+    expect(main?.actions[0]?.target.filter.levelComparison.scaling).toMatchObject({
+      levelCeilingAdd: 1,
+      unit: "cards",
+    });
   });
 });
