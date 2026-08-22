@@ -8,6 +8,10 @@ const appmon = { controller: "mine", playCostLte: 5, nameOrTrait: [{ tokens: ["A
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "Static",
+      actions: [{ kind: "WaiveColorRequirement", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } }],
+    },
+    {
       trigger: "Main",
       actions: [
         {
