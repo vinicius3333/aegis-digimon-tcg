@@ -6,6 +6,7 @@ import { describeEffect } from "../describe.js";
 import { runEffect } from "../dispatch.js";
 import { unsupported } from "../errors.js";
 import { DefinitionFacts, definitionMatches } from "../matching/definition.js";
+import { scaleFactor } from "../scaling.js";
 import { looseCardsInZone } from "../targeting/loose.js";
 import { CardKind } from "@aegis/shared";
 import { MemoryGauge } from "../../../MemoryGauge.js";
@@ -160,7 +161,12 @@ export async function runActivateForeignEffect(
   for (const eff of toRun.slice(0, action.count)) await runEffect(runCtx, eff);
 }
 
-const BORROWABLE_EFFECT_TRIGGERS: readonly EffectTrigger[] = ["OnPlay", "WhenDigivolving", "OnDeletion", "OnDestroyedAnyone"];
+const BORROWABLE_EFFECT_TRIGGERS: readonly EffectTrigger[] = [
+  "OnPlay",
+  "WhenDigivolving",
+  "OnDeletion",
+  "OnDestroyedAnyone",
+];
 
 export async function runActivateEffect(
   ctx: EffectContext,
@@ -234,8 +240,12 @@ export async function runUseOptionWithoutCost(
           return attacker?.topCard === undefined ? undefined : ctx.game.definitionOf(attacker.topCard).level;
         })()
       : undefined;
+  const scaledCostCap =
+    filter?.playCostLteScaling === undefined
+      ? undefined
+      : (filter.playCostLte ?? 0) + scaleFactor(ctx, filter.playCostLteScaling);
   const costCap =
-    attackerLevelCap ?? filter?.playCostLte ?? (exactCosts.length > 0 ? Math.max(...exactCosts) : 5);
+    attackerLevelCap ?? scaledCostCap ?? filter?.playCostLte ?? (exactCosts.length > 0 ? Math.max(...exactCosts) : 5);
   // Server-side eligibility: a single-color Option within the cost cap matching the filter, not
   // under a CanNotPlayThisOption play restriction.
   const candidates: string[] = [];
@@ -243,7 +253,9 @@ export async function runUseOptionWithoutCost(
     for (const cand of looseCardsInZone(ctx, seat, zone as ZoneRef)) {
       if (candidates.includes(cand.instanceId)) continue;
       const def = ctx.game.definitionOf({ cardId: cand.cardId } as never);
-      if (filter !== undefined && !definitionMatches(filter, def)) continue;
+      const effectiveFilter =
+        filter === undefined ? undefined : { ...filter, playCostLte: costCap, playCostLteScaling: undefined };
+      if (effectiveFilter !== undefined && !definitionMatches(effectiveFilter, def)) continue;
       if (!def.kinds.includes(CardKind.Option)) continue;
       if (action.allowMultiColor !== true && def.colors !== undefined && def.colors.length !== 1) continue;
       if (def.playCost > costCap) continue;

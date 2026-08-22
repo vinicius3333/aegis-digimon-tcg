@@ -165,7 +165,9 @@ describe("BT24-101 Jupitermon", () => {
       "byEffect",
     );
 
-    expect(s.state.players[0]!.battleArea).toEqual(expect.arrayContaining([s.perm("digimon"), s.perm("tamer")]));
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual(
+      expect.arrayContaining([s.perm("digimon").permanentId, s.perm("tamer").permanentId]),
+    );
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("remaining").instanceId]);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });

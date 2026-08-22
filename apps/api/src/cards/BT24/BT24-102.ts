@@ -44,7 +44,11 @@ export const compiled: CompiledCard = {
         },
       ],
     },
-    { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", target: self, payCost: false }] },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [{ kind: "PlayWithoutCost", target: self, from: ["security"], payCost: false }],
+    },
   ],
   coverage: "full",
   residual: [],

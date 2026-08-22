@@ -33,7 +33,7 @@ describe("BT24-091 Tidal Stream", () => {
       expect.arrayContaining([s.inst("low1").instanceId, s.inst("low2").instanceId]),
     );
     expect(s.state.players[1]!.battleArea).toContain(s.perm("high"));
-    expect(s.perm("ts").suspended).toBe(false);
+    expect(s.perm("ts").isSuspended).toBe(false);
   });
 
   it("does not unsuspend when the Return action moved no Digimon", async () => {
@@ -52,7 +52,7 @@ describe("BT24-091 Tidal Stream", () => {
       ok: true,
     });
     await settle();
-    expect(s.perm("ts").suspended).toBe(true);
+    expect(s.perm("ts").isSuspended).toBe(true);
   });
 
   it("links this Option to a separately selected Digimon", () => {

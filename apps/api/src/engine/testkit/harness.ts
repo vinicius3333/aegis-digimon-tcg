@@ -451,8 +451,12 @@ function findInstanceById(state: GameState, instanceId: string): CardInstance | 
       const inLinked = permanent.linked.find((card) => card.instanceId === instanceId);
       if (inLinked !== undefined) return inLinked;
     }
-    const breedingTop = player.breeding?.topCard;
-    if (breedingTop?.instanceId === instanceId) return breedingTop;
+    const breeding = player.breeding;
+    if (breeding?.topCard?.instanceId === instanceId) return breeding.topCard;
+    const breedingStack = breeding?.stack.find((card) => card.instanceId === instanceId);
+    if (breedingStack !== undefined) return breedingStack;
+    const breedingLinked = breeding?.linked.find((card) => card.instanceId === instanceId);
+    if (breedingLinked !== undefined) return breedingLinked;
   }
   return undefined;
 }

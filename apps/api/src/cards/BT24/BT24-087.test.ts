@@ -165,7 +165,7 @@ describe("BT24-087 Rei Katsura public behavior", () => {
     });
     await settle(() => s.perm("fuser").topCard.instanceId === s.inst("fusion").instanceId);
 
-    expect(s.perm("rei").suspended).toBe(true);
+    expect(s.perm("rei").isSuspended).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((instance) => instance.instanceId)).toContain(s.inst("drawn").instanceId);
     expect(s.state.players[0]!.trash.map((instance) => instance.instanceId)).toContain(s.inst("discard").instanceId);
@@ -187,7 +187,7 @@ describe("BT24-087 Rei Katsura public behavior", () => {
       subjectPermanentId: s.perm("opponent").permanentId,
     });
 
-    expect(s.perm("rei").suspended).toBe(false);
+    expect(s.perm("rei").isSuspended).toBe(false);
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });

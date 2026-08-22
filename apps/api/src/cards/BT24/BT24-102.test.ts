@@ -44,7 +44,7 @@ describe("BT24-102 Homeros", () => {
   it("suspends and draws after the start-main-phase memory gain crosses five", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT24-102", as: "source" }], deck: ["BT1-009"] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 4;
 
@@ -103,14 +103,14 @@ describe("BT24-102 Homeros", () => {
         },
         1: { battleArea: [{ card: "BT1-080", as: "target", dp: 13000 }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("target").instanceId));
 
-    expect(s.perm("source").suspended).toBe(true);
+    expect(s.perm("source").isSuspended).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(2);
   });
 
