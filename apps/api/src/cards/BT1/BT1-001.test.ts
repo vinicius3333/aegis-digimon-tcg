@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT1-001.js";
 import "./BT1-072.js";
-import "../index.js"; // the full catalog is registered in a real match
 
 describe("BT1-001 Yokomon", () => {
   it("gives +1000 DP when its Digimon attacks an opposing Digimon", async () => {

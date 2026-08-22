@@ -163,6 +163,9 @@ export interface ReplacementSubscriptionReduceCost extends ReplacementSubscripti
   controllerSeat?: Seat;
   /** Live context retained by one-shot reducers whose source is no longer a permanent. */
   activationContext?: EffectContext;
+  /** Printed timing/provenance retained for an interactive reducer opened at play time. */
+  activationTiming?: string;
+  activationEffectText?: string;
   /** Interactive cost gate paid immediately before the memory cost is calculated. */
   activate?: (
     ctx: EffectContext,
@@ -342,6 +345,7 @@ export class SubTriggerRegistry {
         replacement.event === sub.event &&
         replacement.mode === sub.mode &&
         replacement.sourcePermanentId === sub.sourcePermanentId &&
+        replacement.sourceInstanceId === sub.sourceInstanceId &&
         replacement.description === sub.description,
     );
     if (existing !== undefined) return existing.id;
@@ -484,6 +488,7 @@ export class SubTriggerRegistry {
   ): number {
     let sum = 0;
     const consumedKeys = new Set<string>();
+    const consumedReplacementIds = new Set<number>();
     const sourcePermanentId = typeof source === "string" ? source : source?.permanentId;
     for (const r of this.replacements) {
       if (r.event !== event || r.mode !== "reduceCost" || r.activate !== undefined) continue;
@@ -492,11 +497,16 @@ export class SubTriggerRegistry {
       } else if (sourcePermanentId !== undefined && r.sourcePermanentId !== sourcePermanentId) continue;
       if (r.intoMatches !== undefined && into !== undefined && !r.intoMatches(into)) continue;
       if (r.oncePerTurnKey !== undefined && turnBudget?.hasFired(r.oncePerTurnKey)) continue;
-      sum += r.amount ?? 0;
-      if (r.oncePerTurnKey !== undefined && (r.amount ?? 0) > 0) consumedKeys.add(r.oncePerTurnKey);
+      const reduction = into !== undefined && r.amountForInto !== undefined ? r.amountForInto(into) : (r.amount ?? 0);
+      sum += reduction;
+      if (r.oncePerTurnKey !== undefined && reduction > 0) consumedKeys.add(r.oncePerTurnKey);
+      if (r.consumeOnActivate === true && reduction > 0) consumedReplacementIds.add(r.id);
     }
     if (turnBudget?.consume === true) {
       for (const key of consumedKeys) turnBudget.markFired(key);
+      if (consumedReplacementIds.size > 0) {
+        this.replacements = this.replacements.filter((r) => !consumedReplacementIds.has(r.id));
+      }
     }
     return sum;
   }
@@ -583,6 +593,8 @@ export class SubTriggerRegistry {
       const sourcePermanentId = replacement.sourcePermanentId;
       const ctx = sourcePermanentId === undefined ? replacement.activationContext : buildContext(sourcePermanentId);
       if (ctx === undefined) continue;
+      if (replacement.activationTiming !== undefined) ctx.activeTiming = replacement.activationTiming;
+      if (replacement.activationEffectText !== undefined) ctx.activeEffectText = replacement.activationEffectText;
       const activated = await replacement.activate(ctx, target, into, evolvingInstanceId);
       if (!activated) continue;
       reduction += typeof activated === "number" ? activated : (replacement.amount ?? 0);

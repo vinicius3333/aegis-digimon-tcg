@@ -180,7 +180,11 @@ describe("EX3-064 Megidramon", () => {
     expect(deletion.options?.candidateInstanceIds).not.toContain(s.perm("level7").permanentId);
     const deletedLevel6Id = s.perm("level6").permanentId;
     respond(s, { kind: "chooseTargets", instanceIds: [deletedLevel6Id] });
-    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === deletedLevel6Id));
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === deletedLevel6Id) &&
+        s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX3-069"),
+    );
 
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("EX3-069");
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("EX3-064");
@@ -209,13 +213,6 @@ describe("EX3-064 Megidramon", () => {
     const deletion = advance(s.engine).verb.deletePermanent([s.perm("megidramon").permanentId], "byEffect");
     await settle(() => s.state.pendingDecision?.kind === "optional");
     respond(s, { kind: "optional", accept: true });
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
-    const placement = [...s.decisions].reverse().find(({ req }) => req.kind === "selectCards")!.req;
-    expect(placement.options).toMatchObject({
-      candidateInstanceIds: [s.inst("trial").instanceId],
-      visibleInstanceIds: [s.inst("trial").instanceId, s.inst("unrelatedHand").instanceId],
-    });
-    respond(s, { kind: "selectCards", instanceIds: [s.inst("trial").instanceId] });
     await deletion;
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-069"));
 

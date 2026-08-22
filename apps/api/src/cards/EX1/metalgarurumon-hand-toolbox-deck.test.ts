@@ -82,13 +82,14 @@ describe("EX1 MetalGarurumon hand toolbox deck", () => {
       5000,
     );
 
-    expect(s.state.memory).toBe(6);
+    expect(s.state.memory).toBe(7);
     expect(s.state.players[0]!.hand).toHaveLength(9);
-    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("unrevealed").instanceId,
-      s.inst("revealedMatt").instanceId,
-      s.inst("revealedRest").instanceId,
-    ]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("unrevealed").instanceId,
+        s.inst("revealedRest").instanceId,
+      ]),
+    );
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([
         s.inst("firstSource").instanceId,

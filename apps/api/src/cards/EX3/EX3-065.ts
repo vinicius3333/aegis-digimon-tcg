@@ -13,7 +13,16 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "StartOfYourTurn",
-      actions: [{ kind: "GainMemory", amount: 1, condition: { kind: "opponentHas", filter: { controllerDefault: "opponent", kind: ["Digimon"] } } }],
+      actions: [
+        {
+          kind: "GainMemory",
+          amount: 1,
+          condition: {
+            kind: "opponentHas",
+            filter: { controllerDefault: "opponent", kind: ["Digimon"], zone: "battleArea" },
+          },
+        },
+      ],
     },
     {
       trigger: "YourTurn",

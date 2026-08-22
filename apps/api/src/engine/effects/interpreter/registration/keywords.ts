@@ -155,7 +155,7 @@ export function declaresExecuteKeyword(compiled: CompiledCard): boolean {
   );
   if (!declares) return false;
   const hasExplicitAttack = compiled.effects.some(
-    (e) => e.trigger === "EndOfYourTurn" && e.actions.some((a) => a.kind === "Attack"),
+    (e) => e.trigger === "EndOfYourTurn" && (e.actions ?? []).some((a) => a.kind === "Attack"),
   );
   return !hasExplicitAttack;
 }
@@ -208,7 +208,7 @@ export function synthesizedOverclockTrait(
   );
   if (!declaresOverclock) return undefined;
   const hasExplicitAttack = compiled.effects.some(
-    (e) => e.trigger === "EndOfYourTurn" && e.actions.some((a) => a.kind === "Attack"),
+    (e) => e.trigger === "EndOfYourTurn" && (e.actions ?? []).some((a) => a.kind === "Attack"),
   );
   if (hasExplicitAttack) return undefined;
   return overclockTraitFrom(compiled, definition);

@@ -58,7 +58,14 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     return required > 0 && candidates.length >= required;
   }
   if (cost.kind === "compound") {
-    return cost.costs !== undefined && cost.costs.length > 0 && cost.costs.every((nested) => canPayCost(ctx, nested));
+    if (cost.costs === undefined || cost.costs.length === 0) return false;
+    return cost.costs.every((nested) => {
+      if (nested.stopIfZero === true && nested.kind === "return" && nested.target !== undefined) {
+        const candidates = candidateLooseInstances(ctx, nested.target, ["trash"]);
+        return candidates.length > 0;
+      }
+      return canPayCost(ctx, nested);
+    });
   }
   if (cost.kind === "trashBreeding") {
     const breeding = ctx.game.player(ctx.source.ownerSeat).breeding;
@@ -100,6 +107,11 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const available = ctx.game.player(seat).security.length;
     const n = cost.target.count === "all" ? available : cost.target.count;
     return n > 0 && available >= n;
+  }
+  if (cost.kind === "return" && cost.target !== undefined && cost.target.filter.zone === "trash") {
+    const candidates = candidateLooseInstances(ctx, cost.target, ["trash"]);
+    const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
+    return cost.target.upTo === true ? candidates.length >= (cost.stopIfZero === true ? 1 : 0) : candidates.length >= required;
   }
   if (
     cost.kind === "trash" &&
@@ -283,8 +295,51 @@ export async function payCost(
     }
     case "compound": {
       if (cost.costs === undefined || cost.costs.length === 0) return false;
+      if (!canPayCost(ctx, cost)) return false;
+      if (cost.orderReturnedCards === true && cost.costs.every((nested) => nested.kind === "return")) {
+        const chosen: string[] = [];
+        for (const nested of cost.costs) {
+          if (nested.target === undefined) return false;
+          const candidates = candidateLooseInstances(ctx, nested.target, ["trash"]);
+          const min = nested.target.upTo === true ? 0 : 1;
+          const decisionCtx = ctx.activeTiming === "WhenAttacking" ? { ...ctx, activeTiming: "OnAllyAttack" } : ctx;
+          const picked = await decisionCtx.ask.selectCards(decisionCtx, {
+            candidates: candidates.map((candidate) => candidate.instanceId),
+            min,
+            max: Math.min(nested.target.count === "all" ? candidates.length : (nested.target.count ?? 1), candidates.length),
+            visible: candidateLooseInstances(ctx, { filter: { zone: "trash" }, count: "all" }, ["trash"]).map(
+              (candidate) => candidate.instanceId,
+            ),
+            visibleCards: candidateLooseInstances(ctx, { filter: { zone: "trash" }, count: "all" }, ["trash"]).map(
+              (candidate) => ({ instanceId: candidate.instanceId, cardId: candidate.cardId }),
+            ),
+          });
+          if (picked.length < min) return false;
+          if (nested.stopIfZero === true && picked.length === 0) return false;
+          chosen.push(...picked);
+        }
+        if (chosen.length > 1) {
+          const decisionCtx = ctx.activeTiming === "WhenAttacking" ? { ...ctx, activeTiming: "OnAllyAttack" } : ctx;
+          const ordered = (await decisionCtx.ask.orderCards?.(decisionCtx, {
+            candidates: chosen,
+            visibleCards: chosen.map((instanceId) => {
+              const card = candidateLooseInstances(ctx, { filter: { zone: "trash" }, count: "all" }, ["trash"]).find(
+                (candidate) => candidate.instanceId === instanceId,
+              );
+              return { instanceId, cardId: card?.cardId ?? instanceId };
+            }),
+            destination: "deckBottom",
+          })) ?? chosen;
+          await ctx.fx.returnToDeck(ordered, { toTop: false });
+        } else if (chosen.length === 1) {
+          await ctx.fx.returnToDeck(chosen, { toTop: false });
+        }
+        return true;
+      }
       for (const nested of cost.costs) {
-        if (!(await payCost(ctx, nested, undefined, opts))) return false;
+        const nestedOut = { paidCount: 0 };
+        if (!(await payCost(ctx, nested, nestedOut, opts))) return false;
+        if (nested.stopIfZero === true && nestedOut.paidCount === 0) return false;
       }
       return true;
     }

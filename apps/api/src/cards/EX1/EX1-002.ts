@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [{
     trigger: "WhenAttacking",
-    actions: [{ kind: "Draw", count: 1, attackPlayer: true }],
+    actions: [{ kind: "SubTrigger", event: "whenAttacking", actions: [{ kind: "Draw", controller: "mine", amount: 1 }] }],
     isInherited: true,
     frequency: "OncePerTurn",
   }],

@@ -90,8 +90,6 @@ export function countMatching(ctx: EffectContext, filter: Filter): number {
     for (const permanent of ctx.game.player(seat).battleArea) {
       if (permanentMatchesFilter(ctx, permanent, filter, ctx.source)) n++;
     }
-    const breeding = ctx.game.player(seat).breeding;
-    if (breeding !== undefined && permanentMatchesFilter(ctx, breeding, filter, ctx.source)) n++;
   }
   return n;
 }

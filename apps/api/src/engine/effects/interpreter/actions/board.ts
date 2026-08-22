@@ -145,6 +145,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
       const amount = scale === undefined ? action.amount : action.amount * scale;
+      const effectSourceBound = (action as Action & { effectSourceBound?: boolean }).effectSourceBound === true;
       const continuous =
         action.continuous === true ||
         (action.continuous === undefined &&
@@ -156,8 +157,12 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
           amount,
           duration,
           action.continuous === undefined
-            ? (ctx.continuousPass === true ? { continuous: true } : undefined)
-            : { continuous: action.continuous },
+            ? (ctx.continuousPass === true
+                ? { continuous: true, ...(effectSourceBound ? { sourceInstanceId: ctx.source.instanceId } : {}) }
+                : effectSourceBound
+                  ? { sourceInstanceId: ctx.source.instanceId }
+                  : undefined)
+            : { continuous: action.continuous, ...(effectSourceBound ? { sourceInstanceId: ctx.source.instanceId } : {}) },
         );
         for (const keyword of action.alsoGainKeywords ?? []) {
           ctx.fx.grantKeyword(id, keyword.keyword, duration, keyword.amount);
@@ -167,30 +172,6 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         ctx.selections ??= new Map();
         ctx.selections.set(action.target.bindAs, ids[0]!);
       }
-      return false;
-    }
-    case "AddDPFromTrashedCard": {
-      const costTarget = action.cost.target;
-      if (costTarget === undefined) return action.abortOnDecline === true;
-      const candidates = candidateLooseInstances(ctx, costTarget, ["hand"]);
-      const chosen = await pickLoose(ctx, costTarget, candidates);
-      let dp = 0;
-      if (chosen.length > 0) {
-        const hand = ctx.game.player(ctx.source.ownerSeat).hand;
-        const cards = chosen
-          .map((id) => hand.find((card) => card.instanceId === id))
-          .filter((card) => card !== undefined);
-        dp = ctx.game.definitionOf(cards[0]!).dp ?? 0;
-        const moved = await ctx.fx.trash(cards, { byEffectSeat: ctx.source.ownerSeat });
-        if (moved.length !== cards.length) return action.abortOnDecline === true;
-      } else {
-        const trash = ctx.game.player(ctx.source.ownerSeat).trash;
-        const last = trash[trash.length - 1];
-        if (last === undefined) return action.abortOnDecline === true;
-        dp = ctx.game.definitionOf(last).dp ?? 0;
-      }
-      for (const id of await resolvePermanentTargets(ctx, action.target))
-        ctx.fx.modifyDP(id, dp, toDuration(action.duration));
       return false;
     }
     case "AddDPFromSuspendedCost": {
@@ -295,7 +276,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         ((action as Action & { playerScoped?: boolean }).playerScoped === true ||
           ctx.trigger.securityInstanceId !== undefined ||
           (ctx.activeTiming === "Security" &&
-            (action.target?.filter.controller === "mine" || action.target?.filter.controllerDefault === "mine"))) &&
+            (action.target?.filter?.controller === "mine" || action.target?.filter?.controllerDefault === "mine"))) &&
         kw === "SecurityAttack" &&
         action.target?.count === "all" &&
         action.target.filter.kind?.includes("Digimon")

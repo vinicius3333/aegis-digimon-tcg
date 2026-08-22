@@ -54,7 +54,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
     (e) =>
       e.isInherited !== true &&
       ((e.keywords ?? []).some((k) => k.keyword === "Training") ||
-        e.actions?.some(
+        (e.actions ?? []).some(
           (a) =>
             a.kind === "GainKeyword" &&
             (a as { keyword?: { keyword?: string } }).keyword?.keyword === "Training" &&
@@ -141,7 +141,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
             source,
             irTrigger: effect.trigger,
             effectKey,
-            description: describeEffect(effect),
+            description: effect.description ?? describeEffect(effect),
             optional: true,
             isInherited: effect.isInherited ?? false,
             isLinked: effect.isLinked ?? false,
@@ -198,7 +198,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
             source,
             irTrigger: effect.trigger,
             effectKey,
-            description: describeEffect(effect),
+            description: effect.description ?? describeEffect(effect),
             optional: effect.optional ?? false,
             isInherited: effect.isInherited ?? false,
             isLinked: effect.isLinked ?? false,
@@ -236,7 +236,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
           source,
           irTrigger: effect.trigger,
           effectKey,
-          description: describeEffect(effect),
+          description: effect.description ?? describeEffect(effect),
           optional: effect.optional ?? false,
           isInherited: effect.isInherited ?? false,
           isLinked: effect.isLinked ?? false,

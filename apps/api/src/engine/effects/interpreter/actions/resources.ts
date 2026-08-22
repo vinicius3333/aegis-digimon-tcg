@@ -304,6 +304,7 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
         | {
             setFixed?: boolean;
             once?: boolean;
+            continuous?: boolean;
             onConsume?: (match: { target: Permanent; into?: CardDefinition }) => void;
           }
         | undefined =
@@ -311,6 +312,11 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
           ? {
               ...(setMode ? { setFixed: true } : {}),
               ...(action.once === true || action.restriction === "suspendThisTamer" ? { once: true } : {}),
+              ...(action.duration === "permanent"
+                ? { continuous: true }
+                : action.duration !== undefined
+                  ? { continuous: false }
+                  : {}),
             }
           : undefined;
       const selfRef = want.isSelf || filter.isSelfRef;

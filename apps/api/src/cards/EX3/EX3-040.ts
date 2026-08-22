@@ -24,7 +24,7 @@ const compiled: CompiledCard = {
               event: "wouldBePlayed",
               mode: "reduceCost",
               amount: 1,
-              raw: "reduce the cost by 1",
+              raw: "Suspend Parasaurmon to reduce this green Digimon's play cost by 1?",
               cost: {
                 kind: "suspend",
                 target: {

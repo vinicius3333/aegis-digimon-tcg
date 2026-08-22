@@ -2747,7 +2747,6 @@ export class GameEngine {
       (cardHasTrait(def, "Bagra Army") || cardHasTrait(def, "BagraArmy"));
     const player = this.state.players[seat];
     if (player === undefined) return [];
-    const isGreenDigimon = def.kinds.includes(CardKind.Digimon) && def.colors.includes("Green" as CardColor);
     const isBossOrTsDigimon =
       def.kinds.includes(CardKind.Digimon) && (cardHasTrait(def, "Boss") || cardHasTrait(def, "TS"));
     return player.battleArea.filter((perm) => {
@@ -2761,13 +2760,7 @@ export class GameEngine {
           !this.continuous.hasRestriction(perm.permanentId, "beAffected")
         );
       }
-      return (
-        perm.topCard?.cardId === "EX3-040" &&
-        isGreenDigimon &&
-        !perm.isSuspended &&
-        !this.continuous.hasRestriction(perm.permanentId, "beSuspended") &&
-        !this.continuous.hasRestriction(perm.permanentId, "beAffected")
-      );
+      return false;
     });
   }
 
@@ -2804,28 +2797,6 @@ export class GameEngine {
           return lookupDefinition(permanent.topCard.cardId)?.kinds.includes(CardKind.Digimon) === true;
         });
         ctx.playCostDelta = (ctx.playCostDelta ?? 0) + (hasDigimon ? 1 : 2);
-        continue;
-      }
-      if (watcher.topCard?.cardId === "EX3-040") {
-        const watcherSource = this.cardSourceOf(watcher.topCard);
-        const watcherCtx: EffectContext = {
-          ...this.buildEffectContext(watcherSource, {}),
-          selections: new Map(),
-          activeTiming: "YourTurn",
-          activeEffectText:
-            "[Your Turn] When you would play a green Digimon card, by suspending this Digimon, reduce the cost by 1.",
-        };
-        if (
-          watcher.isSuspended ||
-          !(await watcherCtx.ask.optional(
-            watcherCtx,
-            "Suspend Parasaurmon to reduce this green Digimon's play cost by 1?",
-          ))
-        ) {
-          continue;
-        }
-        const paid = watcherCtx.fx.payActivationCost?.(watcher.permanentId, "suspend") ?? false;
-        if (paid) ctx.playCostDelta = (ctx.playCostDelta ?? 0) + 1;
         continue;
       }
       const key = `crossPlayReducer:${watcher.permanentId}`;
