@@ -3580,10 +3580,10 @@ describe("BT12-014 — dynamic DP deletion budget", () => {
     const omniShoutmon = instance("BT12-014", 0, false);
     const dp5000 = digimon(1, 5000, "AD1-001");
     const dp2000 = digimon(1, 2000, "BT1-009");
-    const dp1000 = digimon(1, 1000, "BT1-010");
+    const dp3000 = digimon(1, 3000, "BT1-010");
     p0.battleArea.push(base);
     p0.hand.push(omniShoutmon);
-    p1.battleArea.push(dp5000, dp2000, dp1000);
+    p1.battleArea.push(dp5000, dp2000, dp3000);
     s.state.memory = 10;
 
     expect(
@@ -3597,7 +3597,7 @@ describe("BT12-014 — dynamic DP deletion budget", () => {
 
     expect(p1.battleArea.some((p) => p.permanentId === dp5000.permanentId)).toBe(false);
     expect(p1.battleArea.some((p) => p.permanentId === dp2000.permanentId)).toBe(false);
-    expect(p1.battleArea.some((p) => p.permanentId === dp1000.permanentId)).toBe(true);
+    expect(p1.battleArea.some((p) => p.permanentId === dp3000.permanentId)).toBe(true);
     assertNoLoudGap(s);
   });
 });
