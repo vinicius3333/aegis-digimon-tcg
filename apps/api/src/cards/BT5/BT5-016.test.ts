@@ -17,4 +17,12 @@ describe("BT5-016 WarGreymon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
+
+  it("does not use an excluded Greymon source to delete a Blocker", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-015", as: "base", under: ["BT4-013"] }], hand: [{ card: "BT5-016", as: "evolving" }] }, 1: { battleArea: ["BT5-062"] } }, { autoSelectCards: true });
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT5-016");
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
 });
