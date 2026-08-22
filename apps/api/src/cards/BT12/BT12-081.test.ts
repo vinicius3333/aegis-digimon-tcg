@@ -34,4 +34,23 @@ describe("BT12-081 Astamon", () => {
     await settle(() => s.perm("astamon").topCard?.cardId === "BT12-057");
     expect(s.perm("astamon").topCard?.cardId).toBe("BT12-057");
   });
+
+  it("does not offer Quartzmon with fewer than four digivolution cards", async () => {
+    const s = setupEngine({ 0: {
+      battleArea: [{ card: "BT12-081", as: "astamon", under: ["BT12-008", "BT12-009", "BT12-010"] }],
+      hand: ["BT12-057"],
+    } }, { autoAcceptOptional: true, autoSelectCards: true });
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("astamon"));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("astamon").topCard?.cardId).toBe("BT12-081");
+  });
+
+  it("draws from its inherited Save attack effect", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT12-081"] }], deck: ["BT1-010"] },
+    });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-010");
+  });
 });
