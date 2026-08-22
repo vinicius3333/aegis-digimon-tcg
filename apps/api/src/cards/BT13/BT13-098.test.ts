@@ -3,11 +3,51 @@ import { compiled } from "./BT13-098.js";
 
 describe("BT13-098 Richard Sampson", () => {
   it("plays itself when an effect directly trashes it from security", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnDiscardSecurity")?.actions?.[0]).toMatchObject({ kind: "PlayWithoutCost", optional: true, payCost: false, target: { filter: { isSelfRef: true }, isSelf: true } });
+    expect(compiled.effects?.find((entry) => entry.trigger === "OnDiscardSecurity")).toMatchObject({
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          optional: true,
+          payCost: false,
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        },
+      ],
+    });
   });
 
   it("uses the total security count for both memory and Main conditions", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "StartOfYourMainPhase")?.actions?.[0]).toMatchObject({ kind: "GainMemory", amount: 1, condition: { kind: "totalSecurityCount", op: "lte", value: 6 } });
-    expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions?.[0]).toMatchObject({ kind: "Digivolve", ignoreRequirements: true, from: ["hand"], target: { filter: { controller: "mine", zone: "battleArea", kind: ["Digimon"], nameOrTrait: [{ match: "name", tokens: ["Kudamon"] }] } }, into: { nameOrTrait: [{ match: "name", tokens: ["Kentaurosmon"] }] }, cost: { kind: "suspend" }, condition: { kind: "totalSecurityCount", op: "lte", value: 6 } });
+    expect(compiled.effects?.find((entry) => entry.trigger === "StartOfYourMainPhase")?.actions?.[0]).toMatchObject({
+      kind: "GainMemory",
+      amount: 1,
+      condition: {
+        kind: "totalSecurityCount",
+        op: "lte",
+        value: 6,
+        raw: "there're 6 or fewer total cards in both players' security stacks",
+      },
+    });
+    expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions?.[0]).toMatchObject({
+      kind: "Digivolve",
+      target: {
+        filter: {
+          controller: "mine",
+          zone: "battleArea",
+          kind: ["Digimon"],
+          nameOrTrait: [{ match: "name", tokens: ["Kudamon"] }],
+        },
+        count: 1,
+      },
+      ignoreRequirements: true,
+      from: ["hand"],
+      into: { nameOrTrait: [{ match: "name", tokens: ["Kentaurosmon"] }] },
+      cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
+      condition: { kind: "totalSecurityCount", op: "lte", value: 6 },
+    });
+    expect(compiled.effects?.find((entry) => entry.trigger === "Security")).toMatchObject({
+      isSecurity: true,
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+      ],
+    });
   });
 });
