@@ -3486,7 +3486,7 @@ export class GameEngine {
   ): Promise<boolean> {
     const source = this.cardSourceOf(card);
     const securityEffects = effectsOf(EffectTiming.SecuritySkill, source).filter((effect) => {
-      const ctx = this.buildEffectContext(source, { securityWasFaceUp });
+      const ctx = this.buildEffectContext(source, { securityWasFaceUp, securityInstanceId: card.instanceId });
       return canTrigger(effect, ctx, this.tracker);
     });
     log(
@@ -3508,7 +3508,7 @@ export class GameEngine {
     }
 
     for (const effect of securityEffects) {
-      const ctx = this.buildEffectContext(source, { securityWasFaceUp });
+      const ctx = this.buildEffectContext(source, { securityWasFaceUp, securityInstanceId: card.instanceId });
       if (!canActivate(effect, ctx, this.tracker)) {
         log("[resolveSecurityEffect]", card.cardId, `canActivate=false for ${effect.effectKey}, skipping`);
         continue;

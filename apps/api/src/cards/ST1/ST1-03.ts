@@ -1,27 +1,30 @@
-import { EffectDuration, EffectTiming } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "ST1-03";
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing, source) {
-    if (timing !== EffectTiming.None) return [];
-    return [
-      staticModifier({
-        source,
-        effectKey: `${cardId}/inherited-dp`,
-        description: "[Your Turn] This Digimon gets +1000 DP.",
-        isInherited: true,
-        when: () => source.isOwnersTurn(),
-        resolve: async (ctx) => {
-          const host = source.permanent();
-          if (host) ctx.fx.modifyDP(host.permanentId, 1000, EffectDuration.Permanent);
-        },
-      }),
-    ];
-  },
+const compiled: CompiledCard = {
+  "effects": [
+    {
+      "trigger": "YourTurn",
+      "actions": [
+        {
+          "kind": "ModifyDP",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          },
+          "amount": 1000,
+          "duration": "permanent"
+        }
+      ],
+      "isInherited": true
+    }
+  ],
+  "coverage": "full",
+  "residual": []
 };
-registerCard(module);
-export default module;
+
+registerIrCard("ST1-03", compiled);
