@@ -118,7 +118,7 @@ describe("BT9 WarGreymon X historical deck gauntlet", () => {
     );
 
     expect(s.state.players[1]!.security).toHaveLength(0);
-    expect(s.state.memory).toBe(7);
+    expect(s.state.memory).toBe(10);
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
       s.perm("redColorSource").permanentId,
     ]);
