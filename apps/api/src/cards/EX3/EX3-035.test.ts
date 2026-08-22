@@ -125,6 +125,7 @@ describe("EX3-035 Goldramon", () => {
     );
     s.state.memory = 2;
     await s.ready();
+    const trialId = s.inst("trial").instanceId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -167,16 +168,16 @@ describe("EX3-035 Goldramon", () => {
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "selectCards", instanceIds: [s.inst("trial").instanceId] },
+        response: { kind: "selectCards", instanceIds: [trialId] },
       }),
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("trial").instanceId) &&
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === trialId) &&
         s.state.pendingDecision?.kind === "optional" &&
         s.decisions.at(-1)?.req.sourceCardId === "BT16-014",
     );
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(s.inst("trial").instanceId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(trialId);
 
     expect(
       s.engine.applyIntent(0, {
@@ -192,15 +193,15 @@ describe("EX3-035 Goldramon", () => {
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "selectCards", instanceIds: [s.inst("trial").instanceId] },
+        response: { kind: "selectCards", instanceIds: [trialId] },
       }),
     ).toEqual({ ok: true });
     await settle(() =>
-      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("trial").instanceId),
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === trialId),
     );
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("trial").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(trialId);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
-      s.inst("trial").instanceId,
+      trialId,
     );
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([s.inst("digivolutionDraw").instanceId, s.inst("trialDraw").instanceId]),

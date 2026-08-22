@@ -95,7 +95,7 @@ describe("EX3-065 Hina Kurihara", () => {
     expect(
       s.decisions.find(({ req }) => req.sourceCardId === "EX3-065" && req.kind === "optional")?.req.options,
     ).toMatchObject({
-      timing: "OnEnterFieldAnyone",
+      timing: "YourTurn",
     });
     assertNoLoudGap(s);
   });
@@ -166,9 +166,8 @@ describe("EX3-065 Hina Kurihara", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnEnterFieldAnyone, s.perm("hina"), {
+    await advance(s.engine).fireSubTrigger("whenOneOfYoursDigivolves", {
       subjectPermanentId: s.perm("dragon").permanentId,
-      entryCause: "digivolve",
     });
 
     expect(s.perm("hina").isSuspended).toBe(true);
@@ -197,9 +196,8 @@ describe("EX3-065 Hina Kurihara", () => {
       s.state.turnSeat = scenario.turnSeat;
       await s.ready();
 
-      await advance(s.engine).fireForPermanent(EffectTiming.OnEnterFieldAnyone, s.perm("hina"), {
+      await advance(s.engine).fireSubTrigger("whenOneOfYoursDigivolves", {
         subjectPermanentId: s.perm(scenario.subject).permanentId,
-        entryCause: "digivolve",
       });
 
       expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX3-065")).toHaveLength(0);

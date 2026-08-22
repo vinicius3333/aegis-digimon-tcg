@@ -145,6 +145,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
       const amount = scale === undefined ? action.amount : action.amount * scale;
+      const effectSourceBound = (action as Action & { effectSourceBound?: boolean }).effectSourceBound === true;
       const continuous =
         action.continuous === true ||
         (action.continuous === undefined &&
@@ -156,8 +157,12 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
           amount,
           duration,
           action.continuous === undefined
-            ? (ctx.continuousPass === true ? { continuous: true } : undefined)
-            : { continuous: action.continuous },
+            ? (ctx.continuousPass === true
+                ? { continuous: true, ...(effectSourceBound ? { sourceInstanceId: ctx.source.instanceId } : {}) }
+                : effectSourceBound
+                  ? { sourceInstanceId: ctx.source.instanceId }
+                  : undefined)
+            : { continuous: action.continuous, ...(effectSourceBound ? { sourceInstanceId: ctx.source.instanceId } : {}) },
         );
         for (const keyword of action.alsoGainKeywords ?? []) {
           ctx.fx.grantKeyword(id, keyword.keyword, duration, keyword.amount);
@@ -271,7 +276,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         ((action as Action & { playerScoped?: boolean }).playerScoped === true ||
           ctx.trigger.securityInstanceId !== undefined ||
           (ctx.activeTiming === "Security" &&
-            (action.target?.filter.controller === "mine" || action.target?.filter.controllerDefault === "mine"))) &&
+            (action.target?.filter?.controller === "mine" || action.target?.filter?.controllerDefault === "mine"))) &&
         kw === "SecurityAttack" &&
         action.target?.count === "all" &&
         action.target.filter.kind?.includes("Digimon")

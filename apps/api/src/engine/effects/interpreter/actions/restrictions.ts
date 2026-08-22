@@ -3,7 +3,7 @@
 import type { EffectContext, Restriction } from "../../EffectContext.js";
 import { toDuration } from "../duration.js";
 import { definitionMatches } from "../matching/definition.js";
-import { seatsForController } from "../matching/permanent.js";
+import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { evaluateCondition } from "../conditions.js";
 import type { Action } from "@aegis/shared";
@@ -13,9 +13,23 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action): 
     case "Restrict": {
       const gate = action.while ?? action.condition;
       if (gate !== undefined && !evaluateCondition(ctx, gate)) return false;
-      const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
       const continuous = action.while !== undefined ? true : undefined;
+      const dynamicTargetFilter = (action as typeof action & { whileMatchesTargetFilter?: boolean }).whileMatchesTargetFilter === true;
+      const filter = action.target.filter;
+      const restriction = (action.restriction === "returnToHandOrDeck" || action.restriction === "cannotReturnToHandOrDeck"
+        ? "beReturned"
+        : action.restriction) as Restriction;
+      if (dynamicTargetFilter && action.target.count === "all" && ctx.fx.restrictPlayer !== undefined && filter !== undefined) {
+        for (const seat of seatsForController(ctx, filter)) {
+          ctx.fx.restrictPlayer(seat, restriction, duration, (permanentId) => {
+            const permanent = ctx.game.permanentById(permanentId);
+            return permanent !== undefined && permanentMatchesFilter(ctx, permanent, filter, ctx.source);
+          });
+        }
+        return false;
+      }
+      const ids = await resolvePermanentTargets(ctx, action.target);
       // Target-scoped prohibition (BT10-042): affected Digimon can't attack THIS source,
       // but may still attack the player or a different Digimon. A plain `attack`
       // restriction would incorrectly suppress the entire declaration.
@@ -35,9 +49,6 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action): 
       }
       // Card IR spells this immunity using the printed-action vocabulary, while the engine's
       // legality layer consumes the normalized `beReturned` restriction for both hand and deck.
-      const restriction = (action.restriction === "returnToHandOrDeck" || action.restriction === "cannotReturnToHandOrDeck"
-        ? "beReturned"
-        : action.restriction) as Restriction;
       // A deprecated kind has no consumer, so recording it would be a silent no-op. Drop it
       // here instead: `restrict()` no longer accepts one, and the ~32 IR records still
       // carrying `activateEffects` are superseded by the disableSecurityEffect /

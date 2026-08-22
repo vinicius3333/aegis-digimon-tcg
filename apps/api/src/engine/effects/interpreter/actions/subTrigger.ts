@@ -730,7 +730,7 @@ export async function runSubTrigger(
             : `${ctx.source.instanceId}/${action.oncePerTurnKey}`,
         }
       : {}),
-    description: action.raw,
+    description: playerScoped ? `${action.raw ?? event} [${ctx.source.instanceId}]` : action.raw,
     run: async (subCtx) => {
       // Preserve the printed clause timing on every decision opened by the future watcher.
       // The freshly rebound context carries the event payload but not the installing effect's

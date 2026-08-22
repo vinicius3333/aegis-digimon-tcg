@@ -5,7 +5,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT1-085.js";
 import "./BT1-101.js";
-import "../index.js"; // the full catalog is registered in a real match
 
 describe("BT1-085 Tai Kamiya", () => {
   it("sets memory to 3 and grants Security Attack +1 to a red Digimon with 4 sources", async () => {

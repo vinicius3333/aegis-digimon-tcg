@@ -468,6 +468,16 @@ export function permanentMatchesFilter(
     if (selfName === "" || selfName !== candName) return false;
   }
 
+  if (filter.sameNameAsSelection !== undefined) {
+    const selectedId = ctx.selections?.get(filter.sameNameAsSelection);
+    const selected = selectedId === undefined ? undefined : ctx.game.permanentById(selectedId);
+    const selectedTop = selected?.topCard;
+    if (selectedTop === undefined || permanent.topCard === undefined) return false;
+    const selectedName = (ctx.game.definitionOf(selectedTop).nameEn ?? "").toLowerCase();
+    const candidateName = (def.nameEn ?? "").toLowerCase();
+    if (selectedName === "" || selectedName !== candidateName) return false;
+  }
+
   // Comparative digivolution-stack-size filter relative to the effect source ("a Digimon with as
   // many or fewer digivolution cards as this Digimon" — AD1-025, BT16-027). Compare the candidate's
   // stack size to the source Digimon's; an unresolvable source excludes the candidate.
@@ -554,7 +564,7 @@ export function permanentMatchesFilter(
       if (!tokenAsDigimon && !wanted.some((k) => effective.includes(k))) return false;
       // Strip kind from filter so definitionMatches doesn't double-check against static def.kinds
       const { kind: _k, ...rest } = filter;
-      return definitionMatches(rest, def);
+      filter = rest;
     }
   }
 
@@ -568,22 +578,34 @@ export function permanentMatchesFilter(
   // is not re-checked against printed text alone.
   if (filter.keywords && filter.keywords.length > 0) {
     const granted = new Set((ctx.fx.grantedKeywords?.(permanent.permanentId) ?? []).map((g) => g.keyword));
-    const hasKeyword = (kw: string): boolean =>
-      ctx.game.hasKeyword?.(permanent.permanentId, kw) === true ||
-      granted.has(kw) ||
-      textHasKeyword(def, kw) ||
-      permanent.stack.some((card) => textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, kw));
+    const hasKeyword = (kw: string | { keyword?: string }): boolean => {
+      const token = typeof kw === "string" ? kw : kw.keyword ?? "";
+      return (
+        ctx.game.hasKeyword?.(permanent.permanentId, token) === true ||
+        granted.has(token) ||
+        textHasKeyword(def, token) ||
+        permanent.stack.some((card) =>
+          textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, token),
+        )
+      );
+    };
     if (!filter.keywords.every(hasKeyword)) return false;
     const { keywords: _omit, ...rest } = filter;
     return definitionMatches(rest, def);
   }
   if (filter.excludeKeywords && filter.excludeKeywords.length > 0) {
     const granted = new Set((ctx.fx.grantedKeywords?.(permanent.permanentId) ?? []).map((g) => g.keyword));
-    const hasKeyword = (kw: string): boolean =>
-      ctx.game.hasKeyword?.(permanent.permanentId, kw) === true ||
-      granted.has(kw) ||
-      textHasKeyword(def, kw) ||
-      permanent.stack.some((card) => textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, kw));
+    const hasKeyword = (kw: string | { keyword?: string }): boolean => {
+      const token = typeof kw === "string" ? kw : kw.keyword ?? "";
+      return (
+        ctx.game.hasKeyword?.(permanent.permanentId, token) === true ||
+        granted.has(token) ||
+        textHasKeyword(def, token) ||
+        permanent.stack.some((card) =>
+          textHasKeyword({ inheritedEffectText: ctx.game.definitionOf(card).inheritedEffectText }, token),
+        )
+      );
+    };
     if (filter.excludeKeywords.some(hasKeyword)) return false;
     const { excludeKeywords: _omit, ...rest } = filter;
     return definitionMatches(rest, def);
