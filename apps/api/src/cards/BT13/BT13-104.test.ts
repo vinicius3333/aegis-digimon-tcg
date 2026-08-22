@@ -32,7 +32,10 @@ describe("BT13-104 Final Shining Burst", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-012", as: "redDigimon" }],
+          battleArea: [
+            { card: "BT1-012", as: "redDigimon" },
+            { card: "BT13-036", as: "yellowDigimon" },
+          ],
           hand: [
             { card: "BT13-104", as: "option" },
             { card: "BT13-095", as: "marcus" },
@@ -57,7 +60,10 @@ describe("BT13-104 Final Shining Burst", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-012", as: "redDigimon" }],
+          battleArea: [
+            { card: "BT1-012", as: "redDigimon" },
+            { card: "BT13-036", as: "yellowDigimon" },
+          ],
           security: [{ card: "BT13-104", as: "securityOption", faceUp: true }],
           hand: [{ card: "BT13-095", as: "marcus" }],
         },
