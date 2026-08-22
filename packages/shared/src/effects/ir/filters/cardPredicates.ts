@@ -11,6 +11,8 @@ export interface CardPredicates {
   /** Loose-card candidate gate: its owner's trash has at least `count` cards whose names contain a token. */
   ownerTrashNameCountGte?: { count: number; tokens: string[] };
   kind?: ("Digimon" | "Tamer" | "Option" | "DigiEgg")[];
+  /** Printed form/classification, such as Rookie, Champion, Ultimate, or Mega. */
+  forms?: string[];
   /** Alias for `nameOrTrait: [{ match: "trait" }]`. */
   traits?: string[];
   /** Any printed trait contains any token (case-insensitive). */
