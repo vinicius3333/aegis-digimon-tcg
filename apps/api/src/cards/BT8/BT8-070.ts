@@ -20,7 +20,7 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "AllTurns",
-      isInherited: true,
+      isInherited: false,
       frequency: "OncePerTurn",
       actions: [{
         kind: "SubTrigger",
