@@ -30,7 +30,7 @@ export const compiled: CompiledCard = {
     {
       trigger: "None",
       isInherited: true,
-      actions: [{ kind: "GainKeyword", keyword: "Piercing", duration: "permanent" }],
+      actions: [{ kind: "GainKeyword", keyword: { keyword: "Piercing" }, duration: "permanent" }],
     },
   ],
   coverage: "full",
