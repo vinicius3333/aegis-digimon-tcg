@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT8-086.js";
 
@@ -15,5 +17,19 @@ describe("BT8-086 Hiro Amanokawa", () => {
     await settle(() => s.perm("attacker").currentDP > before);
     expect(s.perm("hiro").isSuspended).toBe(true);
     expect(s.perm("attacker").currentDP).toBe(before + 2000);
+  });
+
+  it("sets memory to 3 at the start of its turn when memory is 2 or less", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT8-086", as: "hiro" }] } });
+    s.state.turnSeat = 0;
+    s.state.memory = 2;
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("hiro"));
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("plays itself from a face-up Security check without memory cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT8-086", as: "securityHiro", faceUp: true }] } });
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityHiro"));
+    expect(s.state.players[0]!.battleArea.some(permanent => permanent.topCard.instanceId === s.inst("securityHiro").instanceId)).toBe(true);
   });
 });
