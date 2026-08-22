@@ -37,9 +37,7 @@ describe("BT24-093 [Main] on-play body fires on a real playCard (not dead)", () 
     const deckCard = s.inst("deckCard");
     s.state.memory = 0; // maxAffordable for seat 0 (turnSeat) is memory + 10, covers cost 2
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: option.instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: option.instanceId })).toEqual({ ok: true });
 
     await settle(() => p0.battleArea.some((perm) => perm.topCard?.cardId === "BT24-093"));
     await settle(() => false, 60); // flush the rest of the resolution

@@ -149,11 +149,7 @@ const module: EffectModule = {
                 const card = stack.find((c) => c.instanceId === id);
                 return card === undefined ? undefined : subCtx.game.definitionOf(card).level;
               });
-              if (
-                levels[0] === undefined ||
-                levels[1] === undefined ||
-                levels[0] !== levels[1]
-              ) {
+              if (levels[0] === undefined || levels[1] === undefined || levels[0] !== levels[1]) {
                 return false;
               }
 

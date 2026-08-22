@@ -23,19 +23,14 @@ const cardId = "BT9-081";
 function hasDorugoramonInStack(ctx: EffectContext, source: CardSource): boolean {
   const perm = source.permanent();
   if (perm === undefined) return false;
-  return Array.from(perm.stack).some((card) =>
-    ctx.game.definitionOf(card).nameEn === "Dorugoramon",
-  );
+  return Array.from(perm.stack).some((card) => ctx.game.definitionOf(card).nameEn === "Dorugoramon");
 }
 
 function isDigivolvingFromTrash(ctx: EffectContext): boolean {
   return ctx.trigger.digivolvedFromZone === "trash";
 }
 
-function oppMinLevelDigimons(
-  ctx: EffectContext,
-  source: CardSource,
-): Permanent[] {
+function oppMinLevelDigimons(ctx: EffectContext, source: CardSource): Permanent[] {
   const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
   const digimons = Array.from(opponent.battleArea).filter((p) => {
     if (p.topCard == null) return false;
@@ -56,7 +51,8 @@ function onDeletionCandidates(ctx: EffectContext, source: CardSource) {
   return Array.from(owner.trash).filter((card) => {
     const def = ctx.game.definitionOf(card);
     if (!isDigimon(def)) return false;
-    if (def.level === 3 && (def.colors.includes("Purple" as never) || def.colors.includes("Black" as never))) return true;
+    if (def.level === 3 && (def.colors.includes("Purple" as never) || def.colors.includes("Black" as never)))
+      return true;
     return dexCount >= 5 && def.nameEn === "DeathXmon";
   });
 }
