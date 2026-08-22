@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "../index.js";
 import { compiled } from "./BT13-077.js";
 
 describe("BT13-077 Craniamon", () => {
