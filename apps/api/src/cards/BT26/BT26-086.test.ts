@@ -200,6 +200,15 @@ describe("BT26-086 [On Play] / [When Digivolving]: link stacked Appmon, then att
     expect(harness.calls).toEqual([`forceAttack:${SELF_PERMANENT}:true`]);
   });
 
+  it("still offers the independent attack when no link card is selected", async () => {
+    const harness = makeHarness({ stack: [PLAIN], accept: true, select: [] });
+    const effect = getEffectModule(CARD_ID)!.effectsForTiming(EffectTiming.OnPlay, harness.source)[0]!;
+
+    await effect.resolve(harness.ctx);
+
+    expect(harness.calls).toEqual([`forceAttack:${SELF_PERMANENT}:true`]);
+  });
+
   it("skips the attack when the controller declines it", async () => {
     const harness = makeHarness({ stack: [{ instanceId: "stack-a", cardId: APPMON_A }], accept: false });
 

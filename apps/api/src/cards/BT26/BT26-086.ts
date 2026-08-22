@@ -115,7 +115,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/link-appmon-stack-then-attack`,
           description: `[On Play] ${LINK_CLAUSE}`,
-          optional: true,
+          optional: false,
           resolve: linkAppmonStackCardsThenAttack,
         }),
       ];
@@ -127,7 +127,7 @@ const module: EffectModule = {
           source,
           effectKey: `${cardId}/link-appmon-stack-then-attack`,
           description: `[When Digivolving] ${LINK_CLAUSE}`,
-          optional: true,
+          optional: false,
           resolve: linkAppmonStackCardsThenAttack,
         }),
       ];
