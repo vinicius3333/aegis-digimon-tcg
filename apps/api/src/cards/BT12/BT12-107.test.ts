@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-107.js";
 
@@ -45,4 +46,11 @@ it("registers its printed Security add-to-hand effect", () => {
   const module = getEffectModule("BT12-107");
   const source = { instanceId: "source-107", cardId: "BT12-107", ownerSeat: 0, isOnBattleArea: () => false } as never;
   expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+});
+
+it("returns itself to its owner's hand from Security", async () => {
+  const s = setupEngine({ 0: { security: [{ card: "BT12-107", as: "option", faceUp: true }] } });
+  await s.ready();
+  await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+  expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT12-107");
 });
