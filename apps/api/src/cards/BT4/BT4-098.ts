@@ -10,21 +10,25 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          kind: "SelectBind",
+          target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] }, count: 1, bindAs: "atomicInfernoTarget" },
+        },
+        {
           kind: "ModifyDP",
-          target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] }, count: 1 },
+          target: { filter: {}, count: 1, fromSelectionRef: "atomicInfernoTarget" },
           amount: 3000,
           duration: "forTheTurn",
         },
         {
           kind: "GainKeyword",
-          target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] }, count: 1 },
+          target: { filter: {}, count: 1, fromSelectionRef: "atomicInfernoTarget" },
           keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
           duration: "forTheTurn",
         },
         {
           kind: "SubTrigger",
           event: "whenBlocked",
-          sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Hybrid"], match: "trait" }] },
+          on: { filter: {}, count: 1, fromSelectionRef: "atomicInfernoTarget" },
           actions: [{ kind: "GainMemory", amount: 3 }],
           condition: { kind: "isYourTurn" },
         },
