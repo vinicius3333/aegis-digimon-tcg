@@ -15,6 +15,7 @@ export const compiled: CompiledCard = {
           event: "wouldDigivolve",
           sourceFilter: {
             isSelfRef: true,
+            zone: "battleArea",
           },
           into: {
             controllerDefault: "mine",
