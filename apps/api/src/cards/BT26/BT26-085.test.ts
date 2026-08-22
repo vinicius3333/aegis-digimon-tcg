@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./BT26-085.js";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
@@ -38,5 +38,24 @@ describe("BT26-085 compiled behavior", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("giantSlayer"));
 
     expect(observe(s.engine).isRestricted(s.perm("giantSlayer"), "dpImmune")).toBe(true);
+  });
+
+  it("replaces leaving with a free Destroy Mode digivolution from hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-085", as: "giantSlayer" }],
+          hand: [{ card: "BT26-060", as: "destroyMode" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("giantSlayer").permanentId], "byEffect")).toBe(0);
+    await settle(() => s.perm("giantSlayer").topCard.cardId === "BT26-060");
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 });
