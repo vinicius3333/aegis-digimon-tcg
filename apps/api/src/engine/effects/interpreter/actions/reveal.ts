@@ -418,7 +418,8 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
           })) ?? rest;
       }
       const toTop = action.rest === "deckTop";
-      await ctx.fx.returnToDeck([...rest].reverse(), { toTop });
+      const deckOrder = action.rest === "deckBottomAnyOrder" ? [...rest].reverse() : rest;
+      await ctx.fx.returnToDeck(toTop ? [...deckOrder].reverse() : deckOrder, { toTop });
     }
   };
 
