@@ -37,6 +37,7 @@ describe("BT13-077 Craniamon", () => {
 
   it("installs opponent Digimon-effect immunity when played", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT13-077", as: "craniamon" }] } });
+    await s.ready();
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("craniamon"));
     await settle(() => observe(s.engine).timingEffectDisabled(s.perm("craniamon"), "whenDigivolving"));
     expect(observe(s.engine).timingEffectDisabled(s.perm("craniamon"), "whenDigivolving")).toBe(true);
