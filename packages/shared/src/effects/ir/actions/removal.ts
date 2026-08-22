@@ -63,6 +63,14 @@ export interface DeleteBudgetAction extends ActionBase {
   scaling?: Scaling;
 }
 
+/** Delete opponent Digimon/Tamers selected from source-stack color clauses under one budget. */
+export interface DeleteByStackColorBudgetAction extends ActionBase {
+  kind: "DeleteByStackColorBudget";
+  redFilter: Filter;
+  blackFilter: Filter;
+  budget: number;
+}
+
 /**
  * Reveal cards, choose one as a play-cost reference, delete opponent permanents up to that
  * card's printed cost, then return the revealed cards to the deck. The reference card itself is
