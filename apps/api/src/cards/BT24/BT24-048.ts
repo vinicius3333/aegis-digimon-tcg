@@ -31,11 +31,11 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
-              zone: "breedingArea",
+              zone: "breeding",
               nameOrTrait: [
                 {
                   tokens: ["Avian", "Bird"],
-                  match: "trait",
+                  match: "traitContains",
                 },
               ],
             },
@@ -51,7 +51,7 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Avian", "Bird"],
-                match: "trait",
+                match: "traitContains",
               },
             ],
           },
@@ -74,11 +74,11 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "mine",
               kind: ["Digimon"],
-              zone: "breedingArea",
+              zone: "breeding",
               nameOrTrait: [
                 {
                   tokens: ["Avian", "Bird"],
-                  match: "trait",
+                  match: "traitContains",
                 },
               ],
             },
@@ -94,7 +94,7 @@ export const compiled: CompiledCard = {
             nameOrTrait: [
               {
                 tokens: ["Avian", "Bird"],
-                match: "trait",
+                match: "traitContains",
               },
             ],
           },

@@ -16,10 +16,10 @@ describe("BT24-048 Deramon", () => {
         payCost: false,
         from: ["hand"],
         optional: true,
-        target: { filter: { zone: "breedingArea" } },
+        target: { filter: { zone: "breeding" } },
         into: {
           levelComparison: { op: "lte", value: 5 },
-          nameOrTrait: [{ tokens: ["Avian", "Bird"], match: "trait" }],
+          nameOrTrait: [{ tokens: ["Avian", "Bird"], match: "traitContains" }],
         },
       });
     }
@@ -32,18 +32,30 @@ describe("BT24-048 Deramon", () => {
   });
 
   it("has Blocker and hatches into an empty breeding area", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT24-048", as: "deramon" }],
-        eggDeck: [{ card: "BT24-001", as: "egg" }],
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-048", as: "deramon" }],
+          eggDeck: [{ card: "BT24-001", as: "egg" }],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
     await s.ready();
 
-    expect(observe(s.engine).hasKeyword(s.perm("deramon"), "Blocker")).toBe(true);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("deramon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("deramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard.instanceId === s.inst("egg").instanceId);
 
-    expect(s.state.players[0]!.breedingArea?.topCard.instanceId).toBe(s.inst("egg").instanceId);
+    const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT24-048")!;
+    expect(observe(s.engine).hasKeyword(played, "Blocker")).toBe(true);
+    expect(s.state.players[0]!.breeding?.topCard.instanceId).toBe(s.inst("egg").instanceId);
+    expect(s.state.memory).toBe(1);
   });
 
   it("free-digivolves a qualifying breeding Digimon while respecting requirements", async () => {
@@ -51,8 +63,8 @@ describe("BT24-048 Deramon", () => {
       {
         0: {
           battleArea: [{ card: "BT24-048", as: "deramon" }],
-          breeding: { card: "ST1-02", as: "avian" },
-          hand: [{ card: "BT24-047", as: "kokatorimon" }],
+          breeding: { card: "BT16-008", as: "avian" },
+          hand: [{ card: "BT24-048", as: "evolution" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -61,16 +73,20 @@ describe("BT24-048 Deramon", () => {
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("deramon"));
-    await settle(() => s.perm("avian").topCard.instanceId === s.inst("kokatorimon").instanceId);
+    await settle(() => s.perm("avian").topCard.instanceId === s.inst("evolution").instanceId);
 
+    expect(s.perm("avian").topCard.instanceId).toBe(s.inst("evolution").instanceId);
     expect(s.state.memory).toBe(3);
   });
 
   it("inherited effect unsuspends its host after that host wins a battle", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT24-049", as: "host", under: ["BT24-048"], dp: 9000 }] },
-      1: { battleArea: [{ card: "BT1-009", as: "victim", suspended: true, dp: 3000 }] },
-    });
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-049", as: "host", under: ["BT24-048"], dp: 9000 }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim", suspended: true, dp: 3000 }] },
+      },
+      { autoAcceptOptional: true },
+    );
     const victimId = s.perm("victim").permanentId;
     await s.ready();
 
