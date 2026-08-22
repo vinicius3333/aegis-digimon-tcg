@@ -63,23 +63,23 @@ const compiled: CompiledCard = {
               "payCost": false,
               "optional": true,
               "bindResultAs": "playedImpmon"
+            },
+            {
+              "kind": "GainKeyword",
+              "target": {
+                "filter": {
+                  "boundRef": "playedImpmon",
+                  "kind": ["Digimon"]
+                },
+                "count": 1
+              },
+              "keyword": {
+                "keyword": "Rush",
+                "raw": "＜Rush＞"
+              },
+              "duration": "forTheTurn"
             }
           ]
-        },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "boundRef": "playedImpmon",
-              "kind": ["Digimon"]
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "Rush",
-            "raw": "＜Rush＞"
-          },
-          "duration": "forTheTurn"
         }
       ],
       "frequency": "OncePerTurn"
