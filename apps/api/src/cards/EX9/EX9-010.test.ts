@@ -55,7 +55,7 @@ describe("EX9-010", () => {
       1: {
         battleArea: [
           { card: "BT1-010", as: "digivolvingTarget", dp: 3000 },
-          { card: "BT1-011", as: "attackTarget", dp: 3000, suspended: true },
+          { card: "BT1-011", as: "attackTarget", dp: 10000, suspended: true },
         ],
       },
     }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true });
@@ -69,8 +69,8 @@ describe("EX9-010", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-010")).toBe(false);
     await settle();
 
-    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("source").permanentId, target: { kind: "permanent", permanentId: s.perm("attackTarget").permanentId } })).toEqual({ ok: true });
-    await settle(() => s.decisions.length === 0);
+    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("source"));
+    await settle();
 
     expect(s.perm("source").stack).toHaveLength(2);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-011")).toBe(true);

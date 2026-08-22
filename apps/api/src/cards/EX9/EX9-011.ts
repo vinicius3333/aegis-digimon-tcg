@@ -61,10 +61,17 @@ export const compiled: CompiledCard = {
               "kind": [
                 "Digimon"
               ],
-              "faceDown": true
             },
-            "count": 5000,
-            "upTo": true
+            "count": "all",
+            "upTo": true,
+            "totalDpCap": 5000
+          },
+          "dpCeiling": 5000,
+          "dpCeilingScaling": {
+            "per": 1,
+            "amount": 2000,
+            "filter": { "controllerDefault": "mine", "faceDown": true },
+            "unit": "digivolutionCards"
           },
           "cost": {
             "kind": "place",
@@ -89,23 +96,6 @@ export const compiled: CompiledCard = {
           },
           "optional": true,
           "abortOnDecline": true
-        },
-        {
-          "kind": "CostModifier",
-          "mode": "raiseCeiling",
-          "costType": "dp",
-          "amount": 2000,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ],
-              "faceDown": true
-            },
-            "unit": "digivolutionCards"
-          }
         }
       ]
     },
@@ -121,8 +111,16 @@ export const compiled: CompiledCard = {
                 "Digimon"
               ]
             },
-            "count": 5000,
-            "upTo": true
+            "count": "all",
+            "upTo": true,
+            "totalDpCap": 5000
+          },
+          "dpCeiling": 5000,
+          "dpCeilingScaling": {
+            "per": 1,
+            "amount": 2000,
+            "filter": { "controllerDefault": "mine", "faceDown": true },
+            "unit": "digivolutionCards"
           },
           "cost": {
             "kind": "place",
@@ -147,22 +145,6 @@ export const compiled: CompiledCard = {
           },
           "optional": true,
           "abortOnDecline": true
-        },
-        {
-          "kind": "CostModifier",
-          "mode": "raiseCeiling",
-          "costType": "dp",
-          "amount": 2000,
-          "scaling": {
-            "per": 1,
-            "filter": {
-              "controllerDefault": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "unit": "digivolutionCards"
-          }
         }
       ]
     },
