@@ -11,7 +11,10 @@ export const compiled: CompiledCard = {
   effects: [
     { trigger: "WhenDigivolving", actions: [
       { kind: "SecurityManipulation", op: "toHand", controller: "mine", amount: 1, source: "securityTop" },
-      { kind: "RawUnparsed", text: "If it is your turn, you may play or use 1 Iliad card from your hand with its cost reduced by 5." },
+      { kind: "Modal", choose: 1, condition: { kind: "isYourTurn", raw: "if it is your turn" }, labels: ["Play an Iliad card", "Use an Iliad Option"], options: [
+        [{ kind: "PlayWithoutCost", target: { filter: { ...iliad, kind: ["Digimon", "Tamer"] }, count: 1 }, from: ["hand"], payCost: true, reduceCostBy: 5, optional: true }],
+        [{ kind: "UseOptionWithoutCost", filter: { ...iliad, kind: ["Option"] }, from: ["hand"], payCost: true, reduceCostBy: 5, optional: true }],
+      ], optional: true } ,
     ] },
     { trigger: "Static", actions: [
       { kind: "CostModifier", costType: "use", mode: "delta", amount: 1, target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, handResident: true, duration: "permanent", scaling: { unit: "security", per: 1, filter: { controller: "mine" } } },
@@ -23,8 +26,8 @@ export const compiled: CompiledCard = {
       { kind: "SecurityManipulation", op: "placeFromDeck", controller: "mine", source: "deck", amount: 1 },
     ] },
   ],
-  coverage: "partial",
-  residual: ["The When Digivolving 'if it's your turn' condition is not represented by a dedicated IR condition; the branch remains explicit and requires gate validation."],
+  coverage: "full",
+  residual: [],
   digivolutionRequirement: [{ level: 5, traits: ["TS"], cost: 4, isAlternate: true }],
 };
 
