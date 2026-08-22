@@ -27,6 +27,15 @@ describe("ST16-14 Matt Ishida — whenHandTrashed: by suspending this Tamer, gai
     expect(s.state.memory).toBe(3);
   });
 
+  it("plays itself without cost from security", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "ST16-14", as: "securityMatt", faceUp: true }] } });
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityMatt"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST16-14")).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+
   it("suspends the Tamer and gains 1 memory when owner's hand card is trashed", async () => {
     const s = setupEngine(
       {
