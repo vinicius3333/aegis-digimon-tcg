@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-073.js";
+import "./index.js";
 
 describe("BT17-073 DexDorugoramon", () => {
   it("replaces deletion of your Dorugoramon with optional self digivolution", () => {
@@ -44,7 +47,22 @@ describe("BT17-073 DexDorugoramon", () => {
     expect(effect?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "onDeletionOf",
+      sourceFilter: { excludeSelf: true, kind: ["Digimon"] },
       actions: [{ kind: "Unsuspend", target: { isSelf: true } }],
     });
+    expect(effect?.actions[0]?.sourceFilter).not.toHaveProperty("controller");
+    expect(effect?.actions[0]?.sourceFilter).not.toHaveProperty("controllerDefault");
+  });
+
+  it("unsuspends when an opponent's Digimon is deleted", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT17-073", suspended: true, as: "dexDorugoramon" }] },
+      1: { battleArea: [{ card: "BT17-063", as: "opposingDigimon" }] },
+    }, { autoAcceptOptional: true });
+
+    await advance(s.engine).verb.deletePermanent([s.perm("opposingDigimon").permanentId], "byEffect");
+    await settle(() => !s.perm("dexDorugoramon").isSuspended);
+
+    expect(s.perm("dexDorugoramon").isSuspended).toBe(false);
   });
 });
