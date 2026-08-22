@@ -11,7 +11,7 @@ const titanOption = {
 const ownHand = { controllerDefault: "mine", zone: "hand" };
 const currentTurn = { kind: "raw", raw: "if it is your turn" };
 const useTitanOption = {
-  kind: "PlayWithoutCost",
+  kind: "UseOptionWithoutCost",
   target: { filter: titanOption, count: 1 },
   from: ["trash"],
   payCost: true,
@@ -23,13 +23,37 @@ const useTitanOption = {
 
 export const compiled: CompiledCard = {
   effects: [
-    { trigger: "OnPlay", frequency: "OncePerTurn", sharedUseKey: "trash-hand-use-titan-option-from-trash", actions: [useTitanOption] },
-    { trigger: "WhenDigivolving", frequency: "OncePerTurn", sharedUseKey: "trash-hand-use-titan-option-from-trash", actions: [useTitanOption] },
-    { trigger: "OnAllyAttack", frequency: "OncePerTurn", sharedUseKey: "trash-hand-use-titan-option-from-trash", actions: [useTitanOption] },
+    {
+      trigger: "OnPlay",
+      frequency: "OncePerTurn",
+      sharedUseKey: "trash-hand-use-titan-option-from-trash",
+      actions: [useTitanOption],
+    },
+    {
+      trigger: "WhenDigivolving",
+      frequency: "OncePerTurn",
+      sharedUseKey: "trash-hand-use-titan-option-from-trash",
+      actions: [useTitanOption],
+    },
+    {
+      trigger: "OnAllyAttack",
+      frequency: "OncePerTurn",
+      sharedUseKey: "trash-hand-use-titan-option-from-trash",
+      actions: [useTitanOption],
+    },
     {
       trigger: "OnDeletion",
       isInherited: true,
-      actions: [{ kind: "Delete", target: { filter: { controllerDefault: "opponent", kind: ["Digimon"] }, count: 1, superlative: "lowestLevel" } }],
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: { controllerDefault: "opponent", kind: ["Digimon"] },
+            count: 1,
+            superlative: "lowestLevel",
+          },
+        },
+      ],
     },
   ],
   coverage: "full",
