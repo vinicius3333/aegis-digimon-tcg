@@ -23,6 +23,23 @@ describe("BT13-109 BT13-109", () => {
     expect(compiled.effects.length).toBeGreaterThan(0);
   });
 
+  it("bounds the security deletion by the level of the trashed hand card", () => {
+    expect(compiled.effects[1]?.actions[0]).toMatchObject({
+      kind: "Delete",
+      cost: {
+        kind: "trash",
+        target: { filter: { zone: "hand", kind: ["Digimon"] } },
+      },
+      target: {
+        filter: {
+          controller: "opponent",
+          kind: ["Digimon"],
+          levelComparison: { op: "lte", relativeTo: "lastDeleted" },
+        },
+      },
+    });
+  });
+
   it("loads the compiled implementation into a live permanent", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT13-109", as: "card" }] } });
     await s.ready();
@@ -30,13 +47,16 @@ describe("BT13-109 BT13-109", () => {
   });
 
   it("digivolves a legal level 5 purple Digimon into Sleep Mode from trash for free", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT13-084", as: "base" }],
-        hand: [{ card: "BT13-109", as: "option" }],
-        trash: [{ card: "BT13-088", as: "sleep" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-084", as: "base" }],
+          hand: [{ card: "BT13-109", as: "option" }],
+          trash: [{ card: "BT13-088", as: "sleep" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
 
     await resolveMain(s, "option");
 
@@ -46,13 +66,16 @@ describe("BT13-109 BT13-109", () => {
   });
 
   it("rejects a level 4 base because the effect does not ignore requirements", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT13-083", as: "base" }],
-        hand: [{ card: "BT13-109", as: "option" }],
-        trash: [{ card: "BT13-088", as: "sleep" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-083", as: "base" }],
+          hand: [{ card: "BT13-109", as: "option" }],
+          trash: [{ card: "BT13-088", as: "sleep" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
 
     await resolveMain(s, "option");
 
