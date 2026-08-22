@@ -1216,7 +1216,7 @@ export function midBt12Module(cardId: string): EffectModule {
                       if (target) await ctx.fx.suspend([target], { byEffectSeat: source.ownerSeat });
                       ctx.fx.modifyDP(self.permanentId, 3000, EffectDuration.UntilEachTurnEnd);
                     }
-                    if (target) await ctx.fx.forceAttack(self.permanentId);
+                    if (ctx.trigger.isDnaDigivolve === true && target) await ctx.fx.forceAttack(self.permanentId);
                   }
                 },
               }),
