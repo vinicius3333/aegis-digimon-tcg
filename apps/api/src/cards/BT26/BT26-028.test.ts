@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { appFusionCostFor, assemblyRequirementFor } from "@aegis/shared";
+import { appFusionCostFor, assemblyRequirementFor, EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-028.js";
+import "../index.js";
 
 describe("BT26-028 Medicmon", () => {
   it("preserves App Fusion, Assembly, link windows, and linked-face behavior", () => {
@@ -19,5 +23,27 @@ describe("BT26-028 Medicmon", () => {
         expect.objectContaining({ kind: "ModifyDP", amount: -3000, duration: "untilOpponentTurnEnd" }),
       ]) }] }),
     ]));
+  });
+
+  it("links a legal level-3 Link source and affects exactly one opposing Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-028", as: "medicmon", under: ["BT26-084"] }],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "first", dp: 7000 },
+          { card: "BT1-010", as: "second", dp: 7000 },
+        ],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("medicmon"));
+
+    expect(s.perm("medicmon").linked.map((card) => card.cardId)).toEqual(["BT26-084"]);
+    expect(s.perm("first").currentDP).toBe(4000);
+    expect(s.perm("second").currentDP).toBe(7000);
+    expect(observe(s.engine).isRestricted(s.perm("first"), "cannotActivateWhenDigivolving")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("second"), "cannotActivateWhenDigivolving")).toBe(false);
   });
 });
