@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { getCompiledCard } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import "./BT26-083.js";
+import "../index.js";
 
 describe("BT26-083 compiled fidelity", () => {
   it("registers the security wipe, per-card deletion, recovery, and deletion debuff", () => {
@@ -20,5 +24,27 @@ describe("BT26-083 compiled fidelity", () => {
     expect(card?.digivolutionRequirement).toEqual([{ level: 6, traits: ["TS"], cost: 4, isAlternate: true }]);
     expect(card?.residual).toEqual([]);
     expect(card?.effects?.[0]?.actions).toMatchObject([{ kind: "Replacement", event: "wouldLeavePlay", mode: "instead", leaveCause: "otherThanBattle", actions: [{ kind: "PlayWithoutCost", fromOwnDigivolutionStack: true, payCost: false, optional: true }] }]);
+  });
+
+  it("trashes all own security, deletes one opposing Digimon per card, and recovers three", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-083", as: "junomon" }],
+        security: ["BT1-001", "BT1-002"],
+        deck: ["BT1-003", "BT1-004", "BT1-005"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-010", as: "first" },
+          { card: "BT1-011", as: "second" },
+          { card: "BT1-012", as: "third" },
+        ],
+      },
+    }, { autoSelectCards: true });
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("junomon"));
+
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });
