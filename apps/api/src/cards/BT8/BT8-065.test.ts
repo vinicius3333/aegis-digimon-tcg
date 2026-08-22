@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { getCompiledCard } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT8-065.js";
 
@@ -11,5 +12,10 @@ describe("BT8-065 CatchMamemon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(3);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.perm("target").topCard?.cardId).toBe("BT1-015");
+  });
+
+  it("uses the printed Mamemon name filter rather than a trait filter", () => {
+    const compiled = getCompiledCard("BT8-065");
+    expect(compiled?.effects[0]?.actions[0]).toMatchObject({ target: { filter: { nameOrTrait: [{ match: "name", tokens: ["Mamemon"] }] } } });
   });
 });
