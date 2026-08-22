@@ -82,6 +82,7 @@ describe("BT10-108 Death the Cannon", () => {
       { autoDeclineOptional: true, autoOrderCards: true, autoOrderTriggers: true },
     );
     const deathCannonId = s.inst("deathCannon").instanceId;
+    const revealerId = s.inst("revealer").instanceId;
     s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, {
@@ -89,7 +90,7 @@ describe("BT10-108 Death the Cannon", () => {
       instanceId: s.inst("revealer").instanceId,
     })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) =>
-      topCard.instanceId === s.inst("revealer").instanceId
+      topCard.instanceId === revealerId
     ));
 
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === deathCannonId)).toBe(false);
