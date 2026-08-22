@@ -32,7 +32,7 @@ import { CombatController } from "./combat/controller.js";
 import { detachableLinkedCards, detachLinkedCard, detachTraitTokens } from "./effects/detach.js";
 import { canAttackerDeclare } from "./combat/legality.js";
 import { rollTurnActivity } from "./turnActivity.js";
-import { resolveKeywords } from "./combat/keywords.js";
+import { printedKeywordsOf, resolveKeywords } from "./combat/keywords.js";
 import { WinCheck, runSecurityCheck, type SecurityCheckDeps } from "./security/index.js";
 import { SecurityDpLedger } from "./security/securityDp.js";
 import { DeletionMaxDpLedger } from "./deletionMaxDp.js";
@@ -438,6 +438,15 @@ export class GameEngine {
         }
       }
       return undefined;
+    }, (permanentId) => {
+      for (const player of this.state.players) {
+        const permanent = player.battleArea.find((candidate) => candidate.permanentId === permanentId);
+        if (permanent !== undefined) {
+          const definition = lookupDefinition(permanent.topCard.cardId);
+          return printedKeywordsOf(definition?.effectText);
+        }
+      }
+      return [];
     });
     this.memory = new MemoryGauge(this.state, this.hooks.emit, (seat, opts) => {
       const kinds = opts.isTamerEffect ? [CardKind.Tamer] : [CardKind.Digimon];
