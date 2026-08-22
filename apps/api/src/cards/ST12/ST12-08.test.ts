@@ -138,6 +138,7 @@ describe("ST12-08 [When Attacking][Inherited] plays Sistermon for a Royal Knight
           battleArea: [{ card: "ST12-10", as: "royal", under: ["ST12-08"] }],
           trash: [{ card: "ST12-12", as: "sister" }],
           hand: [{ card: "BT1-001", as: "cost" }],
+          deck: ["BT1-002", "BT1-003"],
         },
         1: { security: ["BT1-001"] },
       },
