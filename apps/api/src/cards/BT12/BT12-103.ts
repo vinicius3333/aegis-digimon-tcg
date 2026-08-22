@@ -1,6 +1,9 @@
-import { registerCard } from "../../engine/effects/registry.js";
-import { lateBt12Module } from "./_lateHandwritten.js";
+import { getCompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const module = lateBt12Module("BT12-103");
-registerCard(module);
-export default module;
+const compiled = structuredClone(getCompiledCard("BT12-103")!);
+compiled.effects = compiled.effects.filter((effect) => effect.trigger !== "Security");
+
+registerIrCard("BT12-103", compiled);
+
+export default compiled;
