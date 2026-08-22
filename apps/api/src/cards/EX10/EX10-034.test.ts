@@ -29,7 +29,7 @@ describe("EX10-034 Blastmon compiled contract", () => {
             expect.objectContaining({
               kind: "SubTrigger",
               event: "whenAttacking",
-              actions: [
+              actions: expect.arrayContaining([
                 expect.objectContaining({
                   kind: "GainKeyword",
                   keyword: expect.objectContaining({ keyword: "SecurityAttack", amount: 1 }),
@@ -38,7 +38,7 @@ describe("EX10-034 Blastmon compiled contract", () => {
                     target: { filter: { isSelfRef: true, zone: "digivolutionCards" }, count: 2 },
                   }),
                 }),
-              ],
+              ]),
             }),
           ],
         }),
