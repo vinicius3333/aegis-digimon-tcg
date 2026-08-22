@@ -8,7 +8,7 @@ export const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 }, optional: true },
+        { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
         {
           kind: "ConditionalBranch",
           condition: {
@@ -58,6 +58,9 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [
+    { names: ["DoruGreymon"], cost: 1, isAlternate: true },
+  ],
 };
 
 registerIrCard("BT17-067", compiled);
