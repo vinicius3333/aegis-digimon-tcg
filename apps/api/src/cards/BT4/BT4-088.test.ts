@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { internalsOf } from "../../engine/testkit/internals.js";
 import "./BT4-088.js";
 
 describe("BT4-088 DanDevimon", () => {
@@ -8,9 +8,9 @@ describe("BT4-088 DanDevimon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT4-088", as: "dan" }], security: ["BT1-001", "BT1-002"] }, 1: { security: ["BT1-009", "BT1-010"] } });
     s.state.turnSeat = 1;
     await s.ready();
-    await internalsOf(s.engine).primitives.trashFromSecurity(0, 1, { fromTop: true });
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
     await settle(() => s.state.players[1]!.security.length === 1);
-    await internalsOf(s.engine).primitives.trashFromSecurity(0, 1, { fromTop: true });
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
     await settle(() => s.state.players[0]!.security.length === 0);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.trash).toHaveLength(1);
