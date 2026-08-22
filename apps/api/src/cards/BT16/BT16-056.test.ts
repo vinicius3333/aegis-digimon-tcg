@@ -89,4 +89,25 @@ describe("BT16-056 [On Play] place top card of an opponent [Vaccine] Digimon ont
     expect(p1.security).toHaveLength(2);
     expect(p1.trash).toHaveLength(1);
   });
+
+  it("places a Vaccine Digimon itself when it has no digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT16-056", as: "publimon" }] },
+        1: { battleArea: [{ card: "BT1-015", as: "vaccine" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    const p1 = s.state.players[1] as PlayerState;
+    const vaccineId = s.perm("vaccine").topCard!.instanceId;
+    s.state.memory = 4;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("publimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => p1.security.some((card) => card.instanceId === vaccineId));
+
+    expect(p1.security.some((card) => card.instanceId === vaccineId)).toBe(true);
+    expect(p1.battleArea.some((permanent) => permanent.topCard?.instanceId === vaccineId)).toBe(false);
+  });
 });
