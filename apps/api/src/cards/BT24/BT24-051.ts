@@ -70,7 +70,7 @@ export const compiled: CompiledCard = {
           amount: 5000,
           duration: "forTheTurn",
           optional: true,
-          abortOnDecline: false,
+          abortOnDecline: true,
         },
         {
           kind: "Attack",
@@ -85,10 +85,6 @@ export const compiled: CompiledCard = {
           withoutSuspending: false,
           attackPlayer: false,
           optional: false,
-          condition: {
-            kind: "ifThisEffectActed",
-            raw: "if a Digimon got +5000 DP this effect",
-          },
         },
       ],
     },
@@ -117,7 +113,7 @@ export const compiled: CompiledCard = {
           amount: 5000,
           duration: "forTheTurn",
           optional: true,
-          abortOnDecline: false,
+          abortOnDecline: true,
         },
         {
           kind: "Attack",
@@ -132,10 +128,6 @@ export const compiled: CompiledCard = {
           withoutSuspending: false,
           attackPlayer: false,
           optional: false,
-          condition: {
-            kind: "ifThisEffectActed",
-            raw: "if a Digimon got +5000 DP this effect",
-          },
         },
       ],
     },

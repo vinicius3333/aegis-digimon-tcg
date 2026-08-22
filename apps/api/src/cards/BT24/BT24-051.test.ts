@@ -22,8 +22,8 @@ describe("BT24-051 Merukimon", () => {
       expect(effect?.actions?.[2]).toMatchObject({
         kind: "Attack",
         optional: false,
-        condition: { kind: "ifThisEffectActed" },
       });
+      expect(effect?.actions?.[1]).toMatchObject({ optional: true, abortOnDecline: true });
     }
   });
 
@@ -46,12 +46,42 @@ describe("BT24-051 Merukimon", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it.each([
+    ["normal green/blue requirement", false, 4],
+    ["alternate Beastkin/TS requirement", true, 3],
+  ])("uses the %s", async (_label, useAlternateCost, expectedCost) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-050", as: "base" }],
+          hand: [{ card: "BT24-051", as: "merukimon" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("merukimon").instanceId,
+        ...(useAlternateCost ? { useAlternateCost: true, alternateRequirementIndex: 0 } : {}),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("merukimon").instanceId);
+
+    expect(s.state.memory).toBe(5 - expectedCost);
+  });
+
   it("Q5641: choosing the DP bonus makes that Digimon attack", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT24-051", as: "merukimon" }] },
         1: {
+          security: ["BT1-001"],
           battleArea: [
             { card: "BT1-009", as: "first", dp: 2000 },
             { card: "BT1-010", as: "second", dp: 3000 },
@@ -60,14 +90,18 @@ describe("BT24-051 Merukimon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.perm("merukimon").topCard.instanceId);
+    preferred.push(s.perm("merukimon").permanentId);
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("merukimon"));
-    await settle(() => observe(s.engine).hasAttackedThisTurn(s.perm("merukimon")));
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(s.perm("merukimon").currentDP).toBe(17000);
-    expect(observe(s.engine).hasAttackedThisTurn(s.perm("merukimon"))).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]!.isSuspended).toBe(true);
+    // Its shared When Attacking unsuspend resolves during this combat, making it
+    // eligible again; the defeated opposing Digimon is the durable attack proof.
+    expect(s.perm("merukimon").isSuspended).toBe(false);
   });
 
   it("grants Rush and Piercing to Iliad Digimon only during its owner's turn", async () => {
@@ -83,13 +117,13 @@ describe("BT24-051 Merukimon", () => {
     await s.ready();
 
     expect(observe(s.engine).hasKeyword(s.perm("iliad"), "Rush")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("iliad"), "Piercing")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("iliad"))).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("other"), "Rush")).toBe(false);
 
     s.state.turnSeat = 1;
     await advance(s.engine).recompute();
 
     expect(observe(s.engine).hasKeyword(s.perm("iliad"), "Rush")).toBe(false);
-    expect(observe(s.engine).hasKeyword(s.perm("iliad"), "Piercing")).toBe(false);
+    expect(observe(s.engine).hasPierce(s.perm("iliad"))).toBe(false);
   });
 });
