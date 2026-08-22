@@ -21,6 +21,40 @@ describe("AD1-005 Gaiamon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
+  it("links legal cards from hand and its stack, rejects a no-Link card, and shares once-per-turn use", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-005", dp: 12000, as: "gaiamon", under: [{ card: "BT21-041", as: "stackLink" }] }],
+          hand: [{ card: "BT21-047", as: "handLink" }, { card: "BT21-005", as: "invalidNoLink" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", dp: 12000, as: "firstTarget" }],
+          security: ["BT1-001", "BT1-001"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    const gaiamon = s.perm("gaiamon");
+
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: gaiamon.permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => gaiamon.linked.length === 2 && s.state.players[1]!.battleArea.length === 0);
+
+    expect(gaiamon.linked.map((card) => card.instanceId)).toEqual(expect.arrayContaining([s.inst("stackLink").instanceId, s.inst("handLink").instanceId]));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("invalidNoLink").instanceId)).toBe(true);
+
+    gaiamon.isSuspended = false;
+    const lateLink = s.give(0, "hand", { card: "P-190", as: "lateLink" });
+    const lateTarget = s.putOnBoard(1, { card: "BT1-010", dp: 12000, as: "lateTarget" });
+
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: gaiamon.permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.state.gameOver, 5000);
+
+    expect(gaiamon.linked).toHaveLength(2);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === lateLink.instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lateTarget.permanentId)).toBe(true);
+  });
+
   it("rejects play when memory is below the printed cost", () => {
     const s = setupEngine({ 0: { hand: [{ card: "AD1-005", as: "gaiamon" }] } });
     s.state.memory = -10;
