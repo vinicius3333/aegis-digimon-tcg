@@ -35,7 +35,7 @@ describe("BT13-112 Omnimon", () => {
           }),
           expect.objectContaining({
             kind: "GainKeyword",
-            target: { filter: { boundRef: "playedRoyalKnights" }, count: "all" },
+            target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
           }),
         ],
       ],
