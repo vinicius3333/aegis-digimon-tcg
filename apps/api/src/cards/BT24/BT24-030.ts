@@ -100,20 +100,25 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
-          sourceFilter: {
-            controller: "mine",
-            kind: ["Digimon"],
-            nameOrTrait: [
-              {
-                tokens: ["TS"],
-                match: "trait",
-              },
-              {
-                tokens: ["Aqua", "Sea Animal"],
-                match: "trait",
-              },
-            ],
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["TS"],
+                  match: "trait",
+                },
+                {
+                  tokens: ["Aqua", "Sea Animal"],
+                  match: "trait",
+                },
+              ],
+            },
+            count: 10000,
+            upTo: true,
           },
+          affectsAll: true,
           triggerCondition: "byOpponentEffect",
           actions: [
             {
