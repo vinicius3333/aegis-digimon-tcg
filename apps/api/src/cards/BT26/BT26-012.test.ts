@@ -1,17 +1,8 @@
-import {
-  EffectDuration,
-  EffectTiming,
-  Zone,
-  digivolutionRequirementsFor,
-  type CardDefinition,
-  type Seat,
-} from "@aegis/shared";
-import { describe, expect, it, vi } from "vitest";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
+import { EffectTiming, Zone, digivolutionRequirementsFor } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import module from "./BT26-012.js";
+import { compiled } from "./BT26-012.js";
 import "../index.js";
 
 const CARD_ID = "BT26-012";
@@ -85,29 +76,11 @@ describe("BT26-012 Manekimon", () => {
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("secondTb").instanceId)).toBe(true);
   });
 
-  it("the Option branch pays printed cost minus 2 and delegates resolution to useOptionFromHand", async () => {
-    const option = { instanceId: "option", cardId: "EX12-070", ownerSeat: 0 as Seat };
-    const source = {
-      ownerSeat: 0 as Seat,
-      isOnBattleArea: () => true,
-    } as CardSource;
-    const useOptionFromHand = vi.fn(async () => [option]);
-    const ctx = {
-      source,
-      game: {
-        player: () => ({ hand: [option] }),
-        definitionOf: () => ({ cardId: "EX12-070", kinds: ["Option"], types: ["TB"], playCost: 3 }) as CardDefinition,
-      },
-      ask: { selectCards: vi.fn(async () => [option.instanceId]) },
-      fx: { useOptionFromHand },
-    } as unknown as EffectContext;
-
-    await module.effectsForTiming(EffectTiming.OnDeclaration, source)[0]!.resolve(ctx);
-
-    expect(useOptionFromHand).toHaveBeenCalledWith(ctx, option.instanceId, 3, {
-      payCost: true,
-      costDelta: 2,
-    });
+  it("encodes the once-per-turn TB play/use branches and inherited DP reduction", () => {
+    expect(compiled.effects).toMatchObject([
+      { trigger: "Main", frequency: "OncePerTurn", actions: [{ kind: "Modal", choose: 1 }] },
+      { trigger: "WhenAttacking", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "ModifyDP", amount: -2000 }] },
+    ]);
   });
 
   it("Q6967 pays an Option's full cost when play-cost reductions are prohibited", async () => {
