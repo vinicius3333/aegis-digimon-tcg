@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-092.js";
-import "../index.js";
 
 describe("BT16-092", () => {
   it("plays ExVeemon or Stingmon and DNA digivolves in the main phase", () => {

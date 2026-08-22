@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-096.js";
-import "../index.js";
 
 describe("BT16-096", () => {
   it("reveals three for a D-Brigade or DigiPolice card and places itself", () => {

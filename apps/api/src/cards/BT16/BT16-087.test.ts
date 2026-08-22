@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-087.js";
-import "../index.js";
 
 describe("BT16-087", () => {
   it("plays itself from security and sets memory to 3 from 2 or less", () => {

@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-099.js";
-import "../index.js";
 
 describe("BT16-099", () => {
   it("reveals three, adds a SoC card, trashes one, and places itself", () => {

@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-098.js";
-import "../index.js";
 
 describe("BT16-098", () => {
   it("deletes an opposing cost 4 or lower Digimon or Tamer if Dorugoramon is present", () => {
