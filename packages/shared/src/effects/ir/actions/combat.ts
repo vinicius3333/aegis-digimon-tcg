@@ -90,6 +90,7 @@ export interface GrantCanAttackUnsuspendedAction extends ActionBase {
    * Omitted covers any unsuspended opponent Digimon (ST12-08, P-058).
    */
   noDigivolutionCards?: boolean;
+  defenderLevelMax?: number;
 }
 
 export interface GrantVortexCanAttackPlayersAction extends ActionBase {

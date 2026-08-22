@@ -4,8 +4,11 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
   effects: [
-    { trigger: "Static", keywords: [{ keyword: "SecurityAttack", amount: 1 }] },
-    { trigger: "WhenAttacking", actions: [{ kind: "Draw", count: 2, attackPlayer: true }] },
+    { trigger: "Static", actions: [], keywords: [{ keyword: "SecurityAttack", amount: 1 }] },
+    {
+      trigger: "WhenAttacking",
+      actions: [{ kind: "SubTrigger", event: "whenAttacking", actions: [{ kind: "Draw", controller: "mine", amount: 2 }] }],
+    },
   ],
   coverage: "full",
   residual: [],

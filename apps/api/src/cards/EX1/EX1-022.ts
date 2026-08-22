@@ -19,7 +19,7 @@ const compiled: CompiledCard = {
         target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
         amount: 1000,
         duration: "permanent",
-        scaling: { per: 1, unit: "colors", filter: { zone: "digivolutionCards", controllerDefault: "mine" } },
+        scaling: { per: 1, unit: "digivolutionCardColors" },
       }],
     },
   ],

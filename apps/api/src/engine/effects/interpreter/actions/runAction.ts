@@ -59,7 +59,14 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   // reduction (BT26-098). CostModifier is normally excluded from the generic activation
   // cost path because passive modifiers have no cost; an explicit cost is different and
   // must be paid before installing the modifier.
-  if (action.kind === "CostModifier" && action.cost !== undefined) {
+  const interactiveDigivolveReduction =
+    action.kind === "CostModifier" &&
+    action.target === undefined &&
+    action.costType === "digivolve" &&
+    action.mode === "reduce" &&
+    action.duration === "nextDigivolveThisTurn" &&
+    action.cost?.kind === "trash";
+  if (action.kind === "CostModifier" && action.cost !== undefined && !interactiveDigivolveReduction) {
     if (action.optional && !(await ctx.ask.optional(ctx, `Pay cost: ${action.cost.raw ?? action.cost.kind}?`))) {
       return action.abortOnDecline === true;
     }
@@ -314,7 +321,6 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "ModifyDP":
     case "AddDPFromTrashedCard":
     case "AddDPFromSuspendedCost":
-    case "AddDPFromTrashedCard":
     case "SetBaseDP":
     case "GainKeyword":
     case "AddToHandSelf":

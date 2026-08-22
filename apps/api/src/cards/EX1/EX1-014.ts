@@ -13,7 +13,10 @@ const compiled: CompiledCard = {
         target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
         keyword: { keyword: "Jamming", raw: "＜Jamming＞" },
         duration: "permanent",
-        condition: { kind: "or", conditions: [{ kind: "sourceHasName", name: "Imperialdramon" }, { kind: "sourceHasTrait", trait: "Free" }] },
+        condition: { kind: "anyOf", conditions: [
+          { kind: "selfHasNameContaining", names: ["Imperialdramon"] },
+          { kind: "selfHasTrait", filter: { nameOrTrait: [{ tokens: ["Free"], match: "trait" }] } },
+        ] },
       }],
     },
   ],

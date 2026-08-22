@@ -20,7 +20,7 @@ const compiled: CompiledCard = {
             count: 5,
             upTo: true,
             from: ["hand", "trash"],
-            distinctCardIds: true,
+              distinctCardNumbers: true,
           },
           underFilter: { isSelfRef: true },
           position: "bottom",
@@ -30,7 +30,7 @@ const compiled: CompiledCard = {
         {
           kind: "GainMemory",
           amount: 1,
-          scaling: { per: 1, unit: "cards", countSource: "placedCyborgs" },
+          scaling: { per: 1, unit: "namedCount", countSource: "placedCyborgs" },
         },
       ],
     },

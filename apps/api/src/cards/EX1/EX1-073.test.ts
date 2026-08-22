@@ -15,7 +15,10 @@ describe("EX1-073 Machinedramon", () => {
     const s = setupEngine({ 0: { hand: [{ card: "EX1-073", as: "machine" }, { card: "EX1-008", as: "redCyborg" }], trash: [{ card: "EX1-050", as: "blackCyborg" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 12;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("machine").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX1-073" && p.stack.length === 2));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX1-073" && p.stack.length === 2) &&
+      s.state.memory === 2,
+    );
     expect(s.state.memory).toBe(2);
   });
 
