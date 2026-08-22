@@ -26,6 +26,23 @@ describe("ST19-04 PawnChessmon", () => {
     expect(getCardDefinition("ST19-04")).toMatchObject({ inheritedEffectText: "＜Reboot＞." });
   });
 
+  it("does not draw when the Puppet trash cost cannot be paid", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "ST19-04", as: "pawn" }],
+        deck: [{ card: "BT1-010", as: "first" }, { card: "BT1-011", as: "second" }],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 20;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pawn").instanceId })).toEqual({ ok: true });
+    await s.ready();
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      s.inst("first").instanceId,
+      s.inst("second").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
   it("exposes inherited Reboot on a real evolution stack", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "ST19-10", as: "host", under: ["ST19-04"] }] },
