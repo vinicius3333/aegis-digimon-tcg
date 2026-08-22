@@ -16,6 +16,10 @@ const compiled: CompiledCard = {
           cost: {
             kind: "place",
             target: { filter: { zone: "hand", controller: "mine", ...option }, count: 1, from: ["hand"] },
+            underFilter: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "self",
             raw: "By placing 1 Option card with the [Onmyōjutsu] or [Plug-In] trait from your hand under this Tamer",
           },
           optional: true,

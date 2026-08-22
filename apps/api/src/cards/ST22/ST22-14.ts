@@ -49,7 +49,10 @@ const compiled: CompiledCard = {
     {
       trigger: "OnPlay",
       actions: [
-        { kind: "Trash", target: { filter: { zone: "hand", controller: "opponent" }, count: 1, untilHandSize: 6 } },
+        {
+          kind: "Trash",
+          target: { filter: { zone: "hand", controller: "opponent" }, count: "untilHandHas", untilHandSize: 6 },
+        },
         {
           kind: "PlayWithoutCost",
           target: { filter: fallenAngel, count: 1 },
@@ -63,7 +66,10 @@ const compiled: CompiledCard = {
     {
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "Trash", target: { filter: { zone: "hand", controller: "opponent" }, count: 1, untilHandSize: 6 } },
+        {
+          kind: "Trash",
+          target: { filter: { zone: "hand", controller: "opponent" }, count: "untilHandHas", untilHandSize: 6 },
+        },
         {
           kind: "PlayWithoutCost",
           target: { filter: fallenAngel, count: 1 },
