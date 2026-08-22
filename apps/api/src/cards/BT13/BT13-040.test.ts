@@ -7,8 +7,35 @@ describe("BT13-040 Magnamon", () => {
   it("keeps Blocker and replaces leaving play with draw plus optional Veemon play", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.effects[0]).toMatchObject({ trigger: "Static", keywords: [expect.objectContaining({ keyword: "Blocker" })] });
-    expect(compiled.effects[1]).toMatchObject({ trigger: "AllTurns", actions: [expect.objectContaining({ kind: "Replacement", event: "wouldLeavePlay" }), expect.objectContaining({ kind: "PlayWithoutCost", from: ["hand", "digivolutionCards"], optional: true })] });
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "Static",
+      keywords: [expect.objectContaining({ keyword: "Blocker" })],
+    });
+    expect(compiled.effects[1]).toMatchObject({
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: { isSelfRef: true },
+          actions: [{ kind: "Draw", controller: "mine", amount: 1 }],
+        },
+        {
+          kind: "PlayWithoutCost",
+          from: ["hand", "digivolutionCards"],
+          payCost: false,
+          optional: true,
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [{ match: "name", tokens: ["Veemon"] }],
+              hostFilter: { isSelfRef: true },
+            },
+            count: 1,
+          },
+        },
+      ],
+    });
   });
 
   it("exposes Blocker on the live Magnamon permanent", async () => {
