@@ -34,7 +34,8 @@ describe("P-027 MetalGarurumon", () => {
       s.perm("metalGarurumon").stack.length === 0 &&
       s.perm("recipient").currentDP === recipientBase + 3000 &&
       s.state.players[0]!.trash.some((card) => card.instanceId === optionId) &&
-      s.perm("mimi").isSuspended
+      s.perm("mimi").isSuspended &&
+      s.state.memory === 1
     );
 
     expect(s.state.memory).toBe(1);

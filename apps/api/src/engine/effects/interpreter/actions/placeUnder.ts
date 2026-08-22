@@ -391,7 +391,7 @@ export async function runTrashDigivolution(
 ): Promise<boolean> {
   const amount = action.amount ?? 1;
   const fromTop = action.fromTop ?? true;
-  const minimum = action.minAmount ?? (typeof amount === "number" ? amount : undefined);
+  const minimum = action.minAmount;
   const isDigiBurst = /Digi-?Burst/i.test(action.raw ?? "");
   const trashOptions = {
     byEffectSeat: ctx.source.ownerSeat,
