@@ -4930,6 +4930,10 @@ function collectForReturn(
       onPermanentRemoved?.(permanent.permanentId);
       return [...permanent.stack, ...(permanent.topCard ? [permanent.topCard] : []), ...permanent.linked];
     }
+    for (const permanent of owner.battleArea) {
+      const index = permanent.stack.findIndex((card) => card.instanceId === instanceId);
+      if (index >= 0) return [permanent.stack.splice(index, 1)[0]!];
+    }
   }
   // Otherwise a loose card (hand/security/deck/trash/under-a-permanent): no battle-area
   // permanent left play, so no ledger teardown — `onPermanentRemoved` is not called.

@@ -177,6 +177,13 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
  * clause to restrict.
  */
 export function timingsForTrigger(effect: CardEffect, isOptionPlayBody: boolean): EffectTiming[] {
+  if (effect.timingOverride !== undefined) {
+    const override = effect.timingOverride as string;
+    const numericTiming = Object.prototype.hasOwnProperty.call(EffectTiming, override)
+      ? EffectTiming[override as keyof typeof EffectTiming]
+      : undefined;
+    return [numericTiming ?? (effect.timingOverride as unknown as EffectTiming)];
+  }
   const primary = timingForTrigger(effect);
   if (primary === undefined) return [];
   const isDelay = (effect.keywords ?? []).some((kw) => kw.keyword === "Delay");

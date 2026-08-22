@@ -3,18 +3,24 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const maquinamonText = { nameOrTrait: [{ tokens: ["Maquinamon"], match: "text" }] };
-const hostGate = { kind: "selfTopHasText", nameOrTrait: [{ tokens: ["Maquinamon"], match: "text" }], raw: "this Digimon has [Maquinamon] in its text" };
+const hostGate = {
+  kind: "selfTopHasText",
+  filter: { nameOrTrait: [{ tokens: ["Maquinamon"], match: "text" }] },
+  raw: "this Digimon has [Maquinamon] in its text",
+};
 
 const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Security",
-      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
-      isSecurity: true
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+      ],
+      isSecurity: true,
     },
     {
       trigger: "StartOfYourTurn",
-      actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } }]
+      actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } }],
     },
     {
       trigger: "EndOfYourTurn",
@@ -24,14 +30,14 @@ const compiled: CompiledCard = {
           materials: { filter: { controller: "mine", kind: ["Digimon"] }, count: 2 },
           into: { controllerDefault: "mine", zone: "hand", nameOrTrait: [{ tokens: ["ExMaquinamon"], match: "name" }] },
           payCost: true,
-          optional: true
+          optional: true,
         },
         {
           kind: "MindLink",
           target: { filter: { controller: "mine", kind: ["Digimon"], ...maquinamonText }, count: 1 },
-          optional: true
-        }
-      ]
+          optional: true,
+        },
+      ],
     },
     {
       trigger: "AllTurns",
@@ -41,34 +47,37 @@ const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           floor: 1000,
           duration: "permanent",
-          condition: hostGate
+          condition: hostGate,
         },
         {
           kind: "StackTrashLock",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           duration: "permanent",
-          condition: hostGate
-        }
+          condition: hostGate,
+        },
       ],
-      isInherited: true
+      isInherited: true,
     },
     {
       trigger: "EndOfAllTurns",
       actions: [
         {
           kind: "PlayWithoutCost",
-          target: { filter: { controller: "mine", kind: ["Tamer"], nameOrTrait: [{ tokens: ["Unchained"], match: "name" }] }, count: 1 },
+          target: {
+            filter: { controller: "mine", kind: ["Tamer"], nameOrTrait: [{ tokens: ["Unchained"], match: "name" }] },
+            count: 1,
+          },
           from: ["digivolutionCards"],
           fromOwnDigivolutionStack: true,
           payCost: false,
-          optional: true
-        }
+          optional: true,
+        },
       ],
-      isInherited: true
-    }
+      isInherited: true,
+    },
   ],
   coverage: "full",
-  residual: []
+  residual: [],
 };
 
 registerIrCard("EX11-070", compiled);

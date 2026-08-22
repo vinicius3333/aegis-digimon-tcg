@@ -14,10 +14,12 @@ describe("EX11-003 Puroromon", () => {
     const effect = module.effectsForTiming(EffectTiming.None, source)[0]!;
     await effect.resolve({
       source,
+      game: { definitionOf: () => ({}) },
       fx: { subscribeSubTrigger: (subscription: any) => subscriptions.push(subscription) },
     } as any);
 
     const makeTrigger = (faceUp: boolean, types: string[], seat = 0) => ({
+      source,
       trigger: { addedToSecuritySeat: seat, addedToSecurityInstanceIds: ["card"] },
       game: {
         player: () => ({ security: [{ instanceId: "card", faceUp }] }),

@@ -16,8 +16,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
  *   traits and your opponent has 2 or more Digimon in play, unsuspend this Digimon.
  */
 const cardId = "BT10-019";
-const compiled = getCompiledCard(cardId) as CompiledCard;
-
 const compiled = {
   effects: [
     {
