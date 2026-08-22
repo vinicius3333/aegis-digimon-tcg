@@ -45,3 +45,26 @@ it("returns an opposing Digimon to its owner's deck", async () => {
   expect(s.state.players[1]!.battleArea).toHaveLength(0);
   expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toContain("BT1-009");
 });
+
+it("reduces its play cost by 3 by placing one blue Digimon under another", async () => {
+  const s = setupEngine({
+    0: {
+      hand: [{ card: "BT12-102", as: "option" }],
+      battleArea: [
+        { card: "BT1-029", as: "moved" },
+        { card: "BT1-029", as: "destination" },
+      ],
+    },
+    1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+  }, { autoAcceptOptional: true, autoSelectCards: true });
+  await s.ready();
+  const movedPermanentId = s.perm("moved").permanentId;
+  s.state.memory = 6;
+
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT1-029" && p.stack.length > 1));
+
+  expect(s.state.memory).toBe(0);
+  expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === movedPermanentId)).toBe(false);
+  expect(s.perm("destination").stack.map(({ cardId }) => cardId)).toContain("BT1-029");
+});
