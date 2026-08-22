@@ -1,8 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import { EffectTiming } from "@aegis/shared";
+import { compiled } from "./BT21-083.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT21-083.js";
 
