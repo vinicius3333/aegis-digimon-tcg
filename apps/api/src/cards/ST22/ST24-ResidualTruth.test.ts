@@ -21,6 +21,7 @@ describe("ST22/ST24 remaining complex clauses", () => {
     await s.ready();
     await advance(s.engine).fireSubTrigger("whenOptionUsed", {
       subjectPermanentId: s.inst("eligibleOption").instanceId,
+      usedOptionCost: 6,
     });
     await settle(() => s.perm("host").topCard?.cardId === "ST22-04");
 
@@ -41,6 +42,7 @@ describe("ST22/ST24 remaining complex clauses", () => {
     await s.ready();
     await advance(s.engine).fireSubTrigger("whenOptionUsed", {
       subjectPermanentId: s.inst("otherOption").instanceId,
+      usedOptionCost: 6,
     });
     await settle(() => false, 40);
 
@@ -52,10 +54,17 @@ describe("ST22/ST24 remaining complex clauses", () => {
       {
         0: {
           hand: [{ card: "BT25-021", as: "dataSquad" }],
-          battleArea: [{ card: "ST24-10", as: "lilamon" }, { card: "ST24-13", as: "tamer", under: [
-            { card: "BT1-001", as: "underA", faceUp: false },
-            { card: "BT1-002", as: "underB", faceUp: false },
-          ] }],
+          battleArea: [
+            { card: "ST24-10", as: "lilamon" },
+            {
+              card: "ST24-13",
+              as: "tamer",
+              under: [
+                { card: "BT1-001", as: "underA", faceUp: false },
+                { card: "BT1-002", as: "underB", faceUp: false },
+              ],
+            },
+          ],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
