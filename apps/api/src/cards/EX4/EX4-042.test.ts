@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX4-042.js";
 
 describe("EX4-042 DarkMaildramon", () => {
@@ -6,5 +10,13 @@ describe("EX4-042 DarkMaildramon", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions;
     expect(actions?.[0]).toMatchObject({ kind: "GrantStatic", target: { filter: { isSelfRef: true } }, grant: { keyword: "Unblockable" }, duration: "forTheTurn" });
     expect(actions?.[1]).toMatchObject({ kind: "GrantStatic", target: { count: "all", filter: { nameOrTrait: [{ match: "name", tokens: ["Knightmon", "Knightsmon"] }] } } });
+  });
+
+  it("grants Unblockable to itself and an own Knightmon during the turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX4-042", as: "source" }, { card: "BT5-042", as: "knight" }] } });
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("source"));
+
+    expect(observe(s.engine).hasKeyword(s.perm("source"), "Unblockable")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("knight"), "Unblockable")).toBe(true);
   });
 });
