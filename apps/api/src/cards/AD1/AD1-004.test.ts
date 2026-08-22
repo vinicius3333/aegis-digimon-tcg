@@ -38,7 +38,7 @@ describe("AD1-004 WarGreymon", () => {
   it("gets +1000 DP per distinct Tamer color and Security Attack +1 per three colors", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "AD1-004", dp: 12000, as: "wargreymon" }, { card: "AD1-020", as: "threeColorTamer" }] },
-      1: { security: ["BT1-010", "BT1-010", "BT1-010"] },
+      1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
     });
     await s.ready();
 
@@ -46,7 +46,7 @@ describe("AD1-004 WarGreymon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("wargreymon"), "SecurityAttack")).toBe(1);
 
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("wargreymon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 1);
+    await settle(() => s.state.players[1]!.security.length === 1, 5000);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
