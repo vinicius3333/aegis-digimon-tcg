@@ -3432,7 +3432,6 @@ export class GameEngine {
       },
       isDigimon: (card) => {
         const result = this.access.isDigimonCard(card);
-        log("[securityCheck]", card.cardId, `isDigimon=${result} kinds=`, lookupDefinition(card.cardId)?.kinds);
         return result;
       },
       deletePermanents: async (permanentIds) => {
