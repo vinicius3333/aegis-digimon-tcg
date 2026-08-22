@@ -107,6 +107,26 @@ describe("BT26-022 Sorcermon", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === CARD_ID)).toBe(false);
   });
 
+  it("does not pay itself to security or play from hand without a red or purple Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "sorcermon" }],
+          hand: [{ card: "BT24-019", as: "iliad" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("sorcermon"));
+
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+      s.inst("sorcermon").instanceId,
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("iliad").instanceId]);
+  });
+
   it("encodes the ordered recovery, conditional security cost, and inherited Barrier", () => {
     expect(compiled.effects).toMatchObject([
       { trigger: "OnPlay", actions: [{ kind: "SecurityManipulation", op: "toHand" }, { kind: "SecurityManipulation", op: "addTop" }] },
