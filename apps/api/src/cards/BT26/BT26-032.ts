@@ -7,23 +7,71 @@ const playable = { controller: "mine", zone: "hand", nameOrTrait: [{ tokens: ["V
 const ceresmon = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Ceresmon"], match: "name" }] };
 
 const digivolveBody = [
-  { kind: "ModifyDP", target: { filter: opponentSuspendedDigimon, count: "all" }, amount: -5000, duration: "untilOpponentTurnEnd" },
+  {
+    kind: "ModifyDP",
+    target: { filter: opponentSuspendedDigimon, count: "all" },
+    amount: -5000,
+    duration: "untilOpponentTurnEnd",
+  },
   { kind: "Suspend", target: { filter: { controller: "any", kind: ["Digimon"] }, count: 1 }, optional: true },
-  { kind: "Modal", choose: 1, condition: { kind: "allOf", conditions: [{ kind: "ifThisEffectActed" }, { kind: "isYourTurn", raw: "if it's your turn" }] }, options: [
-    [{ kind: "UseOptionWithoutCost", filter: { ...playable, kind: ["Option"] }, from: ["hand"], payCost: true, reduceCostBy: 5, optional: true }],
-    [{ kind: "PlayWithoutCost", target: { filter: { ...playable, kind: ["Digimon", "Tamer"] }, count: 1 }, from: ["hand"], payCost: true, reduceCostBy: 5, optional: true }],
-  ] },
+  {
+    kind: "Modal",
+    choose: 1,
+    condition: {
+      kind: "allOf",
+      conditions: [{ kind: "ifThisEffectActed" }, { kind: "isYourTurn", raw: "if it's your turn" }],
+    },
+    options: [
+      [
+        {
+          kind: "UseOptionWithoutCost",
+          filter: { ...playable, kind: ["Option"] },
+          from: ["hand"],
+          payCost: true,
+          reduceCostBy: 5,
+          optional: true,
+        },
+      ],
+      [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { ...playable, kind: ["Digimon", "Tamer"] }, count: 1 },
+          from: ["hand"],
+          payCost: true,
+          reduceCostBy: 5,
+          optional: true,
+        },
+      ],
+    ],
+  },
 ];
 
 export const compiled: CompiledCard = {
-  keywords: [{ keyword: "Alliance", raw: "＜Alliance＞" }, { keyword: "Succession", raw: "＜Succession ([Ceresmon])＞" }],
+  keywords: [
+    { keyword: "Alliance", raw: "＜Alliance＞" },
+    { keyword: "Succession", raw: "＜Succession ([Ceresmon])＞" },
+  ],
   effects: [
     { trigger: "WhenDigivolving", actions: digivolveBody },
-    { trigger: "Static", actions: [
-      { kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "effects", filter: ceresmon, duration: "permanent" },
-      { kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "trait", tokens: ["Vegetation"], duration: "permanent" },
-      { kind: "WaiveColorRequirement", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, condition: { kind: "youHave", filter: { controller: "mine", nameOrTrait: [{ tokens: ["TS"], match: "trait" }] } } },
-    ] },
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          grant: "effects",
+          filter: ceresmon,
+          duration: "permanent",
+        },
+        {
+          kind: "GrantStatic",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          grant: "trait",
+          tokens: ["Vegetation"],
+          duration: "permanent",
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
