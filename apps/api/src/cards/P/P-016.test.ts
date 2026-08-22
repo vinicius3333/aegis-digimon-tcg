@@ -60,6 +60,25 @@ describe("P-016 [Your Turn] <Security Attack +N> per Diaboromon in battle area",
     expect(grants[0]!.amount).toBe(2); // 2 Diaboromon in play → +2
   });
 
+  it("counts a Diaboromon token but not Diaboromon (X Antibody)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "P-016", as: "p016" },
+          { card: "TOKEN-Diaboromon", as: "token" },
+          { card: "BT24-065", as: "x-antibody" },
+        ],
+      },
+    });
+
+    await s.engine.recomputeContinuousEffects();
+
+    const grants = ledgerOf(s)
+      .grantedKeywords(s.perm("p016").permanentId)
+      .filter((grant) => grant.keyword === "SecurityAttack");
+    expect(grants[0]!.amount).toBe(2);
+  });
+
   it("does NOT grant SecurityAttack on the opponent's turn (Your Turn gate)", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "P-016", dp: 9000, as: "p016" }] } });
     s.state.turnSeat = 1; // opponent's turn — the [Your Turn] condition fails for seat 0
