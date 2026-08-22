@@ -52,6 +52,7 @@ describe("ST19-02 ＜Barrier＞ is once per turn", () => {
         s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("barrier").permanentId),
     );
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(mainPhase.isOpen).toBe(true);
 
     s.events.length = 0;
 
