@@ -426,7 +426,9 @@ export async function pickLoose(
   if (candidates.length <= want && !target.upTo && !requireDifferentColors && target.forceSelection !== true)
     return candidates.slice(0, want).map((c) => c.instanceId);
   const ids = candidates.map((c) => c.instanceId);
-  const min = target.upTo ? 0 : Math.min(want, candidates.length);
+  const min = target.upTo
+    ? Math.min(target.minimum ?? 0, candidates.length)
+    : Math.min(want, candidates.length);
   const max = Math.min(want, candidates.length);
 
   let chosen = await asker.selectCards(ctx, {

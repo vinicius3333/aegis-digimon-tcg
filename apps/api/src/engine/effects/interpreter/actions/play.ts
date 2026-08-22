@@ -437,7 +437,20 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           const requirement = chosenCard === undefined ? undefined : digiXrosRequirementFor(chosenCard.cardId)?.[0];
           if (requirement !== undefined) {
             const materialCandidates = action.digiXrosMaterialsFrom
-              .flatMap((zone) => looseCardsInZone(ctx, ctx.source.ownerSeat, zone))
+              .flatMap((zone) =>
+                zone === "battleArea"
+                  ? Array.from(ctx.game.player(ctx.source.ownerSeat).battleArea).flatMap((permanent) =>
+                      permanent.inBreeding || permanent.topCard === undefined
+                        ? []
+                        : [{
+                            instanceId: permanent.topCard.instanceId,
+                            cardId: permanent.topCard.cardId,
+                            ownerSeat: permanent.topCard.ownerSeat,
+                            hostPermanentId: permanent.permanentId,
+                          }],
+                    )
+                  : looseCardsInZone(ctx, ctx.source.ownerSeat, zone),
+              )
               .filter((card) => card.instanceId !== pfzChosen[0]);
             const selected = await ctx.ask.selectCards(ctx, {
               candidates: materialCandidates.map((card) => card.instanceId),

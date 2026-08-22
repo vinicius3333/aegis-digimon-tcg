@@ -759,7 +759,24 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       }
       created.push(permanent);
       if ((opts?.digiXrosMaterialInstanceIds?.length ?? 0) > 0) {
-        await placeUnder(permanent.permanentId, opts!.digiXrosMaterialInstanceIds!);
+        for (const materialInstanceId of opts!.digiXrosMaterialInstanceIds!) {
+          let fieldMaterial: Permanent | undefined;
+          for (const candidatePlayer of state.players) {
+            fieldMaterial = candidatePlayer.battleArea.find(
+              (candidatePermanent) => candidatePermanent.topCard?.instanceId === materialInstanceId,
+            );
+            if (fieldMaterial !== undefined) break;
+          }
+          if (fieldMaterial !== undefined && fieldMaterial.permanentId !== permanent.permanentId) {
+            await relocatePermanentByEffect(permanent.permanentId, fieldMaterial.permanentId, {
+              belowTop: false,
+              faceUp: true,
+              shedOwnCards: true,
+            });
+          } else {
+            await placeUnder(permanent.permanentId, [materialInstanceId]);
+          }
+        }
       }
       engine.emit({
         kind: "cardPlayed",
