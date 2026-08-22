@@ -29,7 +29,6 @@ export const compiled: CompiledCard = {
               into: { controller: "mine", zone: "trash", isSelfRef: true, kind: ["Digimon"] },
               from: ["trash"],
               payCost: false,
-              ignoreRequirements: true,
               optional: true,
               abortOnDecline: true,
             },

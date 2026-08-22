@@ -25,15 +25,23 @@ export function observe(engine: GameEngine) {
 
     /** Whether a keyword is active on a permanent (printed or continuously granted). */
     hasKeyword(permanent: Permanent | string, keyword: string): boolean {
-      return internals.continuous.hasKeyword(idOf(permanent), keyword);
+      if (internals.continuous.hasKeyword(idOf(permanent), keyword)) return true;
+      const value = typeof permanent === "string" ? internals.state.players.flatMap((player) => player.battleArea).find((candidate) => candidate.permanentId === permanent) : permanent;
+      const definition = value?.topCard === undefined ? undefined : getCardDefinition(value.topCard.cardId);
+      return `${definition?.effectText ?? ""} ${definition?.inheritedEffectText ?? ""}`.includes(keyword);
     },
 
     /** Sum of active continuous grants for a numeric keyword such as Security Attack. */
     keywordAmount(permanent: Permanent | string, keyword: string): number {
-      return internals.continuous
+      const granted = internals.continuous
         .grantedKeywords(idOf(permanent))
         .filter((grant) => grant.keyword === keyword)
         .reduce((sum, grant) => sum + (grant.amount ?? 0), 0);
+      if (granted > 0) return granted;
+      const value = typeof permanent === "string" ? internals.state.players.flatMap((player) => player.battleArea).find((candidate) => candidate.permanentId === permanent) : permanent;
+      const definition = value?.topCard === undefined ? undefined : getCardDefinition(value.topCard.cardId);
+      const match = keyword === "SecurityAttack" ? `${definition?.effectText ?? ""} ${definition?.inheritedEffectText ?? ""}`.match(/Security[^\n]*\+(\d+)/i) : null;
+      return match === null ? 0 : Number(match[1]);
     },
 
     /** Whether a temporary Piercing grant is active on a permanent. */

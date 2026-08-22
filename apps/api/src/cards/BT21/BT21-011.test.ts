@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-011.js";
 
 describe("BT21-011 compiled implementation", () => {
@@ -61,5 +65,15 @@ describe("BT21-011 compiled implementation", () => {
         ],
       }),
     ]);
+  });
+
+  it("grants inherited Rush to a Xros Heart Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT21-016", as: "shoutmon", under: ["BT21-011"] }] },
+    });
+
+    s.state.turnSeat = 0;
+    await advance(s.engine).fire(EffectTiming.YourTurn, s.perm("shoutmon"));
+    expect(observe(s.engine).hasKeyword(s.perm("shoutmon"), "Rush")).toBe(true);
   });
 });

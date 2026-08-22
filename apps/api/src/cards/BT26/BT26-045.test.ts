@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { digivolutionRequirementsFor } from "@aegis/shared";
 import { compiled } from "./BT26-045.js";
+import "../index.js";
 
 describe("BT26-045 GranKuwagamon", () => {
   it("encodes hand-size reduction, shared free play, and all three Your Turn keywords", () => {
@@ -16,5 +18,12 @@ describe("BT26-045 GranKuwagamon", () => {
       expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Piercing" } }),
       expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Vortex" } }),
     ]));
+  });
+
+  it("publicly grants Alliance, Piercing, and Vortex to an eligible Insectoid", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT26-045", as: "granKuwagamon" }] } });
+    await s.ready();
+
+    expect(s.perm("granKuwagamon").keywords).toEqual(expect.arrayContaining(["Alliance", "Piercing", "Vortex"]));
   });
 });

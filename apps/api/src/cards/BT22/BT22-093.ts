@@ -3,7 +3,7 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { turnTiming, security } from "../../engine/effects/builders.js";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
 /**
  * BT22-093 — Ami Aiba (BT22, White Tamer).
@@ -161,5 +161,5 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard(cardId, module);
+registerCard(module);
 export default module;

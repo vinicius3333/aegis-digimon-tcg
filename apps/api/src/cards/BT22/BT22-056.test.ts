@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-056.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT22-056 Guardromon", () => {
   it("reduces one opponent Digimon and conditionally De-Digivolves another", () => {

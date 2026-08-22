@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-053.js";
 
 describe("BT21-053 Watchmon", () => {
@@ -38,5 +40,23 @@ describe("BT21-053 Watchmon", () => {
         ],
       }),
     );
+  });
+
+  it("restricts the selected opponent Digimon through the public On Play effect", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT21-053", as: "watchmon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("watchmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attackPlayers"));
+
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attackPlayers")).toBe(true);
   });
 });

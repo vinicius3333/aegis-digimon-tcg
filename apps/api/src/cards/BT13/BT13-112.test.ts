@@ -2,8 +2,10 @@ import { describe, expect, it } from "vitest";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "../index.js";
 import { compiled } from "./BT13-112.js";
+import "./BT13-007.js";
+import "./BT13-040.js";
+import "./BT13-111.js";
 
 describe("BT13-112 Omnimon", () => {
   it("has complete compiled coverage and no residual gaps", () => {
@@ -70,6 +72,7 @@ describe("BT13-112 Omnimon", () => {
       ok: true,
     });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT13-007"));
+    await s.engine.recomputeContinuousEffects();
 
     expect(s.state.players[0]!.breeding?.topCard).toBeUndefined();
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-007")).toBe(true);

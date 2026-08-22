@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-044.js";
-import "../index.js";
 
 describe("BT21-044 compiled implementation", () => {
   it("exposes complete effect coverage with no residual clauses", () => {

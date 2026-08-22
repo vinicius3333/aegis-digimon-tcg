@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { requireCardDefinition, PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
-import "../index.js";
+import "./index.js";
 import { compiled } from "./EX8-042.js";
 
 describe("EX8-042", () => {

@@ -493,10 +493,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     });
   };
 
-  const isPlayProhibited: Primitives["isPlayProhibited"] = (seat, cardId, mode) => {
+  const isPlayProhibited: Primitives["isPlayProhibited"] = (seat, cardId, mode, sourceZone) => {
     const def = requireCardDefinition(cardId);
     // Pass effectPlay=true so byEffectOnly prohibitions are honored on the effect-play path.
-    return continuous.isPlayBlocked(seat, def, mode, true);
+    return continuous.isPlayBlocked(seat, def, mode, true, sourceZone);
   };
 
   const disableSecurityEffect: Primitives["disableSecurityEffect"] = (attackerPermanentId, sourceKind, duration) => {
@@ -611,7 +611,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       const { owner, index } = located;
       const definition = requireCardDefinition(owner.hand[index]!.cardId);
       if (!isPermanentKind(definition)) continue; // only permanents are "played" onto the field
-      if (continuous.isPlayBlocked(owner.seat, definition, "play", true)) continue;
+      if (continuous.isPlayBlocked(owner.seat, definition, "play", true, "hand")) continue;
       if (opts?.payCost) {
         const cost = await effectDrivenPlayCost(instanceId, definition, owner.seat, opts.costDelta);
         if (engine.memory.maxCostFor(owner.seat) < cost) continue; // unaffordable: skip (no partial pay)
@@ -643,7 +643,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     const { owner, index } = located;
     const definition = requireCardDefinition(owner.security[index]!.cardId);
     if (!isPermanentKind(definition)) return undefined;
-    if (continuous.isPlayBlocked(owner.seat, definition, "play", true)) return undefined;
+    if (continuous.isPlayBlocked(owner.seat, definition, "play", true, "security")) return undefined;
     if (opts?.payCost) {
       const cost = await effectDrivenPlayCost(instanceId, definition, owner.seat);
       if (engine.memory.maxCostFor(owner.seat) < cost) return undefined;
@@ -724,7 +724,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       }
 
       if (!isPermanentKind(definition)) continue;
-      if (continuous.isPlayBlocked(ownerPlayer.seat, definition, "play", true)) continue;
+      if (continuous.isPlayBlocked(ownerPlayer.seat, definition, "play", true, originByInstance.get(instanceId))) continue;
       if (opts?.payCost) {
         const requirement = digiXrosRequirementFor(definition.cardId)?.[0];
         const materialCount = opts.digiXrosMaterialInstanceIds?.length ?? 0;
@@ -1394,6 +1394,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       subjectPermanentId: permanentId,
       addedDigivolutionCardInstanceIds: [oldTop.instanceId],
       addedDigivolutionCardsPosition: "bottom",
+      placedOwnTopAtStackBottom: true,
     });
     return true;
   };
@@ -2748,6 +2749,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         await engine.fireSubTrigger("onDeletionOf", {
           deletedPermanentId: permanentId,
           deletedPermanentIds: toDelete,
+          deletedControllerSeat: deleted.controllerSeat,
           deletedTopCardId: access.permanentById(permanentId)?.topCard?.cardId,
           removalCause: cause,
           deletedByDpZero: cause === "byRule" && deleted.currentDP === 0,
@@ -3581,9 +3583,21 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         ledger.dropSourceInstances(state, [detached.instanceId]);
         added.push(detached);
         continue;
+    }
+    const collected = collectForReturn(state, instanceId, dropPermanentLedgers);
+      if (collected === undefined) {
+        const resolvingOwner = state.players.find((owner) => owner.resolvingOption?.instanceId === instanceId);
+        if (resolvingOwner?.resolvingOption !== undefined) {
+          const resolving = resolvingOwner.resolvingOption;
+          resolvingOwner.resolvingOption = undefined;
+          resolving.faceUp = faceUp;
+          if (toTop) insertCard(p, Zone.Security, resolving, "top");
+          else insertCard(p, Zone.Security, resolving);
+          ledger.dropSourceInstances(state, [resolving.instanceId]);
+          added.push(resolving);
+        }
+        continue;
       }
-      const collected = collectForReturn(state, instanceId, dropPermanentLedgers);
-      if (collected === undefined) continue;
       for (const card of collected) {
         if (card.instanceId === instanceId || collected.length === 1) {
           card.faceUp = faceUp;
@@ -4915,6 +4929,10 @@ function collectForReturn(
       owner.breeding = undefined;
       onPermanentRemoved?.(permanent.permanentId);
       return [...permanent.stack, ...(permanent.topCard ? [permanent.topCard] : []), ...permanent.linked];
+    }
+    for (const permanent of owner.battleArea) {
+      const index = permanent.stack.findIndex((card) => card.instanceId === instanceId);
+      if (index >= 0) return [permanent.stack.splice(index, 1)[0]!];
     }
   }
   // Otherwise a loose card (hand/security/deck/trash/under-a-permanent): no battle-area

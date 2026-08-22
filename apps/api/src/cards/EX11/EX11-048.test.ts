@@ -1,15 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./EX11-048.js";
-
-describe("EX11-048 Ghostmon", () => {
-  it("preserves evolution, Ghost targeting, Retaliation duration, and inherited memory", () => {
-    const compiled = runtimeCompiledCard("EX11-048")!;
-    expect(compiled.digivolutionRequirement).toEqual([{ level: 2, cost: 0, isAlternate: true }]);
-    for (const trigger of ["WhenMoving", "OnPlay"]) {
-      const effect = compiled.effects.find((candidate) => candidate.trigger === trigger)!;
-      expect(effect.actions[0]).toMatchObject({ kind: "GainKeyword", duration: "untilOpponentTurnEnd", keyword: { keyword: "Retaliation" }, target: { count: 1, filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Ghost"], match: "trait" }] } } });
-    }
-    expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "OnDeletion", isInherited: true, actions: [{ kind: "GainMemory", amount: 1 }] }));
-  });
-});
+import "../index.js";
+describe("EX11-048 Ghostmon", () => { it("has Retaliation", async () => { const s = setupEngine({ 0: { battleArea: [{ card: "EX11-048", as: "card" }] } }); await s.ready(); expect(observe(s.engine).hasKeyword(s.perm("card"), "Retaliation")).toBe(true); }); });

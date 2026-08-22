@@ -1,5 +1,7 @@
 import { describe, it, expect, vi } from "vitest";
 import { EffectDuration, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
@@ -226,6 +228,24 @@ describe("BT26-073 [On Play]/[When Digivolving]: cost then delete a level<=5 opp
     expect(fx.deletePermanent).toHaveBeenCalledTimes(1);
     expect(fx.deletePermanent).toHaveBeenCalledWith(["self-perm"], "byEffect");
   });
+});
+
+it("publicly pays the self-delete mode and deletes only an opponent level 5 or lower Digimon", async () => {
+  const s = setupEngine({
+    0: { battleArea: [{ card: "BT26-073", as: "dark" }] },
+    1: {
+      battleArea: [
+        { card: "BT26-074", as: "low" },
+        { card: "BT26-060", as: "high" },
+      ],
+    },
+  }, { autoAcceptOptional: true, autoSelectCards: true });
+  await s.ready();
+
+  await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("dark"));
+
+  expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT26-060"]);
 });
 
 describe("BT26-073 [On Deletion] and static clauses", () => {

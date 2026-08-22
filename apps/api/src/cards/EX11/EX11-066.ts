@@ -1,6 +1,8 @@
 // @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registerCard } from "../../engine/effects/registry.js";
+
+const cardId = "EX11-066";
 
 const vemmonText = { nameOrTrait: [{ tokens: ["Vemmon"], match: "text" }] };
 const vemmonDigimon = { controller: "mine", kind: ["Digimon"], ...vemmonText };
@@ -196,4 +198,4 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard("EX11-066", compiled);
+registerCard(module);

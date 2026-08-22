@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT21-025.js";
+import "./BT21-055.js";
 
 describe("BT21-025 compiled implementation", () => {
   it("exposes complete effect coverage with no residual clauses", () => {
@@ -59,9 +60,11 @@ describe("BT21-025 compiled implementation", () => {
                 },
               },
             ],
+            fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "opponent" },
           },
         ],
       }),
     );
   });
+
 });
