@@ -102,7 +102,8 @@ function countColors(ctx: EffectContext, filter: Filter): number {
     for (const permanent of ctx.game.player(seat).battleArea) {
       if (!permanentMatchesFilter(ctx, permanent, filter, ctx.source)) continue;
       if (permanent.topCard === undefined) continue;
-      for (const c of ctx.game.definitionOf(permanent.topCard).colors) colors.add(c);
+      const effectiveColors = ctx.game.effectiveColors?.(permanent) ?? ctx.game.definitionOf(permanent.topCard).colors;
+      for (const c of effectiveColors) colors.add(c);
     }
   }
   return colors.size;
