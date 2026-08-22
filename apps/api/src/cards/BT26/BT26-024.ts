@@ -31,6 +31,7 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    { trigger: "Static", isInherited: true, actions: [], keywords: [{ keyword: "Barrier", raw: "＜Barrier＞" }] },
   ],
   coverage: "full",
   residual: [],
