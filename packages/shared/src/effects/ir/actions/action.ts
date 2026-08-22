@@ -79,6 +79,7 @@ import type {
   CostModifierAction,
   DrawAction,
   GainMemoryAction,
+  GainMemoryForDeletedDigimonsAction,
   ReducePlayCostAction,
   SetMemoryAction,
   SetTurnEndMemoryAction,

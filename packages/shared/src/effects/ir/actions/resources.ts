@@ -27,6 +27,11 @@ export interface GainMemoryAction extends ActionBase {
   at?: "endOfTurn";
 }
 
+/** Gain one memory for each opponent Digimon deleted in the current deletion event. */
+export interface GainMemoryForDeletedDigimonsAction extends ActionBase {
+  kind: "GainMemoryForDeletedDigimons";
+}
+
 export interface SetMemoryAction extends ActionBase {
   kind: "SetMemory";
   value: number;

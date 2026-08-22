@@ -47,6 +47,18 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
       });
       return false;
     }
+    case "GainMemoryForDeletedDigimons": {
+      const deletedIds = ctx.trigger?.deletedInstanceIds ?? [];
+      const stackIds = new Set(ctx.trigger?.deletedWasStackInstanceIds ?? []);
+      const opponentTrash = ctx.game.player(ctx.game.opponentOf(ctx.source.ownerSeat)).trash;
+      const count = deletedIds.filter((id) => {
+        if (stackIds.has(id)) return false;
+        const card = opponentTrash.find((candidate) => candidate.instanceId === id);
+        return card !== undefined && ctx.game.definitionOf(card).kinds.includes(CardKind.Digimon);
+      }).length;
+      if (count > 0) ctx.fx.gainMemoryForSeat(ctx.source.ownerSeat, count);
+      return false;
+    }
     case "SetMemory":
       ctx.fx.setMemory(action.value);
       return false;
