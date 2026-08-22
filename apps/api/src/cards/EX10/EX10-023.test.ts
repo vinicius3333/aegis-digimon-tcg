@@ -1,13 +1,9 @@
 import { describe, it, expect } from "vitest";
 import { EffectDuration, EffectTiming, type CardInstance, type Seat } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
-import type {
-  DecisionApi,
-  EffectContext,
-  GameAccess,
-  Primitives,
-} from "../../engine/effects/EffectContext.js";
+import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import "./EX10-023.js";
 
 // A3 for EX10-023 (Astamon):
@@ -15,8 +11,8 @@ import "./EX10-023.js";
 //   [When Digivolving] / [When Attacking] (shared once/turn) Delete 1 suspended opponent Digimon.
 //   [All Turns] Other than this Digimon, no Digimon or Tamers can unsuspend (restrict("unsuspend")).
 //
-// FAILS-WHEN-REVERTED: declarative effect has a RawUnparsed residual for the no-unsuspend effect;
-// the IR suspend actions use a filter+count model, but the can't-unsuspend static is absent.
+// FAILS-WHEN-REVERTED: reverting the module removes the can't-unsuspend behavior while the
+// declarative suspend actions remain present.
 
 const SELF_INST = "self-inst";
 const SELF_PERM = "astamon-perm";
@@ -71,12 +67,7 @@ function makeCtx(
     oppUnsuspendedDigimon?: boolean;
   } = {},
 ): { ctx: EffectContext; recorder: { calls: { verb: string; args: unknown[] }[] } } {
-  const {
-    ownOtherDigimon = true,
-    ownTamer = true,
-    oppSuspendedDigimon = true,
-    oppUnsuspendedDigimon = true,
-  } = opts;
+  const { ownOtherDigimon = true, ownTamer = true, oppSuspendedDigimon = true, oppUnsuspendedDigimon = true } = opts;
 
   const recorder: { calls: { verb: string; args: unknown[] }[] } = { calls: [] };
 
@@ -223,6 +214,27 @@ function makeCtx(
 describe("EX10-023 Astamon", () => {
   const module = getEffectModule("EX10-023");
 
+  it("blocks the real turn-start unsuspend phase for every other Digimon and Tamer", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX10-023", as: "quartzmon", suspended: true },
+          { card: "BT1-009", as: "ownOther", suspended: true },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent", suspended: true }] },
+    });
+    await s.engine.recomputeContinuousEffects();
+
+    await (s.engine as unknown as { unsuspendForActivePhase(seat: 0 | 1): Promise<string[]> }).unsuspendForActivePhase(
+      0,
+    );
+
+    expect(s.perm("quartzmon").isSuspended).toBe(false);
+    expect(s.perm("ownOther").isSuspended).toBe(true);
+    expect(s.perm("opponent").isSuspended).toBe(true);
+  });
+
   it("is registered on import", () => {
     expect(module, "EX10-023 must self-register").toBeDefined();
   });
@@ -318,7 +330,7 @@ describe("EX10-023 Astamon", () => {
   });
 
   it("[All Turns] restricts 'unsuspend' on all battle-area Digimon/Tamers except self", async () => {
-    // FAILS-WHEN-REVERTED: IR RawUnparsed residual = no restrict('unsuspend') calls
+    // FAILS-WHEN-REVERTED: the reverted IR has no restrict('unsuspend') calls
     const source = makeSource();
     const { ctx, recorder } = makeCtx(source, {
       ownOtherDigimon: true,

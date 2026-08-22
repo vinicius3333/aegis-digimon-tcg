@@ -12,6 +12,12 @@ function hasMineralOrRock(def: CardDefinition): boolean {
   return (def.types ?? []).some((t) => t === "Mineral" || t === "Rock");
 }
 
+function hasCloseInHand(ctx: Parameters<Effect["resolve"]>[0], source: CardSource): boolean {
+  return Array.from(ctx.game.player(source.ownerSeat).hand).some(
+    (card) => ctx.game.definitionOf(card).nameEn === "Close",
+  );
+}
+
 const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
@@ -27,22 +33,21 @@ const module: EffectModule = {
             "paying the cost.",
           optional: true,
           when: (_ctx) => source.isOnBattleArea(),
-          canActivate: (_ctx) => source.isOnBattleArea(),
+          canActivate: (ctx) => source.isOnBattleArea() && hasCloseInHand(ctx, source),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
             const closeCard = Array.from(owner.hand).find((c) => {
               const def = ctx.game.definitionOf(c);
               return def.nameEn === "Close";
             });
-            if (closeCard !== undefined) {
-              const willPlayClose = await ctx.ask.optional(
-                ctx,
-                "Play 1 [Close] from your hand without paying the cost? (Tamer returns to deck)",
-              );
-              if (!willPlayClose) return;
-              await ctx.fx.returnToDeck([source.instanceId], { toTop: false });
-              await ctx.fx.playInstances([closeCard.instanceId], { payCost: false });
-            }
+            if (closeCard === undefined) return;
+            const willPlayClose = await ctx.ask.optional(
+              ctx,
+              "Play 1 [Close] from your hand without paying the cost? (Tamer returns to deck)",
+            );
+            if (!willPlayClose) return;
+            await ctx.fx.returnToDeck([source.instanceId], { toTop: false });
+            await ctx.fx.playInstances([closeCard.instanceId], { payCost: false });
 
             const hasDigimon = Array.from(owner.battleArea).some(
               (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)),

@@ -6,88 +6,84 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "Replacement",
-          "event": "wouldDigivolve",
-          "sourceFilter": {
-            "isSelfRef": true
+          kind: "Replacement",
+          event: "wouldDigivolve",
+          sourceFilter: {
+            isSelfRef: true,
           },
-          "into": {
-            "controllerDefault": "mine",
-            "kind": [
-              "Digimon"
-            ],
-            "nameOrTrait": [
+          into: {
+            controllerDefault: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Xros Heart",
-                  "Hero"
-                ],
-                "match": "trait"
-              }
-            ]
+                tokens: ["Xros Heart", "Hero"],
+                match: "trait",
+              },
+            ],
           },
-          "actions": [
+          actions: [
             {
-              "kind": "Replacement",
-              "event": "wouldDigivolve",
-              "mode": "reduceCost",
-              "amount": 1,
-              "raw": "reduce the digivolution cost by 1"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [],
-      "keywords": [
-        {
-          "keyword": "Save",
-          "raw": "＜Save＞"
-        }
-      ]
-    },
-    {
-      "trigger": "YourTurn",
-      "actions": [
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+              kind: "Replacement",
+              event: "wouldDigivolve",
+              mode: "reduceCost",
+              amount: 1,
+              raw: "reduce the digivolution cost by 1",
             },
-            "count": 1,
-            "isSelf": true
-          },
-          "keyword": {
-            "keyword": "Rush",
-            "raw": "＜Rush＞"
-          },
-          "duration": "permanent"
-        }
+          ],
+        },
       ],
-      "isInherited": true
-    }
-  ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+    },
     {
-      "level": 2,
-      "traits": [
-        "Xros Heart",
-        "Hero"
+      trigger: "OnDeletion",
+      actions: [],
+      keywords: [
+        {
+          keyword: "Save",
+          raw: "＜Save＞",
+        },
       ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          keyword: {
+            keyword: "Rush",
+            raw: "＜Rush＞",
+          },
+          duration: "permanent",
+          condition: {
+            kind: "selfHasTrait",
+            filter: { nameOrTrait: [{ tokens: ["Xros Heart"], match: "trait" }] },
+          },
+        },
+      ],
+      isInherited: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
+    {
+      level: 2,
+      traits: ["Xros Heart", "Hero"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT21-011", compiled);

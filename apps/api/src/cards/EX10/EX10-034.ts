@@ -34,8 +34,8 @@ const module: EffectModule = {
               expiresOnTurnEndOf: opponent,
               description: `${cardId}: [Start of Your Main Phase] This Digimon attacks.`,
               matches: (subCtx) => subCtx.game.state.turnSeat === opponent,
-              run: async (_subCtx) => {
-                // Force attack — engine handles this via the attack subsystem
+              run: async (subCtx) => {
+                await subCtx.fx.forceAttack(chosen[0]!);
               },
             });
           },
@@ -62,8 +62,8 @@ const module: EffectModule = {
               expiresOnTurnEndOf: opponent,
               description: `${cardId}: [Start of Your Main Phase] This Digimon attacks.`,
               matches: (subCtx) => subCtx.game.state.turnSeat === opponent,
-              run: async (_subCtx) => {
-                // Force attack — engine handles this via the attack subsystem
+              run: async (subCtx) => {
+                await subCtx.fx.forceAttack(chosen[0]!);
               },
             });
           },
@@ -143,8 +143,8 @@ const module: EffectModule = {
                 });
                 if (toTrash.length < 2) return;
                 await subCtx.fx.trashDigivolutionCards(currentSelf.permanentId, toTrash);
-                ctx.fx.grantKeyword(self.permanentId, "SecurityAttack", EffectDuration.UntilOwnerTurnEnd, 1);
-                ctx.fx.modifyDP(self.permanentId, 3000, EffectDuration.UntilOwnerTurnEnd);
+                subCtx.fx.grantKeyword(currentSelf.permanentId, "SecurityAttack", EffectDuration.UntilOwnerTurnEnd, 1);
+                subCtx.fx.modifyDP(currentSelf.permanentId, 3000, EffectDuration.UntilOwnerTurnEnd);
               },
             });
           },
@@ -157,4 +157,6 @@ const module: EffectModule = {
 };
 
 registerCard(module);
+
+export { module };
 export default module;

@@ -7,8 +7,6 @@ import { registerCard } from "../../engine/effects/registry.js";
 
 /**
  * EX10-056 — Bagramon (EX10, Dark-Area/Bagra-Army DigiXros Digimon).
- *
- *
  * [On Play] (optional):
  *   Place 1 of your opponent's Digimon as the bottom digivolution card of one of your
  *   opponent's OTHER Digimon or one of their Tamers.
@@ -19,21 +17,6 @@ import { registerCard } from "../../engine/effects/registry.js";
  *   under them, by trashing 2 of THIS Digimon's digivolution cards, trash your opponent's
  *   top security card.
  *
- * RESIDUAL:
- *   The [All Turns][Once Per Turn] watcher (subscribeSubTrigger for `whenDigivolves` and
- *   `onAddDigivolutionCards`) is partially implementable: we can install the watcher.
- *   However, the once-per-turn cap across TWO sub-trigger types (documented behavior shared hash
- *   "EX10_056_AllTurns") has no direct engine primitive. The watcher is installed but
- *   without a per-turn cap — both `whenDigivolves` and `onAddDigivolutionCards` events
- *   are subscribed from OnPlay and WhenDigivolving, but fire independently without a
- *   shared once-per-turn throttle.
- *
- *   Additionally, the `trashDigivolutionCards` cost within the sub-trigger body takes 2
- *   cards from THIS Digimon's stack. This is implementable (trashDigivolutionCards verb
- *   exists), but requires passing the source permanent's ID at subscription time.
- *
- *   Both watcher subscriptions are installed to give partial coverage; the once-per-turn
- *   cap remains a residual.
  */
 const cardId = "EX10-056";
 
@@ -83,7 +66,11 @@ async function relocateOpponentDigimon(ctx: Parameters<Effect["resolve"]>[0]): P
   const destPermId = destPick[0];
   if (destPermId === undefined) return;
 
-  ctx.fx.relocatePermanent(destPermId, sourcePermId);
+  if (ctx.fx.relocatePermanentByEffect !== undefined) {
+    await ctx.fx.relocatePermanentByEffect(destPermId, sourcePermId);
+  } else {
+    ctx.fx.relocatePermanent(destPermId, sourcePermId);
+  }
 }
 
 /** Install the [All Turns] sub-trigger watchers on the current permanent. */
@@ -120,9 +107,7 @@ async function installAllTurnsWatcher(ctx: Parameters<Effect["resolve"]>[0]): Pr
     // Select 2 digivolution cards to trash.
     const stackIds = hostPerm.stack.map((c) => c.instanceId);
     const chosen =
-      stackIds.length === 2
-        ? stackIds
-        : await subCtx.ask.selectCards(subCtx, { candidates: stackIds, min: 2, max: 2 });
+      stackIds.length === 2 ? stackIds : await subCtx.ask.selectCards(subCtx, { candidates: stackIds, min: 2, max: 2 });
 
     if (chosen.length < 2) return;
 
@@ -134,6 +119,7 @@ async function installAllTurnsWatcher(ctx: Parameters<Effect["resolve"]>[0]): Pr
     event: "whenOneOfYoursDigivolves",
     sourcePermanentId: hostPermId,
     once: false,
+    oncePerTurnKey: `${cardId}/AllTurns`,
     description: `${cardId}: when opponent digivolves → trash 2 digivolution → trash opp top security`,
     run: watcherRun,
   });
@@ -142,6 +128,7 @@ async function installAllTurnsWatcher(ctx: Parameters<Effect["resolve"]>[0]): Pr
     event: "onAddDigivolutionCards",
     sourcePermanentId: hostPermId,
     once: false,
+    oncePerTurnKey: `${cardId}/AllTurns`,
     description: `${cardId}: when effect places under opponent → trash 2 digivolution → trash opp top security`,
     run: watcherRun,
   });
@@ -161,8 +148,8 @@ const module: EffectModule = {
             "card of one of your opponent's other Digimon or Tamers.",
           optional: true,
           resolve: async (ctx) => {
-            await relocateOpponentDigimon(ctx);
             await installAllTurnsWatcher(ctx);
+            await relocateOpponentDigimon(ctx);
           },
         }),
       ];
@@ -179,16 +166,12 @@ const module: EffectModule = {
             "digivolution card of one of your opponent's other Digimon or Tamers.",
           optional: true,
           resolve: async (ctx) => {
-            await relocateOpponentDigimon(ctx);
             await installAllTurnsWatcher(ctx);
+            await relocateOpponentDigimon(ctx);
           },
         }),
       ];
     }
-
-    // The AllTurns watcher is installed via OnPlay/WhenDigivolving effects above (not a
-    // stand-alone staticModifier) because its anchor is the OnPlay/WhenDigivolving fire.
-    // RESIDUAL: no once-per-turn cap across both watcher subscriptions.
 
     return [];
   },

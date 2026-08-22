@@ -18,11 +18,66 @@ describe("BT21-043 compiled implementation", () => {
     }
   });
 
+  it("preserves the Appmon link requirement and linked -2000 DP effect", () => {
+    expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 2 }]);
+    const linking = compiled.effects.find((effect) => effect.trigger === "WhenLinking");
+    expect(linking).toEqual(
+      expect.objectContaining({
+        trigger: "WhenLinking",
+        isLinked: true,
+        actions: [
+          {
+            kind: "ModifyDP",
+            target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+            amount: -2000,
+            duration: "untilOpponentTurnEnd",
+          },
+        ],
+      }),
+    );
+  });
+
+  it("plays itself without cost at the end of the Security battle", () => {
+    const security = compiled.effects.find((effect) => effect.trigger === "Security");
+    expect(security).toEqual(
+      expect.objectContaining({
+        trigger: "Security",
+        timing: "endOfBattle",
+        actions: [
+          {
+            kind: "PlayWithoutCost",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            payCost: false,
+          },
+        ],
+      }),
+    );
+  });
+
+  it("applies the same -2000 DP effect on play and when digivolving", () => {
+    for (const trigger of ["OnPlay", "WhenDigivolving"]) {
+      const effect = compiled.effects.find((entry) => entry.trigger === trigger);
+      expect(effect?.actions).toEqual([
+        {
+          kind: "ModifyDP",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          amount: -2000,
+          duration: "untilOpponentTurnEnd",
+        },
+      ]);
+    }
+  });
+
   it("plays through the public intent and reduces an opponent Digimon by 2000 DP", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "BT21-043", as: "sociamon" }] }, 1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }] } });
+    const s = setupEngine({
+      0: { hand: [{ card: "BT21-043", as: "sociamon" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }] },
+    });
     s.state.memory = 10;
     await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sociamon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sociamon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("target").currentDP === 1000);
     expect(s.perm("target").currentDP).toBe(1000);
   });

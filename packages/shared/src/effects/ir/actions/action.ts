@@ -36,6 +36,7 @@ import type {
   CannotIgnoreDigivolutionRequirementsAction,
   DeDigivolveAction,
   DigivolveAction,
+  DigivolveViaPlacementAction,
   PlaceUnderAction,
   TrashDigivolutionAction,
   WaiveColorRequirementAction,
@@ -171,6 +172,7 @@ export type Action =
   | SearchSecurityAction
   | DeDigivolveAction
   | DigivolveAction
+  | DigivolveViaPlacementAction
   | AttackAction
   | BattleAction
   | PlaceUnderAction

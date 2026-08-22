@@ -107,6 +107,14 @@ const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "onDigivolutionCardDiscarded",
+          "sourceFilter": {
+            "isSelfRef": true
+          },
+          "hostFilter": {
+            "controller": "mine",
+            "kind": ["Digimon"],
+            "nameOrTrait": [{ "tokens": ["Bagra Army"], "match": "trait" }]
+          },
           "actions": [
             {
               "kind": "Draw",
@@ -124,3 +132,5 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("EX10-044", compiled);
+
+export { compiled };

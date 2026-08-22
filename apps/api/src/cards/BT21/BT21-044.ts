@@ -14,360 +14,314 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Marcus Damon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "grant": "kinds",
-          "tokens": [
-            "Digimon"
-          ],
-          "duration": "forTheTurn"
-        },
-        {
-          "kind": "SetBaseDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Marcus Damon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "value": 3000,
-          "duration": "forTheTurn"
-        },
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Marcus Damon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "restriction": "digivolve",
-          "duration": "forTheTurn"
-        },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Marcus Damon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "Rush",
-            "raw": "＜Rush＞"
-          },
-          "duration": "forTheTurn"
-        },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Marcus Damon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "Alliance",
-            "raw": "＜Alliance＞"
-          },
-          "duration": "forTheTurn"
-        },
-        {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "withoutSuspending": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Marcus Damon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "grant": "kinds",
-          "tokens": [
-            "Digimon"
-          ],
-          "duration": "forTheTurn"
-        },
-        {
-          "kind": "SetBaseDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Marcus Damon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "value": 3000,
-          "duration": "forTheTurn"
-        },
-        {
-          "kind": "Restrict",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Marcus Damon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "restriction": "digivolve",
-          "duration": "forTheTurn"
-        },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Marcus Damon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "Rush",
-            "raw": "＜Rush＞"
-          },
-          "duration": "forTheTurn"
-        },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Marcus Damon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "keyword": {
-            "keyword": "Alliance",
-            "raw": "＜Alliance＞"
-          },
-          "duration": "forTheTurn"
-        },
-        {
-          "kind": "Attack",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "withoutSuspending": false,
-          "optional": true
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Tamer"
-            ],
-            "colors": [
-              "Red",
-              "Yellow"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "SecurityManipulation",
-              "op": "placeAsSecurity",
-              "controller": "mine",
-              "source": {
-                "filter": {
-                  "controllerDefault": "mine",
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Marcus Damon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                  tokens: ["Marcus Damon"],
+                  match: "name",
                 },
-                "count": 1
-              },
-              "from": [
-                "trash"
               ],
-              "toTop": true,
-              "optional": true
-            }
-          ],
-          "raw": "onDeletionOf"
-        }
+            },
+            count: 1,
+          },
+          grant: "kinds",
+          tokens: ["Digimon"],
+          duration: "forTheTurn",
+        },
+        {
+          kind: "SetBaseDP",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Marcus Damon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          value: 3000,
+          duration: "forTheTurn",
+        },
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Marcus Damon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          restriction: "digivolve",
+          duration: "forTheTurn",
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Marcus Damon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          keyword: {
+            keyword: "Rush",
+            raw: "＜Rush＞",
+          },
+          duration: "forTheTurn",
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Marcus Damon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          keyword: {
+            keyword: "Alliance",
+            raw: "＜Alliance＞",
+          },
+          duration: "forTheTurn",
+        },
+        {
+          kind: "Attack",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          withoutSuspending: false,
+          optional: true,
+        },
       ],
-      "frequency": "OncePerTurn"
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "mine",
-            "kind": [
-              "Tamer"
-            ],
-            "colors": [
-              "Red",
-              "Yellow"
-            ]
-          },
-          "actions": [
-            {
-              "kind": "SecurityManipulation",
-              "op": "placeAsSecurity",
-              "controller": "mine",
-              "source": {
-                "filter": {
-                  "controllerDefault": "mine",
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Marcus Damon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Marcus Damon"],
+                  match: "name",
                 },
-                "count": 1
-              },
-              "from": [
-                "trash"
               ],
-              "toTop": true,
-              "optional": true
-            }
-          ],
-          "raw": "onDeletionOf"
-        }
+            },
+            count: 1,
+          },
+          grant: "kinds",
+          tokens: ["Digimon"],
+          duration: "forTheTurn",
+        },
+        {
+          kind: "SetBaseDP",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Marcus Damon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          value: 3000,
+          duration: "forTheTurn",
+        },
+        {
+          kind: "Restrict",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Marcus Damon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          restriction: "digivolve",
+          duration: "forTheTurn",
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Marcus Damon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          keyword: {
+            keyword: "Rush",
+            raw: "＜Rush＞",
+          },
+          duration: "forTheTurn",
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
+                {
+                  tokens: ["Marcus Damon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          keyword: {
+            keyword: "Alliance",
+            raw: "＜Alliance＞",
+          },
+          duration: "forTheTurn",
+        },
+        {
+          kind: "Attack",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          withoutSuspending: false,
+          optional: true,
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
+            colors: ["Red", "Yellow"],
+          },
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              op: "placeAsSecurity",
+              controller: "mine",
+              source: {
+                filter: {
+                  controllerDefault: "mine",
+                  nameOrTrait: [
+                    {
+                      tokens: ["Marcus Damon"],
+                      match: "name",
+                    },
+                  ],
+                },
+                count: 1,
+              },
+              from: ["trash"],
+              toTop: true,
+              optional: true,
+            },
+          ],
+          raw: "onDeletionOf",
+        },
+      ],
+      frequency: "OncePerTurn",
+      sharedUseKey: "bt21-044-marcus-security",
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Tamer"],
+            colors: ["Red", "Yellow"],
+          },
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              op: "placeAsSecurity",
+              controller: "mine",
+              source: {
+                filter: {
+                  controllerDefault: "mine",
+                  nameOrTrait: [
+                    {
+                      tokens: ["Marcus Damon"],
+                      match: "name",
+                    },
+                  ],
+                },
+                count: 1,
+              },
+              from: ["trash"],
+              toTop: true,
+              optional: true,
+            },
+          ],
+          raw: "onDeletionOf",
+        },
+      ],
+      isInherited: true,
+      frequency: "OncePerTurn",
+      sharedUseKey: "bt21-044-marcus-security",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "GeoGreymon"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
+      names: ["GeoGreymon"],
+      cost: 3,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT21-044", compiled);

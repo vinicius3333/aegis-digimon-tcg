@@ -2,10 +2,16 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-// Place cost: card with [Appmon] or [Three Musketeers] trait (any kind) from hand/trash
-// placed as bottom digivolution card under 1 of your own Digimon (not self).
 export const compiled: CompiledCard = {
   effects: [
+    {
+      trigger: "WhenLinking",
+      isLinked: true,
+      actions: [
+        { kind: "Draw", controller: "mine", amount: 2 },
+        { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 2 } },
+      ],
+    },
     {
       trigger: "OnPlay",
       actions: [
@@ -83,6 +89,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["Appmon"], cost: 2 }],
   digivolutionRequirement: [
     {
       level: 3,
