@@ -12,4 +12,5 @@ describe("EX11-066 Xeno", () => {
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("xeno"));
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.hand.some((c) => c.cardId === "BT1-001")).toBe(true);
+  });
 });

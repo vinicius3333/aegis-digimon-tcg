@@ -11,7 +11,7 @@ describe("EX11-001 Koromon", () => {
           battleArea: [{ card: "EX11-007", as: "host", under: ["EX11-001"] }],
           hand: [{ card: "EX11-009", as: "evolution" }],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }] },
       },
       { autoSelectCards: true },
     );
