@@ -529,6 +529,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         const candidates =
           self?.stack.filter((card) => definitionMatches(returnTarget.filter, ctx.game.definitionOf(card))) ?? [];
         if (candidates.length === 0) return false;
+        if (action.optional === true && !(await ctx.ask.optional(ctx, "Return a level 6 digivolution card to your hand?"))) return false;
         const picked =
           candidates.length === 1
             ? [candidates[0]!.instanceId]
@@ -541,6 +542,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         if (picked.length === 0) return false;
         const pickedCard = candidates.find((card) => card.instanceId === picked[0]);
         const moved = await ctx.fx.returnToHand(picked);
+        ctx.lastEffectActed = moved.length > 0;
         const level = pickedCard === undefined ? undefined : ctx.game.definitionOf(pickedCard).level;
         if (action.storeAs !== undefined && level !== undefined) {
           ctx.namedCounts ??= new Map();

@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     { trigger: "StartOfYourTurn", actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } }] },
-    { trigger: "Main", actions: [{ kind: "Modal", choose: 1, options: [
+    { trigger: "Main", actions: [{ kind: "Modal", choose: 1, condition: { kind: "youHave", filter: { controllerDefault: "mine", zone: "battleArea", kind: ["Digimon"], colors: ["Green"], levelComparison: { op: "gte", value: 5 } } }, options: [
       [{ kind: "Hatch" }],
       [{ kind: "MovePermanent", direction: "toBattle", target: { filter: { controller: "mine", zone: "breeding", kind: ["Digimon"], levelComparison: { op: "gte", value: 3 } }, count: 1 } }],
     ], optionConditions: [

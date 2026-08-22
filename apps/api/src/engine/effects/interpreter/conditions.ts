@@ -118,7 +118,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
             permanentMatchesFilter(ctx, permanent, { ...cond.filter, controller: "mine" }, ctx.source),
         );
     case "breedingAreaEmpty":
-      return ctx.game.player(mine).breeding === undefined;
+      return ctx.game.player(mine).breeding === undefined && ctx.game.player(mine).eggDeck.length > 0;
     case "digivolutionCountCompare": {
       const ids = ctx.lastResolvedPermanentIds ?? [];
       const target = ids.length === 1 ? ctx.game.permanentById(ids[0]!) : undefined;
@@ -777,6 +777,11 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return ctx.trigger.removalCause === cond.removalCause;
     case "triggerDeletedByDpZero":
       return ctx.trigger.deletedByDpZero === true;
+    case "triggerIsFirstDeletedPermanent": {
+      const subject = ctx.trigger.deletedPermanentId;
+      const deleted = ctx.trigger.deletedPermanentIds ?? [];
+      return subject !== undefined && deleted[0] === subject;
+    }
     case "triggerSourceNotDeletedAtSameTiming": {
       // whenDeletesInBattle fireCondition: the trigger source (the attacker that deleted the
       // opponent's Digimon) must NOT have been deleted at the same timing. The combat controller
