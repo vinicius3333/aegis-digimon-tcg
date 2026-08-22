@@ -137,6 +137,22 @@ describe("BT26-012 Manekimon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
 
+  it("may decline the Main effect without paying memory or moving the TB card", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: CARD_ID, as: "manekimon" }],
+        hand: [{ card: "BT26-014", as: "tb" }],
+      },
+    }, { autoAcceptOptional: false, autoSelectCards: true });
+    s.state.memory = 5;
+
+    await advance(s.engine).fire(EffectTiming.OnDeclaration, s.perm("manekimon"));
+
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("tb").instanceId]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
   it("its inherited effect debuffs one opponent Digimon on attack and is once per turn", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT26-014", as: "host", under: [{ card: CARD_ID, as: "source" }] }] },
