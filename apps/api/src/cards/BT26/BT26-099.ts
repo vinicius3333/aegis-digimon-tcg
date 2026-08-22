@@ -22,10 +22,7 @@ export const compiled: CompiledCard = {
         { kind: "Digivolve", target: { filter: { useTriggerSource: true }, count: 1 }, into: dmLevelSix, from: ["hand"], payCost: false, optional: true },
       ] }],
     },
-    { trigger: "Security", isSecurity: true, actions: [
-      { kind: "RevealAdd", revealCount: 3, add: [{ filter: dm, count: 1, to: "hand", optional: true }], rest: "deckBottom" },
-      { kind: "PlaceInBattleAreaSelf" },
-    ] },
+    { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
   ],
   coverage: "full",
   residual: [],
