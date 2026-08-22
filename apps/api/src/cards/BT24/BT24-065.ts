@@ -84,12 +84,7 @@ export const compiled: CompiledCard = {
               target: {
                 filter: {
                   controller: "mine",
-                  nameOrTrait: [
-                    {
-                      tokens: ["Diaboromon"],
-                      match: "name",
-                    },
-                  ],
+                  namesExact: ["Diaboromon"],
                 },
                 count: 1,
                 source: "thisDigimon",
@@ -108,7 +103,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Diaboromon"],
+      namesExact: ["Diaboromon"],
       cost: 2,
       isAlternate: true,
     },
