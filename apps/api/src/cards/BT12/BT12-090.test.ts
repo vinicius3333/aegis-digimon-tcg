@@ -7,6 +7,17 @@ import "./BT12-031.js";
 import "./BT12-090.js";
 
 describe("BT12-090 Davis Motomiya", () => {
+  it("registers the attack replacement without an unparsed seam", async () => {
+    const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
+    const card = runtimeCompiledCard("BT12-090")!;
+    expect(card.coverage).toBe("full");
+    expect(JSON.stringify(card)).not.toContain("RawUnparsed");
+    expect(card.residual).toEqual([]);
+    expect(card.effects.find((effect) => effect.trigger === "YourTurn")?.actions[0]).toMatchObject({
+      actions: [{ kind: "Digivolve", from: ["hand"], payCost: true, optional: true }],
+    });
+  });
+
   it("plays itself from security", async () => {
     const s = setupEngine({ 0: { security: [{ card: "BT12-090", as: "davis", faceUp: true }] } });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("davis"));

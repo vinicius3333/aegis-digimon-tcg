@@ -5,6 +5,14 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-081.js";
 
 describe("BT12-081 Astamon", () => {
+  it("registers every printed clause as executable IR", async () => {
+    const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
+    const card = runtimeCompiledCard("BT12-081")!;
+    expect(card.coverage).toBe("full");
+    expect(JSON.stringify(card)).not.toContain("RawUnparsed");
+    expect(card.residual).toEqual([]);
+  });
+
   it("plays a level 4 Save Digimon from under a Tamer", async () => {
     const s = setupEngine({ 0: {
       battleArea: [

@@ -5,9 +5,8 @@ const compiled = structuredClone(getCompiledCard("BT12-081")!);
 const whenDigivolving = compiled.effects.find((effect) => effect.trigger === "WhenDigivolving");
 const playFromTamer = whenDigivolving?.actions.find((action) => action.kind === "PlayWithoutCost");
 if (playFromTamer?.kind === "PlayWithoutCost") playFromTamer.from = ["digivolutionCardsUnderTamers"];
-const missing = whenDigivolving?.actions.findIndex((action) => action.kind === "RawUnparsed") ?? -1;
-if (whenDigivolving !== undefined && missing >= 0) {
-  whenDigivolving.actions[missing] = {
+if (whenDigivolving !== undefined) {
+  whenDigivolving.actions[1] = {
     kind: "Digivolve",
     target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
     into: { controllerDefault: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Quartzmon"], match: "name" }] },
@@ -18,4 +17,6 @@ if (whenDigivolving !== undefined && missing >= 0) {
     condition: { kind: "selfDigivolutionCountAtLeast", value: 4 },
   };
 }
+compiled.coverage = "full";
+compiled.residual = [];
 registerIrCard("BT12-081", compiled);
