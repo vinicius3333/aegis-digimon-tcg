@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./BT26-082.js";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("BT26-082 compiled behavior", () => {
@@ -49,5 +49,17 @@ describe("BT26-082 compiled behavior", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT26-082")).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-084")).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-010")).toBe(true);
+  });
+
+  it("plays itself from face-up security at the end of the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT26-082", as: "securityRavemon", faceUp: true }] },
+    });
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.EndOfOpponentsTurn, s.inst("securityRavemon"));
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT26-082"));
+
+    expect(s.state.players[0]!.security).toHaveLength(0);
   });
 });
