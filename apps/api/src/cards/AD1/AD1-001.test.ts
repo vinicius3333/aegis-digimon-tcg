@@ -42,7 +42,7 @@ describe("AD1-001 Greymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "AD1-010", as: "source", under: ["AD1-001"] }],
+          battleArea: [{ card: "AD1-001", as: "source" }],
           hand: [{ card: "AD1-010", as: "garurumon" }, { card: "BT1-021", as: "metalGreymon" }],
           deck: ["BT1-001"],
         },
@@ -63,7 +63,7 @@ describe("AD1-001 Greymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "AD1-001", as: "source" }],
+          battleArea: [{ card: "AD1-010", as: "source", under: ["AD1-001"] }],
           hand: [{ card: "AD1-010", as: "garurumon" }, { card: "BT1-021", as: "metalGreymon" }],
           deck: ["BT1-001"],
         },
