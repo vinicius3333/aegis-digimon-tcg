@@ -6,12 +6,20 @@ import { compiled } from "./BT26-023.js";
 import "../index.js";
 
 describe("BT26-023 Mojyamon", () => {
-  it("encodes Training/Jamming, the face-down hand cost, and the inherited hand boundary", () => {
-    expect(compiled.keywords).toEqual(expect.arrayContaining([expect.objectContaining({ keyword: "Training" }), expect.objectContaining({ keyword: "Jamming" })]));
+  it("encodes the printed evolution, Training/Jamming, and face-down hand cost", () => {
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["DM"], cost: 2, isAlternate: true }]);
+    expect(compiled.keywords).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ keyword: "Training" }),
+        expect.objectContaining({ keyword: "Jamming" }),
+      ]),
+    );
     expect(compiled.effects).toMatchObject([
-      { trigger: "OnPlay", actions: [{ kind: "Return", to: "deckBottom", cost: { kind: "place", position: "bottom", faceDown: true } }] },
+      {
+        trigger: "OnPlay",
+        actions: [{ kind: "Return", to: "deckBottom", cost: { kind: "place", position: "bottom", faceDown: true } }],
+      },
       { trigger: "WhenAttacking", actions: [{ kind: "Return", to: "deckBottom" }] },
-      { trigger: "WhenAttacking", isInherited: true, actions: [{ kind: "Draw", amount: 1, condition: { kind: "zoneCount", value: 7 } }] },
     ]);
   });
 

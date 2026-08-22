@@ -13,12 +13,16 @@ const handCardCost = {
 
 const returnLevelFour = {
   kind: "Return",
-  target: { filter: { controllerDefault: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } }, count: 1 },
+  target: {
+    filter: { controllerDefault: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } },
+    count: 1,
+  },
   to: "deckBottom",
   cost: handCardCost,
 };
 
 export const compiled: CompiledCard = {
+  digivolutionRequirement: [{ level: 3, traits: ["DM"], cost: 2, isAlternate: true }],
   keywords: [
     { keyword: "Training", raw: "＜Training＞" },
     { keyword: "Jamming", raw: "＜Jamming＞" },
@@ -26,7 +30,6 @@ export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: [returnLevelFour] },
     { trigger: "WhenAttacking", actions: [returnLevelFour] },
-    { trigger: "WhenAttacking", isInherited: true, actions: [{ kind: "Draw", controller: "mine", amount: 1, condition: { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 7 } }] },
   ],
   coverage: "full",
   residual: [],
