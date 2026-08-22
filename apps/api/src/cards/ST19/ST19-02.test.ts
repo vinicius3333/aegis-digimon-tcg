@@ -18,18 +18,23 @@ describe("ST19-02 ＜Barrier＞ is once per turn", () => {
     const s = setupEngine(
       {
         0: {
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
           battleArea: [
             { card: "BT1-009", as: "first", dp: 5000 },
             { card: "BT1-009", as: "second", dp: 5000 },
           ],
         },
         1: {
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
           battleArea: [{ card: "ST19-10", as: "barrier", dp: 1000, suspended: true, under: ["ST19-02"] }],
           security: 100,
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    const turn = s.engine.runOneTurn();
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    await settle(() => mainPhase.isOpen);
 
     expect(
       s.engine.applyIntent(0, {
@@ -46,7 +51,6 @@ describe("ST19-02 ＜Barrier＞ is once per turn", () => {
     );
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
 
-    s.state.phase = "Main" as never;
     s.events.length = 0;
 
     expect(
@@ -58,6 +62,8 @@ describe("ST19-02 ＜Barrier＞ is once per turn", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
   });
 
   it("uses Decoy to sacrifice its host and preserve another Puppet from an effect deletion", async () => {
