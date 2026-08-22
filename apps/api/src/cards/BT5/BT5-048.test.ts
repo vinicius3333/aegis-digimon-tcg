@@ -13,6 +13,6 @@ describe("BT5-048 Floramon", () => {
 
   it("is registered with complete, residual-free runtime coverage", () => {
     expect(getEffectModule("BT5-048")).toBeDefined();
-    expect(runtimeCompiledCard("BT5-048")).toMatchObject({ coverage: "full", residual: [] });
+    expect(runtimeCompiledCard("BT5-048")).toMatchObject({ effects: [], coverage: "full", residual: [] });
   });
 });
