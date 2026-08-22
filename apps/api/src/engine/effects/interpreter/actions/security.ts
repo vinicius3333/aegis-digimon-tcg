@@ -33,6 +33,16 @@ export async function runSecurityManipulation(
   ctx: EffectContext,
   action: Extract<Action, { kind: "SecurityManipulation" }>,
 ): Promise<void> {
+  if (action.amountFromNamedCount !== undefined) {
+    const count = ctx.namedCounts?.get(action.amountFromNamedCount.countSource) ?? 0;
+    action = {
+      ...action,
+      amount: Math.max(
+        action.amountFromNamedCount.floor ?? 0,
+        action.amountFromNamedCount.base + count * action.amountFromNamedCount.per,
+      ),
+    };
+  }
   const mine = ctx.source.ownerSeat;
   const opp = ctx.game.opponentOf(mine);
   const seat = action.controller === "opponent" ? opp : mine;
@@ -44,10 +54,9 @@ export async function runSecurityManipulation(
         const amount =
           action.leaveCount !== undefined
             ? Math.max(0, ctx.game.player(s).security.length - action.leaveCount)
-            : action.amount ?? 1;
+            : (action.amount ?? 1);
         if (amount > 0) await ctx.fx.trashFromSecurity(s, amount, { fromTop: true });
-      }
-      else ctx.fx.shuffleSecurity(s);
+      } else ctx.fx.shuffleSecurity(s);
     }
     return;
   }

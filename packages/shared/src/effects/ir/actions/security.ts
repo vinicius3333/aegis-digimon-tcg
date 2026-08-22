@@ -77,6 +77,8 @@ export interface SecurityManipulationAction extends ActionBase {
   bothPlayers?: boolean;
   /** For trashTop; default 1. */
   amount?: number;
+  /** Compute the amount from a preceding action's named count (e.g. 7 minus deletions). */
+  amountFromNamedCount?: { base: number; countSource: string; per: number; floor?: number };
   /** For trashTop: trash enough to leave this many cards in the stack. */
   leaveCount?: number;
   /** For trashTop: the controller picks any amount from 0 to the computed maximum. */
