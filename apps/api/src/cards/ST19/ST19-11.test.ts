@@ -28,4 +28,25 @@ describe("ST19-11 Chaperomon", () => {
       inheritedEffectText: expect.stringContaining("When this Digimon would leave the battle area"),
     });
   });
+
+  it("pays the inherited leave-play replacement with a Token and preserves Chaperomon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "ST19-11", as: "chap", under: ["BT1-010"] },
+          { card: "TOKEN-Familiar-Token", as: "fodder", dp: 3000 },
+        ],
+      },
+      1: { hand: [{ card: "AD1-008", as: "remover" }], battleArea: [{ card: "BT9-014", as: "base" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 20;
+    expect(s.engine.applyIntent(1, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("remover").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST19-11"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST19-11")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Familiar-Token")).toBe(false);
+  });
 });
