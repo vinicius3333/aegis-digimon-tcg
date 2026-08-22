@@ -35,7 +35,7 @@ const modalEffect = () => ({
       },
       {
         kind: "GainKeyword",
-        target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
+        target: { filter: { boundRef: "playedRoyalKnights" }, count: "all" },
         keyword: { keyword: "Rush", raw: "＜Rush＞" },
         duration: "forTheTurn",
         condition: { kind: "bindingExists", ref: "playedRoyalKnights" },
