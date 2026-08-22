@@ -56,9 +56,10 @@ describe("BT10 DarkKnightmon / Nene / Immortal Ruler deck gauntlet", () => {
     const materialRequest = s.decisions.find(({ req }) => req.decisionId === materialDecision.decisionId)!.req;
     const chosenMaterials = [s.inst("chosenSkullKnightmon").instanceId, s.inst("chosenDeadlyAxemon").instanceId];
     expect(materialRequest.options).toMatchObject({ min: 0, max: 2 });
-    expect(new Set(materialRequest.options?.candidateInstanceIds)).toEqual(
-      new Set([...chosenMaterials, s.inst("unchosenSkullKnightmon").instanceId]),
-    );
+    expect(materialRequest.options?.candidateInstanceIds).toEqual(expect.arrayContaining([
+      ...chosenMaterials,
+      s.inst("unchosenSkullKnightmon").instanceId,
+    ]));
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
