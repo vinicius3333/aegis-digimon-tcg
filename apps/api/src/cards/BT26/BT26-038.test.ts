@@ -31,4 +31,25 @@ describe("BT26-038 Kuwagamon", () => {
 
     expect(s.perm("kuwagamon").currentDP).toBe(baseDP + 3000);
   });
+
+  it("digivolves the battle winner with the inherited one-memory reduction", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-008", as: "winner", under: ["BT26-038"] }],
+          hand: [{ card: "BT26-021", as: "candidate" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("whenBattleWon", {
+      attackerPermanentId: s.perm("winner").permanentId,
+    });
+
+    expect(s.perm("winner").topCard.cardId).toBe("BT26-021");
+    expect(s.state.memory).toBe(0);
+  });
 });
