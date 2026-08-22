@@ -110,7 +110,7 @@ const module: EffectModule = {
                 if (chosen.length === 0) return false;
 
                 const result = await subCtx.fx.digivolveFromInstance(selfId, chosen[0]!, {
-                  ignoreRequirements: true,
+                  payCost: false,
                 });
                 return result !== undefined;
               },

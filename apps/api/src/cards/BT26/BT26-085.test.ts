@@ -184,7 +184,7 @@ describe("BT26-085 [All Turns]: stay on the field by digivolving into Chronomon:
 
     await expect(sub.preventCheck(harness.ctx, SELF_PERMANENT)).resolves.toBe(true);
     expect(harness.digivolves).toEqual([
-      { target: SELF_PERMANENT, instance: "trash-destroy-mode", opts: { ignoreRequirements: true } },
+      { target: SELF_PERMANENT, instance: "trash-destroy-mode", opts: { payCost: false } },
     ]);
   });
 
