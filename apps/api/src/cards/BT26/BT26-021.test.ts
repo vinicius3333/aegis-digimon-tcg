@@ -135,9 +135,11 @@ describe("BT26-021 public engine behavior", () => {
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
-    await settle(() => valid.perm("tsBase").topCard.cardId === CARD_ID);
+    await settle(() => observe(valid.engine).isRestricted(valid.perm("tsBase"), "attackTargetChange"));
+    expect(valid.perm("tsBase").topCard.cardId).toBe(CARD_ID);
     expect(valid.state.memory).toBe(0);
     expect(valid.perm("tsBase").stack.map((card) => card.cardId)).toEqual(["BT25-008"]);
+    expect(observe(valid.engine).isRestricted(valid.perm("tsBase"), "attackTargetChange")).toBe(true);
 
     const invalid = setupEngine({
       0: {
