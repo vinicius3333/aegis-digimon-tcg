@@ -72,7 +72,7 @@ describe("BT24-019 Kamemon", () => {
   it("digivolves from a non-blue level 2 TS Digi-Egg for cost 0 and grants inherited Jamming", async () => {
     const s = setupEngine({
       0: {
-        breeding: { card: "BT24-001", as: "tsEgg" },
+        breeding: { card: "BT24-003", as: "tsEgg" },
         hand: [{ card: "BT24-019", as: "kamemon" }],
         battleArea: [{ card: "BT24-022", as: "host", under: ["BT24-019"] }],
       },
