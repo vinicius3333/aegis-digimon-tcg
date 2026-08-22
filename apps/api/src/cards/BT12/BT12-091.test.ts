@@ -19,6 +19,8 @@ describe("BT12-091 handwritten module", () => {
       permanent: () => undefined,
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnStartMainPhase, source).length).toBeGreaterThan(0);
+    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+    expect(module!.effectsForTiming(EffectTiming.None, source).length).toBeGreaterThan(0);
   });
 
   it("places a Save Digimon under Airu and gives an opposing Digimon -2000 DP", async () => {
