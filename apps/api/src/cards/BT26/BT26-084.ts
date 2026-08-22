@@ -16,8 +16,10 @@ export const compiled: CompiledCard = {
       trigger: "YourTurn",
       frequency: "OncePerTurn",
       actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true }, actions: [
-        { kind: "RevealAdd", revealCount: 3, add: [{ filter: { controller: "mine", kind: ["Digimon"], ...sevenCode }, count: 1, to: "play", costDelta: 3, optional: true }], rest: "deckTopOrBottom" },
-        { kind: "RawUnparsed", text: "A revealed [Seven Code] Option may be used with its cost reduced by 3; after its Main effect resolves, return the rest of the revealed cards to the top or bottom of the deck (Q7126-Q7127)." },
+        { kind: "RevealAdd", revealCount: 3, add: [
+          { filter: { controller: "mine", kind: ["Digimon"], ...sevenCode }, count: 1, to: "play", costDelta: 3, optional: true },
+          { filter: { controller: "mine", kind: ["Option"], ...sevenCode }, count: 1, to: "useOption", costDelta: 3, optional: true },
+        ], rest: "deckTopOrBottom" },
       ] }],
     },
     {
@@ -26,8 +28,8 @@ export const compiled: CompiledCard = {
       actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true }, actions: [{ kind: "Link", target: { filter: linkedTrash, count: 1 }, recipient: self, from: ["trash"], payCost: false, optional: true }] }],
     },
   ],
-  coverage: "partial",
-  residual: ["RevealAdd has no executable useOption disposition for a revealed [Seven Code] Option; the Option-use path and its post-Main reveal return remain explicit RawUnparsed until that reusable seam exists."],
+  coverage: "full",
+  residual: [],
   digivolutionRequirement: [{ level: 2, traits: ["Appmon"], cost: 0, isAlternate: true }],
   linkRequirement: [{ traits: ["Appmon"], cost: 3 }],
 };
