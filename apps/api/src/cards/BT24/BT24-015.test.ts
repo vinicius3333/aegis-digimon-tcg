@@ -32,7 +32,7 @@ describe("BT24-015 MetalGreymon", () => {
   it("plays itself from security without battling against a level 6 Digimon", async () => {
     const s = setupEngine({
       0: { security: [{ card: "BT24-015", as: "metalGreymon", faceUp: true }] },
-      1: { battleArea: [{ card: "BT24-072", as: "level6" }] },
+      1: { battleArea: [{ card: "BT24-017", as: "level6" }] },
     });
 
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("metalGreymon"));
@@ -126,6 +126,7 @@ describe("BT24-015 MetalGreymon", () => {
         type: "digivolve",
         permanentId: s.perm("tsBase").permanentId,
         instanceId: s.inst("evolution").instanceId,
+        useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("tsBase").topCard.instanceId === s.inst("evolution").instanceId);
