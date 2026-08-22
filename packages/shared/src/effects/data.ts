@@ -8,6 +8,22 @@ import generatedDigivolveOverridesJson from "./generated-digivolve-overrides.jso
 /** Runtime effect records keyed by card id. Card modules remain authoritative. */
 export const compiledEffects: CompiledEffects = effectsJson as unknown as CompiledEffects;
 
+// ST15-13's printed Blocker clause is implemented by the hand-authored module
+// (the generated parser historically emitted a RawUnparsed marker for the
+// parenthetical timing reminder). Keep the shared compiled evidence aligned
+// with the executable implementation so clients do not observe a false gap.
+if (compiledEffects["ST15-13"] !== undefined) {
+  compiledEffects["ST15-13"] = {
+    ...compiledEffects["ST15-13"],
+    effects: compiledEffects["ST15-13"].effects.map((effect) => ({
+      ...effect,
+      actions: effect.actions?.filter((action) => action.kind !== "RawUnparsed"),
+    })),
+    coverage: "full",
+    residual: [],
+  };
+}
+
 /** BT26 is hand-authored while generated effect records are absent. */
 export const ASSEMBLY_REQUIREMENT_OVERRIDES: Record<string, AssemblyRequirement[]> = {
   // EX12-031: one Lv.4-or-lower card with [Aqua]/[Sea Animal] in any trait OR [TB].
