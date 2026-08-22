@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
@@ -68,5 +70,12 @@ describe("BT13-110 Royal Knights of the Purge", () => {
     const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT13-040");
     expect(played).toBeDefined();
     expect(observe(s.engine).hasKeyword(played!.permanentId, "Rush")).toBe(true);
+  });
+
+  it("places itself in the battle area when revealed from security", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT13-110", as: "option", faceUp: true }] } });
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-110")).toBe(true);
   });
 });
