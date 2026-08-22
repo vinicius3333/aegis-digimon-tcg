@@ -248,7 +248,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
           continuousPriority: readsSelfKeyword(effect) ? 1 : 0,
           // isSecurity is set by the `security` builder itself, not via options.
           maxPerTurn: effect.frequency === "OncePerTurn" ? 1 : effect.frequency === "TwicePerTurn" ? 2 : -1,
-          when: turnOwnerGuard(effect.trigger),
+          when: (ctx) => (turnOwnerGuard(effect.trigger)?.(ctx) ?? true) && effectCondition(effect, ctx),
           canActivate: (ctx) =>
             (effect.trigger !== "WhenLinking" || ctx.trigger.linkedInstanceIds?.includes(source.instanceId) === true) &&
             canActivateEffect(ctx, effect),

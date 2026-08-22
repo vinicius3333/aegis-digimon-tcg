@@ -6,6 +6,7 @@ export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "YourTurn",
+      effectKey: "BT7-089/green-evo-cost-minus-1",
       actions: [{
         kind: "CostModifier",
         costType: "digivolve",
@@ -19,6 +20,7 @@ export const compiled: CompiledCard = {
     {
       trigger: "AllTurns",
       isInherited: true,
+      effectKey: "BT7-089/inherited-piercing",
       actions: [{
         kind: "GainKeyword",
         target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
@@ -29,6 +31,7 @@ export const compiled: CompiledCard = {
     {
       trigger: "Security",
       isSecurity: true,
+      effectKey: "BT7-089/play-from-security",
       actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
     },
   ],
