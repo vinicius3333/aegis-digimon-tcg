@@ -8,7 +8,7 @@ import "../index.js";
 describe("BT26-088 Hiroko Sagisaka", () => {
   it("compiles the conditional memory gain and Security self-play", () => {
     expect(compiled.coverage).toBe("full");
-    expect(compiled.effects.map((e) => e.trigger)).toEqual(["StartOfYourMainPhase", "Static", "Security"]);
+    expect(compiled.effects.map((e) => e.trigger)).toEqual(["StartOfYourMainPhase", "YourTurn", "Security"]);
     expect(compiled.effects[1]).toMatchObject({ actions: [{ kind: "Replacement", event: "wouldBePlayed", sourceFilter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Boss", "TS"], match: "trait" }] }, actions: [{ kind: "Replacement", mode: "reduceCost", amountChoices: [{ amount: 2 }, { amount: 1 }], cost: { kind: "suspend" } }] }] });
     expect(compiled.effects[2]).toMatchObject({ isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] });
   });
