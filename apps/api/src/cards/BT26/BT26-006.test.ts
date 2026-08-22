@@ -1,11 +1,9 @@
-import { CardKind, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
-import { describe, expect, it, vi } from "vitest";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
+import { EffectTiming } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
-import { module } from "./BT26-006.js";
+import { compiled } from "./BT26-006.js";
 
 const CARD_ID = "BT26-006";
 
@@ -183,43 +181,19 @@ describe("BT26-006 Monimon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 
-  it("future Bagra Army Options pay printed cost minus 2 and resolve through the Option primitive", async () => {
-    const option = { instanceId: "option", cardId: "OPTION", ownerSeat: 0 as Seat };
-    const stack = [
-      { instanceId: "a", cardId: CARD_ID },
-      { instanceId: "b", cardId: "BT10-073" },
-    ];
-    const host = { permanentId: "host", topCard: { cardId: "BT10-075" }, stack };
-    const source = { ownerSeat: 0 as Seat, permanent: () => host, isOnBattleArea: () => true } as CardSource;
-    const useOptionFromHand = vi.fn(async () => [option]);
-    const ctx = {
-      source,
-      game: {
-        player: () => ({ battleArea: [host], hand: [option] }),
-        definitionOf: (card: { cardId: string }) =>
-          ({
-            cardId: card.cardId,
-            kinds: card.cardId === "OPTION" ? [CardKind.Option] : [CardKind.Digimon],
-            types: ["Bagra Army"],
-            playCost: card.cardId === "OPTION" ? 3 : 0,
-          }) as CardDefinition,
-      },
-      ask: {
-        selectCards: vi.fn(async (_ctx, request: { min: number }) => (request.min === 2 ? ["a", "b"] : ["option"])),
-      },
-      fx: {
-        trashDigivolutionCardsAtomic: vi.fn(async (selections: { instanceId: string }[]) =>
-          selections.map(({ instanceId }) => stack.find((card) => card.instanceId === instanceId)!),
-        ),
-        useOptionFromHand,
-      },
-    } as unknown as EffectContext;
-
-    await module.effectsForTiming(EffectTiming.OnAllyAttack, source)[0]!.resolve(ctx);
-
-    expect(useOptionFromHand).toHaveBeenCalledWith(ctx, option.instanceId, 3, {
-      payCost: true,
-      costDelta: 2,
-    });
+  it("encodes the exact two-card Bagra Army cost and both play/use branches", () => {
+    expect(compiled.effects).toMatchObject([{
+      trigger: "WhenAttacking",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [{
+        kind: "Modal",
+        choose: 1,
+        options: [
+          [{ kind: "PlayWithoutCost", reduceCostBy: 2, cost: { kind: "trash", target: { count: 2 } } }],
+          [{ kind: "UseOptionWithoutCost", reduceCostBy: 2, cost: { kind: "trash", target: { count: 2 } } }],
+        ],
+      }],
+    }]);
   });
 });
