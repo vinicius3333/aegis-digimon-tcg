@@ -5,18 +5,21 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   "effects": [
     {
-      "trigger": "Static",
+      "trigger": "AllTurns",
       "actions": [
         {
-          "kind": "MovePermanent",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
+          "kind": "SubTrigger",
+          "event": "whenTrashedFromDeck",
+          "sourceFilter": {
+            "isSelfRef": true
           },
-          "to": "battleArea"
+          "actions": [
+            {
+              "kind": "PlaceInBattleAreaSelf"
+            }
+          ],
+          "optional": true,
+          "raw": "when this card is trashed from the deck, you may place it in the battle area"
         }
       ]
     },
