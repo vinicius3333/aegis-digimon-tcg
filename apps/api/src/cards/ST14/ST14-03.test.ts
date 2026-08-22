@@ -20,4 +20,11 @@ describe("ST14-03 Candlemon", () => {
     await settle(() => s.state.players[0]!.hand.length === 1);
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
+  it("does not draw on deletion when the trash remains below 10 cards", async () => {
+    const trash = Array.from({ length: 8 }, () => "BT1-009");
+    const s = setupEngine({ 0: { battleArea: [{ card: "ST14-03", as: "candle" }], trash, deck: ["BT1-010"] } });
+    await advance(s.engine).verb.deletePermanent([s.perm("candle").permanentId]);
+    await settle(() => s.state.players[0]!.trash.length === 9);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
 });
