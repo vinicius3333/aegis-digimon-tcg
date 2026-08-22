@@ -1,6 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./ST19-05.js";
 
 describe("ST19-05 PawnChessmon", () => {
@@ -15,6 +16,7 @@ describe("ST19-05 PawnChessmon", () => {
         deck: [{ card: "BT1-010", as: "first" }, { card: "BT1-011", as: "second" }],
       },
     }, { autoAcceptOptional: true, autoSelectCards: true });
+    expect(observe(s.engine).hasKeyword(s.perm("pawn"), "Blocker")).toBe(true);
     expect(s.engine.applyIntent(0, {
       type: "attack",
       attackerPermanentId: s.perm("attacker").permanentId,
