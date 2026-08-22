@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-079.js";
+import "../index.js";
 
 describe("BT26-079 compiled behavior", () => {
   it("proves evolution, Assembly, Trash Main, keywords, Decode, and the shared delete cost", () => {
@@ -31,5 +35,18 @@ describe("BT26-079 compiled behavior", () => {
       expect.objectContaining({ kind: "SubTrigger", event: "whenPlayed", sourceFilter: { controller: "opponent", kind: ["Digimon"] } }),
       expect.objectContaining({ kind: "SubTrigger", event: "whenAnyDigivolves", sourceFilter: { controller: "opponent", kind: ["Digimon"] } }),
     ]));
+  });
+
+  it("publicly trashes a hand card to delete an opponent's level 6 or lower Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT26-079", as: "zombiePlutomon" }], hand: [{ card: "BT1-001", as: "cost" }] },
+      1: { battleArea: [{ card: "BT26-074", as: "victim" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("zombiePlutomon"));
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-001");
   });
 });

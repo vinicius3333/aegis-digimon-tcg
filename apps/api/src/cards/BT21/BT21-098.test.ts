@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-098.js";
-import "../index.js";
 
 describe("BT21-098 Ragnarok Cannon", () => {
   it("deletes exactly one lowest-play-cost opposing Digimon and places itself in the battle area", async () => {
@@ -21,7 +20,9 @@ describe("BT21-098 Ragnarok Cannon", () => {
     const lowId = s.perm("low").permanentId;
     const highId = s.perm("high").permanentId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== lowId));
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highId)).toBe(true);

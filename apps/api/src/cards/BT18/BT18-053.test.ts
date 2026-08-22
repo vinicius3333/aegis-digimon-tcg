@@ -19,7 +19,7 @@ describe("BT18-053 JetSilphymon", () => {
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("jetsilphymon").instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.cardId === "BT18-053");
-    await advance(s.engine).fireForInstance(EffectTiming.WhenDigivolving, s.perm("base").topCard!);
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("base"));
     await settle(() => observe(s.engine).isRestricted(s.perm("opponentTarget"), "unsuspend"));
 
     expect(s.perm("opponentTarget").isSuspended).toBe(true);

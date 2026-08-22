@@ -289,7 +289,7 @@ export function registerIrCard(cardId: string, compiled: CompiledCard, legacyMod
   // preserve it in both cases.
   if (existing !== undefined && existing !== previousIrModule) return existing;
   if (existing !== undefined) unregisterCard(cardId);
-  const module = irCardModule(cardId, compiled);
+  const module = legacyModule ?? irCardModule(cardId, compiled);
   registerCard(module);
   registeredIrModules.set(cardId, module);
   return module;

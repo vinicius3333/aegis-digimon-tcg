@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-020.js";
 
 describe("BT21-020 compiled implementation", () => {
@@ -39,5 +41,22 @@ describe("BT21-020 compiled implementation", () => {
         keywords: [{ keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" }],
       }),
     );
+  });
+
+  it("plays a red Tamer with inherited effects when deleted", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-020", as: "omnishoutmon" }],
+          hand: [{ card: "BT21-082", as: "takuya" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).verb.deletePermanent([s.perm("omnishoutmon").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-082"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-082")).toBe(true);
   });
 });
