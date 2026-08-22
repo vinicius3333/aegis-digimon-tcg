@@ -50,6 +50,7 @@ const compiled: CompiledCard = {
               "kind": [
                 "Digimon"
               ],
+              "colors": ["Blue"],
               "nameOrTrait": [
                 {
                   "tokens": [
