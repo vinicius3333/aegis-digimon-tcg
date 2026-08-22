@@ -51,7 +51,7 @@ describe("BT24-027 Lanamon", () => {
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.inst("placed").instanceId, s.perm("protected").topCard.instanceId);
+    preferred.push(s.inst("placed").instanceId, s.perm("protected").permanentId);
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("lanamon"));
@@ -92,13 +92,30 @@ describe("BT24-027 Lanamon", () => {
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
       s.inst("calmaramon").instanceId,
     );
+
+    const battle = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-027", as: "lanamon", under: [{ card: "BT24-023", as: "calmaramon" }] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    expect(await advance(battle.engine).verb.deletePermanent([battle.perm("lanamon").permanentId], "byBattle")).toBe(
+      1,
+    );
+    expect(battle.state.players[0]!.battleArea).toHaveLength(0);
+    expect(battle.state.players[0]!.trash.map((card) => card.instanceId)).toContain(
+      battle.inst("calmaramon").instanceId,
+    );
   });
 
   it("draws once while the inherited host has 7 or fewer cards", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT24-020", as: "host", under: ["BT24-027"] }],
-        deck: ["BT1-001", "BT1-002"],
+        deck: ["BT1-009", "BT1-010"],
       },
     });
 
@@ -108,4 +125,34 @@ describe("BT24-027 Lanamon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
+
+  it.each([
+    ["Calmaramon", "BT24-023", 0, 0],
+    ["level 3 TS", "BT24-020", 1, 2],
+  ])(
+    "digivolves from %s using alternate requirement %i for cost %i",
+    async (_label, baseCard, alternateRequirementIndex, cost) => {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: baseCard, as: "base" }],
+          hand: [{ card: "BT24-027", as: "lanamon" }],
+        },
+      });
+      s.state.memory = 5;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("lanamon").instanceId,
+          useAlternateCost: true,
+          alternateRequirementIndex,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.instanceId === s.inst("lanamon").instanceId);
+
+      expect(s.state.memory).toBe(5 - cost);
+    },
+  );
 });
