@@ -10,7 +10,7 @@ describe("BT26-100 compiled fidelity", () => {
     expect(card?.residual).toEqual([]);
     expect(card?.effects?.[0]).toMatchObject({
       trigger: "Static",
-      actions: [{ kind: "WaiveColorRequirement", condition: { kind: "securityAtMost", value: 0 } }],
+      actions: [{ kind: "WaiveColorRequirement", condition: { kind: "faceUpSecurityAtMost", value: 0 } }],
     });
     expect(card?.effects?.[1]).toMatchObject({
       trigger: "AllTurns",
@@ -34,7 +34,7 @@ describe("BT26-100 compiled fidelity", () => {
     const s = setupEngine({
       0: {
         security: [{ card: "BT26-100", as: "darkField", faceUp: true }],
-        battleArea: [{ card: "BT26-074", as: "titan" }],
+        battleArea: [{ card: "BT26-074", as: "titan" }, { card: "BT26-059", as: "plutomon" }],
       },
     });
     await s.ready();
@@ -51,19 +51,22 @@ describe("BT26-100 compiled fidelity", () => {
             { card: "BT26-100", as: "darkField" },
             { card: "BT26-069", as: "titan" },
           ],
-          security: [{ card: "BT1-001", as: "bottomSecurity" }],
+          security: [{ card: "BT1-009", as: "bottomSecurity" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("darkField").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT26-069"));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("bottomSecurity").instanceId)).toBe(true);
-    expect(s.state.players[0]!.security).toEqual([
-      expect.objectContaining({ instanceId: s.inst("darkField").instanceId, faceUp: true }),
-    ]);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security[0]).toMatchObject({
+      instanceId: s.inst("darkField").instanceId,
+      faceUp: true,
+    });
   });
 });

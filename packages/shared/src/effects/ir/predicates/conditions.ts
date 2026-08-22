@@ -20,6 +20,7 @@ export interface Condition {
     | "memoryAtMost"
     | "securityAtLeast"
     | "securityAtMost"
+    | "faceUpSecurityAtMost"
     | "handAtMost"
     | "handAtLeast"
     | "isYourTurn"

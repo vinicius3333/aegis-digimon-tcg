@@ -218,6 +218,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return ctx.game.player(mine).security.length >= (cond.value ?? 0);
     case "securityAtMost":
       return ctx.game.player(mine).security.length <= (cond.value ?? 0);
+    case "faceUpSecurityAtMost":
+      return ctx.game.player(mine).security.filter((card) => card.faceUp === true).length <= (cond.value ?? 0);
     case "securityAtMostSelfFaceDownDigivolutionCards": {
       // EX9-029 / KB Q4783: "you have as many or fewer security cards as this Digimon has
       // face-down digivolution cards". An off-field source has an empty stack (0), not "always
