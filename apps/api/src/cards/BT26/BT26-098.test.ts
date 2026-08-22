@@ -5,10 +5,8 @@ import "./BT26-098.js";
 describe("BT26-098 compiled fidelity", () => {
   it("encodes the face-down Tamer payment, literal materials, free Rosemon evolution, and Security mode", () => {
     const card = getCompiledCard("BT26-098");
-    expect(card?.coverage).toBe("partial");
-    expect(card?.residual).toEqual([
-      "BeforePayCost CostModifier does not execute its specialized payment cost in the current interpreter; the -2 reduction is retained as an explicit unresolved seam.",
-    ]);
+    expect(card?.coverage).toBe("full");
+    expect(card?.residual).toEqual([]);
 
     const beforePayCost = card?.effects?.find((effect) => effect.trigger === "BeforePayCost")?.actions ?? [];
     expect(beforePayCost).toMatchObject([

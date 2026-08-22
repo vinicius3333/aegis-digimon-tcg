@@ -54,6 +54,17 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
       ctx.selections?.set(boundTo, ids[0]!);
     }
   }
+  // A BeforePayCost CostModifier may carry the printed payment required to earn its
+  // reduction (BT26-098). CostModifier is normally excluded from the generic activation
+  // cost path because passive modifiers have no cost; an explicit cost is different and
+  // must be paid before installing the modifier.
+  if (action.kind === "CostModifier" && action.cost !== undefined) {
+    if (action.optional && !(await ctx.ask.optional(ctx, `Pay cost: ${action.cost.raw ?? action.cost.kind}?`))) {
+      return action.abortOnDecline === true;
+    }
+    const paid = await payCost(ctx, action.cost, { paidCount: 0 });
+    if (!paid) return action.abortOnDecline === true;
+  }
   // "You may" — ask the controller. Skip the prompt when the action carries a cost that is
   // provably unpayable (e.g. a "by trashing your security" cost with an empty security stack):
   // offering "you may…" for an effect the controller cannot perform is misleading. The cost

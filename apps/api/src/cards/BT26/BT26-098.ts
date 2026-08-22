@@ -36,8 +36,8 @@ export const compiled: CompiledCard = {
       ],
     },
   ],
-  coverage: "partial",
-  residual: ["BeforePayCost CostModifier does not execute its specialized payment cost in the current interpreter; the -2 reduction is retained as an explicit unresolved seam."],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT26-098", compiled);
