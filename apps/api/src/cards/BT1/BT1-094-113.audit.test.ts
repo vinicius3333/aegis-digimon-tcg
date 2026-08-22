@@ -27,7 +27,7 @@ describe("BT1 option IR coverage", () => {
     expect(bladeOfTheTrue.effects[0]?.actions[0]?.scaling).toMatchObject({ per: 2, unit: "security" });
     expect(testament.effects[1]?.actions).toMatchObject([{ kind: "Draw", amount: 1 }, { kind: "AddToHandSelf" }]);
     expect(hornBuster.effects[1]?.actions[1]).toMatchObject({ kind: "AddToHandSelf" });
-    expect(gigaBlaster.effects[0]?.actions[0]).toMatchObject({ kind: "Modal", choose: 1 });
+    expect(gigaBlaster.effects[0]?.actions[0]).toMatchObject({ kind: "ConditionalBranch" });
     expect(forbiddenTemptation.effects[0]?.actions).toMatchObject([{ kind: "Restrict", restriction: "attack" }, { kind: "Restrict", restriction: "block" }]);
   });
 });

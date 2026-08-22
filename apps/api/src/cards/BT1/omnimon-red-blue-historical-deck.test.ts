@@ -81,7 +81,7 @@ describe("BT1 Omnimon red-blue historical deck", () => {
     })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
 
-    const returnDecision = s.decisions.at(-1)!.req;
+    const returnDecision = s.decisions.findLast(({ req }) => req.kind === "selectCards")!.req;
     expect(returnDecision.sourceCardId).toBe("BT1-084");
     expect(returnDecision.options?.candidateInstanceIds).toEqual([
       warGreymonInstanceId,
