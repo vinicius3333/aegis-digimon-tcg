@@ -24,7 +24,6 @@ describe("ST22-06 Sakuyamon: Maid Mode", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.None, s.perm("maid"));
     expect(
       advance(s.engine).ledgers.subTriggers.subscriptionsFor("whenOptionUsed", s.perm("maid").permanentId),
     ).toHaveLength(1);
@@ -59,7 +58,6 @@ describe("ST22-06 Sakuyamon: Maid Mode", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.None, s.perm("maid"));
     await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
     await settle(() => s.state.players[1]!.battleArea.every((perm) => perm.topCard?.cardId !== "BT1-009"));
     expect(s.state.players[1]!.security.some((card) => card.cardId === "BT1-009")).toBe(true);
