@@ -19,6 +19,8 @@ const compiled: CompiledCard = {
           kind: "deleteOwn",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
         },
+        optional: true,
+        abortOnDecline: true,
       }],
     },
     {
