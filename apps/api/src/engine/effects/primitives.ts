@@ -4296,7 +4296,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
 
   const modifySecurityDp: Primitives["modifySecurityDp"] = (seat, delta, opts): void => {
     engine.securityDp?.add(seat, delta, {
-      continuous: opts?.continuous === true || engine.inContinuousPass?.() === true,
+      continuous: opts?.continuous ?? engine.inContinuousPass?.() === true,
       duration: opts?.duration,
     });
   };
