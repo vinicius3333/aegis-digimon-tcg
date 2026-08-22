@@ -89,7 +89,7 @@ describe("BT26-036 Lalamon", () => {
   it("uses the exact level-2 DATA SQUAD cost-0 evolution and rejects a near-match", () => {
     const legal = setupEngine({
       0: {
-        breeding: { card: "BT12-001", as: "dataSquadEgg" },
+        breeding: { card: "BT25-002", as: "dataSquadEgg" },
         hand: [{ card: "BT26-036", as: "lalamon" }],
       },
     });
