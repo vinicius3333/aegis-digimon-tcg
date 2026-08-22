@@ -1,4 +1,6 @@
 import { describe, it, expect } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
@@ -23,6 +25,15 @@ const BT12_112 = "BT12-112"; // cost 15
 const SHOUTMON = "BT12-008"; // Lv.3 Shoutmon, a valid material for the SelectBind filter
 
 describe("BT12-112 ＜when played＞ cost reduction (place 1 [Shoutmon] → -1)", () => {
+  it("registers the printed On Play, opponent-action, and turn security-lock effects", () => {
+    const module = getEffectModule(BT12_112);
+    const source = { instanceId: "source-112", cardId: BT12_112, ownerSeat: 0, isOnBattleArea: () => true } as never;
+    expect(module!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(1);
+    expect(module!.effectsForTiming(EffectTiming.OnUseAttack, source)).toHaveLength(1);
+    expect(module!.effectsForTiming(EffectTiming.OnEnterFieldAnyone, source)).toHaveLength(1);
+    expect(module!.effectsForTiming(EffectTiming.None, source)).toHaveLength(1);
+  });
+
   it("plays at cost 14 (15 - 1), placing the [Shoutmon] as a digivolution card", async () => {
     const s = setupEngine(
       {
