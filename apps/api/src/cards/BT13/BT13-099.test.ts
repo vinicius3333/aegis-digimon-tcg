@@ -1,4 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-099.js";
 
 describe("BT13-099 Spencer Damon", () => {
@@ -40,5 +44,13 @@ describe("BT13-099 Spencer Damon", () => {
     });
     for (const action of effect?.actions ?? [])
       expect(action).toMatchObject({ condition: { kind: "totalSecurityCount", op: "lte", value: 6 } });
+  });
+
+  it("becomes a live 3000 DP Blocker when the end-of-turn condition is met", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT13-099", as: "spencer" }] } });
+    await advance(s.engine).fire(EffectTiming.OnEndYourTurn, s.perm("spencer"));
+    await settle();
+    expect(s.perm("spencer").currentDP).toBe(3000);
+    expect(observe(s.engine).hasKeyword(s.perm("spencer"), "Blocker")).toBe(true);
   });
 });
