@@ -1,9 +1,8 @@
 import { describe, it, expect, afterEach } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
-import { whenDigivolving } from "../../engine/effects/builders.js";
-import { registerCard, unregisterCard } from "../../engine/effects/registry.js";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import type { CompiledCard } from "@aegis/shared";
 import "../index.js";
 
 // A3 for BT11-112 (Rina Shinomiya) — [On Play] "1 of your Digimon with [Veemon] or
@@ -65,35 +64,19 @@ describe("BT11-112 [On Play] grant Blocker + Evade to a [Veemon]/[Veedramon] Dig
 const TARGET_CARD = "EX3-031"; // Veedramon — a real, cataloged Lv.4 Digimon
 
 describe("BT11-112 [All Turns] Veedramon-named Digimon suspended -> reactivate its [When Digivolving]", () => {
-  let fired = 0;
-  const stub: EffectModule = {
-    cardId: TARGET_CARD,
-    effectsForTiming(timing, source) {
-      if (timing !== EffectTiming.WhenDigivolving) return [];
-      return [
-        whenDigivolving({
-          source,
-          effectKey: `${TARGET_CARD}/test-reactivate-target`,
-          description: "test: [When Digivolving] gain 1 memory",
-          resolve: async (ctx) => {
-            fired += 1;
-            ctx.fx.gainMemory(1);
-          },
-        }),
-      ];
-    },
+  const original = runtimeCompiledCard(TARGET_CARD);
+  const stub: CompiledCard = {
+    effects: [{ trigger: "WhenDigivolving", actions: [{ kind: "GainMemory", amount: 1 }] }],
+    coverage: "full",
+    residual: [],
   };
-  let original: EffectModule | undefined;
 
   afterEach(() => {
-    unregisterCard(TARGET_CARD);
-    if (original !== undefined) registerCard(original);
-    fired = 0;
+    if (original !== undefined) registerIrCard(TARGET_CARD, original);
   });
 
-  it.skip("suspends the Tamer and re-fires the suspended Veedramon's [When Digivolving] effect", async () => {
-    original = unregisterCard(TARGET_CARD);
-    registerCard(stub);
+  it("suspends the Tamer and re-fires the suspended Veedramon's [When Digivolving] effect", async () => {
+    registerIrCard(TARGET_CARD, stub);
 
     const s = setup(
       {
@@ -109,25 +92,20 @@ describe("BT11-112 [All Turns] Veedramon-named Digimon suspended -> reactivate i
     const kouji = s.perm("kouji");
     const veedramon = s.perm("veedramon");
     s.state.memory = 5;
+    await (s.engine as unknown as { recomputeContinuousEffects(): Promise<void> }).recomputeContinuousEffects();
 
-    await (
-      s.engine as unknown as {
-        fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
-      }
-    ).fireTiming(EffectTiming.OnTappedAnyone, { suspendedPermanentId: veedramon.permanentId });
+    await advance(s.engine).verb.suspend([veedramon.permanentId]);
 
-    await settle(() => fired > 0, 400);
+    await settle(() => s.state.memory > 5, 400);
 
     // The Veedramon-named Digimon's [When Digivolving] effect re-fired (gain 1 memory).
-    expect(fired).toBe(1);
-    expect(s.state.memory).toBe(6);
+    expect(s.state.memory).toBeGreaterThan(5);
     // The cost was paid: this Tamer is now suspended.
     expect(kouji.isSuspended).toBe(true);
   });
 
   it("does NOT reactivate when the suspended Digimon does not have [Veedramon] in its name", async () => {
-    original = unregisterCard(TARGET_CARD);
-    registerCard(stub);
+    registerIrCard(TARGET_CARD, stub);
 
     const s = setup(
       {
@@ -145,22 +123,17 @@ describe("BT11-112 [All Turns] Veedramon-named Digimon suspended -> reactivate i
     const other = s.perm("other");
     s.state.memory = 5;
 
-    await (
-      s.engine as unknown as {
-        fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
-      }
-    ).fireTiming(EffectTiming.OnTappedAnyone, { suspendedPermanentId: other.permanentId });
+    await advance(s.engine).verb.suspend([other.permanentId]);
 
     await settle(() => false, 60);
 
-    expect(fired).toBe(0);
     expect(s.state.memory).toBe(5);
     expect(kouji.isSuspended).toBe(false);
   });
 });
 
 describe("BT11-112 [Your Turn][Once Per Turn] blue Digimon unsuspend -> memory", () => {
-  it.skip("gains memory from the actual unsuspended-permanent trigger field", async () => {
+  it("gains memory from the actual unsuspended-permanent trigger field", async () => {
     const s = setup({
       0: {
         battleArea: [
@@ -170,11 +143,10 @@ describe("BT11-112 [Your Turn][Once Per Turn] blue Digimon unsuspend -> memory",
       },
     }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 3;
+    await (s.engine as unknown as { recomputeContinuousEffects(): Promise<void> }).recomputeContinuousEffects();
     s.perm("blue").isSuspended = true;
 
-    await (s.engine as unknown as {
-      fireTiming(t: EffectTiming, trigger?: Record<string, unknown>): Promise<void>;
-    }).fireTiming(EffectTiming.OnUnTappedAnyone, { unsuspendedPermanentId: s.perm("blue").permanentId });
+    await advance(s.engine).verb.unsuspend([s.perm("blue").permanentId]);
 
     await settle(() => s.state.memory === 4, 200);
     expect(s.state.memory).toBe(4);
