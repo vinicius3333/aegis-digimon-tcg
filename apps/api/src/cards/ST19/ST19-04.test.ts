@@ -25,7 +25,10 @@ describe("ST19-04 PawnChessmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pawn").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 2);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
-    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      s.inst("first").instanceId,
+      s.inst("second").instanceId,
+    ]);
   });
 
   it("catalogues the inherited Reboot keyword", () => {
@@ -48,10 +51,7 @@ describe("ST19-04 PawnChessmon", () => {
     s.state.memory = 20;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pawn").instanceId })).toEqual({ ok: true });
     await s.ready();
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
-      s.inst("first").instanceId,
-      s.inst("second").instanceId,
-    ]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 

@@ -32,7 +32,7 @@ describe("ST19-10 ExTyrannomon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-016", as: "tyranno", dp: 5000 },
+          { card: "EX3-060", as: "tyranno", dp: 5000 },
           { card: "ST19-07", as: "puppet", dp: 5000 },
         ],
         hand: [{ card: "ST19-10", as: "exty" }],
