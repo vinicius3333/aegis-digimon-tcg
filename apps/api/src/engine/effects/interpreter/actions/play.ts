@@ -200,7 +200,8 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
               filter: {
                 ...playTarget.filter,
                 levelComparison:
-                  playTarget.filter.levelComparison?.op === "lte"
+                  playTarget.filter.levelComparison?.op === "lte" &&
+                  playTarget.filter.levelComparison.value !== undefined
                     ? {
                         ...playTarget.filter.levelComparison,
                         value: playTarget.filter.levelComparison.value + ctx.playLevelCeilingDelta,
