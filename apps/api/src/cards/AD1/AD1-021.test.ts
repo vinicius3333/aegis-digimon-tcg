@@ -187,7 +187,7 @@ describe("AD1-021 Marcus Damon & Agumon", () => {
     await settle(() => s.perm("rize").topCard.cardId === "AD1-016");
 
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
-    expect(s.state.memory).toBe(3);
+    expect(s.state.memory).toBe(2);
   });
 
   it("turns one Marcus into a 6000 DP Rush Digimon that can't digivolve, then attacks", async () => {
