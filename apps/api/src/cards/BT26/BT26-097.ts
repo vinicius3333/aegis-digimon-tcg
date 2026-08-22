@@ -2,27 +2,102 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const aegiomon = { controller: "mine", zone: "battleArea", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Aegiomon"], match: "name" }] };
-const yukiTamer = { controller: "mine", zone: "battleArea", kind: ["Tamer"], orFilters: [
-  { nameOrTrait: [{ tokens: ["Dan Yuki"], match: "name" }] },
-  { nameOrTrait: [{ tokens: ["Kanan Yuki"], match: "name" }] },
-] };
-const jupitermon = { controller: "mine", zone: "battleArea", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Jupitermon"], match: "name" }] };
+const aegiomon = {
+  controller: "mine",
+  zone: "battleArea",
+  kind: ["Digimon"],
+  nameOrTrait: [{ tokens: ["Aegiomon"], match: "name" }],
+};
+const yukiTamer = {
+  controller: "mine",
+  zone: "battleArea",
+  kind: ["Tamer"],
+  orFilters: [
+    { nameOrTrait: [{ tokens: ["Dan Yuki"], match: "name" }] },
+    { nameOrTrait: [{ tokens: ["Kanan Yuki"], match: "name" }] },
+  ],
+};
+const jupitermon = {
+  controller: "mine",
+  zone: "battleArea",
+  kind: ["Digimon"],
+  nameOrTrait: [{ tokens: ["Jupitermon"], match: "name" }],
+};
 const aegiocHusmon = { controller: "mine", zone: "trash", nameOrTrait: [{ tokens: ["Aegiochusmon"], match: "name" }] };
-const tsSecurity = { controller: "mine", zone: "hand", kind: ["Digimon", "Tamer"], nameOrTrait: [{ tokens: ["TS"], match: "trait" }], playCostLte: 5 };
+const tsSecurity = {
+  controller: "mine",
+  zone: "hand",
+  kind: ["Digimon", "Tamer"],
+  nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
+  playCostLte: 5,
+};
 
 export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "Static",
-      actions: [{ kind: "CostModifier", costType: "use", mode: "delta", amount: 1, target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, handResident: true, duration: "permanent", scaling: { per: 1, unit: "security", filter: { controller: "mine" } } }],
+      actions: [
+        {
+          kind: "CostModifier",
+          costType: "use",
+          mode: "delta",
+          amount: 1,
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          handResident: true,
+          duration: "permanent",
+          scaling: { per: 1, unit: "security", filter: { controller: "mine" } },
+        },
+      ],
     },
     {
       trigger: "Main",
       actions: [
-        { kind: "PlaceUnder", targetIsPermanent: true, target: { filter: yukiTamer, count: 1 }, destination: { filter: aegiomon, count: 1 }, position: "bottom" },
-        { kind: "Digivolve", target: { filter: aegiomon, count: 1 }, into: { filter: { controller: "mine", zone: ["hand", "trash"], kind: ["Digimon"], nameOrTrait: [{ tokens: ["Jupitermon"], match: "name" }] }, count: 1 }, from: ["hand", "trash"], payCost: false, ignoreRequirements: true, optional: true },
-        { kind: "PlaceUnder", target: { filter: aegiocHusmon, count: 1 }, underFilter: jupitermon, position: "top", optional: true, condition: { kind: "ifThisEffectDigivolved" } },
+        {
+          kind: "PlaceUnder",
+          targetIsPermanent: true,
+          target: { filter: yukiTamer, count: 1 },
+          destination: { filter: aegiomon, count: 1 },
+          position: "bottom",
+        },
+        {
+          kind: "Digivolve",
+          target: { filter: aegiomon, count: 1 },
+          into: {
+            filter: {
+              controller: "mine",
+              zone: ["hand", "trash"],
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Jupitermon"], match: "name" }],
+            },
+            count: 1,
+          },
+          from: ["hand", "trash"],
+          payCost: false,
+          ignoreRequirements: true,
+          optional: true,
+        },
+        {
+          kind: "PlaceUnder",
+          target: { filter: aegiocHusmon, count: 1 },
+          underFilter: jupitermon,
+          position: "top",
+          optional: true,
+          condition: { kind: "ifThisEffectDigivolved" },
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: tsSecurity, count: 1 },
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+        },
+        { kind: "AddToHandSelf" },
       ],
     },
   ],
