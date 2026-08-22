@@ -9,7 +9,7 @@ const protectedTarget = {
     nameOrTrait: [
       { tokens: ["System"], match: "trait" },
       { tokens: ["Life"], match: "trait" },
-      { tokens: ["Transmutation"], match: "trait" },
+      { tokens: ["Transmutation (App Name)"], match: "trait" },
     ],
   },
   count: 1,

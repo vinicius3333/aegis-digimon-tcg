@@ -46,4 +46,64 @@ describe("BT24-056 Dezipmon", () => {
 
     expect(observe(s.engine).isRestricted(s.perm("protected"), "beReturned")).toBe(true);
   });
+
+  it("has Blocker and plays an Appmon from the trash without paying", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-056", as: "source" }],
+          trash: [{ card: "BT21-009", as: "appmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(observe(s.engine).hasKeyword(s.perm("source"), "Blocker")).toBe(true);
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("appmon").instanceId),
+    );
+
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
+  it("links for cost 2, adds 3000 DP, and deletes only a play-cost-5 target", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-009", as: "host" }],
+          hand: [{ card: "BT24-056", as: "dezipmon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT24-056", as: "low" },
+            { card: "BT24-051", as: "high" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("high").topCard.instanceId, s.perm("low").topCard.instanceId);
+    s.state.memory = 5;
+    await s.ready();
+    const hostDp = s.perm("host").currentDP;
+    const lowId = s.perm("low").permanentId;
+    const highId = s.perm("high").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("dezipmon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("dezipmon").instanceId));
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowId));
+
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("host").currentDP).toBe(hostDp + 3000);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highId)).toBe(true);
+  });
 });
