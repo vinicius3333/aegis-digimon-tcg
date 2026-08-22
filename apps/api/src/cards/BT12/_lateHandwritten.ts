@@ -364,7 +364,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                     ctx,
                     pool.filter(
                       (item) =>
-                        isDigimon(ctx.game.definitionOf(item)) && hasText(ctx.game.definitionOf(item), "xros heart"),
+                        isDigimon(ctx.game.definitionOf(item)) && cardHasTrait(ctx.game.definitionOf(item), "Xros Heart"),
                     ),
                     true,
                   );
@@ -755,7 +755,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                   const hunter = await chooseCard(
                     ctx,
                     revealed.filter(
-                      (card) => card.instanceId !== save && hasText(ctx.game.definitionOf(card), "hunter"),
+                      (card) => card.instanceId !== save && cardHasTrait(ctx.game.definitionOf(card), "Hunter"),
                     ),
                     true,
                   );
@@ -811,8 +811,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                       source,
                       (definition) =>
                         isDigimon(definition) &&
-                        ((definition.forms ?? []).some((form) => form.toLowerCase() === "hybrid") ||
-                          hasText(definition, "hybrid")),
+                        cardHasTrait(definition, "Hybrid"),
                     ),
                   );
                   if (hybrid) {
@@ -1051,7 +1050,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                 effectKey: `${cardId}/hunter-color-waiver`,
                 description: "A Hunter Tamer waives this Option's color requirement.",
                 when: (ctx) =>
-                  myPermanents(ctx, source, (definition) => isTamer(definition) && hasText(definition, "hunter"))
+                  myPermanents(ctx, source, (definition) => isTamer(definition) && cardHasTrait(definition, "Hunter"))
                     .length > 0,
                 resolve: async (ctx) => ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.Permanent),
               }),
