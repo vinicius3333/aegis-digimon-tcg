@@ -16,5 +16,11 @@ describe("ST2-11 MetalGarurumon", () => {
       !observe(s.engine).isAttacking(),
     );
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() =>
+      s.state.phase === Phase.Main &&
+      s.state.players[1]!.security.length === 0 &&
+      s.perm("metalGarurumon").isSuspended,
+    );
+    expect(s.perm("metalGarurumon").isSuspended).toBe(true);
   });
 });
