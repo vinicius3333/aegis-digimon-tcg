@@ -1,10 +1,17 @@
-import { EffectTiming } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { onDeletion } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
-const cardId = "ST6-01";
-const module: EffectModule = { cardId, effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] { if (timing !== EffectTiming.OnDestroyedAnyone) return []; return [onDeletion({ source, effectKey: `${cardId}/mill-two`, description: "[On Deletion] Trash the top 2 cards of your deck.", isInherited: true, resolve: async (ctx) => { const cards = ctx.game.player(source.ownerSeat).deck.slice(0, 2).map((card) => card.instanceId); if (cards.length) await ctx.fx.trash(cards, { byEffectSeat: source.ownerSeat }); } })]; } };
-registerCard(module);
-export default module;
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "OnDeletion",
+      isInherited: true,
+      actions: [{ kind: "TrashTopDeck", controller: "mine", amount: 2 }],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard("ST6-01", compiled);
