@@ -1,6 +1,6 @@
 // @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 
 /**
  * BT10-094 — Breaclaw (BT10, Red Option).
@@ -142,4 +142,4 @@ const module: EffectModule = {
 };
 
 export { compiled };
-registerIrCard("BT10-094", compiled);
+registerIrCard("BT10-094", runtimeCompiledCard("BT10-094")!, module);
