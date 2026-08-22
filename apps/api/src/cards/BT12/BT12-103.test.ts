@@ -32,3 +32,13 @@ it("reduces an opposing Digimon by 4000 DP for the turn", async () => {
   await settle(() => s.perm("target").currentDP === 1000);
   expect(s.perm("target").currentDP).toBe(1000);
 });
+
+it("gates Security Attack -1 on four or more digivolution cards", async () => {
+  const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
+  const card = runtimeCompiledCard("BT12-103")!;
+  const reduction = card.effects.find((effect) => effect.trigger === "Main")?.actions[1];
+  expect(reduction).toMatchObject({
+    kind: "GainKeyword",
+    condition: { kind: "selfDigivolutionCountAtLeast", value: 4 },
+  });
+});
