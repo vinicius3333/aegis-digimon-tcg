@@ -8,6 +8,7 @@ import "./ST1-06.js";
 import "./ST1-07.js";
 import "./ST1-08.js";
 import "./ST1-09.js";
+import "./ST1-10.js";
 import "./ST1-11.js";
 import "./ST1-12.js";
 import "./ST1-13.js";
