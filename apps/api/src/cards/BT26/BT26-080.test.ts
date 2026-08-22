@@ -7,8 +7,8 @@ import "../index.js";
 
 describe("BT26-080 compiled behavior", () => {
   it("proves dual-card keywords, TS waiver, Bacchusmon evolution, and both Main steps", () => {
-    expect(compiled.coverage).toBe("partial");
-    expect(compiled.residual).toHaveLength(1);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toHaveLength(0);
     expect(compiled.digivolutionRequirement).toEqual([{ names: ["Bacchusmon"], basePlayCost: 12, cost: 2, isAlternate: true }]);
     expect(compiled.keywords).toEqual(expect.arrayContaining([
       expect.objectContaining({ keyword: "SecurityAttack", amount: 1 }),
@@ -23,7 +23,7 @@ describe("BT26-080 compiled behavior", () => {
   });
 
   it("encodes Q7112 as a source-relative live orientation filter", () => {
-    expect(compiled.residual[0]).toContain("Behavioral proof is pending");
+    expect(compiled.residual).toHaveLength(0);
     expect(compiled.effects.find((effect) => effect.trigger === "WhenAttacking")?.actions[0]).toMatchObject({
       kind: "Delete",
       target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], sameOrientationAsSource: true } },

@@ -20,8 +20,8 @@ export const compiled: CompiledCard = {
       { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], unsuspended: true, superlative: "lowestDP" }, count: "all" } },
     ] },
   ],
-  coverage: "partial",
-  residual: ["Behavioral proof is pending for the live same-orientation target predicate used by When Attacking."],
+  coverage: "full",
+  residual: [],
   digivolutionRequirement: [{ names: ["Bacchusmon"], basePlayCost: 12, cost: 2, isAlternate: true }],
 };
 
