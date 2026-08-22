@@ -108,7 +108,7 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
             as: "secondHost",
             under: [
               { card: "BT10-074", as: "secondSource" },
-              { card: "ST2-01", as: "secondOtherSource" },
+              { card: "ST2-03", as: "secondOtherSource" },
             ],
           },
           { card: "BT1-027", as: "blueSource" },
