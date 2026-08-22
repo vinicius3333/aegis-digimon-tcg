@@ -23,6 +23,7 @@ const compiled: CompiledCard = {
                 }
               },
               "count": 2,
+              "upTo": true,
               "to": "hand"
             }
           ],
