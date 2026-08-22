@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-061.js";
 import "../index.js";
 describe("BT26-061 Chiropmon", () => {
   it("compiles reveal slots and inherited draw/trash", () => {
+    expect(digivolutionRequirementsFor("BT26-061")).toContainEqual({ level: 2, traits: ["Glowing Dawn"], cost: 0, isAlternate: true });
     expect(compiled.coverage).toBe("full"); expect(compiled.residual).toEqual([]);
     expect(compiled.effects[0]?.actions[0]).toMatchObject({ kind: "RevealAdd", add: [{ count: 1 }, { count: 1 }], rest: "deckBottom" });
     expect(compiled.effects[1]).toMatchObject({ trigger: "WhenAttacking", isInherited: true, frequency: "OncePerTurn" });
