@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./EX8-023.js";
@@ -15,6 +15,25 @@ describe("EX8-023", () => {
         { kind: "Aura", effect: { kind: "keyword", keyword: { keyword: "SecurityAttack", amount: 1 } } },
       ],
     }));
+
+  it("grants both inherited keywords only while the opponent has no stacked Digimon", async () => {
+    const open = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX8-023", as: "polar" }] }] },
+      1: { battleArea: [{ card: "BT1-009", as: "empty" }] },
+    });
+    await open.ready();
+    await settle(() => observe(open.engine).hasKeyword(open.perm("host"), "Piercing"));
+    expect(observe(open.engine).hasKeyword(open.perm("host"), "Piercing")).toBe(true);
+    expect(observe(open.engine).keywordAmount(open.perm("host"), "SecurityAttack")).toBe(1);
+
+    const stacked = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [{ card: "EX8-023", as: "polar" }] }] },
+      1: { battleArea: [{ card: "BT1-009", as: "stacked", under: ["BT1-009"] }] },
+    });
+    await stacked.ready();
+    expect(observe(stacked.engine).hasKeyword(stacked.perm("host"), "Piercing")).toBe(false);
+    expect(observe(stacked.engine).keywordAmount(stacked.perm("host"), "SecurityAttack")).toBe(0);
+  });
 
   it("has Ice Clad, trashes 2 digivolution cards, and restricts a card with no digivolution cards", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")?.keywords).toContainEqual({
