@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-029.js";
 
 describe("EX4-029 Antylamon", () => {
@@ -7,5 +10,22 @@ describe("EX4-029 Antylamon", () => {
   });
   it("places the top deck card into security at three or fewer security", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "EndOfAttack")?.actions?.[0]).toMatchObject({ kind: "SecurityManipulation", op: "placeFromDeck", toTop: true, condition: { kind: "youHave", count: 3, comparison: "lte" } });
+  });
+
+  it("restores security and reduces an opponent after an attack", async () => {
+    const s = setupEngine({
+      0: {
+        deck: ["BT1-001"],
+        security: ["BT1-001", "BT1-001", "BT1-001"],
+        battleArea: [{ card: "EX4-029", as: "source" }, { card: "BT1-009", as: "other", suspended: true }],
+      },
+      1: { battleArea: [{ card: "BT1-011", as: "target", dp: 8000 }] },
+    }, { autoSelectCards: true, autoOrderTriggers: true });
+    await s.engine.recomputeContinuousEffects();
+
+    await advance(s.engine).fire(EffectTiming.OnEndAttack, s.perm("source"));
+
+    expect(s.state.players[0]!.security).toHaveLength(4);
+    expect(s.perm("target").currentDP).toBe(6000);
   });
 });
