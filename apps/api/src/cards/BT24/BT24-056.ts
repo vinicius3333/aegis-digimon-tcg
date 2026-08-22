@@ -16,7 +16,15 @@ const protectedTarget = {
 };
 const playAppmon = {
   kind: "PlayWithoutCost",
-  target: { filter: { controller: "mine", zone: "trash", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] }, count: 1 },
+  target: {
+    filter: {
+      controller: "mine",
+      zone: "trash",
+      kind: ["Digimon"],
+      nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+    },
+    count: 1,
+  },
   from: ["trash"],
   payCost: false,
   optional: true,
@@ -28,21 +36,35 @@ export const compiled: CompiledCard = {
     {
       trigger: "OnPlay",
       actions: [
-        { kind: "Restrict", target: protectedTarget, restriction: "beReturned", duration: "untilOpponentTurnEnd", byOpponentEffectsOnly: true },
+        {
+          kind: "Restrict",
+          target: protectedTarget,
+          restriction: "beReturned",
+          duration: "untilOpponentTurnEnd",
+          byOpponentEffectsOnly: true,
+        },
         playAppmon,
       ],
     },
     {
       trigger: "WhenDigivolving",
       actions: [
-        { kind: "Restrict", target: protectedTarget, restriction: "beReturned", duration: "untilOpponentTurnEnd", byOpponentEffectsOnly: true },
+        {
+          kind: "Restrict",
+          target: protectedTarget,
+          restriction: "beReturned",
+          duration: "untilOpponentTurnEnd",
+          byOpponentEffectsOnly: true,
+        },
         playAppmon,
       ],
     },
     {
       trigger: "WhenLinking",
       isLinked: true,
-      actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 5 }, count: 1 } }],
+      actions: [
+        { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], playCostLte: 5 }, count: 1 } },
+      ],
     },
   ],
   coverage: "full",
