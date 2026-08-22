@@ -11,7 +11,6 @@ import {
   inTrash,
   onAddHand,
   onDeletion,
-  onDiscardSecurity,
   onPlay,
   security,
   securityStatic,
@@ -23,14 +22,12 @@ import {
 } from "../builders.js";
 import type { BuilderOptions } from "../builders.js";
 import { canAttemptDnaDigivolve } from "./actions/dna.js";
-import { linkEligible } from "../mindLink.js";
-import { candidateLooseInstances } from "./targeting/loose.js";
 import { evaluateCondition } from "./conditions.js";
 import { canPayCost } from "./costs.js";
 import { installEffectRunner, runAction } from "./dispatch.js";
 import { ACTION_TYPE_KEYWORDS } from "./errors.js";
 import { isBlastDigivolveMarker } from "./registration/keywords.js";
-import { CardKind, EffectDuration, EffectTiming } from "@aegis/shared";
+import { EffectDuration, EffectTiming } from "@aegis/shared";
 import type { Action, CardEffect } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
@@ -74,23 +71,21 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
     case "WhenDigivolving":
       return EffectTiming.WhenDigivolving;
     case "WhenAttacking":
-      return effect.attackScope === "ally" ? EffectTiming.OnAllyAttack : EffectTiming.OnUseAttack;
+      return EffectTiming.OnUseAttack;
     case "WhenBlocked":
       return EffectTiming.OnBlockAnyone;
-    case "OnSecurityCheck":
-      return EffectTiming.OnSecurityCheck;
-    case "OnDiscardSecurity":
-      return EffectTiming.OnDiscardSecurity;
     case "OnDeletion":
       return EffectTiming.OnDestroyedAnyone;
-    case "OnDiscardSecurity":
-      return EffectTiming.OnDiscardSecurity;
+    case "OnDestroyedAnyone":
+      return EffectTiming.OnDestroyedAnyone;
     case "EndOfAttack":
       return EffectTiming.OnEndAttack;
     case "WhenBattleDeleteOpponent":
       return EffectTiming.OnBattleDeleteOpponent;
     case "whenTrashedFromBattleArea":
       return EffectTiming.WhenTrashedFromBattleArea;
+    case "OnSecurityCheck":
+      return EffectTiming.OnSecurityCheck;
     case "StartOfYourTurn":
     case "StartOfOpponentsTurn":
       return EffectTiming.OnStartTurn;
@@ -114,7 +109,7 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
     case "Security":
       return EffectTiming.SecuritySkill;
     case "Hand":
-      return EffectTiming.OnAddHand;
+      return EffectTiming.OnDeclaration;
     case "Counter":
       // A ＜Blast Digivolve＞/＜Blast DNA Digivolve＞-keyworded "Counter" entry is NOT a real
       // [Counter] effect — it's the compiler's marker for those keywords (§16-26/§16-31; see
@@ -195,12 +190,6 @@ export function timingsForTrigger(effect: CardEffect, isOptionPlayBody: boolean)
   if (!effect.isSecurity && effect.trigger === "Main" && !isDelay && !isOptionPlayBody) {
     return [EffectTiming.OnUseOption, EffectTiming.OnDeclaration];
   }
-  if (effect.isInherited && effect.trigger === "WhenAttacking") {
-    return [primary, EffectTiming.OnAllyAttack];
-  }
-  if (effect.trigger === "AllTurns" && effect.actions.some((action) => action.kind === "Replacement")) {
-    return [primary, EffectTiming.OnLeaveFieldAnyone];
-  }
   return [primary];
 }
 
@@ -220,13 +209,7 @@ function isHandResidentDigivolveCostStatic(effect: CardEffect): boolean {
   // `HandCards.Contains(card)` + `cardSource == card`), not merely on "all actions are
   // digivolve CostModifiers". An on-field digivolve-cost static (which lacks the marker)
   // must NOT lose its on-field base guard via this hand-permissive route (WR-01).
-  return actions.every(
-    (a) =>
-      (a.kind === "CostModifier" && a.handResident === true) ||
-      (a.kind === "Replacement" &&
-        a.event === "wouldDigivolve" &&
-        a.actions?.some((nested) => nested.kind === "Replacement" && nested.mode === "reduceCost")),
-  );
+  return actions.every((a) => a.kind === "CostModifier" && a.handResident === true);
 }
 
 /**
@@ -325,8 +308,6 @@ export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) =>
       return whenAttacking;
     case "OnDeletion":
       return onDeletion;
-    case "OnDiscardSecurity":
-      return onDiscardSecurity;
     case "whenTrashedFromBattleArea":
       return whenTrashedFromBattleArea;
     case "Main":
@@ -445,7 +426,6 @@ const RESULT_BINDING_KEYS = [
   "lastOpponentDeclined",
   "lastPlayedPermanentIds",
   "lastSuspendedPermanentIds",
-  "lastTrashedCards",
   "lastRevealedCards",
   "lastDeletedByThisEffectIds",
   "namedCounts",
@@ -478,12 +458,11 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
   const outerRestrictions = ctxWithSelections.effectRestrictions;
   ctxWithSelections.effectRestrictions = new Set(ctx.effectRestrictions ?? []);
   ctxWithSelections.activeTiming = effect.trigger;
-  const sourceDefinition = ctx.source.definition ?? ctx.game.definitionOf({ cardId: ctx.source.cardId } as never);
   ctxWithSelections.activeEffectText = effect.isInherited
-    ? sourceDefinition?.inheritedEffectText
+    ? ctx.source.definition.inheritedEffectText
     : effect.isSecurity
-      ? sourceDefinition?.securityEffectText
-      : sourceDefinition?.effectText;
+      ? ctx.source.definition.securityEffectText
+      : ctx.source.definition.effectText;
   const actions = effect.actions ?? [];
   if (actions.length === 0 && (effect.keywords?.length ?? 0) > 0) {
     const durationStr =
@@ -570,18 +549,8 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
   // effect that resolution will silently skip.
   if (effect.condition && (effect.condition.kind === "raw" || !evaluateCondition(ctx, effect.condition))) return false;
   const relevantActions = (effect.actions ?? []).filter((action) => action.kind !== "RawUnparsed");
-  const intrinsicPossible = (action: Action): boolean => {
-    if (action.kind === "DnaDigivolve") return canAttemptDnaDigivolve(ctx, action);
-    if (action.kind === "Link") {
-      return candidateLooseInstances(ctx, action.target, action.from ?? ["hand", "digivolutionCards"]).some(
-        (candidate) => linkEligible(ctx.game.definitionOf({ cardId: candidate.cardId } as never)),
-      );
-    }
-    return true;
-  };
   const isGated = (action: Action) =>
     action.kind === "DnaDigivolve" ||
-    action.kind === "Link" ||
     (action.kind !== "ConditionalBranch" && action.condition !== undefined) ||
     action.cost !== undefined;
   // A leading abort-on-decline action is the activation gate for the complete clause:
@@ -591,22 +560,22 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
   // condition/cost is impossible (BT10-025). Mirror runEffect's ordered abort semantics here.
   const leadingAction = relevantActions[0];
   if (leadingAction?.abortOnDecline === true && isGated(leadingAction)) {
-    const canProcess = intrinsicPossible(leadingAction);
+    const intrinsicPossible = leadingAction.kind !== "DnaDigivolve" || canAttemptDnaDigivolve(ctx, leadingAction);
     const conditionMet =
       leadingAction.condition === undefined ||
       (leadingAction.condition.kind !== "raw" && evaluateCondition(ctx, leadingAction.condition));
     const costPayable = leadingAction.cost === undefined || canPayCost(ctx, leadingAction.cost);
-    return canProcess && conditionMet && costPayable;
+    return intrinsicPossible && conditionMet && costPayable;
   }
   const gatedActions = relevantActions.filter(isGated);
   const ungatedCount = relevantActions.length - gatedActions.length;
   if (gatedActions.length === 0 || ungatedCount > 0) return true;
   return gatedActions.some((action) => {
-    const canProcess = intrinsicPossible(action);
+    const intrinsicPossible = action.kind !== "DnaDigivolve" || canAttemptDnaDigivolve(ctx, action);
     const conditionMet =
       action.condition === undefined || (action.condition.kind !== "raw" && evaluateCondition(ctx, action.condition));
     const costPayable = action.cost === undefined || canPayCost(ctx, action.cost);
-    return canProcess && conditionMet && costPayable;
+    return intrinsicPossible && conditionMet && costPayable;
   });
 }
 

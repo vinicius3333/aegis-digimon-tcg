@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-078.js";
+import "../index.js";
 
 describe("BT26-078 compiled behavior", () => {
   it("proves the TS evolution and delete-to-play effects with the Q7105 text/trait union", () => {
@@ -27,5 +31,17 @@ describe("BT26-078 compiled behavior", () => {
       expect.objectContaining({ kind: "GainKeyword", target: { sourceRef: "triggerSubject" }, keyword: { keyword: "Rush" }, duration: "untilEachTurnEnd" }),
       expect.objectContaining({ kind: "GainKeyword", target: { sourceRef: "triggerSubject" }, keyword: { keyword: "Execute" }, duration: "untilEachTurnEnd" }),
     ]);
+  });
+
+  it("publicly deletes itself to play a qualifying Titan from trash", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT26-078", as: "cherubimon" }], trash: [{ card: "BT26-021", as: "titan" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cherubimon"));
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toContain("BT26-021");
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("BT26-078");
   });
 });
