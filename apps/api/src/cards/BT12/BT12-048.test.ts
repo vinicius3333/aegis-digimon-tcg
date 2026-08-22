@@ -55,4 +55,23 @@ it("gives an inherited Save host 2000 DP during its controller's turn", async ()
   await s.ready();
   expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 2000);
 });
+
+it("saves itself under a Tamer when deleted", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT12-048", as: "dracmon" },
+          { card: "BT12-094", as: "tamer" },
+        ],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  const cardInstanceId = s.perm("dracmon").topCard.instanceId;
+  await s.ready();
+  await advance(s.engine).verb.deletePermanent([s.perm("dracmon").permanentId]);
+  await settle(() => s.perm("tamer").stack.some(({ instanceId }) => instanceId === cardInstanceId));
+  expect(s.perm("tamer").stack.some(({ instanceId }) => instanceId === cardInstanceId)).toBe(true);
+});
 });
