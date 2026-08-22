@@ -8,6 +8,7 @@ describe("BT13-093 Omekamon", () => {
       kind: "PlaceUnder", optional: true, from: ["hand"],
       target: { filter: { controller: "mine", zone: "hand", kind: ["Digimon"], nameOrTrait: [{ match: "trait", tokens: ["Royal Knight"] }] }, count: 1 },
       underFilter: { controller: "mine", zone: "breedingArea", nameOrTrait: [{ match: "name", tokens: ["King Drasil_7D6"] }] },
+      position: "bottom",
     });
   });
 });
