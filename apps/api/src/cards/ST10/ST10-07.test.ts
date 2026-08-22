@@ -6,7 +6,10 @@ import "./ST10-07.js";
 
 describe("ST10-07 Ghostmon", () => {
   it("gains Blocker on the opponent's turn while you have a yellow Digimon", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "ST10-07", as: "ghostmon" }, "ST10-02"] } }, { autoOrderTriggers: true });
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "ST10-07", as: "ghostmon" }, "ST10-02"] } },
+      { autoOrderTriggers: true },
+    );
     s.state.turnSeat = 1;
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("ghostmon"), "Blocker")).toBe(true);
@@ -17,7 +20,10 @@ describe("ST10-07 Ghostmon", () => {
       {
         0: { battleArea: [{ card: "BT3-017", as: "attacker" }] },
         1: {
-          battleArea: [{ card: "ST10-02", as: "yellow" }, { card: "ST10-07", as: "ghostmon" }],
+          battleArea: [
+            { card: "ST10-02", as: "yellow" },
+            { card: "ST10-07", as: "ghostmon" },
+          ],
           security: ["ST10-02"],
         },
       },
@@ -27,11 +33,13 @@ describe("ST10-07 Ghostmon", () => {
     const yellowPermanentId = s.perm("yellow").permanentId;
     expect(observe(s.engine).hasKeyword(s.perm("ghostmon"), "Blocker")).toBe(true);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0, 3000);
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === yellowPermanentId)).toBe(false);
