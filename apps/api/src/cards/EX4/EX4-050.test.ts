@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-050.js";
 
 describe("EX4-050 ShadowSeraphimon", () => {
@@ -9,5 +12,19 @@ describe("EX4-050 ShadowSeraphimon", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions;
     expect(actions?.[0]).toMatchObject({ kind: "SecurityManipulation", op: "addTop", source: "deck", amount: 1 });
     expect(actions?.[1]).toMatchObject({ kind: "ModifyDP", amount: -4000, scaling: { per: 1, unit: "security" } });
+  });
+
+  it("adds security first, then scales the opposing DP reduction from the new stack", async () => {
+    const s = setupEngine({
+      0: { deck: ["BT1-001"], security: ["BT1-001", "BT1-001"], battleArea: [{ card: "EX4-050", as: "source" }] },
+      1: { battleArea: [{ card: "BT1-011", as: "target", dp: 20000 }] },
+    }, { autoSelectCards: true });
+    await s.engine.recomputeContinuousEffects();
+
+    await advance(s.engine).fire(EffectTiming.OnDeletion, s.perm("source"));
+    await settle(() => s.perm("target").currentDP === 8000);
+
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.perm("target").currentDP).toBe(8000);
   });
 });
