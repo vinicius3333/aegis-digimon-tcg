@@ -10,7 +10,7 @@ const compiled: CompiledCard = {
       [{ kind: "MovePermanent", direction: "toBattle", target: { filter: { controller: "mine", zone: "breeding", kind: ["Digimon"], levelComparison: { op: "gte", value: 3 } }, count: 1 } }],
     ], optionConditions: [
       { kind: "breedingAreaEmpty" },
-      { kind: "youHave", filter: { controllerDefault: "mine", zone: "breeding", kind: ["Digimon"], levelComparison: { op: "gte", value: 3 } },
+      { kind: "youHave", filter: { controllerDefault: "mine", zone: "breeding", kind: ["Digimon"], levelComparison: { op: "gte", value: 3 } } },
     ], cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, raw: "by suspending this Tamer" }, optional: true, abortOnDecline: true }] },
     { trigger: "Security", actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }], isSecurity: true },
   ],
