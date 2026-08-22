@@ -1,3 +1,4 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -22,6 +23,7 @@ describe("BT24-012 Dimetromon", () => {
     expect(compiled.effects[0]?.keywords?.[0]?.keyword).toBe("Blocker");
     const inherited = compiled.effects.find((effect) => effect.isInherited) as any;
     expect(inherited.frequency).toBe("OncePerTurn");
+    expect(inherited.actions[0].sourceFilter).toEqual({ controller: "opponent" });
     expect(inherited.actions[0].actions[0]).toMatchObject({ kind: "GainMemory", amount: 1 });
   });
 
@@ -33,7 +35,7 @@ describe("BT24-012 Dimetromon", () => {
             { card: "BT24-012", as: "dimetromon" },
             { card: "BT24-014", as: "dragonkin1" },
             { card: "BT24-014", as: "dragonkin2" },
-            { card: "BT24-011", as: "unprotected" },
+            { card: "BT1-009", as: "unprotected" },
           ],
         },
       },
@@ -53,7 +55,7 @@ describe("BT24-012 Dimetromon", () => {
       "BT24-014",
     ]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT24-012");
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT24-011");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-009");
   });
 
   it("does not protect another Digimon when its controller declines the return cost", async () => {
@@ -82,6 +84,7 @@ describe("BT24-012 Dimetromon", () => {
     s.state.turnSeat = 0;
     s.state.memory = 0;
     await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("host"));
 
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(false);
     await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
