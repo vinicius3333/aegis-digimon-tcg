@@ -276,7 +276,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                     ctx,
                     ctx.game
                       .player(source.ownerSeat)
-                      .trash.filter((item) => hasText(ctx.game.definitionOf(item), "x antibody")),
+                      .trash.filter((item) => cardHasTrait(ctx.game.definitionOf(item), "X Antibody")),
                     true,
                   );
                   if (card) await ctx.fx.returnToHand([card]);
@@ -292,7 +292,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                   const enhanced = self?.stack.some(
                     (item) =>
                       ctx.game.definitionOf(item).nameEn.includes("Baalmon") ||
-                      hasText(ctx.game.definitionOf(item), "x antibody"),
+                      cardHasTrait(ctx.game.definitionOf(item), "X Antibody"),
                   );
                   if (enhanced) {
                     const id = await choosePermanent(
@@ -322,7 +322,8 @@ export function lateBt12Module(cardId: string): EffectModule {
                   return (
                     source.isOwnersTurn() &&
                     top !== undefined &&
-                    (hasText(ctx.game.definitionOf(top), "wizard") || hasText(ctx.game.definitionOf(top), "demon lord"))
+                    (cardHasTrait(ctx.game.definitionOf(top), "Wizard") ||
+                      cardHasTrait(ctx.game.definitionOf(top), "Demon Lord"))
                   );
                 },
                 resolve: async (ctx) => {
