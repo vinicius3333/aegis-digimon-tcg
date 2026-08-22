@@ -24,17 +24,28 @@ const compiled: CompiledCard = {
         },
       ],
     },
-    { trigger: "Static", actions: [], keywords: [{ keyword: "Rush", raw: "＜Rush＞" }] },
     {
       trigger: "Static",
       actions: [
         {
-          kind: "DisableTimingEffect",
+          kind: "GainKeyword",
+          target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Armageddemon"], match: "name" }] }, count: 1 },
+          keyword: { keyword: "Rush" },
+          duration: "permanent",
+        },
+      ],
+      keywords: [{ keyword: "Rush", raw: "＜Rush＞" }],
+    },
+    {
+      trigger: "Static",
+      actions: [
+        {
+          kind: "Restrict",
           target: {
             filter: { controller: "any", kind: ["Digimon"], levelComparison: { op: "eq", value: 7 } },
             count: "all",
           },
-          timings: ["whenDigivolving"],
+          restriction: "cannotActivateWhenDigivolving",
           duration: "permanent",
         },
       ],
