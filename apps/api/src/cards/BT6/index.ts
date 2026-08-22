@@ -21,6 +21,7 @@ import "./BT6-019.js";
 import "./BT6-020.js";
 import "./BT6-021.js";
 import "./BT6-022.js";
+import "./BT6-023.js";
 import "./BT6-024.js";
 import "./BT6-025.js";
 import "./BT6-026.js";
