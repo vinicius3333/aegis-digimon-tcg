@@ -185,8 +185,13 @@ export const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       level: 4,
-      traits: ["Aqua", "Sea Animal"],
-      traitsMatchAny: true,
+      traitSubstrings: ["Aqua"],
+      cost: 3,
+      isAlternate: true,
+    },
+    {
+      level: 4,
+      traits: ["Sea Animal"],
       cost: 3,
       isAlternate: true,
     },

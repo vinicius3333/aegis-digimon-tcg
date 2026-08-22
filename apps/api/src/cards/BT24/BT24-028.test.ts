@@ -52,7 +52,7 @@ describe("BT24-028 Divermon", () => {
 
     expect(s.perm("divermon").stack[0]?.instanceId).toBe(s.inst("placed").instanceId);
     expect(observe(s.engine).hasKeyword(s.perm("divermon"), "Blocker")).toBe(true);
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("divermon").permanentId], "byBattle")).toBe(0);
+    expect(observe(s.engine).isRestricted(s.perm("divermon"), "beDeletedInBattle")).toBe(true);
   });
 
   it("grants neither entry benefit when the placement cost is unavailable", async () => {
@@ -109,5 +109,33 @@ describe("BT24-028 Divermon", () => {
 
     expect(s.state.players[0]!.battleArea).toHaveLength(count);
     expect(s.perm("other").stack.map((card) => card.cardId)).toContain("BT24-027");
+  });
+
+  it.each([
+    ["Aqua in trait", "BT12-025", 0],
+    ["Sea Animal trait", "BT1-033", 1],
+    ["TS trait", "BT24-010", 2],
+  ])("digivolves from a level 4 card with %s for cost 3", async (_label, baseCard, alternateRequirementIndex) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: baseCard, as: "base" }],
+        hand: [{ card: "BT24-028", as: "divermon" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("divermon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("divermon").instanceId);
+
+    expect(s.state.memory).toBe(2);
   });
 });

@@ -353,6 +353,7 @@ function requirementHasGate(req: DigivolutionRequirement): boolean {
     req.levelMin !== undefined ||
     req.levelMax !== undefined ||
     (req.traits !== undefined && req.traits.length > 0) ||
+    (req.traitSubstrings !== undefined && req.traitSubstrings.length > 0) ||
     (req.excludeTraits !== undefined && req.excludeTraits.length > 0) ||
     (req.names !== undefined && req.names.length > 0) ||
     (req.namesExact !== undefined && req.namesExact.length > 0) ||
@@ -388,6 +389,7 @@ function requirementHasIdentityGate(req: DigivolutionRequirement): boolean {
     (req.namesExact !== undefined && req.namesExact.length > 0) ||
     (req.texts !== undefined && req.texts.length > 0) ||
     (req.traits !== undefined && req.traits.length > 0) ||
+    (req.traitSubstrings !== undefined && req.traitSubstrings.length > 0) ||
     (req.excludeTraits !== undefined && req.excludeTraits.length > 0)
   );
 }
@@ -442,6 +444,10 @@ function matchGatedRequirement(
     // Trait gate: base must have at least one of the listed traits.
     if (req.traits && req.traits.length > 0) {
       if (!req.traits.some((t) => cardHasTrait(baseDef, t))) continue;
+    }
+    if (req.traitSubstrings && req.traitSubstrings.length > 0) {
+      const sourceTraits = [...(baseDef.forms ?? []), ...(baseDef.attributes ?? []), ...(baseDef.types ?? [])];
+      if (!req.traitSubstrings.some((token) => sourceTraits.some((trait) => trait.includes(token)))) continue;
     }
 
     // Color gate: base must have at least one of the listed printed colors.
