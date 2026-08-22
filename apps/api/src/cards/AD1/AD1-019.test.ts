@@ -72,7 +72,7 @@ describe("AD1-019 Matt Ishida & T.K. Takaishi", () => {
       1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
     });
     qualified.state.memory = 0;
-    await advance(qualified.engine).fire(EffectTiming.StartOfYourMainPhase, qualified.perm("tamer"));
+    await advance(qualified.engine).fire(EffectTiming.OnStartMainPhase, qualified.perm("tamer"));
     expect(qualified.state.memory).toBe(1);
 
     const unqualified = setupEngine({ 0: { battleArea: [{ card: "AD1-019", as: "tamer" }] } });

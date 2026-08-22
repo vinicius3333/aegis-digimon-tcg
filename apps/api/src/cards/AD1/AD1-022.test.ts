@@ -68,7 +68,7 @@ describe("AD1-022 Izzy Izumi & Tai Kamiya", () => {
       1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
     });
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("tamer"));
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tamer"));
     expect(s.state.memory).toBe(1);
   });
 });

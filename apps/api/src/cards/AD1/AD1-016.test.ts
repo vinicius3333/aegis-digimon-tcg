@@ -72,7 +72,7 @@ describe("AD1-016 ShineGreymon", () => {
       });
       s.state.memory = 5;
 
-      expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("shine").instanceId })).toEqual({ ok: true });
+      expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("shine").instanceId, digivolutionRequirementIndex: baseCardId === "BT12-042" ? 0 : 1 })).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard.cardId === "AD1-016");
       expect(s.state.memory).toBe(2);
     }

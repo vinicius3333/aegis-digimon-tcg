@@ -40,7 +40,7 @@ describe("AD1-007 Siriusmon", () => {
     );
     s.state.memory = 5;
 
-    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("siriusmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("siriusmon").instanceId, digivolutionRequirementIndex: 0 })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(s.perm("base").stack).toHaveLength(4);
@@ -111,6 +111,7 @@ describe("AD1-007 Siriusmon", () => {
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
+    await qualified.ready();
 
     expect(qualified.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => qualified.state.players[1]!.security.length === 0, 5000);
@@ -130,6 +131,7 @@ describe("AD1-007 Siriusmon", () => {
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
+    await unqualified.ready();
 
     expect(unqualified.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle();

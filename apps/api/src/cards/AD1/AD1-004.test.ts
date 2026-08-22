@@ -26,7 +26,7 @@ describe("AD1-004 WarGreymon", () => {
       const s = setupEngine({ 0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "AD1-004", as: "wargreymon" }], deck: ["BT1-001"] } });
       s.state.memory = 3;
 
-      expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("wargreymon").instanceId })).toEqual({ ok: true });
+      expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("wargreymon").instanceId, digivolutionRequirementIndex: baseCardId === "BT1-021" ? 0 : 1 })).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard?.cardId === "AD1-004");
 
       expect(s.perm("base").topCard?.cardId).toBe("AD1-004");
@@ -62,6 +62,7 @@ describe("AD1-004 WarGreymon", () => {
       { 0: { battleArea: [{ card: "AD1-004", as: "wargreymon" }, { card: "BT1-010", as: "attacker" }] }, 1: { security: ["BT1-001"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0, 5000);

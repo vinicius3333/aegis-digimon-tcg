@@ -49,7 +49,7 @@ describe("AD1-009 BlitzGreymon", () => {
       });
       s.state.memory = 5;
 
-      expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("blitz").instanceId })).toEqual({ ok: true });
+      expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("blitz").instanceId, digivolutionRequirementIndex: baseCard === "AD1-003" ? 0 : 1 })).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard?.cardId === "AD1-009");
       expect(s.state.memory).toBe(2);
     }

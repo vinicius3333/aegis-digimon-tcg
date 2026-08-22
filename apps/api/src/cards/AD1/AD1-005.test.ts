@@ -13,6 +13,7 @@ describe("AD1-005 Gaiamon", () => {
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
+    await s.ready();
     s.state.memory = 7;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gaiamon").instanceId })).toEqual({ ok: true });
@@ -35,6 +36,7 @@ describe("AD1-005 Gaiamon", () => {
       },
       { autoSelectCards: true, autoAcceptOptional: true },
     );
+    await s.ready();
     const gaiamon = s.perm("gaiamon");
 
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: gaiamon.permanentId, target: { kind: "player" } })).toEqual({ ok: true });

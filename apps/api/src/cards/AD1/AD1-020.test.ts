@@ -53,7 +53,7 @@ describe("AD1-020 Tommy, Takuya, & Zoe", () => {
     }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 0;
 
-    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("tamer"));
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tamer"));
     expect(s.state.memory).toBe(2);
   });
 
@@ -65,6 +65,7 @@ describe("AD1-020 Tommy, Takuya, & Zoe", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0, 5000);
