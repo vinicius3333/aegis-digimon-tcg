@@ -33,3 +33,15 @@ it("draws only when an opposing Digimon is deleted by a 0 DP rule check", async 
   await settle(() => s.state.players[0]!.hand.length > handBefore);
   expect(s.state.players[0]!.hand.length).toBe(handBefore + 1);
 });
+
+it("does not draw when an opposing Digimon is deleted for another reason", async () => {
+  const s = setupEngine({
+    0: { battleArea: [{ card: "BT12-041", as: "cho" }], deck: ["BT1-009"] },
+    1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 3000 }] },
+  });
+  await s.ready();
+  const handBefore = s.state.players[0]!.hand.length;
+  await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
+  await settle(() => s.state.players[1]!.battleArea.length === 0);
+  expect(s.state.players[0]!.hand.length).toBe(handBefore);
+});
