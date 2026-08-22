@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-040.js";
 
 describe("EX4-040 SkullKnightmon", () => {
@@ -8,5 +9,15 @@ describe("EX4-040 SkullKnightmon", () => {
   it("reveals one Blue Flare or Twilight card on deletion and has inherited unsuspend", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "OnDeletion")?.actions?.[0]).toMatchObject({ kind: "RevealAdd", revealCount: 1, rest: "trash", add: [{ filter: { nameOrTrait: [{ match: "trait", tokens: ["Blue Flare", "Twilight"] }] } }] });
     expect(compiled.effects?.find((entry) => entry.trigger === "Static")).toMatchObject({ isInherited: true, actions: [{ kind: "Unsuspend" }] });
+  });
+
+  it("plays Nene Amano from hand when none is already in play", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "EX4-040", as: "source" }, { card: "BT10-092", as: "nene" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT10-092"));
+
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT10-092")).toBe(true);
   });
 });
