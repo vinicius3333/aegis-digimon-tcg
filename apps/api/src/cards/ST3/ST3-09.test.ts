@@ -17,6 +17,6 @@ describe("ST3-09 Angewomon", () => {
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea[0]?.topCard?.cardId === "ST3-09");
     expect(s.state.players[0]!.security).toHaveLength(4);
-    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("top").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 });
