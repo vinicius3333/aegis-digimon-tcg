@@ -149,6 +149,23 @@ it("does not apply the scaled effect when there are fewer than two digivolution 
   expect(s.perm("victim").currentDP).toBe(10000);
 });
 
+it("allows the alternate evolution from a level 4 Digimon with Save in its text", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT12-011", as: "saveBase" }],
+        hand: [{ card: "BT12-041", as: "cho" }],
+      },
+    },
+    { autoSelectCards: true },
+  );
+  await s.ready();
+  s.state.memory = 3;
+  await advance(s.engine).verb.digivolveFromInstance(s.perm("saveBase").permanentId, s.inst("cho").instanceId);
+  await settle(() => s.perm("saveBase").topCard?.cardId === "BT12-041");
+  expect(s.perm("saveBase").topCard?.cardId).toBe("BT12-041");
+});
+
 it("applies the inherited minus 2000 DP effect only when the host has Save in its text", async () => {
   const s = setupEngine({
     0: { battleArea: [{ card: "BT12-011", as: "host", under: ["BT12-041"] }] },
