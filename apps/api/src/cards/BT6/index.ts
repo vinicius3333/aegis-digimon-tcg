@@ -44,6 +44,7 @@ import "./BT6-042.js";
 import "./BT6-043.js";
 import "./BT6-044.js";
 import "./BT6-045.js";
+import "./BT6-046.js";
 import "./BT6-047.js";
 import "./BT6-049.js";
 import "./BT6-050.js";
