@@ -1236,7 +1236,8 @@ export function midBt12Module(cardId: string): EffectModule {
                       if (target) await ctx.fx.suspend([target], { byEffectSeat: source.ownerSeat });
                       ctx.fx.modifyDP(self.permanentId, 3000, EffectDuration.UntilEachTurnEnd);
                     }
-                    if (target) await ctx.fx.forceAttack(self.permanentId);
+                    if (target && (await ctx.ask.optional(ctx, "Attack the targeted opponent's Digimon?")))
+                      await ctx.fx.forceAttack(self.permanentId);
                   }
                 },
               }),
@@ -1254,7 +1255,7 @@ export function midBt12Module(cardId: string): EffectModule {
                   if (host === undefined || !source.isOwnersTurn()) return false;
                   const definition = ctx.game.definitionOf(host);
                   return isDigimon(definition) &&
-                    (definition.nameEn.includes("Imperialdramon") || contains(definition, "free"));
+                    (definition.nameEn.includes("Imperialdramon") || cardHasTrait(definition, "Free"));
                 },
                 resolve: async (ctx) => {
                   await ctx.fx.trashFromSecurity(ctx.game.opponentOf(source.ownerSeat), 1, { fromTop: true });
