@@ -172,7 +172,7 @@ const module: EffectModule = {
 
     return [];
   },
-];
+};
 
 const compiled: CompiledCard = {
   effects: [
