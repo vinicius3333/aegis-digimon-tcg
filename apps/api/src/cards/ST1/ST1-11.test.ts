@@ -1,9 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./ST1-11.js";
+import { compiled } from "./ST1-11.js";
 
 describe("ST1-11 WarGreymon", () => {
+  it("registers one Security Attack per complete pair of sources as complete IR", () => {
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [{ trigger: "YourTurn", actions: [{ kind: "GainKeyword", scaling: { per: 2, unit: "digivolutionCards" } }] }],
+    });
+  });
+
   it("rounds down each pair of sources, including Digi-Egg cards, and only applies on its turn (Q605)", async () => {
     const s = setupEngine({
       0: {
