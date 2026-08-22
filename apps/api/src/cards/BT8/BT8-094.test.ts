@@ -32,7 +32,10 @@ describe("BT8-094 [Opponent's Turn] gain 2 memory on opponent's Lv3 breeding->ba
     const deletedInstance = s.perm("deleted").topCard!;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deletionOption").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+    await settle(() =>
+      s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId) &&
+      s.state.players[1]!.trash.some((card) => card.instanceId === deletedInstance.instanceId),
+    );
 
     expect(s.state.players[1]!.trash).toContainEqual(deletedInstance);
     expect(s.perm("tamer").isSuspended).toBe(true);
