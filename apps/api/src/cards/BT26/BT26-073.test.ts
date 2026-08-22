@@ -20,17 +20,44 @@ it("encodes BT26-073's exclusive cost choice and static clauses in IR", () => {
   expect(compiled.effects?.[0]?.actions?.[0]).toMatchObject({
     kind: "Modal",
     choose: 1,
-    options: [[{ kind: "Delete", cost: { kind: "deleteOwn" } }], [{ kind: "Delete", cost: { kind: "return", to: "deckBottom" } }]],
+    options: [
+      [{ kind: "Delete", cost: { kind: "deleteOwn" } }],
+      [{ kind: "Delete", cost: { kind: "return", to: "deckBottom" } }],
+    ],
   });
-  expect(compiled.effects?.[2]?.actions?.[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["hand", "trash"], payCost: false, optional: true });
-  expect(compiled.effects?.[3]).toMatchObject({ isInherited: true, actions: [{ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: 1 } }] });
-  expect(compiled.effects?.[4]?.actions?.[0]).toMatchObject({ kind: "GrantStatic", grant: "trait", tokens: ["Wizard"] });
+  expect(compiled.effects?.[2]?.actions?.[0]).toMatchObject({
+    kind: "PlayWithoutCost",
+    from: ["hand", "trash"],
+    payCost: false,
+    optional: true,
+  });
+  expect(compiled.effects?.[3]).toMatchObject({
+    isInherited: true,
+    actions: [{ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: 1 } }],
+  });
+  expect(compiled.effects?.[4]?.actions?.[0]).toMatchObject({
+    kind: "GrantStatic",
+    grant: "trait",
+    tokens: ["Wizard"],
+  });
 });
 
 it("exposes the printed Aegiomon evolution and Chronomon-or-TS Assembly requirements", () => {
   expect(compiled.digivolutionRequirement).toContainEqual({ names: ["Aegiomon"], cost: 3, isAlternate: true });
   expect(compiled.assemblyRequirement).toEqual([
-    { reduceCost: 2, materials: [{ levelMax: 4, nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }, { tokens: ["TS"], match: "trait" }], count: 1 }] },
+    {
+      reduceCost: 2,
+      materials: [
+        {
+          levelMax: 4,
+          nameOrTrait: [
+            { tokens: ["Chronomon"], match: "text" },
+            { tokens: ["TS"], match: "trait" },
+          ],
+          count: 1,
+        },
+      ],
+    },
   ]);
 });
 
@@ -89,7 +116,10 @@ describe("BT26-073 [On Play]/[When Digivolving]: cost then delete a level<=5 opp
     } as unknown as Primitives;
 
     const source = makeSource();
-    const ask = { optional: vi.fn<(...args: any[]) => any>(async () => true) } as unknown as EffectContext["ask"];
+    const ask = {
+      optional: vi.fn<(...args: any[]) => any>(async () => true),
+      chooseOption: vi.fn(async () => 0),
+    } as unknown as EffectContext["ask"];
     const ctx = { source, trigger: {}, game, fx, ask } as unknown as EffectContext;
 
     const module = getEffectModule(CARD_ID);
@@ -115,7 +145,10 @@ describe("BT26-073 [On Play]/[When Digivolving]: cost then delete a level<=5 opp
       definitionOf: () => fakeDef({ level: 5 }),
     } as unknown as GameAccess;
     const fx = { deletePermanent: vi.fn() } as unknown as Primitives;
-    const ask = { optional: vi.fn<(...args: any[]) => any>(async () => false) } as unknown as EffectContext["ask"];
+    const ask = {
+      optional: vi.fn<(...args: any[]) => any>(async () => false),
+      chooseOption: vi.fn(async () => 0),
+    } as unknown as EffectContext["ask"];
     const effect = getEffectModule(CARD_ID)!
       .effectsForTiming(EffectTiming.WhenDigivolving, source)
       .find((candidate) => candidate.effectKey === `${CARD_ID}/when-digivolving-cost-delete`)!;
@@ -132,8 +165,7 @@ describe("BT26-073 [On Play]/[When Digivolving]: cost then delete a level<=5 opp
     const opponent = { permanentId: "opp", topCard: { cardId: "LOW" }, inBreeding: false };
     const source = makeSource();
     const game = {
-      player: (seat: Seat) =>
-        seat === 0 ? { battleArea: [], trash: [near, exact] } : { battleArea: [opponent] },
+      player: (seat: Seat) => (seat === 0 ? { battleArea: [], trash: [near, exact] } : { battleArea: [opponent] }),
       opponentOf: () => 1 as Seat,
       definitionOf: (card: { cardId: string }) =>
         card.cardId === "EXACT"
@@ -175,13 +207,15 @@ describe("BT26-073 [On Play]/[When Digivolving]: cost then delete a level<=5 opp
     const fx = { deletePermanent: vi.fn<(...args: any[]) => any>(async () => 0) } as unknown as Primitives;
     const ask = { optional: vi.fn<(...args: any[]) => any>(async () => true) } as unknown as EffectContext["ask"];
 
-    await getEffectModule(CARD_ID)!.effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve({
-      source,
-      trigger: {},
-      game,
-      fx,
-      ask,
-    } as unknown as EffectContext);
+    await getEffectModule(CARD_ID)!
+      .effectsForTiming(EffectTiming.OnPlay, source)[0]!
+      .resolve({
+        source,
+        trigger: {},
+        game,
+        fx,
+        ask,
+      } as unknown as EffectContext);
 
     expect(fx.deletePermanent).toHaveBeenCalledTimes(1);
     expect(fx.deletePermanent).toHaveBeenCalledWith(["self-perm"], "byEffect");
@@ -197,6 +231,8 @@ describe("BT26-073 [On Deletion] and static clauses", () => {
     const wrongTrait = { instanceId: "wrong", cardId: "WRONG" };
     const game = {
       player: () => ({ hand: [handOk, tooCostly], trash: [trashOk, wrongTrait] }),
+      opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
+      permanentById: () => undefined,
       definitionOf: (card: { cardId: string }) =>
         fakeDef({
           cardId: card.cardId,
@@ -206,10 +242,12 @@ describe("BT26-073 [On Deletion] and static clauses", () => {
     } as unknown as GameAccess;
     const fx = { playInstances: vi.fn() } as unknown as Primitives;
     const ask = {
-      selectCards: vi.fn<(...args: any[]) => any>(async (_ctx: unknown, options: { candidates: string[]; min: number; max: number }) => {
-        expect(options).toEqual({ candidates: ["hand-ok", "trash-ok"], min: 0, max: 1 });
-        return [];
-      }),
+      selectCards: vi.fn<(...args: any[]) => any>(
+        async (_ctx: unknown, options: { candidates: string[]; min: number; max: number }) => {
+          expect(options).toEqual({ candidates: ["hand-ok", "trash-ok"], min: 0, max: 1 });
+          return [];
+        },
+      ),
     } as unknown as EffectContext["ask"];
     const effect = getEffectModule(CARD_ID)!
       .effectsForTiming(EffectTiming.OnDestroyedAnyone, source)
@@ -225,10 +263,14 @@ describe("BT26-073 [On Deletion] and static clauses", () => {
     const eligible = { instanceId: "eligible", cardId: "ELIGIBLE" };
     const game = {
       player: () => ({ hand: [], trash: [eligible] }),
+      opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
+      permanentById: () => undefined,
       definitionOf: () => fakeDef({ playCost: 5, types: ["TS"] }),
     } as unknown as GameAccess;
     const fx = { playInstances: vi.fn<(...args: any[]) => any>(async () => []) } as unknown as Primitives;
-    const ask = { selectCards: vi.fn<(...args: any[]) => any>(async () => ["eligible"]) } as unknown as EffectContext["ask"];
+    const ask = {
+      selectCards: vi.fn<(...args: any[]) => any>(async () => ["eligible"]),
+    } as unknown as EffectContext["ask"];
     const effect = getEffectModule(CARD_ID)!.effectsForTiming(EffectTiming.OnDestroyedAnyone, source)[0]!;
 
     await effect.resolve({ source, trigger: {}, game, fx, ask } as unknown as EffectContext);
@@ -242,24 +284,21 @@ describe("BT26-073 [On Deletion] and static clauses", () => {
       grantKeyword: vi.fn(),
       grantNameTrait: vi.fn(),
     } as unknown as Primitives;
-    const ctx = { source, trigger: {}, game: {}, fx, ask: {} } as unknown as EffectContext;
+    const ctx = {
+      source,
+      trigger: {},
+      game: { permanentById: () => undefined },
+      fx,
+      ask: {},
+    } as unknown as EffectContext;
     const effects = getEffectModule(CARD_ID)!.effectsForTiming(EffectTiming.None, source);
 
     await effects.find((effect) => effect.effectKey === `${CARD_ID}/inherited-security-attack`)!.resolve(ctx);
     await effects.find((effect) => effect.effectKey === `${CARD_ID}/rule-wizard-trait`)!.resolve(ctx);
 
-    expect(fx.grantKeyword).toHaveBeenCalledWith(
-      "self-perm",
-      "SecurityAttack",
-      EffectDuration.UntilEachTurnEnd,
-      1,
-      { continuous: true },
-    );
-    expect(fx.grantNameTrait).toHaveBeenCalledWith(
-      "self-perm",
-      "trait",
-      ["Wizard"],
-      EffectDuration.Permanent,
-    );
+    expect(fx.grantKeyword).toHaveBeenCalledWith("self-perm", "SecurityAttack", EffectDuration.UntilEachTurnEnd, 1, {
+      continuous: true,
+    });
+    expect(fx.grantNameTrait).toHaveBeenCalledWith("self-perm", "trait", ["Wizard"], EffectDuration.Permanent);
   });
 });
