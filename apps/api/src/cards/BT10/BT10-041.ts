@@ -1,7 +1,11 @@
 // @ts-nocheck
-import { getCompiledCard, type CompiledCard } from "@aegis/shared";
+import { CardKind, EffectTiming, getCompiledCard, type CardDefinition, type CardInstance, type CompiledCard } from "@aegis/shared";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import type { EffectContext } from "../../engine/effects/EffectContext.js";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import { whenAttacking, whenDigivolving } from "../../engine/effects/builders.js";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
-import { getCompiledCard } from "@aegis/shared";
 
 const cardId = "BT10-041";
 const compiled = getCompiledCard(cardId) as CompiledCard;
@@ -116,6 +120,5 @@ const module: EffectModule = {
   },
 };
 
-const compiled = getCompiledCard("BT10-041")!;
 export { compiled };
 registerIrCard("BT10-041", compiled, module);
