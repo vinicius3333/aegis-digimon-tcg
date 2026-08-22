@@ -135,6 +135,9 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
           duration,
           action.continuous === undefined ? undefined : { continuous: action.continuous },
         );
+        for (const keyword of action.alsoGainKeywords ?? []) {
+          ctx.fx.grantKeyword(id, keyword.keyword, duration, keyword.amount);
+        }
       }
       if (ids.length > 0 && action.target.bindAs !== undefined) {
         ctx.selections ??= new Map();

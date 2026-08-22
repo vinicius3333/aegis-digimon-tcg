@@ -1,6 +1,10 @@
-import { registerCard } from "../../engine/effects/registry.js";
-import { earlyMidBt11Module } from "./_earlyMidHandwritten.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const module = earlyMidBt11Module("BT11-054");
-registerCard(module);
-export default module;
+const compiled: CompiledCard = { effects: [
+  { trigger: "Static", actions: [{ kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "name", tokens: ["Leomon"] }] },
+  { trigger: "WhenDigivolving", actions: [{ kind: "PlayWithoutCost", target: { filter: { controller: "mine", kind: ["Tamer"], colors: ["Blue", "Green"], playCostLte: 4 }, count: 1 }, from: ["hand"], payCost: false, optional: true }] },
+  { trigger: "YourTurn", actions: [{ kind: "SubTrigger", event: "whenPlayed", sourceFilter: { controllerDefault: "mine", excludeSelf: true, kind: ["Digimon"] }, actions: [{ kind: "GainKeyword", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 }, keyword: { keyword: "Rush", raw: "＜Rush＞" }, duration: "forTheTurn" }] }], frequency: "OncePerTurn", isInherited: true },
+], coverage: "full", residual: [] };
+registerIrCard("BT11-054", compiled);

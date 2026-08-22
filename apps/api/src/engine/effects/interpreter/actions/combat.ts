@@ -94,7 +94,10 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
       const ids = ctx.selections?.get(name) !== undefined
         ? [ctx.selections.get(name)!]
         : await resolvePermanentTargets(ctx, target);
-      if (ids.length > 0 && ctx.selections) ctx.selections.set(name, ids[0]!);
+      if (ids.length > 0) {
+        ctx.selections ??= new Map();
+        ctx.selections.set(name, ids[0]!);
+      }
       return false;
     }
     case "EndAttack": {

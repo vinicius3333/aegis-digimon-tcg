@@ -12,7 +12,7 @@ describe("BT11-091 Taiga", () => {
         ],
         hand: [{ card: "BT1-083", as: "target" }],
       },
-    });
+    }, { autoAcceptOptional: true });
     s.state.memory = 10;
     await s.ready();
     expect(s.perm("base").currentDP).toBe(6000);

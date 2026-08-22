@@ -57,7 +57,13 @@ export async function runPlaceUnder(
       destId = ctx.selections.get(action.underSelectionRef);
     } else if (action.underFilter) {
       const destTarget: Target = { filter: action.underFilter, count: 1 };
-      const destIds = await resolvePermanentTargets(ctx, destTarget);
+      let destIds = (await resolvePermanentTargets(ctx, destTarget)).filter((id) => !sourceIds.includes(id));
+      if (destIds.length === 0) {
+        destIds = candidatePermanents(ctx, destTarget)
+          .map((permanent) => permanent.permanentId)
+          .filter((id) => !sourceIds.includes(id))
+          .slice(0, 1);
+      }
       if (destIds.length === 0) return;
       destId =
         destIds.length === 1

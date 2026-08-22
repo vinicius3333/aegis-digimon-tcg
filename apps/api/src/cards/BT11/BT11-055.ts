@@ -1,6 +1,14 @@
-import { registerCard } from "../../engine/effects/registry.js";
-import { earlyMidBt11Module } from "./_earlyMidHandwritten.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const module = earlyMidBt11Module("BT11-055");
-registerCard(module);
-export default module;
+const actions = [
+  { kind: "Suspend", target: { filter: { controller: "opponent", kind: ["Digimon"], suspended: false }, count: 1 }, scaling: { per: 1, filter: { zone: "battleArea", controller: "mine", kind: ["Tamer"], colors: ["Green", "Black"] }, unit: "cards" } },
+  { kind: "Restrict", target: { filter: { controller: "opponent", suspended: true, kind: ["Digimon"] }, count: 1 }, restriction: "unsuspend", duration: "untilOpponentTurnEnd" },
+];
+const compiled: CompiledCard = { effects: [
+  { trigger: "WhenDigivolving", actions },
+  { trigger: "OnPlay", actions },
+  { trigger: "AllTurns", actions: [{ kind: "SubTrigger", event: "whenDeletesInBattle", actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }] }], isInherited: true, frequency: "OncePerTurn" },
+], coverage: "full", residual: [] };
+registerIrCard("BT11-055", compiled);

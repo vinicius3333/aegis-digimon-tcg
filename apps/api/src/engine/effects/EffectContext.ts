@@ -1392,6 +1392,7 @@ export interface ReplacementInstallBase {
 export interface ReplacementInstallReduceCost extends ReplacementInstallBase {
   mode: "reduceCost";
   amount?: number;
+  amountForInto?: (def: CardDefinition) => number;
   /**
    * For mode "reduceCost" + event "wouldDigivolve": restrict the reduction to when the
    * digivolution target (the "into" card) matches this definition predicate. Absent => applies

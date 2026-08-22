@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
+import { validateCompetitiveDeck } from "../../tournaments/participants/deckLegality.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "./BT11-061.js";
@@ -7,6 +8,13 @@ import "./BT11-070.js";
 import "./BT11-111.js";
 
 describe("BT11-061 Vemmon", () => {
+  it("uses the printed 50-copy deckbuilding limit", () => {
+    const legal = validateCompetitiveDeck({ mainDeck: Array(50).fill("BT11-061"), eggDeck: [] });
+    const illegal = validateCompetitiveDeck({ mainDeck: [...Array(50).fill("BT11-061"), "BT11-061"], eggDeck: [] });
+    expect(legal.violations.filter((v) => v.kind === "over_copy_limit")).toHaveLength(0);
+    expect(illegal.violations).toContainEqual({ kind: "over_copy_limit", cardId: "BT11-061", copies: 51, allowed: 50 });
+  });
+
   it("can place a revealed Vemmon even when no named search card is revealed", async () => {
     const s = setupEngine(
       {

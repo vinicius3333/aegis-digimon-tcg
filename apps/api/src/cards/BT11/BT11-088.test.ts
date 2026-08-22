@@ -60,7 +60,7 @@ function setup(): { engine: GameEngine; state: GameState } {
         );
       }
       if (req.kind === "selectCards" || req.kind === "chooseTargets") {
-        const candidates = req.options?.candidateInstanceIds ?? [];
+        const candidates = req.options?.candidateInstanceIds ?? req.options?.candidatePermanentIds ?? [];
         const ids = candidates.slice(0, req.options?.max ?? candidates.length);
         queueMicrotask(() =>
           engineRef?.applyIntent(seat, {
@@ -163,7 +163,7 @@ describe("BT11-088 Bagramon [On Play] conditional effect", () => {
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT11-088")).toBe(true);
   });
 
-  it("when opponent has 2+ Digimon, one is placed under Bagramon", async () => {
+  it("when opponent has 2+ Digimon, one is placed under their other Digimon", async () => {
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
@@ -184,19 +184,16 @@ describe("BT11-088 Bagramon [On Play] conditional effect", () => {
 
     expect(result).toEqual({ ok: true });
 
-    // Wait until the effect resolves: either opponent loses a Digimon from their battle area,
-    // or Bagramon gets cards in its stack.
+    // Wait until the effect resolves: the source opponent Digimon leaves the battle area.
     await settle(
       () =>
-        p1.battleArea.length < 2 || p0.battleArea.some((p) => p.topCard?.cardId === "BT11-088" && p.stack.length > 0),
+        p1.battleArea.length < 2,
     );
 
-    const bagramonPerm = p0.battleArea.find((p) => p.topCard?.cardId === "BT11-088");
-
-    // Either opponent lost a Digimon from their battle area, OR Bagramon has cards under it.
+    // The placed Digimon leaves the battle area and becomes a card under the opponent's other Digimon.
     const opponentLostDigimon = p1.battleArea.length < 2;
-    const cardsUnderBagramon = bagramonPerm !== undefined && bagramonPerm.stack.length > 0;
+    const opponentDigimonHasStack = p1.battleArea.some((p) => p.stack.length > 0);
 
-    expect(opponentLostDigimon || cardsUnderBagramon).toBe(true);
+    expect(opponentLostDigimon && opponentDigimonHasStack).toBe(true);
   });
 });

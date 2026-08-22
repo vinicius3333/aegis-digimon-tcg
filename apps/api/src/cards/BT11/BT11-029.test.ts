@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -46,7 +45,7 @@ describe("BT11-029 AeroVeedramon", () => {
       },
     }, { autoSelectCards: true });
 
-    await advance(s.engine).fire(EffectTiming.OnAllyAttack, s.perm("host"));
+    await advance(s.engine).fireSubTrigger("whenAttacking", { attackerPermanentId: s.perm("host").permanentId });
 
     expect(observe(s.engine).hasKeyword(s.perm("veemon"), "Blocker")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("veemon"), "Evade")).toBe(true);

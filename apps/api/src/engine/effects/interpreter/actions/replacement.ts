@@ -5,9 +5,9 @@ import { evaluateCondition } from "../conditions.js";
 import { payCost, payOneCostOption } from "../costs.js";
 import { runAction } from "../dispatch.js";
 import { unsupported } from "../errors.js";
+import { scaleFactor } from "../scaling.js";
 import { definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
-import { scaleFactor } from "../scaling.js";
 import { getCardDefinition } from "@aegis/shared";
 import type { Action, Condition, Cost, Filter, Permanent } from "@aegis/shared";
 
@@ -100,6 +100,11 @@ export async function runReplacement(
       (total, modifier) => total + (modifier.amount ?? 0) * (modifier.scaling ? scaleFactor(ctx, modifier.scaling) : 1),
       0,
     );
+  const costScaling = action.scaling ?? action.reduceCostScaling;
+  const scalesIntoColors = event === "wouldDigivolve" && costScaling?.unit === "colors";
+  if ((mode === "reduceCost" || mode === "increaseCost") && costScaling !== undefined && amount !== undefined && !scalesIntoColors) {
+    amount *= scaleFactor(ctx, costScaling);
+  }
   // Mutually-exclusive amount alternatives (EX6-006 "reduce by 3 ... reduce by 4 instead"):
   // only ONE eligible entry ever installs — never both — because `costReductionFor` SUMS every
   // active reduceCost subscription anchored to this permanent, so two simultaneously-installed
@@ -251,6 +256,7 @@ export async function runReplacement(
       sourcePermanentId: self?.permanentId,
       mode: "reduceCost",
       amount: mode === "increaseCost" ? -(amount ?? 0) : amount,
+      ...(scalesIntoColors ? { amountForInto: (def: import("@aegis/shared").CardDefinition) => (amount ?? 0) * def.colors.length } : {}),
       description: action.raw,
       digisorptionRedirect: action.digisorptionRedirect,
       // "when this Digimon would digivolve INTO a card with [X] trait/name": restrict the

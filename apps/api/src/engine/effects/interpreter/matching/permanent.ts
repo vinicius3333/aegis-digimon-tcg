@@ -485,6 +485,15 @@ export function permanentMatchesFilter(
     return definitionMatches(rest, def);
   }
 
+  // Runtime-scaled printed-DP cap for hand/deck play candidates (BT11-016).
+  if (filter.dpAtMostScaling) {
+    const base = filter.dpAtMost ?? 0;
+    const cap = base + scaleFactor(ctx, filter.dpAtMostScaling);
+    if ((def.dp ?? 0) > cap) return false;
+    const { dpAtMost: _baseCap, dpAtMostScaling: _scaledCap, ...rest } = filter;
+    return definitionMatches(rest, def);
+  }
+
   // Color predicates on a LIVE permanent must observe "also treated as <color>" grants.
   // Definition-only filters still use printed colors, but board predicates such as `youHave`
   // and effect targets see the permanent's effective set (printed union active grants).

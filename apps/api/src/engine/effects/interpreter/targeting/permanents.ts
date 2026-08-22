@@ -316,6 +316,18 @@ export async function resolvePermanentTargets(
   // inside a whenOpponentAttacks watcher correctly targets the attacking Digimon
   // (whenOpponentAttacks fires with attackerPermanentId, not subjectPermanentId).
   if (!target) return [];
+  const budgetSelectionRef = target.totalPlayCostBudgetFromSelectionRef;
+  if (budgetSelectionRef !== undefined) {
+    const selectedId = ctx.selections?.get(budgetSelectionRef);
+    const selected = selectedId === undefined ? undefined : ctx.game.permanentById(selectedId);
+    const budget = selected?.topCard === undefined ? undefined : ctx.game.definitionOf(selected.topCard).playCost;
+    if (budget === undefined) return [];
+    const budgetTarget = { ...target } as Target & { totalPlayCostBudgetFromSelectionRef?: string };
+    delete budgetTarget.totalPlayCostBudgetFromSelectionRef;
+    budgetTarget.totalPlayCostBudget = budget;
+    return resolveTotalPlayCostBudgetTargets(ctx, budgetTarget);
+  }
+  if (target.totalPlayCostBudget !== undefined) return resolveTotalPlayCostBudgetTargets(ctx, target);
   // sameTarget: reuse the permanent(s) chosen by the immediately preceding action
   // rather than prompting again ("1 of your Digimon gains X … that Digimon also gains Y").
   if (target.sameTarget) return ctx.lastResolvedPermanentIds ?? [];
