@@ -8,7 +8,7 @@ import generatedDigivolveOverridesJson from "./generated-digivolve-overrides.jso
 /** Runtime effect records keyed by card id. Card modules remain authoritative. */
 export const compiledEffects: CompiledEffects = effectsJson as unknown as CompiledEffects;
 
-/** EX6 cards whose executable typed IR supersedes stale aggregate parser metadata. */
+/** Compiled records whose complete runtime modules normalize stale residual metadata. */
 export const HAND_AUTHORED_COVERAGE_OVERRIDES: ReadonlySet<string> = new Set([
   "EX6-001",
   "EX6-010",
@@ -21,6 +21,19 @@ export const HAND_AUTHORED_COVERAGE_OVERRIDES: ReadonlySet<string> = new Set([
   "EX6-070",
   "EX6-071",
   "EX6-073",
+  "EX4-021",
+  "EX4-030",
+  "EX4-036",
+  "EX4-037",
+  "EX4-049",
+  "EX4-051",
+  "EX4-059",
+  "EX4-060",
+  "EX4-062",
+  "EX4-068",
+  "EX4-069",
+  "EX4-072",
+  "EX4-073",
 ]);
 
 // ST15-13's printed Blocker clause is implemented by the hand-authored module

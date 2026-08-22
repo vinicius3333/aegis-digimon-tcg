@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-093.js";
+import "./BT13-007.js";
 
 describe("BT13-093 Omekamon", () => {
   it("draws on play and optionally places a Royal Knight from hand under a breeding-area King Drasil", () => {
@@ -28,5 +32,14 @@ describe("BT13-093 Omekamon", () => {
       },
       position: "bottom",
     });
+  });
+
+  it("draws a card through the live on-play effect", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-093", as: "omeka" }], deck: [{ card: "BT1-001", as: "drawn" }] },
+    });
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("omeka"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-001");
   });
 });

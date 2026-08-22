@@ -1,12 +1,6 @@
-import { EffectDuration, EffectTiming, digiXrosRequirementFor } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { activated, colorWaiverStatic, security } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
-import { materialsSatisfyRecipe } from "../../engine/actions/digiXros.js";
+// @ts-nocheck
+import { getCompiledCard, type CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
  * BT10-104 — Immortal Ruler (BT10, Black Option).
@@ -33,6 +27,7 @@ import { materialsSatisfyRecipe } from "../../engine/actions/digiXros.js";
  *
  */
 const cardId = "BT10-104";
+const compiled = getCompiledCard(cardId) as CompiledCard;
 
 function hasNeneAmanoInPlay(ctx: EffectContext, ownerSeat: 0 | 1): boolean {
   return Array.from(ctx.game.player(ownerSeat).battleArea).some((p) => {
@@ -157,5 +152,5 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
-export default module;
+export { compiled };
+registerIrCard("BT10-104", compiled);

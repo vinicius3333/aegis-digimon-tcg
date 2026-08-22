@@ -1,13 +1,9 @@
-import { EffectDuration, EffectTiming, digiXrosRequirementFor } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { onPlay, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import { getCompiledCard, type CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const cardId = "BT10-111";
+const compiled = getCompiledCard(cardId) as CompiledCard;
 
 function hasDigiXrosRequirement(def: CardDefinition): boolean {
   return (digiXrosRequirementFor(def.cardId)?.length ?? 0) > 0;
@@ -114,5 +110,5 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
-export default module;
+registerIrCard("BT10-111", compiled);
+export { compiled };

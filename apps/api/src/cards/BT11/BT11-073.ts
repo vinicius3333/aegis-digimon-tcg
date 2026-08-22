@@ -54,8 +54,9 @@ const compiled: CompiledCard = {
         ignoreRequirements: true,
         condition: {
           kind: "youHave",
-          filter: { zone: "battleArea", controllerDefault: "mine", kind: ["Tamer"] },
+          filter: { kind: ["Tamer"] },
         },
+        optional: false,
       }],
     },
   ],

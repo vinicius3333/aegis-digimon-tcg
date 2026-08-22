@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-102.js";
 
 describe("BT13-102 Keenan Crier", () => {
@@ -28,5 +31,18 @@ describe("BT13-102 Keenan Crier", () => {
       cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
       actions: [{ kind: "GainMemory", amount: 1 }],
     });
+  });
+
+  it("trashes an opposing Tamer through the optional hand choice", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-102", as: "keenan" }], deck: [{ card: "BT1-001", as: "drawn" }] },
+        1: { hand: [{ card: "BT13-094", as: "opponentTamer" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("keenan"));
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT13-094"));
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT13-094");
   });
 });

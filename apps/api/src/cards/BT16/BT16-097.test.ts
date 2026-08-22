@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-097.js";
 
 describe("BT16-097", () => {
@@ -13,5 +14,17 @@ describe("BT16-097", () => {
 
   it("plays Armadillomon or Patamon from security and returns itself to hand", () => {
     expect(compiled.effects?.[1]).toMatchObject({ trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", from: ["hand", "trash"], payCost: false, optional: true }, { kind: "AddToHandSelf" }] });
+  });
+
+  it("publicly plays an Angemon without requiring DNA digivolution", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT16-019", as: "color" }, { card: "BT16-050", as: "black" }], hand: [{ card: "BT16-097", as: "option" }, { card: "BT16-019", as: "angemon" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId, useAs: "option" } as never)).toEqual({ ok: true });
+    await settle(() => s.state.players[0]?.battleArea.some((p) => p.topCard?.cardId === "BT16-019"));
+    expect(s.state.players[0]?.battleArea.some((p) => p.topCard?.cardId === "BT16-019")).toBe(true);
   });
 });

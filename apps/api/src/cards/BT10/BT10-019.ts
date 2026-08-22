@@ -1,11 +1,6 @@
 // @ts-nocheck
-import { EffectTiming, isDigimon, isTamer } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { onPlay, onDeletion, whenAttacking } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
-import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
+import { getCompiledCard, type CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
  * BT10-019 — MetalGreymon (BT10, Blue Lv.5 Digimon).
@@ -21,6 +16,7 @@ import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
  *   traits and your opponent has 2 or more Digimon in play, unsuspend this Digimon.
  */
 const cardId = "BT10-019";
+const compiled = getCompiledCard(cardId) as CompiledCard;
 
 function hasBlueFlare(def: { types?: string[] }): boolean {
   const types = def.types as string[] | undefined;
@@ -223,5 +219,5 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
-export default module;
+export { compiled };
+registerIrCard("BT10-019", compiled);
