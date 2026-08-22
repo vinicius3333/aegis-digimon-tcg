@@ -14,4 +14,25 @@ describe("ST2-07 Grizzlymon", () => {
     expect(s.state.memory).toBe(-1);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
+
+  it("can suspend to redirect an opposing player attack", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST2-07", as: "blocker" }], security: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-028", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+    const blockerId = s.perm("blocker").permanentId;
+
+    expect(s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: blockerId })).toEqual({ ok: true });
+    await settle(() => s.perm("blocker").isSuspended);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.perm("blocker").isSuspended).toBe(true);
+  });
 });
