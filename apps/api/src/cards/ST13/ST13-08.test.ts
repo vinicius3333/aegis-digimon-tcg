@@ -19,7 +19,7 @@ describe("ST13-08 Chikurimon", () => {
 
   it("does not prevent an effect from playing a card without paying its cost", async () => {
     const s = setupEngine({ 0: {
-      battleArea: ["ST13-08"],
+      battleArea: ["ST13-08", "BT1-009"],
       hand: [
         { card: "ST13-16", as: "option" },
         { card: "ST13-02", as: "zubamon" },
