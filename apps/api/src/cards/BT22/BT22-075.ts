@@ -4,7 +4,7 @@ import type { CompiledCard } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import { staticModifier } from "../../engine/effects/builders.js";
 import { registerCard } from "../../engine/effects/registry.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
+import { getEffectModule, unregisterCard } from "../../engine/effects/registry.js";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Behavior is executed by the shared interpreter; this file only carries the IR and
@@ -114,6 +114,7 @@ registerIrCard(cardId, {
   effects: compiled.effects.filter((effect) => effect.trigger !== "AllTurns"),
 });
 const interpreted = getEffectModule(cardId)!;
+unregisterCard(cardId);
 
 const module: EffectModule = {
   cardId,
