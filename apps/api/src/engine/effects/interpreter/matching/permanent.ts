@@ -405,6 +405,7 @@ export function permanentMatchesFilter(
   if ((filter.digivolutionCards === "none" || filter.digivolutionCards === "hasNone") && permanent.stack.length > 0)
     return false;
   if (filter.digivolutionCards === "hasAny" && permanent.stack.length === 0) return false;
+  if (filter.digivolutionCards === "hasFaceDown" && !permanent.stack.some((card) => !card.faceUp)) return false;
   // "WITH digivolution cards" alias (BT17-098): at least one card under the top.
   if (filter.hasDigivolutionCards === true && permanent.stack.length === 0) return false;
 

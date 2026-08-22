@@ -3,8 +3,8 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const ver4 = { controller: "mine", zone: "hand", kind: ["Digimon"], dp: { op: "lte", value: 6000 }, nameOrTrait: [{ tokens: ["Ver.4"], match: "trait" }] };
-const trashBottomFaceDown = { kind: "TrashDigivolution", target: { filter: { controller: "mine", kind: ["Digimon"], digivolutionCards: "hasFaceDown" }, count: 1 }, amount: 1, fromTop: false, optional: true, condition: { kind: "raw", raw: "bottom face-down digivolution card" } };
-const play = { kind: "PlayWithoutCost", target: { filter: ver4, count: 1 }, from: ["hand"], payCost: false, optional: true, condition: { kind: "ifThisEffectActed" } };
+const trashBottomFaceDown = { kind: "TrashDigivolution", target: { filter: { controller: "mine", kind: ["Digimon"], digivolutionCards: "hasFaceDown" }, count: 1 }, amount: 1, fromTop: false, optional: true };
+const play = { kind: "PlayWithoutCost", target: { filter: ver4, count: 1 }, from: ["hand"], payCost: false, optional: true };
 export const compiled: CompiledCard = { effects: [
   { trigger: "Static", keywords: [{ keyword: "Alliance", raw: "＜Alliance＞" }, { keyword: "Vortex", raw: "＜Vortex＞" }], actions: [] },
   { trigger: "WhenDigivolving", actions: [trashBottomFaceDown, play] },
