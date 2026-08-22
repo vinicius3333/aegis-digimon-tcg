@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-086.js";
 
 describe("BT12-086 handwritten module", () => {
@@ -18,4 +19,19 @@ describe("BT12-086 handwritten module", () => {
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnPlay, source).length).toBeGreaterThan(0);
   });
+});
+
+it("adds up to two differently colored Save Digimon from the reveal", async () => {
+  const s = setupEngine({
+    0: {
+      hand: [{ card: "BT12-086", as: "clock" }],
+      deck: ["BT12-008", "BT12-058", "BT1-009"],
+    },
+  }, { autoSelectCards: true, autoOrderCards: true });
+  s.state.memory = 10;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("clock").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.players[0]!.hand.length >= 2);
+  expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(
+    expect.arrayContaining(["BT12-008", "BT12-058"]),
+  );
 });
