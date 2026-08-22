@@ -8,11 +8,34 @@ import "../index.js";
 describe("BT26-088 Hiroko Sagisaka", () => {
   it("compiles the conditional memory gain and Security self-play", () => {
     expect(compiled.coverage).toBe("full");
-    expect(compiled.effects.map((e) => e.trigger)).toEqual(["StartOfYourMainPhase", "YourTurn"]);
-    expect(compiled.effects[1]).toMatchObject({ actions: [{ kind: "Replacement", event: "wouldBePlayed", sourceFilter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Boss", "TS"], match: "trait" }] }, actions: [{ kind: "Replacement", mode: "reduceCost", amountChoices: [{ amount: 2 }, { amount: 1 }], cost: { kind: "suspend" } }] }] });
+    expect(compiled.effects.map((e) => e.trigger)).toEqual(["StartOfYourMainPhase", "YourTurn", "Security"]);
+    expect(compiled.effects[1]).toMatchObject({
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldBePlayed",
+          sourceFilter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Boss", "TS"], match: "trait" }] },
+          actions: [
+            {
+              kind: "Replacement",
+              mode: "reduceCost",
+              amountChoices: [{ amount: 2 }, { amount: 1 }],
+              cost: { kind: "suspend" },
+            },
+          ],
+        },
+      ],
+    });
+    expect(compiled.effects[2]).toMatchObject({
+      isSecurity: true,
+      actions: [{ kind: "PlayWithoutCost", payCost: false, target: { isSelf: true } }],
+    });
   });
   it("gains memory at start of main only when the opponent has a Digimon", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT26-088", as: "hiroko" }] }, 1: { battleArea: [{ card: "BT1-009", as: "opponent" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT26-088", as: "hiroko" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+    });
     s.state.memory = 1;
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("hiroko"));
     expect(s.state.memory).toBe(2);
@@ -22,16 +45,23 @@ describe("BT26-088 Hiroko Sagisaka", () => {
     expect(empty.state.memory).toBe(1);
   });
   it("suspends itself to reduce a TS Digimon's play cost", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT26-088", as: "hiroko" }],
-        hand: [{ card: "BT26-008", as: "kotemon" }],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-088", as: "hiroko" }],
+          hand: [{ card: "BT26-008", as: "kotemon" }],
+        },
       },
-    }, { autoAcceptOptional: true, autoSelectCards: true });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 1;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kotemon").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("kotemon").instanceId));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kotemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("kotemon").instanceId),
+    );
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("hiroko").isSuspended).toBe(true);
