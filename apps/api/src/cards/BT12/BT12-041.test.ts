@@ -66,6 +66,19 @@ it("draws when a zero-DP opponent is removed in a mixed rule-deletion batch", as
   expect(s.state.players[0]!.hand.length).toBe(handBefore + 1);
 });
 
+it("does not draw outside its controller's turn", async () => {
+  const s = setupEngine({
+    0: { battleArea: [{ card: "BT12-041", as: "cho" }], deck: ["BT1-009"] },
+    1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 0 }] },
+  });
+  s.state.turnSeat = 1;
+  await s.ready();
+  const handBefore = s.state.players[0]!.hand.length;
+  await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byRule");
+  await settle(() => s.state.players[1]!.battleArea.length === 0);
+  expect(s.state.players[0]!.hand.length).toBe(handBefore);
+});
+
 it("applies minus 3000 DP once for each pair of digivolution cards", async () => {
   const s = setupEngine(
     {
