@@ -25,7 +25,6 @@ const compiled: CompiledCard = {
             kind: ["Digimon"],
             orFilters: [{ isToken: true }, { nameOrTrait: [{ tokens: ["Puppet"], match: "trait" }] }],
           },
-          effectSourceFilter: { controller: "mine" },
           actions: [
             {
               kind: "GainKeyword",

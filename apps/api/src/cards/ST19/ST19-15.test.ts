@@ -20,6 +20,7 @@ describe("ST19-15 Noble Family Arts", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 50;
+    await s.ready();
     const option = s.inst("arts");
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: option.instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === 1000, 200);
@@ -35,6 +36,7 @@ describe("ST19-15 Noble Family Arts", () => {
       { autoSelectCards: true },
     );
     s.state.memory = 50;
+    await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("arts").instanceId })).toEqual({ ok: true });
     await settle(() => s.perm("target").currentDP === 7000, 200);
     expect(s.perm("target").currentDP).toBe(7000);

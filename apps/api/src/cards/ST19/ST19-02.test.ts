@@ -35,6 +35,7 @@ describe("ST19-02 ＜Barrier＞ is once per turn", () => {
         target: { kind: "permanent", permanentId: s.perm("barrier").permanentId },
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
     await settle(
       () =>
         s.perm("first").isSuspended &&
@@ -43,6 +44,7 @@ describe("ST19-02 ＜Barrier＞ is once per turn", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
 
     s.state.phase = "Main" as never;
+    s.events.length = 0;
 
     expect(
       s.engine.applyIntent(0, {

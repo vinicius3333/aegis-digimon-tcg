@@ -39,6 +39,7 @@ describe("ST19-13 ShinMonzaemon", () => {
           permanent.stack.some((card) => card.instanceId === s.inst("eligible").instanceId),
       ),
     );
+    await s.ready();
 
     const shin = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "ST19-13");
     expect(shin?.stack.map((card) => card.instanceId)).toContain(s.inst("eligible").instanceId);
