@@ -93,9 +93,15 @@ const compiled: CompiledCard = {
                 controller: "mine",
                 excludeSelf: true,
                 kind: ["Digimon"],
-                allowTokens: true,
                 nameOrTrait: [{ tokens: ["Puppet"], match: "trait" }],
               },
+              orFilters: [
+                {
+                  controller: "mine",
+                  excludeSelf: true,
+                  includeToken: true,
+                },
+              ],
               count: 1,
             },
             raw: "by deleting 1 of your Tokens or 1 of your other Digimon with the [Puppet] trait, prevent it from leaving",
