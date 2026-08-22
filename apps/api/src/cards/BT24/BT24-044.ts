@@ -39,7 +39,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenDeletesInBattle",
-          sourceFilter: { controller: "opponent", kind: ["Digimon"] },
+          sourceFilter: { isSelfRef: true },
           actions: [{ kind: "GainMemory", amount: 1 }],
         },
       ],
