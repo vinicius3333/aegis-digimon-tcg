@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT24-007.js";
+import "../index.js";
 
 describe("BT24-007 Tsunomon", () => {
   it("plays one level 4+ Demon/Titan Digimon from trash with a 2-cost reduction", () => {
@@ -33,5 +36,24 @@ describe("BT24-007 Tsunomon", () => {
         },
       ],
     });
+  });
+
+  it("plays a qualifying Titan from trash when your hand is trashed", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-008", as: "host", under: ["BT24-007"] }],
+          trash: [{ card: "BT24-045", as: "target" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    await advance(s.engine).fireSubTrigger("whenHandTrashed", { handTrashedSeat: 0 });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT24-045"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT24-045")).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT24-045")).toBe(false);
   });
 });
