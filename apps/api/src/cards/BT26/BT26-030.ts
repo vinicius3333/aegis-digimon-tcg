@@ -12,7 +12,7 @@ const grantAscension = { kind: "GainKeyword", target: { filter: iliad, count: 1 
 
 export const compiled: CompiledCard = {
   effects: [
-    { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", target: { filter: eligibleSecurityCard, count: 1 }, from: ["hand", "trash"], payCost: false, optional: true }] },
+    { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", target: { filter: eligibleSecurityCard, count: 1 }, from: ["hand", "trash"], payCost: false, playCostCeiling: { base: 4 }, optional: true }] },
     { trigger: "OnPlay", actions: [grantExecute, grantAscension] },
     { trigger: "WhenDigivolving", actions: [grantExecute, grantAscension] },
   ],
