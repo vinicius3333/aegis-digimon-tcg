@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-108.js";
 
@@ -38,4 +39,18 @@ it("registers its printed Security trash-and-delete effect", () => {
   const module = getEffectModule("BT12-108");
   const source = { instanceId: "source-108", cardId: "BT12-108", ownerSeat: 0, isOnBattleArea: () => false } as never;
   expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+});
+
+it("trashes a Machine from hand and deletes an opposing Digimon within its play cost", async () => {
+  const s = setupEngine({
+    0: {
+      security: [{ card: "BT12-108", as: "option", faceUp: true }],
+      hand: [{ card: "BT12-072", as: "machine" }],
+    },
+    1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+  }, { autoSelectCards: true });
+  await s.ready();
+  await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+  expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).not.toContain("BT12-072");
+  expect(s.state.players[1]!.battleArea).toHaveLength(0);
 });
