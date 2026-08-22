@@ -94,7 +94,7 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
     case "Security":
       return EffectTiming.SecuritySkill;
     case "Hand":
-      return EffectTiming.OnDeclaration;
+      return EffectTiming.OnAddHand;
     case "Counter":
       // A ＜Blast Digivolve＞/＜Blast DNA Digivolve＞-keyworded "Counter" entry is NOT a real
       // [Counter] effect — it's the compiler's marker for those keywords (§16-26/§16-31; see
