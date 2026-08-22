@@ -1,15 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import { EffectTiming } from "@aegis/shared";
-import "../index.js";
+import { compiled } from "./BT24-044.js";
 
 describe("BT24-044 Muchomon", () => {
-  it("exposes the optional On Play effect and inherited battle-delete memory effect", () => {
-    const module = getEffectModule("BT24-044");
-    const onPlay = module?.effectsForTiming(EffectTiming.OnPlay, {} as never)?.[0];
-    expect(onPlay?.optional).toBe(true);
-    const inherited = module?.effectsForTiming(EffectTiming.OnBattleDeleteOpponent, {} as never)?.[0];
-    expect(inherited?.isInherited).toBe(true);
-    expect(inherited?.maxPerTurn).toBe(1);
+  it("suspends either side, searches two distinct printed categories only after suspending your Digimon", () => {
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects[0]).toMatchObject({
+      trigger: "OnPlay",
+      actions: [
+        expect.objectContaining({ kind: "Suspend", optional: true, target: { filter: { controllerDefault: "any", levelComparison: { op: "lte", value: 6 } } } }),
+        expect.objectContaining({ kind: "RevealAdd", revealCount: 3, condition: { kind: "lastSuspendedIsMine" }, add: [{ to: "hand" }, { to: "hand" }], rest: "deckBottom" }),
+      ],
+    });
+    expect(compiled.effects[1]).toMatchObject({ trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn" });
   });
 });
