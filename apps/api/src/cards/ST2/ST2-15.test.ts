@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCompiledCard } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -23,6 +23,17 @@ import "../index.js";
 //   BT10-074 — Lv.4 Purple Digimon, placed as a digi-card under BT1-009 (legal play target)
 
 describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your Digimon", () => {
+  it("loads the complete shared IR artifact without residual clauses", () => {
+    const compiled = getCompiledCard("ST2-15");
+    expect(compiled?.coverage).toBe("full");
+    expect(compiled?.residual).toEqual([]);
+    expect(compiled?.effects[0]?.actions[1]).toMatchObject({
+      kind: "PlayWithoutCost",
+      from: ["digivolutionCards"],
+      payCost: false,
+    });
+  });
+
   it("plays a Digimon digi-card from under one of your Digimon without cost", async () => {
     const s = setupEngine(
       {
