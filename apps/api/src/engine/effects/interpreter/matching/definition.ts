@@ -275,9 +275,8 @@ export function matchNameOrTrait(
       .toLowerCase()
       .replace(/[^\p{L}\p{N}]+/gu, " ")
       .trim();
-  const names = def.cardId
-    ? effectiveStaticNames(def as CardDefinition).map(normalizeName)
-    : [normalizeName(def.nameEn ?? "")];
+  const staticNames = def.cardId ? effectiveStaticNames(def as CardDefinition).map(normalizeName) : [];
+  const names = staticNames.length > 0 ? staticNames : [normalizeName(def.nameEn ?? "")];
   const normalizeTrait = (value: string) => value.toLowerCase().replace(/[\s-]+/g, "");
   const traits = [...(def.types ?? []), ...(def.forms ?? []), ...(def.attributes ?? [])].map(normalizeTrait);
   const text = [
