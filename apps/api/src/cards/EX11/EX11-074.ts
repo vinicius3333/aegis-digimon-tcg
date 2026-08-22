@@ -3,6 +3,7 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
+const opponentDigimon = { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 };
 const reward = [
   {
     kind: "Restrict",
