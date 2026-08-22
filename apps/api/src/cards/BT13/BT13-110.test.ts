@@ -64,7 +64,7 @@ describe("BT13-110 Royal Knights of the Purge", () => {
       kind: "GainKeyword",
       keyword: { keyword: "Rush" },
       duration: "forTheTurn",
-      target: { bindReference: "playedDigimon" },
+      target: { filter: { boundRef: "playedDigimon" } },
     });
   });
 

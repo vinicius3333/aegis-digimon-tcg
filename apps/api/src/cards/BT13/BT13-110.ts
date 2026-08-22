@@ -76,6 +76,7 @@ export const compiled: CompiledCard = {
             raw: "＜Rush＞",
           },
           duration: "forTheTurn",
+          filter: { boundRef: "playedDigimon" },
         },
       ],
       keywords: [

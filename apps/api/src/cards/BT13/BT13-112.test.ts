@@ -28,7 +28,11 @@ describe("BT13-112 Omnimon", () => {
         [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } }],
         [
           expect.objectContaining({ kind: "PlayWithoutCost", bindResultAs: "playedRoyalKnights" }),
-          expect.objectContaining({ kind: "Delete", target: { filter: { zone: "breeding" } } }),
+          expect.objectContaining({
+            kind: "Delete",
+            condition: { kind: "bindingExists", ref: "playedRoyalKnights" },
+            target: { filter: { controller: "mine", zone: "breeding" }, count: 1 },
+          }),
           expect.objectContaining({ kind: "GainKeyword" }),
         ],
       ],
@@ -67,7 +71,6 @@ describe("BT13-112 Omnimon", () => {
     expect(s.state.players[0]!.breeding?.topCard).toBeUndefined();
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-007")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-040")).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-111")).toBe(true);
     expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "BT13-040").length).toBe(1);
     expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "BT13-111").length).toBe(1);
     for (const permanent of s.state.players[0]!.battleArea) {
