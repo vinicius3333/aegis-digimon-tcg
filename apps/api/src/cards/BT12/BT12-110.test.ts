@@ -1,24 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
+import { getCompiledCard } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import "./BT12-110.js";
 
-describe("BT12-110 handwritten module", () => {
-  it("registers its printed OnUseOption effect without declarative effect record", () => {
-    const module = getEffectModule("BT12-110");
-    expect(module?.cardId).toBe("BT12-110");
-    const source = {
-      instanceId: "source-110",
-      cardId: "BT12-110",
-      ownerSeat: 0,
-      isOnBattleArea: () => true,
-      isOwnersTurn: () => true,
-      permanent: () => undefined,
-    } as unknown as CardSource;
-    expect(module!.effectsForTiming(EffectTiming.OnUseOption, source).length).toBeGreaterThan(0);
+describe("BT12-110 Seventh Full Cluster", () => {
+  it("publishes trash, main, and security effects in declarative IR", () => {
+    const compiled = getCompiledCard("BT12-110");
+    expect(compiled?.effects.map(({ trigger }) => trigger)).toEqual(["YourTurn", "Main", "Security"]);
   });
 
   it("activates from trash when Beelzemon (X Antibody) digivolves", async () => {
