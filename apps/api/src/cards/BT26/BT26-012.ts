@@ -22,7 +22,7 @@ export const compiled: CompiledCard = {
       }]],
     }],
   }, {
-    trigger: "WhenAttacking",
+    trigger: "OnAllyAttack",
     isInherited: true,
     frequency: "OncePerTurn",
     actions: [{ kind: "ModifyDP", target: { filter: { controllerDefault: "opponent", kind: ["Digimon"] }, count: 1 }, amount: -2000, duration: "untilEachTurnEnd" }],

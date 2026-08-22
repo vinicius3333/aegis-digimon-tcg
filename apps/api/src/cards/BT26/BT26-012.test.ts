@@ -79,7 +79,7 @@ describe("BT26-012 Manekimon", () => {
   it("encodes the once-per-turn TB play/use branches and inherited DP reduction", () => {
     expect(compiled.effects).toMatchObject([
       { trigger: "Main", frequency: "OncePerTurn", actions: [{ kind: "Modal", choose: 1 }] },
-      { trigger: "WhenAttacking", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "ModifyDP", amount: -2000 }] },
+      { trigger: "OnAllyAttack", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "ModifyDP", amount: -2000 }] },
     ]);
   });
 
