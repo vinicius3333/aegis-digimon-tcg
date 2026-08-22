@@ -961,7 +961,7 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
   "ST19-10": [
     {
       materials: [
-        { nameOrTrait: [{ tokens: ["Tyrannomon", "Raremon"], match: "name" }] },
+        { nameOrTrait: [{ tokens: ["Tyrannomon", "Raremon"], match: "name" }], level: 4 },
         { traits: ["Puppet"], level: 4 },
       ],
       count: 2,
