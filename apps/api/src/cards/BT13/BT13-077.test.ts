@@ -1,5 +1,10 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-077.js";
+import "./BT13-011.js";
 
 describe("BT13-077 Craniamon", () => {
   it("grants Blocker and opponent-Digimon effect immunity through the opponent's turn", () => {
@@ -29,5 +34,24 @@ describe("BT13-077 Craniamon", () => {
         { kind: "RedirectAttack", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } },
       ],
     });
+  });
+
+  it("installs opponent Digimon-effect immunity when played", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT13-077", as: "craniamon", dp: 3000 }] },
+        1: { hand: [{ card: "BT13-011", as: "opponentEffect" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("craniamon"));
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentEffect").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("craniamon").permanentId)).toBe(true);
   });
 });

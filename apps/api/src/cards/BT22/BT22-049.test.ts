@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-049.js";
-import "../index.js";
+import "./index.js";
 
 async function endCurrentTurn(s: ReturnType<typeof setupEngine>): Promise<void> {
   const turn = s.engine.runOneTurn();

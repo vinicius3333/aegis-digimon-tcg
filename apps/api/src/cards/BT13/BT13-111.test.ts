@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "../index.js";
 import { compiled } from "./BT13-111.js";
 
 describe("BT13-111 Gallantmon", () => {
@@ -10,7 +9,7 @@ describe("BT13-111 Gallantmon", () => {
       0: { hand: [{ card: "BT13-111", as: "gallantmon" }], trash: Array.from({ length: 12 }, () => "BT1-009") },
       1: { trash: Array.from({ length: 8 }, () => "BT1-009") },
     });
-    s.state.memory = 5;
+    s.state.memory = 13;
     await s.engine.recomputeContinuousEffects();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({
       ok: true,
