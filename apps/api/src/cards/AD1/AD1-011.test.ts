@@ -20,7 +20,7 @@ describe("AD1-011 Paildramon", () => {
   it("protects the digivolved Paildramon from battle deletion until the opponent's turn ends", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT8-053", as: "base" }], hand: [{ card: "AD1-011", as: "paildramon" }] },
-      1: { battleArea: [{ card: "BT1-010", as: "opponent", dp: 12000 }] },
+      1: { battleArea: [{ card: "BT1-010", as: "opponent", dp: 12000, suspended: true }] },
     }, { autoSelectCards: true, autoAcceptOptional: true });
     s.state.memory = 4;
 

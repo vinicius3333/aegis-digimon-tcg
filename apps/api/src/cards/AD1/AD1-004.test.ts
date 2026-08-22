@@ -3,6 +3,7 @@ import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "../../cards/index.js";
 
 describe("AD1-004 WarGreymon", () => {
@@ -64,8 +65,7 @@ describe("AD1-004 WarGreymon", () => {
     );
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0, 5000);
+    await advance(s.engine).runTurn(0);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 

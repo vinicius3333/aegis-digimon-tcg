@@ -50,6 +50,7 @@ describe("AD1-018 LordKnightmon", () => {
         hand: [{ card: "AD1-018", as: "lord" }],
       },
     });
+    await s.ready();
     s.state.memory = 7;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lord").instanceId })).toEqual({ ok: true });
@@ -67,6 +68,7 @@ describe("AD1-018 LordKnightmon", () => {
     s.state.memory = 11;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lord").instanceId })).toEqual({ ok: true });
+    await settle();
     const continuous = (s.engine as unknown as { continuous: { hasRestriction(id: string, restriction: string): boolean } }).continuous;
     await settle(() => continuous.hasRestriction(s.perm("protected").permanentId, "beAffected"));
     expect(continuous.hasRestriction(s.perm("protected").permanentId, "beAffected")).toBe(true);

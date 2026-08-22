@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import "../../cards/index.js";
 
 describe("AD1-007 Siriusmon", () => {
@@ -57,6 +58,7 @@ describe("AD1-007 Siriusmon", () => {
       type: "digivolve",
       permanentId: s.perm("canoweissmon").permanentId,
       instanceId: s.inst("siriusmon").instanceId,
+      alternateRequirementIndex: 0,
     })).toEqual({ ok: true });
     await settle(() => s.perm("canoweissmon").topCard?.cardId === "AD1-007");
 
@@ -113,8 +115,7 @@ describe("AD1-007 Siriusmon", () => {
     );
     await qualified.ready();
 
-    expect(qualified.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
-    await settle(() => qualified.state.players[1]!.security.length === 0, 5000);
+    await advance(qualified.engine).runTurn(0);
     expect(qualified.perm("qualified").isSuspended).toBe(true);
 
     const unqualified = setupEngine(
@@ -133,8 +134,7 @@ describe("AD1-007 Siriusmon", () => {
     );
     await unqualified.ready();
 
-    expect(unqualified.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
-    await settle();
+    await advance(unqualified.engine).runTurn(0);
     expect(unqualified.state.players[1]!.security).toHaveLength(1);
   });
 });

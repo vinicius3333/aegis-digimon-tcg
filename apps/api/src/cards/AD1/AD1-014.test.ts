@@ -88,7 +88,7 @@ describe("AD1-014 MetalGarurumon", () => {
       });
       s.state.memory = 5;
 
-      expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("metal").instanceId, alternateRequirementIndex: baseCard === "BT1-040" ? 0 : baseCard === "ST21-04" ? 1 : 2 })).toEqual({ ok: true });
+      expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("metal").instanceId, alternateRequirementIndex: baseCard === "BT1-040" ? 0 : 1 })).toEqual({ ok: true });
       await settle(() => s.perm("base").topCard.cardId === "AD1-014");
       expect(s.state.memory).toBe(2);
     }

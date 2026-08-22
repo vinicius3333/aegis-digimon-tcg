@@ -41,6 +41,7 @@ describe("AD1-005 Gaiamon", () => {
 
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: gaiamon.permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle(() => gaiamon.linked.length === 2 && s.state.players[1]!.battleArea.length === 0);
+    await settle();
 
     expect(gaiamon.linked.map((card) => card.instanceId)).toEqual(expect.arrayContaining([s.inst("stackLink").instanceId, s.inst("handLink").instanceId]));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("invalidNoLink").instanceId)).toBe(true);

@@ -41,6 +41,7 @@ describe("AD1-017 Dynasmon", () => {
         hand: [{ card: "AD1-017", as: "dynasmon" }],
       },
     });
+    await s.ready();
     s.state.memory = 7;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({ ok: true });

@@ -67,8 +67,7 @@ describe("AD1-020 Tommy, Takuya, & Zoe", () => {
     );
     await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0, 5000);
+    await advance(s.engine).runTurn(0);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
