@@ -19,21 +19,27 @@ export const compiled: CompiledCard = {
       actions: [
         { kind: "Delete", target: { filter: { ...opponentDigimon, superlative: "lowestDP" }, count: 1 } },
         {
-          kind: "PlayToken",
-          tokens: ["Petrification Token"],
-          count: 2,
-          payCost: false,
-          controller: "mine",
-          placedAs: "opponentDigimon",
+          kind: "CostGatedBlock",
           cost: returnTwo,
-        },
-        {
-          kind: "ModifyDP",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          amount: 2000,
-          duration: "untilOpponentTurnEnd",
-          scaling: { per: 1, unit: "cards", filter: opponentDigimon },
-          condition: { kind: "ifThisEffectActed" },
+          optional: true,
+          abortOnDecline: true,
+          actions: [
+            {
+              kind: "PlayToken",
+              tokens: ["Petrification Token"],
+              count: 2,
+              payCost: false,
+              controller: "mine",
+              placedAs: "opponentDigimon",
+            },
+            {
+              kind: "ModifyDP",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              amount: 2000,
+              duration: "untilOpponentTurnEnd",
+              scaling: { per: 1, unit: "cards", filter: opponentDigimon },
+            },
+          ],
         },
       ],
     },
@@ -44,3 +50,32 @@ export const compiled: CompiledCard = {
 };
 
 registerIrCard("BT24-017", compiled);
+
+registerIrCard("TOKEN-Petrification-Token", {
+  effects: [
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "Restrict",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          restriction: "suspend",
+          duration: "permanent",
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "mine",
+          amount: 1,
+        },
+      ],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+});
