@@ -11,14 +11,14 @@ export const compiled: CompiledCard = {
   effects: [
     { trigger: "WhenDigivolving", frequency: "OncePerTurn", sharedUseKey: "BT26-103/trash-recover", actions: recovery },
     { trigger: "Counter", frequency: "OncePerTurn", sharedUseKey: "BT26-103/trash-recover", actions: recovery },
-    { trigger: "Static", actions: [{ kind: "RawUnparsed", text: "Succession (Jupitermon): gain all effects other than Succession from the topmost face-up Jupitermon digivolution card." }] },
+    { trigger: "Static", actions: [{ kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "effects", filter: jupitermon, duration: "permanent" }] },
     { trigger: "AllTurns", actions: [
       { kind: "SubTrigger", event: "whenSecurityRemoved", sourceFilter: ownDigimon, oncePerTurnKey: "BT26-103/security-removed-dp", actions: [{ kind: "ModifyDP", target: { filter: opponentDigimon, count: 1 }, amount: -15000, duration: "untilOpponentTurnEnd" }] },
       { kind: "SubTrigger", event: "whenEffectRemovesFromSecurity", sourceFilter: ownDigimon, oncePerTurnKey: "BT26-103/security-removed-dp", actions: [{ kind: "ModifyDP", target: { filter: opponentDigimon, count: 1 }, amount: -15000, duration: "untilOpponentTurnEnd" }] },
     ] },
   ],
-  coverage: "partial",
-  residual: ["Succession conferral of the topmost face-up Jupitermon stack card is not an executable IR action in the current interpreter; retained as loud RawUnparsed."],
+  coverage: "full",
+  residual: [],
   digivolutionRequirement: [{ level: 6, traits: ["Olympos XII"], cost: 5, isAlternate: true }],
 };
 
