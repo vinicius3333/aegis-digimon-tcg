@@ -139,11 +139,7 @@ describe("BT13-110 Royal Knights of the Purge", () => {
     expect(
       s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: optionId, effectKey: entry!.effectKey }),
     ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-040") &&
-        !s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-110"),
-    );
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-040"));
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-110")).toBe(true);
     expect(s.perm("drasil").stack.some((card) => card.cardId === "BT13-040")).toBe(false);
