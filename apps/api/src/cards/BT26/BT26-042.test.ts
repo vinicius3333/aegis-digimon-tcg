@@ -38,7 +38,6 @@ function card(instanceId: string, cardId: string): CardInstance {
   return { instanceId, cardId, ownerSeat: 0 as Seat, faceUp: true } as CardInstance;
 }
 
-
 describe("BT26-042 Okuwamon", () => {
   it("uses exactly the Lv.4 [TS] alternate evolution for cost 3 and rejects a non-TS Lv.4", async () => {
     expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({
@@ -139,10 +138,24 @@ describe("BT26-042 Okuwamon", () => {
   });
 
   it("encodes the Q&A-sensitive target and inherited clauses in IR", () => {
-    expect(compiled.effects?.[0]).toMatchObject({ trigger: "OnPlay", actions: [{ kind: "Suspend" }, { kind: "Restrict", restriction: "unsuspend" }] });
+    expect(compiled.effects?.[0]).toMatchObject({
+      trigger: "OnPlay",
+      actions: [{ kind: "Suspend" }, { kind: "Restrict", restriction: "unsuspend" }],
+    });
     expect(compiled.effects?.[1]).toMatchObject({ trigger: "WhenDigivolving" });
-    expect(compiled.effects?.[3]).toMatchObject({ trigger: "OnAllyAttack", sharedUseKey: "bt26-042-piercing-dp" });
-    expect(compiled.effects?.[4]).toMatchObject({ trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenDeletesInBattle", actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent" }] }] });
+    expect(compiled.effects?.[3]).toMatchObject({ trigger: "WhenAttacking", sharedUseKey: "bt26-042-piercing-dp" });
+    expect(compiled.effects?.[4]).toMatchObject({
+      trigger: "AllTurns",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenDeletesInBattle",
+          actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent" }],
+        },
+      ],
+    });
   });
 
   /* legacy direct-module seam removed after IR migration
