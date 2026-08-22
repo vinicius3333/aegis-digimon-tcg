@@ -47,7 +47,7 @@ describe("BT12-081 Astamon", () => {
 
   it("draws from its inherited Save attack effect", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT12-081"] }], deck: ["BT1-010"] },
+      0: { battleArea: [{ card: "BT12-077", as: "host", under: ["BT12-081"] }], deck: ["BT1-010"] },
     });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
