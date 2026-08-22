@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import type { GameEngine } from "../../engine/GameEngine.js";
+import { EffectTiming } from "@aegis/shared";
+import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -20,6 +22,12 @@ import "../index.js";
  */
 
 describe('A3 BT12-105 — granted "[On Deletion] Trash the top card of your security stack."', () => {
+  it("registers the printed Security activation", () => {
+    const module = getEffectModule("BT12-105");
+    const source = { instanceId: "source-105", cardId: "BT12-105", ownerSeat: 0, isOnBattleArea: () => false } as never;
+    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+  });
+
   it("POSITIVE: deleting the granted opponent Digimon trashes the top of ITS OWN controller's security", async () => {
     const s = setupEngine(
       {
