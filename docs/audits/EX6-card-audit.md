@@ -42,9 +42,9 @@ invented.
 | EX6-066 | Sea of Destruction | full | none found | 0faa1205b112 | c03215f52ce5 | NR |
 | EX6-065 | Mythical Arms of Salvation! | full | none found | bedf266d804c | 685a860a2b7b | NR |
 | EX6-064 | Shu-Chong Wong | full | none found | a71f2df8b6b8 | 07b1833e7f83 | NR |
-| EX6-063 | T.K. Takaishi & Kari Kamiya | direct | none found | fae905e93751 | 2e326381d249 | NR |
+| EX6-063 | T.K. Takaishi & Kari Kamiya | full | none found | 7940a7da5340 | 0b5d426bf973 | NR |
 | EX6-062 | UltimateChaosmon | full | none found | 5514d293c458 | c426d38dd7af | NR |
-| EX6-061 | Leviamon | direct | none found | 218399d94a6f | 38b353c650d7 | NR |
+| EX6-061 | Leviamon | full | none found | 45b3715c6f1a | 6190bab4edb7 | NR |
 | EX6-060 | Belphemon: Rage Mode | full | none found | f2fd8c7d5cc7 | 60347f09f283 | NR |
 | EX6-059 | Barbamon | direct | none found | b3eede08f23c | 7ccc758911b9 | NR |
 | EX6-058 | Creepymon | full | none found | 6803c73097c7 | 68dd9b29f77b | NR |
@@ -104,7 +104,7 @@ invented.
 | EX6-004 | Kokomon | full | none found | 92f150ad2a3e | 2b88e6a0eac3 | NR |
 | EX6-003 | Cupimon | full | none found | 752d5d2439ae | 7dd58f26567b | NR |
 | EX6-002 | Yokomon | full | none found | 811013b64494 | 17da366f8407 | NR |
-| EX6-001 | Sakuttomon | direct | corrected + behavioral test | 12f896c11755 | 3a973819a7c0 | NR |
+| EX6-001 | Sakuttomon | full | corrected + behavioral test | fe34d11b6ad8 | 7cf5c27ad4b2 | NR |
 
 ## Corrected evidence-backed issue
 
@@ -113,6 +113,20 @@ EX6-001 now checks `addedDigivolutionCardInstanceIds` from the
 The co-located test proves that adding a non-Legend-Arms card does not grant
 memory, while adding EX6-007 does. The test name was also corrected from the
 catalog-inconsistent “Kokuwamon” to “Sakuttomon”.
+
+## Static IR migrations in this recheck
+
+EX6-001 was migrated from its legacy hand-written module to typed IR. Its
+`onAddDigivolutionCards` watcher now uses the self-host trigger filter and the
+exact added-card `[Legend-Arms]` filter, with complete coverage and a public
+IR evidence test.
+
+EX6-061 and EX6-063 were likewise migrated to `registerIrCard` because their
+committed IR already has complete coverage and matches the direct-module
+clause inventory. The remaining legacy direct modules are retained while
+their IR entries still expose unsupported primitives; replacing those modules
+now would discard implemented behavior rather than close an evidence-backed
+gap.
 
 ## Remaining blockers
 

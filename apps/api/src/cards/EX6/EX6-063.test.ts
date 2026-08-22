@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-063.js";
 
-describe("EX6-063 Mirei Mikagura", () => {
+describe("EX6-063 T.K. Takaishi & Kari Kamiya", () => {
   it("exposes complete IR for Barrier, Angel, and Security clauses", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects).toHaveLength(4);
