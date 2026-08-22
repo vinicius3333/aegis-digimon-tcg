@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCompiledCard } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT8-088.js";
@@ -31,5 +31,13 @@ describe("BT8-088 Davis Motomiya & Ken Ichijoji", () => {
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tamer"));
 
     expect(s.state.memory).toBe(2);
+  });
+
+  it("plays itself from security without paying its memory cost", () => {
+    expect(getCompiledCard("BT8-088")?.effects).toContainEqual(expect.objectContaining({
+      trigger: "Security",
+      isSecurity: true,
+      actions: [expect.objectContaining({ kind: "PlayWithoutCost", payCost: false })],
+    }));
   });
 });
