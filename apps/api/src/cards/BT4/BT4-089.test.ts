@@ -55,7 +55,7 @@ describe("BT4-089 Plutomon", () => {
       permanentId: s.perm("base").permanentId,
       instanceId: s.inst("evolving").instanceId,
     })).toEqual({ ok: true });
-    await settle(() => player.hand.some(({ instanceId }) => instanceId === s.inst("redOption").instanceId));
+    await settle(() => player.deck.length === 0);
 
     expect(player.hand.some(({ instanceId }) => instanceId === s.inst("redOption").instanceId)).toBe(true);
     expect(player.deck).toHaveLength(0);

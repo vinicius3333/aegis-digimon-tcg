@@ -27,7 +27,7 @@ describe("BT4-086 Cerberusmon: Werewolf Mode", () => {
       },
     }, { autoAcceptOptional: true, autoSelectCards: true });
     const player = s.state.players[0] as PlayerState;
-    s.state.memory = 0;
+    s.state.memory = 9;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
     await settle(() => player.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("source").instanceId));
@@ -46,7 +46,7 @@ describe("BT4-086 Cerberusmon: Werewolf Mode", () => {
     }, { autoDeclineOptional: true, autoSelectCards: true });
     const player = s.state.players[0] as PlayerState;
     const costId = s.perm("cerberusmon").permanentId;
-    s.state.memory = 0;
+    s.state.memory = 9;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({ ok: true });
     await settle(() => player.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("source").instanceId));

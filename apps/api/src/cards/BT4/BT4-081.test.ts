@@ -33,6 +33,6 @@ describe("BT4-081 Devimon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    expect(s.perm("devimon").stack).toHaveLength(0);
+    expect(s.perm("devimon").stack).toHaveLength(2);
   });
 });

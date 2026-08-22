@@ -48,12 +48,13 @@ describe("BT4-090 Chaosmon", () => {
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("base").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("base").instanceId));
+    const base = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.instanceId === s.inst("base").instanceId)!;
     expect(s.engine.applyIntent(0, {
       type: "digivolve",
-      permanentId: s.perm("base").permanentId,
+      permanentId: base.permanentId,
       instanceId: s.inst("evolving").instanceId,
     })).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard?.cardId === "BT4-090" && s.state.pendingDecision === undefined, 5000);
+    await settle(() => base.topCard?.cardId === "BT4-090" && s.state.pendingDecision === undefined, 5000);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });

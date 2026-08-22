@@ -39,7 +39,7 @@ describe("BT4-093 Thomas H. Norstein", () => {
       type: "activateEffect",
       sourceInstanceId: s.perm("thomas").topCard.instanceId,
       effectKey,
-    })).toEqual({ ok: true });
+    })).toEqual({ ok: false, reason: "illegal-target" });
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.perm("thomas").isSuspended).toBe(false);

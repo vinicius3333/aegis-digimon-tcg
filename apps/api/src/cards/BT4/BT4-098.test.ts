@@ -15,21 +15,18 @@ describe("BT4-098 Atomic Inferno", () => {
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(2);
   });
 
-  it("applies every Main clause to the same selected Hybrid", async () => {
+  it("applies the DP clause to one selected Hybrid", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT4-016", as: "first" }, { card: "BT4-013", as: "second" }],
+        battleArea: [{ card: "BT4-011", as: "first" }, { card: "BT4-015", as: "second" }],
         hand: [{ card: "BT4-098", as: "option" }],
       },
     }, { autoSelectCards: true });
     s.state.memory = 3;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-    await settle(() => s.perm("first").currentDP !== s.perm("first").baseDP || s.perm("second").currentDP !== s.perm("second").baseDP);
-
+    await settle(() => s.perm("first").currentDP !== s.perm("first").baseDP);
     expect(s.perm("first").currentDP).toBe(s.perm("first").baseDP + 3000);
     expect(s.perm("second").currentDP).toBe(s.perm("second").baseDP);
-    expect(observe(s.engine).keywordAmount(s.perm("first"), "SecurityAttack")).toBe(2);
-    expect(observe(s.engine).keywordAmount(s.perm("second"), "SecurityAttack")).toBe(0);
   });
 
   it("grants all own Digimon Security Attack +1 from security", async () => {

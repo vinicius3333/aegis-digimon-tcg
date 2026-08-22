@@ -22,7 +22,7 @@ describe("BT4-087 Anubismon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT10-012", as: "base" }],
-        hand: [{ card: "BT4-087", as: "anubismon" }, { card: "BT4-083", as: "evolving" }],
+        hand: [{ card: "BT4-087", as: "anubismon" }, { card: "BT4-081", as: "evolving" }],
         trash: [{ card: "BT10-071", as: "played" }],
       },
     }, { autoAcceptOptional: true, autoSelectCards: true });
@@ -31,15 +31,15 @@ describe("BT4-087 Anubismon", () => {
 
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("anubismon").instanceId })).toEqual({ ok: true });
     await settle(() => player.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("played").instanceId));
-    const played = s.perm("played");
+    const played = player.battleArea.find((permanent) => permanent.topCard?.instanceId === s.inst("played").instanceId)!;
 
     expect(s.engine.applyIntent(0, {
       type: "digivolve",
       permanentId: played.permanentId,
       instanceId: s.inst("evolving").instanceId,
     })).toEqual({ ok: true });
-    await settle(() => s.perm("played").topCard?.cardId === "BT4-083");
+    await settle(() => played.topCard?.cardId === "BT4-081");
 
-    expect(observe(s.engine).hasKeyword(s.perm("played"), "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(played, "Rush")).toBe(true);
   });
 });
