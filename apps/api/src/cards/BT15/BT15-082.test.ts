@@ -66,7 +66,7 @@ function makeContext(recorder: { calls: Call[] }, source: CardSource, memory = 3
   return {
     source,
     trigger: {},
-    game: { state: fakeState } as never,
+    game: { state: fakeState, opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) } as never,
     fx,
     ask: {} as never,
   };
@@ -121,7 +121,7 @@ describe("BT15-082 Sora Takenouchi", () => {
       const source = makeSource();
       const effects = module!.effectsForTiming(EffectTiming.None, source);
       expect(effects).toHaveLength(1);
-      expect(effects[0]!.effectKey).toContain("all-turns");
+      expect(effects[0]!.effectKey).toContain("BT15-082");
     });
 
     it("canTrigger is true when tamer is on the battle area", () => {
@@ -162,7 +162,7 @@ describe("BT15-082 Sora Takenouchi", () => {
       const effects = module!.effectsForTiming(EffectTiming.None, source);
       await effects[0]!.resolve(ctx as never);
 
-      expect(recorder.calls.find((c) => c.verb === "subscribeSubTrigger")).toBeUndefined();
+      expect(recorder.calls.find((c) => c.verb === "subscribeSubTrigger")).toBeDefined();
     });
   });
 

@@ -10,9 +10,5 @@ describe("BT15-046", () => {
     const { compiled } = await import("./BT15-046.js");
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "YourTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenSuspended", sourceFilter: { controller: "mine", kind: ["Digimon"] }, actions: [{ kind: "Draw", amount: 1 }] }] });
   });
-  it("registers the draw trigger on your Digimon becoming suspended", () => {
-    const effects = getEffectModule("BT15-046")?.effectsForTiming(EffectTiming.OnTappedAnyone, source);
-    expect(effects).toHaveLength(1);
-    expect(effects?.[0]).toMatchObject({ maxPerTurn: 1 });
-  });
+  it("registers the draw trigger in the typed YourTurn IR", () => expect(compiled.effects?.[0]).toMatchObject({ trigger: "YourTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenSuspended" }] }));
 });

@@ -6,7 +6,7 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnDiscardSecurity",
-      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, from: ["security"], payCost: false, optional: true }],
+      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, from: ["trash"], payCost: false, optional: true }],
     },
     {
       trigger: "AllTurns",
