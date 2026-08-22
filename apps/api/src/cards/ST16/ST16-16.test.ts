@@ -6,7 +6,10 @@ describe("ST16-16 Baldy Blow", () => {
   it("deletes one opponent Digimon at level 5 or lower and leaves level 6 untouched", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "ST16-16", as: "option" }] },
+        0: {
+          battleArea: ["ST16-14"],
+          hand: [{ card: "ST16-16", as: "option" }],
+        },
         1: {
           battleArea: [
             { card: "ST16-11", as: "levelFive" },
