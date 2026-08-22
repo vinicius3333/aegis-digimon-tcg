@@ -15,23 +15,27 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnPlay",
-      actions: [{
-        kind: "GainTriggeredEffect",
-        target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 },
-        gainedTrigger: "EndOfYourTurn",
-        gainedActions: [{ kind: "Delete", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 } }],
-        duration: "untilOpponentTurnEnd",
-      }],
+      actions: [
+        {
+          kind: "GainTriggeredEffect",
+          target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 },
+          gainedTrigger: "EndOfYourTurn",
+          gainedActions: [{ kind: "Delete", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 } }],
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
       trigger: "WhenDigivolving",
-      actions: [{
-        kind: "GainTriggeredEffect",
-        target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 },
-        gainedTrigger: "EndOfYourTurn",
-        gainedActions: [{ kind: "Delete", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 } }],
-        duration: "untilOpponentTurnEnd",
-      }],
+      actions: [
+        {
+          kind: "GainTriggeredEffect",
+          target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 },
+          gainedTrigger: "EndOfYourTurn",
+          gainedActions: [{ kind: "Delete", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 } }],
+          duration: "untilOpponentTurnEnd",
+        },
+      ],
     },
     {
       trigger: "AllTurns",
@@ -41,13 +45,47 @@ const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "whenPlayed",
           sourceFilter: { controller: "opponent", kind: ["Digimon"] },
-          actions: [{ kind: "PlayWithoutCost", target: { filter: { controller: "mine", kind: ["Digimon"], colors: ["Purple"], levelComparison: { op: "lte", value: 4 } }, count: 1 }, from: ["trash"], payCost: false, optional: true, cost: playCost }],
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  colors: ["Purple"],
+                  levelComparison: { op: "lte", value: 4 },
+                },
+                count: 1,
+              },
+              from: ["trash"],
+              payCost: false,
+              optional: true,
+              cost: playCost,
+            },
+          ],
         },
         {
           kind: "SubTrigger",
           event: "onDeletionOf",
           sourceFilter: { controller: "opponent", kind: ["Digimon"] },
-          actions: [{ kind: "PlayWithoutCost", target: { filter: { controller: "mine", kind: ["Digimon"], colors: ["Purple"], levelComparison: { op: "lte", value: 4 } }, count: 1 }, from: ["trash"], payCost: false, optional: true, cost: playCost }],
+          actions: [
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  colors: ["Purple"],
+                  levelComparison: { op: "lte", value: 4 },
+                },
+                count: 1,
+              },
+              from: ["trash"],
+              payCost: false,
+              optional: true,
+              cost: playCost,
+            },
+          ],
         },
       ],
     },
