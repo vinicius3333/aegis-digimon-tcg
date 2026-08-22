@@ -1063,7 +1063,18 @@ export function lateBt12Module(cardId: string): EffectModule {
               )
               .map(({ permanentId }) => permanentId);
             if (ids.length) await ctx.fx.suspend(ids, { byEffectSeat: source.ownerSeat });
-            for (const id of ids) ctx.fx.restrict(id, "unsuspend", EffectDuration.UntilOwnerActivePhase);
+            ctx.fx.restrictPlayer?.(
+              ctx.game.opponentOf(source.ownerSeat),
+              "unsuspend",
+              EffectDuration.UntilOwnerActivePhase,
+              (permanentId) => {
+                const permanent = ctx.game.permanentById(permanentId);
+                return (
+                  permanent?.topCard !== undefined &&
+                  (isDigimon(ctx.game.definitionOf(permanent.topCard)) || isTamer(ctx.game.definitionOf(permanent.topCard)))
+                );
+              },
+            );
           };
           if (timing === EffectTiming.OnUseOption)
             return [
