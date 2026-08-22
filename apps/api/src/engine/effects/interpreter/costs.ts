@@ -1131,6 +1131,10 @@ export async function payCost(
             ctx.namedCounts.set(cost.storeAs, level);
           }
         }
+        // A successful placement cost is the producer for following "if you did"
+        // clauses (BT13-088). Keep the effect-result binding consistent with the
+        // equivalent place/trash action paths.
+        ctx.lastEffectActed = picked.length > 0;
         if (out) out.paidCount = picked.length;
         return true;
       }
