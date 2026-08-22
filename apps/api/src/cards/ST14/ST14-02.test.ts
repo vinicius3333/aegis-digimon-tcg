@@ -13,6 +13,7 @@ describe("ST14-02 Impmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
+    await s.ready();
     await advance(s.engine).fire(EffectTiming.OnAllyAttack, s.perm("imp"));
     await settle(() => s.perm("imp").topCard.cardId === "ST14-08");
     expect(s.perm("imp").topCard.cardId).toBe("ST14-08");
@@ -46,6 +47,7 @@ describe("ST14-02 Impmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 5;
+    await s.ready();
     await advance(s.engine).fire(EffectTiming.OnAllyAttack, s.perm("imp"));
     expect(s.perm("imp").topCard.cardId).toBe("ST14-02");
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "ST14-10")).toBe(true);
