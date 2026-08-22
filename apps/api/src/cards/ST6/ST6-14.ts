@@ -36,6 +36,17 @@ const compiled: CompiledCard = {
           ]
         }
       ]
+    },
+    {
+      "trigger": "Security",
+      "actions": [
+        {
+          "kind": "PlayWithoutCost",
+          "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+          "payCost": false
+        }
+      ],
+      "isSecurity": true
     }
   ],
   "coverage": "full",
