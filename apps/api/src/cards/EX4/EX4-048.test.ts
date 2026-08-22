@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-048.js";
 
 describe("EX4-048 Gaiomon", () => {
@@ -10,5 +13,13 @@ describe("EX4-048 Gaiomon", () => {
     const effects = compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions;
     expect(effects?.[1]).toMatchObject({ kind: "SecurityManipulation", op: "trashTop", condition: { kind: "ifThisEffectDidNotDelete" } });
     expect(compiled.effects?.find((entry) => entry.trigger === "EndOfYourTurn")?.actions?.[0]).toMatchObject({ kind: "Digivolve", from: ["hand"], payCost: false, ignoreRequirements: true, condition: { kind: "youHave" } });
+  });
+
+  it("deletes an opposing Digimon with play cost thirteen or more", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX4-048", as: "source" }] }, 1: { battleArea: [{ card: "EX4-074", as: "target" }] } }, { autoSelectCards: true });
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(true);
   });
 });
