@@ -952,6 +952,7 @@ export async function payCost(
           for (const sourcePermanentId of sourceIds) {
             await relocateByEffect(ctx, hostPermId, sourcePermanentId, {
               belowTop: cost.position !== "bottom",
+              shedOwnCards: (cost as { shedOwnCards?: boolean }).shedOwnCards === true,
             });
           }
           if (out) out.paidCount = sourceIds.length;
