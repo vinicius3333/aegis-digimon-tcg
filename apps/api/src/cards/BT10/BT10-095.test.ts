@@ -21,7 +21,9 @@ describe("BT10-095 Hero of the Skies!", () => {
     preferred.push(s.perm("target").permanentId);
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack") === 1);
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("top").instanceId)).toBe(false);
@@ -33,14 +35,19 @@ describe("BT10-095 Hero of the Skies!", () => {
         0: {
           battleArea: [{ card: "BT10-007", as: "target" }],
           hand: [{ card: "BT10-095", as: "option" }],
-          deck: [{ card: "BT1-001", as: "drawn1" }, { card: "BT1-002", as: "drawn2" }],
+          deck: [
+            { card: "BT1-001", as: "drawn1" },
+            { card: "BT1-002", as: "drawn2" },
+          ],
         },
       },
       { autoSelectCards: true, autoOrderTriggers: true, preferOptionIndex: 1 },
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn2").instanceId));
 
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(0);
@@ -51,9 +58,15 @@ describe("BT10-095 Hero of the Skies!", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT10-013", as: "x5" }, { card: "BT10-007", as: "target" }],
+          battleArea: [
+            { card: "BT10-013", as: "x5" },
+            { card: "BT10-007", as: "target" },
+          ],
           hand: [{ card: "BT10-095", as: "option" }],
-          deck: [{ card: "BT1-001", as: "drawn1" }, { card: "BT1-002", as: "drawn2" }],
+          deck: [
+            { card: "BT1-001", as: "drawn1" },
+            { card: "BT1-002", as: "drawn2" },
+          ],
         },
       },
       { autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
@@ -61,10 +74,13 @@ describe("BT10-095 Hero of the Skies!", () => {
     preferred.push(s.perm("target").permanentId);
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-    await settle(() =>
-      observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack") === 1 &&
-      s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn2").instanceId),
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack") === 1 &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn2").instanceId),
     );
 
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(1);

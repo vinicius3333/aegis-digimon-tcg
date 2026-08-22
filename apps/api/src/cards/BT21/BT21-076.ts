@@ -121,7 +121,8 @@ export const compiled: CompiledCard = {
           scaling: {
             per: 10,
             filter: {
-              controllerDefault: "mine",
+              zone: "trash",
+              controller: "both",
             },
             unit: "cards",
           },
@@ -133,13 +134,10 @@ export const compiled: CompiledCard = {
       trigger: "OnDeletion",
       actions: [
         {
-          kind: "Trash",
-          target: {
-            filter: {
-              controller: "opponent",
-            },
-            count: 1,
-          },
+          kind: "SecurityManipulation",
+          op: "trashTop",
+          controller: "opponent",
+          amount: 1,
         },
       ],
       isInherited: true,

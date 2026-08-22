@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { digiXrosMatches } from "../../engine/combat/keywords.js";
 import "./BT10-008.js";
 import "./BT10-013.js";
 import "./BT10-029.js";
@@ -11,6 +12,11 @@ import "./BT10-060.js";
 import "./BT10-087.js";
 
 describe("BT10-013 Shoutmon X5", () => {
+  it("does not treat Shoutmon X5 itself as a specified Material Save source", () => {
+    expect(digiXrosMatches("BT10-013", "BT10-013")).toBe(false);
+    expect(digiXrosMatches("BT10-013", "BT10-008")).toBe(true);
+  });
+
   it("has Security Attack +1 and Blocker", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT10-013", as: "shoutmon" }] } });
     await s.ready();

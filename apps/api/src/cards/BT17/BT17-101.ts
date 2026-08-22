@@ -50,14 +50,22 @@ export const compiled: CompiledCard = {
         {
           kind: "GainMemory",
           amount: 1,
-          condition: { kind: "selfDigivolutionStackMatchesFilter", filter: { kind: ["Tamer"] }, raw: "this Digimon has a Tamer in its digivolution cards" },
+          condition: {
+            kind: "selfDigivolutionStackMatchesFilter",
+            filter: { kind: ["Tamer"] },
+            raw: "this Digimon has a Tamer in its digivolution cards",
+          },
         },
         {
           kind: "GainKeyword",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           keyword: { keyword: "Recovery", amount: 1, raw: "＜Recovery +1 (Deck)＞" },
           duration: "permanent",
-          condition: { kind: "selfDigivolutionStackMatchesFilter", filter: { kind: ["Tamer"] }, raw: "this Digimon has a Tamer in its digivolution cards" },
+          condition: {
+            kind: "selfDigivolutionStackMatchesFilter",
+            filter: { kind: ["Tamer"] },
+            raw: "this Digimon has a Tamer in its digivolution cards",
+          },
         },
       ],
     },

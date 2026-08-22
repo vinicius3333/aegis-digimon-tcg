@@ -35,6 +35,8 @@ export interface DigivolveAction extends ActionBase {
   into?: Filter;
   /** Source zone for the card digivolved INTO; the interpreter resolves the pool. */
   from?: ZoneRef[];
+  /** Restrict the source card to the enclosing trigger's loose source instance. */
+  source?: "triggerSource";
   /**
    * A legacy prose-compiler encoding stores the fixed cost as a NUMBER, which the interpreter
    * normalizes to {@link DigivolveAction.costOverride}. New IR should use `true` + `costOverride`.
@@ -76,8 +78,27 @@ export interface DigivolveAction extends ActionBase {
   ignoreLevelRequirement?: boolean;
   /** The card digivolved into must share a color with the chosen base. */
   colorsMatchDigivolvingSource?: boolean;
+  /** Destination name must include the selected base permanent's name (EX4-072). */
+  nameIncludesDigivolvingTarget?: boolean;
+  /** Destination name must differ from the selected base permanent's name. */
+  differentNameFromDigivolvingTarget?: boolean;
   /** Store the resulting permanent id for a downstream `filter.boundRef` or condition. */
   bindResultAs?: string;
+}
+
+export interface DigivolveViaPlacementAction extends Omit<ActionBase, "cost"> {
+  kind: "DigivolveViaPlacement";
+  placeCost: {
+    kind: "placeFromTrash";
+    target: Target;
+    destination: "digivolutionStack";
+    position: "bottom";
+    hostFilter: Filter;
+    raw?: string;
+  };
+  into: Target;
+  cost: number;
+  ignoreDigivolutionRequirements?: boolean;
 }
 
 export interface PlaceUnderAction extends ActionBase {
@@ -104,6 +125,8 @@ export interface PlaceUnderAction extends ActionBase {
    * rather than loose cards from hand or trash.
    */
   targetIsPermanent?: boolean;
+  /** Move every Digimon card from one selected permanent's stack under a selected host. */
+  fromSelectedPermanentDigivolutionCards?: boolean;
   /**
    * The host is itself a prior `Target.bindAs` selection (the second `Mode.Custom` select, whose
    * predicate is `permanent != selectedPermanent`). Used instead of resolving `underFilter`.
@@ -173,6 +196,8 @@ export interface TrashDigivolutionAction extends ActionBase {
    * of a deterministic `fromTop`/bottom slice.
    */
   choose?: boolean;
+  /** Store the number of cards actually trashed for a later named-count scaling. */
+  trackCount?: string;
 }
 
 /**

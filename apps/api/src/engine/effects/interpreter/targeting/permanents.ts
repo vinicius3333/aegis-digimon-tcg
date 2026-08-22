@@ -49,6 +49,21 @@ export function candidatePermanents(
     return self ? [self] : [];
   }
   if (target.filter === undefined) return [];
+  // A bound result is already an exact set of produced permanents. Resolve those ids
+  // directly before scanning zones so downstream effects (e.g. BT13-112's Rush) cannot
+  // lose a produced permanent to an unrelated board-enumeration filter.
+  if (target.filter.boundRef !== undefined) {
+    const bound = ctx.boundPlayed?.get(target.filter.boundRef);
+    if (bound === undefined) return [];
+    const boundPermanents: Permanent[] = [];
+    for (const permanentId of bound) {
+      const permanent = ctx.game.permanentById(permanentId);
+      if (permanent !== undefined && permanentMatchesFilter(ctx, permanent, target.filter, source)) {
+        boundPermanents.push(permanent);
+      }
+    }
+    return boundPermanents;
+  }
   // A target may carry `orFilters`: a candidate qualifies if it matches the primary `filter`
   // OR any alternative ("play 1 [X] or 1 [Y]", BT17-074). Each alternative may scope a different
   // controller, so enumerate seats across the whole union.
@@ -231,6 +246,7 @@ export async function resolveTotalDpCapTargets(ctx: EffectContext, target: Targe
   }
 
   const affectable = filterAffectable(ctx, selected);
+  if (target.minimum !== undefined && affectable.length < target.minimum) return [];
   ctx.lastResolvedPermanentIds = affectable;
   return affectable;
 }
@@ -316,6 +332,18 @@ export async function resolvePermanentTargets(
   // inside a whenOpponentAttacks watcher correctly targets the attacking Digimon
   // (whenOpponentAttacks fires with attackerPermanentId, not subjectPermanentId).
   if (!target) return [];
+  const budgetSelectionRef = target.totalPlayCostBudgetFromSelectionRef;
+  if (budgetSelectionRef !== undefined) {
+    const selectedId = ctx.selections?.get(budgetSelectionRef);
+    const selected = selectedId === undefined ? undefined : ctx.game.permanentById(selectedId);
+    const budget = selected?.topCard === undefined ? undefined : ctx.game.definitionOf(selected.topCard).playCost;
+    if (budget === undefined) return [];
+    const budgetTarget = { ...target } as Target & { totalPlayCostBudgetFromSelectionRef?: string };
+    delete budgetTarget.totalPlayCostBudgetFromSelectionRef;
+    budgetTarget.totalPlayCostBudget = budget;
+    return resolveTotalPlayCostBudgetTargets(ctx, budgetTarget);
+  }
+  if (target.totalPlayCostBudget !== undefined) return resolveTotalPlayCostBudgetTargets(ctx, target);
   // sameTarget: reuse the permanent(s) chosen by the immediately preceding action
   // rather than prompting again ("1 of your Digimon gains X … that Digimon also gains Y").
   if (target.sameTarget) return ctx.lastResolvedPermanentIds ?? [];
@@ -380,7 +408,7 @@ export async function resolvePermanentTargets(
   }
 
   const want = effectiveTargetCount(ctx, target);
-  if (candidates.length <= want && !target.upTo) {
+  if (candidates.length <= want && !target.upTo && (target as Target & { forceSelection?: boolean }).forceSelection !== true) {
     const result = finalize(candidates.map((p) => p.permanentId));
     ctx.lastResolvedPermanentIds = result;
     return result;

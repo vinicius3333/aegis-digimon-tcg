@@ -35,7 +35,7 @@ describe("ST20-15 Island of Adventure", () => {
     const s = setupEngine({
       0: {
         security: [{ card: "ST20-15", as: "securityOption", faceUp: true }],
-        battleArea: [{ card: "AD1-004", as: "digimon" }],
+        battleArea: [{ card: "ST20-11", as: "digimon" }],
       },
     });
     await s.ready();

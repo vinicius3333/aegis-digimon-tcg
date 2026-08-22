@@ -70,4 +70,17 @@ describe("BT10-021 MailBirdramon", () => {
     expect(restricted).toHaveLength(1);
     expect(observe(s.engine).isRestricted(s.perm(restricted[0]!), "block")).toBe(true);
   });
+
+  it("does not restrict an opponent when fewer than 2 Digimon are in play", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT10-019", as: "attacker", under: ["BT10-021"] }] },
+      1: { battleArea: [{ card: "BT1-010", as: "onlyOpponent" }], security: ["BT1-012"] },
+    }, { autoSelectCards: true, autoOrderTriggers: true });
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("attacker"));
+    await settle();
+
+    expect(observe(s.engine).isRestricted(s.perm("onlyOpponent"), "attack")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("onlyOpponent"), "block")).toBe(false);
+  });
 });

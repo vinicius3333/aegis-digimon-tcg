@@ -1521,6 +1521,7 @@ describe("irCardModule timing routing", () => {
     expect(compiled?.coverage).toBe("full");
     const module = irCardModule("BT18-093", compiled as CompiledCard);
     const source = makeSource({ cardId: "BT18-093", permanent: () => undefined });
+    source.isInSecurity = () => true;
 
     const effects = module.effectsForTiming(EffectTiming.SecuritySkill, source);
     expect(effects.length).toBeGreaterThanOrEqual(1);

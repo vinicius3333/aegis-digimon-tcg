@@ -50,6 +50,7 @@ const compiled: CompiledCard = {
             },
             "count": 5,
             "upTo": true,
+            "distinctNames": true,
             "from": [
               "trash"
             ]
@@ -98,6 +99,7 @@ const compiled: CompiledCard = {
             },
             "count": 5,
             "upTo": true,
+            "distinctNames": true,
             "from": [
               "trash"
             ]
@@ -184,3 +186,5 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("EX10-053", compiled);
+
+export { compiled };

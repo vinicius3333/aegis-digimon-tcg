@@ -7,15 +7,30 @@ import "./ST10-05.js";
 
 describe("ST10-05 Angewomon", () => {
   it("gives an opposing Digimon Security Attack -2 on play", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "ST10-05", as: "angewomon" }] }, 1: { battleArea: [{ card: "ST10-07", as: "target" }] } }, { autoOrderTriggers: true, autoSelectCards: true });
+    const s = setupEngine(
+      { 0: { hand: [{ card: "ST10-05", as: "angewomon" }] }, 1: { battleArea: [{ card: "ST10-07", as: "target" }] } },
+      { autoOrderTriggers: true, autoSelectCards: true },
+    );
     s.state.memory = 6;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("angewomon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("angewomon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack") === -2);
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-2);
   });
 
   it("gives its host Security Attack +1 while you have a purple Digimon", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "ST10-06", as: "host", under: ["ST10-05"] }, { card: "ST10-07", as: "purple" }] } }, { autoOrderTriggers: true });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST10-06", as: "host", under: ["ST10-05"] },
+            { card: "ST10-07", as: "purple" },
+          ],
+        },
+      },
+      { autoOrderTriggers: true },
+    );
     await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
   });

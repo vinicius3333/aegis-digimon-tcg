@@ -12,9 +12,31 @@ describe("BT21-080 Hiro Amanokawa", () => {
     expect(compiled.effects).toContainEqual(
       expect.objectContaining({
         trigger: "YourTurn",
-        actions: [expect.objectContaining({ kind: "SubTrigger", event: "onAddDigivolutionCards" })],
+        actions: [
+          expect.objectContaining({
+            kind: "SubTrigger",
+            event: "onAddDigivolutionCards",
+            triggerFilter: expect.objectContaining({
+              nameOrTrait: [
+                { tokens: ["Gammamon"], match: "text" },
+                { tokens: ["Hero"], match: "trait", orPrevious: true },
+              ],
+            }),
+            cost: expect.objectContaining({ kind: "suspend", target: expect.objectContaining({ isSelf: true }) }),
+            optional: true,
+            abortOnDecline: true,
+          }),
+        ],
       }),
     );
-    expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "Security", isSecurity: true }));
+    expect(compiled.effects).toContainEqual(
+      expect.objectContaining({
+        trigger: "Security",
+        isSecurity: true,
+        actions: [expect.objectContaining({ kind: "PlayWithoutCost", payCost: false })],
+      }),
+    );
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });

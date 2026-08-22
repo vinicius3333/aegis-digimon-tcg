@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-094.js";
 
 describe("BT12-094 handwritten module", () => {
@@ -17,5 +19,28 @@ describe("BT12-094 handwritten module", () => {
       permanent: () => undefined,
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnStartMainPhase, source).length).toBeGreaterThan(0);
+    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+    expect(module!.effectsForTiming(EffectTiming.None, source).length).toBeGreaterThan(0);
+  });
+
+  it("places a Save Digimon under Yuu and gains 1 memory", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT12-094", as: "yuu" }], hand: [{ card: "BT12-008", as: "save" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+    s.state.memory = 0;
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("yuu"));
+    await settle(() => s.perm("yuu").stack.some(({ cardId }) => cardId === "BT12-008"));
+    expect(s.perm("yuu").stack.map(({ cardId }) => cardId)).toContain("BT12-008");
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("plays Yuu from security without paying its memory cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT12-094", as: "yuu", faceUp: true }] } });
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("yuu"));
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT12-094")).toBe(true);
   });
 });

@@ -31,9 +31,7 @@ function ledger(s: EngineSetup): ContinuousEffectLedger {
 }
 
 async function recompute(s: EngineSetup): Promise<void> {
-  await (
-    s.engine as unknown as { recomputeContinuousEffects(): Promise<void> }
-  ).recomputeContinuousEffects();
+  await (s.engine as unknown as { recomputeContinuousEffects(): Promise<void> }).recomputeContinuousEffects();
 }
 
 /** Validate an attack through the production legality path with the engine's live ledger. */
@@ -68,8 +66,6 @@ describe("EX11-062 — [Your Turn] grants VortexCanAttackPlayers (production rec
     await recompute(s);
 
     expect(ledger(s).vortexCanAttackPlayers(vortexAttacker.permanentId)).toBe(true);
-    // REVERT-CONFIRM-RED: emptying EX11-062's [Your Turn] actions (the prior RawUnparsed residual)
-    // => the grant is never recorded => this assertion goes RED.
 
     // Idempotence (CR-01): a second recompute re-derives the grant cleanly, not doubled.
     await recompute(s);

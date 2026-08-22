@@ -54,7 +54,7 @@ const compiled: CompiledCard = {
           }
         },
         {
-          "kind": "Delete",
+          "kind": "DeleteByDPBudget",
           "target": {
             "filter": {
               "controller": "opponent",
@@ -62,8 +62,13 @@ const compiled: CompiledCard = {
                 "Digimon"
               ]
             },
-            "count": 7000,
-            "upTo": true
+            "count": "all"
+          },
+          "baseBudget": 7000,
+          "budgetBonus": {
+            "per": 1,
+            "filter": { "controller": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Olympos XII"], "match": "trait" }] },
+            "unit": "cards"
           }
         }
       ]
@@ -104,7 +109,7 @@ const compiled: CompiledCard = {
           }
         },
         {
-          "kind": "Delete",
+          "kind": "DeleteByDPBudget",
           "target": {
             "filter": {
               "controller": "opponent",
@@ -112,8 +117,13 @@ const compiled: CompiledCard = {
                 "Digimon"
               ]
             },
-            "count": 7000,
-            "upTo": true
+            "count": "all"
+          },
+          "baseBudget": 7000,
+          "budgetBonus": {
+            "per": 1,
+            "filter": { "controller": "mine", "kind": ["Digimon"], "nameOrTrait": [{ "tokens": ["Olympos XII"], "match": "trait" }] },
+            "unit": "cards"
           }
         }
       ]

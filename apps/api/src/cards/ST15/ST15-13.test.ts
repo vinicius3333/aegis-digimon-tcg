@@ -45,6 +45,32 @@ describe("ST15-13 <Blocker> static keyword", () => {
 
     expect(ledgerOf(s).hasKeyword(s.perm("other").permanentId, "Blocker")).toBe(false);
   });
+
+  it("can use Blocker at block timing and switches the attack target", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", dp: 3000, as: "attacker" }] },
+      1: { battleArea: [{ card: HIANDROMON, dp: 12000, as: "blocker" }] },
+    });
+    const attacker = s.perm("attacker");
+    const blocker = s.perm("blocker");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attacker.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blocker.permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
+    expect(blocker.isSuspended).toBe(true);
+  });
 });
 
 describe("ST15-13 [When Digivolving] delete opponent Digimon with play cost ≤ 8", () => {
@@ -78,20 +104,24 @@ describe("ST15-13 [When Digivolving] delete opponent Digimon with play cost ≤ 
     expect(p1.battleArea.some((p) => p.permanentId === targetPermanentId)).toBe(false);
   });
 
-  it("does NOT delete when opponent has only a Digimon with play cost > 8", async () => {
+  it("deletes a play-cost-8 Digimon but never the play-cost-10 Digimon", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: LV5_BASE, dp: 6000, as: "base" }], hand: [{ card: HIANDROMON, as: "card" }] },
-        // BT24-038 Biomon has playCost 8 — exactly 8 qualifies; use a > 8 card instead.
-        // BT10-013 Shoutmon X5 has playCost 10 (> 8 → NOT a valid target).
-        1: { battleArea: [{ card: "BT10-013", dp: 8000, as: "highCost" }] },
+        1: {
+          battleArea: [
+            { card: "BT24-038", dp: 8000, as: "exactCost" },
+            { card: "BT10-013", dp: 8000, as: "highCost" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    const p0 = s.state.players[0]!;
     const p1 = s.state.players[1]!;
     const base = s.perm("base");
+    const exactCost = s.perm("exactCost");
     const highCost = s.perm("highCost");
+    const exactCostTopId = exactCost.topCard!.instanceId;
     const highCostPermanentId = highCost.permanentId;
     const highTopId = highCost.topCard!.instanceId;
     s.state.memory = 10;
@@ -103,10 +133,10 @@ describe("ST15-13 [When Digivolving] delete opponent Digimon with play cost ≤ 
     });
     expect(result).toEqual({ ok: true });
 
-    // Let any triggered effects settle.
-    await settle(() => p0.battleArea.some((p) => p.topCard?.cardId === HIANDROMON), 200);
+    await settle(() => p1.trash.some((c) => c.instanceId === exactCostTopId));
 
-    // High-cost Digimon must remain on the field.
+    expect(p1.battleArea.some((p) => p.permanentId === exactCost.permanentId)).toBe(false);
+    expect(p1.trash.some((c) => c.instanceId === exactCostTopId)).toBe(true);
     expect(p1.battleArea.some((p) => p.permanentId === highCostPermanentId)).toBe(true);
     expect(p1.trash.some((c) => c.instanceId === highTopId)).toBe(false);
   });

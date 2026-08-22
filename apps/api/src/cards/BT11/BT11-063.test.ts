@@ -15,12 +15,12 @@ describe("BT11-063 Geremon", () => {
         0: {
           hand: [
             { card: "BT11-063", as: "geremon" },
-            { card: "BT11-063", as: "discard" },
+            { card: "BT2-056", as: "discard" },
           ],
           deck: ["BT1-009", "BT1-010"],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("geremon").instanceId })).toEqual({

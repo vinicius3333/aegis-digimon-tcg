@@ -12,10 +12,6 @@ import "../index.js";
 // KB Q2491 (binding): two copies → each activation is independent; second fails
 //   if a new attack can't be declared during an active one.
 //
-// FAILS-WHEN-REVERTED: strip the turnTiming body from BT15-004.ts — forceAttack is
-// never called, so the Digimon never gets suspended at end of turn and the
-// suspension assertion goes RED.
-
 const MOTIMON = "BT15-004";
 // BT1-066 = Tentomon, an Insectoid Lv.3 Digimon (def.types includes "Insectoid").
 const TENTOMON = "BT1-066";
@@ -38,12 +34,20 @@ describe("BT15-004 Motimon — [End of Your Turn][Inherited] Insectoid may attac
           // Set up an Insectoid Digimon for seat 0 with BT15-004 (Motimon) in its digivolution stack.
           battleArea: [{ card: TENTOMON, dp: 4000, as: "tentomon", under: [MOTIMON] }],
           // Security cards so the game doesn't end if the attack reaches the player.
-          security: [{ card: DUMMY, faceUp: true }, { card: DUMMY, faceUp: true }, { card: DUMMY, faceUp: true }],
+          security: [
+            { card: DUMMY, faceUp: true },
+            { card: DUMMY, faceUp: true },
+            { card: DUMMY, faceUp: true },
+          ],
         },
         1: {
           // Opponent needs at least one Digimon for the canActivate check (and the attack target).
           battleArea: [{ card: DUMMY, dp: 3000 }],
-          security: [{ card: DUMMY, faceUp: true }, { card: DUMMY, faceUp: true }, { card: DUMMY, faceUp: true }],
+          security: [
+            { card: DUMMY, faceUp: true },
+            { card: DUMMY, faceUp: true },
+            { card: DUMMY, faceUp: true },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -67,11 +71,19 @@ describe("BT15-004 Motimon — [End of Your Turn][Inherited] Insectoid may attac
       {
         0: {
           battleArea: [{ card: TENTOMON, dp: 4000, as: "tentomon", suspended: true, under: [MOTIMON] }],
-          security: [{ card: DUMMY, faceUp: true }, { card: DUMMY, faceUp: true }, { card: DUMMY, faceUp: true }],
+          security: [
+            { card: DUMMY, faceUp: true },
+            { card: DUMMY, faceUp: true },
+            { card: DUMMY, faceUp: true },
+          ],
         },
         1: {
           battleArea: [{ card: DUMMY, dp: 3000 }],
-          security: [{ card: DUMMY, faceUp: true }, { card: DUMMY, faceUp: true }, { card: DUMMY, faceUp: true }],
+          security: [
+            { card: DUMMY, faceUp: true },
+            { card: DUMMY, faceUp: true },
+            { card: DUMMY, faceUp: true },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -95,11 +107,19 @@ describe("BT15-004 Motimon — [End of Your Turn][Inherited] Insectoid may attac
         0: {
           // A non-Insectoid Digimon with BT15-004 in its stack.
           battleArea: [{ card: DUMMY, dp: 3000, as: "nonInsectoid", under: [MOTIMON] }],
-          security: [{ card: DUMMY, faceUp: true }, { card: DUMMY, faceUp: true }, { card: DUMMY, faceUp: true }],
+          security: [
+            { card: DUMMY, faceUp: true },
+            { card: DUMMY, faceUp: true },
+            { card: DUMMY, faceUp: true },
+          ],
         },
         1: {
           battleArea: [{ card: DUMMY, dp: 2000 }],
-          security: [{ card: DUMMY, faceUp: true }, { card: DUMMY, faceUp: true }, { card: DUMMY, faceUp: true }],
+          security: [
+            { card: DUMMY, faceUp: true },
+            { card: DUMMY, faceUp: true },
+            { card: DUMMY, faceUp: true },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

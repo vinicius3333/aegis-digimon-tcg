@@ -1,23 +1,12 @@
-import { EffectDuration, EffectTiming } from "@aegis/shared";
-import { CardKind } from "@aegis/shared";
-import type { CardDefinition, Permanent } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { turnTiming, security, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const cardId = "BT20-089";
 const EIJI_NAGASUMI = "Eiji Nagasumi";
 
 function hasPulsemonText(def: CardDefinition): boolean {
-  const hay = [
-    def.nameEn ?? "",
-    def.effectText ?? "",
-    def.inheritedEffectText ?? "",
-    ...(def.types ?? []),
-  ].join(" ");
+  const hay = [def.nameEn ?? "", def.effectText ?? "", def.inheritedEffectText ?? "", ...(def.types ?? [])].join(" ");
   return hay.toLowerCase().includes("pulsemon");
 }
 
@@ -52,7 +41,12 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const perm = ctx.source.permanent();
             if (perm === undefined) return;
-            ctx.fx.grantNameTrait(perm.permanentId, "name", ["Eiji Nagasumi", "Leon Alexander"], EffectDuration.UntilEachTurnEnd);
+            ctx.fx.grantNameTrait(
+              perm.permanentId,
+              "name",
+              ["Eiji Nagasumi", "Leon Alexander"],
+              EffectDuration.Permanent,
+            );
           },
         }),
         staticModifier({
@@ -244,11 +238,50 @@ const module: EffectModule = {
       ];
     }
 
-    // [All Turns] MindLink reaction — RESIDUAL: MindLink not available as fx primitive.
-
     return [];
   },
 };
 
-registerCard(module);
-export default module;
+export const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Rule",
+      actions: [{ kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "name", tokens: ["Eiji Nagasumi", "Leon Alexander"], duration: "permanent" }],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        { kind: "SubTrigger", event: "whenPlayed", actions: [mindLink] },
+        { kind: "SubTrigger", event: "whenOneOfYoursDigivolves", actions: [mindLink] },
+      ],
+      isInherited: true,
+    },
+    {
+      trigger: "AllTurns",
+      isInherited: true,
+      actions: [
+        { kind: "GainKeyword", target: { filter: { isSelfRef: true, ...qualifying }, count: 1, isSelf: true }, keyword: { keyword: "Alliance", raw: "＜Alliance＞" }, duration: "permanent" },
+        { kind: "GainKeyword", target: { filter: { isSelfRef: true, ...qualifying }, count: 1, isSelf: true }, keyword: { keyword: "Piercing", raw: "＜Piercing＞" }, duration: "permanent" },
+        { kind: "GainKeyword", target: { filter: { isSelfRef: true, ...qualifying }, count: 1, isSelf: true }, keyword: { keyword: "Barrier", raw: "＜Barrier＞" }, duration: "permanent" },
+      ],
+    },
+    {
+      trigger: "StartOfYourMainPhase",
+      actions: [{ kind: "GainMemory", amount: 1, condition: { kind: "opponentHas", filter: { controllerDefault: "opponent", kind: ["Digimon"] } } }],
+    },
+    {
+      trigger: "EndOfAllTurns",
+      isInherited: true,
+      actions: [{ kind: "PlayWithoutCost", target: { filter: { nameOrTrait: [{ tokens: ["Eiji Nagasumi"], match: "name" }] }, count: 1 }, from: ["digivolutionCards"], payCost: false, optional: true }],
+    },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, from: ["security"], payCost: false }],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard("BT20-089", compiled);

@@ -14,6 +14,10 @@ import type { EffectFrequency, EffectTrigger } from "./triggers.js";
  * `CardEffect[]`.
  */
 export interface CardEffect {
+  /** Stable optional key used by card-level evidence and diagnostics. */
+  effectKey?: string;
+  /** Optional runtime timing override for event-backed IR watchers. */
+  timingOverride?: string;
   trigger: EffectTrigger;
   /** Exact printed clause, for decision and log provenance. Falls back to a structural summary. */
   description?: string;
@@ -41,6 +45,8 @@ export interface CardEffect {
   isFromTrash?: boolean;
   /** A `[Hand]` tag alongside a timing trigger: it activates only from the hand. */
   isFromHand?: boolean;
+  /** Attack-event subject scope for observer effects such as Tamers watching an ally attack. */
+  attackScope?: "self" | "ally" | "opponent";
   frequency?: EffectFrequency;
   /**
    * Turn-owner gate for triggers that do not encode the turn direction. BT19-095's

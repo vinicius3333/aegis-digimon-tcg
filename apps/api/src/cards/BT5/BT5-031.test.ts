@@ -30,4 +30,15 @@ describe("BT5-031 MetalGarurumon", () => {
     await settle(() => s.state.players[1]?.security.length === 1);
     expect(s.state.memory).toBe(1);
   });
+
+  it("does not bottom-deck when the only Garurumon source is KendoGarurumon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT5-029", as: "base", under: ["BT4-027"] }], hand: [{ card: "BT5-031", as: "evolving" }] },
+      1: { battleArea: [{ card: "AD1-002", as: "target" }] },
+    }, { autoSelectCards: true });
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT5-031");
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
 });

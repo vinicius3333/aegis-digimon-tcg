@@ -1,22 +1,15 @@
-import { EffectTiming } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "BT12-001";
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing, source) {
-    if (timing !== EffectTiming.None) return [];
-    return [staticModifier({
-      source,
-      effectKey: `${cardId}/inherited-dp-deletion-ceiling`,
-      description: "[Your Turn] Add 1000 to your DP-based deletion maximums.",
-      isInherited: true,
-      when: () => source.isOwnersTurn(),
-      resolve: async (ctx) => { ctx.fx.addDeletionMaxDp?.({ seat: source.ownerSeat }, 1000); },
-    })];
-  },
+const compiled: CompiledCard = {
+  effects: [{
+    trigger: "YourTurn",
+    actions: [{ kind: "CostModifier", mode: "raiseCeiling", costType: "dpDeletion", amount: 1000 }],
+    isInherited: true,
+  }],
+  coverage: "full",
+  residual: [],
 };
-registerCard(module);
-export default module;
+
+registerIrCard("BT12-001", compiled);

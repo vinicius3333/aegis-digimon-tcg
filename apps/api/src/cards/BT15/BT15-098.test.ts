@@ -13,10 +13,6 @@ import "../index.js";
 // straight to the trash with no deletion and no battle-area placement. The fix re-homes
 // the clause to `EffectTiming.OnUseOption`.
 //
-// FAILS-WHEN-REVERTED: with the clause back at OnDeclaration only, this playCard call
-// leaves the owner's Digimon untouched and the card lands in the trash instead of the
-// battle area (test RED).
-
 describe("BT15-098 [Main] on-play body fires on a real playCard (not dead)", () => {
   it("deletes 1 of the owner's Digimon and lands in the battle area", async () => {
     const s = setup(
@@ -36,9 +32,7 @@ describe("BT15-098 [Main] on-play body fires on a real playCard (not dead)", () 
     const option = s.inst("option");
     s.state.memory = 0; // maxAffordable for seat 0 (turnSeat) is memory + 10, covers cost 4
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: option.instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: option.instanceId })).toEqual({ ok: true });
 
     await settle(() => p0.battleArea.some((perm) => perm.topCard?.cardId === "BT15-098"));
     await settle(() => false, 60); // flush the rest of the resolution
@@ -62,9 +56,6 @@ describe("BT15-098 [Main] on-play body fires on a real playCard (not dead)", () 
 // Comprehensive Rules 2-3-1-2, not a substring — this also correctly excludes
 // [VenomMyotismon], which the card text treats as a distinct name).
 //
-// FAILS-WHEN-REVERTED: with `hasName` back to reading `def.name`/`def.names`, the trash
-// lookup is always empty, so [Myotismon] never leaves the trash and never lands on the
-// battle area (test RED).
 describe("BT15-098 [Main] play [Myotismon] from trash", () => {
   it("plays the trashed [Myotismon] onto the battle area without paying its cost", async () => {
     const s = setup(
@@ -85,19 +76,12 @@ describe("BT15-098 [Main] play [Myotismon] from trash", () => {
     const option = s.inst("option");
     s.state.memory = 0; // maxAffordable for seat 0 (turnSeat) is memory + 10, covers cost 4
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: option.instanceId }),
-    ).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: option.instanceId })).toEqual({ ok: true });
 
     await settle(() => p0.battleArea.some((perm) => perm.topCard?.cardId === "BT15-098"));
-    await settle(
-      () => p0.battleArea.some((perm) => perm.topCard?.instanceId === myotismonInTrash.instanceId),
-      120,
-    );
+    await settle(() => p0.battleArea.some((perm) => perm.topCard?.instanceId === myotismonInTrash.instanceId), 120);
 
-    expect(
-      p0.battleArea.some((perm) => perm.topCard?.instanceId === myotismonInTrash.instanceId),
-    ).toBe(true); // Myotismon played from trash
+    expect(p0.battleArea.some((perm) => perm.topCard?.instanceId === myotismonInTrash.instanceId)).toBe(true); // Myotismon played from trash
     expect(p0.trash.some((c) => c.instanceId === myotismonInTrash.instanceId)).toBe(false); // left the trash
   });
 });

@@ -6,124 +6,106 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand",
-              "kind": [
-                "Tamer"
-              ],
-              "colors": [
-                "White"
-              ],
-              "playCostLte": 4
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
+              kind: ["Tamer"],
+              colors: ["White"],
+              playCostLte: 4,
             },
-            "orFilters": [
+            orFilters: [
               {
-                "controller": "mine",
-                "zone": "hand",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
+                controller: "mine",
+                zone: "hand",
+                kind: ["Digimon"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Eosmon"
-                    ],
-                    "match": "name"
-                  }
+                    tokens: ["Eosmon"],
+                    match: "name",
+                  },
                 ],
-                "levelComparison": {
-                  "op": "lte",
-                  "value": 5
-                }
-              }
+                levelComparison: {
+                  op: "lte",
+                  value: 5,
+                },
+              },
             ],
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": true,
-          "costOverride": 2,
-          "condition": {
-            "kind": "isYourTurn"
+          from: ["hand"],
+          payCost: true,
+          costOverride: 2,
+          condition: {
+            kind: "isYourTurn",
           },
-          "optional": true,
-          "abortOnDecline": true
+          optional: true,
+          abortOnDecline: true,
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "zone": "hand",
-              "kind": [
-                "Tamer"
-              ]
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "opponent",
+              zone: "hand",
+              kind: ["Tamer"],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand"
-          ],
-          "payCost": false,
-          "optional": true,
-          "condition": {
-            "kind": "prevActionTaken"
-          }
-        }
-      ]
+          from: ["hand"],
+          payCost: false,
+          optional: true,
+          condition: {
+            kind: "prevActionTaken",
+          },
+        },
+      ],
     },
     {
-      "trigger": "OpponentsTurn",
-      "actions": [
+      trigger: "OpponentsTurn",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenOpponentAttacks",
-          "actions": [
+          kind: "SubTrigger",
+          event: "whenOpponentAttacks",
+          actions: [
             {
-              "kind": "RedirectAttack",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "nameOrTrait": [
+              kind: "RedirectAttack",
+              target: {
+                filter: {
+                  controller: "mine",
+                  nameOrTrait: [
                     {
-                      "tokens": [
-                        "Eosmon"
-                      ],
-                      "match": "name"
-                    }
-                  ]
+                      tokens: ["Eosmon"],
+                      match: "name",
+                    },
+                  ],
                 },
-                "count": 1
+                count: 1,
               },
-              "optional": true
-            }
-          ]
-        }
+              optional: true,
+            },
+          ],
+        },
       ],
-      "isInherited": true,
-      "frequency": "OncePerTurn"
-    }
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "names": [
-        "Morphomon"
-      ],
-      "cost": 2,
-      "isAlternate": true
-    }
-  ]
+      names: ["Morphomon"],
+      cost: 2,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT17-074", compiled);

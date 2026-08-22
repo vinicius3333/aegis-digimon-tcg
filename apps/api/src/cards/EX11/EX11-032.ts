@@ -19,6 +19,9 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 //   `whenBattleWon` SubTrigger (EX11-026 pattern); "this [Vortex Warriors] trait Digimon"
 //   refers to the source itself (isSelfRef), not a separately-searched trait match.
 const compiled: CompiledCard = {
+  digivolutionRequirement: [
+    { level: 4, cost: 3, isAlternate: true },
+  ],
   effects: [
     {
       trigger: "Main",

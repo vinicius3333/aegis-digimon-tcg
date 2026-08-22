@@ -1,6 +1,17 @@
-import { registerCard } from "../../engine/effects/registry.js";
-import { midBt12Module } from "./_midHandwritten.js";
+import { getCompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const module = midBt12Module("BT12-026");
-registerCard(module);
-export default module;
+const compiled = structuredClone(getCompiledCard("BT12-026")!);
+const watcher = compiled.effects.find((effect) => effect.trigger === "AllTurns");
+if (watcher !== undefined) {
+  watcher.actions = [{
+    kind: "SubTrigger",
+    event: "whenDigivolutionTrashed",
+    sourceFilter: { controller: "opponent", kind: ["Digimon"] },
+    actions: [{ kind: "GainMemory", amount: 1 }],
+  }];
+}
+
+registerIrCard("BT12-026", compiled);
+
+export default compiled;

@@ -1,6 +1,12 @@
-import { registerCard } from "../../engine/effects/registry.js";
-import { earlyMidBt11Module } from "./_earlyMidHandwritten.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const module = earlyMidBt11Module("BT11-043");
-registerCard(module);
-export default module;
+const grant = { target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, grant: { dp: 3000, color: "white", originalName: "Sukamon" }, duration: "untilOpponentTurnEnd", condition: { kind: "anyOf", conditions: [{ kind: "zoneCount", seat: "opponent", zone: "trash", op: "gte", value: 16 }, { kind: "selfHasMinTrash", count: 3, filter: { nameOrTrait: [{ tokens: ["Sukamon"], match: "name" }] } }], raw: "your opponent has 16 or more cards in their trash or you have 3 or more [Sukamon] in your trash" } };
+const compiled: CompiledCard = { effects: [
+  { trigger: "OnPlay", actions: [{ kind: "GrantStatic", ...grant }] },
+  { trigger: "WhenDigivolving", actions: [{ kind: "GrantStatic", ...grant }] },
+  { trigger: "WhenAttacking", actions: [{ kind: "GainKeyword", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" }, duration: "forTheTurn", scaling: { per: 1, filter: { zone: "battleArea", controllerDefault: "mine", excludeSelf: true, kind: ["Digimon"], nameOrTrait: [{ tokens: ["Sukamon"], match: "name" }] }, unit: "cards" } }] },
+  { trigger: "AllTurns", actions: [{ kind: "Replacement", event: "wouldBeDeleted", sourceFilter: { isSelfRef: true }, actions: [{ kind: "Prevent", cost: { kind: "deleteOwn", target: { filter: { controller: "mine", excludeSelf: true, kind: ["Digimon"], nameOrTrait: [{ tokens: ["Sukamon"], match: "name" }] }, count: 1 }, raw: "by deleting 1 other Digimon with [Sukamon] in its name" }, optional: true, abortOnDecline: true }] }], isInherited: true },
+], coverage: "full", residual: [], digivolutionRequirement: [{ level: 4, names: ["Sukamon"], cost: 3, isAlternate: true }] };
+registerIrCard("BT11-043", compiled);

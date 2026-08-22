@@ -101,6 +101,22 @@ describe("BT25-091 Monica Simmons", () => {
     expect(observe(s.engine).hasRestriction(s.perm("target"), "attack")).toBe(false);
   });
 
+  it("does not react when a non-TS Option is used", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT25-038", as: "nonTsOption" }], battleArea: [{ card: "BT25-091", as: "monica" }] },
+        1: { battleArea: [{ card: "AD1-001", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nonTsOption").instanceId, useAs: "option" } as never)).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("nonTsOption").instanceId));
+    expect(s.perm("monica").isSuspended).toBe(false);
+    expect(observe(s.engine).hasRestriction(s.perm("target"), "attack")).toBe(false);
+  });
+
   it("plays itself for free from Security", async () => {
     // Security cards are in trash by the time their Security effect resolves.
     const s = setupEngine({ 0: { trash: [{ card: "BT25-091", as: "monica" }] } });

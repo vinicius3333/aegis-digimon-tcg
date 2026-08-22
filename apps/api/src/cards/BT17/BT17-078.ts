@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Counter",
@@ -42,15 +42,19 @@ const compiled: CompiledCard = {
       "trigger": "OnPlay",
       "actions": [
         {
+          "kind": "SelectBind",
+          "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1, "bindAs": "dnaReturnLevel", "upTo": true },
+          "condition": { "kind": "isDnaDigivolving" }
+        },
+        {
           "kind": "Return",
           "target": {
             "filter": {
-              "isSelfRef": false,
               "controller": "opponent",
-              "level": "same"
+              "kind": ["Digimon"],
+              "relativeTo": { "attr": "level", "op": "eq", "selectionRef": "dnaReturnLevel" }
             },
-            "count": 0,
-            "upTo": false
+            "count": "all"
           },
           "to": "deckBottom",
           "condition": {
@@ -76,15 +80,19 @@ const compiled: CompiledCard = {
       "trigger": "WhenDigivolving",
       "actions": [
         {
+          "kind": "SelectBind",
+          "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1, "bindAs": "dnaReturnLevel", "upTo": true },
+          "condition": { "kind": "isDnaDigivolving" }
+        },
+        {
           "kind": "Return",
           "target": {
             "filter": {
-              "isSelfRef": false,
               "controller": "opponent",
-              "level": "same"
+              "kind": ["Digimon"],
+              "relativeTo": { "attr": "level", "op": "eq", "selectionRef": "dnaReturnLevel" }
             },
-            "count": 0,
-            "upTo": false
+            "count": "all"
           },
           "to": "deckBottom",
           "condition": {

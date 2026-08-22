@@ -2357,6 +2357,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     suspend: true,
     fireSuspensionTriggers: true,
     trash: true,
+    trashBreedingPermanent: true,
     trashDigivolutionCards: true,
     trashDigivolutionCardsAtomic: true,
     trashFromSecurity: true,

@@ -132,6 +132,7 @@ export function createGameAccess(
     printedKinds: readonly import("@aegis/shared").CardKind[],
   ) => import("@aegis/shared").CardKind[],
   baseGrantedDigivolve?: (seat: Seat, base: Permanent, evolving: CardDefinition) => { cost: number } | undefined,
+  effectiveDP?: (permanentId: string) => number,
 ): GameAccess {
   const player = (seat: Seat): PlayerState => {
     const p = state.players[seat];
@@ -176,6 +177,7 @@ export function createGameAccess(
       const printed = permanent?.topCard === undefined ? [] : requireCardDefinition(permanent.topCard.cardId).kinds;
       return (effectiveKindsResolver ?? ((_id, kinds) => [...kinds]))(permanentId, printed);
     },
+    effectiveDP,
     colorRequirementWaived: (instanceId): boolean => (colorRequirementWaived ?? (() => false))(instanceId),
     baseGrantedDigivolve,
   };

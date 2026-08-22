@@ -45,9 +45,10 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   }
   // Bind a SelectBind target before paying a cost that refers to that selected host.
   if (action.kind === "SelectBind" && action.target.bindAs !== undefined && action.cost?.kind === "trash") {
-    const boundTo = action.cost.target?.filter !== undefined && "boundTo" in action.cost.target.filter
-      ? action.cost.target.filter.boundTo
-      : undefined;
+    const boundTo =
+      action.cost.target?.filter !== undefined && "boundTo" in action.cost.target.filter
+        ? action.cost.target.filter.boundTo
+        : undefined;
     if (boundTo === action.target.bindAs && ctx.selections?.get(boundTo) === undefined) {
       const ids = await resolvePermanentTargets(ctx, action.target);
       if (ids.length === 0) return action.abortOnDecline === true;
@@ -93,6 +94,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     // security must finish resolving when the controller has no Agumon/Gabumon to play.
     if (
       action.kind === "PlayWithoutCost" &&
+      action.cost === undefined &&
       !action.target?.isSelf &&
       action.target?.filter?.isSelfRef !== true &&
       action.fromOwnDigivolutionStack !== true
@@ -164,16 +166,18 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     action.kind !== "Replacement" &&
     action.kind !== "CostModifier" &&
     action.kind !== "SubTrigger" &&
+    action.kind !== "CostGatedBlock" &&
     action.kind !== "PlayPerLevel" &&
     (action.costOptions?.length ?? 0) > 0
   ) {
-    const paid = await payOneCostOption(ctx, action.costOptions as Cost[]);
+    const paid = await payOneCostOption(ctx, action.costOptions as Cost[], costPayment);
     if (!paid) return action.abortOnDecline === true;
   } else if (
     action.kind !== "RawUnparsed" &&
     action.kind !== "Replacement" &&
     action.kind !== "CostModifier" &&
     action.kind !== "SubTrigger" &&
+    action.kind !== "CostGatedBlock" &&
     action.kind !== "PlayPerLevel" &&
     action.cost
   ) {
@@ -259,7 +263,17 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   // BT17-051) raises a BASE budget the action carries on its own. Zero units means no bonus,
   // never "the action does nothing" — the base budget still deletes.
   const isBudgetScaling = action.kind !== "RawUnparsed" && action.scaling?.budgetAdd !== undefined;
-  if (scale !== undefined && scale === 0 && !isSetCostModifier && !isDeleteLevelCeilingScaling && !isBudgetScaling) {
+  // targetColors is resolved after the action's permanent target is selected; it intentionally
+  // has no board-wide scaleFactor. Do not let the generic zero guard abort it before dispatch.
+  const isPerTargetScaling = action.scaling?.unit === "targetColors";
+  if (
+    scale !== undefined &&
+    scale === 0 &&
+    !isPerTargetScaling &&
+    !isSetCostModifier &&
+    !isDeleteLevelCeilingScaling &&
+    !isBudgetScaling
+  ) {
     return false;
   }
 
@@ -284,6 +298,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "DeleteByDPBudget":
     case "AddToDPDeleteBudget":
     case "Trash":
+    case "ReturnToEggDeck":
     case "Return":
     case "ReturnTopDigivolutionCards":
     case "DeletionMaxDpModifier":
@@ -297,7 +312,9 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "MovePermanent":
     case "Hatch":
     case "ModifyDP":
+    case "AddDPFromTrashedCard":
     case "AddDPFromSuspendedCost":
+    case "AddDPFromTrashedCard":
     case "SetBaseDP":
     case "GainKeyword":
     case "AddToHandSelf":
@@ -327,6 +344,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "WaiveColorRequirement":
       return await runStaticAction(ctx, action);
     case "GrantStatic":
+    case "DynamicDigivolutionNames":
       return await runGrantStaticAction(ctx, action);
     case "Attack":
     case "Battle":
@@ -382,6 +400,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     case "SearchSecurity":
     case "Reveal":
     case "RevealAdd":
+    case "HandRevealAdd":
     case "RevealChooseDeleteBudget":
       return await runRevealAction(ctx, action);
     default: {

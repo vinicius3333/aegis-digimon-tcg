@@ -11,124 +11,109 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q3151: you may choose not to play Cyberdramon after paying the cost.
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourMainPhase",
-      "actions": [
+      trigger: "StartOfYourMainPhase",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1,
-          "cost": {
-            "kind": "place",
-            "target": {
-              "filter": {
-                "zone": "battleArea",
-                "controller": "mine",
-                "kind": [
-                  "Option"
-                ],
-                "nameOrTrait": [
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+          cost: {
+            kind: "place",
+            target: {
+              filter: {
+                zone: "battleArea",
+                controller: "mine",
+                kind: ["Option"],
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Device"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Device"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "from": [
-                "hand"
-              ]
+              count: 1,
+              from: ["hand"],
             },
-            "raw": "By placing 1 Option card with the [Device] trait from your hand in the battle area"
+            raw: "By placing 1 Option card with the [Device] trait from your hand in the battle area",
           },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
+          optional: true,
+          abortOnDecline: true,
+        },
+      ],
     },
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "battleArea",
-              "kind": [
-                "Option"
-              ],
-              "nameOrTrait": [
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "battleArea",
+              kind: ["Option"],
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Device"
-                  ],
-                  "match": "trait"
-                }
-              ]
+                  tokens: ["Device"],
+                  match: "trait",
+                },
+              ],
             },
-            "count": 4
+            count: 4,
           },
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "isSelfRef": true
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                isSelfRef: true,
               },
-              "count": 1,
-              "isSelf": true
+              count: 1,
+              isSelf: true,
             },
-            "raw": "By suspending this Tamer"
-          }
+            raw: "By suspending this Tamer",
+          },
         },
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              nameOrTrait: [
                 {
-                  "tokens": [
-                    "Cyberdramon"
-                  ],
-                  "match": "name"
-                }
-              ]
+                  tokens: ["Cyberdramon"],
+                  match: "name",
+                },
+              ],
             },
-            "count": 1
+            count: 1,
           },
-          "from": [
-            "hand",
-            "trash"
-          ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
             },
-            "count": 1,
-            "isSelf": true
+            count: 1,
+            isSelf: true,
           },
-          "payCost": false
-        }
+          payCost: false,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT19-086", compiled);

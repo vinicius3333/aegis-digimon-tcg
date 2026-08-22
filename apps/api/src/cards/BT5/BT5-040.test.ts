@@ -7,4 +7,9 @@ describe("BT5-040 SuperStarmon", () => {
     await s.engine.recomputeContinuousEffects();
     expect(s.perm("superStarmon").currentDP).toBe(s.perm("superStarmon").baseDP);
   });
+
+  it("is registered with complete, residual-free runtime coverage", () => {
+    expect(getEffectModule("BT5-040")).toBeDefined();
+    expect(runtimeCompiledCard("BT5-040")).toMatchObject({ effects: [], coverage: "full", residual: [] });
+  });
 });

@@ -1,6 +1,9 @@
-import { registerCard } from "../../engine/effects/registry.js";
+import { getCompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 import { midBt12Module } from "./_midHandwritten.js";
 
-const module = midBt12Module("BT12-022");
-registerCard(module);
+const module = registerIrCard("BT12-022", { effects: [], coverage: "full", residual: [] });
+const handwritten = midBt12Module("BT12-022");
+module.effectsForTiming = handwritten.effectsForTiming;
+
 export default module;

@@ -27,11 +27,42 @@ describe("BT12-101 handwritten module", () => {
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnUseOption, source).length).toBeGreaterThan(0);
   });
+
+  it("keeps the compiled Main and Security semantics aligned with the catalog", async () => {
+    const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
+    const card = runtimeCompiledCard("BT12-101")!;
+    expect(card.coverage).toBe("full");
+    expect(card.residual).toEqual([]);
+    expect(card.effects.find((effect) => effect.trigger === "Main")?.actions[0]).toMatchObject({
+      kind: "TrashDigivolution",
+      amount: 3,
+    });
+    expect(card.effects.find((effect) => effect.trigger === "Security")).toBeDefined();
+  });
+
+  it("uses the structural Free trait for the optional blue Digimon play", async () => {
+    const source = {
+      instanceId: "source-101",
+      cardId: "BT12-101",
+      ownerSeat: 0,
+      isOnBattleArea: () => true,
+      isOwnersTurn: () => true,
+      permanent: () => undefined,
+    } as unknown as CardSource;
+    const effects = getEffectModule("BT12-101")!.effectsForTiming(EffectTiming.OnUseOption, source);
+    expect(effects).toHaveLength(1);
+    expect(effects[0]!.description).toContain("blue Free Digimon");
+  });
 });
 
-it("does not register unprinted Security effects for BT12-101 through BT12-110", () => {
+it("registers the printed Security activation for BT12-101", () => {
+  const module = getEffectModule("BT12-101");
+  const source = { instanceId: "source-101", cardId: "BT12-101", ownerSeat: 0, isOnBattleArea: () => false } as never;
+  expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+});
+
+it("registers the printed Security effects for BT12-102 through BT12-110", () => {
   for (const cardId of [
-    "BT12-101",
     "BT12-102",
     "BT12-103",
     "BT12-104",
@@ -44,6 +75,6 @@ it("does not register unprinted Security effects for BT12-101 through BT12-110",
   ]) {
     const module = getEffectModule(cardId);
     const source = { instanceId: `source-${cardId}`, cardId, ownerSeat: 0, isOnBattleArea: () => false } as never;
-    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source), cardId).toEqual([]);
+    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source), cardId).toHaveLength(1);
   }
 });

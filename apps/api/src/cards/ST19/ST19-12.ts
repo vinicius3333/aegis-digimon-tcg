@@ -13,47 +13,45 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Familiar Token stats and its On Deletion timing are registered in the shared token registry and
 // synthetic token module below. The deletion seams fire that module before removing the token.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Overclock",
-          "raw": "＜Overclock ([Puppet] trait)＞"
-        }
-      ]
+          keyword: "Overclock",
+          raw: "＜Overclock ([Puppet] trait)＞",
+        },
+      ],
     },
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
+      ],
     },
     {
-      "trigger": "WhenDigivolving",
-      "actions": [
+      trigger: "WhenDigivolving",
+      actions: [
         {
           // Token is "Familiar" resolved from token registry.
           // Registry entry needs update: Yellow/3000 DP + OnDeletion effect (LANE_A: FamiliarTokenStats).
           // KB Q860: OnDeletion fires on tokens even though they're removed-from-game (not trashed).
-          "kind": "PlayToken",
-          "tokens": [
-            "Familiar"
-          ],
-          "count": 2,
-          "payCost": false,
-          "optional": true
-        }
-      ]
-    }
+          kind: "PlayToken",
+          tokens: ["Familiar"],
+          count: 2,
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST19-12", compiled);

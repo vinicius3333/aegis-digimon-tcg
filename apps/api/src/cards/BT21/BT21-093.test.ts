@@ -60,7 +60,11 @@ describe("BT21-093 Raging Serpentine", () => {
 
     const allTurns = compiled.effects.filter((entry) => entry.trigger === "AllTurns");
     expect(allTurns).toHaveLength(2);
-    expect(allTurns[0]?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenSecurityRemoved" });
+    expect(allTurns[0]?.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenSecurityRemoved",
+      fireCondition: { kind: "triggerRemovedSecuritySeat", seat: "opponent" },
+    });
     expect(allTurns[1]?.keywords).toEqual([{ keyword: "Delay", raw: "＜Delay＞" }]);
     expect(allTurns[1]?.actions[0]).toMatchObject({
       kind: "Digivolve",
@@ -71,5 +75,7 @@ describe("BT21-093 Raging Serpentine", () => {
     });
 
     expect(compiled.effects).toContainEqual(expect.objectContaining({ trigger: "Security", isSecurity: true }));
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });

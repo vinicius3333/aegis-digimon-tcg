@@ -1,6 +1,6 @@
-import { registerCard } from "../../engine/effects/registry.js";
-import { midBt12Module } from "./_midHandwritten.js";
+import { getCompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const module = midBt12Module("BT12-052");
-registerCard(module);
+const module = registerIrCard("BT12-052", getCompiledCard("BT12-052")!);
+
 export default module;

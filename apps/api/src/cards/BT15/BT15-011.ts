@@ -9,7 +9,8 @@ const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
-      "actions": []
+      "actions": [],
+      "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
     },
     {
       "trigger": "OnPlay",
@@ -39,9 +40,10 @@ const compiled: CompiledCard = {
             {
               "filter": {
                 "controllerDefault": "mine",
-                "kind": [
-                  "Tamer"
-                ]
+              "kind": [
+                "Tamer"
+              ],
+              "nameOrTrait": [{ "tokens": ["SoC"], "match": "trait" }]
               },
               "count": 1,
               "to": "hand"

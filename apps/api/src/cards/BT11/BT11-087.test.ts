@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { Phase, type PlayerState } from "@aegis/shared";
 import { setupEngine, settle, assertNoLoudGap } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
 // A3 for BT11-087 (Lilithmon — Purple Lv.6 Digimon).
@@ -24,6 +25,12 @@ import "../index.js";
 //   BT1-001   — filler deck cards (non-Bagra)
 
 describe("BT11-087 Lilithmon [On Play]", () => {
+  it("has complete registered IR coverage", () => {
+    const compiled = runtimeCompiledCard("BT11-087")!;
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toHaveLength(0);
+  });
+
   it("mills top 4, then adds a Bagra Army card to hand, then places a Bagra Digimon under a Tamer", async () => {
     // Deck's last element is the top of the deck. Board Spec `deck` follows the same
     // convention (see harness), so the array below lays out bottom-to-top exactly as
@@ -34,10 +41,10 @@ describe("BT11-087 Lilithmon [On Play]", () => {
           // Owner has a Tamer on the battle area (Yuu Amano, Bagra Army Tamer).
           battleArea: [{ card: "BT10-093", dp: 0, as: "tamer" }],
           deck: [
-            { card: "BT1-001" },
-            { card: "BT1-001" },
-            { card: "BT10-076", as: "troopmon" }, // Bagra Army Digimon — will be added to hand
-            { card: "BT10-073", as: "chuumon" }, // Bagra Army Digimon — will be placed under tamer
+          { card: "BT10-076" }, // Bagra Army Digimon — one copy added to hand
+          { card: "BT10-073" }, // Bagra Army Digimon — one copy placed under tamer
+          { card: "BT10-076", as: "troopmon" }, // Bagra Army Digimon — one copy added to hand
+          { card: "BT10-073", as: "chuumon" }, // Bagra Army Digimon — one copy placed under tamer
           ],
           hand: [{ card: "BT11-087", as: "lilithmon" }],
         },
@@ -46,8 +53,6 @@ describe("BT11-087 Lilithmon [On Play]", () => {
     );
     const p0 = s.state.players[0] as PlayerState;
 
-    const troopmon = s.inst("troopmon");
-    const chuumon = s.inst("chuumon");
     const lilithmon = s.inst("lilithmon");
     s.state.memory = 8;
 
@@ -61,14 +66,13 @@ describe("BT11-087 Lilithmon [On Play]", () => {
     // Wait until at least 1 Bagra card is in hand (the add-to-hand step resolved).
     await settle(
       () =>
-        p0.hand.some((c) => c.instanceId === troopmon.instanceId) ||
-        p0.hand.some((c) => c.instanceId === chuumon.instanceId),
+        p0.hand.filter((c) => c.cardId === "BT10-076" || c.cardId === "BT10-073").length === 2 &&
+        s.perm("tamer").stack.length === 2,
     );
 
     // At least 1 Bagra Army Digimon was added to hand from the trash.
-    const troopInHand = p0.hand.some((c) => c.instanceId === troopmon.instanceId);
-    const chuuInHand = p0.hand.some((c) => c.instanceId === chuumon.instanceId);
-    expect(troopInHand || chuuInHand).toBe(true);
+    expect(p0.hand.filter((c) => c.cardId === "BT10-076" || c.cardId === "BT10-073")).toHaveLength(2);
+    expect(s.perm("tamer").stack).toHaveLength(2);
 
     // Lilithmon is now on the battle area.
     expect(p0.battleArea.some((p) => p.topCard?.cardId === "BT11-087")).toBe(true);

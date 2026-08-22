@@ -16,7 +16,7 @@ describe("BT11-083 LadyDevimon", () => {
           trash: [{ card: "BT11-094", as: "mirei" }],
         },
       },
-      { autoSelectCards: true, preferInstanceIds },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds },
     );
     preferInstanceIds.push(s.inst("discard").instanceId, s.inst("mirei").instanceId);
     s.state.memory = 10;

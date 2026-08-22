@@ -11,6 +11,7 @@ describe("BT5-065 Shademon", () => {
     expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === shadeId));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === shadeId)).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
   it("has Blocker and can't attack on its turn", async () => {

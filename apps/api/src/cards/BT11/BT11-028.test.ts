@@ -32,7 +32,7 @@ describe("BT11-028 MachGaogamon", () => {
       0: { battleArea: [{ card: "BT11-033", as: "host", under: ["BT11-028"], suspended: true }] },
     });
 
-    await advance(s.engine).fireSubTrigger("whenEffectAddsToOpponentHand");
+    await advance(s.engine).fireSubTrigger("whenEffectAddsToOpponentHand", { effectAddedToHandSeat: 1 });
 
     expect(s.perm("host").isSuspended).toBe(false);
   });

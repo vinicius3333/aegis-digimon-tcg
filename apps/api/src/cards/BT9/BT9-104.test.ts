@@ -14,8 +14,8 @@ describe("BT9-104 X Digivolution!", () => {
           deck: [
             { card: "BT9-064", as: "evolution" },
             { card: "BT9-008", as: "placedUnder" },
-            { card: "BT1-001", as: "miss" },
-            { card: "BT1-002", as: "bonusDraw" },
+            { card: "BT1-009", as: "miss" },
+            { card: "BT1-010", as: "bonusDraw" },
           ],
         },
       },
@@ -48,11 +48,11 @@ describe("BT9-104 X Digivolution!", () => {
           deck: [
             { card: "BT9-064", as: "evolution" },
             { card: "BT9-008", as: "incompatibleX" },
-            { card: "BT1-001", as: "initialMiss" },
-            { card: "BT1-002", as: "bonusDraw" },
+            { card: "BT1-009", as: "initialMiss" },
+            { card: "BT1-010", as: "bonusDraw" },
             { card: "BT6-111", as: "alphamon" },
             { card: "BT9-068", as: "grademonX" },
-            { card: "BT1-003", as: "grademonMiss" },
+            { card: "BT1-011", as: "grademonMiss" },
           ],
         },
       },
@@ -72,7 +72,7 @@ describe("BT9-104 X Digivolution!", () => {
     expect(evolutionChoice.options?.visibleCards).toEqual([
       { instanceId: s.inst("evolution").instanceId, cardId: "BT9-064" },
       { instanceId: s.inst("incompatibleX").instanceId, cardId: "BT9-008" },
-      { instanceId: s.inst("initialMiss").instanceId, cardId: "BT1-001" },
+      { instanceId: s.inst("initialMiss").instanceId, cardId: "BT1-009" },
     ]);
     expect(evolutionChoice.options?.candidateInstanceIds).toEqual([
       s.inst("evolution").instanceId,

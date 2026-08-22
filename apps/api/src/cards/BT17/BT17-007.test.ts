@@ -7,6 +7,6 @@ describe("BT17-007", () => {
   });
 
   it("can DNA digivolve at end of turn as inherited", () => {
-    expect(compiled.effects?.[1]).toMatchObject({ trigger: "EndOfYourTurn", isInherited: true, actions: [{ kind: "DnaDigivolve", payCost: true, optional: true, materials: { count: 2, isSelf: true } }] });
+    expect(compiled.effects?.[1]).toMatchObject({ trigger: "EndOfYourTurn", isInherited: true, actions: [{ kind: "DnaDigivolve", payCost: true, optional: true, materials: [{ count: 1, filter: { isSelfRef: true } }, { count: 1, filter: { excludeSelf: true } }] }] });
   });
 });

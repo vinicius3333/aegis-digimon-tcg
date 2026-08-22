@@ -34,7 +34,8 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "keyword": {
-            "keyword": "SecurityCheckOnDelete"
+            "keyword": "Piercing",
+            "raw": "＜Piercing＞"
           },
           "duration": "forTheTurn"
         }
@@ -67,7 +68,8 @@ const compiled: CompiledCard = {
             "count": 1
           },
           "keyword": {
-            "keyword": "SecurityCheckOnDelete"
+            "keyword": "Piercing",
+            "raw": "＜Piercing＞"
           },
           "duration": "forTheTurn"
         }

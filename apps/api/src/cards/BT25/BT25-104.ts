@@ -29,7 +29,6 @@ type Actions = CompiledCard["effects"][number]["actions"];
 // with a fixed 12000 DP and grants ＜Rush＞, live only while ShineGreymon: Burst Mode is on
 // the field and it's the controller's turn. Modeled with the same continuous primitives as
 // BT13-008 / AD1-021 ("treated as a Digimon" bundle): GrantStatic grant:"kinds" (kind-flip,
-// ContinuousEffectLedger.addKindGrant — NOT a duplicate of the RawUnparsed claim this needed
 // a new primitive; it already existed), SetBaseDP (absolute override, NOT ModifyDP's signed
 // delta — addBaseDpOverride), and GainKeyword Rush. `count: "all"` targets every matching
 // Tamer with no prompt (required: this is a `YourTurn` continuous effect, re-fired every

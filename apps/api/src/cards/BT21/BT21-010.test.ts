@@ -15,4 +15,50 @@ describe("BT21-010 compiled implementation", () => {
       for (const action of effect.actions ?? []) expect(typeof action.kind).toBe("string");
     }
   });
+
+  it("allows the conditional Siriusmon digivolution and grants the inherited DP bonus", () => {
+    expect(compiled.effects).toEqual([
+      expect.objectContaining({
+        trigger: "YourTurn",
+        actions: [
+          {
+            kind: "Digivolve",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            into: { controllerDefault: "mine", nameOrTrait: [{ tokens: ["Siriusmon"], match: "name" }] },
+            payCost: true,
+            from: ["hand"],
+            costOverride: 4,
+            ignoreRequirements: true,
+            optional: true,
+            condition: {
+              kind: "orConditions",
+              conditions: [
+                { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 2 },
+                {
+                  kind: "permanentCount",
+                  seat: "mine",
+                  filter: { kind: ["Tamer"], nameOrTrait: [{ tokens: ["Hero"], match: "trait" }], distinctNames: true },
+                  op: "gte",
+                  value: 3,
+                },
+              ],
+              raw: "you have 2 or fewer security cards or 3 or more [Hero] trait Tamers with different names",
+            },
+          },
+        ],
+      }),
+      expect.objectContaining({
+        trigger: "YourTurn",
+        isInherited: true,
+        actions: [
+          {
+            kind: "ModifyDP",
+            amount: 2000,
+            duration: "permanent",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          },
+        ],
+      }),
+    ]);
+  });
 });

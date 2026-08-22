@@ -159,4 +159,18 @@ describe("BT10-015 Shoutmon X5B", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
   });
+
+  it("uses Armor Purge to shed its top card instead of being deleted", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT10-015", as: "x5b", under: ["BT10-013"] }] },
+    }, { autoAcceptOptional: true, autoOrderTriggers: true });
+    const x5bId = s.perm("x5b").topCard.instanceId;
+    const sourceId = s.inst("x5b").stack[0]!.instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("x5b").permanentId])).toBe(0);
+    await settle(() => s.perm("x5b").topCard.instanceId === sourceId);
+
+    expect(s.perm("x5b").topCard.instanceId).toBe(sourceId);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === x5bId)).toBe(true);
+  });
 });

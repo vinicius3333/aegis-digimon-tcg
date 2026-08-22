@@ -28,4 +28,14 @@ describe("BT12-072 Chaosdramon (X Antibody)", () => {
     await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
+
+  it("does not trash security when another own Digimon is deleted", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT12-072", as: "chaos" }, { card: "BT1-009", as: "other" }] },
+      1: { security: ["BT1-009", "BT1-010"] },
+    });
+    await advance(s.engine).verb.deletePermanent([s.perm("other").permanentId]);
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
 });

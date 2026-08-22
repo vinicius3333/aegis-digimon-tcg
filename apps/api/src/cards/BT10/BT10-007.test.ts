@@ -12,12 +12,14 @@ describe("BT10-007 Dondokomon", () => {
     });
     s.state.memory = 0;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("xrosHeartBase").permanentId,
-      instanceId: s.inst("dondokomon").instanceId,
-      useAlternateCost: true,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("xrosHeartBase").permanentId,
+        instanceId: s.inst("dondokomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("xrosHeartBase").topCard.cardId === "BT10-007");
 
     expect(s.state.memory).toBe(0);
@@ -32,11 +34,13 @@ describe("BT10-007 Dondokomon", () => {
     });
     s.state.memory = 1;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("plainBlueBase").permanentId,
-      instanceId: s.inst("dondokomon").instanceId,
-      useAlternateCost: true,
-    })).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("plainBlueBase").permanentId,
+        instanceId: s.inst("dondokomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./BT21-040.js";
+import { compiled } from "./BT21-040.js";
 
 /**
  * BT21-040's alternate digivolution is gated on EITHER printed alternative:
@@ -45,6 +45,31 @@ async function digivolvesForFour(s: ReturnType<typeof board>): Promise<boolean> 
 }
 
 describe("BT21-040 Agumon", () => {
+  it("preserves the two zero-cost alternate Digivolution requirements", () => {
+    expect(compiled.digivolutionRequirement).toEqual([
+      { names: ["Koromon"], cost: 0, isAlternate: true },
+      { level: 2, traits: ["Hero"], cost: 0, isAlternate: true },
+    ]);
+  });
+
+  it("preserves the inherited +2000 DP effect for your turn", () => {
+    const inherited = compiled.effects.find((effect) => effect.isInherited);
+    expect(inherited).toEqual(
+      expect.objectContaining({
+        trigger: "YourTurn",
+        isInherited: true,
+        actions: [
+          {
+            kind: "ModifyDP",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            amount: 2000,
+            duration: "permanent",
+          },
+        ],
+      }),
+    );
+  });
+
   it("opens the ShineGreymon path when the opponent has a level 6 Digimon", async () => {
     expect(await digivolvesForFour(board({ opponentLv6: true }))).toBe(true);
   });

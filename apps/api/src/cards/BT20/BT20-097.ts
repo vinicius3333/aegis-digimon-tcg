@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Main",
@@ -43,7 +43,7 @@ const compiled: CompiledCard = {
           "from": [
             "trash"
           ],
-          "reduceCost": 4,
+          "reduceCostBy": 4,
           "optional": true
         },
         {
@@ -86,45 +86,20 @@ const compiled: CompiledCard = {
             }
           ]
         },
+      ]
+    },
+    {
+      "trigger": "Main",
+      "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }],
+      "actions": [
         {
           "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "DeathXmon"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
-            "count": 1
-          },
-          "from": [
-            "trash"
-          ],
+          "target": { "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["DeathXmon"], "match": "name" }] }, "count": 1 },
+          "from": ["trash"],
           "payCost": false,
           "cost": {
             "kind": "return",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Dorumon"
-                    ],
-                    "match": "name"
-                  }
-                ]
-              },
-              "count": 1
-            },
+            "target": { "filter": { "controller": "mine", "zone": "digivolutionCards", "nameOrTrait": [{ "tokens": ["Dorumon"], "match": "name" }] }, "count": 1 },
             "raw": "By returning 1 [Dorumon] from those Digimon's digivolution cards to the hand"
           },
           "optional": true,

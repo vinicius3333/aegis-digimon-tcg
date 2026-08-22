@@ -12,8 +12,8 @@ import { registerCard } from "../../engine/effects/registry.js";
 // non-executable ("coverage": "none"): it dropped the inherited ＜Piercing＞ (the IR
 // records the keyword on a Static effect, but the interpreter only runs
 // `effect.actions`, never `effect.keywords`, so a keyword-only Static is a silent
-// no-op), and emitted the [End of Your Turn] move clause as RawUnparsed (a loud gap
-// that throws in dev/test). Removing the AUTO-GENERATED header preserves this file
+// no-op), and emitted the [End of Your Turn] move clause as RawUnparsed. Removing the
+// AUTO-GENERATED header preserves this file
 // across regeneration (card-module contract + the file-header convention).
 //
 // NOTE: this card is NOT an Option — it is a Green Digimon (the "option" mechanic brief

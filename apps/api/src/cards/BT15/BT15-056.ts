@@ -63,10 +63,11 @@ const compiled: CompiledCard = {
               "target": {
                 "filter": {
                   "controller": "opponent",
-                  "kind": [
-                    "Digimon",
-                    "Tamer"
-                  ]
+                "kind": [
+                  "Digimon",
+                  "Tamer"
+                ],
+                "playCostLteTriggerSource": true
                 },
                 "count": 1
               }

@@ -103,7 +103,13 @@ export async function runPlaceUnder(
       destId = ctx.selections.get(action.underSelectionRef);
     } else if (action.underFilter) {
       const destTarget: Target = { filter: action.underFilter, count: 1 };
-      const destIds = await resolvePermanentTargets(ctx, destTarget);
+      let destIds = (await resolvePermanentTargets(ctx, destTarget)).filter((id) => !sourceIds.includes(id));
+      if (destIds.length === 0) {
+        destIds = candidatePermanents(ctx, destTarget)
+          .map((permanent) => permanent.permanentId)
+          .filter((id) => !sourceIds.includes(id))
+          .slice(0, 1);
+      }
       if (destIds.length === 0) return;
       destId =
         destIds.length === 1
@@ -116,6 +122,34 @@ export async function runPlaceUnder(
     if (destId === undefined) return;
     for (const sourcePermanentId of sourceIds) {
       await relocateByEffect(ctx, destId, sourcePermanentId, { belowTop: true });
+    }
+    return;
+  }
+  if (action.fromSelectedPermanentDigivolutionCards) {
+    const sourceIds = await resolvePermanentTargets(ctx, action.target);
+    const sourcePermanent = sourceIds[0] === undefined ? undefined : ctx.game.permanentById(sourceIds[0]);
+    if (sourcePermanent === undefined || action.underFilter === undefined) return;
+    const cards = sourcePermanent.stack.filter((card) =>
+      ctx.game.definitionOf(card).kinds.includes("Digimon" as never),
+    );
+    if (cards.length === 0) return;
+    const hostIds = await resolvePermanentTargets(ctx, { filter: action.underFilter, count: 1 });
+    const hostId = hostIds[0];
+    if (hostId === undefined) return;
+    let chosen = cards.map((card) => card.instanceId);
+    if (action.order === "any" && chosen.length > 1 && ctx.ask.orderCards !== undefined) {
+      chosen = await ctx.ask.orderCards(ctx, {
+        candidates: chosen,
+        visibleCards: cards.map(({ instanceId, cardId }) => ({ instanceId, cardId })),
+        destination: "stackBottom",
+      });
+    }
+    await ctx.fx.placeUnder(hostId, chosen, { belowTop: true });
+    ctx.lastPlacedUnderInstanceIds = chosen;
+    ctx.lastEffectActed = chosen.length > 0;
+    if (action.trackCount !== undefined) {
+      ctx.namedCounts ??= new Map();
+      ctx.namedCounts.set(action.trackCount, chosen.length);
     }
     return;
   }
@@ -181,7 +215,9 @@ export async function runPlaceUnder(
       destId = self.permanentId;
     }
     if (destId === undefined) return;
-    await ctx.fx.placeUnder(destId, [top.instanceId], { belowTop: true, faceUp: false });
+    // `position: "top"` is the printed "under ... as its top card" form; the default is the
+    // true bottom used by BT25-088 and other "top of deck under this Tamer" effects.
+    await ctx.fx.placeUnder(destId, [top.instanceId], { belowTop: action.position !== "top", faceUp: false });
     return;
   }
   // Cards to place: loose cards matching the target filter.
@@ -240,7 +276,7 @@ export async function runPlaceUnder(
     hostId = self.permanentId;
   }
   if (hostId === undefined) return;
-  let chosen = await pickLoose(ctx, action.target, candidates);
+  let chosen = await pickLoose(ctx, action.target, candidates, undefined, ctx.ask, candidates.map((candidate) => candidate.instanceId));
   if (action.order === "any" && chosen.length > 1 && ctx.ask.orderCards !== undefined) {
     chosen = await ctx.ask.orderCards(ctx, {
       candidates: chosen,
@@ -256,7 +292,8 @@ export async function runPlaceUnder(
   // The placeUnder primitive records them as material cards in the host's stack (belowTop as
   // the DigiXros convention; the flag is structural metadata for the DigiXros system to read).
   if (chosen.length > 0) {
-    await ctx.fx.placeUnder(hostId, chosen, { belowTop: action.position !== "bottom", faceUp: action.faceDown !== true });
+    const placementIds = action.position === "bottom" && action.order === "any" ? [...chosen].reverse() : chosen;
+    await ctx.fx.placeUnder(hostId, placementIds, { belowTop: action.position !== "bottom", faceUp: action.faceDown !== true });
   }
   if (action.bindHostAs && chosen.length > 0) {
     ctx.boundPlayed ??= new Map();
@@ -337,6 +374,12 @@ export async function runTrashDigivolution(
 ): Promise<boolean> {
   const amount = action.amount ?? 1;
   const fromTop = action.fromTop ?? true;
+  const isDigiBurst = /Digi-?Burst/i.test(action.raw ?? "");
+  const trashOptions = {
+    byEffectSeat: ctx.source.ownerSeat,
+    byEffectCardId: ctx.source.cardId,
+    ...(isDigiBurst ? { isDigiBurst: true } : {}),
+  };
 
   // "acrossDigimon": pool all digivolution cards from every matching permanent and let
   // the controller pick `amount` from the combined pool (EX12-035 "any 4 digivolution
@@ -387,9 +430,13 @@ export async function runTrashDigivolution(
       byHost.set(entry.permanentId, bucket);
     }
     for (const [pid, ids] of byHost) {
-      if (ids.length > 0) await ctx.fx.trashDigivolutionCards(pid, ids, { byEffectSeat: ctx.source.ownerSeat });
+      if (ids.length > 0) await ctx.fx.trashDigivolutionCards(pid, ids, trashOptions);
     }
     ctx.lastEffectActed = chosen.length > 0;
+    if (action.trackCount !== undefined) {
+      if (ctx.namedCounts === undefined) ctx.namedCounts = new Map();
+      ctx.namedCounts.set(action.trackCount, chosen.length);
+    }
     return amount === "all" ? chosen.length > 0 : chosen.length === amount;
   }
 
@@ -403,7 +450,9 @@ export async function runTrashDigivolution(
   // reaction may collapse this whole operation onto ONE reacting Digimon's stack instead. The
   // loop below then re-applies the SAME fromTop/choose/amount logic to whichever ids come back,
   // which is what preserves the original action's count and selection kind after a redirect.
-  const permanentIds = await ctx.fx.redirectDigivolutionTrashHosts(resolvedIds);
+  const permanentIds = ctx.fx.redirectDigivolutionTrashHosts
+    ? await ctx.fx.redirectDigivolutionTrashHosts(resolvedIds)
+    : resolvedIds;
   // An optional fixed-count action that gates the rest of its effect is an atomic
   // activation cost (for example BT5-111: "by trashing 2 ... end the attack").
   // If any selected host cannot supply the printed count, do not partially trash its
@@ -429,7 +478,10 @@ export async function runTrashDigivolution(
     const permanent = ctx.game.permanentById(pid);
     if (permanent === undefined) continue;
     const stack = permanent.stack;
-    const take = amount === "all" ? stack.length : Math.min(amount, stack.length);
+    const targetAmount = action.scaling?.unit === "targetColors"
+      ? new Set(ctx.game.definitionOf(permanent.topCard).colors).size
+      : amount;
+    const take = targetAmount === "all" ? stack.length : Math.min(targetAmount, stack.length);
     let ids: string[];
     if (action.choose === true) {
       // "trash any 1 card under [permanent]" (RB1-016, KB Q4094): the controller picks freely
@@ -450,11 +502,16 @@ export async function runTrashDigivolution(
       }
     }
     if (ids.length > 0) {
-      await ctx.fx.trashDigivolutionCards(pid, ids, { byEffectSeat: ctx.source.ownerSeat });
+      await ctx.fx.trashDigivolutionCards(pid, ids, trashOptions);
       totalTrashed += ids.length;
     }
   }
   ctx.lastEffectActed = totalTrashed > 0;
+  if (action.trackCount !== undefined) {
+    ctx.namedCounts ??= new Map();
+    ctx.namedCounts.set(action.trackCount, totalTrashed);
+  }
   if (amount === "all") return totalTrashed > 0;
+  if (action.scaling?.unit === "targetColors") return totalTrashed > 0;
   return totalTrashed === amount * permanentIds.length;
 }

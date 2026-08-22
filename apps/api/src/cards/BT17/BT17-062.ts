@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // Behavior is executed by the shared interpreter; this file only carries the IR and
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "WhenAttacking",
@@ -38,25 +38,17 @@ const compiled: CompiledCard = {
           "ignoreRequirements": true,
           "optional": true,
           "condition": {
-            "kind": "opponentHas",
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "gte",
-                "value": 6
+            "kind": "allOf",
+            "conditions": [
+              {
+                "kind": "selfDigivolutionStackHasTrait",
+                "filter": {"nameOrTrait": [{"tokens": ["Kosuke Kisakata"], "match": "name"}]}
               },
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Kosuke Kisakata"
-                  ],
-                  "match": "name"
-                }
-              ]
-            },
+              {
+                "kind": "opponentHas",
+                "filter": {"controller": "opponent", "kind": ["Digimon"], "levelComparison": {"op": "gte", "value": 6}}
+              }
+            ],
             "raw": "[Kosuke Kisakata] is in this Digimon's digivolution cards and your opponent has a level 6 or higher Digimon"
           }
         }

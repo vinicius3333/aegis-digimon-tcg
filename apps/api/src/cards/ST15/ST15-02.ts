@@ -17,6 +17,7 @@ const compiled: CompiledCard = {
             "kind": "opponentHas",
             "filter": {
               "controllerDefault": "opponent",
+              "zone": "battleArea",
               "kind": [
                 "Digimon"
               ]

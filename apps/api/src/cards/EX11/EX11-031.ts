@@ -7,6 +7,20 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // CAP-H-09: cost kind `flipSecurityFaceDown` — flip the top face-up security card
 // face down as a cost. See CAPABILITIES-BACKLOG.md.
 const compiled: CompiledCard = {
+  "digivolutionRequirement": [
+    {
+      "level": 4,
+      "cost": 4,
+      "colors": ["Green", "Black"],
+      "isAlternate": true
+    },
+    {
+      "level": 4,
+      "traits": ["Royal Base"],
+      "cost": 3,
+      "isAlternate": true
+    }
+  ],
   "effects": [
     {
       "trigger": "OpponentsTurn",
@@ -176,16 +190,6 @@ const compiled: CompiledCard = {
   ],
   "coverage": "full",
   "residual": [],
-  "digivolutionRequirement": [
-    {
-      "level": 4,
-      "traits": [
-        "Royal Base"
-      ],
-      "cost": 3,
-      "isAlternate": true
-    }
-  ]
 };
 
 registerIrCard("EX11-031", compiled);

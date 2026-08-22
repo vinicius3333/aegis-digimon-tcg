@@ -60,6 +60,9 @@ const compiled: CompiledCard = {
             "count": 1,
             "isSelf": true
           },
+          "from": [
+            "security"
+          ],
           "payCost": false
         }
       ],

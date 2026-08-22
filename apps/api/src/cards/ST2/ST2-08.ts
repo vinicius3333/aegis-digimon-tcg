@@ -1,31 +1,21 @@
-import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
-const module: EffectModule = {
-  cardId: "ST2-08",
-  effectsForTiming(timing, source): Effect[] {
-    if (timing !== EffectTiming.None) return [];
-    return [
-      staticModifier({
-        source,
-        effectKey: "ST2-08/inherited-security-attack",
-        isInherited: true,
-        description: "Your turn: while opponent has a sourceless Digimon, gain Security Attack +1.",
-        when: (ctx) =>
-          source.isOwnersTurn() &&
-          ctx.game
-            .player(ctx.game.opponentOf(source.ownerSeat))
-            .battleArea.some(
-              (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && p.stack.length === 0,
-            ),
-        resolve: async (ctx) => {
-          const host = source.permanent();
-          if (host !== undefined) ctx.fx.grantKeyword(host.permanentId, "SecurityAttack", EffectDuration.Permanent, 1);
-        },
-      }),
-    ];
-  },
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+const compiled: CompiledCard = {
+  effects: [{
+    trigger: "YourTurn",
+    isInherited: true,
+    actions: [{
+      kind: "Aura",
+      target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+      effect: { kind: "keyword", keyword: { keyword: "SecurityAttack", amount: 1, raw: "<Security Attack +1>" } },
+      while: {
+        kind: "opponentHas",
+        filter: { zone: "battleArea", digivolutionCards: "none", controllerDefault: "opponent", kind: ["Digimon"] },
+        raw: "your opponent has a battle-area Digimon with no digivolution cards",
+      },
+    }],
+  }],
+  coverage: "full",
+  residual: [],
 };
-registerCard(module);
+registerIrCard("ST2-08", compiled);

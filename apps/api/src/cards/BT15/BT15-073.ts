@@ -6,91 +6,91 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // The inherited effect is scoped to the battle deletion payload and resolves against the
 // per-instance battle-opponent binding captured by the combat resolver.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
         },
         {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
             },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
-        },
-        {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "Draw",
-          "controller": "mine",
-          "amount": 1
-        },
-        {
-          "kind": "Trash",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "zone": "hand"
-            },
-            "count": 1
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "Delete",
-          "target": {
-            "sourceRef": "battleOpponent",
-            "filter": {
-              "controller": "opponent",
-              "kind": ["Digimon"]
-            },
-            "count": 1
+            count: 1,
           },
-          "condition": {
-            "kind": "triggerRemovalCause",
-            "removalCause": "byBattle"
-          }
-        }
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+        },
+        {
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 1,
+        },
+        {
+          kind: "Trash",
+          target: {
+            filter: {
+              controller: "mine",
+              zone: "hand",
+            },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            sourceRef: "battleOpponent",
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          condition: {
+            kind: "triggerRemovalCause",
+            removalCause: "byBattle",
+          },
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 registerIrCard("BT15-073", compiled);
 export { compiled };

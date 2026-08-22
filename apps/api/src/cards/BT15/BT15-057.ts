@@ -25,11 +25,12 @@ const compiled: CompiledCard = {
             "filter": {
               "nameOrTrait": [
                 {
-                  "tokens": [
-                    "Numemon",
-                    "X Antibody"
-                  ],
-                  "match": "name"
+                    "tokens": ["Numemon"],
+                    "match": "name"
+                  },
+                  {
+                    "tokens": ["X Antibody"],
+                    "match": "trait"
                 }
               ]
             },

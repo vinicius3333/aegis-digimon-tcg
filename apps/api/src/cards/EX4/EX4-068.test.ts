@@ -10,6 +10,7 @@ import {
   type Seat,
 } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./EX4-068.js";
@@ -30,6 +31,14 @@ const definition = (id: string, colors: CardColor[]): CardDefinition => ({
 });
 
 describe("EX4-068 Heaven's Judgement", () => {
+  it("is represented by full residual-free IR with distinct-color repetition", () => {
+    expect(runtimeCompiledCard("EX4-068")).toMatchObject({ coverage: "full", residual: [] });
+    expect(runtimeCompiledCard("EX4-068")?.effects?.[1]?.actions?.[0]).toMatchObject({
+      kind: "RepeatPerCount",
+      countUnit: "colors",
+    });
+  });
+
   it("activates -6000 once for the base effect plus once per distinct own Digimon color", async () => {
     const selfCard = card("EX4-068", 0);
     const self = {

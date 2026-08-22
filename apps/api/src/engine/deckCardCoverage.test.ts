@@ -48,6 +48,7 @@ describe("catalog deck card coverage", () => {
 
   for (const { cardId, deckIds } of auditedCards) {
     it(`${cardId} enters through its registered effect module (${deckIds.join(", ")})`, async () => {
+      const preferredLinkRecipients: string[] = [];
       const setup = setupEngine(
         {
           0: {
@@ -76,7 +77,14 @@ describe("catalog deck card coverage", () => {
           autoSelectCards: true,
           autoChooseOption: true,
           autoOrderCards: true,
+          // Link Options such as BT25-100 and ST22-09 choose a recipient permanent.
+          // Prefer the staged battle-area permanents so this generic audit does not
+          // turn an otherwise valid card into a false "recipient missing" gap.
+          preferInstanceIds: preferredLinkRecipients,
         },
+      );
+      preferredLinkRecipients.push(
+        ...setup.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId),
       );
       setup.state.memory = 50;
       expect(setup.engine.applyIntent(0, { type: "playCard", instanceId: setup.inst("audited").instanceId })).toEqual({

@@ -14,6 +14,13 @@ describe("ST3-12 T.K. Takaishi", () => {
     expect(s.perm("normal").currentDP).toBe(6000);
   });
 
+  it("does not boost Security Digimon during your own turn", async () => {
+    const s = setupEngine({ 0: { battleArea: ["ST3-12", { card: "ST3-07", as: "normal" }] } });
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(observe(s.engine).securityDp(0)).toBe(0);
+  });
+
   it("plays itself from security", async () => {
     const s = setupEngine({ 0: { security: [{ card: "ST3-12", as: "tk", faceUp: true }] } });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("tk"));

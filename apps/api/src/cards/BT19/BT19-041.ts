@@ -6,148 +6,140 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1
+            count: 1,
           },
-          "amount": 6000,
-          "duration": "untilOpponentTurnEnd",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "security",
-                "position": "top"
+          amount: 6000,
+          duration: "untilOpponentTurnEnd",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "security",
+                position: "top",
               },
-              "count": 1
+              count: 1,
             },
-            "raw": "By trashing the top card of your security stack"
+            raw: "By trashing the top card of your security stack",
           },
-          "optional": false
+          optional: false,
         },
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
             },
-            "count": 1,
-            "sameTarget": true
+            count: 1,
+            sameTarget: true,
           },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
           },
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "if the security trash cost was paid"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "WhenDigivolving",
-      "actions": [
-        {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "if the security trash cost was paid",
           },
-          "amount": 6000,
-          "duration": "untilOpponentTurnEnd",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "controller": "mine",
-                "zone": "security",
-                "position": "top"
-              },
-              "count": 1
-            },
-            "raw": "By trashing the top card of your security stack"
-          },
-          "optional": false
         },
-        {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1,
-            "sameTarget": true
-          },
-          "keyword": {
-            "keyword": "Blocker",
-            "raw": "＜Blocker＞"
-          },
-          "duration": "untilOpponentTurnEnd",
-          "condition": {
-            "kind": "ifThisEffectActed",
-            "raw": "if the security trash cost was paid"
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "Replacement",
-          "event": "wouldLeavePlay",
-          "sourceFilter": {
-            "isSelfRef": true
-          },
-          "actions": [
-            {
-              "kind": "SecurityManipulation",
-              "op": "addTop",
-              "controller": "mine",
-              "source": "deck",
-              "amount": 1,
-              "condition": {
-                "kind": "zoneCount",
-                "seat": "mine",
-                "zone": "security",
-                "op": "lte",
-                "value": 2,
-                "raw": "you have 2 or fewer security cards"
-              }
-            }
-          ]
-        }
       ],
-      "frequency": "OncePerTurn"
-    }
+    },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: 6000,
+          duration: "untilOpponentTurnEnd",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                controller: "mine",
+                zone: "security",
+                position: "top",
+              },
+              count: 1,
+            },
+            raw: "By trashing the top card of your security stack",
+          },
+          optional: false,
+        },
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+            },
+            count: 1,
+            sameTarget: true,
+          },
+          keyword: {
+            keyword: "Blocker",
+            raw: "＜Blocker＞",
+          },
+          duration: "untilOpponentTurnEnd",
+          condition: {
+            kind: "ifThisEffectActed",
+            raw: "if the security trash cost was paid",
+          },
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
+            {
+              kind: "SecurityManipulation",
+              op: "addTop",
+              controller: "mine",
+              source: "deck",
+              amount: 1,
+              condition: {
+                kind: "zoneCount",
+                seat: "mine",
+                zone: "security",
+                op: "lte",
+                value: 2,
+                raw: "you have 2 or fewer security cards",
+              },
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT19-041", compiled);

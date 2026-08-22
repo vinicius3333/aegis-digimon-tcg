@@ -45,7 +45,10 @@ const compiled: CompiledCard = {
       "actions": [
         {
           "kind": "SubTrigger",
-          "event": "whenSecurityCardRemoved",
+          "event": "whenSecurityRemoved",
+          "sourceFilter": {
+            "controller": "any"
+          },
           "actions": [
             {
               "kind": "Unsuspend",

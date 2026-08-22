@@ -58,4 +58,14 @@ describe("BT5-111 Omnimon X Antibody", () => {
     expect(s.state.players[0]?.security).toHaveLength(1);
     expect(s.state.players[0]?.trash).toHaveLength(2);
   });
+
+  it("does not end the attack when only one source remains", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-111", as: "omni", under: ["BT5-086"] }], security: [{ card: "BT1-009", as: "security" }] }, 1: { battleArea: [{ card: "BT5-082", as: "attacker" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.engine.applyIntent(1, { type: "attack", attackerPermanentId: s.perm("attacker").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.perm("omni").stack).toHaveLength(1);
+  });
 });

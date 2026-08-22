@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./ST5-08.js";
 
 describe("ST5-08 DarkTyrannomon", () => {
+  it("is fully represented as Blocker plus attack memory loss", () => {
+    expect(runtimeCompiledCard("ST5-08")).toMatchObject({ coverage: "full", residual: [], effects: [{ trigger: "Static", keywords: [{ keyword: "Blocker" }] }, { trigger: "WhenAttacking", actions: [{ kind: "GainMemory", amount: -2 }] }] });
+  });
+
   it("has Blocker and loses 2 memory when attacking", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "ST5-08", as: "darktyrannomon" }] }, 1: { security: ["ST5-03"] } });
     s.state.memory = 1;

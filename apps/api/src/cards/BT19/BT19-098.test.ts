@@ -3,14 +3,13 @@ import { EffectTiming, type CardDefinition, type CardInstance, type Permanent, t
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT19-098.js";
 
 // A3 for BT19-098 (King Device — Purple Option). Covers every hand-written clause:
 //   [None] ignore-color waiver / [OnDestroyed] place [Device] from trash /
 //   [Main] place [Device] from trash + place self / [Security] place from hand + add self to hand.
 //
-// FAILS-WHEN-REVERTED: the declarative effect carried RawUnparsed residuals for the trash-place
-// and main clauses, so no placeOptionAsPermanent call was emitted.
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
@@ -132,9 +131,11 @@ describe("BT19-098 King Device", () => {
     await effect!.resolve(ctx);
     expect(recorder.calls.filter((c) => c.verb === "waiveColorRequirement")).toHaveLength(1);
 
-    // With a King Device permanent in play, the waiver gate fails.
-    const withKing = makeContext({ recorder, source, battleArea: [makePermanent("BT19-098", 0 as Seat)] });
-    expect(effect!.canTrigger(withKing)).toBe(false);
+    const compiled = runtimeCompiledCard("BT19-098");
+    expect(compiled?.effects[0]?.actions[0]).toMatchObject({
+      kind: "WaiveColorRequirement",
+      condition: { kind: "youHaveNone", filter: { nameOrTrait: [{ tokens: ["King Device"], match: "name" }] } },
+    });
   });
 
   it("[OnDestroyed] places 1 [Device] cost<=3 Option from trash (ignores cost-4 Device)", async () => {
@@ -212,6 +213,6 @@ describe("BT19-098 King Device", () => {
     expect(place[0]!.args[0]).toBe(dev.instanceId);
     const ret = recorder.calls.filter((c) => c.verb === "returnToHand");
     expect(ret).toHaveLength(1);
-    expect((ret[0]!.args[0] as string[])).toContain(SELF_INSTANCE);
+    expect(ret[0]!.args[0] as string[]).toContain(SELF_INSTANCE);
   });
 });

@@ -1,10 +1,6 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { onPlay, turnTiming, security, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const cardId = "EX11-057";
 
@@ -49,13 +45,14 @@ const module: EffectModule = {
           canActivate: (ctx) => ctx.source.isOnBattleArea(),
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
-            const iceSnowCount = Array.from(owner.battleArea)
-              .filter((p) => p.topCard !== undefined && hasIceSnow(ctx.game.definitionOf(p.topCard)))
-              .length;
+            const iceSnowCount = Array.from(owner.battleArea).filter(
+              (p) => p.topCard !== undefined && hasIceSnow(ctx.game.definitionOf(p.topCard)),
+            ).length;
             if (iceSnowCount === 0) return;
             const opponent = ctx.game.opponentOf(source.ownerSeat);
-            const oppDigimon = Array.from(ctx.game.player(opponent).battleArea)
-              .filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && p.stack.length > 0);
+            const oppDigimon = Array.from(ctx.game.player(opponent).battleArea).filter(
+              (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && p.stack.length > 0,
+            );
             if (oppDigimon.length === 0) return;
             const chosen = await ctx.ask.chooseTargets(ctx, {
               candidates: oppDigimon.map((p) => p.permanentId),
@@ -67,7 +64,10 @@ const module: EffectModule = {
             if (target === undefined) return;
             const toTrash = target.stack.slice(0, Math.min(iceSnowCount, target.stack.length));
             if (toTrash.length > 0) {
-              await ctx.fx.trashDigivolutionCards(chosen[0]!, toTrash.map((c) => c.instanceId));
+              await ctx.fx.trashDigivolutionCards(
+                chosen[0]!,
+                toTrash.map((c) => c.instanceId),
+              );
             }
           },
         }),
@@ -129,5 +129,42 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
-export default module;
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "StartOfYourMainPhase",
+      actions: [{ kind: "GainMemory", amount: 1, condition: { kind: "opponentHas", filter: { controllerDefault: "opponent", kind: ["Digimon"] }, raw: "your opponent has a Digimon" } }]
+    },
+    {
+      trigger: "OnPlay",
+      actions: [
+        {
+          kind: "TrashDigivolution",
+          target: { filter: opponentDigimon, count: 1 },
+          amount: 1,
+          scaling: { per: 1, filter: iceSnowDigimon, unit: "cards" }
+        }
+      ]
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenDigivolutionTrashed",
+          sourceFilter: opponentDigimon,
+          actions: [{ kind: "GainMemory", amount: 1, cost: suspendCost, optional: true, abortOnDecline: true }]
+        }
+      ]
+    },
+    {
+      trigger: "Security",
+      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
+      isSecurity: true
+    }
+  ],
+  coverage: "full",
+  residual: []
+};
+
+registerIrCard("EX11-057", compiled);

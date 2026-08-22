@@ -1,10 +1,6 @@
-import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { turnTiming, security, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const cardId = "EX11-054";
 
@@ -12,15 +8,22 @@ function hasReptileOrDragonkin(def: CardDefinition): boolean {
   return (def.types ?? []).some((t) => t === "Reptile" || t === "Dragonkin");
 }
 
-async function subTriggerAction(subCtx: Parameters<NonNullable<Parameters<typeof turnTiming>[0]["resolve"]>>[0], source: CardSource): Promise<void> {
+function isProgressDigimon(def: CardDefinition): boolean {
+  return isDigimon(def) && (def.types ?? []).includes("Progress");
+}
+
+async function subTriggerAction(
+  subCtx: Parameters<NonNullable<Parameters<typeof turnTiming>[0]["resolve"]>>[0],
+  source: CardSource,
+): Promise<void> {
   const selfPerm = subCtx.source.permanent();
   if (selfPerm === undefined || selfPerm.isSuspended) return;
   const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
   if (!paid) return;
-  subCtx.fx.draw(source.ownerSeat, 1);
+  await subCtx.fx.draw(source.ownerSeat, 1);
   const owner = subCtx.game.player(source.ownerSeat);
   const progressDigimon = Array.from(owner.battleArea)
-    .filter((p) => p.topCard !== undefined && isDigimon(subCtx.game.definitionOf(p.topCard)))
+    .filter((p) => p.topCard !== undefined && isProgressDigimon(subCtx.game.definitionOf(p.topCard)))
     .map((p) => p.permanentId);
   if (progressDigimon.length > 0) {
     const chosen = await subCtx.ask.chooseTargets(subCtx, {
@@ -130,5 +133,42 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
-export default module;
+const reward = {
+  kind: "Draw",
+  controller: "mine",
+  amount: 1,
+  cost: suspendCost,
+  optional: true,
+  abortOnDecline: true
+};
+const boost = {
+  kind: "ModifyDP",
+  target: { filter: progress, count: 1 },
+  amount: 3000,
+  duration: "forTheTurn"
+};
+
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "StartOfYourTurn",
+      actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } }]
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        { kind: "SubTrigger", event: "whenPlayed", sourceFilter: matchingPlayed, actions: [reward, boost] },
+        { kind: "SubTrigger", event: "whenOneOfYoursDigivolves", sourceFilter: matchingPlayed, actions: [reward, boost] }
+      ]
+    },
+    {
+      trigger: "Security",
+      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
+      isSecurity: true
+    }
+  ],
+  coverage: "full",
+  residual: []
+};
+
+registerIrCard("EX11-054", compiled);

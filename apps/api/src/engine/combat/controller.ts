@@ -86,6 +86,7 @@ export interface CombatTrigger {
   subjectPermanentId?: string;
   suspendedPermanentId?: string;
   attackerPermanentId?: string;
+  attackSequence?: number;
   defenderPermanentId?: string;
   blockerPermanentId?: string;
   target?: AttackTarget;
@@ -99,6 +100,8 @@ export interface CombatTrigger {
   deletedInstanceIds?: string[];
   /** Subset of deletedInstanceIds that were stack cards (for inherited-effect gating). */
   deletedWasStackInstanceIds?: string[];
+  /** Top-card instance IDs that individually reached exactly 0 DP in this deletion window. */
+  deletedByDpZeroInstanceIds?: string[];
   battleOpponentPermanentIdByInstanceId?: Record<string, string>;
 }
 
@@ -266,6 +269,7 @@ export interface CombatHooks {
 }
 
 export class CombatController {
+  private attackSequence = 0;
   private openWindow: OpenBlockWindow | undefined;
   private resolving = false;
   /**
@@ -292,6 +296,8 @@ export class CombatController {
   private barrierDecision: BarrierDecisionWindow | undefined;
   /** Active §11-3 Counter Timing window. */
   private counterWindow: OpenCounterWindow | undefined;
+  /** Battle completion payload held until the outer attack reaches cleanup. */
+  private completedCombat: { seat: Seat; attackerPermanentId: string; deletedPermanentIds: string[] } | undefined;
   /**
    * [Counter] effects activated so far THIS attack (§11-3-2 caps it at 1). Reset by
    * `cleanup` at the end of every attack.
@@ -487,6 +493,8 @@ export class CombatController {
     } = {},
   ): Promise<void> {
     this.resolving = true;
+    this.completedCombat = undefined;
+    const attackSequence = ++this.attackSequence;
     this.currentAttack = {
       attackerPermanentId: attacker.permanentId,
       attackerCardId: attacker.topCard.cardId,
@@ -532,12 +540,14 @@ export class CombatController {
       // event subject for both events; a watcher's captured sourceFilter gates on it.
       await this.hooks.fireSubTrigger?.("whenAttacking", {
         attackerPermanentId: attacker.permanentId,
+        attackSequence,
         ...(attackTrigger.defenderPermanentId !== undefined
           ? { defenderPermanentId: attackTrigger.defenderPermanentId }
           : {}),
       });
       await this.hooks.fireSubTrigger?.("whenOpponentAttacks", {
         attackerPermanentId: attacker.permanentId,
+        attackSequence,
         ...(attackTrigger.defenderPermanentId !== undefined
           ? { defenderPermanentId: attackTrigger.defenderPermanentId }
           : {}),
@@ -682,6 +692,9 @@ export class CombatController {
       });
     } finally {
       this.cleanup();
+      const completedCombat = this.completedCombat;
+      this.completedCombat = undefined;
+      if (completedCombat !== undefined) this.hooks.emit({ kind: "combatResolved", ...completedCombat });
     }
   }
 
@@ -1330,13 +1343,6 @@ export class CombatController {
       await this.hooks.ascendToSecurity?.(instanceId);
     }
 
-    this.hooks.emit({
-      kind: "combatResolved",
-      seat: attacker.controllerSeat,
-      attackerPermanentId: attacker.permanentId,
-      deletedPermanentIds: deleted,
-    });
-
     // Battle deletion (is-deleted): the losers have left the field, so fire OnDestroyedAnyone
     // over the deleted set, mirroring documented behavior stacking the window after the
     // battle outcome is fixed. A single fire lets resolveTiming batch a both-combatants tie and
@@ -1442,6 +1448,15 @@ export class CombatController {
       deletedInstanceIds,
       deletedWasStackInstanceIds,
     });
+
+    // Hold the completion payload until resolveAttack reaches its outer cleanup boundary.
+    // Consumers use combatResolved as the end-of-attack seam, so publishing here would let
+    // a second attack race the remaining OnEndAttack timing and controller cleanup.
+    this.completedCombat = {
+      seat: attacker.controllerSeat,
+      attackerPermanentId: attacker.permanentId,
+      deletedPermanentIds: deleted,
+    };
   }
 
   /**

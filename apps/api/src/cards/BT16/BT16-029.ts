@@ -6,89 +6,73 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "OnPlay",
-      "actions": [
+      trigger: "OnPlay",
+      actions: [
         {
-          "kind": "RevealAdd",
-          "revealCount": 3,
-          "add": [
+          kind: "RevealAdd",
+          revealCount: 3,
+          add: [
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Light Fang"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Light Fang"],
+                    match: "trait",
+                  },
+                ],
               },
-              "count": 1,
-              "to": "hand"
+              count: 1,
+              to: "hand",
             },
             {
-              "filter": {
-                "controllerDefault": "mine",
-                "nameOrTrait": [
+              filter: {
+                controllerDefault: "mine",
+                nameOrTrait: [
                   {
-                    "tokens": [
-                      "Night Claw"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                    tokens: ["Night Claw"],
+                    match: "trait",
+                  },
+                ],
               },
-              "orFilters": [
+              orFilters: [
                 {
-                  "controllerDefault": "mine",
-                  "multicolor": true
-                }
+                  controllerDefault: "mine",
+                  multicolor: true,
+                },
               ],
-              "count": 1,
-              "to": "hand"
-            }
+              count: 1,
+              to: "hand",
+            },
           ],
-          "rest": "deckBottom"
-        }
-      ]
+          rest: "deckBottom",
+        },
+      ],
     },
     {
-      "trigger": "YourTurn",
-      "actions": [
+      trigger: "YourTurn",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": "all"
-          },
-          "amount": -3000,
-          "duration": "permanent"
-        }
+          kind: "ModifySecurityDP",
+          amount: -3000,
+          duration: "permanent",
+        },
       ],
-      "isInherited": true
-    }
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": [],
-  "digivolutionRequirement": [
+  coverage: "full",
+  residual: [],
+  digivolutionRequirement: [
     {
-      "level": 2,
-      "traits": [
-        "Light Fang",
-        "Night Claw"
-      ],
-      "cost": 0,
-      "isAlternate": true
-    }
-  ]
+      level: 2,
+      traits: ["Light Fang", "Night Claw"],
+      cost: 0,
+      isAlternate: true,
+    },
+  ],
 };
 
 registerIrCard("BT16-029", compiled);

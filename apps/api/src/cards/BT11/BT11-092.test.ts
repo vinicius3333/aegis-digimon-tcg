@@ -15,7 +15,7 @@ describe("BT11-092 Analogman", () => {
           deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 0;
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("analogman"));

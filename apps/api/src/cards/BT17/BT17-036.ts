@@ -2,7 +2,7 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "AllTurns",
@@ -14,7 +14,7 @@ const compiled: CompiledCard = {
             "isSelfRef": true
           },
           "mode": "prevent",
-          "leaveCause": "opponentEffect",
+          "leaveCause": "byOpponentEffect",
           "actions": [],
           "cost": {
             "kind": "trashSecurityTop",
@@ -129,4 +129,3 @@ const compiled: CompiledCard = {
 };
 
 registerIrCard("BT17-036", compiled);
-export { compiled };

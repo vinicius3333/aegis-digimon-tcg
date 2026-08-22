@@ -1,12 +1,31 @@
 import { describe, it, expect } from "vitest";
 import cards from "../cards/data/cards.json" with { type: "json" };
 import { digivolutionRequirementsFor } from "./data.js";
+import { digiXrosRequirementFor } from "./data.js";
 
 // Regression for the corresponding regression coverage finding 1: BT26 is hand-implemented
 // and has no effects.json entry, so its printed `[Digivolve] ...: Cost N` alternate paths only
 // exist via ALTERNATE_DIGIVOLUTION_OVERRIDES or the generated fallback map. Every BT26 card that
 // prints such a header must resolve to a non-empty requirement list.
 describe("digivolutionRequirementsFor / BT26 alternate digivolve coverage", () => {
+  it("keeps BT19-102's named stack gate and two DigiXros material slots", () => {
+    expect(digivolutionRequirementsFor("BT19-102")).toEqual([
+      { names: ["Luminamon"], cost: 2, isAlternate: true },
+      {
+        names: ["Nene Amano"],
+        cost: 3,
+        isAlternate: true,
+        minNameStackCount: 1,
+        minNameStackNames: ["Shademon"],
+      },
+    ]);
+    expect(digiXrosRequirementFor("BT19-102")).toEqual([
+      {
+        count: 1,
+        materials: [{ names: ["Nene Amano"] }, { names: ["Luminamon", "Shademon"] }],
+      },
+    ]);
+  });
   const bt26WithHeader = (cards as Array<{ cardId: string; set: string; effectText?: string }>).filter(
     (c) => c.set === "BT26" && /\[Digivolve\]/.test(c.effectText ?? ""),
   );

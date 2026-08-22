@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type Seat } from "@aegis/shared";
 import { setupEngine, type BoardSpec, type EngineSetup } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT20-090.js";
 import "../index.js";
 
 // A3 for BT20-090 (Yuuki — Purple Tamer).
@@ -58,6 +59,14 @@ async function driveTurn(h: Harness, seat: Seat): Promise<void> {
 }
 
 describe("BT20-090 Yuuki — Tamer effects", () => {
+  it("encodes all printed clauses without residuals", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects.map((effect) => effect.trigger)).toEqual(["StartOfYourTurn", "EndOfYourTurn", "Security"]);
+    expect(compiled.effects[1]?.actions[0]).toMatchObject({ kind: "Attack", attackPlayer: true, cost: { kind: "suspend" } });
+    expect(compiled.effects[2]).toMatchObject({ isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] });
+  });
+
   it("[Start of Your Turn] sets memory to 3 when it is <= 2", async () => {
     const h = harness({
       // Place Yuuki on the battle area for seat 0.

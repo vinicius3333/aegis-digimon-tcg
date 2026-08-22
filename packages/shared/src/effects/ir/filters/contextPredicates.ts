@@ -3,6 +3,8 @@
 // arrived where it is.
 
 export interface ContextPredicates {
+  /** Printed play-cost ceiling from the currently attacking Digimon. */
+  playCostLteAttackerLevel?: boolean;
   /** Narrows an onDeletionOf watcher to deletion by DP reaching 0. */
   deleteCause?: "dpReachedZero";
   /**

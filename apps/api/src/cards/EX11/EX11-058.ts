@@ -1,29 +1,43 @@
-import { EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { turnTiming, security, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "EX11-058";
+const aqua = {
+  controller: "mine",
+  kind: ["Digimon"],
+  nameOrTrait: [
+    { tokens: ["Aqua"], match: "trait" },
+    { tokens: ["Sea Animal"], match: "trait" }
+  ]
+};
+const suspendCost = {
+  kind: "suspend",
+  target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+  raw: "by suspending this Tamer"
+};
+const draw = { kind: "Draw", controller: "mine", amount: 1, cost: suspendCost, optional: true, abortOnDecline: true };
 
-function hasAquaOrSeaAnimal(def: CardDefinition): boolean {
-  return isDigimon(def) && (def.types ?? []).some((t) => t === "Aqua" || t === "Sea Animal");
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnStartMainPhase) {
-      return [
-        turnTiming({
-          source,
-          effectKey: `${cardId}/start-main-place-gain-memory`,
-          description:
-            "[Start of Your Main Phase] By placing 1 level 5 or lower card with [Aqua] or " +
-            "[Sea Animal] trait from your hand as the bottom digivolution card of any of your " +
-            "[Aqua]/[Sea Animal] Digimon, gain 1 memory.",
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "StartOfYourMainPhase",
+      actions: [
+        {
+          kind: "GainMemory",
+          amount: 1,
+          cost: {
+            kind: "place",
+            target: {
+              filter: { controller: "mine", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 }, nameOrTrait: [{ tokens: ["Aqua"], match: "trait" }, { tokens: ["Sea Animal"], match: "trait" }] },
+              count: 1,
+              from: ["hand"]
+            },
+            underFilter: aqua,
+            destination: "digivolutionStack",
+            position: "bottom",
+            host: "target",
+            raw: "By placing 1 level 5 or lower card with [Aqua] or [Sea Animal] in any of its traits from your hand as the bottom digivolution card of any of your [Aqua] or [Sea Animal] Digimon"
+          },
           optional: true,
           when: (_ctx) => source.isOnBattleArea(),
           canActivate: (ctx) => {
@@ -46,7 +60,7 @@ const module: EffectModule = {
               max: 1,
             });
             if (chosenCard.length === 0) return;
-            const hostDigimon = Array.from(owner.battleArea).filter(
+            const hostDigimon = [...Array.from(owner.battleArea), ...(owner.breeding ? [owner.breeding] : [])].filter(
               (p) => p.topCard !== undefined && hasAquaOrSeaAnimal(ctx.game.definitionOf(p.topCard)),
             );
             if (hostDigimon.length === 0) return;
@@ -97,7 +111,7 @@ const module: EffectModule = {
                 if (selfPerm === undefined || selfPerm.isSuspended) return;
                 const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
                 if (!paid) return;
-                subCtx.fx.draw(source.ownerSeat, 1);
+                await subCtx.fx.draw(source.ownerSeat, 1);
               },
             });
           },
@@ -131,7 +145,7 @@ const module: EffectModule = {
                 if (selfPerm === undefined || selfPerm.isSuspended) return;
                 const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
                 if (!paid) return;
-                subCtx.fx.draw(source.ownerSeat, 1);
+                await subCtx.fx.draw(source.ownerSeat, 1);
               },
             });
           },
@@ -156,5 +170,4 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
-export default module;
+registerIrCard("EX11-058", compiled);

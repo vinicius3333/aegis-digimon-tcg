@@ -1,24 +1,16 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, type CardDefinition, type CardInstance } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT19-080.js";
 
-const definition: CardDefinition = {
-  cardId: "BT19-080", set: "BT19", nameEn: "Takato Matsuki", kinds: ["Tamer"] as never,
-  colors: ["Red"] as never, playCost: 4, dp: 0, evoCosts: [], maxCountInDeck: 4,
-};
-const instance = { cardId: "BT19-080", instanceId: "BT19-080-test", ownerSeat: 0, faceUp: true } as CardInstance;
-const source: CardSource = {
-  instanceId: instance.instanceId, cardId: "BT19-080", ownerSeat: 0, definition,
-  permanent: () => undefined, isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true,
-};
-
 describe("BT19-080 Takato Matsuki", () => {
-  it("installs the Growlmon/Gallantmon watcher from the Tamer entry window", () => {
-    const module = getEffectModule("BT19-080");
-    expect(module).toBeDefined();
-    expect(module!.effectsForTiming(EffectTiming.OnEnterFieldAnyone, source)).toHaveLength(1);
-    expect(module!.effectsForTiming(EffectTiming.WhenDigivolving, source)).toHaveLength(0);
+  it("compiles memory setting, Growlmon/Gallantmon Raid attack, and Security play", () => {
+    const card = runtimeCompiledCard("BT19-080");
+    expect(card?.coverage).toBe("full");
+    expect(card?.residual).toEqual([]);
+    expect(card?.effects).toEqual(expect.arrayContaining([
+      expect.objectContaining({ trigger: "StartOfYourTurn" }),
+      expect.objectContaining({ trigger: "AllTurns", actions: [expect.objectContaining({ kind: "SubTrigger", event: "whenOneOfYoursDigivolves" })] }),
+      expect.objectContaining({ trigger: "Security", isSecurity: true }),
+    ]));
   });
 });

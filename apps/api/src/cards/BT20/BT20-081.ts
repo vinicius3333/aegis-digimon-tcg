@@ -13,7 +13,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q4406: can't choose the same Digimon twice for the -10000 DP effect.
 // KB Q4407: Digimon with 0 DP are deleted after ALL processing finishes.
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Counter",
@@ -116,9 +116,10 @@ const compiled: CompiledCard = {
             "target": {
               "filter": {
                 "controller": "mine",
-                "zone": "security"
+              "zone": "security"
               },
-              "count": 1
+              "count": 1,
+              "fromTop": true
             },
             "raw": "By trashing your top security card"
           },

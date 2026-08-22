@@ -41,4 +41,13 @@ describe("BT5-060 Monitamon", () => {
       s.inst("remainderB").instanceId,
     ]);
   });
+
+  it("does not play a card when the revealed cards have no Monitamon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-060", as: "source" }], deck: ["BT5-061", "BT5-062", "BT5-063"] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const player = s.state.players[0] as PlayerState;
+    await (s.engine as any).primitives.deletePermanent([s.perm("source").permanentId], "byEffect");
+    await settle(() => player.deck.length === 3);
+    expect(player.battleArea).toHaveLength(0);
+    expect(player.deck).toHaveLength(3);
+  });
 });

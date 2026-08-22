@@ -19,6 +19,19 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "WhenLinking",
+      isLinked: true,
+      actions: [
+        {
+          kind: "Delete",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], levelComparison: { op: "lte", value: 4 } },
+            count: 1,
+          },
+        },
+      ],
+    },
+    {
       trigger: "OnPlay",
       actions: [
         {
@@ -68,6 +81,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
+            sameTarget: true,
           },
           restriction: "cantBeDeDigivolved",
           duration: "untilOpponentTurnEnd",
@@ -124,6 +138,7 @@ export const compiled: CompiledCard = {
               kind: ["Digimon"],
             },
             count: 1,
+            sameTarget: true,
           },
           restriction: "cantBeDeDigivolved",
           duration: "untilOpponentTurnEnd",
@@ -207,6 +222,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["Appmon"], cost: 3 }],
   digivolutionRequirement: [
     {
       level: 4,

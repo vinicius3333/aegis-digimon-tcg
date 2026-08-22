@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { Phase } from "@aegis/shared";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import "../index.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import "./index.js";
 
 describe("BT17-093 Tai Kamiya & Kari Kamiya — hatch trigger", () => {
   it("suspends this Tamer and gains 1 memory when its owner hatches", async () => {
@@ -21,5 +22,11 @@ describe("BT17-093 Tai Kamiya & Kari Kamiya — hatch trigger", () => {
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]?.breeding?.topCard?.cardId).toBe("BT1-001");
+  });
+
+  it("records complete compiled coverage for the hatch trigger", () => {
+    const compiled = runtimeCompiledCard("BT17-093")!;
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 });

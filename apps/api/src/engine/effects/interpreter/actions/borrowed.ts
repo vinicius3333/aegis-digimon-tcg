@@ -20,7 +20,7 @@ interface ForeignCandidate {
 }
 
 /**
- * Collect the foreign cards whose compiled [On Play]/[When Digivolving] effects this card
+ * Collect the foreign cards whose compiled [On Play], [When Digivolving], or [On Deletion] effects this card
  * may borrow, from the requested zone, filtered by `filter`. Only face-up cards qualify
  * (a face-down security card / flipped digivolution card has no readable effect; source
  * `!cardSource.IsFlipped`). A card with no matching borrowable effect is skipped.
@@ -70,7 +70,7 @@ function collectForeignCandidates(
     if (!definitionMatches(action.filter, def as unknown as DefinitionFacts)) continue;
     const compiled = runtimeCompiledCard(src.cardId);
     if (compiled === undefined) continue;
-    // Borrowable = an [On Play]/[When Digivolving] effect (security effects are never
+    // Borrowable = an [On Play]/[When Digivolving]/[On Deletion] effect (security effects are never
     // borrowable, source `!cardEffect.IsSecurityEffect`).
     const borrowable = compiled.effects.filter((e) => action.fromTriggers.includes(e.trigger) && e.isSecurity !== true);
     if (borrowable.length === 0) continue;
@@ -160,7 +160,7 @@ export async function runActivateForeignEffect(
   for (const eff of toRun.slice(0, action.count)) await runEffect(runCtx, eff);
 }
 
-const BORROWABLE_EFFECT_TRIGGERS: readonly EffectTrigger[] = ["OnPlay", "WhenDigivolving"];
+const BORROWABLE_EFFECT_TRIGGERS: readonly EffectTrigger[] = ["OnPlay", "WhenDigivolving", "OnDeletion", "OnDestroyedAnyone"];
 
 export async function runActivateEffect(
   ctx: EffectContext,
@@ -208,6 +208,7 @@ export async function runUseOptionWithoutCost(
   // Bind the use OUTCOME on ctx up-front: false until an Option is actually used (read by a
   // subsequent "if this effect used" Condition; KB EX8-037 Q3923/Q4737).
   ctx.lastOptionUsed = false;
+  ctx.lastOptionUsedInstanceId = undefined;
 
   const seat = ctx.source.ownerSeat; // the printed form is always "from YOUR hand"
   // Resolve source zones: `action.from` (top-level) or `action.target.from` (wrapped form).
@@ -235,7 +236,7 @@ export async function runUseOptionWithoutCost(
       const def = ctx.game.definitionOf({ cardId: cand.cardId } as never);
       if (filter !== undefined && !definitionMatches(filter, def)) continue;
       if (!def.kinds.includes(CardKind.Option)) continue;
-      if (def.colors.length !== 1) continue;
+      if (def.colors !== undefined && def.colors.length !== 1) continue;
       if (def.playCost > costCap) continue;
       if (ctx.fx.isPlayProhibited?.(seat, cand.cardId, "play") === true) continue;
       candidates.push(cand.instanceId);
@@ -285,6 +286,7 @@ export async function runUseOptionWithoutCost(
     ...(action.reduceCostBy !== undefined ? { costDelta: -action.reduceCostBy } : {}),
   });
   ctx.lastOptionUsed = true;
+  ctx.lastOptionUsedInstanceId = chosenId;
 }
 
 /**

@@ -124,7 +124,7 @@ describe("BT11-097 Crimson Flare [Main]", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }] },
       },
-      { autoSelectCards: true },
+      { autoSelectCards: true, autoAcceptOptional: true },
     );
     s.state.memory = 10;
 

@@ -17,6 +17,7 @@ import {
   topInstanceIds,
 } from "../targeting/permanents.js";
 import type { Action, Target } from "@aegis/shared";
+import { definitionMatches } from "../matching/definition.js";
 
 export async function runRemovalAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
@@ -88,6 +89,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           ? await resolveTotalDpCapTargets(ctx, target)
           : await resolvePermanentTargets(ctx, target);
       const ids = survivorIds.length > 0 ? resolved.filter((id) => !survivorIds.includes(id)) : resolved;
+      ctx.lastDeleteTargetSelected = ids.length > 0;
       if (action.at === "endOfTurn") {
         for (const id of ids) ctx.fx.delayedDeletePlayed?.(id);
         ctx.lastDeleteCount = 0;
@@ -192,8 +194,35 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         filter: action.filter,
         count: "all",
       } as Target);
+      if (action.minimum !== undefined && candidates.length < action.minimum) {
+        ctx.lastDeleteCount = 0;
+        return false;
+      }
       if (candidates.length === 0) {
         ctx.lastDeleteCount = 0;
+        return false;
+      }
+      if ((action as { chooseTargets?: boolean }).chooseTargets === true) {
+        const picked = await ctx.ask.selectPermanents(ctx, {
+          candidates: candidates.map((candidate) => candidate.permanentId),
+          min: 0,
+          max: candidates.length,
+          maxTotalPlayCost: effectiveBudget,
+        });
+        const costs = new Map(candidates.map((candidate) => [
+          candidate.permanentId,
+          candidate.topCard === undefined ? 0 : (ctx.game.definitionOf(candidate.topCard).playCost ?? 0),
+        ]));
+        const selected: string[] = [];
+        let spent = 0;
+        for (const id of picked) {
+          const cost = costs.get(id);
+          if (cost !== undefined && spent + cost <= effectiveBudget) {
+            selected.push(id);
+            spent += cost;
+          }
+        }
+        ctx.lastDeleteCount = selected.length > 0 ? await ctx.fx.deletePermanent(selected) : 0;
         return false;
       }
       // Sort ascending by printed play cost
@@ -222,7 +251,32 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         }
         if (spent >= effectiveBudget && !action.upTo) break;
       }
+      if (action.minimum !== undefined && selected.length < action.minimum) {
+        ctx.lastDeleteCount = 0;
+        return false;
+      }
       ctx.lastDeleteCount = selected.length > 0 ? await ctx.fx.deletePermanent(selected) : 0;
+      return false;
+    }
+    case "DeleteByStackColorBudget": {
+      const source = ctx.source.permanent();
+      if (source === undefined) return false;
+      const hasColor = (color: "Red" | "Black") =>
+        source.stack.some((card) => ctx.game.definitionOf(card).colors.includes(color));
+      const filters = [
+        ...(hasColor("Red") ? [action.redFilter] : []),
+        ...(hasColor("Black") ? [action.blackFilter] : []),
+      ];
+      if (filters.length === 0) return false;
+      const candidates = candidatePermanents(ctx, { filter: { or: filters }, count: "all" } as Target);
+      const selected = await ctx.ask.selectPermanents(ctx, {
+        candidates: candidates.map((candidate) => candidate.permanentId),
+        min: 0,
+        max: candidates.length,
+        maxTotalPlayCost: action.budget,
+      });
+      ctx.lastDeleteCount = selected.length > 0 ? await ctx.fx.deletePermanent(selected) : 0;
+      ctx.lastEffectActed = ctx.lastDeleteCount > 0;
       return false;
     }
     case "DeleteLevelBudget": {
@@ -351,9 +405,20 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
           }
         } else {
           const candidates = candidateLooseInstances(ctx, action.target, ["hand"]);
-          chosen = await pickLoose(ctx, action.target, candidates, undefined, asker);
+          chosen = await pickLoose(
+            ctx,
+            action.optional === true ? { ...action.target, upTo: true } : action.target,
+            candidates,
+            undefined,
+            asker,
+          );
         }
         const moved = chosen.length > 0 ? await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat }) : [];
+        ctx.lastTrashedCards = moved.map((card) => ({
+          instanceId: card.instanceId,
+          cardId: card.cardId,
+          dp: ctx.game.definitionOf(card).dp ?? 0,
+        }));
         // Bind the branch-acted result so an "if you did" tail (BT16-094 OR-modal) can gate.
         ctx.lastEffectActed = moved.length > 0;
         // Store actual trash count under the named key for downstream scaling. (CAP-E12/E13)
@@ -390,9 +455,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             ? ctx.game.opponentOf(ctx.source.ownerSeat)
             : ctx.source.ownerSeat;
         const deck = ctx.game.player(seat).deck;
-        const n = action.target.count === "all"
-          ? deck.length
-          : action.target.count * (scale ?? 1);
+        const n = action.target.count === "all" ? deck.length : action.target.count * (scale ?? 1);
         const topCards = deck.slice(0, n);
         const topIds = topCards.map((card) => card.instanceId);
         if (topIds.length > 0) {
@@ -461,6 +524,34 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // Security effects such as BT10-109 encode "add this card to its owner's hand"
       // as Return(isSelfRef). The source is a loose security card, so it has no
       // permanent for resolvePermanentTargets to find.
+      if (action.from?.includes("digivolutionCards")) {
+        const self = ctx.source.permanent();
+        const candidates =
+          self?.stack.filter((card) => definitionMatches(returnTarget.filter, ctx.game.definitionOf(card))) ?? [];
+        if (candidates.length === 0) return false;
+        const picked =
+          candidates.length === 1
+            ? [candidates[0]!.instanceId]
+            : await ctx.ask.selectCards(ctx, {
+                candidates: candidates.map((card) => card.instanceId),
+                min: 1,
+                max: 1,
+                visibleCards: candidates.map((card) => ({ instanceId: card.instanceId, cardId: card.cardId })),
+              });
+        if (picked.length === 0) return false;
+        const pickedCard = candidates.find((card) => card.instanceId === picked[0]);
+        const moved = await ctx.fx.returnToHand(picked);
+        const level = pickedCard === undefined ? undefined : ctx.game.definitionOf(pickedCard).level;
+        if (action.storeAs !== undefined && level !== undefined) {
+          ctx.namedCounts ??= new Map();
+          ctx.namedCounts.set(action.storeAs, level);
+        }
+        if (action.bindResultAs !== undefined) {
+          ctx.boundPlayed ??= new Map();
+          ctx.boundPlayed.set(action.bindResultAs, new Set(moved.map((card) => card.instanceId)));
+        }
+        return false;
+      }
       if (returnTarget.isSelf || returnTarget.filter.isSelfRef) {
         if (action.to === "hand") await ctx.fx.returnToHand([ctx.source.instanceId]);
         else await ctx.fx.returnToDeck([ctx.source.instanceId], { toTop: action.to === "deckTop" });
@@ -561,9 +652,9 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // Delete branch reads. Self-scoped to this source permanent, or owner-wide by seat.
       if (action.scope === "self") {
         const self = ctx.source.permanent();
-        if (self !== undefined) ctx.fx.addDeletionMaxDp?.({ permanentId: self.permanentId }, action.amount);
+        if (self !== undefined) ctx.fx.addDeletionMaxDp?.({ permanentId: self.permanentId }, action.amount * (scope.scale ?? 1));
       } else {
-        ctx.fx.addDeletionMaxDp?.({ seat: ctx.source.ownerSeat }, action.amount);
+        ctx.fx.addDeletionMaxDp?.({ seat: ctx.source.ownerSeat }, action.amount * (scope.scale ?? 1));
       }
       return false;
     }
@@ -571,7 +662,10 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // "At the next end of your opponent's turn, delete it" after a PlayWithoutCost branch.
       // The target is the permanent(s) just created by the prior play action in this same
       // effect resolution, not the card currently resolving the effect.
-      for (const permanentId of ctx.lastPlayedPermanentIds ?? []) {
+      const permanentIds = action.target === undefined
+        ? (ctx.lastPlayedPermanentIds ?? [])
+        : await resolvePermanentTargets(ctx, action.target);
+      for (const permanentId of permanentIds) {
         if (action.timing === "endOfOpponentTurn") {
           ctx.fx.delayedDeletePlayed?.(permanentId, "endOfOpponentTurn");
         } else {

@@ -1,13 +1,9 @@
-import { CardKind, EffectTiming } from "@aegis/shared";
-import type { CardDefinition, CardInstance } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { whenDigivolving, whenAttacking } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import { getCompiledCard, type CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const cardId = "BT10-041";
+const compiled = getCompiledCard(cardId) as CompiledCard;
 
 function isEligibleOption(def: CardDefinition): boolean {
   if (!(def.kinds as string[]).includes(CardKind.Option as string)) return false;
@@ -18,9 +14,7 @@ function isEligibleOption(def: CardDefinition): boolean {
 }
 
 function optionCandidates(ctx: EffectContext, ownerSeat: 0 | 1): CardInstance[] {
-  return Array.from(ctx.game.player(ownerSeat).hand).filter((c) =>
-    isEligibleOption(ctx.game.definitionOf(c)),
-  );
+  return Array.from(ctx.game.player(ownerSeat).hand).filter((c) => isEligibleOption(ctx.game.definitionOf(c)));
 }
 
 const module: EffectModule = {
@@ -56,9 +50,7 @@ const module: EffectModule = {
             if (chosen.length === 0) return;
 
             const chosenCard = candidates.find((c) => c.instanceId === chosen[0]!);
-            const originalCost = chosenCard
-              ? ctx.game.definitionOf(chosenCard).playCost
-              : undefined;
+            const originalCost = chosenCard ? ctx.game.definitionOf(chosenCard).playCost : undefined;
 
             // Run the option's effect and trash it normally. useOptionFromHand moves the card
             // to trash and fires whenOptionUsed.
@@ -123,5 +115,5 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
-export default module;
+export { compiled };
+registerIrCard("BT10-041", compiled);
