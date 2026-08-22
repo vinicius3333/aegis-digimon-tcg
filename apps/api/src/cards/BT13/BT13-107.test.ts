@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-107.js";
 
 describe("BT13-107 Vulcan Crusher", () => {
@@ -40,5 +43,15 @@ describe("BT13-107 Vulcan Crusher", () => {
     expect(
       compiled.effects?.find((entry) => entry.trigger === "Security")?.actions?.map((action) => action.kind),
     ).toEqual(["Suspend", "AddToHandSelf"]);
+  });
+
+  it("suspends an opposing Digimon and returns itself when revealed in security", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT13-107", as: "vulcan", faceUp: true }] },
+      1: { battleArea: [{ card: "BT1-012", as: "target" }] },
+    });
+    await advance(s.engine).fire(EffectTiming.SecuritySkill, s.inst("vulcan"));
+    expect(s.perm("target").suspended).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("vulcan").instanceId)).toBe(true);
   });
 });
