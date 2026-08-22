@@ -12,20 +12,26 @@ const recovery = [
 
 export const compiled: CompiledCard = {
   effects: [
-    { trigger: "Static", actions: [{ kind: "WaiveColorRequirement", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, condition: { kind: "youHave", filter: glowingDawn } }] },
-    { trigger: "WhenDigivolving", actions: [
-      { kind: "RecoverByTrashingMostSecurity", recover: false },
-      { kind: "SelectBind", target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1, bindAs: "suspendLocked" }, condition: { kind: "ifThisEffectActed" } },
-      { kind: "Restrict", target: { filter: { boundRef: "suspendLocked" }, count: 1 }, restriction: "suspend", duration: "untilOpponentTurnEnd", condition: { kind: "ifThisEffectActed" } },
-      ...recovery,
-    ] },
+    {
+      trigger: "WhenDigivolving",
+      actions: [
+        { kind: "RecoverByTrashingMostSecurity", recover: false },
+        {
+          kind: "SelectBind",
+          target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1, bindAs: "suspendLocked" },
+          condition: { kind: "ifThisEffectActed" },
+        },
+        {
+          kind: "Restrict",
+          target: { filter: { boundRef: "suspendLocked" }, count: 1 },
+          restriction: "suspend",
+          duration: "untilOpponentTurnEnd",
+          condition: { kind: "ifThisEffectActed" },
+        },
+        ...recovery,
+      ],
+    },
     { trigger: "WhenAttacking", frequency: "OncePerTurn", actions: recovery },
-    { trigger: "Main", actions: [
-      { kind: "SelectBind", target: { filter: opponentDigimon, count: 1, bindAs: "mainTarget" } },
-      { kind: "ModifyDP", target: { filter: { boundRef: "mainTarget" }, count: 1 }, amount: -8000, duration: "untilOpponentTurnEnd" },
-      { kind: "SecurityManipulation", op: "trashTop", controller: "mine", amount: 1, optional: true, trackCount: "extraSecurity" },
-      { kind: "ModifyDP", target: { filter: { boundRef: "mainTarget" }, count: 1 }, amount: -5000, duration: "untilOpponentTurnEnd", condition: { kind: "namedCountAtLeast", countSource: "extraSecurity", count: 1 } },
-    ] },
   ],
   coverage: "full",
   residual: [],
