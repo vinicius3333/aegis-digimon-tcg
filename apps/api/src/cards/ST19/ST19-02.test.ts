@@ -25,7 +25,7 @@ describe("ST19-02 ＜Barrier＞ is once per turn", () => {
         },
         1: {
           battleArea: [{ card: "ST19-10", as: "barrier", dp: 1000, suspended: true, under: ["ST19-02"] }],
-          security: 5,
+          security: 10,
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },

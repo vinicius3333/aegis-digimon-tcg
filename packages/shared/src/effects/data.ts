@@ -960,7 +960,10 @@ export const DIGIXROS_REQUIREMENT_OVERRIDES: Record<string, DigiXrosRequirement[
   // ST19-10: [Tyrannomon]/[Raremon] in name plus a Lv.4 [Puppet] Digimon.
   "ST19-10": [
     {
-      materials: [{ names: ["Tyrannomon", "Raremon"] }, { traits: ["Puppet"], level: 4 }],
+      materials: [
+        { nameOrTrait: [{ tokens: ["Tyrannomon", "Raremon"], match: "name" }] },
+        { traits: ["Puppet"], level: 4 },
+      ],
       count: 2,
     },
   ],

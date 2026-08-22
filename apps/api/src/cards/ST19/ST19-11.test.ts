@@ -58,6 +58,9 @@ describe("ST19-11 Chaperomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST19-11"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST19-11")).toBe(true);
+    await settle(
+      () => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Familiar-Token"),
+    );
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Familiar-Token"),
     ).toBe(false);
