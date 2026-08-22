@@ -1198,6 +1198,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                 },
               }),
             ];
+          if (timing === EffectTiming.SecuritySkill) return [_addSelfSecurity(source, cardId)];
           return [];
         }
         case "BT12-110": {
