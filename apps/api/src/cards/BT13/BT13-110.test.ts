@@ -136,7 +136,9 @@ describe("BT13-110 Royal Knights of the Purge", () => {
     );
     await s.ready();
     const optionId = s.perm("option").topCard!.instanceId;
-    const entry = activatableEffects(s, optionId).find((effect) => effect.instanceId === optionId);
+    const entry = activatableEffects(s, optionId).find(
+      (effect) => effect.instanceId === optionId && effect.effectKey.toLowerCase().includes("delay"),
+    );
     expect(entry).toBeDefined();
     expect(
       s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: optionId, effectKey: entry!.effectKey }),
