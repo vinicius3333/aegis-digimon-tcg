@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-027.js";
 
@@ -41,7 +40,7 @@ describe("BT26-027 Petermon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("petermon").instanceId })).toEqual({
       ok: true,
     });
-    await advance(s.engine).settle();
+    await settle();
 
     expect(s.perm("cost").isSuspended).toBe(true);
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(-2);
