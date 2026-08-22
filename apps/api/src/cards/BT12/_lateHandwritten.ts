@@ -727,7 +727,6 @@ export function lateBt12Module(cardId: string): EffectModule {
                         (item) =>
                           isDigimon(ctx.game.definitionOf(item)) && hasText(ctx.game.definitionOf(item), "save"),
                       ),
-                    true,
                   );
                   if (card) await ctx.fx.placeUnder(self.permanentId, [card]);
                 },
