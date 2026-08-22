@@ -72,7 +72,7 @@ describe("BT9-104 X Digivolution!", () => {
     expect(evolutionChoice.options?.visibleCards).toEqual([
       { instanceId: s.inst("evolution").instanceId, cardId: "BT9-064" },
       { instanceId: s.inst("incompatibleX").instanceId, cardId: "BT9-008" },
-      { instanceId: s.inst("initialMiss").instanceId, cardId: "BT1-001" },
+      { instanceId: s.inst("initialMiss").instanceId, cardId: "BT1-009" },
     ]);
     expect(evolutionChoice.options?.candidateInstanceIds).toEqual([
       s.inst("evolution").instanceId,
