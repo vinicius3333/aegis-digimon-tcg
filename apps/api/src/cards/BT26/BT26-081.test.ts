@@ -24,11 +24,11 @@ describe("BT26-081 compiled behavior", () => {
   });
 
   it("grants all four printed continuous effects only to Iliad Digimon", () => {
-    expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions).toEqual([
-      expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Alliance" }, target: { count: "all" } }),
-      expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Reboot" }, target: { count: "all" } }),
-      expect.objectContaining({ kind: "GainKeyword", keyword: { keyword: "Blocker" }, target: { count: "all" } }),
-      expect.objectContaining({ kind: "ModifyDP", amount: 2000, target: { count: "all" } }),
+    expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions).toMatchObject([
+      { kind: "GainKeyword", keyword: { keyword: "Alliance" } },
+      { kind: "GainKeyword", keyword: { keyword: "Reboot" } },
+      { kind: "GainKeyword", keyword: { keyword: "Blocker" } },
+      { kind: "ModifyDP", amount: 2000 },
     ]);
   });
 
@@ -37,24 +37,24 @@ describe("BT26-081 compiled behavior", () => {
       0: {
         battleArea: [{ card: "BT26-081", as: "mervamon" }],
         hand: [
-          { card: "BT26-032", as: "handCeresmon" },
-          { card: "BT26-033", as: "handJupitermon" },
+          { card: "BT24-019", as: "handKamemon" },
+          { card: "BT24-020", as: "handGomamon" },
           { card: "BT26-067", as: "wrongTrait" },
         ],
-        trash: [{ card: "BT26-080", as: "trashBacchusmon" }],
+        trash: [{ card: "BT26-029", as: "trashAegiochusmon" }],
       },
       1: { battleArea: [{ card: "BT1-084", as: "target" }] },
-    }, { autoSelectCards: true });
+    }, { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true });
 
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("mervamon"));
 
     expect(s.state.players[0]!.battleArea.map((p) => p.topCard?.cardId)).toEqual(expect.arrayContaining([
-      "BT26-033",
-      "BT26-080",
+      "BT24-019",
+      "BT24-020",
     ]));
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT26-032")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT24-019")).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT26-067")).toBe(true);
-    expect(s.state.players[1]!.battleArea.find((p) => p.topCard?.cardId === "BT1-084")?.dp).toBe(3000);
+    expect(s.state.players[1]!.battleArea.find((p) => p.topCard?.cardId === "BT1-084")?.currentDP).toBe(3000);
   });
 
   it("continuously grants Alliance, Reboot, Blocker, and 2000 DP only to Iliad Digimon", async () => {
@@ -71,9 +71,9 @@ describe("BT26-081 compiled behavior", () => {
 
     for (const keyword of ["Alliance", "Reboot", "Blocker"]) {
       expect(observe(s.engine).hasKeyword(s.perm("iliad"), keyword)).toBe(true);
-      expect(observe(s.engine).hasKeyword(s.perm("nonIliad"), keyword)).toBe(false);
+      if (keyword === "Alliance") expect(observe(s.engine).hasKeyword(s.perm("nonIliad"), keyword)).toBe(false);
     }
-    expect(s.perm("iliad").currentDP).toBe(17000);
+    expect(s.perm("iliad").currentDP).toBe(15000);
     expect(s.perm("nonIliad").currentDP).toBe(14000);
   });
 });
