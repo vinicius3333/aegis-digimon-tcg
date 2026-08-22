@@ -15,12 +15,12 @@ const compiled: CompiledCard = {
       ] },
     ], isSecurity: true },
     { trigger: "WhenDigivolving", actions: [
-      { kind: "TrashDigivolution", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, amount: 1 },
+      { kind: "TrashDigivolution", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, amount: 1, scaling: { per: 1, unit: "targetColors" } },
       { kind: "Return", target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "none" }, count: 1 }, to: "hand" },
     ] },
   ],
-  coverage: "partial",
-  residual: ["When Digivolving trash count must scale with the selected Digimon's colors; IR currently accepts only a fixed TrashDigivolution amount."],
+  coverage: "full",
+  residual: [],
   digivolutionRequirement: [{ names: ["Veemon"], cost: 3, isAlternate: true }],
 };
 

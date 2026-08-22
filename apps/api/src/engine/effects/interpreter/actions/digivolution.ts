@@ -66,7 +66,10 @@ export async function runDigivolutionAction(ctx: EffectContext, action: Action, 
     case "TrashDigivolution": {
       const completed = await runTrashDigivolution(ctx, {
         ...action,
-        amount: action.amount === "all" ? "all" : (action.amount ?? 1) * (scale ?? 1),
+        amount:
+          action.amount === "all" || action.scaling?.unit === "targetColors"
+            ? action.amount === "all" ? "all" : (action.amount ?? 1)
+            : (action.amount ?? 1) * (scale ?? 1),
       });
       return action.optional === true && action.abortOnDecline === true && !completed;
     }
