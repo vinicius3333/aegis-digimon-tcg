@@ -36,20 +36,23 @@ describe("BT26-038 Kuwagamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-008", as: "winner", under: ["BT26-038"] }],
-          hand: [{ card: "BT26-021", as: "candidate" }],
+          battleArea: [
+            { card: "BT26-008", as: "winner", under: ["BT26-038"] },
+            { card: "BT1-066", as: "evolutionTarget" },
+          ],
+          hand: [{ card: "BT26-038", as: "candidate" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 3;
+    s.state.memory = 1;
     await s.ready();
 
     await advance(s.engine).fireSubTrigger("whenBattleWon", {
       attackerPermanentId: s.perm("winner").permanentId,
     });
 
-    expect(s.perm("winner").topCard.cardId).toBe("BT26-021");
+    expect(s.perm("evolutionTarget").topCard.instanceId).toBe(s.inst("candidate").instanceId);
     expect(s.state.memory).toBe(0);
   });
 });
