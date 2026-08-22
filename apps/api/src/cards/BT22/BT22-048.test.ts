@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-048.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT22-048 Togemon", () => {
   it("grants Raid and Piercing only with a same-level stack pair", () => {

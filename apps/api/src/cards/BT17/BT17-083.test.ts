@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import "../index.js";
+import "./index.js";
 
 const KOJI = "BT17-083";
 const HOST = "BT1-009";

@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT22-067.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT22-067 LordKnightmon", () => {
   it("matches the printed card identity and keyword package", () => {

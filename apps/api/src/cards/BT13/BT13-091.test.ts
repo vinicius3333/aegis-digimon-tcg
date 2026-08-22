@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-091.js";
 
 describe("BT13-091 Belphemon: Rage Mode", () => {
@@ -52,5 +55,15 @@ describe("BT13-091 Belphemon: Rage Mode", () => {
         },
       ],
     });
+  });
+
+  it("deletes an opposing level 5 Digimon at the start of the main phase", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-091", as: "rage" }] },
+      1: { battleArea: [{ card: "BT1-015", as: "target" }] },
+    });
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("rage"));
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
