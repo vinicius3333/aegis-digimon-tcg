@@ -151,5 +151,4 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
-export default module;
+registerIrCard("BT9-021", compiled);
