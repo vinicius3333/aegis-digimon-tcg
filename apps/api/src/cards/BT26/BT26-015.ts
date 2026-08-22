@@ -9,13 +9,25 @@ const ts = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["TS
 
 const onPlayBody = [
   { kind: "ModifyDP", target: { filter: opponentDigimon, count: 1 }, amount: -4000, duration: "untilOpponentTurnEnd" },
-  { kind: "Return", target: { filter: { controller: "mine", zone: "trash" }, count: 1 }, from: ["trash"], to: "deckBottom", optional: true, trackCount: "returnedTrash" },
+  {
+    kind: "Return",
+    target: { filter: { controller: "mine", zone: "trash" }, count: 1 },
+    from: ["trash"],
+    to: "deckBottom",
+    optional: true,
+    trackCount: "returnedTrash",
+  },
   { kind: "Delete", target: { filter: opponentLowDp, count: 1 }, condition: { kind: "ifThisEffectActed" } },
 ];
 
 const reactiveBuff = [
   { kind: "SelectBind", target: { filter: ownDigimon, count: 1, bindAs: "buffTarget" } },
-  { kind: "ModifyDP", target: { filter: { boundRef: "buffTarget" }, count: 1 }, amount: 3000, duration: "untilOpponentTurnEnd" },
+  {
+    kind: "ModifyDP",
+    target: { filter: { boundRef: "buffTarget" }, count: 1 },
+    amount: 3000,
+    duration: "untilOpponentTurnEnd",
+  },
   { kind: "Attack", target: { filter: { boundRef: "buffTarget" }, count: 1 }, mandatory: true },
 ];
 
@@ -23,8 +35,19 @@ export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: onPlayBody },
     { trigger: "WhenDigivolving", actions: onPlayBody },
-    { trigger: "YourTurn", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenEffectAddsToDeck", effectSourceFilter: { controller: "mine" }, actions: reactiveBuff, raw: "When your effect adds cards to a deck, 1 of your Digimon may get +3000 DP and attack." }] },
-    { trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenEffectAddsToDeck", effectSourceFilter: { controller: "mine" }, hostFilter: { isSelfRef: true, nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }] }, actions: [{ kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1 }, optional: true }], raw: "When your effect adds cards to a deck, this Digimon with Chronomon in its text may unsuspend." }] },
+    {
+      trigger: "YourTurn",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenEffectAddsToDeck",
+          effectSourceFilter: { controller: "mine" },
+          actions: reactiveBuff,
+          raw: "When your effect adds cards to a deck, 1 of your Digimon may get +3000 DP and attack.",
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
