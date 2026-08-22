@@ -16,7 +16,6 @@ export const compiled: CompiledCard = {
   effects: [
     { trigger: "StartOfYourMainPhase", actions: [startCost, { kind: "Draw", controller: "mine", amount: 1 }, { kind: "GainMemory", amount: 1 }] },
     { trigger: "AllTurns", actions: [{ kind: "SubTrigger", event: "whenAttacking", actions: attackBody, raw: "When a Digimon attacks, by suspending this Tamer, place the top card of your deck face down under this Tamer. After, 1 of your [BEATBREAK] trait Digimon gains ＜Collision＞ and ＜Blocker＞ for the turn." }] },
-    { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", target: self, from: ["security"], payCost: false }] },
   ],
   coverage: "full",
   residual: [],
