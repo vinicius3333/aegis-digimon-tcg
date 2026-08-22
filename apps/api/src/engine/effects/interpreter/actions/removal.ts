@@ -183,7 +183,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         return false;
       }
       if ((action as { chooseTargets?: boolean }).chooseTargets === true) {
-        const picked = await ctx.ask.chooseTargets(ctx, {
+        const picked = await ctx.ask.selectPermanents(ctx, {
           candidates: candidates.map((candidate) => candidate.permanentId),
           min: 0,
           max: candidates.length,
