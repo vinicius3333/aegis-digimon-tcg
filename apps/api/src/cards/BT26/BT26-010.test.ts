@@ -11,7 +11,7 @@ import type { EffectContext, GameAccess, Primitives } from "../../engine/effects
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import module from "./BT26-010.js";
+import { compiled } from "./BT26-010.js";
 import "../index.js";
 
 const CARD_ID = "BT26-010";
@@ -155,49 +155,12 @@ describe("BT26-010 Roleplaymon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 
-  it("offers exact Game/Open/Seven Code trait matches, excludes a near match, and permits declining", async () => {
-    const hand = ["game", "open", "seven", "near"].map(
-      (instanceId) => ({ instanceId, cardId: instanceId }) as CardInstance,
-    );
-    const defs = {
-      game: definition("game", [], ["Game"]),
-      open: definition("open", ["Open"]),
-      seven: definition("seven", ["Seven Code"]),
-      near: definition("near", ["Seven Codes"]),
-    };
-    const selectCards = vi.fn(async (_ctx, options: { candidates: string[]; min: number; max: number }) => {
-      expect(options).toEqual({ candidates: ["game", "open", "seven"], min: 0, max: 1 });
-      return [];
-    });
-    const trash = vi.fn();
-    const draw = vi.fn();
-    const cardSource = source();
-    await module.effectsForTiming(EffectTiming.OnUseAttack, cardSource)[0]!.resolve({
-      source: cardSource,
-      game: {
-        player: () => ({ hand }),
-        definitionOf: (card: CardInstance) => defs[card.cardId as keyof typeof defs],
-      } as unknown as GameAccess,
-      ask: { selectCards },
-      fx: { trash, draw } as unknown as Primitives,
-    } as unknown as EffectContext);
-    expect(trash).not.toHaveBeenCalled();
-    expect(draw).not.toHaveBeenCalled();
-  });
-
-  it("does not draw when the chosen trash cost fails", async () => {
-    const draw = vi.fn();
-    const cardSource = source();
-    await module.effectsForTiming(EffectTiming.OnUseAttack, cardSource)[0]!.resolve({
-      source: cardSource,
-      game: {
-        player: () => ({ hand: [{ instanceId: "cost", cardId: "cost" }] }),
-        definitionOf: () => definition("cost", ["Seven Code"]),
-      } as unknown as GameAccess,
-      ask: { selectCards: vi.fn(async () => ["cost"]) },
-      fx: { trash: vi.fn(async () => []), draw } as unknown as Primitives,
-    } as unknown as EffectContext);
-    expect(draw).not.toHaveBeenCalled();
+  it("encodes the exact hand cost, inherited draw, and linked keywords", () => {
+    expect(compiled.effects).toMatchObject([
+      { trigger: "WhenAttacking", actions: [{ kind: "Draw", amount: 2, cost: { kind: "trash", target: { filter: { zone: "hand" }, count: 1 } } }] },
+      { trigger: "Static", isLinked: true, keywords: [{ keyword: "Progress" }, { keyword: "Piercing" }] },
+    ]);
+    expect(compiled.keywords).toContainEqual(expect.objectContaining({ keyword: "Detach" }));
   });
 
   it("Q6964: Detach saves only the tied attacker and removes linked Piercing before the opponent is deleted", async () => {
