@@ -293,8 +293,9 @@ export async function runSubTrigger(
   const handTrashedGate =
     event === "whenHandTrashed"
       ? (subCtx: EffectContext): boolean =>
-          subCtx.trigger?.handTrashedSeat === subCtx.source.ownerSeat &&
-          (subCtx.trigger?.byEffectSeat === undefined || subCtx.trigger.byEffectSeat === subCtx.source.ownerSeat)
+          action.fireCondition?.kind === "triggerHandTrashedSeat" ||
+          (subCtx.trigger?.handTrashedSeat === subCtx.source.ownerSeat &&
+            (subCtx.trigger?.byEffectSeat === undefined || subCtx.trigger.byEffectSeat === subCtx.source.ownerSeat))
       : undefined;
   // "When THIS Digimon's attack target is switched" is host-scoped, which the IR marks with a
   // self-referencing sourceFilter. The event bus broadcasts every switch to every watcher, so
