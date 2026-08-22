@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../ST2/ST2-13.js";
+import "./ST13-02.js";
+import "./ST13-03.js";
 import "./ST13-05.js";
 
 describe("ST13-05 Durandamon", () => {
@@ -11,5 +16,79 @@ describe("ST13-05 Durandamon", () => {
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("durandamon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "ST13-02"));
     expect(s.state.players[0]!.deck.map((card) => card.cardId).sort()).toEqual(["BT1-001", "BT1-002"]);
+  });
+
+  it("may decline the revealed play and puts every revealed card on the deck bottom", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST13-05", as: "durandamon" }], deck: ["ST13-02", "BT1-001", "BT1-002"] },
+      1: { security: ["BT1-003"] },
+    }, { autoAcceptOptional: false, autoSelectCards: true, autoOrderCards: true });
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("durandamon").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId).sort()).toEqual(["BT1-001", "BT1-002", "ST13-02"]);
+  });
+
+  it("gains its DP and Security Attack bonus only once when its controller's effects add sources", async () => {
+    const s = setupEngine({ 0: {
+      battleArea: [{ card: "ST13-05", as: "durandamon" }],
+      hand: [
+        { card: "ST13-02", as: "zubamon" },
+        { card: "ST13-03", as: "zubaeagermon" },
+      ],
+    } }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 20;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("zubamon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("durandamon").stack.some((card) => card.cardId === "ST13-02"));
+    expect(s.perm("durandamon").currentDP).toBe(14_000);
+    expect(observe(s.engine).keywordAmount(s.perm("durandamon"), "SecurityAttack")).toBe(1);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("zubaeagermon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("durandamon").stack.some((card) => card.cardId === "ST13-03"));
+    expect(s.perm("durandamon").currentDP).toBe(14_000);
+    expect(observe(s.engine).keywordAmount(s.perm("durandamon"), "SecurityAttack")).toBe(1);
+  });
+
+  it("does not gain the bonus when an opponent's effect adds the source", async () => {
+    const s = setupEngine({ 0: {
+      battleArea: [{ card: "ST13-05", as: "durandamon" }],
+      hand: [{ card: "ST13-02", as: "source" }],
+    } });
+    await s.ready();
+
+    advance(s.engine).verb.enterEffectResolution?.(1, ["Digimon"]);
+    await advance(s.engine).verb.placeUnder(s.perm("durandamon").permanentId, [s.inst("source").instanceId]);
+    advance(s.engine).verb.leaveEffectResolution?.();
+
+    expect(s.perm("durandamon").currentDP).toBe(11_000);
+    expect(observe(s.engine).keywordAmount(s.perm("durandamon"), "SecurityAttack")).toBe(0);
+  });
+
+  it("suppresses an Option card's Security effect while inherited by RagnaLoardmon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST13-06", as: "ragna", under: ["ST13-05"] }] },
+      1: { security: ["ST2-13"] },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("ragna").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "ST2-13")).toBe(true);
   });
 });
