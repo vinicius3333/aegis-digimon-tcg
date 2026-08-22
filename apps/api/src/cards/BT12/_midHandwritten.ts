@@ -1079,6 +1079,7 @@ export function midBt12Module(cardId: string): EffectModule {
                   if (count)
                     ctx.fx.modifySecurityDp(ctx.game.opponentOf(source.ownerSeat), -3000 * count, {
                       continuous: false,
+                      duration: EffectDuration.UntilEachTurnEnd,
                     });
                 },
               }),
