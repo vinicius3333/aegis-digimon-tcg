@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT26-084.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import "../index.js";
 
 describe("BT26-084 compiled behavior", () => {
   it("proves Appmon evolution/link, Detach, once-per-turn linked reveal, and Digimon play branch", () => {
@@ -20,5 +23,21 @@ describe("BT26-084 compiled behavior", () => {
       { tokens: ["System"], match: "trait" },
       { tokens: ["Seven Code"], match: "trait" },
     ] } } }] });
+  });
+
+  it("reveals three linked-trigger cards and plays a revealed Seven Code Digimon for 3 less", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-084", as: "copipemon", linked: [{ card: "BT26-102", as: "pad" }] }],
+        deck: ["BT26-010", "BT1-001", "BT1-002"],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+
+    await advance(s.engine).fireSubTrigger("whenLinked", {
+      subjectPermanentId: s.perm("copipemon").permanentId,
+    });
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT26-010")).toBe(true);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002"]);
   });
 });
