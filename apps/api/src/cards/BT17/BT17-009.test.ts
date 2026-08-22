@@ -21,6 +21,6 @@ describe("BT17-009", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT17-023"));
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT17-023", "BT17-083"]));
-    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 });

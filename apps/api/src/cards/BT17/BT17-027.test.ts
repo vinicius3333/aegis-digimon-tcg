@@ -21,7 +21,7 @@ describe("BT17-027", () => {
 
   it("unsuspends an Omnimon host when it attacks", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT17-078", as: "host", under: ["BT17-027"], suspended: true }] } }, { autoDeclineOptional: true });
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("host"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.perm("host").isSuspended).toBe(false);
   });
 });

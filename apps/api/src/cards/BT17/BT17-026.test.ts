@@ -18,9 +18,10 @@ describe("BT17-026", () => {
   });
 
   it("returns an opposing level 4 Digimon when its Hybrid host attacks", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT17-045", as: "host", under: ["BT17-026"] }] }, 1: { battleArea: [{ card: "BT1-009", as: "target" }] } });
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("host"));
-    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("target").instanceId));
-    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(true);
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT17-023", as: "host", under: ["BT17-026"] }] }, 1: { battleArea: [{ card: "BT1-009", as: "target" }] } });
+    const targetInstanceId = s.perm("target").topCard!.instanceId;
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === targetInstanceId));
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === targetInstanceId)).toBe(true);
   });
 });

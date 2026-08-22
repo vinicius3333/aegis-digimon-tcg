@@ -21,8 +21,8 @@ describe("BT17-018", () => {
 
   it("trashes one security card for each ten cards in both trashes", async () => {
     const filler = Array.from({ length: 10 }, () => ({ card: "BT1-009" }));
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT17-018", as: "crimson" }], trash: filler }, 1: { trash: filler, security: ["BT1-009", "BT1-009"] } });
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("crimson"));
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT17-018", as: "crimson" }], trash: filler }, 1: { trash: filler, security: ["BT1-009", "BT1-009", "BT1-009"] } });
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("crimson"));
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });

@@ -19,9 +19,9 @@ describe("BT17-023", () => {
   });
 
   it("draws from the attack trigger", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT17-023", as: "kendo" }] } }, { autoDeclineOptional: true });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT17-023", as: "kendo" }], deck: ["BT1-009"] } }, { autoDeclineOptional: true });
     const before = s.state.players[0]!.hand.length;
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("kendo"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("kendo"));
     expect(s.state.players[0]!.hand).toHaveLength(before + 1);
   });
 });

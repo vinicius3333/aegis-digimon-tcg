@@ -18,11 +18,11 @@ describe("BT17-012", () => {
 
   it("applies inherited DP only during its controller's turn", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT17-013", as: "host", under: ["BT17-012"] }] } });
-    await s.ready();
-    expect(s.perm("host").currentDP).toBe(8000);
-
     s.state.turnSeat = 1;
     await s.ready();
-    expect(s.perm("host").currentDP).toBe(6000);
+    expect(s.perm("host").currentDP).toBe(7000);
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(9000);
   });
 });

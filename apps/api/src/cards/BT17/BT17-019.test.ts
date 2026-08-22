@@ -14,9 +14,9 @@ describe("BT17-019", () => {
   });
 
   it("draws at the start of the main phase when Matt is present", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT17-019", as: "gabumon" }, { card: "BT17-081", as: "matt" }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT17-019", as: "gabumon" }, { card: "BT1-086", as: "matt" }], deck: ["BT1-009"] } });
     const before = s.state.players[0]!.hand.length;
-    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("gabumon"));
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("gabumon"));
     expect(s.state.players[0]!.hand).toHaveLength(before + 1);
   });
 });

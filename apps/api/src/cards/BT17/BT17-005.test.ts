@@ -9,7 +9,7 @@ describe("BT17-005", () => {
   });
 
   it("gains memory when its Unidentified host is deleted", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-058", as: "host", under: ["BT17-005"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT17-059", as: "host", under: ["BT17-005"] }] } });
     s.state.memory = 0;
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
     expect(s.state.memory).toBe(1);
