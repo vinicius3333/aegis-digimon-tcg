@@ -20,17 +20,26 @@ export const compiled: CompiledCard = {
             isSelf: true,
           },
           condition: {
-            kind: "youHave",
-            filter: {
-              controllerDefault: "mine",
-              kind: ["Digimon", "Tamer"],
-              nameOrTrait: [
-                {
-                  tokens: ["TS"],
-                  match: "trait",
+            kind: "anyOf",
+            conditions: [
+              {
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  kind: ["Digimon", "Tamer"],
+                  nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
                 },
-              ],
-            },
+              },
+              {
+                kind: "youHave",
+                filter: {
+                  controllerDefault: "mine",
+                  zone: "breeding",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["TS"], match: "trait" }],
+                },
+              },
+            ],
             raw: "you have an [TS] trait Digimon or Tamer on the field",
           },
         },
@@ -43,6 +52,7 @@ export const compiled: CompiledCard = {
           kind: "ActivateMain",
         },
       ],
+      isSecurity: true,
     },
     {
       trigger: "Main",
@@ -58,6 +68,7 @@ export const compiled: CompiledCard = {
             count: "all",
           },
           to: "hand",
+          bindResultAs: "returnedLowest",
         },
         {
           kind: "Unsuspend",
@@ -75,8 +86,8 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           condition: {
-            kind: "opponentHasNone",
-            filter: { controller: "opponent", kind: ["Digimon"] },
+            kind: "bindingExists",
+            ref: "returnedLowest",
             raw: "this effect returned",
           },
         },
@@ -94,16 +105,34 @@ export const compiled: CompiledCard = {
               controller: "mine",
               kind: ["Digimon"],
             },
+            orFilters: [{ controller: "mine", kind: ["Digimon"], zone: "breeding" }],
             count: 1,
           },
+          allowBreedingRecipient: true,
           payCost: false,
           optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "WhenAttacking",
+      isLinked: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Return",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestLevel" },
+            count: 1,
+          },
+          to: "hand",
         },
       ],
     },
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["TS"], cost: 3 }],
 };
 
 registerIrCard("BT24-091", compiled);
