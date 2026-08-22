@@ -290,7 +290,7 @@ describe("EX2-012 Megidramon", () => {
     const ctx = makeCtx(recorder, source, { ownerHand: [], ownerTrash: [] });
 
     const effects = module!.effectsForTiming(EffectTiming.OnDestroyedAnyone, source);
-    // canActivate should be false
-    expect(effects[0]!.canActivate(ctx)).toBe(false);
+    await effects[0]!.resolve(ctx);
+    expect(recorder.calls.filter((call) => call.verb === "playInstances")).toHaveLength(0);
   });
 });
