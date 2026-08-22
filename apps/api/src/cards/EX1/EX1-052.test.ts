@@ -34,6 +34,25 @@ describe("EX1-052 Etemon", () => {
     expect(s.state.memory).toBe(2);
   });
 
+  it("does not reduce a matching digivolution from the breeding area", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "EX1-052", as: "breedingBase" },
+        hand: [{ card: "EX1-053", as: "evo" }],
+        deck: ["BT1-009"],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("breedingBase").permanentId,
+      instanceId: s.inst("evo").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("breedingBase").topCard.cardId === "EX1-053");
+    expect(s.state.memory).toBe(2);
+  });
+
   it("grants inherited Jamming to an Etemon-named host", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX1-053", as: "host", under: ["EX1-052"] }] } });
     await s.ready();
