@@ -57,4 +57,21 @@ describe("ST19-14 Arisa Kinosaki", () => {
     expect(observe(s.engine).hasKeyword(s.perm("arisa"), "Rush")).toBe(false);
     expect(s.perm("arisa").isSuspended).toBe(true);
   });
+
+  it("does not trigger when a Puppet Digimon is played normally", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST19-14", as: "arisa" }], hand: [{ card: "ST19-07", as: "puppet" }] },
+        1: {},
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("puppet").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST19-07"));
+    expect(observe(s.engine).hasKeyword(s.perm("puppet"), "Rush")).toBe(false);
+    expect(s.perm("arisa").isSuspended).toBe(false);
+  });
 });
