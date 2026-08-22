@@ -50,22 +50,22 @@ export const compiled: CompiledCard = {
               optional: true,
               abortOnDecline: true,
             },
-          ],
-        },
-        {
-          kind: "AppFuse",
-          source: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
+            {
+              kind: "AppFuse",
+              source: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              into: {
+                kind: ["Digimon"],
+              },
+              from: ["hand"],
+              optional: true,
             },
-            count: 1,
-          },
-          into: {
-            kind: ["Digimon"],
-          },
-          from: ["hand"],
-          optional: true,
+          ],
         },
       ],
     },

@@ -1,7 +1,6 @@
 // The closed `Action` union.
 
 import type {
-  AddDPFromTrashedCardAction,
   AddDPFromSuspendedCostAction,
   AddToHandSelfAction,
   GainKeywordAction,
@@ -82,6 +81,7 @@ import type {
   CostModifierAction,
   DrawAction,
   GainMemoryAction,
+  GainMemoryForDeletedDigimonsAction,
   ReducePlayCostAction,
   SetMemoryAction,
   SetTurnEndMemoryAction,
@@ -137,6 +137,7 @@ export type Action =
   | DynamicDigivolutionNamesAction
   | DrawAction
   | GainMemoryAction
+  | GainMemoryForDeletedDigimonsAction
   | SetMemoryAction
   | SetTurnEndMemoryAction
   | DeleteAction
@@ -160,7 +161,6 @@ export type Action =
   | ModifyDPAction
   | AddDPFromTrashedCardAction
   | AddDPFromSuspendedCostAction
-  | AddDPFromTrashedCardAction
   | SetBaseDPAction
   | GainKeywordAction
   | PlayWithoutCostAction

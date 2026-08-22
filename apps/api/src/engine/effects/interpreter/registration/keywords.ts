@@ -127,7 +127,7 @@ export function executeActivatedEffect(): CardEffect {
 export function isBlastDigivolveMarker(effect: CardEffect): boolean {
   const isBlastKeyword = (name: string | undefined) => name === "BlastDigivolve" || name === "BlastDNADigivolve";
   if ((effect.keywords ?? []).some((kw) => isBlastKeyword(kw.keyword))) return true;
-  return effect.actions.some(
+  return (effect.actions ?? []).some(
     (a) =>
       a.kind === "GainKeyword" &&
       isBlastKeyword((a as { keyword?: { keyword?: string } }).keyword?.keyword) &&
@@ -146,7 +146,7 @@ export function declaresExecuteKeyword(compiled: CompiledCard): boolean {
     (e) =>
       e.isInherited !== true &&
       ((e.keywords ?? []).some((k) => k.keyword === "Execute") ||
-        e.actions.some(
+        (e.actions ?? []).some(
           (a) =>
             a.kind === "GainKeyword" &&
             (a as { keyword?: { keyword?: string } }).keyword?.keyword === "Execute" &&
@@ -155,7 +155,7 @@ export function declaresExecuteKeyword(compiled: CompiledCard): boolean {
   );
   if (!declares) return false;
   const hasExplicitAttack = compiled.effects.some(
-    (e) => e.trigger === "EndOfYourTurn" && e.actions.some((a) => a.kind === "Attack"),
+    (e) => e.trigger === "EndOfYourTurn" && (e.actions ?? []).some((a) => a.kind === "Attack"),
   );
   return !hasExplicitAttack;
 }
@@ -172,7 +172,7 @@ function overclockTraitFrom(compiled: CompiledCard, definition: CardDefinition |
       const fromRaw = parse(kw.raw);
       if (fromRaw) return fromRaw;
     }
-    for (const action of effect.actions) {
+    for (const action of effect.actions ?? []) {
       if (action.kind !== "GainKeyword") continue;
       const kw = (action as { keyword?: { keyword?: string; qualifier?: string; raw?: string } }).keyword;
       if (kw?.keyword !== "Overclock") continue;
@@ -199,7 +199,7 @@ export function synthesizedOverclockTrait(
     (e) =>
       e.isInherited !== true &&
       ((e.keywords ?? []).some((k) => k.keyword === "Overclock") ||
-        e.actions.some(
+        (e.actions ?? []).some(
           (a) =>
             a.kind === "GainKeyword" &&
             (a as { keyword?: { keyword?: string } }).keyword?.keyword === "Overclock" &&
@@ -208,7 +208,7 @@ export function synthesizedOverclockTrait(
   );
   if (!declaresOverclock) return undefined;
   const hasExplicitAttack = compiled.effects.some(
-    (e) => e.trigger === "EndOfYourTurn" && e.actions.some((a) => a.kind === "Attack"),
+    (e) => e.trigger === "EndOfYourTurn" && (e.actions ?? []).some((a) => a.kind === "Attack"),
   );
   if (hasExplicitAttack) return undefined;
   return overclockTraitFrom(compiled, definition);
@@ -225,7 +225,7 @@ export function synthesizedOverclockTrait(
 export function registerTamerOntoFromEffects(cardId: string, effects: readonly CardEffect[]): void {
   for (const effect of effects) {
     if (effect.trigger !== "Static") continue;
-    for (const action of effect.actions) {
+    for (const action of effect.actions ?? []) {
       if (action.kind !== "Digivolve" || typeof action.asLevel !== "number") continue;
       const onto = action.onto as { filter?: { kind?: unknown } } | { kind?: unknown } | undefined;
       const ontoKind = (onto as { filter?: { kind?: unknown } })?.filter
@@ -258,7 +258,7 @@ export function allowsExtraDigiXrosMaterials(cardId: string): boolean {
 
 export function detectAllowDigiXrosMaterialsFromTrash(cardId: string, effects: readonly CardEffect[]): void {
   for (const effect of effects) {
-    for (const action of effect.actions) {
+    for (const action of effect.actions ?? []) {
       if (action.kind !== "Replacement" || action.event !== "wouldBePlayed") continue;
       const extras = (action as { additionalEffects?: Array<{ kind: string }> }).additionalEffects;
       const hasExtra = extras?.some((e) => e.kind === "DigiXrosExtraMaterial");
@@ -286,7 +286,7 @@ export function detectAllowDigiXrosMaterialsFromTrash(cardId: string, effects: r
  */
 export function registerDigisorptionFromEffects(cardId: string, effects: readonly CardEffect[]): void {
   for (const effect of effects) {
-    for (const action of effect.actions) {
+    for (const action of effect.actions ?? []) {
       if (
         action.kind === "Replacement" &&
         action.event === "wouldDigivolve" &&
@@ -305,7 +305,7 @@ export function registerDigisorptionFromEffects(cardId: string, effects: readonl
 export function registerDigisorptionRedirectorFromEffects(cardId: string, effects: readonly CardEffect[]): void {
   if (
     effects.some((effect) =>
-      effect.actions.some((action) => action.kind === "GrantStatic" && action.grant === "digisorptionRedirect"),
+      (effect.actions ?? []).some((action) => action.kind === "GrantStatic" && action.grant === "digisorptionRedirect"),
     )
   ) {
     registerDigisorptionRedirector(cardId);
@@ -320,8 +320,8 @@ export function registerDigisorptionRedirectorFromEffects(cardId: string, effect
 export function isIntrinsicDigisorptionMarker(effect: CardEffect): boolean {
   return (
     effect.trigger === "Static" &&
-    effect.actions.length > 0 &&
-    effect.actions.every(
+    (effect.actions?.length ?? 0) > 0 &&
+    (effect.actions ?? []).every(
       (action) =>
         action.kind === "Replacement" &&
         action.event === "wouldDigivolve" &&

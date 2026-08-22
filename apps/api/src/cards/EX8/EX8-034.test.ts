@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "../index.js";
+import "./index.js";
 import { compiled } from "./EX8-034.js";
 
 describe("EX8-034", () => {

@@ -3,7 +3,7 @@ import type { Primitives } from "../../engine/effects/EffectContext.js";
 import { EffectTiming, PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
-import "../index.js";
+import "./index.js";
 import { compiled } from "./EX8-048.js";
 
 describe("EX8-048", () => {

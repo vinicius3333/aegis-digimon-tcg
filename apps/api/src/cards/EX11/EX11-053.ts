@@ -32,73 +32,55 @@ const compiled: CompiledCard = {
             host: "target"
           },
           optional: true,
-          canActivate: (ctx) => ctx.source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-            const royalKnightCards = Array.from(owner.hand).filter((c) => isRoyalKnight(ctx.game.definitionOf(c)));
-            if (royalKnightCards.length === 0) return;
-            const kingDrasilPerms = [
-              ...Array.from(owner.battleArea),
-              ...(owner.breeding ? [owner.breeding] : []),
-            ].filter((p) => p.topCard !== undefined && isKingDrasil(ctx.game.definitionOf(p.topCard)));
-            if (kingDrasilPerms.length === 0) return;
-            const chosenCard = await ctx.ask.selectCards(ctx, {
-              candidates: royalKnightCards.map((c) => c.instanceId),
-              min: 0,
-              max: 1,
-            });
-            if (chosenCard.length === 0) return;
-            const chosenHost = await ctx.ask.chooseTargets(ctx, {
-              candidates: kingDrasilPerms.map((p) => p.permanentId),
-              min: 1,
-              max: 1,
-            });
-            if (chosenHost.length === 0) return;
-            await ctx.fx.placeUnder(chosenHost[0]!, chosenCard);
-            await ctx.fx.draw(source.ownerSeat, 1);
+          abortOnDecline: true
+        }
+      ]
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [{ tokens: ["Omnimon (X Antibody)"], match: "name" }]
+            },
+            count: 1
           },
           from: ["hand", "digivolutionCards"],
           payCost: false,
           optional: true,
-          resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-            if (owner.security.length > 1) return;
-            const omnimonCards = Array.from(owner.hand)
-              .filter((card) => isOmnimonXAntibody(ctx.game.definitionOf(card)))
-              .map((card) => ({ instanceId: card.instanceId }));
-            const kingDrasilHosts = [
-              ...Array.from(owner.battleArea),
-              ...(owner.breeding ? [owner.breeding] : []),
-            ].filter(
-              (permanent) => permanent.topCard !== undefined && isKingDrasil(ctx.game.definitionOf(permanent.topCard)),
-            );
-            for (const host of kingDrasilHosts) {
-              for (const card of host.stack) {
-                if (isOmnimonXAntibody(ctx.game.definitionOf(card))) {
-                  omnimonCards.push({ instanceId: card.instanceId });
-                }
-              }
-            }
-            if (omnimonCards.length > 0) {
-              const chosen = await ctx.ask.selectCards(ctx, {
-                candidates: omnimonCards.map((c) => c.instanceId),
-                min: 0,
-                max: 1,
-              });
-              if (chosen.length > 0) {
-                const played = await ctx.fx.playInstances(chosen, { payCost: false });
-                if (played.length > 0) {
-                  await ctx.fx.placeUnder(played[0]!.permanentId, [source.instanceId]);
-                }
-              }
-            }
-          },
-        }),
-      ];
+          condition: { kind: "securityAtMost", controller: "mine", value: 1 },
+          bindResultAs: "playedOmnimonX"
+        },
+        {
+          kind: "PlaceUnder",
+          target: { filter: { boundRef: "playedOmnimonX" }, count: 1 },
+          from: ["digivolutionCards"],
+          source: "thisDigimon",
+          position: "bottom",
+          optional: true
+        }
+      ]
+    },
+    {
+      trigger: "Rule",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          grant: "name",
+          tokens: ["X Antibody"]
+        }
+      ]
     }
   ],
-  coverage: "full",
-  residual: []
+  coverage: "partial",
+  residual: [
+    "The On Deletion source filter cannot yet restrict digivolutionCards to cards under a King Drasil_7D6 host; hand sourcing is exact, under-King sourcing is conservatively widened to all own digivolution cards."
+  ]
 };
 
 registerIrCard("EX11-053", compiled);

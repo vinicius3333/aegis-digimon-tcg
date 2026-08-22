@@ -2,67 +2,38 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "BT20-071";
-
-function hasSocOrSeekersTrait(def: CardDefinition): boolean {
-  const types = def.types as string[] | undefined;
-  return types?.some((t) => t === "SoC" || t === "SEEKERS") ?? false;
-}
-
-/** Shared resolve body for [On Play] and [When Digivolving]. */
-async function trashHandAndGrantRaid(
-  ctx: Parameters<Effect["resolve"]>[0],
-): Promise<void> {
-  const owner = ctx.game.player(ctx.source.ownerSeat);
-  const handCards = Array.from(owner.hand).map((c) => c.instanceId);
-  if (handCards.length === 0) return;
-
-  // Cost: trash 1 card from hand.
-  const trashChosen = await ctx.ask.selectCards(ctx, {
-    candidates: handCards,
-    min: 0,
-    max: 1,
-  });
-  if (trashChosen.length === 0) return;
-  await ctx.fx.trash(trashChosen);
-
-  // Then choose 1 of your Digimon on the battle area.
-  const myDigimon = Array.from(owner.battleArea)
-    .filter((p) => {
-      if (p.topCard === undefined) return false;
-      return (ctx.game.definitionOf(p.topCard).kinds as string[]).includes("Digimon");
-    })
-    .map((p) => p.permanentId);
-
-  if (myDigimon.length === 0) return;
-
-  const targetIds =
-    myDigimon.length === 1
-      ? [myDigimon[0]!]
-      : await ctx.ask.chooseTargets(ctx, { candidates: myDigimon, min: 1, max: 1 });
-
-  for (const id of targetIds) {
-    ctx.fx.grantKeyword(id, "Raid", EffectDuration.UntilEachTurnEnd);
-    ctx.fx.modifyDP(id, 3000, EffectDuration.UntilEachTurnEnd);
-  }
-}
-
-export const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    // [On Play]: trash 1 hand card → 1 of your Digimon gains Raid and +3000 DP for the turn.
-    if (timing === EffectTiming.OnPlay) {
-      return [
-        onPlay({
-          source,
-          effectKey: `${cardId}/on-play-raid`,
-          description:
-            "[On Play] By trashing 1 card in your hand, for the turn, 1 of your Digimon " +
-            "gains ＜Raid＞ and gets +3000 DP.",
-          optional: true,
-          canActivate: (ctx) => {
-            if (!ctx.source.isOnBattleArea()) return false;
-            return ctx.game.player(ctx.source.ownerSeat).hand.length > 0;
+export const compiled: CompiledCard = {
+  effects: [
+    ...(["OnPlay", "WhenDigivolving"] as const).map((trigger) => ({
+      trigger,
+      actions: [
+        { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
+        {
+          kind: "GainKeyword",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          keyword: { keyword: "Raid", raw: "＜Raid＞" },
+          duration: "forTheTurn",
+        },
+        {
+          kind: "ModifyDP",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          amount: 3000,
+          duration: "forTheTurn",
+        },
+      ],
+    })),
+    {
+      trigger: "AllTurns",
+      actions: [{
+        kind: "SubTrigger",
+        event: "onAddDigivolutionCards",
+        sourceFilter: { controllerDefault: "mine", kind: ["Tamer"] },
+        triggerFilter: { isSelfRef: true },
+        actions: [{
+          kind: "Delete",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 6000 } },
+            count: 1,
           },
         }],
       }],

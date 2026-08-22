@@ -1,6 +1,11 @@
-// @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { EffectTiming, isDigimon } from "@aegis/shared";
+import type { Permanent } from "@aegis/shared";
+import type { EffectModule } from "../../engine/effects/EffectModule.js";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { Effect } from "../../engine/effects/Effect.js";
+import type { EffectContext } from "../../engine/effects/EffectContext.js";
+import { whenDigivolving, onDeletion } from "../../engine/effects/builders.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
 // BT9-081 — Purple Lv.6 Digimon (BT9, DexDorugoramon).
 //
@@ -18,14 +23,19 @@ const cardId = "BT9-081";
 function hasDorugoramonInStack(ctx: EffectContext, source: CardSource): boolean {
   const perm = source.permanent();
   if (perm === undefined) return false;
-  return Array.from(perm.stack).some((card) => ctx.game.definitionOf(card).nameEn === "Dorugoramon");
+  return Array.from(perm.stack).some((card) =>
+    ctx.game.definitionOf(card).nameEn === "Dorugoramon",
+  );
 }
 
 function isDigivolvingFromTrash(ctx: EffectContext): boolean {
   return ctx.trigger.digivolvedFromZone === "trash";
 }
 
-function oppMinLevelDigimons(ctx: EffectContext, source: CardSource): Permanent[] {
+function oppMinLevelDigimons(
+  ctx: EffectContext,
+  source: CardSource,
+): Permanent[] {
   const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
   const digimons = Array.from(opponent.battleArea).filter((p) => {
     if (p.topCard == null) return false;
@@ -46,8 +56,7 @@ function onDeletionCandidates(ctx: EffectContext, source: CardSource) {
   return Array.from(owner.trash).filter((card) => {
     const def = ctx.game.definitionOf(card);
     if (!isDigimon(def)) return false;
-    if (def.level === 3 && (def.colors.includes("Purple" as never) || def.colors.includes("Black" as never)))
-      return true;
+    if (def.level === 3 && (def.colors.includes("Purple" as never) || def.colors.includes("Black" as never))) return true;
     return dexCount >= 5 && def.nameEn === "DeathXmon";
   });
 }
@@ -67,32 +76,52 @@ const module: EffectModule = {
             if (!hasDorugoramonInStack(ctx, source) && !isDigivolvingFromTrash(ctx)) return false;
             return oppMinLevelDigimons(ctx, source).length > 0;
           },
-        },
-      ],
-    },
-    {
-      trigger: "OnDeletion",
-      actions: [
-        {
-          kind: "PlayWithoutCost",
-          target: { filter: { zone: "trash", controller: "mine", kind: ["Digimon"], levels: [3], colors: ["Purple", "Black"] }, count: 1 },
-          from: ["trash"],
-          payCost: false,
+          resolve: async (ctx) => {
+            const targets = oppMinLevelDigimons(ctx, source);
+            if (targets.length > 0) {
+              await ctx.fx.deletePermanent(
+                targets.map((p) => p.permanentId),
+                "byEffect",
+              );
+            }
+          },
+        }),
+      ];
+    }
+
+    if (timing === EffectTiming.OnDestroyedAnyone) {
+      return [
+        onDeletion({
+          source,
+          effectKey: `${cardId}/on-deletion-play`,
+          description:
+            "[On Deletion] You may play 1 purple or black level 3 Digimon from your trash " +
+            "without paying its memory cost. If you have 5 or more cards with [Dex] or [DeathX] " +
+            "in their names in your trash, you may play 1 [DeathXmon] from your trash instead.",
           optional: true,
-        },
-        {
-          kind: "PlayWithoutCost",
-          target: { filter: { zone: "trash", controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["DeathXmon"], match: "name" }] }, count: 1 },
-          from: ["trash"],
-          payCost: false,
-          optional: true,
-          condition: { kind: "selfHasMinTrash", count: 5, filter: { nameOrTrait: [{ tokens: ["Dex", "DeathX"], match: "name" }] }, raw: "you have 5 or more cards with [Dex] or [DeathX] in their names in your trash" },
-        },
-      ],
-    },
-  ],
-  coverage: "full",
-  residual: [],
+          canActivate: (ctx) => onDeletionCandidates(ctx, source).length > 0,
+          resolve: async (ctx) => {
+            const candidates = onDeletionCandidates(ctx, source);
+
+            if (candidates.length === 0) return;
+
+            const chosen = await ctx.ask.selectCards(ctx, {
+              candidates: candidates.map((c) => c.instanceId),
+              min: 0,
+              max: 1,
+            });
+
+            if (chosen.length > 0) {
+              await ctx.fx.playInstances(chosen, { payCost: false });
+            }
+          },
+        }),
+      ];
+    }
+
+    return [];
+  },
 };
 
-registerIrCard("BT9-081", compiled);
+registerCard(module);
+export default module;

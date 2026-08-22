@@ -28,7 +28,7 @@ describe("BT26-047 TyrantKabuterimon", () => {
     }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("tyrant"));
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tyrant"));
 
     expect(s.perm("eligible").currentDP).toBe(14000);
     const continuous = (s.engine as unknown as { continuous: { hasRestriction: (id: string, kind: string, source?: string) => boolean } }).continuous;
