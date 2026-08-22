@@ -17,7 +17,7 @@ describe("BT8-112 Imperialdramon: Paladin Mode", () => {
   it("requires a returned two-color card before trashing an opponent stack", () => {
     const effect = compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving");
     expect(effect?.actions).toMatchObject([
-      { kind: "TrashDigivolution", amount: 99, cost: { kind: "return", target: { filter: { colorCount: 2 } } } },
+      { kind: "TrashDigivolution", amount: 99, cost: { kind: "return", target: { filter: { multicolor: true } } } },
       { kind: "Return", to: "deckBottom", target: { filter: { digivolutionCards: "none" }, count: "all" } },
     ]);
   });
