@@ -14,7 +14,7 @@ describe("BT26-036 Lalamon", () => {
       isAlternate: true,
     });
     expect(compiled.coverage).toBe("full");
-    expect(compiled.effects.map((e) => e.trigger)).toEqual(["OnPlay", "OnMove"]);
+    expect(compiled.effects.map((e) => e.trigger)).toEqual(["OnPlay", "WhenMoving", "WhenAttacking"]);
   });
   it("reveals three and adds a matching card while returning the rest", async () => {
     const s = setupEngine(
@@ -39,7 +39,7 @@ describe("BT26-036 Lalamon", () => {
         0: {
           breeding: { card: "BT26-036", as: "mover" },
           deck: [
-            { card: "BT1-089", as: "greenTamer" },
+            { card: "BT26-091", as: "greenTamer" },
             { card: "BT1-085", as: "otherTamer" },
             { card: "BT1-009", as: "plain" },
           ],
