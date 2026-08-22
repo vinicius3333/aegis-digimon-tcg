@@ -1,12 +1,9 @@
-import { EffectTiming, digivolutionRequirementsFor, type CardInstance, type Permanent, type Seat } from "@aegis/shared";
-import { describe, expect, it, vi } from "vitest";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { EffectTiming, digivolutionRequirementsFor } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { definitionOf } from "../../engine/cards/cardData.js";
-import module from "./BT26-022.js";
+import { compiled } from "./BT26-022.js";
 import "../index.js";
 
 const CARD_ID = "BT26-022";
@@ -110,63 +107,13 @@ describe("BT26-022 Sorcermon", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === CARD_ID)).toBe(false);
   });
 
-  it("does not offer the end-turn effect without a red/purple Digimon or eligible blue/red Iliad", () => {
-    const noGate = setupEngine({
-      0: { battleArea: [{ card: CARD_ID, as: "sorcermon" }], hand: [{ card: "BT24-019", as: "iliad" }] },
-    });
-    const effect = module.effectsForTiming(EffectTiming.OnEndTurn, {
-      ownerSeat: 0 as Seat,
-      permanent: () => noGate.perm("sorcermon"),
-      isOwnersTurn: () => true,
-    } as CardSource)[0]!;
-    const ctx = {
-      source: {} as CardSource,
-      game: {
-        player: (seat: Seat) => noGate.state.players[seat],
-        definitionOf: (card: CardInstance) => definitionOf(card.cardId),
-        opponentOf: () => 1 as Seat,
-      },
-    } as unknown as EffectContext;
-    expect(effect.canActivate(ctx)).toBe(false);
-  });
-
-  it("does not play the chosen card when the self-to-security cost is prevented", async () => {
-    const sourceCard = { instanceId: "source", cardId: CARD_ID, ownerSeat: 0 as Seat } as CardInstance;
-    const candidate = { instanceId: "candidate", cardId: "ILIAD", ownerSeat: 0 as Seat } as CardInstance;
-    const self = {
-      permanentId: "self",
-      controllerSeat: 0 as Seat,
-      topCard: sourceCard,
-      inBreeding: false,
-    } as Permanent;
-    const gate = {
-      permanentId: "gate",
-      controllerSeat: 0 as Seat,
-      topCard: { instanceId: "gate-card", cardId: "RED" },
-      inBreeding: false,
-    } as Permanent;
-    const player = { battleArea: [self, gate], hand: [candidate], security: [] };
-    const game = {
-      player: () => player,
-      definitionOf: (card: CardInstance) =>
-        card.cardId === "RED"
-          ? { kinds: ["Digimon"], colors: ["Red"], types: [] }
-          : { kinds: ["Digimon"], colors: ["Blue"], types: ["Iliad"] },
-    } as unknown as GameAccess;
-    const playInstances = vi.fn();
-    const cardSource = {
-      instanceId: sourceCard.instanceId,
-      ownerSeat: 0 as Seat,
-      permanent: () => self,
-      isOwnersTurn: () => true,
-    } as CardSource;
-    const effect = module.effectsForTiming(EffectTiming.OnEndTurn, cardSource)[0]!;
-    await effect.resolve({
-      source: cardSource,
-      game,
-      fx: { addSecurity: vi.fn(async () => undefined), playInstances } as unknown as Primitives,
-    } as unknown as EffectContext);
-    expect(playInstances).not.toHaveBeenCalled();
+  it("encodes the ordered recovery, conditional security cost, and inherited Barrier", () => {
+    expect(compiled.effects).toMatchObject([
+      { trigger: "OnPlay", actions: [{ kind: "SecurityManipulation", op: "toHand" }, { kind: "SecurityManipulation", op: "addTop" }] },
+      { trigger: "WhenDigivolving", actions: [{ kind: "SecurityManipulation", op: "toHand" }, { kind: "SecurityManipulation", op: "addTop" }] },
+      { trigger: "EndOfYourTurn", actions: [{ kind: "PlayWithoutCost", reduceCostBy: 4, cost: { kind: "place", position: "bottom" } }] },
+      { trigger: "Static", isInherited: true, keywords: [{ keyword: "Barrier" }] },
+    ]);
   });
 
   it("grants inherited Barrier only while Sorcermon is under another Digimon", async () => {

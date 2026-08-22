@@ -86,6 +86,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
   const toHand: string[] = [];
   const toTrash: string[] = [];
   const toPlay: { instanceId: string; costDelta?: number }[] = [];
+  const toUseOption: { instanceId: string; costDelta?: number }[] = [];
   const toDigivolve: { instanceId: string; target?: Target; payCost?: boolean }[] = [];
   const toSecurity: { instanceId: string; toTop: boolean; faceDown: boolean }[] = [];
   const toPlaceUnder: { instanceId: string; underFilter?: import("@aegis/shared").Filter; faceDown?: boolean }[] = [];
@@ -261,7 +262,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     for (const c of chosen) {
       taken.add(c.instanceId);
       let disposition: {
-        to?: "hand" | "trash" | "play" | "digivolve" | "placeUnder" | "underTamer" | "security";
+        to?: "hand" | "trash" | "play" | "useOption" | "digivolve" | "placeUnder" | "underTamer" | "security";
         underFilter?: import("@aegis/shared").Filter;
         toTop?: boolean;
         faceDown?: boolean;
@@ -276,6 +277,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         disposition = choices[picked] ?? disposition;
       }
       if (disposition.to === "play") toPlay.push({ instanceId: c.instanceId, costDelta: spec.costDelta });
+      else if (disposition.to === "useOption") toUseOption.push({ instanceId: c.instanceId, costDelta: spec.costDelta });
       else if (disposition.to === "trash") toTrash.push(c.instanceId);
       else if (disposition.to === "digivolve")
         toDigivolve.push({ instanceId: c.instanceId, target: spec.digivolveTarget });
@@ -336,6 +338,14 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       // "With the play cost reduced by N" is not a free play. The old call omitted
       // `payCost:true`, silently waiving the remaining cost in every RevealAdd reduced-play.
       await ctx.fx.playInstances(ids, { payCost: true, costDelta });
+    }
+  }
+  if (toUseOption.length > 0) {
+    const optionIds = toUseOption.map((entry) => entry.instanceId);
+    await ctx.fx.returnToHand(optionIds, { silent: true });
+    for (const entry of toUseOption) {
+      const card = ctx.game.definitionOf({ cardId: revealed.find((item) => item.instanceId === entry.instanceId)!.cardId } as never);
+      await ctx.fx.useOptionFromHand(ctx, entry.instanceId, card.playCost, { payCost: true, costDelta: entry.costDelta });
     }
   }
   // "place N [X] as the bottom digivolution card of one of your [Y] Digimon"

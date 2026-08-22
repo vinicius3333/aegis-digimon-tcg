@@ -34,7 +34,7 @@ export interface RevealAddAction extends ActionBase {
     count: number | "all";
     /** Added to numeric `count` when a condition/scaling clause applies. */
     countModifier?: Target["countModifier"];
-    to?: "hand" | "trash" | "play" | "digivolve" | "placeUnder" | "underTamer" | "security";
+    to?: "hand" | "trash" | "play" | "useOption" | "digivolve" | "placeUnder" | "underTamer" | "security";
     /** For `to:"digivolve"`: which battle-area Digimon may receive the revealed card. */
     digivolveTarget?: Target;
     /** Place the selected card at the TOP of security (BT6-100). */
@@ -53,7 +53,7 @@ export interface RevealAddAction extends ActionBase {
      * default `to` and these.
      */
     orDispositions?: {
-      to: "hand" | "trash" | "play" | "digivolve" | "placeUnder" | "underTamer" | "security";
+      to: "hand" | "trash" | "play" | "useOption" | "digivolve" | "placeUnder" | "underTamer" | "security";
       underFilter?: Filter;
       /** Only offer this destination when the selected card also matches this filter. */
       filter?: Filter;

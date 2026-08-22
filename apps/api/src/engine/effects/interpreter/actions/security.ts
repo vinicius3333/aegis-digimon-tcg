@@ -21,6 +21,7 @@ export async function runRecoverByTrashingMostSecurity(
 ): Promise<void> {
   const mine = ctx.source.ownerSeat;
   const { trashed } = await ctx.fx.trashTopSecurityOfPlayerWithMostSecurity(mine);
+  ctx.lastEffectActed = trashed.length > 0;
   if (trashed.length === 0) return;
   if (action.recover !== false) await ctx.fx.recoverToSecurity(mine, action.amount ?? 1);
 }
@@ -82,6 +83,17 @@ export async function runSecurityManipulation(
     }
   }
   switch (action.op) {
+    case "moveTopToBottom": {
+      const security = ctx.game.player(seat).security;
+      if (security.length === 0) {
+        ctx.lastEffectActed = false;
+        return;
+      }
+      const [top] = security.splice(0, 1);
+      security.push(top);
+      ctx.lastEffectActed = true;
+      return;
+    }
     case "shuffle":
       ctx.fx.shuffleSecurity(seat);
       return;

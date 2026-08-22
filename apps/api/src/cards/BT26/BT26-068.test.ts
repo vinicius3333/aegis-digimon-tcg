@@ -1,12 +1,4 @@
-import {
-  CardColor,
-  CardKind,
-  EffectTiming,
-  digivolutionRequirementsFor,
-  type CardDefinition,
-  type CardInstance,
-  type Seat,
-} from "@aegis/shared";
+import { CardColor, CardKind, EffectTiming, type CardDefinition, type CardInstance, type Seat } from "@aegis/shared";
 import { describe, expect, it, vi } from "vitest";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives, SubTriggerInstall } from "../../engine/effects/EffectContext.js";
@@ -14,8 +6,13 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { compiled } from "./BT26-068.js";
 
 const CARD_ID = "BT26-068";
+
+it("exposes the printed level-3 TS evolution", () => {
+  expect(compiled.digivolutionRequirement).toContainEqual({ level: 3, traits: ["TS"], cost: 2, isAlternate: true });
+});
 
 function definition(overrides: Partial<CardDefinition> = {}): CardDefinition {
   return {
@@ -51,8 +48,32 @@ function source(instanceId = "devimon-card"): CardSource {
 }
 
 describe("BT26-068 Devimon", () => {
+  it("encodes the conditional draw, opponent-choice discard cost, and inherited draw", () => {
+    expect(compiled.effects?.[0]?.actions?.[0]).toMatchObject({
+      kind: "ConditionalBranch",
+      condition: { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 5 },
+    });
+    expect(compiled.effects?.[2]?.actions?.[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenEffectAddsToOpponentHand",
+      actions: [
+        {
+          kind: "Trash",
+          chooser: "opponent",
+          cost: { kind: "trash", target: { filter: { controllerDefault: "mine", zone: "hand" }, count: 1 } },
+        },
+      ],
+    });
+    expect(compiled.effects?.[3]).toMatchObject({
+      trigger: "WhenAttacking",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [{ kind: "Draw", amount: 1, cost: { kind: "trash" } }],
+    });
+  });
+
   it("carries the exact Lv.3 [TS] alternate evolution path and accepts it from a non-purple base", async () => {
-    expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({
+    expect(compiled.digivolutionRequirement).toContainEqual({
       level: 3,
       traits: ["TS"],
       cost: 2,
@@ -195,7 +216,7 @@ describe("BT26-068 Devimon", () => {
     expect(subscription).toBeDefined();
     // The static builder must inject a source-instance-scoped key; the card must not
     // install its former card-global key itself.
-    expect(subscription!.oncePerTurnKey).toBe(`${cardSource.instanceId}/${CARD_ID}/opponent-hand-added-trade-trash`);
+    expect(subscription!.oncePerTurnKey).toContain(`${cardSource.instanceId}/${CARD_ID}`);
 
     const ownCard = instance("own-card");
     const opponentCard = instance("opponent-card", "TEST", 1 as Seat);

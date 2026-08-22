@@ -158,6 +158,13 @@ export async function runSubTrigger(
   // The filter is evaluated against the freshly bound context's payload subject via the
   // canonical `permanentMatchesFilter` / `definitionMatches` — never a hand-rolled matcher.
   const sourceFilter = action.sourceFilter;
+  const hostFilterGate =
+    action.hostFilter === undefined
+      ? undefined
+      : (subCtx: EffectContext): boolean => {
+          const host = anchorPermanentId === undefined ? undefined : subCtx.game.permanentById(anchorPermanentId);
+          return host !== undefined && permanentMatchesFilter(subCtx, host, action.hostFilter!, subCtx.source);
+        };
   const hostFilter = (action as Action & { hostFilter?: Filter }).hostFilter;
   // Some deletion reactions explicitly require their host to survive the same deletion batch
   // (BT22-065 Q4923; BT22-068 Q4928; BT22-070 Q4929). Deletion seams publish the complete
@@ -281,7 +288,9 @@ export async function runSubTrigger(
   // has no subject sourceFilter; gate purely on the trashed hand being the watcher controller's own.
   const handTrashedGate =
     event === "whenHandTrashed"
-      ? (subCtx: EffectContext): boolean => subCtx.trigger?.handTrashedSeat === subCtx.source.ownerSeat
+      ? (subCtx: EffectContext): boolean =>
+          action.fireCondition?.kind === "triggerHandTrashedSeat" ||
+          subCtx.trigger?.handTrashedSeat === subCtx.source.ownerSeat
       : undefined;
   // "When THIS Digimon's attack target is switched" is host-scoped, which the IR marks with a
   // self-referencing sourceFilter. The event bus broadcasts every switch to every watcher, so
@@ -666,6 +675,7 @@ export async function runSubTrigger(
     triggerFilterGate,
     addedDigivolutionCardGate,
     inheritedHostNameGate,
+    hostFilterGate,
     deleteCauseGate,
     notSimultaneousGate,
     trashedDigivolutionTopGate,
