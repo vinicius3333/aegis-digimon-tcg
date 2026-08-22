@@ -144,6 +144,17 @@ export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
     return Math.floor(ids.length / per);
   }
   switch (scaling.unit) {
+    case "deletedDigimons": {
+      const ids = ctx.trigger?.deletedInstanceIds ?? [];
+      const stackIds = new Set(ctx.trigger?.deletedWasStackInstanceIds ?? []);
+      const opponentTrash = ctx.game.player(ctx.game.opponentOf(ctx.source.ownerSeat)).trash;
+      raw = ids.filter((id) => {
+        if (stackIds.has(id)) return false;
+        const card = opponentTrash.find((candidate) => candidate.instanceId === id);
+        return card !== undefined && ctx.game.definitionOf(card).kinds.includes("Digimon");
+      }).length;
+      break;
+    }
     case "cards":
       if (filter.zone === "revealed") {
         raw = (ctx.lastRevealedCards ?? []).filter((card) =>
