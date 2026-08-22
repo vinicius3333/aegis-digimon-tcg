@@ -69,7 +69,10 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   // turn an OR branch into an unconstrained match.
   const legacy = filter as Filter & { cardType?: string; trait?: string[] };
   if (legacy.cardType !== undefined && !def.kinds.some((kind) => String(kind) === legacy.cardType)) return false;
-  if (legacy.trait !== undefined && !legacy.trait.some((trait) => (def.types ?? []).includes(trait))) return false;
+  if (legacy.trait !== undefined) {
+    const traits = Array.isArray(legacy.trait) ? legacy.trait : [legacy.trait];
+    if (!traits.some((trait) => (def.types ?? []).includes(trait))) return false;
+  }
   // Disjunctive sub-filter: "black or has [Legend-Arms] in its traits" — the card matches
   // if ANY sub-filter matches. All other fields on the parent filter still apply (AND).
   if (filter.or && filter.or.length > 0) {
