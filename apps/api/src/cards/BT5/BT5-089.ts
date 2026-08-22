@@ -39,7 +39,7 @@ const compiled: CompiledCard = {
                   colors: ["Green"],
                   levelComparison: { op: "eq", value: 6 },
                 },
-                target: { filter: { isTriggerSource: true }, count: 1, isSelf: true },
+                target: { filter: { isTriggerSource: true }, count: 1 },
                 payCost: false,
                 optional: true,
               },
