@@ -76,6 +76,8 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
       return EffectTiming.OnBlockAnyone;
     case "OnSecurityCheck":
       return EffectTiming.OnSecurityCheck;
+    case "OnDiscardSecurity":
+      return EffectTiming.OnDiscardSecurity;
     case "OnDeletion":
       return EffectTiming.OnDestroyedAnyone;
     case "EndOfAttack":
