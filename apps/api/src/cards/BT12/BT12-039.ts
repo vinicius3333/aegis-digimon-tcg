@@ -1,6 +1,10 @@
-import { registerCard } from "../../engine/effects/registry.js";
-import { midBt12Module } from "./_midHandwritten.js";
+import { getCompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const module = midBt12Module("BT12-039");
-registerCard(module);
-export default module;
+const compiled = structuredClone(getCompiledCard("BT12-039")!);
+const cost = compiled.effects.find((effect) => effect.trigger === "Static");
+if (cost !== undefined) cost.trigger = "BeforePayCost";
+
+registerIrCard("BT12-039", compiled);
+
+export default compiled;
