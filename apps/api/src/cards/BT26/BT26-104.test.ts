@@ -60,7 +60,7 @@ describe("BT26-104 compiled fidelity", () => {
     s.state.memory = 0;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("kunlun"));
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("kunlun"));
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
 
     expect(s.perm("kunlun").isSuspended).toBe(true);
