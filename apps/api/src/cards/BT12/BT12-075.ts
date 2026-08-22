@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, isTamer } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import { onDeletion, onPlay, whenAttacking } from "../../engine/effects/builders.js";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
@@ -18,7 +18,11 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const ids: string[] = [];
             for (const permanent of ctx.game.player(source.ownerSeat).battleArea)
-              if (permanent.topCard !== undefined && permanent.stack.length)
+              if (
+                permanent.topCard !== undefined &&
+                isTamer(ctx.game.definitionOf(permanent.topCard)) &&
+                permanent.stack.length
+              )
                 for (const card of permanent.stack)
                   if (hasSaveText(ctx.game.definitionOf(card))) ids.push(card.instanceId);
             if (!ids.length) return;
