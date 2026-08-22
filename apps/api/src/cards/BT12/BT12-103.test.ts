@@ -50,7 +50,10 @@ it("gates Security Attack -1 on four or more digivolution cards", async () => {
 
 it("activates its Main deletion effect from security", async () => {
   const s = setupEngine({
-    0: { security: [{ card: "BT12-103", as: "option", faceUp: true }] },
+    0: {
+      security: [{ card: "BT12-103", as: "option", faceUp: true }],
+      battleArea: [{ card: "BT12-091", as: "hunter" }],
+    },
     1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }] },
   }, { autoSelectCards: true });
   await s.ready();

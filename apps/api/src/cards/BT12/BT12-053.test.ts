@@ -35,7 +35,7 @@ it("gains 1 memory when the inherited Digimon deletes an opponent in battle", as
 it("gains memory from a real battle deletion, not an unrelated timing drive", async () => {
   const s = setupEngine({
     0: { battleArea: [{ card: "BT12-022", as: "host", under: ["BT12-053"] }] },
-    1: { battleArea: [{ card: "BT1-009", as: "target", dp: 1000 }] },
+    1: { battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }] },
   });
   await s.ready();
   s.state.memory = 0;
