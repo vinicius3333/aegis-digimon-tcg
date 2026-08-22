@@ -34,3 +34,16 @@ it("gains memory when an opposing Digimon becomes suspended during its turn", as
   });
   expect(s.state.memory).toBe(1);
 });
+
+it("does not gain memory when an opposing Tamer becomes suspended", async () => {
+  const s = setupEngine({
+    0: { battleArea: [{ card: "BT12-056", as: "gran" }] },
+    1: { battleArea: [{ card: "BT12-094", as: "tamer" }] },
+  });
+  await s.ready();
+  s.state.memory = 0;
+  await advance(s.engine).fireForPermanent(EffectTiming.OnTappedAnyone, s.perm("gran"), {
+    suspendedPermanentId: s.perm("tamer").permanentId,
+  });
+  expect(s.state.memory).toBe(0);
+});

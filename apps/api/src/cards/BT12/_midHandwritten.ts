@@ -1273,7 +1273,12 @@ export function midBt12Module(cardId: string): EffectModule {
                   const p = ctx.trigger.suspendedPermanentId
                     ? ctx.game.permanentById(ctx.trigger.suspendedPermanentId)
                     : undefined;
-                  return source.isOwnersTurn() && p?.controllerSeat === ctx.game.opponentOf(source.ownerSeat);
+                  return (
+                    source.isOwnersTurn() &&
+                    p?.controllerSeat === ctx.game.opponentOf(source.ownerSeat) &&
+                    p.topCard !== undefined &&
+                    isDigimon(ctx.game.definitionOf(p.topCard))
+                  );
                 },
                 resolve: async (ctx) => ctx.fx.gainMemory(1),
               }),
