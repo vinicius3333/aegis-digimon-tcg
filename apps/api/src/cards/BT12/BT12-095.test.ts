@@ -3,17 +3,34 @@ import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-095.js";
 
 describe("BT12-095 handwritten module", () => {
   it("keeps the DP and Blocker clauses on the same selected Digimon", async () => {
-    const compiled = getEffectModule("BT12-095");
-    const source = { instanceId: "source-095", cardId: "BT12-095" } as CardSource;
-    const effects = compiled!.effectsForTiming(EffectTiming.OnPlay, source);
-    expect(effects).toHaveLength(1);
-    expect((effects[0]!.actions[1]!.target as { sameTarget?: boolean }).sameTarget).toBe(true);
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-095", as: "tai" },
+            { card: "BT12-034", as: "first" },
+            { card: "BT12-034", as: "second" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const firstBefore = s.perm("first").currentDP;
+    const secondBefore = s.perm("second").currentDP;
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("tai"));
+    await settle(() => s.perm("first").currentDP !== firstBefore || s.perm("second").currentDP !== secondBefore);
+    const firstChanged = s.perm("first").currentDP === firstBefore + 1000;
+    const secondChanged = s.perm("second").currentDP === secondBefore + 1000;
+    expect(firstChanged !== secondChanged).toBe(true);
+    const selected = firstChanged ? s.perm("first") : s.perm("second");
+    expect(observe(s.engine).hasKeyword(selected, "Blocker")).toBe(true);
   });
 
   it("registers its printed OnPlay effect without declarative effect record", () => {
