@@ -863,11 +863,6 @@ export class GameEngine {
   }
 
   /**
-   * Whether `seat` has at least one legal Main-phase action right now: a playable
-   * card, a digivolve option, an available attack, or an activatable [Main] effect.
-   * Returns as soon as any action is found possible (short-circuit). Used to auto-end
-   * the turn when the player has nothing left to do.
-   */
   private hasAnyMainPhaseAction(seat: Seat): boolean {
     const player = this.state.players[seat];
     if (!player) return false;
@@ -4151,15 +4146,9 @@ export class GameEngine {
       }
     }
     this.mainPhase.checkTurnEnd();
-    const mainSeat = this.mainPhase.seat;
-    if (
-      this.mainPhase.isOpen &&
-      mainSeat !== undefined &&
-      mainSeat === this.state.turnSeat &&
-      !this.hasAnyMainPhaseAction(mainSeat)
-    ) {
-      this.mainPhase.endPhaseRequested(mainSeat);
-    }
+    // Do not infer a passed turn from a transient post-combat action snapshot. Combat can
+    // leave its attacker/target projections and deletion state settling across this callback;
+    // the next client intent (or a crossed gauge) is the authoritative Main-phase boundary.
   }
 
   /**
