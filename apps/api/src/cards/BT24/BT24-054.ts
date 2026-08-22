@@ -15,12 +15,7 @@ export const compiled: CompiledCard = {
           event: "whenPlayed",
           sourceFilter: {
             controller: "mine",
-            nameOrTrait: [
-              {
-                tokens: ["Shuu Yulin"],
-                match: "name",
-              },
-            ],
+            namesExact: ["Shuu Yulin"],
           },
           actions: [
             {
@@ -34,12 +29,7 @@ export const compiled: CompiledCard = {
               },
               into: {
                 controllerDefault: "mine",
-                nameOrTrait: [
-                  {
-                    tokens: ["Hisyaryumon"],
-                    match: "name",
-                  },
-                ],
+                namesExact: ["Hisyaryumon"],
               },
               payCost: true,
               from: ["hand"],
@@ -57,6 +47,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSuspended",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "Suspend",
@@ -80,7 +71,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Kyokyomon"],
+      namesExact: ["Kyokyomon"],
       cost: 0,
       isAlternate: true,
     },
