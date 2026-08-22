@@ -37,7 +37,6 @@ const compiled: CompiledCard = {
             "hand"
           ],
           "payCost": false,
-          "ignoreReqs": true,
           "optional": true
         }
       ]
