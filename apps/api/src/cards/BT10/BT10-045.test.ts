@@ -33,4 +33,17 @@ describe("BT10-045 Kokuwamon", () => {
     });
     expect(s.state.memory).toBe(1);
   });
+
+  it("does not gain memory during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT10-054", as: "host", under: ["BT10-045"] }] },
+      1: { battleArea: ["BT10-052"] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+
+    await advance(s.engine).fireSubTrigger("whenDeletesInBattle", { attackerPermanentId: s.perm("host").permanentId });
+
+    expect(s.state.memory).toBe(0);
+  });
 });
