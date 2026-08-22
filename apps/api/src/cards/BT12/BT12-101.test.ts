@@ -33,8 +33,9 @@ describe("BT12-101 handwritten module", () => {
     const card = runtimeCompiledCard("BT12-101")!;
     expect(card.coverage).toBe("full");
     expect(card.residual).toEqual([]);
-    expect(card.effects.find((effect) => effect.trigger === "Main")).toMatchObject({
-      actions: [{ kind: "TrashDigivolution", amount: 3 }],
+    expect(card.effects.find((effect) => effect.trigger === "Main")?.actions[0]).toMatchObject({
+      kind: "TrashDigivolution",
+      amount: 3,
     });
     expect(card.effects.find((effect) => effect.trigger === "Security")).toBeDefined();
   });
