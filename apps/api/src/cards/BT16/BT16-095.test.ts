@@ -38,4 +38,3 @@ describe("BT16-095", () => {
     expect(s.state.players[1]?.battleArea).toHaveLength(1);
   });
 });
-});
