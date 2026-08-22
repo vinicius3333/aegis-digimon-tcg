@@ -458,12 +458,6 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
   };
 
   let restDisposed = false;
-  // Return the revealed remainder before the free digivolution so its bonus draw
-  // resolves after the printed bottom-deck operation.
-  if (toDigivolve.length > 0) {
-    await disposeRest();
-    restDisposed = true;
-  }
   for (const pending of toDigivolve) {
     const revealedCard = revealed.find((card) => card.instanceId === pending.instanceId);
     if (revealedCard === undefined) continue;
@@ -484,7 +478,17 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     await ctx.fx.returnToHand([pending.instanceId], { silent: true });
     await ctx.fx.digivolveFromInstance(targets[0]!, pending.instanceId, {
       payCost: pending.payCost ?? false,
-      draw: true,
+      draw: false,
+      beforeWhenDigivolving: async () => {
+        const player = ctx.game.player(ctx.source.ownerSeat);
+        const remainingIds = new Set(revealed.filter((card) => !taken.has(card.instanceId)).map((card) => card.instanceId));
+        const unrevealed = player.deck.find((card) => !remainingIds.has(card.instanceId));
+        if (!restDisposed) {
+          await disposeRest();
+          restDisposed = true;
+        }
+        if (unrevealed !== undefined) await ctx.fx.returnToHand([unrevealed.instanceId]);
+      },
     });
   }
   if (!restDisposed) await disposeRest();

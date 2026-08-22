@@ -177,6 +177,14 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
         const definition = ctx.game.definitionOf(top);
         return isDigimon(definition) && definition.colors.includes(CardColor.Green) && (definition.level ?? 0) >= (cond.value ?? 5);
       });
+    case "breedingActionAvailable": {
+      const player = ctx.game.player(mine);
+      if (player.breeding === undefined) return player.eggDeck.length > 0;
+      const top = player.breeding.topCard;
+      if (top === undefined) return false;
+      const definition = ctx.game.definitionOf(top);
+      return isDigimon(definition) && (definition.level ?? 0) >= 3;
+    }
     case "opponentHas": {
       const threshold = cond.countMin ?? cond.count ?? 1;
       const count = cond.filter ? countMatching(ctx, { controller: "opponent", ...cond.filter }) : 0;
