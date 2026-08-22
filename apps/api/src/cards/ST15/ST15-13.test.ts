@@ -63,7 +63,9 @@ describe("ST15-13 <Blocker> static keyword", () => {
     ).toEqual({ ok: true });
 
     await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
-    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blocker.permanentId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blocker.permanentId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.events.some((event) => event.kind === "combatResolved"));
 
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
