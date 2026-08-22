@@ -9,9 +9,7 @@ const deletionWatcher = compiled.effects.find((effect) => effect.trigger === "Al
 const deletionTrigger = deletionWatcher?.actions.find((action) => action.kind === "SubTrigger");
 if (deletionTrigger?.kind === "SubTrigger") {
   const gain = deletionTrigger.actions.find((action) => action.kind === "GainMemory");
-  if (gain?.kind === "GainMemory") {
-    gain.scaling = { per: 1, unit: "deletedDigimons" };
-  }
+  if (gain?.kind === "GainMemory") gain.scaling = undefined;
 }
 compiled.coverage = "full";
 compiled.residual = [];
