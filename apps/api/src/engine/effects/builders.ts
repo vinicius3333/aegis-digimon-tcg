@@ -305,6 +305,7 @@ export const staticModifier = (opts: BuilderOptions): Effect => {
       subscribeSubTrigger: (sub: Parameters<EffectContext["fx"]["subscribeSubTrigger"]>[0]) =>
         ctx.fx.subscribeSubTrigger({
           ...sub,
+          continuous: true,
           ...(opts.maxPerTurn !== undefined && opts.maxPerTurn >= 1
             ? { oncePerTurnKey: sub.oncePerTurnKey ?? autoKey }
             : {}),

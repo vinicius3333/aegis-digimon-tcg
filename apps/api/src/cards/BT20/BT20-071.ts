@@ -51,7 +51,7 @@ async function trashHandAndGrantRaid(
   }
 }
 
-const module: EffectModule = {
+export const module: EffectModule = {
   cardId,
   effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
     // [On Play]: trash 1 hand card → 1 of your Digimon gains Raid and +3000 DP for the turn.

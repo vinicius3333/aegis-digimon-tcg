@@ -8,7 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // KB Q4400: the DNA digivolved result is a different Digimon, so the leave effect is
 // effectively replaced (or the DNA digivolve happens in response).
 // The "in the hand" specifies where the target card is sourced from for the DNA digivolve.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "OnPlay",

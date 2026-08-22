@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // KB Q4292 (binding): this card's [Your Turn] cost-reduction effect does NOT trigger when
 // this card is in the breeding area. The sourceFilter restricts to zone:battleArea.
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "YourTurn",
