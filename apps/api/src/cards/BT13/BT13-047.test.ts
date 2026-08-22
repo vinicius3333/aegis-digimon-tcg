@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "../index.js";
 import { compiled } from "./BT13-047.js";
 
 describe("BT13-047 Angoramon", () => {
