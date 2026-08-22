@@ -17,7 +17,13 @@ describe("BT24-021 SnowGoblimon", () => {
     const action = inherited.actions[0].actions[0];
     expect(action.target).toMatchObject({ filter: { isSelfRef: true }, isSelf: true });
     expect(action.condition).toMatchObject({ kind: "selfHasTrait" });
-    expect(action).toMatchObject({ kind: "Digivolve", from: ["trash"], reduceCost: 1, optional: true });
+    expect(action).toMatchObject({
+      kind: "Digivolve",
+      from: ["trash"],
+      payCost: true,
+      reduceCost: 1,
+      optional: true,
+    });
   });
 
   it("uses an exact Tsunomon alternate evolution requirement", () => {
@@ -36,7 +42,7 @@ describe("BT24-021 SnowGoblimon", () => {
           deck: [
             { card: "BT24-014", as: "shaman" },
             { card: "BT24-015", as: "titan" },
-            { card: "BT1-001", as: "miss" },
+            { card: "BT1-009", as: "miss" },
           ],
         },
       },
@@ -57,8 +63,8 @@ describe("BT24-021 SnowGoblimon", () => {
         0: {
           battleArea: [{ card: "BT24-072", as: "host", under: ["BT24-021"] }],
           hand: [
-            { card: "BT1-001", as: "firstDiscard" },
-            { card: "BT1-002", as: "secondDiscard" },
+            { card: "BT1-009", as: "firstDiscard" },
+            { card: "BT1-010", as: "secondDiscard" },
           ],
           trash: [
             { card: "P-209", as: "titamon" },
@@ -81,9 +87,9 @@ describe("BT24-021 SnowGoblimon", () => {
   });
 
   it.each([
-    ["exact Tsunomon", "BT11-006"],
-    ["level 2 TS Digi-Egg", "BT24-001"],
-  ])("digivolves from %s for cost 0", async (_label, baseCard) => {
+    ["exact Tsunomon", "BT11-006", 0],
+    ["level 2 TS Digi-Egg", "BT24-003", 1],
+  ])("digivolves from %s for cost 0", async (_label, baseCard, alternateRequirementIndex) => {
     const s = setupEngine({
       0: {
         breeding: { card: baseCard, as: "base" },
@@ -98,6 +104,8 @@ describe("BT24-021 SnowGoblimon", () => {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("snowGoblimon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("snowGoblimon").instanceId);
