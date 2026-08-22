@@ -4,11 +4,12 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled = structuredClone(getCompiledCard("BT12-014")!);
 const whenDigivolving = compiled.effects.find((effect) => effect.trigger === "WhenDigivolving");
 if (whenDigivolving !== undefined) {
-  const deletion = whenDigivolving.actions.find((action) => action.kind === "Delete");
-  if (deletion?.kind === "Delete") whenDigivolving.actions = [
-    { kind: "DeletionMaxDpModifier", amount: 3000, scope: "self", duration: "forTheTurn", scaling: { per: 2, unit: "digivolutionCards" } },
-    deletion,
-  ];
+  whenDigivolving.actions[0] = {
+    kind: "DeleteByDPBudget",
+    target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
+    baseBudget: 4000,
+    budgetBonus: { per: 3000, perCount: 2, unit: "selfDigivolutionCards" },
+  };
 }
 const inherited = compiled.effects.find((effect) => effect.trigger === "WhenAttacking");
 const attack = inherited?.actions[0];
