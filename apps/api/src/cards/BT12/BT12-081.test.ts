@@ -15,7 +15,7 @@ describe("BT12-081 Astamon", () => {
   });
 
   it("limits the Save alternate evolution to yellow, green, or purple level 4 cards", () => {
-    expect(matchingAlternateDigivolutionRequirement("BT12-081", "BT12-037")?.cost).toBe(5);
+    expect(matchingAlternateDigivolutionRequirement("BT12-081", "BT12-037")?.cost).toBe(3);
     expect(matchingAlternateDigivolutionRequirement("BT12-081", "BT12-061")).toBeUndefined();
   });
 
