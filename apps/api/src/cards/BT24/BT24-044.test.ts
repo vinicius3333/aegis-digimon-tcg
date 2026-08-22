@@ -7,8 +7,18 @@ describe("BT24-044 Muchomon", () => {
     expect(compiled.effects[0]).toMatchObject({
       trigger: "OnPlay",
       actions: [
-        expect.objectContaining({ kind: "Suspend", optional: true, target: { filter: { controllerDefault: "any", levelComparison: { op: "lte", value: 6 } } } }),
-        expect.objectContaining({ kind: "RevealAdd", revealCount: 3, condition: { kind: "lastSuspendedIsMine" }, add: [{ to: "hand" }, { to: "hand" }], rest: "deckBottom" }),
+        expect.objectContaining({
+          kind: "Suspend",
+          optional: true,
+          target: { filter: { controllerDefault: "any", levelComparison: { op: "lte", value: 6 } } },
+        }),
+        expect.objectContaining({
+          kind: "RevealAdd",
+          revealCount: 3,
+          condition: { kind: "lastSuspendedIsMine" },
+          add: [{ to: "hand" }, { to: "hand" }],
+          rest: "deckBottom",
+        }),
       ],
     });
     expect(compiled.effects[1]).toMatchObject({ trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn" });
