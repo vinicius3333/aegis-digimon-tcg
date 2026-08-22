@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { getEffectModule } from "../../engine/effects/registry.js";
 import "../index.js";
 
 // A3 for BT21-062 (Galacticmon) — [Start of Your Main Phase]:
@@ -19,6 +20,7 @@ import "../index.js";
 
 const GALACTICMON = "BT21-062";
 const PLAIN_DIGIMON = "BT1-009"; // Monodramon — playCost 2, opponent target for delete
+const module = getEffectModule(GALACTICMON)!;
 
 function fireTiming(s: EngineSetup, timing: EffectTiming, trigger: Record<string, unknown> = {}): Promise<void> {
   return (
