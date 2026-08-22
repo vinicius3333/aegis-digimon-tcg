@@ -18,9 +18,8 @@ describe("ST16-12 MetalGarurumon", () => {
           hand: [
             { card: "ST16-12", as: "metalgarurumon" },
             { card: "BT1-001", as: "costOne" },
-            { card: "BT1-002", as: "costTwo" },
           ],
-          deck: [{ card: "BT1-003" }],
+          deck: [{ card: "BT1-002", as: "drawnCost" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -37,9 +36,9 @@ describe("ST16-12 MetalGarurumon", () => {
     await settle(() => s.state.players[0]!.trash.length === 2);
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
-      expect.arrayContaining([s.inst("costOne").instanceId, s.inst("costTwo").instanceId]),
+      expect.arrayContaining([s.inst("costOne").instanceId, s.inst("drawnCost").instanceId]),
     );
-    expect(s.state.memory).toBe(9);
+    expect(s.state.memory).toBe(10);
   });
 
   it("trashes one hand card and deletes the opponent's lowest-level Digimon when attacking", async () => {
