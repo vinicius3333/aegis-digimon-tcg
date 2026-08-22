@@ -1,8 +1,30 @@
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST2-06.js";
 
 describe("ST2-06 Garurumon", () => {
+  it("matches the inherited bottom-source removal contract", () => {
+    const definition = getCardDefinition("ST2-06")!;
+    const compiled = getCompiledCard("ST2-06")!;
+
+    expect(definition.inheritedEffectText).toContain("bottom of 1 of your opponent's Digimon");
+    expect(compiled.effects).toEqual([
+      {
+        trigger: "WhenAttacking",
+        actions: [{
+          kind: "TrashDigivolution",
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+          fromTop: false,
+          amount: 1,
+        }],
+        isInherited: true,
+      },
+    ]);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+  });
+
   it("trashes the bottom source of any opposing Digimon when attacking", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "ST2-08", as: "attacker", under: ["ST2-06"] }] },
