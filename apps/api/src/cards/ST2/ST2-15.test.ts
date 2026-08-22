@@ -149,7 +149,9 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
         latest.kind === "selectCards" && latest.sourceCardId === "ST2-15";
     });
 
-    const sourceDecision = s.decisions.at(-1)!.req;
+    const sourceDecision = s.decisions.find((decision) =>
+      decision.req.decisionId === s.state.pendingDecision?.decisionId
+    )!.req;
     expect(sourceDecision.options?.candidateInstanceIds).toEqual([
       s.inst("secondSource").instanceId,
       s.inst("secondOtherSource").instanceId,
