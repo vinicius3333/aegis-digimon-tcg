@@ -22,6 +22,7 @@ import {
   baseGrantedDigivolveFor,
   digiXrosRequirementFor,
   assemblyRequirementFor,
+  Permanent,
 } from "@aegis/shared";
 import { MemoryGauge } from "./MemoryGauge.js";
 import { buildStateView, refreshStateView as refreshStateViewInto, syncPublicCounts } from "./state/visibility.js";
