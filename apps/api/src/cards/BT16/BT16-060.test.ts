@@ -24,5 +24,7 @@ describe("BT16-060 Tankdramon IR", () => {
       expect(reduction.scaling?.unit).toBe("cards");
       expect(reduction.scaling?.filter?.zone).toBe("revealed");
     }
+    expect(compiled!.effects[0]?.actions[0]?.rest).toBe("deckTopOrBottom");
+    expect(compiled!.effects[1]?.actions[0]?.rest).toBe("deckTopOrBottom");
   });
 });
