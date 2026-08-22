@@ -17,6 +17,11 @@ if (whenDigivolving !== undefined) {
     condition: { kind: "selfDigivolutionCountAtLeast", value: 4 },
   };
 }
+const inherited = compiled.effects.find((effect) => effect.trigger === "WhenAttacking");
+const draw = inherited?.actions[0];
+if (draw?.kind === "Draw") {
+  draw.condition = { kind: "selfTopHasText", filter: { nameOrTrait: [{ tokens: ["Save"], match: "text" }] } };
+}
 compiled.coverage = "full";
 compiled.residual = [];
 registerIrCard("BT12-081", compiled);

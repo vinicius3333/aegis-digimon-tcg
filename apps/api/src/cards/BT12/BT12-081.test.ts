@@ -51,6 +51,7 @@ describe("BT12-081 Astamon", () => {
     });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-010"));
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-010");
   });
 });
