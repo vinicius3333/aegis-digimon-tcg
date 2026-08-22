@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-106.js";
 
@@ -24,6 +25,17 @@ describe("BT12-106 handwritten module", () => {
     const module = getEffectModule("BT12-106");
     const source = { instanceId: "source-106", cardId: "BT12-106", ownerSeat: 0, isOnBattleArea: () => false } as never;
     expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+  });
+
+  it("Security suspends opposing cards without installing the Main restriction", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT12-106", as: "option", faceUp: true }] },
+      1: { battleArea: [{ card: "BT1-009", as: "digimon" }, { card: "BT12-091", as: "tamer" }] },
+    }, { autoSelectCards: true });
+    await s.ready();
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    expect(s.perm("digimon").isSuspended).toBe(true);
+    expect(s.perm("tamer").isSuspended).toBe(true);
   });
 });
 

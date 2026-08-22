@@ -1055,7 +1055,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                 resolve: async (ctx) => ctx.fx.waiveColorRequirement(source.instanceId, EffectDuration.Permanent),
               }),
             ];
-          const resolve = async (ctx: EffectContext) => {
+          const suspendOpponents = async (ctx: EffectContext) => {
             const ids = ctx.game
               .player(ctx.game.opponentOf(source.ownerSeat))
               .battleArea.filter(
@@ -1065,6 +1065,9 @@ export function lateBt12Module(cardId: string): EffectModule {
               )
               .map(({ permanentId }) => permanentId);
             if (ids.length) await ctx.fx.suspend(ids, { byEffectSeat: source.ownerSeat });
+          };
+          const resolve = async (ctx: EffectContext) => {
+            await suspendOpponents(ctx);
             ctx.fx.restrictPlayer?.(
               ctx.game.opponentOf(source.ownerSeat),
               "unsuspend",
@@ -1085,6 +1088,15 @@ export function lateBt12Module(cardId: string): EffectModule {
                 effectKey: `${cardId}/main`,
                 description: "Suspend all opposing Digimon and Tamers and prevent their next unsuspend.",
                 resolve,
+              }),
+            ];
+          if (timing === EffectTiming.SecuritySkill)
+            return [
+              security({
+                source,
+                effectKey: `${cardId}/security-suspend`,
+                description: "[Security] Suspend all opposing Digimon and Tamers.",
+                resolve: suspendOpponents,
               }),
             ];
           return [];
