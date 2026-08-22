@@ -10,7 +10,7 @@ describe("ST13-14 BryweLudramon", () => {
     const s = setupEngine({ 0: {
       battleArea: [{ card: "ST13-13", as: "base" }],
       hand: [{ card: "ST13-14", as: "brywe" }],
-      deck: ["ST13-07", "BT1-001", "BT1-002", "BT1-003"],
+      deck: ["BT1-009", "ST13-07", "BT1-010", "BT1-011"],
     } }, { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true });
     s.state.memory = 3;
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("brywe").instanceId })).toEqual({ ok: true });
@@ -22,8 +22,8 @@ describe("ST13-14 BryweLudramon", () => {
     const s = setupEngine({ 0: {
       battleArea: [{ card: "ST13-13", as: "base" }],
       hand: [{ card: "ST13-14", as: "brywe" }],
-      deck: ["ST13-07", "BT1-001", "BT1-002", "BT1-003"],
-    } }, { autoAcceptOptional: false, autoSelectCards: true, autoOrderCards: true });
+      deck: ["BT1-009", "ST13-07", "BT1-010", "BT1-011"],
+    } }, { autoAcceptOptional: true, autoOrderCards: true });
     s.state.memory = 4;
 
     expect(s.engine.applyIntent(0, {
@@ -31,10 +31,11 @@ describe("ST13-14 BryweLudramon", () => {
       permanentId: s.perm("base").permanentId,
       instanceId: s.inst("brywe").instanceId,
     })).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "ST13-14");
+    await settle(() => s.decisions.some(({ req }) => req.kind === "orderCards"));
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.deck.length === 3);
 
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    expect(s.state.players[0]!.deck.map((card) => card.cardId).sort()).toEqual(["BT1-001", "BT1-002", "BT1-003", "ST13-07"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId).sort()).toEqual(["BT1-010", "BT1-011", "ST13-07"]);
   });
 
   it("gains deletion and return protection when its controller's effect adds a source", async () => {
@@ -74,6 +75,6 @@ describe("ST13-14 BryweLudramon", () => {
 
     s.state.turnSeat = 1;
     await s.engine.recomputeContinuousEffects();
-    expect(observe(s.engine).isRestricted(s.perm("ragna"), "beAffected")).toBe(true);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("ragna"), "beAffected", "Digimon")).toBe(true);
   });
 });
