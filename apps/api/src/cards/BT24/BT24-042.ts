@@ -64,6 +64,7 @@ export const compiled: CompiledCard = {
                 or: [{ namesExact: ["Titamon"] }, { nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] }],
               },
               from: ["trash"],
+              payCost: true,
               reduceCost: 1,
               optional: true,
             },
