@@ -19,7 +19,24 @@ describe("BT12-042 handwritten module", () => {
       permanent: () => undefined,
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.WhenDigivolving, source).length).toBeGreaterThan(0);
+    expect(module!.effectsForTiming(EffectTiming.OnDestroyedAnyone, source)).toHaveLength(2);
   });
+});
+
+it("recovers Marcus from an inherited RizeGreymon when its Tamer is deleted", async () => {
+  const s = setupEngine({
+    0: {
+      battleArea: [
+        { card: "BT12-038", as: "host", under: ["BT12-042"] },
+        { card: "BT12-092", as: "tamer" },
+      ],
+      trash: [{ card: "BT12-092", as: "marcus" }],
+    },
+  }, { autoAcceptOptional: true, autoSelectCards: true });
+  await s.ready();
+  await advance(s.engine).verb.deletePermanent([s.perm("tamer").permanentId], "byEffect");
+  await settle(() => s.state.players[0]!.security.some(({ instanceId }) => instanceId === s.inst("marcus").instanceId));
+  expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toContain(s.inst("marcus").instanceId);
 });
 
 it("recovers Marcus only when one of its owner's Tamers is deleted", async () => {

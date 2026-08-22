@@ -209,6 +209,28 @@ function ownTamerWasDeleted(ctx: EffectContext, source: CardSource): boolean {
   );
 }
 
+function recoverMarcus(cardId: string, source: CardSource, isInherited = false): Effect {
+  return turnTiming({
+    source,
+    effectKey: `${cardId}/${isInherited ? "inherited-" : ""}recover-marcus`,
+    description: "When your Tamer is deleted, place Marcus from trash atop security.",
+    isInherited,
+    maxPerTurn: 1,
+    canActivate: (ctx) => ownTamerWasDeleted(ctx, source),
+    resolve: async (ctx) => {
+      const [marcus] = await card(
+        ctx,
+        ctx.game
+          .player(source.ownerSeat)
+          .trash.filter((item) => ctx.game.definitionOf(item).nameEn === "Marcus Damon"),
+        1,
+        true,
+      );
+      if (marcus) await ctx.fx.addSecurity(source.ownerSeat, [marcus], { toTop: true, faceUp: false });
+    },
+  });
+}
+
 function endAttackMemory(cardId: string, source: CardSource): Effect {
   return turnTiming({
     source,
@@ -1044,26 +1066,7 @@ export function midBt12Module(cardId: string): EffectModule {
               }),
             ];
           if (timing === EffectTiming.OnDestroyedAnyone)
-            return [
-              turnTiming({
-                source,
-                effectKey: `${cardId}/recover-marcus`,
-                description: "When your Tamer is deleted, place Marcus from trash atop security.",
-                maxPerTurn: 1,
-                canActivate: (ctx) => ownTamerWasDeleted(ctx, source),
-                resolve: async (ctx) => {
-                  const [marcus] = await card(
-                    ctx,
-                    ctx.game
-                      .player(source.ownerSeat)
-                      .trash.filter((item) => ctx.game.definitionOf(item).nameEn === "Marcus Damon"),
-                    1,
-                    true,
-                  );
-                  if (marcus) await ctx.fx.addSecurity(source.ownerSeat, [marcus], { toTop: true, faceUp: false });
-                },
-              }),
-            ];
+            return [recoverMarcus(cardId, source), recoverMarcus(cardId, source, true)];
           return [];
         case "BT12-043":
           if (timing === EffectTiming.WhenDigivolving)
