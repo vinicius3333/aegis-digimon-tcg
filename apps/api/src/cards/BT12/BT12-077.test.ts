@@ -31,7 +31,7 @@ describe("BT12-077 Arresterdramon", () => {
     await settle(() => s.perm("tamer").stack.some(({ instanceId }) => instanceId === sourceId));
     expect(s.perm("tamer").stack.some(({ instanceId }) => instanceId === sourceId)).toBe(true);
     const inherited = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "inheritedHost", under: ["BT12-077"] }], deck: ["BT1-010"] },
+      0: { battleArea: [{ card: "BT12-077", as: "inheritedHost", under: ["BT12-077"] }], deck: ["BT1-010"] },
     });
     await inherited.ready();
     await advance(inherited.engine).fire(EffectTiming.OnUseAttack, inherited.perm("inheritedHost"));
