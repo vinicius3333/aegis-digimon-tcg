@@ -10,10 +10,10 @@ const compiled: CompiledCard = {
       actions: [{
         kind: "SubTrigger",
         event: "whenCardReturnsFromTrashToHand",
-        sourceFilter: { kind: ["Digimon"], colors: ["Red"], nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" }], excludeTraits: ["Sea Animal"] },
+        sourceFilter: { kind: ["Digimon"], colors: ["Red"], nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" }, { tokens: ["Sea Animal"], match: "trait", negate: true }] },
         actions: [{
           kind: "PlayWithoutCost",
-          target: { filter: { controller: "mine", kind: ["Digimon"], colors: ["Red"], nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" }], excludeTraits: ["Sea Animal"], dp: { op: "lte", value: 13000 } }, count: 1 },
+          target: { filter: { controller: "mine", kind: ["Digimon"], colors: ["Red"], nameOrTrait: [{ tokens: ["Avian", "Bird", "Beast", "Animal", "Sovereign"], match: "trait" }, { tokens: ["Sea Animal"], match: "trait", negate: true }], dp: { op: "lte", value: 13000 } }, count: 1 },
           from: ["hand"],
           payCost: false,
           optional: true,
