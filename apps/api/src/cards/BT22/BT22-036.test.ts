@@ -6,9 +6,9 @@ import "../index.js";
 import { compiled } from "./BT22-036.js";
 
 describe("BT22-036 Chaperomon", () => {
-  it("records the unresolved DigivolveViaPlacement runtime capability", () => {
-    expect(compiled.coverage).toBe("partial");
-    expect(compiled.residual).toEqual(["DigivolveViaPlacement runtime execution is unsupported"]);
+  it("has complete executable coverage for every printed clause", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
   });
 
   it("keeps the Arisa trash-placement digivolution and Puppet Overclock/leave replacement", () => {
@@ -50,7 +50,7 @@ describe("BT22-036 Chaperomon", () => {
     });
   });
 
-  it("exposes the unresolved runtime failure for the hand digivolution", async () => {
+  it("places ShoeShoemon from trash and pays exactly 3 for the hand digivolution", async () => {
     const s = setupEngine(
       {
         0: {
@@ -67,16 +67,13 @@ describe("BT22-036 Chaperomon", () => {
       effect.effectKey.startsWith("BT22-036/"),
     )!.effectKey;
 
-    expect(
-      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: s.inst("chaperomon").instanceId, effectKey }),
-    ).toEqual({
-      ok: false,
-      reason: "illegal-target",
-    });
-    await settle();
-    expect(s.state.memory).toBe(3);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT22-036")).toBe(true);
-    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT22-032")).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: s.inst("chaperomon").instanceId, effectKey })).toEqual({ ok: true });
+    await settle(() => s.perm("shoemon").topCard?.cardId === "BT22-036");
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT22-036")).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT22-032")).toBe(false);
+    expect(s.perm("shoemon").stack.map((card) => card.cardId)).toEqual(["EX7-024", "BT22-032", "BT22-036"]);
   });
 
   it("does not expose the hand effect without Arisa Kinosaki", async () => {
