@@ -16,19 +16,7 @@ const playGlowingDawn = {
   payCost: false,
   optional: true,
   target: { filter: glowingDawn, count: 1 },
-  cost: {
-    kind: "trash",
-    target: {
-      filter: {
-        controller: "mine",
-        zone: "digivolutionCards",
-        position: "bottom",
-        faceDown: true,
-        hostFilter: { kind: ["Tamer"] },
-      },
-      count: 1,
-    },
-  },
+  cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 },
 };
 
 export const compiled: CompiledCard = {

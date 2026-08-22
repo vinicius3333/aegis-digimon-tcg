@@ -10,7 +10,7 @@ export const compiled: CompiledCard = {
     actions: [{ kind: "SubTrigger", event: "whenOpponentAttacks", actions: [{
       kind: "RedirectAttack",
       target: { count: 1, filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Glowing Dawn"], match: "trait" }] } },
-      cost: { kind: "trash", target: { count: 1, filter: { zone: "digivolutionCards", faceDown: true, position: "bottom", hostFilter: { kind: ["Tamer"], controller: "mine" } } } },
+      cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 },
       optional: false,
       abortOnDecline: true,
     }] }],

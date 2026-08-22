@@ -9,7 +9,7 @@ describe("BT26-005 Pinamon", () => {
     const action = compiled.effects[0]!.actions[0]!;
     expect(compiled.effects[0]).toMatchObject({ trigger: "OnDeletion", isInherited: true });
     expect(action).toMatchObject({ kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true });
-    expect(action.cost).toMatchObject({ kind: "trash", target: { filter: { zone: "digivolutionCards", faceDown: true, position: "bottom" } } });
+    expect(action.cost).toMatchObject({ kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 });
   });
 
   it("trashes the bottom face-down Tamer card and plays the eligible Avian card from trash", async () => {

@@ -15,7 +15,7 @@ export const compiled: CompiledCard = {
         { tokens: ["Avian"], match: "trait" },
         { tokens: ["DATA SQUAD"], match: "trait" },
       ] } },
-      cost: { kind: "trash", target: { count: 1, filter: { zone: "digivolutionCards", faceDown: true, position: "bottom", hostFilter: { kind: ["Tamer"] } } } },
+      cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 },
     }],
   }],
   coverage: "full",
