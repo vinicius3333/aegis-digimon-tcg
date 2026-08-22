@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-059.js";
+import "../index.js";
 
 describe("BT21-059 Timemon", () => {
   it("preserves Blocker, App Fusion, and Appmon Link requirements", () => {
@@ -45,5 +48,20 @@ describe("BT21-059 Timemon", () => {
         ],
       }),
     );
+  });
+
+  it("de-digivolves an opposing stack when the linked card triggers", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-009", as: "host", linked: [{ card: "BT21-059", as: "timemon" }] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", under: ["BT1-010"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fireSubTrigger("whenLinked", { subjectPermanentId: s.perm("host").permanentId });
+    await settle(() => s.perm("opponent").stack.length === 0);
+
+    expect(s.perm("opponent").stack).toHaveLength(0);
   });
 });
