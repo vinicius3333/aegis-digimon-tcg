@@ -30,19 +30,19 @@ const costChoice = {
 
 export const compiled: CompiledCard = {
   effects: [
-    { trigger: "OnPlay", actions: [costChoice] },
-    { trigger: "WhenDigivolving", actions: [costChoice] },
+    { trigger: "OnPlay", sharedUseKey: "on-play-cost-delete", actions: [costChoice] },
+    { trigger: "WhenDigivolving", sharedUseKey: "when-digivolving-cost-delete", actions: [costChoice] },
     {
-      trigger: "OnDeletion",
+      trigger: "OnDeletion", sharedUseKey: "on-deletion-play-ts",
       actions: [{ kind: "PlayWithoutCost", target: { filter: tsPlayable, count: 1 }, from: ["hand", "trash"], payCost: false, optional: true }],
     },
     {
-      trigger: "Static",
+      trigger: "Static", sharedUseKey: "inherited-security-attack",
       isInherited: true,
       actions: [{ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: 1 }, duration: "permanent" }],
     },
     {
-      trigger: "Static",
+      trigger: "Static", sharedUseKey: "rule-wizard-trait",
       actions: [{ kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "trait", tokens: ["Wizard"], duration: "permanent" }],
     },
   ],
