@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
   effects: [
-    { trigger: "OpponentsTurn", actions: [{ kind: "ModifySecurityDP", controller: "mine", amount: 2000, continuous: true }] },
+    { trigger: "OpponentsTurn", actions: [{ kind: "ModifySecurityDP", controller: "mine", amount: 2000, duration: "forTheTurn" }] },
     { trigger: "Security", actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }], isSecurity: true },
   ],
   coverage: "full",
