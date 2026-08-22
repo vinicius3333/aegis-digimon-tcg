@@ -1,4 +1,4 @@
-import { Phase, digivolutionRequirementsFor } from "@aegis/shared";
+import { EffectTiming, Phase, digivolutionRequirementsFor } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT26-025.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -66,11 +66,33 @@ describe("BT26-025 Liollmon", () => {
       },
     });
 
-    await advance(s.engine).fireForPermanent("OnUseAttack" as never, s.perm("host"), {
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
       attackerPermanentId: s.perm("host").permanentId,
     });
 
     expect(s.state.players[0]!.security[0]).toMatchObject({ instanceId: s.inst("recovery").instanceId, faceUp: false });
+  });
+
+  it("inherited attack may take the last security, then recovers, only once that turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-027", as: "host", under: [{ card: "BT26-025" }] }],
+        security: [{ card: "BT1-009", as: "taken" }],
+        deck: [
+          { card: "BT1-001", as: "recovery" },
+          { card: "BT1-002", as: "notRecovered" },
+        ],
+      },
+    }, { autoAcceptOptional: true });
+    const trigger = { attackerPermanentId: s.perm("host").permanentId };
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), trigger);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("taken").instanceId);
+    expect(s.state.players[0]!.security[0]).toMatchObject({ instanceId: s.inst("recovery").instanceId, faceUp: false });
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), trigger);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("taken").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("notRecovered").instanceId]);
   });
 
   it("uses the exact level-2 Glowing Dawn cost-0 evolution and rejects a near-match", async () => {
