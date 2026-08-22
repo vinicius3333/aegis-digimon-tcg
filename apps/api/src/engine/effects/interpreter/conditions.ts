@@ -661,6 +661,10 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return cond.sourceCardId !== undefined && ctx.trigger.playedByEffectSourceCardId === cond.sourceCardId;
     case "triggerPlayedByDecode":
       return ctx.trigger.playedByDecode === true;
+    case "lastSuspendedIsMine": {
+      const ids = ctx.lastSuspendedPermanentIds ?? [];
+      return ids.some((id) => ctx.game.permanentById(id)?.controllerSeat === mine);
+    }
     case "isDnaDigivolving":
       // WhenDigivolving: the digivolve that reached this window was a DNA digivolve (two materials
       // merged). The DNA-digivolve fire seam sets TriggerInfo.isDnaDigivolve; a single digivolve and
