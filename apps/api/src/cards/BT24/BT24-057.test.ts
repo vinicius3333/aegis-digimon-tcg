@@ -29,18 +29,55 @@ describe("BT24-057 Docmon", () => {
     });
   });
 
-  it("plays itself from security without paying", async () => {
-    const s = setupEngine({
-      0: { security: [{ card: "BT24-057", as: "docmon" }] },
-    });
+  it("a real security check plays itself and applies On Play", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "BT24-057", as: "docmon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 1;
     await s.ready();
 
-    await advance(s.engine).fireForInstance(EffectTiming.Security, s.inst("docmon"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("docmon").instanceId),
     );
+    await settle(() => observe(s.engine).isRestricted(s.perm("attacker"), "attackPlayers"));
 
     expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(observe(s.engine).isRestricted(s.perm("attacker"), "attackPlayers")).toBe(true);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("normal black level-3 evolution costs 2", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT11-036", as: "base" }],
+        hand: [{ card: "BT24-057", as: "docmon" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("docmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("docmon").instanceId);
+
+    expect(s.state.memory).toBe(3);
   });
 
   it("On Play prevents an opposing Digimon from attacking players", async () => {
@@ -56,6 +93,40 @@ describe("BT24-057 Docmon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("docmon"));
 
     expect(observe(s.engine).isRestricted(s.perm("target"), "attackPlayers")).toBe(true);
+  });
+
+  it("public play pays 4 and restricts one opposing Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT24-057", as: "docmon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("docmon").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attackPlayers"));
+
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("On Deletion applies the same player-attack restriction", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-057", as: "docmon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    const docmonId = s.perm("docmon").permanentId;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([docmonId], "effect");
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "attackPlayers"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === docmonId)).toBe(false);
   });
 
   it("links for cost 2, adds 3000 DP, and De-Digivolves after the host is deleted", async () => {
@@ -88,6 +159,7 @@ describe("BT24-057 Docmon", () => {
     await advance(s.engine).verb.deletePermanent([hostId], "effect");
     await settle(() => s.perm("target").topCard.cardId === "BT24-050");
 
-    expect(s.perm("target").stack).toHaveLength(1);
+    expect(s.perm("target").stack).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT24-051")).toBe(true);
   });
 });
