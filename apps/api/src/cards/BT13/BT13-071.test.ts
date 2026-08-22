@@ -34,6 +34,7 @@ describe("BT13-071 Giromon", () => {
       1: { security: ["BT1-001"] },
     });
     await s.ready();
+    s.state.turnSeat = 1;
     await advance(s.engine).fireForPermanent(EffectTiming.OpponentsTurn, s.perm("host"));
     await advance(s.engine).verb.suspend([s.perm("host").permanentId]);
     await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("host").permanentId });
