@@ -36,4 +36,13 @@ describe("BT12-093 handwritten module", () => {
     expect(s.perm("ren").stack.map(({ cardId }) => cardId)).toContain("BT12-008");
     expect(s.perm("target").currentDP).toBe(7000);
   });
+
+  it("plays Ren from security without paying its memory cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT12-093", as: "ren", faceUp: true }] } });
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("ren"));
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT12-093")).toBe(true);
+  });
 });
