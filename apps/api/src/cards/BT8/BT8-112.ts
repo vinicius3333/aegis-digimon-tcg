@@ -8,6 +8,7 @@ const sharedBody = [
     target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" }, count: 1 },
     amount: 99,
     cost: { kind: "return", target: { filter: { controller: "mine", zone: "digivolutionCards", colorCount: 2 }, count: 1 }, to: "deckBottom" },
+    optional: true,
   },
   {
     kind: "Return",

@@ -55,12 +55,9 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
       // unsuccessful trash grants nothing.
       if (action.grant === "colorFromLastTrashed") {
         const trashed = ctx.lastTrashedCards ?? [];
-        const ownerTrash = ctx.game.player(ctx.source.ownerSeat).trash;
         const grantDuration = toDuration(action.duration ?? "forTheTurn");
         for (const record of trashed) {
-          const card = ownerTrash.find((candidate) => candidate.instanceId === record.instanceId);
-          if (card === undefined) continue;
-          const colors = ctx.game.definitionOf(card).colors;
+          const colors = ctx.game.definitionOf({ cardId: record.cardId } as never).colors;
           for (const id of ids) {
             for (const color of colors) ctx.fx.addColorGrant(id, color, grantDuration);
           }
