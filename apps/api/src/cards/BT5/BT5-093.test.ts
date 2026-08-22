@@ -18,6 +18,13 @@ describe("BT5-093 Tai Kamiya & Matt Ishida", () => {
     expect(s.state.memory).toBe(2);
   });
 
+  it("does not gain memory for an opposing Digimon below level 6", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-093", as: "tamer" }] }, 1: { battleArea: [{ card: "BT5-071", as: "lowLevel" }] } });
+    s.state.memory = 0;
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("tamer"));
+    expect(s.state.memory).toBe(0);
+  });
+
   it("gives all own Omnimon Security Attack +1 on your turn", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT5-093", as: "tamer" }, { card: "BT5-086", as: "omni-a" }, { card: "BT5-111", as: "omni-b" }] } });
     await s.engine.recomputeContinuousEffects();
