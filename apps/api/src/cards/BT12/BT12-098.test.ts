@@ -4,6 +4,7 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-098.js";
 
 describe("BT12-098 handwritten module", () => {
@@ -36,5 +37,34 @@ describe("BT12-098 handwritten module", () => {
       expect.arrayContaining(["BT12-008", "BT12-087"]),
     );
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toContain("BT1-009");
+  });
+
+  it("suspends with four Tamers to give a Save Digimon Security Attack +1", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT12-098", as: "watchmaker" },
+          "BT12-087",
+          "BT12-088",
+          "BT12-089",
+          { card: "BT12-008", as: "save" },
+        ],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnUseOption, s.perm("watchmaker"));
+
+    expect(s.perm("watchmaker").isSuspended).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("save"), "SecurityAttack")).toBe(true);
+  });
+
+  it("plays Watchmaker from security without paying its memory cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT12-098", as: "watchmaker", faceUp: true }] } });
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("watchmaker"));
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT12-098")).toBe(true);
   });
 });
