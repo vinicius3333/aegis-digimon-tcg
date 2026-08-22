@@ -2,6 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT24-102.js";
 import "../index.js";
 
@@ -18,7 +19,7 @@ describe("BT24-102 Homeros", () => {
     });
     expect(compiled.effects[1]).toMatchObject({
       trigger: "AllTurns",
-      actions: [{ kind: "ModifyDP", amount: 1000, duration: "permanent", target: { count: "all" } }],
+      actions: [{ kind: "Aura", effect: { kind: "modifyDP", amount: 1000 }, target: { count: "all" } }],
     });
     expect(compiled.effects[2]).toMatchObject({
       trigger: "EndOfYourTurn",
@@ -53,5 +54,97 @@ describe("BT24-102 Homeros", () => {
     expect(s.state.memory).toBe(5);
     expect(s.perm("source").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
+  });
+
+  it("draws even when it cannot suspend at 5 or more memory (Q6251)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-102", as: "source", suspended: true }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("source"));
+
+    expect(s.state.memory).toBe(6);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+  });
+
+  it("grants source-bound +1000 DP only to own TS Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT24-102", as: "source" },
+          { card: "BT24-009", as: "eligible" },
+          { card: "BT1-009", as: "ineligible" },
+        ],
+      },
+    });
+    await s.ready();
+
+    expect(s.perm("eligible").currentDP).toBe(s.perm("eligible").baseDP + 1000);
+    expect(s.perm("ineligible").currentDP).toBe(s.perm("ineligible").baseDP);
+
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
+    expect(s.perm("eligible").currentDP).toBe(s.perm("eligible").baseDP);
+  });
+
+  it("suspends to activate an Olympos XII On Play or When Digivolving effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-102", as: "source" },
+            { card: "BT24-101", as: "jupitermon" },
+          ],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "target", dp: 13000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("target").instanceId));
+
+    expect(s.perm("source").suspended).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+  });
+
+  it("does not activate a foreign effect when the suspension cost cannot be paid", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-102", as: "source", suspended: true },
+            { card: "BT24-101", as: "jupitermon" },
+          ],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "target", dp: 13000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
+    await settle();
+
+    expect(s.state.players[1]!.battleArea).toContain(s.perm("target"));
+    expect(s.state.players[0]!.security).toHaveLength(3);
+  });
+
+  it("plays itself from security without paying the cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT24-102", as: "source" }] } });
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.Security, s.inst("source"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("source").instanceId),
+    );
+    expect(observe(s.engine).hasKeyword(s.perm("source"), "Blocker")).toBe(false);
   });
 });
