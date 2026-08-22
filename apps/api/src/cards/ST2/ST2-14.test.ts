@@ -15,7 +15,7 @@ describe("ST2-14 Sorrow Blue", () => {
           deck: ["BT1-001"],
         },
         1: {
-          battleArea: [{ card: "ST2-03", as: "target" }],
+          battleArea: [{ card: "ST2-03", as: "target", suspended: true }],
           trash: [{ card: "ST2-01", as: "newSource" }],
           deck: ["BT1-001"],
         },
