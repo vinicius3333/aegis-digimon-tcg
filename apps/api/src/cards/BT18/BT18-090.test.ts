@@ -29,7 +29,7 @@ describe("BT18-090 Zoe Orimoto", () => {
   it("recognizes only Tamer candidates that actually carry inherited effects", () => {
     const action = compiled.effects[2]!.actions[0]!;
     if (action.kind !== "PlayWithoutCost") throw new Error("expected PlayWithoutCost");
-    const filter = action.target.filter;
+    const filter = action.target!.filter;
     expect(getCardDefinition("BT18-088").inheritedEffectText).toBeTruthy();
     expect(getCardDefinition("BT18-092").inheritedEffectText).toBeFalsy();
     expect(filter.hasInheritedEffects).toBe(true);
