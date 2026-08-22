@@ -14,7 +14,7 @@ describe("BT8-109 Flame Hellscythe", () => {
     const before = s.perm("target").currentDP;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
-    await settle(() => s.perm("target").currentDP !== before);
+    await settle(() => s.perm("target").currentDP !== before && s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT8-071"));
 
     expect(s.perm("target").currentDP).toBe(before - 6000);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT8-071")).toBe(true);
