@@ -1,5 +1,6 @@
 // Card modules for this set.
 import "./ST6-01.js";
+import "./ST6-02.js";
 import "./ST6-03.js";
 import "./ST6-04.js";
 import "./ST6-06.js";
