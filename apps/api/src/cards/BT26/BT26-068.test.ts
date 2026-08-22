@@ -18,6 +18,10 @@ import { compiled } from "./BT26-068.js";
 
 const CARD_ID = "BT26-068";
 
+it("exposes the printed level-3 TS evolution", () => {
+  expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({ level: 3, traits: ["TS"], cost: 2, isAlternate: true });
+});
+
 function definition(overrides: Partial<CardDefinition> = {}): CardDefinition {
   return {
     cardId: overrides.cardId ?? "TEST",
