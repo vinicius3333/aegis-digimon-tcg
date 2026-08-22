@@ -181,6 +181,40 @@ describe("BT26-006 Monimon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 
+  it("may decline without trashing either source or paying to play the hand card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{
+            card: "BT10-075",
+            as: "host",
+            under: [
+              { card: CARD_ID, as: "monimon" },
+              { card: "BT10-073", as: "costA" },
+              { card: "BT14-057", as: "costB" },
+            ],
+          }],
+          hand: [{ card: "BT14-057", as: "candidate" }],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("host"), {
+      attackerPermanentId: s.perm("host").permanentId,
+    });
+
+    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("monimon").instanceId,
+      s.inst("costA").instanceId,
+      s.inst("costB").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("candidate").instanceId]);
+    expect(s.state.memory).toBe(1);
+  });
+
   it("encodes the exact two-card Bagra Army cost and both play/use branches", () => {
     expect(compiled.effects).toMatchObject([{
       trigger: "WhenAttacking",
