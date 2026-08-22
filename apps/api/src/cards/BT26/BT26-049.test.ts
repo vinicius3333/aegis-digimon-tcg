@@ -11,6 +11,7 @@ describe("BT26-049 Rosemon", () => {
       { kind: "SubTrigger", event: "whenSuspended", actions: [{ kind: "PlayWithoutCost", playCostCeiling: { base: 3, raise: 1, per: 1, unit: "cards" }, target: { filter: { kind: ["Digimon", "Tamer", "Option"] } } }] },
       { kind: "SubTrigger", event: "whenDigivolutionTrashed", actions: [{ kind: "PlayWithoutCost", playCostCeiling: { base: 3, raise: 1, per: 1, unit: "cards" } }] },
     ] });
+    expect(compiled.effects?.[2]?.actions?.[0]?.actions?.[0]?.target?.filter).not.toHaveProperty("playCostLte");
   });
 
   it("uses an Option after two opposing suspensions raise the DATA SQUAD ceiling to five", async () => {
