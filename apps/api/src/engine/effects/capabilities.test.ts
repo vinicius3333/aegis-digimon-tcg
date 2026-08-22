@@ -30,6 +30,7 @@ import type { CardSource } from "./CardSource.js";
 import { gatherTriggeredEffects, type EffectEnvironment } from "./context.js";
 import { ContinuousEffectLedger } from "./continuous.js";
 import { UseTracker } from "./kernel.js";
+import { hasRegisteredCompiledCard, runtimeCompiledCard } from "./interpreter/compiledCards.js";
 import { matchingAlternateDigivolutionRequirement } from "../cards/cardData.js";
 // Side-effect import: registers BT19-038 in the global effect module registry so
 // gatherTriggeredEffects can find its WhenDigivolving effect in the CAP-A4 tests.
@@ -10454,23 +10455,16 @@ describe("CAP-E14 regression: no compiled card carries a bare self-GainKeyword(D
   });
 
   it("LM-031, LM-032 and BT19-097's own card modules (what actually executes) are clean", async () => {
-    // These three module files embed the exact compiled IR literal that `registerIrCard`
-    // registers at boot (`const compiled: CompiledCard = {...}`, not exported) — read it off
-    // disk rather than importing, so this reads the SAME source the interpreter runs without
-    // needing a test-only export.
-    const fs = await import("node:fs");
-    const { fileURLToPath } = await import("node:url");
-    const cardsDir = fileURLToPath(new URL("../../cards", import.meta.url));
-    for (const [set, id] of [
-      ["LM", "LM-031"],
-      ["LM", "LM-032"],
-      ["BT19", "BT19-097"],
-    ]) {
-      const src = fs.readFileSync(`${cardsDir}/${set}/${id}.ts`, "utf8");
-      const m = /const compiled: CompiledCard = (\{[\s\S]*\});\s*\n\s*registerIrCard/.exec(src);
-      if (m === null) throw new Error(`${id}: could not locate the compiled IR literal`);
-      const compiled = JSON.parse(m[1]!) as { effects: Array<{ actions?: unknown[] }> };
-      expect(hasBareDelaySelfGrantWithoutArmedConsumer(compiled.effects), id).toBe(false);
+    // Inspect the records captured by registerIrCard. This is the exact IR consumed by the
+    // interpreter and remains valid for both JSON-generated modules and hand-authored literals.
+    await import("../../cards/LM/LM-031.js");
+    await import("../../cards/LM/LM-032.js");
+    await import("../../cards/BT19/BT19-097.js");
+    for (const id of ["LM-031", "LM-032", "BT19-097"]) {
+      expect(hasRegisteredCompiledCard(id), id).toBe(true);
+      const compiled = runtimeCompiledCard(id);
+      expect(compiled, id).toBeDefined();
+      expect(hasBareDelaySelfGrantWithoutArmedConsumer(compiled?.effects ?? []), id).toBe(false);
     }
   });
 
