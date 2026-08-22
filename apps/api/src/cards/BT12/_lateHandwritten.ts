@@ -673,6 +673,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                   const top = subject?.topCard;
                   return (
                     self?.isSuspended === false &&
+                    ctx.trigger.entryCause === "digivolve" &&
                     subject?.controllerSeat === source.ownerSeat &&
                     top !== undefined &&
                     (ctx.game.definitionOf(top).nameEn.includes("Greymon") ||
