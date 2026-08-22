@@ -145,6 +145,7 @@ export type Action =
   | MovePermanentAction
   | HatchAction
   | ModifyDPAction
+  | AddDPFromTrashedCardAction
   | AddDPFromSuspendedCostAction
   | SetBaseDPAction
   | GainKeywordAction

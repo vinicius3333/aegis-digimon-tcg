@@ -142,6 +142,16 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       }
       return false;
     }
+    case "AddDPFromTrashedCard": {
+      const candidates = candidateLooseInstances(ctx, action.cost.target, ["hand"]);
+      const chosen = await pickLoose(ctx, action.cost.target, candidates);
+      if (chosen.length === 0) return action.abortOnDecline === true;
+      const dp = ctx.game.definitionOf(chosen[0]!).dp ?? 0;
+      const moved = await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
+      if (moved.length !== chosen.length) return action.abortOnDecline === true;
+      for (const id of await resolvePermanentTargets(ctx, action.target)) ctx.fx.modifyDP(id, dp, toDuration(action.duration));
+      return false;
+    }
     case "AddDPFromSuspendedCost": {
       // payCost() has already selected and suspended the cost target, recording the
       // exact permanent id(s) in this resolution's context. Use the live DP after
