@@ -56,7 +56,7 @@ describe("BT25-100 Iron Slash", () => {
         targetPermanentId: s.perm("host").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).hasKeyword(s.perm("host"), "Collision"));
+    await settle(() => observe(s.engine).hasPierce(s.perm("host")));
 
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Collision")).toBe(true);
     expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
