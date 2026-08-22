@@ -40,7 +40,7 @@ const compiled: CompiledCard = {
       ]
     },
     {
-      "trigger": "Main",
+      "trigger": "YourTurn",
       "actions": [
         {
           "kind": "Digivolve",

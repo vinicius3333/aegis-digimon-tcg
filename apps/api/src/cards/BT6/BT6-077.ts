@@ -68,9 +68,9 @@ const compiled: CompiledCard = {
             "count": 1,
             "isSelf": true
           },
-          "grant": "trait",
+          "grant": "color",
           "tokens": [
-            "black"
+            "Black"
           ]
         }
       ]

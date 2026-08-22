@@ -17,10 +17,7 @@ const compiled: CompiledCard = {
             "filter": {
               "zone": "trash",
               "controller": "mine",
-              "kind": [
-                "Digimon",
-                "Option"
-              ],
+              "kind": ["Digimon"],
               "nameOrTrait": [
                 {
                   "tokens": [
@@ -28,7 +25,8 @@ const compiled: CompiledCard = {
                   ],
                   "match": "trait"
                 }
-              ]
+              ],
+              "orFilters": [{"kind": ["Option"], "playCostOneOf": [7]}]
             },
             "unit": "trash"
           }
