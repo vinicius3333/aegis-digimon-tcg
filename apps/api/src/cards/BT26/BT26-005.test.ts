@@ -24,4 +24,34 @@ describe("BT26-005 Pinamon", () => {
     expect(s.perm("tamer").stack).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT26-072")).toBe(true);
   });
+
+  it("Q6958 may play the eligible card that was just trashed from under the Tamer", async () => {
+    const s = setupEngine({
+      0: { battleArea: [
+        { card: "BT1-009", as: "host", under: [{ card: "BT26-005" }] },
+        { card: "BT26-091", as: "tamer", under: [{ card: "BT26-072", as: "costAndTarget", faceUp: false }] },
+      ] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("costAndTarget").instanceId));
+
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("costAndTarget").instanceId)).toBe(false);
+  });
+
+  it("may decline without trashing the Tamer-stack card or playing from trash", async () => {
+    const s = setupEngine({
+      0: { battleArea: [
+        { card: "BT1-009", as: "host", under: [{ card: "BT26-005" }] },
+        { card: "BT26-091", as: "tamer", under: [{ card: "BT26-039", as: "cost", faceUp: false }] },
+      ], trash: [{ card: "BT26-072", as: "candidate" }] },
+    }, { autoAcceptOptional: false, autoSelectCards: true });
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009"));
+
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([s.inst("cost").instanceId]);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(true);
+  });
 });
