@@ -2685,17 +2685,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // can resolve and gate on the deleted card's live traits/controller before it leaves the
     // field. The body (e.g. draw) runs immediately; OnDestroyedAnyone (System A) follows below.
     if (engine.fireSubTrigger) {
-      const deletedByDpZero =
-        cause === "byRule" &&
-        toDelete.length > 0 &&
-        toDelete.every((permanentId) => access.permanentById(permanentId)?.currentDP === 0);
       for (const permanentId of toDelete) {
-        if (access.permanentById(permanentId)?.topCard === undefined) continue;
+        const deleted = access.permanentById(permanentId);
+        if (deleted?.topCard === undefined) continue;
         await engine.fireSubTrigger("onDeletionOf", {
           deletedPermanentId: permanentId,
           deletedPermanentIds: toDelete,
           removalCause: cause,
-          deletedByDpZero,
+          deletedByDpZero: cause === "byRule" && deleted.currentDP === 0,
         });
         // whenLeavesPlay is the superset event (delete + bounce); deletion is one path.
         await engine.fireSubTrigger("whenLeavesPlay", { deletedPermanentId: permanentId });

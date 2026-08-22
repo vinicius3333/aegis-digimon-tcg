@@ -46,6 +46,26 @@ it("does not draw when an opposing Digimon is deleted without dropping to 0 DP",
   expect(s.state.players[0]!.hand.length).toBe(handBefore);
 });
 
+it("draws when a zero-DP opponent is removed in a mixed rule-deletion batch", async () => {
+  const s = setupEngine({
+    0: { battleArea: [{ card: "BT12-041", as: "cho" }], deck: ["BT1-009"] },
+    1: {
+      battleArea: [
+        { card: "BT1-009", as: "zero", dp: 0 },
+        { card: "BT1-009", as: "aboveZero", dp: 3000 },
+      ],
+    },
+  });
+  await s.ready();
+  const handBefore = s.state.players[0]!.hand.length;
+  await advance(s.engine).verb.deletePermanent(
+    [s.perm("zero").permanentId, s.perm("aboveZero").permanentId],
+    "byRule",
+  );
+  await settle(() => s.state.players[0]!.hand.length > handBefore);
+  expect(s.state.players[0]!.hand.length).toBe(handBefore + 1);
+});
+
 it("applies minus 3000 DP once for each pair of digivolution cards", async () => {
   const s = setupEngine(
     {
