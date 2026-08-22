@@ -4,6 +4,7 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./BT26-073.js";
+import { compiled } from "./BT26-073.js";
 
 // A3 for BT26-073 (Aegiochusmon: Dark, BT26): "[On Play] [When Digivolving] By deleting
 // this Digimon or returning 1 [Shaman] or [TS] trait card from your trash to the bottom
@@ -14,6 +15,17 @@ import "./BT26-073.js";
 // test asserts the paid cost (self-delete) and the exact delete target.
 
 const CARD_ID = "BT26-073";
+
+it("encodes BT26-073's exclusive cost choice and static clauses in IR", () => {
+  expect(compiled.effects?.[0]?.actions?.[0]).toMatchObject({
+    kind: "Modal",
+    choose: 1,
+    options: [[{ kind: "Delete", cost: { kind: "deleteOwn" } }], [{ kind: "Delete", cost: { kind: "return", to: "deckBottom" } }]],
+  });
+  expect(compiled.effects?.[2]?.actions?.[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["hand", "trash"], payCost: false, optional: true });
+  expect(compiled.effects?.[3]).toMatchObject({ isInherited: true, actions: [{ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: 1 } }] });
+  expect(compiled.effects?.[4]?.actions?.[0]).toMatchObject({ kind: "GrantTrait", trait: "Wizard" });
+});
 
 function fakeDef(over: Partial<CardDefinition> = {}): CardDefinition {
   return {

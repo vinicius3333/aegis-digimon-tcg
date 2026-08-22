@@ -6,8 +6,16 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import "./BT26-074.js";
+import { compiled } from "./BT26-074.js";
 
 const CARD_ID = "BT26-074";
+
+it("encodes the shared once-per-turn Titan Option use and inherited lowest-level deletion", () => {
+  for (const effect of compiled.effects?.slice(0, 3) ?? []) {
+    expect(effect).toMatchObject({ frequency: "OncePerTurn", sharedUseKey: "bt26-074-use-titan-option", actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: true, reduceCostBy: 2, condition: { kind: "raw" } }] });
+  }
+  expect(compiled.effects?.[3]).toMatchObject({ isInherited: true, actions: [{ kind: "Delete", target: { superlative: "lowestLevel" } }] });
+});
 
 function definition(overrides: Partial<CardDefinition> = {}): CardDefinition {
   return {
