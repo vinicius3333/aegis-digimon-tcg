@@ -27,4 +27,42 @@ describe("BT11-091 Taiga", () => {
     expect(s.state.memory).toBe(7); // printed 4 reduced to 3
     expect(s.perm("taiga").isSuspended).toBe(true);
   });
+
+  it("does not grant DP or an evolution discount outside its printed scope", async () => {
+    const opponentTurn = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT11-091", as: "taiga" },
+          { card: "BT1-075", as: "green", dp: 5000 },
+        ],
+      },
+    });
+    opponentTurn.state.turnSeat = 1;
+    await opponentTurn.ready();
+    expect(opponentTurn.perm("green").currentDP).toBe(5000);
+
+    const nonGreen = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-091", as: "taiga" },
+            { card: "BT1-015", as: "red-base" },
+          ],
+          hand: [{ card: "BT1-020", as: "red-level-five" }],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    nonGreen.state.memory = 10;
+
+    expect(nonGreen.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: nonGreen.perm("red-base").permanentId,
+      instanceId: nonGreen.inst("red-level-five").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => nonGreen.perm("red-base").topCard.cardId === "BT1-020");
+
+    expect(nonGreen.state.memory).toBe(8);
+    expect(nonGreen.perm("taiga").isSuspended).toBe(false);
+  });
 });
