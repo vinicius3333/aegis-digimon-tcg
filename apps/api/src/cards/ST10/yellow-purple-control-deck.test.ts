@@ -34,9 +34,7 @@ describe("Yellow/Purple control SEC package", () => {
     await settle(
       () =>
         s.state.players[0]!.security.length === 0 &&
-        s.state.players[0]!.battleArea.some(
-          (permanent) => permanent.topCard.instanceId === zwartId,
-        ) &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === zwartId) &&
         !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
       5000,
     );
