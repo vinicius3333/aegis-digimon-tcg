@@ -26,6 +26,25 @@ export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: setup },
     { trigger: "WhenDigivolving", actions: setup },
+    {
+      trigger: "AllTurns",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          actions: [
+            {
+              kind: "Suspend",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
