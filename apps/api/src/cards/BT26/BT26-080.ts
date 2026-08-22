@@ -14,7 +14,7 @@ export const compiled: CompiledCard = {
   effects: [
     { trigger: "Static", actions: [{ kind: "WaiveColorRequirement", condition: { kind: "youHave", filter: ts } }] },
     { trigger: "WhenDigivolving", actions: [{ kind: "Attack", target: self, withoutSuspending: true, optional: true, cost: { kind: "suspend", target: anyDigimon } }] },
-    { trigger: "WhenAttacking", frequency: "OncePerTurn", actions: [{ kind: "RawUnparsed", text: "Delete 1 of your opponent's Digimon with the same orientation as this Digimon." }] },
+    { trigger: "WhenAttacking", frequency: "OncePerTurn", actions: [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], sameOrientationAsSource: true }, count: 1 } }] },
     { trigger: "Main", actions: [
       { kind: "Unsuspend", target: anyDigimon, optional: true },
       { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], unsuspended: true, superlative: "lowestDP" }, count: "all" } },

@@ -30,6 +30,8 @@ export interface BoardPredicates {
   sameLevelPair?: boolean;
   suspended?: boolean;
   unsuspended?: boolean;
+  /** Candidate has the same suspended/unsuspended orientation as the live effect source. */
+  sameOrientationAsSource?: boolean;
   /** "this Digimon" / "this card". */
   isSelfRef?: boolean;
   /** "another", "other". */

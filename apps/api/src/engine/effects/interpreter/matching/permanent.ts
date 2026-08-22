@@ -391,6 +391,10 @@ export function permanentMatchesFilter(
   if (filter.suspended === false && permanent.isSuspended) return false;
   // Unsuspended-state filter ("opponent has no unsuspended Digimon") — live state.
   if (filter.unsuspended && permanent.isSuspended) return false;
+  if (filter.sameOrientationAsSource) {
+    const sourcePermanent = source?.permanent();
+    if (sourcePermanent === undefined || permanent.isSuspended !== sourcePermanent.isSuspended) return false;
+  }
 
   if ((filter.digivolutionCards === "none" || filter.digivolutionCards === "hasNone") && permanent.stack.length > 0)
     return false;

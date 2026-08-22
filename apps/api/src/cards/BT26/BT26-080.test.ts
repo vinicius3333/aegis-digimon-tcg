@@ -18,8 +18,11 @@ describe("BT26-080 compiled behavior", () => {
     ] });
   });
 
-  it("keeps the Q7112 same-orientation limitation explicit", () => {
+  it("encodes Q7112 as a source-relative live orientation filter", () => {
     expect(compiled.residual[0]).toContain("same-orientation-as-self");
-    expect(compiled.effects.find((effect) => effect.trigger === "WhenAttacking")?.actions[0]).toMatchObject({ kind: "RawUnparsed" });
+    expect(compiled.effects.find((effect) => effect.trigger === "WhenAttacking")?.actions[0]).toMatchObject({
+      kind: "Delete",
+      target: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], sameOrientationAsSource: true } },
+    });
   });
 });
