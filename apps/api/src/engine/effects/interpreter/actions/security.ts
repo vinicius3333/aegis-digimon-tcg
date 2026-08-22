@@ -67,6 +67,17 @@ export async function runSecurityManipulation(
     }
   }
   switch (action.op) {
+    case "moveTopToBottom": {
+      const security = ctx.game.player(seat).security;
+      if (security.length === 0) {
+        ctx.lastEffectActed = false;
+        return;
+      }
+      const [top] = security.splice(0, 1);
+      security.push(top);
+      ctx.lastEffectActed = true;
+      return;
+    }
     case "shuffle":
       ctx.fx.shuffleSecurity(seat);
       return;

@@ -46,6 +46,7 @@ export interface Condition {
     | "selfDigivolutionStackDistinctColorCount"
     | "selfTopHasText" // `filter.nameOrTrait` vs the SOURCE top card's name/trait/effect text (EX11-070)
     | "selfDigivolutionCountAtLeast" // source stack size >= `value` (BT22-007; KB Q4858)
+    | "selfLinkCountAtLeast" // source linked-card count >= `value`
     | "selfDigivolutionStackCountAtLeast" // stack cards matching `filter.nameOrTrait` >= `count` (BT11-065)
     | "selfDigivolutionStackHasSameLevelPair" // 2 or more SOURCE stack cards share a level (BT23-102)
     | "selfIsSuspended" // EX3-042, EX8-043

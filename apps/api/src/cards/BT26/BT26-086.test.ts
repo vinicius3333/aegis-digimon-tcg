@@ -3,8 +3,8 @@ import { compiled } from "./BT26-086.js";
 
 describe("BT26-086 compiled behavior", () => {
   it("proves Assembly, Link +6, intrinsic keywords, and the link-then-attack windows", () => {
-    expect(compiled.coverage).toBe("partial");
-    expect(compiled.residual).toHaveLength(1);
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
     expect(compiled.assemblyRequirement).toEqual([{ reduceCost: 7, materials: [{ traits: ["Seven Code"], count: 7, differentNames: true }] }]);
     expect(compiled.keywords).toEqual(expect.arrayContaining([
       expect.objectContaining({ keyword: "Rush" }),
@@ -21,9 +21,7 @@ describe("BT26-086 compiled behavior", () => {
   });
 
   it("keeps the different-name and seven-link conditional seams explicit", () => {
-    expect(compiled.residual[0]).toContain("link-count");
     expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions[0]).toMatchObject({ differentNames: true });
-    expect(compiled.residual[0]).toContain("seven-link");
-    expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true }, actions: [{ kind: "Delete", optional: true }, { kind: "RawUnparsed" }] }] });
+    expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")).toMatchObject({ frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true }, actions: [{ kind: "Delete", optional: true }, { kind: "SecurityManipulation", op: "moveTopToBottom", condition: { kind: "selfLinkCountAtLeast", value: 7 } }] }] });
   });
 });

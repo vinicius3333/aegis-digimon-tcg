@@ -22,11 +22,11 @@ export const compiled: CompiledCard = {
     { trigger: "WhenDigivolving", actions: linkThenAttack },
     { trigger: "AllTurns", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true }, actions: [
       { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, optional: true },
-      { kind: "RawUnparsed", text: "If this Digimon has 7 link cards, return your opponent's top security card to the bottom of the deck." },
+      { kind: "SecurityManipulation", op: "moveTopToBottom", controller: "opponent", amount: 1, condition: { kind: "selfLinkCountAtLeast", value: 7, raw: "if this Digimon has 7 link cards" } },
     ] }] },
   ],
-  coverage: "partial",
-  residual: ["The conditional seven-link security return remains RawUnparsed until a reusable link-count condition seam exists."],
+  coverage: "full",
+  residual: [],
   assemblyRequirement: [{ reduceCost: 7, materials: [{ traits: ["Seven Code"], count: 7, differentNames: true }] }],
 };
 
