@@ -54,6 +54,16 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   ) {
     return action.abortOnDecline === true;
   }
+  if (
+    action.kind === "Unsuspend" &&
+    action.cost !== undefined &&
+    (await resolvePermanentTargets(ctx, action.target)).every((id) => {
+      const permanent = ctx.game.permanentById(id);
+      return permanent === undefined || permanent.isSuspended !== true;
+    })
+  ) {
+    return action.abortOnDecline === true;
+  }
   if (action.kind === "PlaceUnder" && action.cost !== undefined && !canAttemptPlaceUnder(ctx, action)) {
     return action.abortOnDecline === true;
   }
