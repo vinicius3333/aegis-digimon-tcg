@@ -15,4 +15,12 @@ describe("SecurityDpLedger", () => {
     ledger.sweepTurnEnd(1);
     expect(ledger.deltaFor(0)).toBe(0);
   });
+
+  it("does not apply security-Digimon modifiers to non-Digimon security cards", () => {
+    const ledger = new SecurityDpLedger();
+    ledger.add(0, -3000);
+
+    expect(ledger.deltaForCard(0, true)).toBe(-3000);
+    expect(ledger.deltaForCard(0, false)).toBe(0);
+  });
 });

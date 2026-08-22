@@ -3425,7 +3425,8 @@ export class GameEngine {
       },
       securityCardDp: (card) => {
         const owner = card.ownerSeat;
-        return (lookupDefinition(card.cardId)?.dp ?? 0) + this.securityDp.deltaFor(owner);
+        const definition = lookupDefinition(card.cardId);
+        return (definition?.dp ?? 0) + this.securityDp.deltaForCard(owner, this.access.isDigimonCard(card));
       },
       isDigimon: (card) => {
         const result = this.access.isDigimonCard(card);
