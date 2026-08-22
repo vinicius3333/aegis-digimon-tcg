@@ -8,6 +8,20 @@ import generatedDigivolveOverridesJson from "./generated-digivolve-overrides.jso
 /** Runtime effect records keyed by card id. Card modules remain authoritative. */
 export const compiledEffects: CompiledEffects = effectsJson as unknown as CompiledEffects;
 
+/**
+ * These BT8 records were replaced by audited hand-authored IR modules. Keep the shared catalog's
+ * coverage metadata synchronized with those modules until the historical generated artifact is
+ * regenerated; runtime behavior comes from registerIrCard, while this table is used for catalog
+ * coverage and client diagnostics.
+ */
+for (const cardId of ["BT8-070", "BT8-094", "BT8-096", "BT8-112"]) {
+  const record = compiledEffects[cardId];
+  if (record !== undefined) {
+    record.coverage = "full";
+    record.residual = [];
+  }
+}
+
 /** BT26 is hand-authored while generated effect records are absent. */
 export const ASSEMBLY_REQUIREMENT_OVERRIDES: Record<string, AssemblyRequirement[]> = {
   "BT26-014": [{ reduceCost: 2, materials: [{ traits: ["TB"], levelMax: 4, count: 1 }] }],
