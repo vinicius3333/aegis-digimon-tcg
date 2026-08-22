@@ -85,7 +85,7 @@ export const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "Restrict",
+          kind: "Aura",
           target: {
             filter: {
               isSelfRef: true,
@@ -93,8 +93,8 @@ export const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          restriction: "attackTargetChange",
-          duration: "permanent",
+          effect: { kind: "restriction", restriction: "attackTargetChange" },
+          while: { kind: "true" },
         },
       ],
       isInherited: true,
