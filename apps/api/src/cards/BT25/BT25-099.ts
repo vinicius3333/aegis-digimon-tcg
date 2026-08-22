@@ -90,7 +90,6 @@ export const compiled: CompiledCard = {
           "condition": {
             "kind": "youHave",
             "filter": {
-              "zone": "battleArea",
               "controllerDefault": "mine",
               "nameOrTrait": [
                 {
