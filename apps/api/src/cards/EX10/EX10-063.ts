@@ -125,5 +125,5 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard("EX10-063", compiled);
-export default compiled;
+registerIrCard(cardId, module);
+export default module;

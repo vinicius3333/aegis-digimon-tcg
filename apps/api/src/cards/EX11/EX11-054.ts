@@ -133,6 +133,9 @@ const module: EffectModule = {
   },
 };
 
+const suspendCost = { kind: "suspend", target: { isSelf: true } };
+const progress = { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ match: "trait", tokens: ["Progress"] }] };
+const matchingPlayed = { controller: "opponent", kind: ["Digimon"] };
 const reward = {
   kind: "Draw",
   controller: "mine",

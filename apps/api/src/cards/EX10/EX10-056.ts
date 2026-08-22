@@ -16,6 +16,10 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
  *
  */
 const cardId = "EX10-056";
+const watcherActions = [
+  { kind: "TrashDigivolution" as const, target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, amount: 2 },
+  { kind: "TrashSecurityTop" as const, controller: "opponent" as const, count: 1 },
+];
 
 /** Shared resolve body for [On Play] and [When Digivolving]. */
 async function relocateOpponentDigimon(ctx: Parameters<Effect["resolve"]>[0]): Promise<void> {
@@ -172,7 +176,7 @@ const module: EffectModule = {
 
     return [];
   },
-];
+};
 
 const compiled: CompiledCard = {
   effects: [

@@ -3,6 +3,9 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const cardId = "EX11-057";
+const opponentDigimon = { controller: "opponent" as const, kind: ["Digimon" as const] };
+const iceSnowDigimon = { controller: "mine" as const, kind: ["Digimon" as const], nameOrTrait: [{ match: "trait" as const, tokens: ["Ice-Snow"] }] };
+const suspendCost = { kind: "suspend", target: { isSelf: true } };
 
 function hasIceSnow(def: CardDefinition): boolean {
   return isDigimon(def) && (def.types ?? []).includes("Ice-Snow");

@@ -3,6 +3,8 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const cardId = "EX11-065";
+const mineralRock = { controller: "mine" as const, kind: ["Digimon" as const], nameOrTrait: [{ match: "trait" as const, tokens: ["Mineral", "Rock"] }] };
+const place = { kind: "PlaceUnder" as const, target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 }, optional: true };
 
 function hasMineralOrRock(def: CardDefinition): boolean {
   return (def.types ?? []).some((t) => t === "Mineral" || t === "Rock");
