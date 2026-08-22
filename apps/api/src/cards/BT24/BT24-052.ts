@@ -50,6 +50,8 @@ export const compiled: CompiledCard = {
             {
               kind: "Prevent",
               mode: "leavePlay",
+              optional: true,
+              abortOnDecline: true,
               cost: {
                 kind: "deleteOwn",
                 target: {
