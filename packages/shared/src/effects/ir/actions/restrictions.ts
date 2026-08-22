@@ -10,6 +10,7 @@ export type RestrictionKind =
   | "attack"
   | "attackPlayers"
   | "cantAttackDigimon" // players remain legal targets
+  | "attackOnlySuspendedDigimon"
   | "block"
   | "cantBeBlocked" // on the ATTACKER
   | "suspend"

@@ -98,7 +98,7 @@ export const compiled: CompiledCard = {
       "trigger": "OpponentsTurn",
       "actions": [
         {
-          "kind": "GrantStatic",
+          "kind": "Aura",
           "target": {
             "filter": {
               "controller": "opponent",
@@ -108,11 +108,11 @@ export const compiled: CompiledCard = {
             },
             "count": "all"
           },
-          "grant": "effect",
-          "tokens": [
-            "can only attack suspended Digimon"
-          ],
-          "condition": {
+          "effect": {
+            "kind": "restriction",
+            "restriction": "attackOnlySuspendedDigimon"
+          },
+          "while": {
             "kind": "selfIsSuspended",
             "raw": "this Digimon is suspended"
           }
