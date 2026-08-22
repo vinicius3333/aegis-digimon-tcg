@@ -3,7 +3,7 @@ import { EffectTiming, PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
-import "../index.js";
+import "./index.js";
 import { compiled } from "./EX8-041.js";
 
 describe("EX8-041", () => {

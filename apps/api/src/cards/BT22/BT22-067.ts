@@ -5,7 +5,7 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { onPlay, staticModifier, turnTiming, whenDigivolving } from "../../engine/effects/builders.js";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registerCard } from "../../engine/effects/registry.js";
 
 const cardId = "BT22-067";
 const RAID_COST_GAIN_DP = 3000;
@@ -167,5 +167,5 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard(cardId, module);
+registerCard(module);
 export default module;

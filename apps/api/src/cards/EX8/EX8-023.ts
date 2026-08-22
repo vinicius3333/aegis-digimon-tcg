@@ -23,7 +23,7 @@ export const compiled: CompiledCard = {
           effect: { kind: "keyword", keyword: { keyword: "Piercing", raw: "＜Piercing＞" } },
           while: {
             kind: "opponentHasNone",
-            filter: { digivolutionCards: "hasAny", controllerDefault: "opponent", kind: ["Digimon"] },
+            filter: { digivolutionCards: "hasAny", controller: "opponent", kind: ["Digimon"] },
             raw: "your opponent has no Digimon with digivolution cards",
           },
         },
@@ -43,7 +43,7 @@ export const compiled: CompiledCard = {
           },
           while: {
             kind: "opponentHasNone",
-            filter: { digivolutionCards: "hasAny", controllerDefault: "opponent", kind: ["Digimon"] },
+            filter: { digivolutionCards: "hasAny", controller: "opponent", kind: ["Digimon"] },
             raw: "your opponent has no Digimon with digivolution cards",
           },
         },

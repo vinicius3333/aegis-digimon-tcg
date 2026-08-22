@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-038.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT22-038 Monzaemon", () => {
   it("scales Ver.1-to-Monzaemon digivolution cost and shares the once-per-turn removal/lock reaction", () => {

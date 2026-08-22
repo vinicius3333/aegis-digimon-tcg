@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { observe } from "../../engine/testkit/observe.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-085.js";
 
 describe("BT18-085 Zanbamon", () => {
@@ -16,5 +18,18 @@ describe("BT18-085 Zanbamon", () => {
         { kind: "ModifyDP", amount: 2000 },
       ],
     });
+  });
+
+  it("scales both Security Attack and DP from distinct colors in the opponent's trash", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT18-085", as: "zanbamon" }] },
+      1: { trash: ["BT1-001", "BT1-003", "BT1-005", "BT1-007"] },
+    });
+    const baseDP = s.perm("zanbamon").baseDP;
+
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.perm("zanbamon").currentDP).toBe(baseDP + 4000);
+    expect(observe(s.engine).keywordAmount(s.perm("zanbamon"), "SecurityAttack")).toBe(2);
   });
 });

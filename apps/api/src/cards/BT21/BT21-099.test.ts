@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-099.js";
-import "../index.js";
 
 describe("BT21-099 Xros Up", () => {
   it("executes the Main placement by moving a Save Digimon from hand under an own Tamer", async () => {
@@ -9,13 +8,18 @@ describe("BT21-099 Xros Up", () => {
       {
         0: {
           battleArea: [{ card: "BT21-089", as: "tamer" }],
-          hand: [{ card: "BT14-057", as: "save" }, { card: "BT21-099", as: "option" }],
+          hand: [
+            { card: "BT14-057", as: "save" },
+            { card: "BT21-099", as: "option" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => !s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("save").instanceId));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("save").instanceId)).toBe(false);

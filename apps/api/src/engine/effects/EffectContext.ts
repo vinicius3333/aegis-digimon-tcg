@@ -266,6 +266,8 @@ export interface TriggerInfo {
   addedDigivolutionCardInstanceIds?: string[];
   /** Stack position used by an effect placing cards under a Digimon. */
   addedDigivolutionCardsPosition?: "top" | "bottom";
+  /** True when an effect rotated the host's own top card to the bottom of its stack. */
+  placedOwnTopAtStackBottom?: boolean;
   /** Printed card id selected as the destination of an imminent digivolution. */
   digivolvingIntoCardId?: string;
   /** Printed level of the permanent's top card immediately before a digivolution. */
@@ -539,7 +541,7 @@ export interface Primitives {
    * can't play <X>" effect blocks the opponent's effects (Q4676) but not the source player's
    * (Q4675). Token plays return false (exempt, Q3834). Optional on the port (test fakes skip).
    */
-  isPlayProhibited?(seat: Seat, cardId: string, mode: "play" | "move"): boolean;
+  isPlayProhibited?(seat: Seat, cardId: string, mode: "play" | "move", sourceZone?: string): boolean;
   /**
    * Record a security-effect disable on `attackerPermanentId` (the security half of the
    * source rule implementation split): while that permanent is the attacker, a flipped

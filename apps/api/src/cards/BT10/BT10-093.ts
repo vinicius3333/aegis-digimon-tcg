@@ -15,6 +15,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
  *   [Security] Play this card without paying its memory cost.
  */
 const cardId = "BT10-093";
+const compiled = getCompiledCard(cardId) as CompiledCard;
 
 function isPurple(def: { colors?: string[] }): boolean {
   return (def.colors as CardColor[] | undefined)?.includes(CardColor.Purple) ?? false;

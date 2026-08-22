@@ -7,7 +7,13 @@ describe("BT24-078 Creepymon (X Antibody)", () => {
     const trash = BT24_078.effects?.find((entry) => entry.trigger === "YourTurn")?.actions?.[0] as any;
     expect(trash).toMatchObject({ event: "whenAttacking" });
     expect(trash.actions).toEqual([
-      expect.objectContaining({ kind: "Digivolve", from: ["trash"], payCost: false, abortOnDecline: true }),
+      expect.objectContaining({
+        kind: "Digivolve",
+        from: ["trash"],
+        payCost: false,
+        abortOnDecline: true,
+        ignoreRequirements: undefined,
+      }),
       expect.objectContaining({ kind: "SecurityManipulation", op: "trashTop", controller: "opponent" }),
     ]);
 

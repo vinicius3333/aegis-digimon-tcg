@@ -38,6 +38,10 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       return false;
     }
     case "Delete": {
+      // Bind a deterministic zero outcome even when target resolution finds no eligible
+      // permanent or the delete effect is prevented by immunity.
+      ctx.lastDeleteCount = 0;
+      ctx.lastDeletedByThisEffectIds = [];
       const survivorIds = await resolveExceptSurvivors(ctx, action.target);
       let target = action.target;
       if (action.dpCeilingScaling && target.filter.dp?.value !== undefined) {

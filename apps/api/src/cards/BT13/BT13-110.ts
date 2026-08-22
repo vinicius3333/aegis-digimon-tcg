@@ -64,7 +64,6 @@ export const compiled: CompiledCard = {
           payCost: false,
           optional: true,
           suppressOnPlayEffects: true,
-          requiresDelayArmed: true,
           bindResultAs: "playedDigimon",
         },
         {
