@@ -14,6 +14,7 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { compiled } from "./BT26-068.js";
 
 const CARD_ID = "BT26-068";
 
@@ -51,6 +52,16 @@ function source(instanceId = "devimon-card"): CardSource {
 }
 
 describe("BT26-068 Devimon", () => {
+  it("encodes the conditional draw, opponent-choice discard cost, and inherited draw", () => {
+    expect(compiled.effects?.[0]?.actions?.[0]).toMatchObject({ kind: "ConditionalBranch", condition: { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 5 } });
+    expect(compiled.effects?.[2]?.actions?.[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenEffectAddsToOpponentHand",
+      actions: [{ kind: "Trash", chooser: "opponent", cost: { kind: "trash", target: { filter: { controllerDefault: "mine", zone: "hand" }, count: 1 } } }],
+    });
+    expect(compiled.effects?.[3]).toMatchObject({ trigger: "WhenAttacking", isInherited: true, frequency: "OncePerTurn" });
+  });
+
   it("carries the exact Lv.3 [TS] alternate evolution path and accepts it from a non-purple base", async () => {
     expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({
       level: 3,

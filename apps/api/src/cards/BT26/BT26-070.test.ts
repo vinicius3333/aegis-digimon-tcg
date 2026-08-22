@@ -6,6 +6,7 @@ import type { EffectContext, GameAccess, Primitives } from "../../engine/effects
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT26-070.js";
+import { compiled } from "./BT26-070.js";
 import "../index.js";
 
 const CARD_ID = "BT26-070";
@@ -39,6 +40,21 @@ function source(): CardSource {
 }
 
 describe("BT26-070 bottom face-down Tamer cost", () => {
+  it("encodes the full two-card Tamer cost and reduced Glowing Dawn Option play", () => {
+    expect(compiled.effects?.[2]).toMatchObject({
+      trigger: "Main",
+      frequency: "OncePerTurn",
+      actions: [{
+        kind: "PlayWithoutCost",
+        from: ["trash"],
+        payCost: true,
+        reduceCostBy: 2,
+        cost: { kind: "trash", target: { filter: { zone: "digivolutionCards", faceDown: true, position: "bottom", hostFilter: { kind: ["Tamer"] } }, count: 2 } },
+      }],
+    });
+    expect(compiled.effects?.[3]).toMatchObject({ isInherited: true, keywords: [{ keyword: "Retaliation" }] });
+  });
+
   it("digivolves from a non-purple level 3 [Glowing Dawn] Digimon for the alternate cost 2", async () => {
     const s = setupEngine(
       {
