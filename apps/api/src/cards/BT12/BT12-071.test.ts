@@ -30,4 +30,20 @@ describe("BT12-071 AncientWisemon", () => {
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-066"));
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-066")).toBe(true);
   });
+
+  it("can play a qualifying black Tamer from the reveal", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT12-071", as: "ancient" }], deck: ["BT12-094", "BT1-009", "BT1-010"] },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await advance(s.engine).fireSubTrigger("whenOpponentAttacks", {
+      attackerPermanentId: s.perm("attacker").permanentId,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-094"));
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-094")).toBe(true);
+  });
 });
