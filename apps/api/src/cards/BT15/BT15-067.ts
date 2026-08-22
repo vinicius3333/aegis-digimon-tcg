@@ -9,7 +9,13 @@ const compiled: CompiledCard = {
   "effects": [
     {
       "trigger": "Static",
-      "actions": []
+      "actions": [],
+      "keywords": [
+        {
+          "keyword": "Blocker",
+          "raw": "＜Blocker＞"
+        }
+      ]
     },
     {
       "trigger": "WhenDigivolving",
