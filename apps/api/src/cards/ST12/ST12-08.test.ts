@@ -203,7 +203,7 @@ describe("ST12-08 [When Attacking][Inherited] plays Sistermon for a Royal Knight
         decisionId: costSelection.decisionId,
         response: { kind: "selectCards", instanceIds: [s.inst("cost").instanceId] },
       }),
-    ).toEqual({ ok: true });
+    ).toEqual({ ok: false, reason: "decision-pending" });
 
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === sisterId));
     expect(s.state.players[0]!.trash.some((c) => c.instanceId === sisterId)).toBe(false);
