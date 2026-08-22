@@ -77,13 +77,9 @@ const compiled: CompiledCard = {
             {
               "kind": "Unsuspend",
               "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
+                "filter": { "isSelfRef": true },
                 "count": 1,
+                "isSelf": true,
                 "bindAs": "unsuspendedTarget"
               }
             },
