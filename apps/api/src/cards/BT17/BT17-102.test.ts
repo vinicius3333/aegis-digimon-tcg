@@ -8,11 +8,10 @@ import "../index.js";
 //   [When Digivolving] If this Digimon's name is [Koromon], it gains +3000 DP for the
 //     turn. Then, delete 1 of your opponent's Digimon with as much or less DP as this
 //     Digimon. (KB Q4713: delete fires even if Koromon condition is not met)
-//   [All Turns] RESIDUAL — dynamic name grant, no engine primitive.
+//   [All Turns] gains the names of level 3 and lower cards in its stack.
 //   [On Deletion] You may play 1 Tamer with [Tai Kamiya] or [Kari Kamiya] in its name
 //     from your hand without paying cost, OR hatch in your breeding area.
 //
-// FAILS-WHEN-REVERTED: the declarative effect record had all clauses as RawUnparsed no-ops.
 // Test: [When Digivolving] deletes an opponent Digimon with DP ≤ Greymon's DP (5000).
 
 const GREYMON = "BT17-102";

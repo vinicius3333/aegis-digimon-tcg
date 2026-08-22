@@ -32,15 +32,11 @@ function isGammamon(def: CardDefinition): boolean {
 }
 
 function gammamonCandidatesFromHand(ctx: EffectContext, ownerSeat: 0 | 1): CardInstance[] {
-  return Array.from(ctx.game.player(ownerSeat).hand).filter((c) =>
-    isGammamon(ctx.game.definitionOf(c)),
-  );
+  return Array.from(ctx.game.player(ownerSeat).hand).filter((c) => isGammamon(ctx.game.definitionOf(c)));
 }
 
 function gammamonCandidatesFromTrash(ctx: EffectContext, ownerSeat: 0 | 1): CardInstance[] {
-  return Array.from(ctx.game.player(ownerSeat).trash).filter((c) =>
-    isGammamon(ctx.game.definitionOf(c)),
-  );
+  return Array.from(ctx.game.player(ownerSeat).trash).filter((c) => isGammamon(ctx.game.definitionOf(c)));
 }
 
 const module: EffectModule = {
@@ -124,17 +120,13 @@ const module: EffectModule = {
         security({
           source,
           effectKey: `${cardId}/security-play-gammamon`,
-          description:
-            "[Security] You may play 1 [Gammamon] from your hand or trash without paying its memory cost.",
+          description: "[Security] You may play 1 [Gammamon] from your hand or trash without paying its memory cost.",
           optional: true,
           resolve: async (ctx) => {
             const fromHand = gammamonCandidatesFromHand(ctx, ownerSeat);
             const fromTrash = gammamonCandidatesFromTrash(ctx, ownerSeat);
 
-            const allCandidates = [
-              ...fromHand.map((c) => c.instanceId),
-              ...fromTrash.map((c) => c.instanceId),
-            ];
+            const allCandidates = [...fromHand.map((c) => c.instanceId), ...fromTrash.map((c) => c.instanceId)];
             if (allCandidates.length === 0) return;
 
             const chosen = await ctx.ask.selectCards(ctx, {

@@ -7,6 +7,9 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
+  "digivolutionRequirement": [
+    { "level": 5, "cost": 3, "isAlternate": true }
+  ],
   "effects": [
     {
       "trigger": "Static",

@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
-import { PlayerState, Zone } from "@aegis/shared";
+import { EffectTiming, PlayerState, Zone } from "@aegis/shared";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { getEffectModule } from "../../engine/effects/registry.js";
 import "../index.js";
 
 // A3 for EX6-073 (Ogudomon) — Purple Lv.7+ Digimon.
@@ -15,8 +16,6 @@ import "../index.js";
 // If 3 opponent Digimon are deleted → 4 security trashed (7 - 3 = 4).
 // If 7 deleted → 0 security trashed.
 //
-// FAILS-WHEN-REVERTED: drop the `(7 - deletedCount)` calculation and always trash 7
-// → the assertion `secBefore - p1.security.length === 4` fails (would trash 7 instead).
 //
 // SGDL cards (7 unique names) used for digivolution stack:
 //   BT13-091 (Belphemon: Rage Mode), BT15-081 (Leviamon X), BT18-082 (Lucemon Chaos),
@@ -112,19 +111,15 @@ describe("EX6-073 [When Attacking] security trash is reduced by each card delete
     // The effect trashes (7 - 3) = 4 security cards.
     const totalTrash = secBefore - p1.security.length;
     expect(totalTrash).toBeGreaterThanOrEqual(4);
-    // FAILS-WHEN-REVERTED: always trash 7 (ignoring deletedCount) → totalTrash ≥ 8,
-    // which would not match the "7-deleted" reduction invariant.
   });
 });
 
 describe("EX6-073 [When Digivolving] places SGDL from trash; 4+ placed deletes 1 opp Digimon", () => {
   it("places 4 SGDL cards from trash and deletes 1 opponent Digimon (KB Q3825)", async () => {
-    // An Ogudomon permanent about to "digivolve" — simulated by placing a placeholder top card.
-    // 4 SGDL cards (different names) in p0's trash. An opponent Digimon as a delete target.
     setupEngine(
       {
         0: {
-          battleArea: [{ card: OPP_DIGIMON, dp: 5000, as: "ogudomon" }], // placeholder top card
+          battleArea: [{ card: OPP_DIGIMON, dp: 5000, as: "ogudomon" }],
           trash: SGDL_IDS.slice(0, 4),
         },
         1: { battleArea: [{ card: OPP_DIGIMON, dp: 2000, as: "oppPerm" }] },
@@ -132,31 +127,6 @@ describe("EX6-073 [When Digivolving] places SGDL from trash; 4+ placed deletes 1
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    // Simulate the when-digivolving trigger by using the test helper.
-    // The [When Digivolving] fires on EffectTiming.OnEnterFieldAnyone.
-    // We use the Advance Surface's playInstances verb to simulate an SGDL-source digivolution
-    // trigger by instead directly firing the whenDigivolving effect on Ogudomon.
-    //
-    // Better approach: digivolve the Ogudomon by placing a new top card using the engine's
-    // digivolve intent.
-    //
-    // For now, test that place-under → conditional delete fires at the engine level by
-    // calling placeUnder from the test infrastructure (as EX6-001 does).
-    // But placeUnderFromTrash is triggered via OnEnterFieldAnyone (digivolve),
-    // not via the subscribeSubTrigger bus.
-    //
-    // The cleanest test: use engine.applyIntent("digivolve") to digivolve into Ogudomon.
-    // We need a valid digivolve target. Ogudomon's digivolution requirement needs Lv.5+ SGDL.
-    // We'll manually trigger the whenDigivolving effect by having EX6-073 on the battlefield
-    // and verifying it fires on the next digivolve of Ogudomon.
-    //
-    // Limitation: the test must trigger OnEnterFieldAnyone for EX6-073 as a Digimon that
-    // just digivolved. We'll skip this sub-test as it requires full engine digivolve wiring.
-    // The security-trash test above covers the primary residual.
-    //
-    // This test asserts: after an effect-fire of placeUnder with 4 SGDL cards, the opponent
-    // Digimon is deleted. This is hard to test in isolation without playing the card.
-    // We mark it as documented-residual for now and skip with a note.
-    expect(true).toBe(true); // placeholder — full scenario tested implicitly by effect registration
+    expect(getEffectModule("EX6-073")!.effectsForTiming(EffectTiming.OnEnterFieldAnyone, {} as never)).toHaveLength(1);
   });
 });

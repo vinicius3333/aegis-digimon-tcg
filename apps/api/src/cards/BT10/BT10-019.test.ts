@@ -24,8 +24,12 @@ describe("BT10-019 Greymon", () => {
     const blueFlareIds = [s.inst("gaossmon").instanceId, s.inst("deckerdramon").instanceId];
     s.state.memory = 4;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greymon").instanceId })).toEqual({ ok: true });
-    await settle(() => blueFlareIds.every((id) => player.hand.some((card) => card.instanceId === id)) && player.deck.length === 2);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => blueFlareIds.every((id) => player.hand.some((card) => card.instanceId === id)) && player.deck.length === 2,
+    );
 
     expect(player.hand.map((card) => card.instanceId)).toEqual(expect.arrayContaining(blueFlareIds));
     expect(player.deck.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-009", "BT1-010"]));
@@ -47,15 +51,14 @@ describe("BT10-019 Greymon", () => {
       { autoOrderCards: false },
     );
     s.state.memory = 10;
-    const blueFlareIds = [
-      s.inst("blueFlareOne").instanceId,
-      s.inst("blueFlareTwo").instanceId,
-    ];
+    const blueFlareIds = [s.inst("blueFlareOne").instanceId, s.inst("blueFlareTwo").instanceId];
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("greymon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("greymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
 
     const decision = s.decisions.at(-1)!.req;
@@ -68,11 +71,13 @@ describe("BT10-019 Greymon", () => {
       { instanceId: s.inst("otherOne").instanceId, cardId: "BT1-009" },
       { instanceId: s.inst("otherTwo").instanceId, cardId: "BT1-010" },
     ]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: { kind: "selectCards", instanceIds: blueFlareIds },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: blueFlareIds },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
 
     const ordering = s.decisions.at(-1)!.req;
@@ -81,13 +86,16 @@ describe("BT10-019 Greymon", () => {
       { instanceId: s.inst("otherOne").instanceId, cardId: "BT1-009" },
       { instanceId: s.inst("otherTwo").instanceId, cardId: "BT1-010" },
     ]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: ordering.decisionId,
-      response: { kind: "orderCards", order: bottomOrder },
-    })).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision === undefined &&
-      s.state.players[0]!.deck[0]?.instanceId === bottomOrder[0]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.decisionId,
+        response: { kind: "orderCards", order: bottomOrder },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.pendingDecision === undefined && s.state.players[0]!.deck[0]?.instanceId === bottomOrder[0],
+    );
 
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(bottomOrder);
   });
@@ -107,13 +115,13 @@ describe("BT10-019 Greymon", () => {
     s.state.memory = 10;
     const originalDeck = s.state.players[0]!.deck.map((card) => card.instanceId);
 
-    expect(s.engine.applyIntent(0, {
-      type: "playCard",
-      instanceId: s.inst("greymon").instanceId,
-    })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.some(
-      (card) => card.instanceId === s.inst("metalGreymon").instanceId,
-    ));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("greymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("metalGreymon").instanceId));
 
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(originalDeck);
@@ -135,24 +143,29 @@ describe("BT10-019 Greymon", () => {
     s.state.turnCount += 1;
     await s.ready();
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
-    await settle(() =>
-      s.state.players[1]!.security.length === 1 &&
-      !s.perm("attacker").isSuspended &&
-      !observe(s.engine).isAttacking()
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 1 &&
+        !s.perm("attacker").isSuspended &&
+        !observe(s.engine).isAttacking(),
     );
     expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(false);
     expect(s.perm("attacker").canAttackPlayer).toBe(true);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("attacker").permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.perm("attacker").isSuspended).toBe(true);

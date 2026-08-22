@@ -3,121 +3,112 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "StartOfYourTurn",
-      "actions": [
+      trigger: "StartOfYourTurn",
+      actions: [
         {
-          "kind": "SetMemory",
-          "value": 3,
-          "condition": {
-            "kind": "memoryAtMost",
-            "value": 2
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-            "controller": "mine",
-            "or": [
-              {
-                "isToken": true
-              },
-              {
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Puppet"
-                    ],
-                    "match": "trait"
-                  }
-                ]
-              }
-            ]
+          kind: "SetMemory",
+          value: 3,
+          condition: {
+            kind: "memoryAtMost",
+            value: 2,
           },
-          "cost": {
-            "kind": "suspend",
-            "target": {
-              "filter": {
-                "isSelfRef": true
-              },
-              "count": 1,
-              "isSelf": true
-            },
-            "raw": "by suspending this Tamer"
-          },
-          "actions": [
-            {
-              "kind": "Draw",
-              "controller": "mine",
-              "amount": 1
-            },
-            {
-              "kind": "PlayWithoutCost",
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Puppet"
-                      ],
-                      "match": "trait"
-                    }
-                  ],
-                  "level": {
-                    "op": "lte",
-                    "value": 4
-                  }
-                },
-                "count": 1
-              },
-              "from": [
-                "hand"
-              ],
-              "payCost": false,
-              "optional": true,
-              "condition": {
-                "kind": "triggerRemovalCause", "removalCause": "byEffect",
-                "raw": "if deleted by ＜Overclock＞"
-              }
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "payCost": false
-        }
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: {
+            controller: "mine",
+            or: [
+              {
+                isToken: true,
+              },
+              {
+                kind: ["Digimon"],
+                nameOrTrait: [
+                  {
+                    tokens: ["Puppet"],
+                    match: "trait",
+                  },
+                ],
+              },
+            ],
+          },
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                isSelfRef: true,
+              },
+              count: 1,
+              isSelf: true,
+            },
+            raw: "by suspending this Tamer",
+          },
+          actions: [
+            {
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+            },
+            {
+              kind: "PlayWithoutCost",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [
+                    {
+                      tokens: ["Puppet"],
+                      match: "trait",
+                    },
+                  ],
+                  level: {
+                    op: "lte",
+                    value: 4,
+                  },
+                },
+                count: 1,
+              },
+              from: ["hand"],
+              payCost: false,
+              optional: true,
+              condition: {
+                kind: "triggerRemovalCause",
+                removalCause: "byEffect",
+                raw: "if deleted by ＜Overclock＞",
+              },
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX11-060", compiled);

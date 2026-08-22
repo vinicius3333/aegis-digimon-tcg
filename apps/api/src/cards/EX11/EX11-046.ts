@@ -3,6 +3,11 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const compiled: CompiledCard = {
+  "digivolutionRequirement": [
+    { "level": 5, "cost": 6, "isAlternate": true },
+    { "names": ["Snatchmon"], "cost": 9, "isAlternate": true },
+    { "names": ["Galacticmon"], "cost": 5, "isAlternate": true }
+  ],
   "effects": [
     {
       "trigger": "OnPlay",
@@ -193,22 +198,6 @@ const compiled: CompiledCard = {
   ],
   "coverage": "full",
   "residual": [],
-  "digivolutionRequirement": [
-    {
-      "names": [
-        "Snatchmon"
-      ],
-      "cost": 9,
-      "isAlternate": true
-    },
-    {
-      "names": [
-        "Galacticmon"
-      ],
-      "cost": 5,
-      "isAlternate": true
-    }
-  ]
 };
 
 registerIrCard("EX11-046", compiled);

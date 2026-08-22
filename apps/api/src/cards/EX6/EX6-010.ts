@@ -64,10 +64,7 @@ const module: EffectModule = {
 
             const opponent = ctx.game.player(ctx.game.opponentOf(source.ownerSeat));
             const eligibleVictims = Array.from(opponent.battleArea).filter(
-              (p) =>
-                p.topCard !== undefined &&
-                isDigimon(ctx.game.definitionOf(p.topCard)) &&
-                p.currentDP <= targetDP,
+              (p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard)) && p.currentDP <= targetDP,
             );
             if (eligibleVictims.length === 0) return;
 
@@ -96,7 +93,9 @@ const module: EffectModule = {
           resolve: async (ctx) => {
             const player = ctx.game.player(source.ownerSeat);
             const candidates = Array.from(player.battleArea)
-              .filter((p) => p.topCard !== undefined && ctx.game.definitionOf(p.topCard).kinds.includes(CardKind.Digimon))
+              .filter(
+                (p) => p.topCard !== undefined && ctx.game.definitionOf(p.topCard).kinds.includes(CardKind.Digimon),
+              )
               .map((p) => p.permanentId);
 
             if (candidates.length === 0) return;

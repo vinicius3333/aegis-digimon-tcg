@@ -30,12 +30,8 @@ const module: EffectModule = {
             "Sins] in your breeding area. Then, place this card in your battle area.",
           resolve: async (ctx) => {
             const owner = ctx.game.player(source.ownerSeat);
-            const fromHand = Array.from(owner.hand).filter((c) =>
-              hasSevenGreatDemonLords(ctx.game.definitionOf(c)),
-            );
-            const fromTrash = Array.from(owner.trash).filter((c) =>
-              hasSevenGreatDemonLords(ctx.game.definitionOf(c)),
-            );
+            const fromHand = Array.from(owner.hand).filter((c) => hasSevenGreatDemonLords(ctx.game.definitionOf(c)));
+            const fromTrash = Array.from(owner.trash).filter((c) => hasSevenGreatDemonLords(ctx.game.definitionOf(c)));
             if (fromHand.length === 0 && fromTrash.length === 0) {
               if (ctx.fx.placeOptionAsPermanent) {
                 await ctx.fx.placeOptionAsPermanent(source.instanceId);
@@ -58,8 +54,11 @@ const module: EffectModule = {
             });
             if (chosen.length > 0) {
               const breedingPerm = owner.breeding;
-              if (breedingPerm !== undefined && breedingPerm.topCard !== undefined &&
-                  isGateOfDeadlySins(ctx.game.definitionOf(breedingPerm.topCard))) {
+              if (
+                breedingPerm !== undefined &&
+                breedingPerm.topCard !== undefined &&
+                isGateOfDeadlySins(ctx.game.definitionOf(breedingPerm.topCard))
+              ) {
                 await ctx.fx.placeUnder(breedingPerm.permanentId, chosen);
               }
             }

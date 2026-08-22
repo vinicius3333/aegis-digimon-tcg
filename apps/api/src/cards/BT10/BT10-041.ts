@@ -18,9 +18,7 @@ function isEligibleOption(def: CardDefinition): boolean {
 }
 
 function optionCandidates(ctx: EffectContext, ownerSeat: 0 | 1): CardInstance[] {
-  return Array.from(ctx.game.player(ownerSeat).hand).filter((c) =>
-    isEligibleOption(ctx.game.definitionOf(c)),
-  );
+  return Array.from(ctx.game.player(ownerSeat).hand).filter((c) => isEligibleOption(ctx.game.definitionOf(c)));
 }
 
 const module: EffectModule = {
@@ -56,9 +54,7 @@ const module: EffectModule = {
             if (chosen.length === 0) return;
 
             const chosenCard = candidates.find((c) => c.instanceId === chosen[0]!);
-            const originalCost = chosenCard
-              ? ctx.game.definitionOf(chosenCard).playCost
-              : undefined;
+            const originalCost = chosenCard ? ctx.game.definitionOf(chosenCard).playCost : undefined;
 
             // Run the option's effect and trash it normally. useOptionFromHand moves the card
             // to trash and fires whenOptionUsed.
