@@ -35,7 +35,7 @@ it("registers the printed Security activation for BT12-101", () => {
   expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
 });
 
-it("does not register unprinted Security effects for BT12-102 through BT12-110", () => {
+it("registers the printed Security effects for BT12-102 through BT12-110", () => {
   for (const cardId of [
     "BT12-102",
     "BT12-103",
@@ -49,6 +49,6 @@ it("does not register unprinted Security effects for BT12-102 through BT12-110",
   ]) {
     const module = getEffectModule(cardId);
     const source = { instanceId: `source-${cardId}`, cardId, ownerSeat: 0, isOnBattleArea: () => false } as never;
-    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source), cardId).toEqual([]);
+    expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source), cardId).toHaveLength(1);
   }
 });
