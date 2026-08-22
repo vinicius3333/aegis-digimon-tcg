@@ -20,7 +20,13 @@ describe("BT24-022 Ikkakumon", () => {
     const inherited = compiled.effects.find((effect) => effect.isInherited) as any;
     const sub = inherited.actions[0];
     expect(sub).toMatchObject({ kind: "SubTrigger", event: "whenUnsuspended" });
-    expect(sub.actions[0].condition).toMatchObject({ kind: "handCount", op: "lte", value: 7 });
+    expect(sub.actions[0].condition).toMatchObject({
+      kind: "zoneCount",
+      seat: "mine",
+      zone: "hand",
+      op: "lte",
+      value: 7,
+    });
   });
 
   it("trashes the top two sources before applying the source-count suspension restriction", async () => {
@@ -41,7 +47,7 @@ describe("BT24-022 Ikkakumon", () => {
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.perm("threeSources").topCard.instanceId);
+    preferred.push(s.perm("threeSources").permanentId);
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("ikkakumon"));
 
@@ -58,8 +64,8 @@ describe("BT24-022 Ikkakumon", () => {
           { card: "BT24-022", as: "ikkakumon" },
           { card: "BT24-022", as: "host", under: ["BT24-022"] },
         ],
-        hand: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-        deck: ["BT1-002", "BT1-003"],
+        hand: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: ["BT1-010", "BT1-011"],
       },
     });
     await s.ready();
@@ -80,8 +86,8 @@ describe("BT24-022 Ikkakumon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT24-022", as: "host", under: ["BT24-022"] }],
-        hand: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
-        deck: ["BT1-002"],
+        hand: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        deck: ["BT1-010"],
       },
     });
     await s.ready();
