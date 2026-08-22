@@ -13,7 +13,6 @@ if (effect !== undefined) {
       add: [{
         count: 1,
         to: "play",
-        payCost: false,
         filter: { controllerDefault: "mine", kind: ["Digimon"], colors: ["Black"], playCostLte: 6 },
       }],
       rest: "trash",
