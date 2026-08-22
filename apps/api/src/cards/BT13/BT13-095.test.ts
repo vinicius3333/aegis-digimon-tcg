@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-095.js";
 
 describe("BT13-095 Marcus Damon", () => {
@@ -42,5 +45,24 @@ describe("BT13-095 Marcus Damon", () => {
         },
       },
     });
+  });
+
+  it("suspends on play and weakens an opposing Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-095", as: "marcus" },
+            { card: "BT13-008", as: "agumon" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-012", as: "target", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("marcus"));
+    await settle(() => s.perm("marcus").suspended);
+    await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("marcus").permanentId });
+    expect(s.perm("target").currentDP).toBe(0);
   });
 });
