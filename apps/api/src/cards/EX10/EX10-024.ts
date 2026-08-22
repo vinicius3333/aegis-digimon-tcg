@@ -1,123 +1,38 @@
-import { CardKind, EffectTiming } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectContext } from "../../engine/effects/EffectContext.js";
-import { whenAttacking, security } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "EX10-024";
-
-/**
- * EX10-024 — Kabemon (EX10 Black Digimon).
- *
- * 1. [None] Alternate Digivolution: Appmon Lv.2 -> 0 cost
- * 2. [None] Link Condition: Appmon trait, cost 1
- * 3. [Main] Link Effect registration
- * 4. [Security] Play after battle
- * 5. [When Attacking] [Linked]: by trashing 1 link card, <De-Digivolve 1> opponent Digimon
- */
-
-function opponentDigimonIds(ctx: EffectContext): string[] {
-  const oppSeat = ctx.game.opponentOf(ctx.source.ownerSeat);
-  const opp = ctx.game.player(oppSeat);
-  return opp.battleArea
-    .filter((p) => {
-      if (p.inBreeding || p.topCard === undefined) return false;
-      return ctx.game.definitionOf(p.topCard).kinds.includes(CardKind.Digimon);
-    })
-    .map((p) => p.permanentId);
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    // [None] Digivolution requirement + Link condition are expressed via card data
-    // (digivolutionRequirement / linkRequirement in the card JSON)
-
-    // [When Attacking] [Linked]: by trashing 1 link card, De-Digivolve 1 opp Digimon
-    if (timing === EffectTiming.OnAllyAttack) {
-      return [
-        whenAttacking({
-          source,
-          effectKey: `${cardId}/when-attacking-link-trash-de-digivolve`,
-          description:
-            "[When Attacking] By trashing 1 of this Digimon's link cards, " +
-            "<De-Digivolve 1> 1 of your opponent's Digimon.",
-          isLinked: true, // documented behavior IsLinkedEffect:true
-          when: (ctx) => {
-            if (!ctx.source.isOnBattleArea()) return false;
-            // Must be the linked card's source being attacked
-            return true;
-          },
-          canActivate: (ctx) => {
-            const selfPerm = ctx.source.permanent();
-            if (selfPerm === undefined) return false;
-            return selfPerm.linked.length > 0;
-          },
-          resolve: async (ctx) => {
-            const selfPerm = ctx.source.permanent();
-            if (selfPerm === undefined) return;
-
-            const linkedIds = selfPerm.linked.map((c) => c.instanceId);
-            if (linkedIds.length === 0) return;
-
-            const wantToPay = await ctx.ask.optional(
-              ctx,
-              "Trash 1 link card to <De-Digivolve 1> opponent's Digimon?",
-            );
-            if (!wantToPay) return;
-
-            let chosenLinkId: string;
-            if (linkedIds.length === 1) {
-              chosenLinkId = linkedIds[0]!;
-            } else {
-              const chosen = await ctx.ask.selectCards(ctx, {
-                candidates: linkedIds,
-                min: 1,
-                max: 1,
-              });
-              if (chosen.length === 0) return;
-              chosenLinkId = chosen[0]!;
-            }
-
-            // Trash the link card
-            await ctx.fx.trash([chosenLinkId]);
-
-            // Select 1 opponent Digimon to De-Digivolve
-            const oppIds = opponentDigimonIds(ctx);
-            if (oppIds.length === 0) return;
-
-            const chosen = await ctx.ask.chooseTargets(ctx, {
-              candidates: oppIds,
-              min: 1,
-              max: 1,
-            });
-            if (chosen.length === 0) return;
-
-            ctx.fx.deDigivolve(chosen[0]!, 1, { byEffectSeat: ctx.source.ownerSeat });
-          },
-        }),
-      ];
-    }
-
-    // [Security] Play this card after battle
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security-play`,
-          description: "[Security] Play this card.",
-          resolve: async (ctx) => {
-            await ctx.fx.playFromSecurity(ctx.source.instanceId);
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+// Q5076/Q5077: the link card itself may pay the cost, and another link card on
+// the same host may be selected. The current IR cost selector can see owned
+// link cards but cannot bind the selection to this link card's host; that
+// limitation remains explicit in residual below.
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "WhenAttacking",
+      isLinked: true,
+      actions: [{
+        kind: "DeDigivolve",
+        target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+        amount: 1,
+        cost: {
+          kind: "trash",
+          target: { filter: { controller: "mine", zone: "digivolutionCardsOrLinkCards" }, count: 1 },
+          raw: "By trashing 1 of this Digimon's link cards",
+        },
+      }],
+    },
+    {
+      trigger: "Security",
+      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
+      isSecurity: true,
+    },
+  ],
+  coverage: "partial",
+  residual: ["IR cannot yet bind the link-card trash cost to this link card's host; current selector may see another owned Digimon's link card."],
+  digivolutionRequirement: [{ level: 2, traits: ["Appmon"], cost: 0, isAlternate: true }],
+  linkRequirement: [{ traits: ["Appmon"], cost: 1 }],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("EX10-024", compiled);
+export default compiled;
