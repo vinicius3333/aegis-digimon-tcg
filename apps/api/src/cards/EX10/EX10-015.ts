@@ -8,13 +8,8 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "OnDeletion",
-      actions: [{
-        kind: "PlaceUnder",
-        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-        from: ["hand", "trash"],
-        underFilter: { controller: "mine", kind: ["Tamer"] },
-        optional: true,
-      }],
+      actions: [],
+      keywords: [{ keyword: "Save", raw: "＜Save＞" }],
     },
     {
       trigger: "StartOfYourMainPhase",
@@ -50,7 +45,7 @@ const compiled: CompiledCard = {
   coverage: "full",
   residual: [],
   digivolutionRequirement: [{ level: 2, colors: ["Green"], cost: 1 }, { level: 2, colors: ["Purple"], cost: 1 }],
-  digiXrosRequirement: [{ materials: [{ kind: ["Digimon"], textContains: "Save" }], count: 1, costReduction: 2 }],
+  digiXrosRequirement: [{ materials: [{ kind: ["Digimon"], nameOrTrait: [{ tokens: ["Save"], match: "text" }] }], count: 1, costReduction: 2 }],
 };
 
 registerIrCard("EX10-015", compiled);
