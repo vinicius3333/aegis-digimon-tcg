@@ -27,7 +27,7 @@ describe("EX9-068", () => {
         hand: ["BT1-009"],
         deck: ["BT1-010"],
       },
-    }, { autoSelectCards: true, autoOrderTriggers: true });
+    }, { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true });
     s.state.memory = 0;
     await s.ready();
 
