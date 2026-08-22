@@ -56,13 +56,13 @@ describe("BT13-095 Marcus Damon", () => {
             { card: "BT13-008", as: "agumon" },
           ],
         },
-        1: { battleArea: [{ card: "BT1-012", as: "target", dp: 3000 }] },
+        1: { battleArea: [{ card: "BT1-012", as: "target", dp: 5000 }] },
       },
       { autoAcceptOptional: true },
     );
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("marcus"));
-    await settle(() => s.perm("marcus").suspended);
+    await settle(() => s.perm("marcus").isSuspended);
     await advance(s.engine).fireSubTrigger("whenSuspended", { subjectPermanentId: s.perm("marcus").permanentId });
-    expect(s.perm("target").currentDP).toBe(0);
+    expect(s.perm("target").currentDP).toBe(2000);
   });
 });
