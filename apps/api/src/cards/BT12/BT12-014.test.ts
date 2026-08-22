@@ -16,4 +16,14 @@ describe("BT12-014 OmniShoutmon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
+
+  it("keeps the printed 4000 total DP cap with no digivolution cards", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT12-014", as: "omni" }] },
+      1: { battleArea: [{ card: "BT12-038", as: "victim", dp: 5000 }] },
+    }, { autoSelectCards: true });
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("omni"));
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
 });

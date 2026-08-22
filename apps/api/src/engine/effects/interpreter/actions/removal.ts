@@ -546,9 +546,9 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // Delete branch reads. Self-scoped to this source permanent, or owner-wide by seat.
       if (action.scope === "self") {
         const self = ctx.source.permanent();
-        if (self !== undefined) ctx.fx.addDeletionMaxDp?.({ permanentId: self.permanentId }, action.amount);
+        if (self !== undefined) ctx.fx.addDeletionMaxDp?.({ permanentId: self.permanentId }, action.amount * (scope.scale ?? 1));
       } else {
-        ctx.fx.addDeletionMaxDp?.({ seat: ctx.source.ownerSeat }, action.amount);
+        ctx.fx.addDeletionMaxDp?.({ seat: ctx.source.ownerSeat }, action.amount * (scope.scale ?? 1));
       }
       return false;
     }
