@@ -27,6 +27,7 @@ export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: weaken },
     { trigger: "StartOfOpponentsMainPhase", actions: weaken },
+    { trigger: "Static", isInherited: true, actions: [], keywords: [{ keyword: "Barrier", raw: "＜Barrier＞" }] },
   ],
   coverage: "full",
   residual: [],
