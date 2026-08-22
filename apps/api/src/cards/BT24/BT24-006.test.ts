@@ -24,8 +24,8 @@ describe("BT24-006 Tapmon", () => {
       {
         0: {
           battleArea: [
-            { card: "BT24-067", as: "host", under: ["BT24-006"] },
-            { card: "BT24-067", as: "otherHost" },
+            { card: "BT1-009", as: "host", under: ["BT24-006"] },
+            { card: "BT1-009", as: "otherHost" },
           ],
           hand: [{ card: "BT1-001", as: "startingHand" }],
           deck: [{ card: "BT1-002", as: "drawn" }, "BT1-003"],
