@@ -141,6 +141,7 @@ describe("BT26-042 Okuwamon", () => {
   it("encodes the Q&A-sensitive target and inherited clauses in IR", () => {
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "OnPlay", actions: [{ kind: "Suspend" }, { kind: "Restrict", restriction: "unsuspend" }] });
     expect(compiled.effects?.[1]).toMatchObject({ trigger: "WhenDigivolving" });
+    expect(compiled.effects?.[3]).toMatchObject({ trigger: "OnAllyAttack", sharedUseKey: "bt26-042-piercing-dp" });
     expect(compiled.effects?.[4]).toMatchObject({ trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenDeletesInBattle", actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent" }] }] });
   });
 

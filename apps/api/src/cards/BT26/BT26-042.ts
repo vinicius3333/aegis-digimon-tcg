@@ -19,7 +19,7 @@ export const compiled: CompiledCard = {
     { trigger: "OnPlay", actions: suspendAndLock },
     { trigger: "WhenDigivolving", actions: suspendAndLock },
     { trigger: "OnPlay", frequency: "OncePerTurn", sharedUseKey: "bt26-042-piercing-dp", actions: piercingAndDp },
-    { trigger: "WhenAttacking", frequency: "OncePerTurn", sharedUseKey: "bt26-042-piercing-dp", actions: piercingAndDp },
+    { trigger: "OnAllyAttack", frequency: "OncePerTurn", sharedUseKey: "bt26-042-piercing-dp", actions: piercingAndDp },
     { trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn", actions: [{
       kind: "SubTrigger", event: "whenDeletesInBattle",
       actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }],
