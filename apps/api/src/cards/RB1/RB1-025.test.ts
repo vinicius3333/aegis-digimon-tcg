@@ -5,6 +5,22 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("RB1-025 Diarbbitmon", () => {
+  it("suspends one opponent Digimon and gains memory only after none remain unsuspended", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "RB1-025", as: "diarbbit" }] },
+        1: { battleArea: [{ card: "EX2-045", as: "target" }, { card: "BT1-009", as: "alreadySuspended", suspended: true }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 0;
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("diarbbit"));
+
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(1);
+  });
+
   it("may force an Angoramon Digimon to attack an opponent Digimon at end of turn", async () => {
     const s = setupEngine(
       {
