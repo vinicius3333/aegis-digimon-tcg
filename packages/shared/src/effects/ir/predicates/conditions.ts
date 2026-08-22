@@ -77,6 +77,7 @@ export interface Condition {
     | "triggerSubjectMatchesFilter" // non-color subject gates; later "then" branches still run (BT21-061)
     | "triggerDigivolvedSameLevel" // BT9-092
     | "triggerDeletedLevelAtLeast"
+    | "triggerDeletedStackMatchesFilter"
     | "triggerAttackerIsSelf"
     | "triggerAttackerMatchesFilter"
     | "triggerDefenderIsSelf"

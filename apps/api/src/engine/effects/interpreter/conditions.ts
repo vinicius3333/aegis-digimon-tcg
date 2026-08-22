@@ -687,6 +687,16 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       const definition = cardId !== undefined ? getCardDefinition(cardId) : undefined;
       return definition !== undefined && (definition.level ?? -1) >= (cond.value ?? 0);
     }
+    case "triggerDeletedStackMatchesFilter": {
+      const filter = cond.filter;
+      if (filter === undefined) return false;
+      const ids = ctx.trigger.deletedWasStackInstanceIds ?? [];
+      const trash = ctx.game.player(ctx.source.ownerSeat).trash;
+      return ids.some((id) => {
+        const card = trash.find((candidate) => candidate.instanceId === id);
+        return card !== undefined && definitionMatches(filter, ctx.game.definitionOf(card));
+      });
+    }
     case "triggerAttackerIsSelf":
       return ctx.source.permanent()?.permanentId === ctx.trigger.attackerPermanentId;
     case "triggerAttackerMatchesFilter": {
