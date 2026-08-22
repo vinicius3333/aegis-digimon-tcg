@@ -12,7 +12,7 @@ describe("BT18-086 Lucemon: Larva", () => {
     });
     expect(compiled.effects[2]).toMatchObject({
       trigger: "AllTurns",
-      actions: [{ kind: "GrantStatic", grant: "immuneToDeletion" }],
+      actions: [{ kind: "Aura", effect: { kind: "restriction", restriction: "beDeleted" } }],
     });
   });
 });
