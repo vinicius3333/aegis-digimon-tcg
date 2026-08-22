@@ -22,6 +22,14 @@ export const compiled: CompiledCard = {
               },
             ],
           },
+          fireCondition: {
+            kind: "zoneCount",
+            seat: "opponent",
+            zone: "trash",
+            op: "gte",
+            value: 10,
+            raw: "your opponent has 10 or more cards in their trash",
+          },
           actions: [
             {
               kind: "Digivolve",
