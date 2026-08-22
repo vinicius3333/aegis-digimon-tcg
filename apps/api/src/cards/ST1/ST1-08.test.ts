@@ -1,9 +1,22 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./ST1-08.js";
+import { compiled } from "./ST1-08.js";
 
 describe("ST1-08 Garudamon", () => {
+  it("registers exact own-Digimon targeting and turn duration as complete IR", () => {
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "WhenDigivolving",
+          actions: [{ kind: "ModifyDP", target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 }, amount: 3000, duration: "forTheTurn" }],
+        },
+      ],
+    });
+  });
+
   it("can choose itself for +3000 DP, leaves another ally unchanged, and expires at turn end (Q603)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
