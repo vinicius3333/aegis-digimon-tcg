@@ -181,7 +181,7 @@ it("applies the inherited Save reduction through the public attack intent", asyn
   const s = setupEngine(
     {
       0: { battleArea: [{ card: "BT12-011", as: "host", under: ["BT12-041"] }], security: ["BT1-009"] },
-      1: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-009"] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 10000 }], security: ["BT1-009"] },
     },
     { autoAcceptOptional: true, autoSelectCards: true },
   );
