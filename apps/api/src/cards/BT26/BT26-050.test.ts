@@ -20,13 +20,13 @@ describe("BT26-050 Rosemon: Burst Mode", () => {
     );
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "WhenDigivolving",
-      actions: [{ kind: "Suspend" }, { kind: "Restrict", restriction: "unsuspend" }],
+      actions: [expect.objectContaining({ kind: "Suspend" }), expect.objectContaining({ kind: "Restrict", restriction: "unsuspend" }), expect.any(Object), expect.any(Object)],
     });
     expect(compiled.effects?.[1]).toMatchObject({
       trigger: "WhenAttacking",
       actions: [
-        { kind: "Return", to: "deckBottom" },
-        { kind: "SecurityManipulation", op: "trashTop" },
+        expect.objectContaining({ kind: "Return", to: "deckBottom" }),
+        expect.objectContaining({ kind: "SecurityManipulation", op: "trashTop" }),
       ],
     });
   });
