@@ -41,7 +41,9 @@ describe("BT26-080 compiled behavior", () => {
       },
     }, { autoSelectCards: true });
 
-    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("source"));
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenAttacking, s.perm("source"), {
+      attackerPermanentId: s.perm("source").permanentId,
+    });
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-010")).toBe(false);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-011")).toBe(true);
