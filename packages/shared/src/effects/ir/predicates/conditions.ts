@@ -32,6 +32,7 @@ export interface Condition {
     | "lastTargetCanTrashDigivolution" // the previous target still has stack cards and is not level 3 (EX5-055)
     | "triggerRevealedFromDeck" // the source card is among the cards this effect revealed from a deck
     | "triggerRevealedMatchesFilter" // any card in the current reveal window matches `filter`
+    | "triggerAllRevealedMatchFilter"
     | "triggerAttackBy" // the current attack was declared through the named attack mechanic
     | "allYoursMatchFilter" // every permanent you control in the battle area matches `filter`
     | "breedingAreaEmpty"

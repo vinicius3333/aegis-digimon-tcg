@@ -22,6 +22,13 @@ import { definitionMatches } from "../matching/definition.js";
 export async function runRemovalAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
   switch (action.kind) {
+    case "ReturnToEggDeck": {
+      const zones = action.from ?? (action.target.filter.zone !== undefined ? [action.target.filter.zone] : ["trash"]);
+      const candidates = candidateLooseInstances(ctx, action.target, zones);
+      const chosen = await pickLoose(ctx, action.target, candidates, undefined, ctx.ask);
+      if (chosen.length > 0) await ctx.fx.returnToEggDeck?.(chosen);
+      return false;
+    }
     case "Delete": {
       const survivorIds = await resolveExceptSurvivors(ctx, action.target);
       let target = action.target;

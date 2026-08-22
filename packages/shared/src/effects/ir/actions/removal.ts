@@ -191,6 +191,13 @@ export interface ReturnAction extends ActionBase {
   };
 }
 
+/** Return Digi-Egg cards to the dedicated Digi-Egg deck (BT4-095). */
+export interface ReturnToEggDeckAction extends ActionBase {
+  kind: "ReturnToEggDeck";
+  target: Target;
+  from?: ZoneRef[];
+}
+
 /**
  * Install a delayed self-delete on the permanent this effect just played (EX10-035). Binds the
  * played-id result and deletes it at the owner's turn end via the `endOfTurn` SubTrigger fired
