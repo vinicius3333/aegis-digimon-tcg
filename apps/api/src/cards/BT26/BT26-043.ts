@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const opponentTarget = { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 };
 const setup = [
   { kind: "Suspend", target: opponentTarget },
-  { kind: "PlaceUnder", target: { filter: { zone: "deck", controller: "mine" }, count: 1 }, from: ["deck"], underFilter: { isSelfRef: true }, position: "bottom", faceDown: true, optional: true, abortOnDecline: true },
+  { kind: "PlaceUnder", target: { filter: { zone: "deck", controller: "mine" }, count: 1 }, from: ["deck"], underFilter: { isSelfRef: true }, position: "bottom", faceDown: true },
   { kind: "Restrict", target: opponentTarget, restriction: "unsuspend", duration: "untilOpponentTurnEnd", scaling: { unit: "faceDownDigivolutionCards", per: 1 } },
 ];
 export const compiled: CompiledCard = { effects: [

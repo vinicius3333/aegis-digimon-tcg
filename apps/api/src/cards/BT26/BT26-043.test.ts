@@ -10,6 +10,7 @@ describe("BT26-043 Piximon", () => {
       { kind: "Suspend" }, { kind: "PlaceUnder", from: ["deck"], faceDown: true, position: "bottom" },
       { kind: "Restrict", restriction: "unsuspend", scaling: { unit: "faceDownDigivolutionCards", per: 1 } },
     ] });
+    expect(compiled.effects?.[0]?.actions?.[1]).not.toHaveProperty("optional");
     expect(compiled.effects?.[1]).toMatchObject({ trigger: "WhenDigivolving" });
     expect(compiled.effects?.[2]).toMatchObject({ trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenPlayed" }] });
   });
