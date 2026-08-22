@@ -72,6 +72,7 @@ describe("BT13-112 Omnimon", () => {
       ok: true,
     });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT13-007"));
+    await s.engine.recomputeContinuousEffects();
 
     expect(s.state.players[0]!.breeding?.topCard).toBeUndefined();
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-007")).toBe(true);
