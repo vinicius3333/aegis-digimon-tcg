@@ -6,6 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // the breeding-area stacks and must play every selected card or none of them.
 const modalEffect = () => ({
   kind: "Modal",
+  optional: true,
   choose: 1,
   labels: ["Delete 1 of your opponent's Digimon", "Play distinct Royal Knights from breeding"],
   options: [

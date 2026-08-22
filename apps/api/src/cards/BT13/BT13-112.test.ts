@@ -22,6 +22,7 @@ describe("BT13-112 Omnimon", () => {
     const onPlay = compiled.effects.find((entry) => entry.trigger === "OnPlay");
     expect(onPlay?.actions[0]).toMatchObject({
       kind: "Modal",
+      optional: true,
       choose: 1,
       options: [
         [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } }],
@@ -31,7 +32,7 @@ describe("BT13-112 Omnimon", () => {
 
     const s = setupEngine(
       { 0: { hand: [{ card: "BT13-112", as: "omnimon" }] }, 1: { battleArea: [{ card: "BT1-009", as: "target" }] } },
-      { autoChooseOption: true, preferOptionIndex: 0, autoSelectCards: true },
+      { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 0, autoSelectCards: true },
     );
     s.state.memory = 14;
     const targetId = s.perm("target").topCard!.instanceId;
@@ -46,7 +47,7 @@ describe("BT13-112 Omnimon", () => {
         hand: [{ card: "BT13-112", as: "omnimon" }],
         breeding: { card: "BT13-007", as: "drasil", under: ["BT13-040", "BT13-111", "BT13-040"] },
       } },
-      { autoChooseOption: true, preferOptionIndex: 1, autoSelectCards: true },
+      { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1, autoSelectCards: true },
     );
     s.state.memory = 14;
     await s.engine.recomputeContinuousEffects();
@@ -64,13 +65,24 @@ describe("BT13-112 Omnimon", () => {
     }
   });
 
+  it("allows declining the optional modal effect", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT13-112", as: "omnimon" }] }, 1: { battleArea: [{ card: "BT1-009", as: "target" }] } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 14;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-112"));
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-009")).toBe(true);
+  });
+
   it("fires the same modal when legally digivolving from a level-6 red Digimon", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT13-111", as: "base" }], hand: [{ card: "BT13-112", as: "omnimon" }] },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
-      { autoChooseOption: true, preferOptionIndex: 0, autoSelectCards: true },
+      { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 0, autoSelectCards: true },
     );
     s.state.memory = 4;
     const targetId = s.perm("target").topCard!.instanceId;
