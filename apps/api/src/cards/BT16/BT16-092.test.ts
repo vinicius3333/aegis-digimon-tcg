@@ -20,7 +20,7 @@ describe("BT16-092", () => {
 
   it("publicly plays an ExVeemon without requiring DNA digivolution", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "BT16-092", as: "option" }, { card: "BT16-018", as: "exveemon" }] } },
+      { 0: { battleArea: [{ card: "BT16-018", as: "color" }], hand: [{ card: "BT16-092", as: "option" }, { card: "BT16-018", as: "exveemon" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();

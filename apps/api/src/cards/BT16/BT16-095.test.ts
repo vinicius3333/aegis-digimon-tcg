@@ -17,7 +17,7 @@ describe("BT16-095", () => {
   it("suspends two opposing Digimon, bottoms tied lowest DP, and buffs yours", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT16-095", as: "shine" }], battleArea: [{ card: "BT16-050", as: "ally", dp: 3000 }] },
+        0: { hand: [{ card: "BT16-095", as: "shine" }], battleArea: [{ card: "BT16-039", as: "color" }, { card: "BT16-050", as: "ally", dp: 3000 }] },
         1: {
           battleArea: [
             { card: "BT16-050", as: "lowOne", dp: 4000 },

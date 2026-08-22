@@ -18,7 +18,7 @@ describe("BT16-098", () => {
   it("deletes the conditional low-cost target and all tied lowest-cost Digimon", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT16-098", as: "option" }], battleArea: [{ card: "BT16-101", as: "dorugoramon" }] },
+        0: { hand: [{ card: "BT16-098", as: "option" }], battleArea: [{ card: "BT16-050", as: "color" }, { card: "BT16-101", as: "dorugoramon" }] },
         1: {
           battleArea: [
             { card: "BT16-050", as: "lowOne" },

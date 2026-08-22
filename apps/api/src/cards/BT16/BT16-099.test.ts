@@ -17,7 +17,7 @@ describe("BT16-099", () => {
 
   it("reveals a SoC card, trashes a hand card, bottoms the rest, and places itself", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "BT16-099", as: "option" }, { card: "BT16-050", as: "discard" }], deck: ["BT16-051", "BT1-001", "BT1-001"] } },
+      { 0: { battleArea: [{ card: "BT16-071", as: "color" }], hand: [{ card: "BT16-099", as: "option" }, { card: "BT16-050", as: "discard" }], deck: ["BT16-051", "BT1-001", "BT1-001"] } },
       { autoSelectCards: true },
     );
     await s.ready();

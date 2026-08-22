@@ -17,7 +17,7 @@ describe("BT16-096", () => {
 
   it("reveals three, adds a D-Brigade card, returns the rest, and places itself", async () => {
     const s = setupEngine(
-      { 0: { hand: [{ card: "BT16-096", as: "option" }], deck: ["BT16-050", "BT1-001", "BT1-001", "BT1-001"] } },
+      { 0: { battleArea: [{ card: "BT16-050", as: "color" }], hand: [{ card: "BT16-096", as: "option" }], deck: ["BT16-050", "BT1-001", "BT1-001", "BT1-001"] } },
       { autoSelectCards: true },
     );
     await s.ready();
