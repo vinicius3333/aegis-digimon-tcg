@@ -1,15 +1,20 @@
 import { describe, expect, it } from "vitest";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { compiled } from "./BT26-049.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 describe("BT26-049 Rosemon", () => {
   it("encodes the shared suspend budget and both All Turns reaction routes", () => {
+    expect(digivolutionRequirementsFor("BT26-049")).toEqual([
+      { names: ["Lilamon"], cost: 3, isAlternate: true },
+      { level: 5, traits: ["DATA SQUAD"], cost: 3, isAlternate: true },
+    ]);
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "WhenDigivolving", frequency: "OncePerTurn", actions: [{ kind: "Suspend", target: { count: 2, upTo: true } }] });
     expect(compiled.effects?.[1]).toMatchObject({ trigger: "WhenAttacking", sharedUseKey: "bt26-049-suspend" });
     expect(compiled.effects?.[2]).toMatchObject({ trigger: "AllTurns", frequency: "OncePerTurn", actions: [
-      { kind: "SubTrigger", event: "whenSuspended", actions: [{ kind: "PlayWithoutCost", playCostCeiling: { base: 3, raise: 1, per: 1, unit: "cards" }, target: { filter: { kind: ["Digimon", "Tamer", "Option"] } } }] },
-      { kind: "SubTrigger", event: "whenDigivolutionTrashed", actions: [{ kind: "PlayWithoutCost", playCostCeiling: { base: 3, raise: 1, per: 1, unit: "cards" } }] },
+      { kind: "SubTrigger", event: "whenSuspended", actions: [{ kind: "Modal", choose: 1, options: [[{ kind: "PlayWithoutCost", playCostCeiling: { base: 3, raise: 1, per: 1, unit: "cards" } }], [{ kind: "UseOptionWithoutCost", playCostCeiling: { base: 3, raise: 1, per: 1, unit: "cards" } }]] }] },
+      { kind: "SubTrigger", event: "whenDigivolutionTrashed", actions: [{ kind: "Modal", choose: 1 }] },
     ] });
     expect(compiled.effects?.[2]?.actions?.[0]?.actions?.[0]?.target?.filter).not.toHaveProperty("playCostLte");
   });
