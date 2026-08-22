@@ -6,6 +6,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
+      effectKey: "P-026/digi-burst-2-unsuspend",
       trigger: "Main",
       actions: [
         {

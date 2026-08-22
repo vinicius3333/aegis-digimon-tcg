@@ -10,7 +10,7 @@ const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "GainKeyword",
+          kind: "Aura",
           target: {
             filter: {
               controller: "mine",
@@ -20,9 +20,7 @@ const compiled: CompiledCard = {
             },
             count: "all",
           },
-          keyword: { keyword: "Piercing", raw: "＜Piercing＞" },
-          duration: "permanent",
-          whileMatchesTargetFilter: true,
+          effect: { kind: "keyword", keyword: { keyword: "Piercing", raw: "＜Piercing＞" } },
         },
       ],
     },
@@ -30,7 +28,7 @@ const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "GainKeyword",
+          kind: "Aura",
           target: {
             filter: {
               isSelfRef: true,
@@ -41,13 +39,10 @@ const compiled: CompiledCard = {
             count: 1,
             isSelf: true,
           },
-          keyword: {
-            keyword: "SecurityAttack",
-            amount: 1,
-            raw: "＜Security Attack +1＞",
+          effect: {
+            kind: "keyword",
+            keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
           },
-          duration: "permanent",
-          whileMatchesTargetFilter: true,
         },
       ],
       isInherited: true,

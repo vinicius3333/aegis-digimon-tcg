@@ -8,6 +8,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
+      effectKey: "P-012/main",
       trigger: "Main",
       condition: {
         kind: "youHave",

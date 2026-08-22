@@ -11,7 +11,7 @@ describe("P-012 Tai Kamiya (V-Tamer)", () => {
           deck: [{ card: "BT1-001", as: "drawn" }],
         },
       },
-      { autoChooseOption: true },
+      { autoAcceptOptional: true, autoChooseOption: true },
     );
     const drawnId = s.inst("drawn").instanceId;
     await s.ready();
@@ -38,7 +38,7 @@ describe("P-012 Tai Kamiya (V-Tamer)", () => {
           ],
         },
       },
-      { autoChooseOption: true, preferOptionIndex: 1, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("recipient").permanentId);
     const baseDP = s.perm("recipient").baseDP;
@@ -67,7 +67,7 @@ describe("P-012 Tai Kamiya (V-Tamer)", () => {
       type: "activateEffect",
       sourceInstanceId: s.perm("tai").topCard.instanceId,
       effectKey: "P-012/main",
-    })).toEqual({ ok: false, error: "Effect cannot be activated" });
+    })).toEqual({ ok: false, reason: "illegal-target" });
     expect(s.perm("tai").isSuspended).toBe(false);
   });
 
@@ -93,7 +93,7 @@ describe("P-012 Tai Kamiya (V-Tamer)", () => {
     expect(s.engine.applyIntent(0, {
       type: "respondDecision",
       decisionId: decision.decisionId,
-      choice: false,
+      response: { kind: "optional", accept: false },
     })).toEqual({ ok: true });
     await settle();
 

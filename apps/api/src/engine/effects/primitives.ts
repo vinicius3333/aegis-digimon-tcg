@@ -4327,7 +4327,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // it. Never inherit the engine-global continuous flag merely because its async
     // installation overlaps a recompute; otherwise a subsequent digivolution clears it
     // before its boundary fires (P-030/Q4141).
-    subTriggers.subscribe({ ...sub, ...(sub.once ? {} : continuousOpt()) });
+    subTriggers.subscribe({ ...(sub.once ? {} : continuousOpt()), ...sub });
 
   const subscribeReplacement: Primitives["subscribeReplacement"] = (sub) =>
     subTriggers.subscribeReplacement({ ...sub, ...continuousOpt() });

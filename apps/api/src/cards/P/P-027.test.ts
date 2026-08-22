@@ -28,7 +28,7 @@ describe("P-027 MetalGarurumon", () => {
     expect(s.engine.applyIntent(0, {
       type: "activateEffect",
       sourceInstanceId: s.perm("metalGarurumon").topCard.instanceId,
-      effectKey: "P-027/main",
+      effectKey: "P-027/digi-burst-use-option",
     })).toEqual({ ok: true });
     await settle(() =>
       s.perm("metalGarurumon").stack.length === 0 &&
@@ -44,13 +44,13 @@ describe("P-027 MetalGarurumon", () => {
   it("may pay Digi-Burst even when no eligible Option is selected", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "P-027", as: "metalGarurumon", under: ["P-019", "P-034"] }] } },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
 
     expect(s.engine.applyIntent(0, {
       type: "activateEffect",
       sourceInstanceId: s.perm("metalGarurumon").topCard.instanceId,
-      effectKey: "P-027/main",
+      effectKey: "P-027/digi-burst-use-option",
     })).toEqual({ ok: true });
     await settle(() => s.perm("metalGarurumon").stack.length === 0);
 
@@ -69,7 +69,7 @@ describe("P-027 MetalGarurumon", () => {
     expect(s.engine.applyIntent(0, {
       type: "activateEffect",
       sourceInstanceId: s.perm("metalGarurumon").topCard.instanceId,
-      effectKey: "P-027/main",
+      effectKey: "P-027/digi-burst-use-option",
     })).toEqual({ ok: false, reason: "illegal-target" });
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });

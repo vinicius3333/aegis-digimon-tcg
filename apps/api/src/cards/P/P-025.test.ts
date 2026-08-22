@@ -19,7 +19,7 @@ describe("P-025 GranKuwagamon", () => {
     expect(s.engine.applyIntent(0, {
       type: "activateEffect",
       sourceInstanceId: s.perm("granKuwagamon").topCard.instanceId,
-      effectKey: "P-025/main",
+      effectKey: "P-025/digi-burst-security-attack",
     })).toEqual({ ok: false, reason: "illegal-target" });
 
     expect(s.perm("granKuwagamon").stack).toHaveLength(2);
@@ -39,7 +39,7 @@ describe("P-025 GranKuwagamon", () => {
     expect(s.engine.applyIntent(0, {
       type: "activateEffect",
       sourceInstanceId: s.perm("granKuwagamon").topCard.instanceId,
-      effectKey: "P-025/main",
+      effectKey: "P-025/digi-burst-security-attack",
     })).toEqual({ ok: true });
     await settle(() => observe(s.engine).keywordAmount(s.perm("recipient"), "SecurityAttack") === 1);
 

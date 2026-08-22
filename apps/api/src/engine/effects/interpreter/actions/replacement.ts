@@ -192,7 +192,11 @@ export async function runReplacement(
         }
       },
       protects: (subCtx, leavingId) => {
-        if (protectsSelf) return subCtx.source.permanent()?.permanentId === leavingId;
+        if (protectsSelf) {
+          const leaving = subCtx.game.permanentById(leavingId);
+          if (leaving === undefined || subCtx.source.permanent()?.permanentId !== leavingId) return false;
+          return action.sourceFilter === undefined || permanentMatchesFilter(subCtx, leaving, action.sourceFilter, subCtx.source);
+        }
         const leaving = subCtx.game.permanentById(leavingId);
         if (leaving === undefined || protectsFilter === undefined) return false;
         // Controller gate ("any of YOUR Digimon"): permanentMatchesFilter checks definition

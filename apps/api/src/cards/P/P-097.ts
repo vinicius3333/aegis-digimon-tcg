@@ -8,27 +8,19 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "RevealAdd",
-          revealCount: 3,
-          add: [],
-          rest: "deckTopOrBottom",
-          cost: {
-            kind: "place",
-            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-            underFilter: {
-              zone: "battleArea",
-              controller: "mine",
-              excludeSelf: true,
-              kind: ["Digimon"],
-              isToken: false,
-            },
-            destination: "digivolutionStack",
-            position: "bottom",
-            raw: "by placing this card under 1 of your other Digimon as its bottom digivolution card",
+          kind: "PlaceUnder",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          underFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            excludeToken: true,
           },
+          position: "bottom",
           optional: true,
           abortOnDecline: true,
+          raw: "by placing this card under 1 of your other Digimon as its bottom digivolution card",
         },
+        { kind: "RevealAdd", revealCount: 3, add: [], rest: "deckTopOrBottom" },
         {
           kind: "GainMemory",
           amount: 2,

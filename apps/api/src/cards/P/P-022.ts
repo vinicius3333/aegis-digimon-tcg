@@ -58,6 +58,7 @@ const compiled: CompiledCard = {
               requiredNamesExact: ["ExVeemon", "Stingmon"],
             },
             to: "deckBottom",
+            orderReturnedCards: true,
             raw: "by placing 1 [ExVeemon] and 1 [Stingmon] from your hand at the bottom of your deck in any order",
           },
           optional: true,

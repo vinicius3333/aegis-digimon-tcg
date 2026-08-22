@@ -5,12 +5,14 @@ import { toDuration } from "../duration.js";
 import { definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
+import { candidateLooseInstances } from "../targeting/loose.js";
 import { evaluateCondition } from "../conditions.js";
 import type { Action } from "@aegis/shared";
 
 export async function runRestrictionAction(ctx: EffectContext, action: Action): Promise<boolean> {
   switch (action.kind) {
     case "Restrict": {
+      if (action.target === undefined) return false;
       const gate = action.while ?? action.condition;
       if (gate !== undefined && !evaluateCondition(ctx, gate)) return false;
       const duration = toDuration(action.duration);
@@ -20,6 +22,12 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action): 
       const restriction = (action.restriction === "returnToHandOrDeck" || action.restriction === "cannotReturnToHandOrDeck"
         ? "beReturned"
         : action.restriction) as Restriction;
+      if (restriction === "beTrashed" && filter.zone === "digivolutionCards") {
+        for (const card of candidateLooseInstances(ctx, action.target, ["digivolutionCards"])) {
+          ctx.fx.stackCardTrashLock?.(card.instanceId, card.ownerSeat, duration);
+        }
+        return false;
+      }
       if (dynamicTargetFilter && action.target.count === "all" && ctx.fx.restrictPlayer !== undefined && filter !== undefined) {
         for (const seat of seatsForController(ctx, filter)) {
           ctx.fx.restrictPlayer(seat, restriction, duration, (permanentId) => {

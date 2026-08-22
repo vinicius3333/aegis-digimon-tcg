@@ -5,6 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
+      effectKey: "P-025/digi-burst-security-attack",
       trigger: "Main",
       actions: [
         {

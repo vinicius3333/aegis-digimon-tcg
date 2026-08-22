@@ -23,7 +23,7 @@ describe("P-026 BlackWarGreymon", () => {
     expect(s.engine.applyIntent(0, {
       type: "activateEffect",
       sourceInstanceId: s.perm("blackWarGreymon").topCard.instanceId,
-      effectKey: "P-026/main",
+      effectKey: "P-026/digi-burst-2-unsuspend",
     })).toEqual({ ok: true });
     await settle(() => !s.perm("blackWarGreymon").isSuspended);
 
@@ -45,7 +45,7 @@ describe("P-026 BlackWarGreymon", () => {
     expect(s.engine.applyIntent(0, {
       type: "activateEffect",
       sourceInstanceId: s.perm("blackWarGreymon").topCard.instanceId,
-      effectKey: "P-026/main",
+      effectKey: "P-026/digi-burst-2-unsuspend",
     })).toEqual({ ok: false, reason: "illegal-target" });
     expect(s.perm("blackWarGreymon").isSuspended).toBe(true);
   });
@@ -64,7 +64,7 @@ describe("P-026 BlackWarGreymon", () => {
     expect(s.engine.applyIntent(0, {
       type: "activateEffect",
       sourceInstanceId: s.perm("blackWarGreymon").topCard.instanceId,
-      effectKey: "P-026/main",
+      effectKey: "P-026/digi-burst-2-unsuspend",
     })).toEqual({ ok: false, reason: "not-your-turn" });
     expect(s.perm("blackWarGreymon").isSuspended).toBe(true);
     expect(s.perm("blackWarGreymon").stack).toHaveLength(2);

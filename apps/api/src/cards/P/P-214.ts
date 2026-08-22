@@ -18,6 +18,7 @@ const tuckAndReturn = {
       nameOrTrait: seadramonText,
     },
     destination: "digivolutionStack" as const,
+    targetIsPermanent: true,
     position: "bottom" as const,
     host: "target" as const,
     raw: "by placing this Digimon under another Digimon with Seadramon in its text",

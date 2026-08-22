@@ -10,6 +10,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenOneOfYoursDigivolves",
+          once: true,
           sourceFilter: {
             isSelfRef: true,
             kind: ["Digimon"],

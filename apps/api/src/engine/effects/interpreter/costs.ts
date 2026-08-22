@@ -38,7 +38,9 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const self = ctx.source.permanent();
     if (self === undefined) return false;
     const { zone: _zone, isSelfRef: _isSelfRef, controller: _controller, ...stackCardFilter } = cost.target.filter;
-    const candidates = self.stack.filter((card) => definitionMatches(stackCardFilter, ctx.game.definitionOf(card)));
+    const candidates = self.stack
+      .filter((card) => definitionMatches(stackCardFilter, ctx.game.definitionOf(card)))
+      .filter((card) => ctx.fx.canTrashDigivolutionCard?.(card.instanceId) !== false);
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
     return required > 0 && candidates.length >= required;
   }
@@ -878,6 +880,27 @@ export async function payCost(
         if (out) out.paidCount = chosen.length;
         return true;
       }
+      if (cost.target.filter.zone === "hand") {
+        const candidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
+        const n = cost.target.count === "all" ? candidates.length : cost.target.count;
+        if (n <= 0 || candidates.length < n) return false;
+        let chosen = await pickLoose(ctx, { ...cost.target, count: n }, candidates);
+        if (chosen.length < n) return false;
+        if (cost.orderReturnedCards === true && chosen.length > 1) {
+          chosen =
+            (await ctx.ask.orderCards?.(ctx, {
+              candidates: chosen,
+              visibleCards: candidates
+                .filter((candidate) => chosen.includes(candidate.instanceId))
+                .map((candidate) => ({ instanceId: candidate.instanceId, cardId: candidate.cardId })),
+              destination: cost.to === "deckTop" ? "deckTop" : "deckBottom",
+            })) ?? chosen;
+        }
+        if (cost.to === "hand") return false;
+        await ctx.fx.returnToDeck(chosen, { toTop: cost.to === "deckTop" });
+        if (out) out.paidCount = chosen.length;
+        return true;
+      }
       // Trash-zone return cost ("by returning 1 [Apocalymon] from your trash to the bottom of the
       // deck", BT17-068): resolve the loose trash cards matching the filter and return them to the
       // deck (bottom unless the raw says "top"). The prose compiler leaves the zone in the raw
@@ -951,12 +974,22 @@ export async function payCost(
         }
         const n = cost.target.count === "all" ? candidates.length : cost.target.count;
         if (n <= 0 || candidates.length < n) return false;
-        const chosen = await ctx.ask.selectCards(ctx, {
+        let chosen = await ctx.ask.selectCards(ctx, {
           candidates: candidates.map((c) => c.instanceId),
           min: n,
           max: n,
         });
         if (chosen.length < n) return false;
+        if (cost.orderReturnedCards === true && chosen.length > 1) {
+          chosen =
+            (await ctx.ask.orderCards?.(ctx, {
+              candidates: chosen,
+              visibleCards: candidates
+                .filter((candidate) => chosen.includes(candidate.instanceId))
+                .map((candidate) => ({ instanceId: candidate.instanceId, cardId: candidate.cardId })),
+              destination: cost.to === "deckTop" ? "deckTop" : "deckBottom",
+            })) ?? chosen;
+        }
         recordTrackedColors(candidates, chosen);
         await ctx.fx.returnToDeck(chosen, { toTop: await returnToTop() });
         if (out) out.paidCount = chosen.length;
