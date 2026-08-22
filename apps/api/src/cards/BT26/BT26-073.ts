@@ -39,7 +39,8 @@ export const compiled: CompiledCard = {
     {
       trigger: "Static", sharedUseKey: "inherited-security-attack",
       isInherited: true,
-      actions: [{ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: 1 }, duration: "permanent" }],
+      actions: [],
+      keywords: [{ keyword: "SecurityAttack", amount: 1, raw: "＜Security A. +1＞" }],
     },
     {
       trigger: "Static", sharedUseKey: "rule-wizard-trait",
