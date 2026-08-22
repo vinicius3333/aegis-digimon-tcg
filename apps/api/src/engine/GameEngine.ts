@@ -1844,6 +1844,18 @@ export class GameEngine {
         await this.subTriggers.fire(
           event,
           (sub) => {
+            // Inherited watchers keep both the host anchor and the card instance that
+            // installed the watcher. Once that source card leaves the stack, resolve the
+            // loose instance first so isSelfRef and inherited effects still refer to the
+            // card that was actually trashed (BT7-031, BT8-081, P-032).
+            const trashedSource =
+              sub.sourceInstanceId !== undefined &&
+              (payload.trashedDigivolutionInstanceId === sub.sourceInstanceId ||
+                payload.trashedDigivolutionInstanceIds?.includes(sub.sourceInstanceId) === true);
+            if (trashedSource) {
+              const loose = this.findLooseInstance(sub.sourceInstanceId);
+              if (loose !== undefined) return this.buildEffectContext(this.cardSourceOf(loose), payload);
+            }
             // Anchor the watcher's context on its OWN source permanent. A watcher whose anchor
             // has left the field (its subscription should already be dropped on leave; guard
             // defensively) yields undefined and is skipped by the registry.
@@ -1859,11 +1871,7 @@ export class GameEngine {
               if (srcPerm?.topCard === undefined) return undefined;
               return this.buildEffectContext(this.cardSourceOf(srcPerm.topCard), payload);
             }
-            if (sub.sourceInstanceId !== undefined) {
-              const loose = this.findLooseInstance(sub.sourceInstanceId);
-              if (loose === undefined) return undefined;
-              return this.buildEffectContext(this.cardSourceOf(loose), payload);
-            }
+            if (sub.sourceInstanceId !== undefined) return undefined;
             if (sub.activationContext !== undefined) {
               return { ...sub.activationContext, trigger: payload, selections: new Map() };
             }
@@ -1909,11 +1917,7 @@ export class GameEngine {
       if (srcPerm?.topCard === undefined) return undefined;
       return this.buildEffectContext(this.cardSourceOf(srcPerm.topCard), payload);
     }
-    if (sub.sourceInstanceId !== undefined) {
-      const loose = this.findLooseInstance(sub.sourceInstanceId);
-      if (loose === undefined) return undefined;
-      return this.buildEffectContext(this.cardSourceOf(loose), payload);
-    }
+    if (sub.sourceInstanceId !== undefined) return undefined;
     if (sub.activationContext !== undefined) {
       return { ...sub.activationContext, trigger: payload, selections: new Map() };
     }
@@ -2007,6 +2011,7 @@ export class GameEngine {
       );
       for (const { source, effect } of continuousEffects) {
         const ctx = this.buildEffectContext(source, {}, noPromptAsk);
+        ctx.continuousPass = true;
         // Persistent effects re-apply whenever their guard holds; canTrigger here is
         // the builder's on-field/`when` gate (maxPerTurn is irrelevant — uncounted).
         if (!canTrigger(effect, ctx, this.tracker)) continue;
@@ -2030,6 +2035,7 @@ export class GameEngine {
         (source, effect, conferredToPermanentId) => ({
           ...this.buildEffectContext(source, {}, noPromptAsk),
           activeTiming: EffectTiming[EffectTiming.None],
+          continuousPass: true,
           activeEffectText: effect.description,
           conferredToPermanentId,
         }),
@@ -2039,6 +2045,7 @@ export class GameEngine {
         const ctx: EffectContext = {
           ...this.buildEffectContext(source, {}, noPromptAsk),
           activeTiming: EffectTiming[EffectTiming.None],
+          continuousPass: true,
           activeEffectText: effect.description,
           conferredToPermanentId,
         };
@@ -2058,6 +2065,7 @@ export class GameEngine {
         (source, effect) => ({
           ...this.buildEffectContext(source, {}, noPromptAsk),
           activeTiming: EffectTiming[EffectTiming.None],
+          continuousPass: true,
           activeEffectText: effect.description,
         }),
         this.tracker,
@@ -2066,6 +2074,7 @@ export class GameEngine {
         const ctx: EffectContext = {
           ...this.buildEffectContext(source, {}, noPromptAsk),
           activeTiming: EffectTiming[EffectTiming.None],
+          continuousPass: true,
           activeEffectText: effect.description,
         };
         if (!canActivate(effect, ctx, this.tracker)) continue;

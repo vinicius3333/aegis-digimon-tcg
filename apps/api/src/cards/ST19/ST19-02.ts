@@ -10,10 +10,9 @@ import { registerCard } from "../../engine/effects/registry.js";
  *
  * source: documented behavior.
  *
- * Two WhenPermanentWouldBeDeleted clauses:
- *   1. Decoy ([Puppet] trait) — When another friendly Puppet-trait Digimon would be deleted by
- *      an opponent's effect, you may delete THIS Digimon to prevent that deletion.
- *   2. Barrier (inherited) — Once per turn, negate an effect that would delete this Digimon.
+ * The handwritten module supplies Decoy ([Puppet] trait). The inherited Barrier keyword is
+ * provided by the shared keyword engine from the catalogued inherited text and must not be
+ * installed a second time here.
  *
  * (the replacement subscriptions are installed as static/continuous effects, and are consulted
  * by the leave-prevention subsystem when a permanent would be deleted).
@@ -73,47 +72,6 @@ const module: EffectModule = {
           },
         }),
 
-        // (2) Barrier (inherited) — Once per turn, prevent this Digimon's deletion.
-        staticModifier({
-          source,
-          effectKey: `${cardId}/barrier-ess`,
-          description:
-            "<Barrier> (Once per turn, when this Digimon would be deleted, negate that deletion.)",
-          isInherited: true,
-          maxPerTurn: 1,
-          when: (ctx) => ctx.source.isOnBattleArea(),
-          resolve: async (ctx) => {
-            ctx.fx.subscribeReplacement({
-              event: "wouldBeDeleted",
-              mode: "prevent",
-              description: "Barrier: negate this Digimon's deletion (Once per turn)",
-              sourcePermanentId: source.permanent()?.permanentId,
-              // ＜Barrier＞ is ONCE PER TURN: a stable per-permanent key the consult honors so a
-              // second deletion the same turn is no longer negated (the static effect's maxPerTurn
-              // only limits installs during the continuous pass, not the replacement firing).
-              oncePerTurnKey: `${source.permanent()?.permanentId}/barrier`,
-              protects: (_checkCtx, leavingPermanentId) => {
-                const self = source.permanent();
-                if (self === undefined) return false;
-                return leavingPermanentId === self.permanentId;
-              },
-              preventCheck: async (checkCtx, _leavingPermanentId) => {
-                const self = source.permanent();
-                if (self === undefined) return false;
-
-                const wantToBarrier = await checkCtx.ask.optional(
-                  checkCtx,
-                  "Activate <Barrier> to prevent this Digimon's deletion?",
-                );
-                if (!wantToBarrier) return false;
-
-                // Barrier simply negates the deletion — no additional cost.
-                return true;
-              },
-              affectsAll: true,
-            });
-          },
-        }),
       ];
     }
 

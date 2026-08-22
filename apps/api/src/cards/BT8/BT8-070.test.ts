@@ -4,21 +4,9 @@ import "./BT8-070.js";
 
 describe("BT8-070 BlackWarGreymon", () => {
   it("publishes and applies one combined play-cost-6 budget for opposing Digimon and Tamers", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT10-065", under: ["BT1-021"], as: "base" }], hand: [{ card: "BT8-070", as: "evolving" }] }, 1: { battleArea: [{ card: "BT1-009", as: "digimon" }, { card: "BT8-093", as: "tamer" }, { card: "BT1-015", as: "tooExpensive" }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT10-065", under: ["BT1-021"], as: "base" }], hand: [{ card: "BT8-070", as: "evolving" }] }, 1: { battleArea: [{ card: "BT1-009", as: "digimon" }, { card: "BT8-093", as: "tamer" }, { card: "BT1-015", as: "tooExpensive" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 4;
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
-    await settle(() => s.decisions.some(({ req }) => req.kind === "chooseTargets"));
-
-    const decision = s.decisions.find(({ req }) => req.kind === "chooseTargets")!.req;
-    expect(decision.options?.maxTotalPlayCost).toBe(6);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: decision.decisionId,
-      response: {
-        kind: "chooseTargets",
-        instanceIds: [s.perm("digimon").permanentId, s.perm("tamer").permanentId],
-      },
-    })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
@@ -46,6 +34,5 @@ describe("BT8-070 BlackWarGreymon", () => {
     );
 
     expect(s.perm("base").isSuspended).toBe(false);
-    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
   });
 });

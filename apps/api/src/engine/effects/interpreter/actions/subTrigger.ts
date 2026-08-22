@@ -889,6 +889,7 @@ export async function runGainTriggeredEffect(
       event,
       sourcePermanentId: targetPermanentId,
       once: false,
+      ...(ctx.continuousPass === true ? { continuous: true } : {}),
       ...(matches ? { matches } : {}),
       ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
       description: action.raw ?? `GainTriggeredEffect(${action.gainedTrigger}) on ${targetPermanentId}`,
