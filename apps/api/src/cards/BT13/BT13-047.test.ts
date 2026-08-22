@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT13-047.js";
 
 describe("BT13-047 Angoramon", () => {
@@ -25,5 +27,11 @@ describe("BT13-047 Angoramon", () => {
         },
       ],
     });
+  });
+
+  it("gains the inherited +1000 DP when the opponent has no Digimon", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", under: ["BT13-047"], as: "host" }] } });
+    await settle(() => s.perm("host").currentDP === 4000);
+    expect(s.perm("host").currentDP).toBe(4000);
   });
 });
