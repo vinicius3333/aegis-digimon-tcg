@@ -131,6 +131,11 @@ function countLinkCards(ctx: EffectContext, filter: Filter): number {
 export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
   let raw = 0;
   const filter = scaling.filter ?? {};
+  if ((filter as { deletedByTrigger?: boolean }).deletedByTrigger === true) {
+    raw = ctx.trigger.deletedPermanentIds?.length ?? 0;
+    const per = scaling.per > 0 ? scaling.per : 1;
+    return Math.floor(raw / per);
+  }
   if ((filter as { suspendedByThisEffect?: boolean }).suspendedByThisEffect === true) {
     const { suspendedByThisEffect: _receipt, ...matchingFilter } = filter as typeof filter & { suspendedByThisEffect?: boolean };
     raw = (ctx.lastSuspendedPermanentIds ?? []).filter((id) => {

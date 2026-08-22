@@ -334,6 +334,11 @@ export const staticModifier = (opts: BuilderOptions): Effect => {
             ? { oncePerTurnKey: replacement.oncePerTurnKey ?? autoKey }
             : {}),
         }),
+      restrict: (permanentId, restriction, duration, restrictOpts) =>
+        ctx.fx.restrict(permanentId, restriction, duration, {
+          ...restrictOpts,
+          continuous: true,
+        }),
     };
     return opts.resolve({ ...ctx, fx: scopedFx });
   };
