@@ -1879,6 +1879,12 @@ export class GameEngine {
             if (sub.sourcePermanentId !== undefined) {
               const srcPerm = this.access.permanentById(sub.sourcePermanentId);
               if (srcPerm?.topCard === undefined) return undefined;
+              if (sub.sourceInstanceId !== undefined) {
+                const sourceCard =
+                  this.instanceOnPermanent(srcPerm, sub.sourceInstanceId) ?? this.findLooseInstance(sub.sourceInstanceId);
+                if (sourceCard === undefined) return undefined;
+                return this.buildEffectContext(this.cardSourceOf(sourceCard), payload);
+              }
               return this.buildEffectContext(this.cardSourceOf(srcPerm.topCard), payload);
             }
             if (sub.sourceInstanceId !== undefined) return undefined;
@@ -1923,6 +1929,12 @@ export class GameEngine {
     if (sub.sourcePermanentId !== undefined) {
       const srcPerm = this.access.permanentById(sub.sourcePermanentId);
       if (srcPerm?.topCard === undefined) return undefined;
+      if (sub.sourceInstanceId !== undefined) {
+        const sourceCard =
+          this.instanceOnPermanent(srcPerm, sub.sourceInstanceId) ?? this.findLooseInstance(sub.sourceInstanceId);
+        if (sourceCard === undefined) return undefined;
+        return this.buildEffectContext(this.cardSourceOf(sourceCard), payload);
+      }
       return this.buildEffectContext(this.cardSourceOf(srcPerm.topCard), payload);
     }
     if (sub.sourceInstanceId !== undefined) return undefined;
