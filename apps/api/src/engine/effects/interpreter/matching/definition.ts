@@ -72,6 +72,7 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
     if (!filter.and.every((f) => definitionMatches(f, def))) return false;
   }
   if (filter.not && definitionMatches(filter.not, def)) return false;
+  if (filter.isToken !== undefined && def.isToken !== filter.isToken) return false;
   if (filter.kind && filter.kind.length > 0) {
     const wanted = filter.kind.map((k) => KIND_MAP[k]);
     // Tokens are Digimon permanents for target/cost resolution even though their
