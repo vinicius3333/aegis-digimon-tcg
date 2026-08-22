@@ -51,7 +51,7 @@ describe("BT25-096 Mirage Beast Knight", () => {
           battleArea: [{ card: "BT25-021", as: "gaomon" }],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     s.state.memory = 5;
@@ -66,7 +66,7 @@ describe("BT25-096 Mirage Beast Knight", () => {
         .perm("gaomon")
         .stack.slice(0, 2)
         .map((card) => card.instanceId),
-    ).toEqual([s.inst("gaogamon").instanceId, s.inst("mach").instanceId]);
+    ).toEqual([s.inst("mach").instanceId, s.inst("gaogamon").instanceId]);
     expect(
       s
         .perm("gaomon")

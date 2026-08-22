@@ -40,7 +40,7 @@ export function registerWouldBePlayedSelfReducer(cardId: string, reducer: WouldB
   WOULD_BE_PLAYED_SELF_REDUCERS.set(cardId, [...withoutSameKey, reducer]);
 }
 
-const STRUCTURED_REDUCER_COSTS = new Set(["suspend", "unsuspend", "return", "trash"]);
+const STRUCTURED_REDUCER_COSTS = new Set(["suspend", "unsuspend", "return", "trash", "trashBottomFaceDownUnderTamer"]);
 
 /**
  * Cards whose "When THIS card would be played, by [structured cost], reduce the play cost by N"
@@ -82,6 +82,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT25-059", // 2+ suspended Digimon -> -5 (Q6306/Q6350)
   "BT25-075", // fewer Digimon than your opponent -> -5 (Q6370-Q6372)
   "BT25-077", // condition: 12+ total Digimon levels -> -5 (Q7002 effect-driven stacking)
+  "BT25-096", // trash the bottom face-down card under a Tamer -> Option use cost -2 (Q6456)
   "BT22-041", // condition: total cards in both security stacks <= 6 -> self play cost -6
 ]);
 

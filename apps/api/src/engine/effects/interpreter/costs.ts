@@ -46,7 +46,7 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const seat = cost.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
     const candidates = ctx.game.player(seat).battleArea.filter((permanent) => {
       if (permanent.topCard === undefined || !isTamer(ctx.game.definitionOf(permanent.topCard))) return false;
-      return permanent.stack.some((card) => !card.faceUp);
+      return permanent.stack[0]?.faceUp === false;
     });
     return candidates.length >= (cost.count ?? 1);
   }
@@ -256,10 +256,10 @@ export async function payCost(
       const seat = cost.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
       const hosts = ctx.game.player(seat).battleArea.filter((permanent) => {
         if (permanent.topCard === undefined || !isTamer(ctx.game.definitionOf(permanent.topCard))) return false;
-        return permanent.stack.some((card) => !card.faceUp);
+        return permanent.stack[0] !== undefined && !permanent.stack[0].faceUp;
       });
       const candidates = hosts.flatMap((host) => {
-        const bottomFaceDown = host.stack.find((card) => !card.faceUp);
+        const bottomFaceDown = host.stack[0]?.faceUp === false ? host.stack[0] : undefined;
         return bottomFaceDown === undefined ? [] : [{ hostId: host.permanentId, cardId: bottomFaceDown.instanceId }];
       });
       const count = cost.count ?? 1;
