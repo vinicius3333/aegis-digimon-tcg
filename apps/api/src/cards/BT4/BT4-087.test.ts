@@ -17,4 +17,29 @@ describe("BT4-087 Anubismon", () => {
     const played = player.battleArea.find((permanent) => permanent.topCard.instanceId === s.inst("played").instanceId)!;
     expect(observe(s.engine).hasKeyword(played, "Rush")).toBe(true);
   });
+
+  it("keeps Rush after that trash-played Digimon digivolves this turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT10-012", as: "base" }],
+        hand: [{ card: "BT4-087", as: "anubismon" }, { card: "BT4-083", as: "evolving" }],
+        trash: [{ card: "BT10-071", as: "played" }],
+      },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    const player = s.state.players[0] as PlayerState;
+    s.state.memory = 6;
+
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("anubismon").instanceId })).toEqual({ ok: true });
+    await settle(() => player.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("played").instanceId));
+    const played = s.perm("played");
+
+    expect(s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: played.permanentId,
+      instanceId: s.inst("evolving").instanceId,
+    })).toEqual({ ok: true });
+    await settle(() => s.perm("played").topCard?.cardId === "BT4-083");
+
+    expect(observe(s.engine).hasKeyword(s.perm("played"), "Rush")).toBe(true);
+  });
 });
