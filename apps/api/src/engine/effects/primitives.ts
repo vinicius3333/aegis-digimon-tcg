@@ -33,6 +33,7 @@ import {
 } from "../state/access.js";
 import {
   matchingEvoCost,
+  matchingEvoCostIgnoringLevel,
   canDigivolveOntoWithAlternates,
   cardHasTrait,
   matchingAlternateDigivolutionRequirement,
@@ -944,7 +945,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // color+level gate; without it the base must still satisfy a printed EvoCost (a costOverride
       // alone keeps the requirement — BT7-051).
       let baseCost: number | undefined;
-      if (opts.ignoreRequirements || opts.ignoreLevel) {
+      if (opts.ignoreRequirements) {
         // Ignoring the color/level gate does not waive the card's printed digivolution
         // cost. Effects such as BT26-066 still say "with the cost reduced by 2" and
         // therefore need a real printed baseline. A fixed-cost effect supplies
@@ -952,6 +953,14 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         // the destination card. Only cards with no printed evolution cost fall back to 0.
         const printedCosts = definition.evoCosts.map(({ memoryCost }) => memoryCost);
         baseCost = opts.costOverride ?? (printedCosts.length > 0 ? Math.min(...printedCosts) : 0);
+      } else if (opts.ignoreLevel) {
+        const baseDef = requireCardDefinition(permanent.topCard.cardId);
+        const printed = matchingEvoCostIgnoringLevel(definition, baseDef);
+        const alternate = matchingAlternateDigivolutionRequirement(definition, baseDef, { ignoreLevel: true });
+        const useAlternate = opts.useAlternateCost === true && alternate !== undefined;
+        const matched = useAlternate ? alternate!.cost : (printed?.memoryCost ?? alternate?.cost);
+        if (matched === undefined) return undefined;
+        baseCost = opts.costOverride ?? matched;
       } else {
         // The base qualifies via a printed EvoCost OR via an alternate digivolution requirement
         // ("[Digivolve] [BurningGreymon]: Cost 0", "onto a red Tamer: Cost 2"). Both carry their
@@ -961,9 +970,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         // `runDigivolve`'s candidate filter already offers alternate-path bases; this is the
         // authoritative gate it claims to mirror, so the two must agree.
         const actualBaseDef = requireCardDefinition(permanent.topCard.cardId);
-        const baseDef = opts.virtualBase === undefined
-          ? actualBaseDef
-          : { ...actualBaseDef, level: opts.virtualBase.level, colors: opts.virtualBase.colors };
+        const baseDef =
+          opts.virtualBase === undefined
+            ? actualBaseDef
+            : { ...actualBaseDef, level: opts.virtualBase.level, colors: opts.virtualBase.colors };
         const printed = matchingDigivolveCost(definition, baseDef);
         const baseGranted = engine.baseGrantedDigivolve?.(seat, permanent, definition);
         const alternate = matchingAlternateDigivolutionRequirement(definition, baseDef);
