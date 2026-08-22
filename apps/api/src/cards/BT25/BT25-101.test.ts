@@ -170,6 +170,8 @@ describe("BT25-101 Divine Arms Version Ω", () => {
     preferred.push(s.inst("piercingLink").instanceId);
     await s.ready();
     expect(observe(s.engine).hasPierce(s.perm("vulcanus"))).toBe(true);
+    s.perm("equalDpOpponent").baseDP = s.perm("vulcanus").currentDP;
+    s.perm("equalDpOpponent").currentDP = s.perm("vulcanus").currentDP;
 
     expect(
       s.engine.applyIntent(0, {
