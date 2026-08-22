@@ -49,4 +49,14 @@ describe("BT12-074 Gumdramon", () => {
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT1-010");
   });
+
+  it("draws from the inherited attack effect at most once per turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT12-077", as: "host", under: ["BT12-074"] }], deck: ["BT1-010", "BT1-011"] },
+    });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    expect(s.state.players[0]!.hand.filter(({ cardId }) => cardId === "BT1-010" || cardId === "BT1-011")).toHaveLength(1);
+  });
 });
