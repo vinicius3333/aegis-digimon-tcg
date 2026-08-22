@@ -3,6 +3,7 @@ import { compiled } from "./BT26-081.js";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT26-081 compiled behavior", () => {
@@ -54,5 +55,25 @@ describe("BT26-081 compiled behavior", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT26-032")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT26-067")).toBe(true);
     expect(s.state.players[1]!.battleArea.find((p) => p.topCard?.cardId === "BT1-084")?.dp).toBe(3000);
+  });
+
+  it("continuously grants Alliance, Reboot, Blocker, and 2000 DP only to Iliad Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT26-081", as: "mervamon" },
+          { card: "BT26-080", as: "iliad" },
+          { card: "BT26-086", as: "nonIliad" },
+        ],
+      },
+    });
+    await s.ready();
+
+    for (const keyword of ["Alliance", "Reboot", "Blocker"]) {
+      expect(observe(s.engine).hasKeyword(s.perm("iliad"), keyword)).toBe(true);
+      expect(observe(s.engine).hasKeyword(s.perm("nonIliad"), keyword)).toBe(false);
+    }
+    expect(s.perm("iliad").currentDP).toBe(17000);
+    expect(s.perm("nonIliad").currentDP).toBe(14000);
   });
 });
