@@ -6,7 +6,6 @@ import {
   EffectTiming,
   EffectDuration,
   Phase,
-  Permanent,
   type CardColor,
   type CardDefinition,
   type CardInstance,
