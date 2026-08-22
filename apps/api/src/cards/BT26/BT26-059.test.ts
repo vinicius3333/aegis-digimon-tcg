@@ -9,6 +9,10 @@ describe("BT26-059 Plutomon", () => {
     expect(compiled.effects?.slice(1, 4).map((e) => e.sharedUseKey)).toEqual([
       "bt26-059-trash-play-titan", "bt26-059-trash-play-titan", "bt26-059-trash-play-titan",
     ]);
+    expect(compiled.effects?.[1]?.actions).toEqual([
+      expect.objectContaining({ kind: "Trash", condition: { kind: "isYourTurn" } }),
+      expect.objectContaining({ kind: "PlayWithoutCost", condition: { kind: "isYourTurn" } }),
+    ]);
     expect(compiled.effects?.[4]).toMatchObject({ trigger: "AllTurns", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenHandTrashed", actions: [{ kind: "Delete", target: { count: "all" } }] }] });
   });
 });
