@@ -10,7 +10,7 @@ const noFaceUpSecurity = { kind: "securityAtMost", controller: "mine", value: 0 
 export const compiled: CompiledCard = {
   effects: [
     { trigger: "Static", actions: [{ kind: "WaiveColorRequirement", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, condition: noFaceUpSecurity }] },
-    { trigger: "SecurityStatic", isSecurity: true, actions: [
+    { trigger: "Static", isSecurity: true, actions: [
       { kind: "GainKeyword", target: { filter: titan, count: "all" }, keyword: { keyword: "Blocker" }, duration: "permanent" },
       { kind: "ModifyDP", target: { filter: titan, count: "all" }, amount: 3000, duration: "permanent", condition: { kind: "youHave", filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Plutomon", "Titamon"], match: "name" }] } } },
     ] },
