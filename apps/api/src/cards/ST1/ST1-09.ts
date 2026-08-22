@@ -1,23 +1,10 @@
-import { EffectTiming } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { whenBlocked } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "ST1-09";
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing, source) {
-    if (timing !== EffectTiming.OnBlockAnyone) return [];
-    return [
-      whenBlocked({
-        source,
-        effectKey: `${cardId}/inherited-memory`,
-        description: "[When Blocked] Gain 3 memory.",
-        isInherited: true,
-        resolve: async (ctx) => ctx.fx.gainMemory(3),
-      }),
-    ];
-  },
+export const compiled: CompiledCard = {
+  effects: [{ trigger: "WhenBlocked", actions: [{ kind: "GainMemory", amount: 3 }], isInherited: true }],
+  coverage: "full",
+  residual: [],
 };
-registerCard(module);
-export default module;
+
+registerIrCard("ST1-09", compiled);
