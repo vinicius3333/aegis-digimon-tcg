@@ -94,7 +94,7 @@ describe("BT25-099 Gear Forest Village", () => {
     });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Alliance")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("target"), "Piercing")).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("target"))).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("wrong"), "Alliance")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("opponent"), "Alliance")).toBe(false);
   });
@@ -105,7 +105,7 @@ describe("BT25-099 Gear Forest Village", () => {
     });
     await ownTurn.ready();
     expect(observe(ownTurn.engine).hasKeyword(ownTurn.perm("target"), "Alliance")).toBe(true);
-    expect(observe(ownTurn.engine).hasKeyword(ownTurn.perm("target"), "Piercing")).toBe(false);
+    expect(observe(ownTurn.engine).hasPierce(ownTurn.perm("target"))).toBe(false);
 
     const opposingTurn = setupEngine({
       0: {
@@ -116,7 +116,7 @@ describe("BT25-099 Gear Forest Village", () => {
     opposingTurn.state.turnSeat = 1;
     await opposingTurn.ready();
     expect(observe(opposingTurn.engine).hasKeyword(opposingTurn.perm("target"), "Alliance")).toBe(false);
-    expect(observe(opposingTurn.engine).hasKeyword(opposingTurn.perm("target"), "Piercing")).toBe(false);
+    expect(observe(opposingTurn.engine).hasPierce(opposingTurn.perm("target"))).toBe(false);
   });
 
   it("Security plays an eligible level 4 TS from trash free and excludes wrong trait and level", async () => {
