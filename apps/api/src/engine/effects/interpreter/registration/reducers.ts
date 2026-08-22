@@ -70,6 +70,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT12-112", // place 1 [Shoutmon] as digivolution material -> -1 (KB Q2249-Q2256)
   "BT8-043", // delete 1 purple [Cherubimon] -> -8
   "BT9-097", // condition: you have a Digimon with [X Antibody] card name in play -> -2 (KB Q1902)
+  "BT9-095", // X Antibody card name in a Digimon's stack -> -2 (KB Q1899)
   "BT8-036", // condition: you have a blue Digimon in play -> -1
   "BT8-010", // condition: you have a yellow Digimon in play -> -1 (KB Q1700; IR condition added)
   "ST9-04", // condition: you have a green Digimon in play -> -1

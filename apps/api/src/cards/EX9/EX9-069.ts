@@ -1,144 +1,83 @@
-import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { turnTiming, security, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "EX9-069";
-
-function hasDM(def: CardDefinition): boolean {
-  return isDigimon(def) && (def.types ?? []).includes("DM");
-}
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnStartMainPhase) {
-      return [
-        turnTiming({
-          source,
-          effectKey: `${cardId}/start-main-place-under`,
-          description:
-            "[Start of Your Main Phase] You may place 1 card from your hand at the bottom of " +
-            "the digivolution cards of 1 of your Digimon with the [DM] trait.",
+const compiled: CompiledCard = {
+  coverage: "full",
+  residual: [],
+  effects: [
+    {
+      trigger: "StartOfYourMainPhase",
+      actions: [
+        {
+          kind: "PlaceUnder",
+          target: { filter: { zone: "hand", controller: "mine" }, count: 1, allowZero: true },
+          from: ["hand"],
+          underFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["DM"], match: "trait" }],
+          },
+          position: "bottom",
+          faceDown: true,
           optional: true,
-          when: (_ctx) => source.isOnBattleArea(),
-          canActivate: (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-            return owner.hand.length > 0;
+        },
+      ],
+    },
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onAddDigivolutionCards",
+          sourceFilter: { controller: "mine", kind: ["Digimon"] },
+          addedDigivolutionCardFilter: { faceDown: true },
+          cost: {
+            kind: "suspend",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            raw: "by suspending this Tamer",
           },
-          resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-            if (owner.hand.length === 0) return;
-            const dmDigimon = Array.from(owner.battleArea)
-              .filter((p) => p.topCard !== undefined && hasDM(ctx.game.definitionOf(p.topCard)));
-            if (dmDigimon.length === 0) return;
-            const hostChosen = await ctx.ask.chooseTargets(ctx, {
-              candidates: dmDigimon.map((p) => p.permanentId),
-              min: 1,
-              max: 1,
-            });
-            if (hostChosen.length === 0) return;
-            const cardChosen = await ctx.ask.selectCards(ctx, {
-              candidates: Array.from(owner.hand).map((c) => c.instanceId),
-              min: 0,
-              max: 1,
-            });
-            if (cardChosen.length > 0) {
-              await ctx.fx.placeUnder(hostChosen[0]!, cardChosen, { belowTop: true, faceUp: false });
-            }
+          optional: true,
+          abortOnDecline: true,
+          actions: [
+            { kind: "GainMemory", amount: 1 },
+            {
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+              condition: { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 7 },
+            },
+          ],
+          raw: "When face-down cards are placed as any of your Digimon's digivolution cards",
+        },
+      ],
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "GainKeyword",
+          target: {
+            filter: { controller: "mine", kind: ["Digimon"], digivolutionCards: "hasFaceDown" },
+            count: "all",
           },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.None) {
-      return [
-        staticModifier({
-          source,
-          effectKey: `${cardId}/your-turn-when-placed`,
-          description:
-            "[Your Turn] When one of your Digimon has a card placed in its digivolution cards, " +
-            "by suspending this Tamer, gain 1 memory. Then, if you have 7 or fewer cards in " +
-            "your hand, <Draw 1>.",
-          when: (_ctx) => source.isOnBattleArea() && source.isOwnersTurn(),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (self === undefined) return;
-            ctx.fx.subscribeSubTrigger({
-              event: "onAddDigivolutionCards",
-              sourcePermanentId: self.permanentId,
-              once: false,
-              description: `${cardId}: When card placed in digivolution, suspend + gain memory + draw.`,
-              matches: (subCtx) => {
-                if (!subCtx.source.isOnBattleArea() || !subCtx.source.isOwnersTurn()) return false;
-                const subjectId = subCtx.trigger?.subjectPermanentId;
-                if (subjectId === undefined) return false;
-                const subject = subCtx.game.permanentById(subjectId);
-                if (subject === undefined) return false;
-                if (!Array.from(subCtx.game.player(source.ownerSeat).battleArea).some((p) => p.permanentId === subjectId)) return false;
-                if (subject.controllerSeat !== source.ownerSeat) return false;
-                const addedIds = subCtx.trigger?.addedDigivolutionCardInstanceIds ?? [];
-                return addedIds.some((instanceId) => {
-                  const added = subject.stack.find((card) => card.instanceId === instanceId);
-                  return added !== undefined && added.faceUp !== true;
-                });
-              },
-              run: async (subCtx) => {
-                const selfPerm = subCtx.source.permanent();
-                if (selfPerm === undefined || selfPerm.isSuspended) return;
-                const paid = subCtx.fx.payActivationCost?.(selfPerm.permanentId, "suspend");
-                if (!paid) return;
-                subCtx.fx.gainMemory(1);
-                const owner = subCtx.game.player(source.ownerSeat);
-                if (owner.hand.length <= 7) {
-                  subCtx.fx.draw(source.ownerSeat, 1);
-                }
-              },
-            });
-          },
-        }),
-        staticModifier({
-          source,
-          effectKey: `${cardId}/opponents-turn-reboot`,
-          description:
-            "[Opponent's Turn] All of your Digimon gain ＜Reboot＞ until the end of your " +
-            "opponent's turn.",
-          when: (_ctx) => source.isOnBattleArea() && !source.isOwnersTurn(),
-          resolve: async (ctx) => {
-            const owner = ctx.game.player(source.ownerSeat);
-            for (const p of owner.battleArea) {
-              if (
-                p.topCard !== undefined &&
-                isDigimon(ctx.game.definitionOf(p.topCard)) &&
-                Array.from(p.stack).some((card) => card.faceUp !== true)
-              ) {
-                ctx.fx.grantKeyword(p.permanentId, "Reboot", EffectDuration.UntilOpponentTurnEnd);
-              }
-            }
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security-play`,
-          description: "[Security] Play this card without paying its memory cost.",
-          resolve: async (ctx) => {
-            await ctx.fx.playFromSecurity(source.instanceId, { payCost: false });
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+          keyword: { keyword: "Reboot", raw: "＜Reboot＞" },
+          duration: "permanent",
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      isSecurity: true,
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          payCost: false,
+        },
+      ],
+    },
+  ],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("EX9-069", compiled);
+export default compiled;

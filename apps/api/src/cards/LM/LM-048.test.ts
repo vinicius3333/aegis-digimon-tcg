@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type CompiledCard, type Seat } from "@aegis/shared";
-import { irCardModule } from "../../engine/effects/interpreter.js";
+import { irCardModule, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 // Import the card to register it (side-effect).
 import "./LM-048.js";
 
@@ -171,6 +172,10 @@ const COMPILED: CompiledCard = {
 };
 
 describe("LM-048 Chrome Memory Boost! — hand-corrected IR", () => {
+  it("registers only complete compiled IR", () => {
+    expect(runtimeCompiledCard("LM-048")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("Security effect has isSecurity flag and resolves to placeOptionAsPermanent", async () => {
     const module = irCardModule("LM-048", COMPILED);
     const source = makeSource("INST#LM048", "LM-048");
@@ -252,5 +257,23 @@ describe("LM-048 Chrome Memory Boost! — hand-corrected IR", () => {
     expect((gainMemoryAction?.actions[0] as { kind: string; amount: number }).amount).toBe(2);
     // Suppress unused variable lint for allMain
     void allMain;
+  });
+
+  it("reveals three, adds a green or black Digimon, and places itself", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT1-064"],
+          hand: [{ card: "LM-048", as: "option" }],
+          deck: ["BT1-064", "BT1-009", "BT1-027"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "LM-048"));
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-064")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "LM-048")).toBe(true);
   });
 });

@@ -23,6 +23,7 @@ import {
 import type { BuilderOptions } from "../builders.js";
 import { canAttemptDnaDigivolve } from "./actions/dna.js";
 import { canAttemptDigivolve } from "./actions/digivolve.js";
+import { canAttemptLink } from "./actions/link.js";
 import { evaluateCondition } from "./conditions.js";
 import { canPayCost } from "./costs.js";
 import { installEffectRunner, runAction } from "./dispatch.js";
@@ -554,9 +555,12 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
   // condition/cost is impossible (BT10-025). Mirror runEffect's ordered abort semantics here.
   const leadingAction = relevantActions[0];
   if (leadingAction?.abortOnDecline === true && isGated(leadingAction)) {
-    const intrinsicPossible = leadingAction.kind === "Digivolve"
-      ? canAttemptDigivolve(ctx, leadingAction)
-      : leadingAction.kind !== "DnaDigivolve" || canAttemptDnaDigivolve(ctx, leadingAction);
+    const intrinsicPossible =
+      leadingAction.kind === "Digivolve"
+        ? canAttemptDigivolve(ctx, leadingAction)
+        : leadingAction.kind === "DnaDigivolve"
+          ? canAttemptDnaDigivolve(ctx, leadingAction)
+          : leadingAction.kind !== "Link" || canAttemptLink(ctx, leadingAction);
     const conditionMet =
       leadingAction.condition === undefined ||
       (leadingAction.condition.kind !== "raw" && evaluateCondition(ctx, leadingAction.condition));
@@ -567,9 +571,12 @@ export function canActivateEffect(ctx: EffectContext, effect: CardEffect): boole
   const ungatedCount = relevantActions.length - gatedActions.length;
   if (gatedActions.length === 0 || ungatedCount > 0) return true;
   return gatedActions.some((action) => {
-    const intrinsicPossible = action.kind === "Digivolve"
-      ? canAttemptDigivolve(ctx, action)
-      : action.kind !== "DnaDigivolve" || canAttemptDnaDigivolve(ctx, action);
+    const intrinsicPossible =
+      action.kind === "Digivolve"
+        ? canAttemptDigivolve(ctx, action)
+        : action.kind === "DnaDigivolve"
+          ? canAttemptDnaDigivolve(ctx, action)
+          : action.kind !== "Link" || canAttemptLink(ctx, action);
     const conditionMet =
       action.condition === undefined || (action.condition.kind !== "raw" && evaluateCondition(ctx, action.condition));
     const costPayable = action.cost === undefined || canPayCost(ctx, action.cost);

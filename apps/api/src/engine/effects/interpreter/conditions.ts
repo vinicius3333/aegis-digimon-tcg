@@ -192,6 +192,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     }
     case "youHaveNone":
       return cond.filter ? countMatching(ctx, { controller: "mine", ...cond.filter }) === 0 : false;
+    case "noFaceUpSecurity":
+      return ctx.game.player(mine).security.every((card) => card.faceUp !== true);
     case "ifOpponentDeclined":
       return ctx.lastOpponentDeclined === true;
     case "opponentHasNone":

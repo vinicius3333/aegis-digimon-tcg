@@ -12,6 +12,11 @@ describe("LM-062 Breathing Training", () => {
     expect(delay?.actions).toContainEqual(
       expect.objectContaining({ kind: "Digivolve", reduceCost: 2, payCost: true, optional: true }),
     );
+    expect(delay?.actions).not.toContainEqual(expect.objectContaining({ ignoreRequirements: true }));
+  });
+
+  it("registers only complete compiled IR", () => {
+    expect(runtimeCompiledCard("LM-062")).toMatchObject({ coverage: "full", residual: [] });
   });
 
   it("keeps the Security reveal and placement effects marked as Security", () => {

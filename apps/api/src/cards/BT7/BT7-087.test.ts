@@ -36,6 +36,36 @@ describe("BT7-087 Koji Minamoto", () => {
     expect(s.perm("koji").stack).toHaveLength(6);
   });
 
+  it("does not ignore MagnaGarurumon's printed blue level-5 evolution requirement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-087", as: "koji" }],
+          hand: [
+            "BT7-021", "BT7-021", "BT7-021", "BT7-021", "BT7-021",
+            { card: "BT18-042", as: "wrongColorMagna" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const source = (s.engine as any).cardSourceOf(s.perm("koji").topCard!);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source)
+      .find((effect) => effect.effectKey === "BT7-087/main-digivolve")!.effectKey;
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.perm("koji").topCard!.instanceId,
+      effectKey,
+    })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.perm("koji").stack.length === 5);
+
+    expect(s.perm("koji").topCard.cardId).toBe("BT7-087");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("wrongColorMagna").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(5);
+  });
+
   it("may leave five ordered Hybrids under Koji without evolving into MagnaGarurumon", async () => {
     const s = setupEngine(
       {

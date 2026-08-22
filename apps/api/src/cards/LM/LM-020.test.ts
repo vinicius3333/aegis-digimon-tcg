@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type CardDefinition, type GameState, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./LM-020.js";
@@ -148,6 +149,21 @@ function makeContext(opts: ContextOpts): EffectContext {
 }
 
 describe("LM-020 Quantumon", () => {
+  it("registers complete security-exchange and category-immunity IR", () => {
+    const compiled = runtimeCompiledCard("LM-020")!;
+    expect(compiled).toMatchObject({ coverage: "full", residual: [] });
+    expect(compiled.effects.find((effect) => effect.trigger === "WhenDigivolving")).toMatchObject({
+      frequency: "OncePerTurn",
+      actions: [
+        { kind: "SecurityManipulation", op: "placeAsSecurity", optional: true },
+        { kind: "SecurityManipulation", op: "revealAllChooseToDeckTopShuffleRest", controller: "opponent" },
+      ],
+    });
+    expect(compiled.effects.find((effect) => effect.trigger === "StartOfOpponentsTurn")?.actions).toEqual([
+      expect.objectContaining({ kind: "DeclareCategoryImmunity", duration: "forTheTurn" }),
+    ]);
+  });
+
   it("publicly digivolves Quantumon and places an owned Digimon into security", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT17-036", as: "base" }, { card: "LM-016", as: "fodder" }], hand: [{ card: "LM-020", as: "quantumon" }] },
@@ -155,9 +171,16 @@ describe("LM-020 Quantumon", () => {
     }, { autoAcceptOptional: true, autoSelectCards: true });
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("quantumon").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.some((card) => card.cardId === "LM-020"));
+    await settle(
+      () =>
+        s.state.players[0]!.security.some((card) => card.cardId === "LM-020") &&
+        s.state.players[1]!.security.length === 1 &&
+        s.state.players[1]!.deck.length === 1,
+    );
     expect(s.state.players[0]!.security.some((card) => card.cardId === "LM-020")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "LM-020")).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.deck).toHaveLength(1);
   });
 
   it("still places the chosen Digimon when the opponent has no security cards", async () => {

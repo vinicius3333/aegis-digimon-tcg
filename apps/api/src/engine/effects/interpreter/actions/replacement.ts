@@ -213,6 +213,26 @@ export async function runReplacement(
           if (targetId === undefined) return false;
           return (await subCtx.fx.digivolveFromInstance(targetId, subCtx.source.instanceId, { payCost: false })) !== undefined;
         }
+        if (action.playAndRelocateSourceUnder !== undefined) {
+          const host = subCtx.source.permanent();
+          if (host === undefined) return false;
+          const owner = subCtx.game.state.players[subCtx.source.ownerSeat]!;
+          const candidates = [
+            ...(action.playAndRelocateSourceUnder.from.includes("digivolutionCards") ? host.stack : []),
+            ...(action.playAndRelocateSourceUnder.from.includes("trash") ? owner.trash : []),
+          ].filter((card) => definitionMatches(action.playAndRelocateSourceUnder!.filter, subCtx.game.definitionOf(card)));
+          if (candidates.length === 0) return false;
+          const selected = await subCtx.ask.selectCards(subCtx, {
+            candidates: candidates.map((card) => card.instanceId),
+            min: 1,
+            max: 1,
+          });
+          if (selected.length === 0) return false;
+          const played = await subCtx.fx.playInstances(selected, { payCost: false });
+          const playedPermanent = played[0];
+          if (playedPermanent === undefined) return false;
+          return subCtx.fx.relocatePermanent(playedPermanent.permanentId, host.permanentId, { belowTop: true });
+        }
         const runCtx: EffectContext =
           action.requiresDelayArmed === true ? { ...subCtx, delayArmedConsumed: true } : subCtx;
         if (action.requiresDelayArmed === true) {

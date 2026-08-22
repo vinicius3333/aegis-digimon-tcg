@@ -6,11 +6,40 @@ import { toDuration } from "../duration.js";
 import { definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
+import { candidateLooseInstances } from "../targeting/loose.js";
 import { evaluateCondition } from "../conditions.js";
 import type { Action } from "@aegis/shared";
 
 export async function runRestrictionAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   switch (action.kind) {
+    case "DeclareCategoryImmunity": {
+      const categories = ["Digimon", "Tamer", "Option", "DigiEgg"] as const;
+      const categoryIndex = await ctx.ask.chooseOption(
+        ctx,
+        categories.map((category) => `Declare category: ${category}`),
+      );
+      const category = categories[categoryIndex] ?? categories[0];
+      const opponent = ctx.game.opponentOf(ctx.source.ownerSeat);
+      const [revealed] = await ctx.fx.reveal(opponent, 1);
+      if (revealed === undefined) return false;
+      if (ctx.game.definitionOf(revealed).kinds.includes(category)) {
+        const ids = await resolvePermanentTargets(ctx, action.target);
+        for (const id of ids) {
+          ctx.fx.restrict(id, "beAffected", toDuration(action.duration), { fromSourceKind: [category] });
+        }
+      }
+      const returnChoice = await ctx.ask.chooseOption(ctx, [
+        "Return to the top of the deck",
+        "Return to the bottom of the deck",
+      ]);
+      revealed.faceUp = false;
+      if (returnChoice !== 0) {
+        const deck = ctx.game.player(opponent).deck;
+        const index = deck.findIndex((card) => card.instanceId === revealed.instanceId);
+        if (index >= 0) deck.push(...deck.splice(index, 1));
+      }
+      return false;
+    }
     case "Restrict": {
       const gate = action.while ?? action.condition;
       if (gate !== undefined && !evaluateCondition(ctx, gate)) return false;
@@ -25,6 +54,11 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
       const restriction = (action.restriction === "returnToHandOrDeck" || action.restriction === "cannotReturnToHandOrDeck"
         ? "beReturned"
         : action.restriction) as Restriction;
+      if (restriction === "beTrashed" && filter.zone === "digivolutionCards") {
+        const cards = candidateLooseInstances(ctx, scaledTarget, ["digivolutionCards"]);
+        for (const card of cards) ctx.fx.stackCardTrashLock?.(card.instanceId, card.ownerSeat, duration);
+        return false;
+      }
       if (dynamicTargetFilter && scaledTarget.count === "all" && ctx.fx.restrictPlayer !== undefined && filter !== undefined) {
         for (const seat of seatsForController(ctx, filter)) {
           ctx.fx.restrictPlayer(seat, restriction, duration, (permanentId) => {

@@ -530,6 +530,26 @@ export function permanentMatchesFilter(
     return definitionMatches(rest, def);
   }
 
+  // Trait predicates on a LIVE permanent observe continuously granted traits as well as
+  // printed ones. `nameOrTrait` is an OR-list, so one matching runtime trait satisfies the
+  // complete clause; other name/text alternatives remain definition-matched when it does not.
+  if (filter.nameOrTrait?.some((reference) => reference.match === "trait")) {
+    const effectiveTraits = ctx.game.effectiveTraits?.(permanent.permanentId) ?? [
+      ...(def.forms ?? []),
+      ...(def.attributes ?? []),
+      ...(def.types ?? []),
+    ];
+    const normalized = new Set(effectiveTraits.map((trait) => trait.toLowerCase()));
+    const matchesGrantedTrait = filter.nameOrTrait.some(
+      (reference) =>
+        reference.match === "trait" && reference.tokens.some((token) => normalized.has(token.toLowerCase())),
+    );
+    if (matchesGrantedTrait) {
+      const { nameOrTrait: _nameOrTrait, ...rest } = filter;
+      filter = rest;
+    }
+  }
+
   // Color predicates on a LIVE permanent must observe "also treated as <color>" grants.
   // Definition-only filters still use printed colors, but board predicates such as `youHave`
   // and effect targets see the permanent's effective set (printed union active grants).

@@ -91,7 +91,7 @@ export const compiled: CompiledCard = {
             },
           "from": ["trash"],
           "payCost": true,
-          "costReduction": 3,
+          "reduceCostBy": 3,
           "cost": {
             "kind": "trash",
             "target": {
@@ -126,7 +126,7 @@ export const compiled: CompiledCard = {
             },
           "from": ["trash"],
           "payCost": true,
-          "costReduction": 3,
+          "reduceCostBy": 3,
           "cost": {
             "kind": "trash",
             "target": {

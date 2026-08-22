@@ -542,6 +542,10 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     // protocol for a DP change — the schema delta (currentDP) is the source of truth.
   };
 
+  const restoreDpReductions: Primitives["restoreDpReductions"] = (permanentId): void => {
+    ledger.restoreDpReductions(state, permanentId);
+  };
+
   const setBaseDP = (permanentId: string, value: number, duration: EffectDuration): void => {
     const before = access.permanentById(permanentId);
     if (before === undefined) return; // no such battle-area permanent; nothing to override
@@ -4480,6 +4484,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     setMemory,
     setTurnEndMinMemory: (seat: Seat, minimum: number) => engine.memory.setTurnEndMinMemory?.(seat, minimum),
     modifyDP,
+    restoreDpReductions,
     setBaseDP,
     playFromHand,
     playFromSecurity,
