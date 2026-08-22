@@ -27,11 +27,12 @@ export async function runRecoverByTrashingMostSecurity(
 
 export async function runRecover(ctx: EffectContext, action: Extract<Action, { kind: "Recover" }>): Promise<void> {
   const baseAmount = action.amount ?? 1;
-  const amount = action.scaling === undefined
-    ? baseAmount
-    : action.scaling.bonus !== undefined
-      ? baseAmount + action.scaling.bonus * scaleFactor(ctx, action.scaling)
-      : baseAmount * scaleFactor(ctx, action.scaling);
+  const amount =
+    action.scaling === undefined
+      ? baseAmount
+      : action.scaling.bonus !== undefined
+        ? baseAmount + action.scaling.bonus * scaleFactor(ctx, action.scaling)
+        : baseAmount * scaleFactor(ctx, action.scaling);
   const seat = ctx.source.ownerSeat;
   if (action.untilSecurityCount === undefined) {
     await ctx.fx.recoverToSecurity(seat, Math.max(0, amount));
@@ -485,7 +486,7 @@ export async function runSecurityAction(ctx: EffectContext, action: Action, scop
     case "ModifySecurityDP": {
       const delta = scale === undefined ? action.amount : action.amount * scale;
       const seat = action.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
-      ctx.fx.modifySecurityDp(seat, delta);
+      ctx.fx.modifySecurityDp(seat, delta, { duration: toDuration(action.duration) });
       return false;
     }
     case "SecurityAttackInvert": {

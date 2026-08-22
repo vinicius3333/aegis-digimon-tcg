@@ -7,10 +7,18 @@ import { compiled } from "./ST1-14.js";
 
 describe("ST1-14 Starlight Explosion", () => {
   it("registers both security DP durations as complete IR", () => {
-    expect(compiled).toMatchObject({ coverage: "full", residual: [], effects: [
-      { trigger: "Main", actions: [{ kind: "ModifySecurityDP", amount: 7000, duration: "untilOpponentTurnEnd" }] },
-      { trigger: "Security", isSecurity: true, actions: [{ kind: "ModifySecurityDP", amount: 7000, duration: "forTheTurn" }] },
-    ] });
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        { trigger: "Main", actions: [{ kind: "ModifySecurityDP", amount: 7000, duration: "untilOpponentTurnEnd" }] },
+        {
+          trigger: "Security",
+          isSecurity: true,
+          actions: [{ kind: "ModifySecurityDP", amount: 7000, duration: "forTheTurn" }],
+        },
+      ],
+    });
   });
 
   it("gives your Security Digimon +7000 DP from Main", async () => {

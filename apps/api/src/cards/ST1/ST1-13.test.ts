@@ -7,10 +7,18 @@ import { compiled } from "./ST1-13.js";
 
 describe("ST1-13 Shadow Wing", () => {
   it("registers both exact option clauses as complete IR", () => {
-    expect(compiled).toMatchObject({ coverage: "full", residual: [], effects: [
-      { trigger: "Main", actions: [{ kind: "ModifyDP", amount: 3000, duration: "forTheTurn" }] },
-      { trigger: "Security", isSecurity: true, actions: [{ kind: "GainKeyword", duration: "untilYourTurnEnd" }] },
-    ] });
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        { trigger: "Main", actions: [{ kind: "ModifyDP", amount: 3000, duration: "forTheTurn" }] },
+        {
+          trigger: "Security",
+          isSecurity: true,
+          actions: [{ kind: "GainKeyword", duration: "untilYourTurnEnd", playerWide: true }],
+        },
+      ],
+    });
   });
 
   it("gives one of your Digimon +3000 DP", async () => {

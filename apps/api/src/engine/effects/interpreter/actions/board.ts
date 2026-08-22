@@ -183,8 +183,16 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         return false;
       }
       const kw = keyword.keyword;
-      const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
+      if (action.playerWide === true) {
+        const seat =
+          action.target.filter.controller === "opponent"
+            ? ctx.game.opponentOf(ctx.source.ownerSeat)
+            : ctx.source.ownerSeat;
+        ctx.fx.grantPlayerKeyword(seat, kw, duration, keyword.amount);
+        return false;
+      }
+      const ids = await resolvePermanentTargets(ctx, action.target);
       // ＜Piercing＞ has a dedicated pierce store; every other CONTINUOUS keyword
       // ability is recorded in the continuous-effect ledger (real server state the
       // combat / keyword-abilities subsystem reads). ACTION-type keywords (those that
