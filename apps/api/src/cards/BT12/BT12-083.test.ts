@@ -152,9 +152,9 @@ describe("BT12-083 Machinedramon [End of Your Turn]", () => {
     expect(forceAttackCalls).toHaveLength(0);
   });
 
-  it("[When Attacking] inherited draw effect is registered at OnAllyAttack timing", () => {
+  it("[When Attacking] inherited draw effect is registered at attack timing", () => {
     const mod = getEffectModule("BT12-083");
-    const effects = mod!.effectsForTiming(EffectTiming.OnAllyAttack, makeSource());
+    const effects = mod!.effectsForTiming(EffectTiming.OnUseAttack, makeSource());
     expect(effects.length).toBeGreaterThan(0);
     expect(effects[0]!.isInherited).toBe(true);
   });
