@@ -22,7 +22,7 @@ describe("BT12-041 handwritten module", () => {
   });
 });
 
-it("draws only when an opposing Digimon is deleted by a 0 DP rule check", async () => {
+it("draws when an opposing Digimon is deleted by dropping to 0 DP", async () => {
   const s = setupEngine({
     0: { battleArea: [{ card: "BT12-041", as: "cho" }], deck: ["BT1-009"] },
     1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 0 }] },
@@ -34,7 +34,7 @@ it("draws only when an opposing Digimon is deleted by a 0 DP rule check", async 
   expect(s.state.players[0]!.hand.length).toBe(handBefore + 1);
 });
 
-it("does not draw when an opposing Digimon is deleted for another reason", async () => {
+it("does not draw when an opposing Digimon is deleted without dropping to 0 DP", async () => {
   const s = setupEngine({
     0: { battleArea: [{ card: "BT12-041", as: "cho" }], deck: ["BT1-009"] },
     1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 3000 }] },
@@ -62,4 +62,33 @@ it("applies minus 3000 DP once for each pair of digivolution cards", async () =>
   await advance(s.engine).verb.digivolveFromInstance(s.perm("base").permanentId, s.inst("cho").instanceId);
   await settle(() => s.perm("base").topCard?.cardId === "BT12-041");
   expect(s.perm("victim").currentDP).toBe(4000);
+});
+
+it("does not apply the scaled effect when there are fewer than two digivolution cards", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT12-037", as: "base", under: ["BT12-011"] }],
+        hand: [{ card: "BT12-041", as: "cho" }],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 10000 }] },
+    },
+    { autoSelectCards: true },
+  );
+  await s.ready();
+  s.state.memory = 3;
+  await advance(s.engine).verb.digivolveFromInstance(s.perm("base").permanentId, s.inst("cho").instanceId);
+  await settle(() => s.perm("base").topCard?.cardId === "BT12-041");
+  expect(s.perm("victim").currentDP).toBe(10000);
+});
+
+it("applies the inherited minus 2000 DP effect only when the host has Save in its text", async () => {
+  const s = setupEngine({
+    0: { battleArea: [{ card: "BT12-011", as: "host", under: ["BT12-041"] }] },
+    1: { battleArea: [{ card: "BT1-009", as: "victim", dp: 10000 }] },
+  }, { autoSelectCards: true });
+  await s.ready();
+  await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+  await settle(() => s.perm("victim").currentDP === 8000);
+  expect(s.perm("victim").currentDP).toBe(8000);
 });
