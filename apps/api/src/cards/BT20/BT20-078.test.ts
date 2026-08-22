@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-078.js";
-import "../index.js";
+import "./index.js";
 
 // A3 for BT20-078 (Reapermon — Purple Lv.6 Digimon).
 //
