@@ -5,7 +5,7 @@ import { definitionMatches, matchNameOrTrait } from "../matching/definition.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { effectiveTargetCount } from "./permanents.js";
 import { filterToDistinctColors } from "@aegis/shared";
-import type { Seat, Target, ZoneRef } from "@aegis/shared";
+import type { Filter, Seat, Target, ZoneRef } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
 // Loose-card (hand/trash/security/deck/under-permanent) resolution
