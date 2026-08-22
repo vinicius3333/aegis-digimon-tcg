@@ -48,7 +48,7 @@ describe("BT13-099 Spencer Damon", () => {
 
   it("becomes a live 3000 DP Blocker when the end-of-turn condition is met", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT13-099", as: "spencer" }] } });
-    await advance(s.engine).fire(EffectTiming.OnEndYourTurn, s.perm("spencer"));
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("spencer"));
     await settle();
     expect(s.perm("spencer").currentDP).toBe(3000);
     expect(observe(s.engine).hasKeyword(s.perm("spencer"), "Blocker")).toBe(true);
