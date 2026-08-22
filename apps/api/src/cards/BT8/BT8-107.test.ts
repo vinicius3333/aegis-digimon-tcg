@@ -24,7 +24,7 @@ describe("BT8-107 Pandemonium Flame", () => {
     })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
-    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("eligible").instanceId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.perm("eligible").topCard.instanceId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("tooHigh").instanceId)).toBe(true);
   });
 

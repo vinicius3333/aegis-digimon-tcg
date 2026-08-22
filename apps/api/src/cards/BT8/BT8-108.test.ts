@@ -8,6 +8,7 @@ describe("BT8-108 Mist Memory Boost!", () => {
   it("trashes two deck cards, draws one, and enters the battle area", async () => {
     const s = setupEngine({
       0: {
+        battleArea: ["BT8-072"],
         hand: [{ card: "BT8-108", as: "option" }],
         deck: ["BT8-001", "BT8-002", "BT8-003"],
       },

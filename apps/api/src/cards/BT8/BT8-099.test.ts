@@ -9,7 +9,7 @@ describe("BT8-099 Giga Death", () => {
       as: `target${index}`,
     }));
     const s = setupEngine({
-      0: { hand: [{ card: "BT8-099", as: "option" }] },
+      0: { battleArea: ["BT8-021"], hand: [{ card: "BT8-099", as: "option" }] },
       1: { battleArea: opponents },
     }, { autoSelectCards: true });
     s.state.memory = 10;
@@ -27,7 +27,7 @@ describe("BT8-099 Giga Death", () => {
 
   it("can include an already suspended opposing Digimon in the second effect", async () => {
     const s = setupEngine({
-      0: { hand: [{ card: "BT8-099", as: "option" }] },
+      0: { battleArea: ["BT8-021"], hand: [{ card: "BT8-099", as: "option" }] },
       1: {
         battleArea: [
           { card: "BT8-023", as: "alreadySuspended", suspended: true },

@@ -16,6 +16,9 @@ describe("BT8-065 CatchMamemon", () => {
 
   it("uses the printed Mamemon name filter rather than a trait filter", () => {
     const compiled = getCompiledCard("BT8-065");
-    expect(compiled?.effects[0]?.actions[0]).toMatchObject({ target: { filter: { nameOrTrait: [{ match: "name", tokens: ["Mamemon"] }] } } });
+    expect(compiled?.effects[0]?.actions[0]).toMatchObject({
+      kind: "Return",
+      target: { filter: { nameOrTrait: [{ match: "name", tokens: ["Mamemon"] }] } },
+    });
   });
 });

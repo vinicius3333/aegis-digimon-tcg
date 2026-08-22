@@ -42,7 +42,7 @@ describe("BT8-100 Disaster Blaster", () => {
   it("does not combine two differently colored monocolor stack cards", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT8-007", under: ["BT1-009", "BT1-029"] }],
+        battleArea: [{ card: "BT8-007", under: ["BT1-009", "BT1-029"] }, "BT8-034"],
         hand: [{ card: "BT8-100", as: "option" }],
       },
       1: { battleArea: [{ card: "BT8-017", as: "target" }] },
