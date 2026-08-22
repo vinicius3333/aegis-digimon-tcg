@@ -103,6 +103,8 @@ export function dnaDigivolutionRequirementsFor(cardId: string): DnaDigivolveRequ
  * the CLIENT (digivolve-target highlighting + cost labels) read ONE source of truth.
  */
 export const ALTERNATE_DIGIVOLUTION_OVERRIDES: Record<string, DigivolutionRequirement[]> = {
+  // BT12-083: the Save alternate path is restricted to red, black, or purple Lv.4 bases.
+  "BT12-083": [{ cost: 4, isAlternate: true, level: 4, texts: ["Save"], colors: ["Red", "Black", "Purple"] }],
   // RB1-009: a Gammamon with a Gammamon-named digivolution card may evolve into this
   // card from hand for 3, ignoring the ordinary level/color requirement.
   "RB1-009": [
