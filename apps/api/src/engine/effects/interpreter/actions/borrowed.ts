@@ -279,7 +279,7 @@ export async function runUseOptionWithoutCost(
   const usedCost = chosenCard ? ctx.game.definitionOf({ cardId: chosenCard.cardId } as never).playCost : undefined;
   await ctx.fx.useOptionFromHand(ctx, chosenId, usedCost, {
     payCost: action.payCost,
-    ...(totalReduction > 0 ? { costDelta: -totalReduction } : {}),
+    ...(totalReduction > 0 ? { costDelta: totalReduction } : {}),
   });
   ctx.lastOptionUsed = true;
   ctx.lastOptionUsedInstanceId = chosenId;

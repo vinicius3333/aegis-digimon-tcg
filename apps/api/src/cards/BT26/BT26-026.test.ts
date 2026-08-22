@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-026.js";
+import "../index.js";
 
 describe("BT26-026 Cougarmon", () => {
   it("models the printed evolution, Barrier, and alternate-cost choices", () => {
