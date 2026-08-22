@@ -10,7 +10,7 @@ describe("EX5-065 Sayo & Koh", () => {
     const module = getEffectModule("EX5-065")!;
     const watcher = compiled.effects.find((effect) => effect.trigger === "YourTurn");
     expect(watcher?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "onAddDigivolutionCards" });
-    expect(module.effectsForTiming(EffectTiming.OnStartTurn, source)[0]?.description).toContain("DNA Digivolve");
+    expect(module.effectsForTiming(EffectTiming.OnStartTurn, source)[0]?.description).toContain("DNA digivolve");
   });
   it("registers the mandatory security play effect", () => {
     const source = { instanceId: "source", cardId: "EX5-065", ownerSeat: 0, definition: {}, permanent: () => undefined, isOnBattleArea: () => true, isOwnersTurn: () => true, hasColor: () => true } as never;
