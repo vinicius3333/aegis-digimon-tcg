@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { getCompiledCard } from "@aegis/shared";
 import { compiled } from "./BT26-097.js";
 import "../index.js";
 
