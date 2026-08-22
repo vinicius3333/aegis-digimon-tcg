@@ -1,7 +1,6 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { module as soloogarmonModule } from "./BT20-071.js";
+import { compiled } from "./BT20-071.js";
 import "../index.js";
 
 // A3 for BT20-071 (Soloogarmon — Purple Lv.6 Digimon).
@@ -24,11 +23,12 @@ const AGUMON = "BT1-010";
 const KOROMON = "BT1-001";
 
 describe("BT20-071 Soloogarmon — [When Digivolving] grants Raid and +3000 DP", () => {
-  it("registers the inherited option-security suppression and main tamer-triggered deletion", () => {
-    const staticEffects = soloogarmonModule.effectsForTiming(EffectTiming.None, { ownerSeat: 0, permanent: () => undefined } as never);
-    expect(staticEffects).toHaveLength(2);
-    expect(staticEffects[0]?.description).toContain("doesn't activate [Security]");
-    expect(staticEffects[1]?.description).toContain("delete 1 of your opponent's Digimon");
+  it("compiles the hand cost, Tamer-stack trigger, and inherited Option suppression", () => {
+    expect(compiled.coverage).toBe("full");
+    expect(compiled.residual).toEqual([]);
+    expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")?.actions).toMatchObject([{ kind: "Trash", target: { filter: { zone: "hand" }, count: 1 } }, { kind: "ModifyDP", amount: 3000 }, { kind: "GainKeyword", keyword: { keyword: "Raid" } }]);
+    expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions[0]).toMatchObject({ kind: "SubTrigger", event: "onAddDigivolutionCards", sourceFilter: { kind: ["Tamer"] }, triggerFilter: { isSelfRef: true } });
+    expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({ trigger: "YourTurn", actions: [{ kind: "DisableSecurityEffect", sourceKind: "option", condition: { kind: "selfHasTrait" } }] });
   });
 
   it("[When Digivolving] by trashing 1 hand card, a Digimon gets +3000 DP for the turn", async () => {
