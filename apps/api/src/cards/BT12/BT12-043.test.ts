@@ -84,3 +84,22 @@ it("chooses one opposing Digimon for the complete per-Tamer reduction", async ()
   expect(s.perm("chosen").currentDP).toBe(4000);
   expect(s.perm("spared").currentDP).toBe(10000);
 });
+
+it("does not count a Tamer whose color is neither yellow nor red", async () => {
+  const s = setupEngine({
+    0: {
+      battleArea: [
+        { card: "BT12-043", as: "shine" },
+        { card: "BT12-093", as: "greenTamer" },
+      ],
+    },
+    1: {
+      battleArea: [{ card: "BT1-009", as: "target", dp: 10000 }],
+      security: ["BT1-009"],
+    },
+  });
+  await s.ready();
+  await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("shine"));
+  expect(s.perm("target").currentDP).toBe(10000);
+  expect(observe(s.engine).securityDp(1)).toBe(0);
+});
