@@ -44,6 +44,7 @@ describe("ST10-15 Darkness Wave", () => {
     const s = setupEngine(
       {
         0: {
+          battleArea: ["ST10-08"],
           hand: [{ card: "ST10-15", as: "option" }],
           deck: [{ card: "ST10-07", as: "returned" }, "ST10-14", "ST10-15"],
         },

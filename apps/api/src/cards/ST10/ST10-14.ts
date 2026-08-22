@@ -45,10 +45,10 @@ const compiled: CompiledCard = {
     {
       trigger: "Security",
       isSecurity: true,
+      optional: true,
       actions: [
         {
           kind: "SelectBind",
-          optional: true,
           target: {
             filter: { controller: "opponent", kind: ["Digimon"] },
             count: 1,
@@ -65,7 +65,6 @@ const compiled: CompiledCard = {
             count: 1,
           },
           faceDown: true,
-          optional: true,
         },
       ],
     },
