@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT21-027.js";
+import "../index.js";
 
 describe("BT21-027 compiled implementation", () => {
   it("exposes complete effect coverage with no residual clauses", () => {
@@ -48,5 +50,30 @@ describe("BT21-027 compiled implementation", () => {
         ],
       }),
     );
+  });
+
+  it("deletes exactly the lowest-DP opponent on play", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT21-027", as: "superior" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "low", dp: 3000 },
+            { card: "BT1-010", as: "high", dp: 4000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    const lowId = s.perm("low").permanentId;
+    const highId = s.perm("high").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("superior").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== lowId));
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === highId)).toBe(true);
   });
 });
