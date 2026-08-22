@@ -38,3 +38,21 @@ it("adds both eligible cards from the reveal and bottoms the remainder", async (
   expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT17-077", "BT3-094"]));
   expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT1-009");
 });
+
+it("adds the eligible Digimon even when no Ken Ichijoji is revealed", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        hand: [{ card: "BT12-047", as: "wormmon" }],
+        deck: ["BT17-077", "BT1-009", "BT1-010"],
+      },
+    },
+    { autoSelectCards: true },
+  );
+  await s.ready();
+  s.state.memory = 3;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wormmon").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT17-077"));
+  expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT17-077");
+  expect(s.state.players[0]!.deck).toHaveLength(2);
+});
