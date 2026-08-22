@@ -56,6 +56,8 @@ export interface DeleteBudgetAction extends ActionBase {
   budget: number;
   /** "up to" — each pick may be declined. */
   upTo?: boolean;
+  /** Minimum number of permanents that must be selected when the clause is mandatory. */
+  minimum?: number;
   /**
    * Adds `scaling.budgetAdd` per `scaling.per` units counted. BT19-096 uses unit "security" with
    * `filter.faceUp` to add 2 per face-up security card.
