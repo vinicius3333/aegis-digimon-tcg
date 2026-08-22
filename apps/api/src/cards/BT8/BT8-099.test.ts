@@ -7,6 +7,7 @@ describe("BT8-099 Giga Death", () => {
     const opponents = Array.from({ length: 11 }, (_, index) => ({
       card: "BT8-023",
       as: `target${index}`,
+      ...(index < 9 ? { suspended: true } : {}),
     }));
     const s = setupEngine({
       0: { battleArea: ["BT8-021", "BT8-049"], hand: [{ card: "BT8-099", as: "option" }] },
