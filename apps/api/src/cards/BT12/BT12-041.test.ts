@@ -177,6 +177,25 @@ it("applies the inherited minus 2000 DP effect only when the host has Save in it
   expect(s.perm("victim").currentDP).toBe(8000);
 });
 
+it("applies the inherited Save reduction through the public attack intent", async () => {
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: "BT12-011", as: "host", under: ["BT12-041"] }], security: ["BT1-009"] },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }], security: ["BT1-009"] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  await s.ready();
+  s.state.turnSeat = 0;
+  expect(s.engine.applyIntent(0, {
+    type: "attack",
+    attackerPermanentId: s.perm("host").permanentId,
+    target: { kind: "player" },
+  })).toEqual({ ok: true });
+  await settle(() => s.perm("attacker").currentDP === 8000);
+  expect(s.perm("attacker").currentDP).toBe(8000);
+});
+
 it("does not apply the inherited effect when the host top card has no Save text", async () => {
   const s = setupEngine({
     0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT12-041"] }] },
