@@ -25,14 +25,6 @@ export const compiled: CompiledCard = {
         { kind: "PlaceUnder", target: { filter: aegiocHusmon, count: 1 }, underFilter: jupitermon, position: "top", optional: true, condition: { kind: "ifThisEffectDigivolved" } },
       ],
     },
-    {
-      trigger: "Security",
-      isSecurity: true,
-      actions: [
-        { kind: "PlayWithoutCost", target: { filter: tsSecurity, count: 1 }, from: ["hand"], payCost: false, optional: true },
-        { kind: "AddToHandSelf" },
-      ],
-    },
   ],
   coverage: "full",
   residual: [],
