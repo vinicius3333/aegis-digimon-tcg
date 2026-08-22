@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-099.js";
 
@@ -21,10 +22,17 @@ describe("BT12-099 handwritten module", () => {
   });
 });
 
-it("does not register an unprinted Security effect", () => {
+it("registers and resolves the printed Security deletion", async () => {
   const module = getEffectModule("BT12-099");
   const source = { instanceId: "source-099", cardId: "BT12-099", ownerSeat: 0, isOnBattleArea: () => false } as never;
-  expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toEqual([]);
+  expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+  const s = setupEngine({
+    0: { security: [{ card: "BT12-099", as: "option", faceUp: true }] },
+    1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }] },
+  }, { autoSelectCards: true });
+  await s.ready();
+  await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+  expect(s.state.players[1]!.battleArea).toHaveLength(0);
 });
 
 it("allows declining the optional player attack after the Hybrid boost", async () => {
