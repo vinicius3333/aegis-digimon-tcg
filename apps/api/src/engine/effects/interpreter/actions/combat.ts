@@ -114,7 +114,7 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
       const ids = await resolvePermanentTargets(ctx, action.target);
       const duration = toDuration(action.duration);
       const noDigivolutionCards = action.noDigivolutionCards === true;
-      for (const id of ids) ctx.fx.grantCanAttackUnsuspended(id, duration, { noDigivolutionCards });
+      for (const id of ids) ctx.fx.grantCanAttackUnsuspended(id, duration, { noDigivolutionCards, defenderLevelMax: action.defenderLevelMax });
       return false;
     }
     case "GrantVortexCanAttackPlayers": {
