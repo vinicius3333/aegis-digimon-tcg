@@ -14,14 +14,17 @@ export const compiled: CompiledCard = {
       { kind: "GainKeyword", target: { filter: ts, count: "all" }, keyword: { keyword: "Blocker" }, duration: "untilOpponentTurnEnd", condition: { kind: "youHave", filter: namedTamer } },
       { kind: "ModifyDP", target: { filter: ts, count: "all" }, amount: 3000, duration: "untilOpponentTurnEnd", condition: { kind: "youHave", filter: namedTamer } },
       { kind: "Modal", choose: 1, options: [
-        [{ kind: "RawUnparsed", text: "Delete 1 of your opponent's Digimon with DP no greater than a TS Digimon you control." }],
+        [
+          { kind: "SelectBind", target: { filter: ts, count: 1, bindAs: "tsDpReference" } },
+          { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", valueFrom: "tsDpReference", valueField: "dp" } }, count: 1 } },
+        ],
         [{ kind: "Unsuspend", target: { filter: ts, count: 1 }, optional: true }],
       ] },
     ] },
     { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", target: { filter: tsCard, count: 1 }, from: ["hand", "trash"], payCost: false, optional: true }] },
   ],
-  coverage: "partial",
-  residual: ["The delete modal's live threshold against the greatest DP among your TS Digimon is not expressible by the current filter IR; retained as loud RawUnparsed action."],
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("BT26-101", compiled);
