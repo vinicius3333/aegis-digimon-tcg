@@ -142,6 +142,7 @@ describe("BT26-073 [On Play]/[When Digivolving]: cost then delete a level<=5 opp
           ? { battleArea: [], trash: [] }
           : { battleArea: [{ permanentId: "opp", topCard: { cardId: "LOW" }, inBreeding: false }] },
       opponentOf: () => 1 as Seat,
+      permanentById: () => undefined,
       definitionOf: () => fakeDef({ level: 5 }),
     } as unknown as GameAccess;
     const fx = { deletePermanent: vi.fn() } as unknown as Primitives;
@@ -167,6 +168,7 @@ describe("BT26-073 [On Play]/[When Digivolving]: cost then delete a level<=5 opp
     const game = {
       player: (seat: Seat) => (seat === 0 ? { battleArea: [], trash: [near, exact] } : { battleArea: [opponent] }),
       opponentOf: () => 1 as Seat,
+      permanentById: () => undefined,
       definitionOf: (card: { cardId: string }) =>
         card.cardId === "EXACT"
           ? fakeDef({ cardId: "EXACT", types: ["TS"] })
@@ -202,10 +204,14 @@ describe("BT26-073 [On Play]/[When Digivolving]: cost then delete a level<=5 opp
           ? { battleArea: [], trash: [] }
           : { battleArea: [{ permanentId: "opp", topCard: { cardId: "LOW" }, inBreeding: false }] },
       opponentOf: () => 1 as Seat,
+      permanentById: () => undefined,
       definitionOf: () => fakeDef({ level: 5 }),
     } as unknown as GameAccess;
     const fx = { deletePermanent: vi.fn<(...args: any[]) => any>(async () => 0) } as unknown as Primitives;
-    const ask = { optional: vi.fn<(...args: any[]) => any>(async () => true) } as unknown as EffectContext["ask"];
+    const ask = {
+      optional: vi.fn<(...args: any[]) => any>(async () => true),
+      chooseOption: vi.fn(async () => 0),
+    } as unknown as EffectContext["ask"];
 
     await getEffectModule(CARD_ID)!
       .effectsForTiming(EffectTiming.OnPlay, source)[0]!
@@ -242,6 +248,7 @@ describe("BT26-073 [On Deletion] and static clauses", () => {
     } as unknown as GameAccess;
     const fx = { playInstances: vi.fn() } as unknown as Primitives;
     const ask = {
+      optional: vi.fn<(...args: any[]) => any>(async () => false),
       selectCards: vi.fn<(...args: any[]) => any>(
         async (_ctx: unknown, options: { candidates: string[]; min: number; max: number }) => {
           expect(options).toEqual({ candidates: ["hand-ok", "trash-ok"], min: 0, max: 1 });
@@ -269,6 +276,7 @@ describe("BT26-073 [On Deletion] and static clauses", () => {
     } as unknown as GameAccess;
     const fx = { playInstances: vi.fn<(...args: any[]) => any>(async () => []) } as unknown as Primitives;
     const ask = {
+      optional: vi.fn<(...args: any[]) => any>(async () => true),
       selectCards: vi.fn<(...args: any[]) => any>(async () => ["eligible"]),
     } as unknown as EffectContext["ask"];
     const effect = getEffectModule(CARD_ID)!.effectsForTiming(EffectTiming.OnDestroyedAnyone, source)[0]!;
