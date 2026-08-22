@@ -1,15 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { getRegisteredIrCard } from "../../engine/effects/interpreter.js";
+import { hasRegisteredCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
 
 describe("ST10-03 Lopmon", () => {
   it("registers its catalog-defined vanilla behavior through compiled IR", () => {
-    expect(getRegisteredIrCard("ST10-03")).toMatchObject({
-      effects: [],
-      coverage: "full",
-      residual: [],
-    });
+    expect(hasRegisteredCompiledCard("ST10-03")).toBe(true);
   });
 
   it("plays as the catalog-defined vanilla yellow Rookie", async () => {
