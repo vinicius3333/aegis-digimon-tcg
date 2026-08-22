@@ -123,6 +123,31 @@ describe("ST17-13 Magnamon [Security] — end of security battle digivolution", 
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT11-023")).toBe(false);
   });
 
+  it("does not substitute an unrelated matching Magnamon from trash", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST8-09", as: "attacker", dp: 12000 }] },
+        1: {
+          battleArea: [{ card: "BT11-023", as: "veemon" }],
+          security: [{ card: "ST17-13", as: "checked" }],
+          trash: [{ card: "ST17-13", as: "unrelated" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    })).toEqual({ ok: true });
+
+    await settle(() => s.perm("veemon").topCard.cardId === "ST17-13", 3000);
+    expect(s.perm("veemon").topCard.instanceId).toBe(s.inst("checked").instanceId);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("unrelated").instanceId)).toBe(true);
+  });
+
   it("de-digivolves the attacking Digimon before the security battle continues", async () => {
     const s = setupEngine(
       {
