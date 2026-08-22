@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-103.js";
 
 describe("BT13-103 Akihiro Kurata", () => {
@@ -53,5 +56,21 @@ describe("BT13-103 Akihiro Kurata", () => {
         { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
       ],
     });
+  });
+
+  it("draws and trashes at the end of the opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-103", as: "akihiro" }],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+          hand: [{ card: "BT1-002", as: "discard" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    await advance(s.engine).fire(EffectTiming.OnEndOpponentsTurn, s.perm("akihiro"));
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-002");
   });
 });
