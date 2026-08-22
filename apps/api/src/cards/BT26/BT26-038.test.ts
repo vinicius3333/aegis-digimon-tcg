@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./BT26-038.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -27,5 +28,14 @@ describe("BT26-038 Kuwagamon", () => {
 
     expect(s.perm("winner").topCard.cardId).toBe("BT26-021");
     expect(s.state.memory).toBe(0);
+  });
+
+  it("gives an eligible Insectoid its temporary DP increase on play", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT26-038", as: "kuwagamon" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const baseDP = s.perm("kuwagamon").currentDP;
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("kuwagamon"));
+
+    expect(s.perm("kuwagamon").currentDP).toBe(baseDP + 3000);
   });
 });
