@@ -6,7 +6,7 @@ describe("EX6-057 Lilithmon", () => {
     expect(compiled.effects.filter((effect) => ["OnPlay", "WhenDigivolving"].includes(effect.trigger))).toHaveLength(2);
     expect(compiled.effects[0]?.actions[0]).toMatchObject({
       kind: "GainTriggeredEffect",
-      gainedTrigger: "EndOfYourTurn",
+      gainedTrigger: "endOfTurn",
     });
     expect(compiled.effects.find((effect) => effect.trigger === "AllTurns")?.actions[0]).toMatchObject({
       kind: "Replacement",

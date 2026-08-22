@@ -48,7 +48,7 @@ invented.
 | EX6-060 | Belphemon: Rage Mode | full | none found | f2fd8c7d5cc7 | 60347f09f283 | NR |
 | EX6-059 | Barbamon | full | none found | ba6aaafc747d | 5a3b5601058d | NR |
 | EX6-058 | Creepymon | full | none found | 6803c73097c7 | 68dd9b29f77b | NR |
-| EX6-057 | Lilithmon | full | none found | 8e52a40afd5a | 8197e436bf1d | NR |
+| EX6-057 | Lilithmon | full | none found | 9575c3cf8e0a | e831a4f7f59e | NR |
 | EX6-056 | Beelzemon | full | none found | f8c7f6af9797 | a12f5534c674 | NR |
 | EX6-055 | DanDevimon | full | none found | 4ba833cef5a7 | 2a51ab5472fb | NR |
 | EX6-054 | Lucemon: Chaos Mode | full | none found | fae00b798c9f | 7ccc60d9761f | NR |

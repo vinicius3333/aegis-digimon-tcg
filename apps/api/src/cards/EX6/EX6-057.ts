@@ -5,7 +5,7 @@ const target = { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1
 const grant = {
   kind: "GainTriggeredEffect",
   target,
-  gainedTrigger: "EndOfYourTurn",
+  gainedTrigger: "endOfTurn",
   gainedActions: [{ kind: "Delete", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } }],
   duration: "untilOpponentTurnEnd",
 };
