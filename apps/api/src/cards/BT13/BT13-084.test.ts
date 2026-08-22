@@ -1,4 +1,8 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT13-084.js";
 
 describe("BT13-084 Astamon", () => {
@@ -53,5 +57,24 @@ describe("BT13-084 Astamon", () => {
         },
       ],
     });
+  });
+
+  it("deletes another purple Digimon and digivolves into Belphemon from hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-084", as: "astamon" },
+            { card: "BT13-083", as: "cost" },
+          ],
+          hand: [{ card: "BT13-088", as: "sleep" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("astamon"));
+    await settle(() => s.perm("astamon").topCard?.cardId === "BT13-088");
+    expect(s.perm("astamon").topCard?.cardId).toBe("BT13-088");
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-083")).toBe(true);
   });
 });
