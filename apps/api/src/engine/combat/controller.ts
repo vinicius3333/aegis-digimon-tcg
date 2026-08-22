@@ -294,6 +294,8 @@ export class CombatController {
   private barrierDecision: BarrierDecisionWindow | undefined;
   /** Active §11-3 Counter Timing window. */
   private counterWindow: OpenCounterWindow | undefined;
+  /** Battle completion payload held until the outer attack reaches cleanup. */
+  private completedCombat: { seat: Seat; attackerPermanentId: string; deletedPermanentIds: string[] } | undefined;
   /**
    * [Counter] effects activated so far THIS attack (§11-3-2 caps it at 1). Reset by
    * `cleanup` at the end of every attack.
@@ -489,6 +491,7 @@ export class CombatController {
     } = {},
   ): Promise<void> {
     this.resolving = true;
+    this.completedCombat = undefined;
     const attackSequence = ++this.attackSequence;
     this.currentAttack = {
       attackerPermanentId: attacker.permanentId,
@@ -687,6 +690,9 @@ export class CombatController {
       });
     } finally {
       this.cleanup();
+      const completedCombat = this.completedCombat;
+      this.completedCombat = undefined;
+      if (completedCombat !== undefined) this.hooks.emit({ kind: "combatResolved", ...completedCombat });
     }
   }
 
@@ -1441,15 +1447,14 @@ export class CombatController {
       deletedWasStackInstanceIds,
     });
 
-    // Publish the completion boundary only after battle and end-of-battle timings finish.
-    queueMicrotask(() =>
-      this.hooks.emit({
-        kind: "combatResolved",
-        seat: attacker.controllerSeat,
-        attackerPermanentId: attacker.permanentId,
-        deletedPermanentIds: deleted,
-      }),
-    );
+    // Hold the completion payload until resolveAttack reaches its outer cleanup boundary.
+    // Consumers use combatResolved as the end-of-attack seam, so publishing here would let
+    // a second attack race the remaining OnEndAttack timing and controller cleanup.
+    this.completedCombat = {
+      seat: attacker.controllerSeat,
+      attackerPermanentId: attacker.permanentId,
+      deletedPermanentIds: deleted,
+    };
   }
 
   /**
