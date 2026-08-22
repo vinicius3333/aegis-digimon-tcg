@@ -5,7 +5,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const highestDp = { filter: { controller: "opponent", kind: ["Digimon"], superlative: "highestDP" }, count: 1 };
 const deleteOwn = { kind: "deleteOwn", target: self };
-const trashTwoTamerBottoms = { kind: "trash", target: { filter: { controller: "mine", zone: "digivolutionCards", faceDown: true, position: "bottom", hostFilter: { kind: ["Tamer"] } }, count: 2 } };
+const trashTwoTamerBottoms = { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 2 };
 const altCostDelete = { kind: "Modal", choose: 1, options: [
   [{ kind: "Delete", target: highestDp, cost: deleteOwn }],
   [{ kind: "Delete", target: highestDp, cost: trashTwoTamerBottoms }],

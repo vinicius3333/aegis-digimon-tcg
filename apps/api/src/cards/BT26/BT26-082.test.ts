@@ -21,7 +21,7 @@ describe("BT26-082 compiled behavior", () => {
     for (const trigger of ["WhenDigivolving", "EndOfAttack"]) {
       expect(compiled.effects.find((effect) => effect.trigger === trigger)?.actions[0]).toMatchObject({ kind: "Modal", choose: 1, options: [
         [{ kind: "Delete", target: { filter: { superlative: "highestDP" } }, cost: { kind: "deleteOwn" } }],
-        [{ kind: "Delete", target: { filter: { superlative: "highestDP" } }, cost: { kind: "trash", target: { count: 2, filter: { zone: "digivolutionCards", faceDown: true, position: "bottom" } } } }],
+        [{ kind: "Delete", target: { filter: { superlative: "highestDP" } }, cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 2 } }],
       ] });
     }
   });
