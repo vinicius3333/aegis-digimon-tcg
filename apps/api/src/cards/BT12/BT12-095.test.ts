@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-095.js";
 
 describe("BT12-095 handwritten module", () => {
@@ -17,5 +20,14 @@ describe("BT12-095 handwritten module", () => {
       permanent: () => undefined,
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnPlay, source).length).toBeGreaterThan(0);
+  });
+
+  it("gives an Agumon or Greymon +1000 DP and Blocker at the start of main phase", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT12-095", as: "tai" }, { card: "BT12-034", as: "agumon" }] } });
+    await s.ready();
+    const before = s.perm("agumon").currentDP;
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tai"));
+    expect(s.perm("agumon").currentDP).toBe(before + 1000);
+    expect(observe(s.engine).hasKeyword(s.perm("agumon"), "Blocker")).toBe(true);
   });
 });
