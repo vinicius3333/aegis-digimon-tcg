@@ -21,4 +21,17 @@ describe("BT12-070 WarGreymon", () => {
     });
     expect(s.perm("war").isSuspended).toBe(false);
   });
+
+  it("does not unsuspend again from a second target switch in the same turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT12-070", as: "war", suspended: true }] } });
+    await s.ready();
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: s.perm("war").permanentId,
+    });
+    s.perm("war").isSuspended = true;
+    await advance(s.engine).fireSubTrigger("whenAttackTargetSwitched", {
+      attackerPermanentId: s.perm("war").permanentId,
+    });
+    expect(s.perm("war").isSuspended).toBe(true);
+  });
 });
