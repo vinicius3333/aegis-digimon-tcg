@@ -2,6 +2,7 @@ import {
   CardKind,
   EffectDuration,
   EffectTiming,
+  filterToDistinctColors,
   isDigimon,
   isTamer,
   type CardDefinition,
@@ -136,10 +137,15 @@ async function revealSave(ctx: EffectContext, source: CardSource, count: number,
     candidates: eligible.map(({ instanceId }) => instanceId),
     min: 0,
     max: Math.min(max, eligible.length),
+    differentColors: true,
     visibleCards: revealed.map(({ instanceId, cardId }) => ({ instanceId, cardId })),
   });
-  if (selected.length > 0) await ctx.fx.returnToHand(selected);
-  const rest = revealed.map(({ instanceId }) => instanceId).filter((id) => !selected.includes(id));
+  const selectedCards = eligible.filter(({ instanceId }) => selected.includes(instanceId));
+  const legalSelected = filterToDistinctColors(selectedCards, (card) => ctx.game.definitionOf(card).colors).map(
+    ({ instanceId }) => instanceId,
+  );
+  if (legalSelected.length > 0) await ctx.fx.returnToHand(legalSelected);
+  const rest = revealed.map(({ instanceId }) => instanceId).filter((id) => !legalSelected.includes(id));
   if (rest.length > 0) await ctx.fx.returnToDeck(rest, { toTop: false });
 }
 

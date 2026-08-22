@@ -35,3 +35,19 @@ it("adds up to two differently colored Save Digimon from the reveal", async () =
     expect.arrayContaining(["BT12-008", "BT12-058"]),
   );
 });
+
+it("does not add two same-colored Save Digimon", async () => {
+  const s = setupEngine(
+    {
+      0: {
+        hand: [{ card: "BT12-086", as: "clock" }],
+        deck: ["BT12-058", "BT12-060", "BT1-009"],
+      },
+    },
+    { autoSelectCards: true, autoOrderCards: true },
+  );
+  s.state.memory = 10;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("clock").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.players[0]!.hand.length >= 2);
+  expect(s.state.players[0]!.hand.filter(({ cardId }) => ["BT12-058", "BT12-060"].includes(cardId))).toHaveLength(1);
+});
