@@ -30,12 +30,12 @@ describe("BT26-006 Monimon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
     );
     s.state.memory = 1;
     preferred.push(s.inst("costA").instanceId, s.inst("costB").instanceId, s.inst("played").instanceId);
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("host"), {
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
       attackerPermanentId: s.perm("host").permanentId,
     });
 
@@ -80,17 +80,17 @@ describe("BT26-006 Monimon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
     );
     s.state.memory = 2;
     preferred.push(s.inst("firstCost").instanceId, s.inst("secondCost").instanceId, s.inst("firstPlay").instanceId);
-    await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("attacker"), {
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("attacker"), {
       attackerPermanentId: s.perm("attacker").permanentId,
     });
     const trashAfterFirst = s.state.players[0]!.trash.length;
     const handAfterFirst = s.state.players[0]!.hand.length;
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("attacker"), {
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("attacker"), {
       attackerPermanentId: s.perm("attacker").permanentId,
     });
 
@@ -108,10 +108,10 @@ describe("BT26-006 Monimon", () => {
           hand: [{ card: "BT14-057", as: "candidate" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 1;
-    await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("host"), {
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
       attackerPermanentId: s.perm("host").permanentId,
     });
 
@@ -140,12 +140,13 @@ describe("BT26-006 Monimon", () => {
           hand: [{ card: "BT14-057", as: "candidate" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
     );
     s.state.memory = 1;
     preferred.push(s.inst("protected").instanceId, s.inst("otherCost").instanceId);
+    await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("attacker"), {
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("attacker"), {
       attackerPermanentId: s.perm("attacker").permanentId,
     });
 
@@ -170,9 +171,9 @@ describe("BT26-006 Monimon", () => {
           hand: [{ card: "BT14-057", as: "candidate" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
-    await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("host"), {
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
       attackerPermanentId: s.perm("host").permanentId,
     });
 
@@ -186,7 +187,7 @@ describe("BT26-006 Monimon", () => {
       {
         0: {
           battleArea: [{
-            card: "BT10-075",
+            card: "BT10-073",
             as: "host",
             under: [
               { card: CARD_ID, as: "monimon" },
@@ -197,11 +198,12 @@ describe("BT26-006 Monimon", () => {
           hand: [{ card: "BT14-057", as: "candidate" }],
         },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 1;
+    await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnAllyAttack, s.perm("host"), {
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"), {
       attackerPermanentId: s.perm("host").permanentId,
     });
 

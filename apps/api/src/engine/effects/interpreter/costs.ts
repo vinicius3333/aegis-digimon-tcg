@@ -751,10 +751,21 @@ export async function payCost(
           bucket.push(id);
           byHost.set(entry.hostPermanentId, bucket);
         }
-        for (const [hostId, ids] of byHost) {
-          await ctx.fx.trashDigivolutionCards(hostId, ids, { byEffectSeat: ctx.source.ownerSeat });
+        if (loose.length === 0) {
+          const selections = [...byHost].flatMap(([hostPermanentId, instanceIds]) =>
+            instanceIds.map((instanceId) => ({ hostPermanentId, instanceId })),
+          );
+          const moved = await ctx.fx.trashDigivolutionCardsAtomic(selections, n, {
+            byEffectSeat: ctx.source.ownerSeat,
+          });
+          if (moved.length !== n) return false;
+        } else {
+          if (chosen.some((instanceId) => ctx.fx.canTrashDigivolutionCard?.(instanceId) === false)) return false;
+          for (const [hostId, ids] of byHost) {
+            await ctx.fx.trashDigivolutionCards(hostId, ids, { byEffectSeat: ctx.source.ownerSeat });
+          }
+          await ctx.fx.trash(loose, { byEffectSeat: ctx.source.ownerSeat });
         }
-        if (loose.length > 0) await ctx.fx.trash(loose, { byEffectSeat: ctx.source.ownerSeat });
         if (out) out.paidCount = chosen.length;
         return true;
       }
