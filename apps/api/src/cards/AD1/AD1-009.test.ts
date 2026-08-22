@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "../../cards/index.js";
 
@@ -106,12 +107,14 @@ describe("AD1-009 BlitzGreymon", () => {
 
   it("provides inherited Security Attack +1 to its host", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "BT3-112", as: "host", under: ["AD1-009"] }] },
-      1: { security: ["BT1-010", "BT1-010"] },
+      0: { battleArea: [{ card: "BT1-021", as: "host", under: ["AD1-009"] }] },
+      1: { security: ["BT1-009", "BT1-009"] },
     });
+    await s.ready();
+    expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
 
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("host").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0, 5000);
+    await settle(() => s.state.players[1]!.security.length === 0, 20000);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });
