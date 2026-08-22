@@ -11,25 +11,31 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "AllTurns",
-      actions: [{
-        kind: "SubTrigger",
-        event: "whenTrashedFromHand",
-        actions: [{
-          kind: "GainMemory",
-          amount: 1,
-          cost: {
-            kind: "suspend",
-            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-            raw: "by suspending this Tamer",
-          },
-          condition: { kind: "triggerByYourEffect" },
-          optional: true,
-        }],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenTrashedFromHand",
+          actions: [
+            {
+              kind: "GainMemory",
+              amount: 1,
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                raw: "by suspending this Tamer",
+              },
+              condition: { kind: "triggerByYourEffect" },
+              optional: true,
+            },
+          ],
+        },
+      ],
     },
     {
       trigger: "Security",
-      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }],
+      actions: [
+        { kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false },
+      ],
       isSecurity: true,
     },
   ],
