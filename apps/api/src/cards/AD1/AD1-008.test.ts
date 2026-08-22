@@ -24,16 +24,22 @@ describe("AD1-008 Gallantmon", () => {
         battleArea: [
           { card: "BT1-010", as: "budget-a", dp: 5000 },
           { card: "BT1-010", as: "budget-b", dp: 5000 },
-          { card: "BT1-010", as: "lowest-after-budget", dp: 11000 },
+          { card: "BT1-010", as: "lowest-after-budget", dp: 11000, suspended: true },
         ],
-        security: ["BT1-001"],
+        security: ["BT1-009", "BT1-009"],
       },
     }, { autoSelectCards: true, autoAcceptOptional: true });
+    const budgetAId = s.perm("budget-a").permanentId;
+    const budgetBId = s.perm("budget-b").permanentId;
+    const lowestAfterBudgetId = s.perm("lowest-after-budget").permanentId;
     s.state.memory = 5;
     expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("gallantmon").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(() => s.state.players[1]!.battleArea.length === 0, 5000);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === budgetAId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === budgetBId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === lowestAfterBudgetId)).toBe(false);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
   it("uses either printed alternate level-5 route for cost 3", async () => {
