@@ -2,9 +2,14 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT5-105.js";
 
 describe("BT5-105 Ultimate Flare", () => {
+  it("has complete residual-free runtime coverage", () => {
+    expect(runtimeCompiledCard("BT5-105")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("De-Digivolves and then deletes every opposing play-cost-3-or-less Digimon", async () => {
     const s = setupEngine({ 0: { battleArea: ["BT5-059"], hand: [{ card: "BT5-105", as: "option" }] }, 1: { battleArea: [{ card: "BT5-084", as: "stacked", under: ["BT5-059"] }, { card: "BT5-060", as: "costThree" }, { card: "BT5-061", as: "costFour" }] } }, { autoSelectCards: true });
     s.state.memory = 10;

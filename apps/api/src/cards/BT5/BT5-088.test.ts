@@ -17,6 +17,13 @@ describe("BT5-088 Sora Takenouchi & Joe Kido", () => {
     expect(s.state.memory).toBe(2);
   });
 
+  it("does not gain memory when every opposing Digimon has a source", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-088", as: "tamer" }] }, 1: { battleArea: [{ card: "BT5-020", as: "sourced", under: ["BT1-009"] }] } });
+    s.state.memory = 0;
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("tamer"));
+    expect(s.state.memory).toBe(0);
+  });
+
   it("may suspend when a blue Digimon attacks to trash 2 bottom opposing sources", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT5-088", as: "tamer" }, { card: "BT5-032", as: "blue" }] }, 1: { battleArea: [{ card: "BT4-073", as: "target", under: ["BT1-009", "BT1-010"] }], security: ["BT1-011"] } }, { autoSelectCards: true, autoAcceptOptional: true });
     await s.engine.recomputeContinuousEffects();

@@ -10,4 +10,11 @@ describe("BT5-041 Taomon", () => {
     expect(observe(s.engine).securityDp(1)).toBe(-1000);
     expect(observe(s.engine).securityDp(0)).toBe(0);
   });
+
+  it("does not apply the inherited reduction on the opponent's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-042", as: "host", under: ["BT5-041"] }] } });
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).securityDp(1)).toBe(0);
+  });
 });

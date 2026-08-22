@@ -25,4 +25,11 @@ describe("BT5-032 Hexeblaumon", () => {
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "attack")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "block")).toBe(false);
   });
+
+  it("does not gain Jamming when a source remains after trashing two", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-032", as: "hexe" }] }, 1: { battleArea: [{ card: "BT4-073", as: "target", under: ["BT1-009", "BT1-010", "BT1-011"] }], security: ["BT1-012"] } }, { autoSelectCards: true });
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("hexe").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.perm("target").stack.length === 1);
+    expect(observe(s.engine).hasKeyword(s.perm("hexe"), "Jamming")).toBe(false);
+  });
 });

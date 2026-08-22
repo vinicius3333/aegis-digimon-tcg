@@ -71,7 +71,7 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
     case "WhenDigivolving":
       return EffectTiming.WhenDigivolving;
     case "WhenAttacking":
-      return EffectTiming.OnUseAttack;
+      return effect.attackScope === "ally" ? EffectTiming.OnAllyAttack : EffectTiming.OnUseAttack;
     case "WhenBlocked":
       return EffectTiming.OnBlockAnyone;
     case "OnDeletion":
@@ -415,6 +415,7 @@ const RESULT_BINDING_KEYS = [
   "lastOpponentDeclined",
   "lastPlayedPermanentIds",
   "lastSuspendedPermanentIds",
+  "lastTrashedCards",
   "lastRevealedCards",
   "lastDeletedByThisEffectIds",
   "namedCounts",

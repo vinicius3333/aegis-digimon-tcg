@@ -13,6 +13,14 @@ describe("BT5-098 Meteor Shower", () => {
     expect(s.state.memory).toBe(2);
   });
 
+  it("does not play a non-yellow or non-Starmon Digimon", async () => {
+    const s = setupEngine({ 0: { battleArea: ["BT5-033"], hand: [{ card: "BT5-098", as: "option" }, { card: "BT5-071", as: "wrong" }] } }, { autoSelectCards: true, autoAcceptOptional: true });
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("wrong").instanceId)).toBe(true);
+  });
+
   it("activates the Main effect from security", async () => {
     const s = setupEngine({ 0: { security: [{ card: "BT5-098", as: "securityOption", faceUp: true }], hand: [{ card: "BT5-035", as: "starmons" }] } }, { autoSelectCards: true, autoAcceptOptional: true });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));

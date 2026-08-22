@@ -89,6 +89,13 @@ export interface ModifyDPAction extends ActionBase {
   continuous?: boolean;
 }
 
+export interface AddDPFromTrashedCardAction extends ActionBase {
+  kind: "AddDPFromTrashedCard";
+  target: Target;
+  duration: EffectDurationRef;
+  from: string;
+}
+
 /**
  * Suspend a Digimon as an activation cost, then add that Digimon's current DP to the target for
  * the current attack and grant any listed attack keywords — the declarative form of Alliance-like

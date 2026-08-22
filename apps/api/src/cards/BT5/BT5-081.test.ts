@@ -33,4 +33,15 @@ describe("BT5-081 ChaosGallantmon", () => {
 
     expect(s.state.players[0]?.deck).toHaveLength(4);
   });
+
+  it("does not delete an opposing Digimon above level 5", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT10-012", as: "base" }, { card: "BT1-010", as: "cost" }], hand: [{ card: "BT5-081", as: "evolving" }] },
+      1: { battleArea: [{ card: "BT5-081", as: "highLevel" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "digivolve", permanentId: s.perm("base").permanentId, instanceId: s.inst("evolving").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]?.battleArea.length === 1);
+    expect(s.perm("highLevel")).toBeDefined();
+  });
 });

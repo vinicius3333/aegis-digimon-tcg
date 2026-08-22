@@ -14,7 +14,7 @@ describe("BT5-087 Omnimon Zwart", () => {
           trash: [{ card: "BT5-059", as: "black" }, { card: "BT5-071", as: "purple" }],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("omnimon"));

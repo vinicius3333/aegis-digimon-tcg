@@ -158,6 +158,8 @@ export interface TriggerInfo {
   /** Whether the pay-time declaration is using the card as an Option rather than playing a permanent. */
   wouldBePlayedAsOption?: boolean;
   attackerPermanentId?: string;
+  /** Stable identity for this attack across all reactive attack sub-trigger fires. */
+  attackSequence?: number;
   /** Named attack procedure that caused the current attack watcher, when applicable. */
   attackMechanic?: string;
   /** The defending permanent of the in-flight battle (the original target or the blocker). */
@@ -1648,6 +1650,7 @@ export interface EffectContext {
    * Used by clauses like "with as much or less DP as the Digimon this effect suspended".
    */
   lastSuspendedPermanentIds?: string[];
+  lastTrashedCards?: { instanceId: string; cardId: string; dp: number }[];
   /**
    * Cards revealed by the most recent Reveal/RevealAdd action in this effect resolution.
    * Kept as a snapshot because the cards may be immediately returned to deck bottom/hand/trash,

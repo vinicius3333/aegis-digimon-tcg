@@ -235,6 +235,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         return build({
           source,
           irTrigger: effect.trigger,
+          attackScope: effect.attackScope,
           effectKey,
           description: describeEffect(effect),
           optional: effect.optional ?? false,

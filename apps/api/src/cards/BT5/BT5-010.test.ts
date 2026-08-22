@@ -19,8 +19,8 @@ describe("BT5-010 Greymon", () => {
   });
 
   it("does not boost an explicitly excluded BurningGreymon host", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-013", as: "host", under: ["BT5-010"] }] } });
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT4-013", as: "host", under: ["BT5-010"] }, { card: "BT4-013", as: "control" }] } });
     await s.ready();
-    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 3000);
+    expect(s.perm("host").currentDP).toBe(s.perm("control").currentDP);
   });
 });

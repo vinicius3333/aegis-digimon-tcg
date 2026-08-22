@@ -2,10 +2,15 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../BT13/BT13-080.js";
 import "./BT5-106.js";
 
 describe("BT5-106 Demonic Disaster", () => {
+  it("has complete residual-free runtime coverage", () => {
+    expect(runtimeCompiledCard("BT5-106")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("may delete one Digimon to unsuspend a purple Digimon", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine({ 0: { battleArea: [{ card: "BT5-071", as: "cost" }, { card: "BT5-072", as: "target", suspended: true }], hand: [{ card: "BT5-106", as: "option" }] } }, { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds });
