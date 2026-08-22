@@ -36,19 +36,21 @@ describe("BT24-032 Pipomon", () => {
   });
 
   it("adds distinct Appmon and System cards and bottoms the miss", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT24-032", as: "pipomon" }],
           deck: [
             { card: "BT21-009", as: "appmon" },
-            { card: "BT24-006", as: "system" },
-            { card: "BT1-001", as: "miss" },
+            { card: "BT24-053", as: "system" },
+            { card: "BT1-009", as: "miss" },
           ],
         },
       },
-      { autoSelectCards: true, autoOrderCards: true },
+      { autoSelectCards: true, autoOrderCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.inst("appmon").instanceId, s.inst("system").instanceId);
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("pipomon"));
 
@@ -70,7 +72,7 @@ describe("BT24-032 Pipomon", () => {
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.perm("target").topCard.instanceId);
+    preferred.push(s.perm("target").permanentId);
     s.state.memory = 3;
     await s.ready();
     const hostDp = s.perm("host").currentDP;
@@ -83,10 +85,38 @@ describe("BT24-032 Pipomon", () => {
         targetPermanentId: s.perm("host").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("pipomon").instanceId));
+    await settle(
+      () =>
+        s.perm("host").linked.some((card) => card.instanceId === s.inst("pipomon").instanceId) &&
+        s.perm("target").currentDP === targetDp - 2000,
+    );
 
     expect(s.state.memory).toBe(2);
     expect(s.perm("host").currentDP).toBe(hostDp + 2000);
     expect(s.perm("target").currentDP).toBe(targetDp - 2000);
+  });
+
+  it("digivolves from a level 2 Appmon Digi-Egg for cost 0", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT21-005", as: "base" },
+        hand: [{ card: "BT24-032", as: "pipomon" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("pipomon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("pipomon").instanceId);
+
+    expect(s.state.memory).toBe(3);
   });
 });
