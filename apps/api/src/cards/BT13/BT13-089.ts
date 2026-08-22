@@ -11,13 +11,13 @@ export const compiled: CompiledCard = {
           "kind": "PlayWithoutCost",
           "target": {
             "filter": {
-              "name": "Ravemon"
+              "name": "Ravemon",
+              "controller": "mine"
             },
             "count": 1,
-            "location": "trash",
-            "controller": "mine"
           },
           "payCost": false,
+          "from": ["trash"],
           "cost": {
             "kind": "deleteOwn",
             "target": {
@@ -30,7 +30,16 @@ export const compiled: CompiledCard = {
             "raw": "By deleting this Digimon that has a digivolution card with [Bird] or [Avian] in one of its traits"
           },
           "optional": true,
-          "abortOnDecline": true
+          "abortOnDecline": true,
+          "condition": {
+            "kind": "selfDigivolutionStackHasTrait",
+            "filter": {
+              "nameOrTrait": [
+                { "tokens": ["Bird"], "match": "trait" },
+                { "tokens": ["Avian"], "match": "trait" }
+              ]
+            }
+          }
         }
       ]
     },
