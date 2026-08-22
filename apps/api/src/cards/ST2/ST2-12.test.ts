@@ -35,10 +35,22 @@ describe("ST2-12 Matt Ishida", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("does not gain memory when the opponent has no battle-area Digimon", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST2-12", as: "matt" }] },
+      1: { breeding: "ST2-03" },
+    });
+    s.state.memory = 0;
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("matt"));
+    expect(s.state.memory).toBe(0);
+  });
+
   it("plays itself from security", async () => {
     const s = setupEngine({ 0: { security: [{ card: "ST2-12", as: "securityMatt", faceUp: true }] } });
     const id = s.inst("securityMatt").instanceId;
+    s.state.memory = -3;
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityMatt"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === id)).toBe(true);
+    expect(s.state.memory).toBe(-3);
   });
 });
