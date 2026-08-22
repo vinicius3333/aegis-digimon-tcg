@@ -40,7 +40,7 @@ describe("BT16-080 Shroudmon", () => {
       s.engine.applyIntent(1, {
         type: "attack",
         attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "digimon", permanentId: s.perm("shroud").permanentId },
+        target: { kind: "permanent", permanentId: s.perm("shroud").permanentId },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]?.security.length === 3);

@@ -49,7 +49,7 @@ describe("BT16-065", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("darkdramon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]?.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-065"));
+    await settle(() => s.state.players[0]?.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-065") === true);
 
     expect(s.state.memory).toBe(9);
     expect((s.state.players[0]?.trash.length ?? 0) + (s.state.players[0]?.deck.length ?? 0)).toBe(6);

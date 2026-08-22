@@ -2,10 +2,8 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 // Hand-IR override (AUTO-GENERATED header removed so the generator preserves this file). The
-// runtime record/compiler cannot emit the OR-modal of the [Main] <Delay> clause; it left the place
-// branch as a bare RawUnparsed residual plus an ungated -7000 DP. Both are folded into the Modal
-// below: choose place-from-hand OR trash-a-[Four Great Dragons]-card, then (in the chosen branch)
-// -7000 DP.
+// [Main] <Delay> clause is represented by the Modal action below: choose placing from hand or
+// trashing a [Four Great Dragons]-trait card, then apply -7000 DP in the chosen branch.
 //
 // BT16-094 Dragon's Breath — KB authority (node tools/kb/query.mjs card BT16-094): no card-specific
 // then (if deleted) offers a bool selection: TRUE => place 1 [Trial of the Four Great Dragons] from
