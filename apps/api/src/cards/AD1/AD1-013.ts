@@ -130,6 +130,12 @@ const compiled: CompiledCard = {
           },
           "amount": 1000,
           "duration": "permanent",
+          "condition": {
+            "kind": "selfHasTrait",
+            "filter": {
+              "nameOrTrait": [{ "tokens": ["Blue Flare", "Xros Heart"], "match": "trait" }]
+            }
+          },
           "scaling": {
             "per": 1,
             "filter": {},
