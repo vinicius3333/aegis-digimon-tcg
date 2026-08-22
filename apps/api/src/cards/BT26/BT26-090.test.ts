@@ -72,7 +72,7 @@ describe("BT26-090 compiled behavior", () => {
     s.state.memory = -3;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("kanan"));
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("kanan"));
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
 
     expect(s.perm("kanan").isSuspended).toBe(true);
