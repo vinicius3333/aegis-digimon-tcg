@@ -45,6 +45,15 @@ describe("ST19-02 ＜Barrier＞ is once per turn", () => {
         target: { kind: "permanent", permanentId: s.perm("barrier").permanentId },
       }),
     ).toEqual({ ok: true });
+    const combat = (s.engine as unknown as { combat: { hasOpenBarrierDecision: boolean } }).combat;
+    await settle(() => combat.hasOpenBarrierDecision);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondBarrier",
+        permanentId: s.perm("barrier").permanentId,
+        accept: true,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "combatResolved"));
     await settle(
       () =>
