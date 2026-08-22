@@ -36,7 +36,7 @@ export const compiled: CompiledCard = {
       actions: [useTitanOption],
     },
     {
-      trigger: "OnAllyAttack",
+      trigger: "WhenAttacking",
       frequency: "OncePerTurn",
       sharedUseKey: "trash-hand-use-titan-option-from-trash",
       actions: [useTitanOption],
