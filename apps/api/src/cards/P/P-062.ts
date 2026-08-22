@@ -1,68 +1,66 @@
-import { EffectDuration, EffectTiming } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { security, whenAttacking } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "P-062";
-
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnAllyAttack) {
-      return [
-        whenAttacking({
-          source,
-          effectKey: `${cardId}/gammamon-source-security-attack`,
-          description:
-            "[Your Turn] When a Digimon with Gammamon in its digivolution cards attacks, suspend this Tamer to give it Security Attack +1.",
-          optional: true,
-          attackScope: "ally",
-          when: (ctx) => {
-            if (!source.isOwnersTurn()) return false;
-            const attackerId = ctx.trigger.attackerPermanentId;
-            const attacker = attackerId === undefined
-              ? undefined
-              : ctx.game.permanentById(attackerId);
-            return attacker?.stack.some(
-              (card) => ctx.game.definitionOf(card).nameEn === "Gammamon",
-            ) === true;
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "YourTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenAttacking",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            digivolutionStackNameOrTrait: [
+              { tokens: ["Gammamon"], match: "nameExact" },
+            ],
           },
-          canActivate: () => source.permanent()?.isSuspended === false,
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            const attackerId = ctx.trigger.attackerPermanentId;
-            if (self === undefined || attackerId === undefined) return;
-            const suspended = await ctx.fx.suspend([self.permanentId]);
-            if (!suspended.includes(self.permanentId)) return;
-            ctx.fx.grantKeyword(
-              attackerId,
-              "SecurityAttack",
-              EffectDuration.UntilEachTurnEnd,
-              1,
-            );
-          },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security-play-self`,
-          description: "[Security] Play this card.",
-          resolve: async (ctx) => {
-            await ctx.fx.playFromSecurity(source.instanceId);
-          },
-        }),
-      ];
-    }
-
-    return [];
-  },
+          raw: "when you attack with a Digimon that has [Gammamon] in its digivolution cards",
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                sourceRef: "triggerSubject",
+                filter: { controller: "mine", kind: ["Digimon"] },
+                count: 1,
+              },
+              keyword: {
+                keyword: "SecurityAttack",
+                amount: 1,
+                raw: "＜Security Attack +1＞",
+              },
+              duration: "forTheTurn",
+              cost: {
+                kind: "suspend",
+                target: {
+                  filter: { isSelfRef: true },
+                  count: 1,
+                  isSelf: true,
+                },
+                raw: "by suspending this Tamer",
+              },
+              optional: true,
+            },
+          ],
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
-registerCard(module);
-export default module;
+registerIrCard("P-062", compiled);
