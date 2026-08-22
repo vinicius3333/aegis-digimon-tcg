@@ -2,7 +2,7 @@ import { CardColor, EffectDuration, EffectTiming, isTamer } from "@aegis/shared"
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const cardId = "BT12-068";
 const module: EffectModule = {
@@ -73,5 +73,6 @@ const module: EffectModule = {
     ];
   },
 };
-registerCard(module);
-export default module;
+const registered = registerIrCard(cardId, { effects: [], coverage: "full", residual: [] });
+registered.effectsForTiming = module.effectsForTiming;
+export default registered;
