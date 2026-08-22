@@ -69,7 +69,7 @@ describe("BT13-103 Akihiro Kurata", () => {
       },
       { autoDeclineOptional: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnEndOpponentsTurn, s.perm("akihiro"));
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("akihiro"));
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-002");
   });
