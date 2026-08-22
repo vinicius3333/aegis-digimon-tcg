@@ -8,6 +8,6 @@ describe("BT26-038 Kuwagamon", () => {
     expect(compiled.effects[0]?.actions).toMatchObject([{ kind: "Suspend", optional: true }, { kind: "ModifyDP", amount: 3000, duration: "untilOpponentTurnEnd" }]);
   });
   it("preserves the inherited once-per-turn battle-won discounted digivolution", () => {
-    expect(compiled.effects[3]).toMatchObject({ trigger: "AllTurns", isInherited: true, actions: [{ kind: "SubTrigger", event: "whenBattleWon", frequency: "OncePerTurn", actions: [{ kind: "Digivolve", payCost: true, costDelta: 1, optional: true }] }] });
+    expect(compiled.effects[3]).toMatchObject({ trigger: "AllTurns", isInherited: true, actions: [{ kind: "SubTrigger", event: "whenBattleWon", frequency: "OncePerTurn", actions: [{ kind: "Digivolve", payCost: true, costDelta: -1, optional: true }] }] });
   });
 });
