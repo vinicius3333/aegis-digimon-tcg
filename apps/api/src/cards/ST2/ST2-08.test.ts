@@ -9,4 +9,13 @@ describe("ST2-08 WereGarurumon", () => {
     await s.ready();
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
   });
+
+  it("does not grant Security Attack +1 while every opposing Digimon has a source", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST2-11", as: "host", under: ["ST2-08"] }] },
+      1: { battleArea: [{ card: "ST1-03", under: ["ST1-04"] }] },
+    });
+    await s.ready();
+    expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(0);
+  });
 });
