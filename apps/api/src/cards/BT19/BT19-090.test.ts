@@ -1,18 +1,10 @@
-import { describe, expect, it } from "vitest";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { describe, it, expect } from "vitest";
+import { EffectTiming, type CardDefinition, type CardInstance, type Permanent, type Seat } from "@aegis/shared";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { getEffectModule } from "../../engine/effects/registry.js";
 import "./BT19-090.js";
 
-<<<<<<< HEAD
-describe("BT19-090 Meteor Rock Soul", () => {
-  it("compiles the two Main choices and the optional Security play", () => {
-    const card = runtimeCompiledCard("BT19-090");
-    expect(card?.coverage).toBe("full");
-    expect(card?.residual).toEqual([]);
-    const modal = card?.effects.find((entry) => entry.trigger === "Main")?.actions[0];
-    expect(modal).toMatchObject({ kind: "Modal", choose: 1, options: [[{ kind: "PlayWithoutCost" }], [{ kind: "Attack", attackPlayer: true, mandatory: true, cost: { kind: "unsuspendNamed", targets: expect.any(Array) } }]] });
-    const security = card?.effects.find((entry) => entry.trigger === "Security");
-    expect(security).toMatchObject({ isSecurity: true, actions: [{ kind: "PlayWithoutCost", from: ["underTamers"] }] });
-=======
 // A3 for BT19-090 (Meteor Rock Soul — Red Option):
 //   [Main] modal: (A) play 1 [Xros Heart] Digimon (DP<=4000) from under your Tamer w/o cost; OR
 //          (B) by unsuspending 1 [Shoutmon EX6] + 1 [ShootingStarmon], attack a player.
@@ -255,6 +247,5 @@ describe("BT19-090 Meteor Rock Soul", () => {
     expect(effect!.isSecurity).toBe(true);
     await effect!.resolve(ctx);
     expect(recorder.calls.filter((c) => c.verb === "playInstances")).toHaveLength(1);
->>>>>>> c9e6261c (Fix and verify BT19-095 card behavior)
   });
 });

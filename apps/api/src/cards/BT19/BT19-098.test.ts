@@ -1,21 +1,10 @@
-import { describe, expect, it } from "vitest";
-import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { describe, it, expect } from "vitest";
+import { EffectTiming, type CardDefinition, type CardInstance, type Permanent, type Seat } from "@aegis/shared";
+import type { CardSource } from "../../engine/effects/CardSource.js";
+import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { getEffectModule } from "../../engine/effects/registry.js";
 import "./BT19-098.js";
 
-<<<<<<< HEAD
-describe("BT19-098 King Device", () => {
-  it("has complete IR for waiver, trash trigger, Main, and Security", () => {
-    const card = runtimeCompiledCard("BT19-098");
-    expect(card?.coverage).toBe("full");
-    expect(card?.residual).toEqual([]);
-    expect(card?.effects.map((effect) => effect.trigger)).toEqual(["Static", "AllTurns", "Main", "Security"]);
-    const main = card!.effects.find((effect) => effect.trigger === "Main")!;
-    expect(main.actions[0]).toMatchObject({ kind: "PlaceInBattleAreaSelf", target: { from: ["trash"] } });
-    expect(main.actions[1]).toMatchObject({ kind: "PlaceInBattleAreaSelf" });
-    const security = card!.effects.find((effect) => effect.trigger === "Security")!;
-    expect(security.isSecurity).toBe(true);
-    expect(security.actions[1]).toMatchObject({ kind: "AddToHandSelf" });
-=======
 // A3 for BT19-098 (King Device — Purple Option). Covers every hand-written clause:
 //   [None] ignore-color waiver / [OnDestroyed] place [Device] from trash /
 //   [Main] place [Device] from trash + place self / [Security] place from hand + add self to hand.
@@ -222,6 +211,5 @@ describe("BT19-098 King Device", () => {
     const ret = recorder.calls.filter((c) => c.verb === "returnToHand");
     expect(ret).toHaveLength(1);
     expect(ret[0]!.args[0] as string[]).toContain(SELF_INSTANCE);
->>>>>>> c9e6261c (Fix and verify BT19-095 card behavior)
   });
 });
