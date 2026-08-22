@@ -54,7 +54,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
     (e) =>
       e.isInherited !== true &&
       ((e.keywords ?? []).some((k) => k.keyword === "Training") ||
-        e.actions.some(
+        (e.actions ?? []).some(
           (a) =>
             a.kind === "GainKeyword" &&
             (a as { keyword?: { keyword?: string } }).keyword?.keyword === "Training" &&
@@ -272,7 +272,15 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
  * mask a genuine conflict between two distinct IR cards. `registerCard` still throws
  * for a hand-written double-port that does not go through this bulk path.
  */
-export function registerIrCard(cardId: string, compiled: CompiledCard, legacyModule?: EffectModule): EffectModule {
+export function registerIrCard(cardId: string, compiled: CompiledCard | EffectModule, legacyModule?: EffectModule): EffectModule {
+  // Keep the legacy compatibility seam explicit for older modules that already use the
+  // registerIrCard entry point but have not yet been ported to a compiled record.
+  if ("effectsForTiming" in compiled) {
+    const existingLegacy = getEffectModule(cardId);
+    if (existingLegacy !== undefined) return existingLegacy;
+    registerCard(compiled);
+    return compiled;
+  }
   registeredCompiledCards.set(cardId, compiled);
   if (legacyModule !== undefined) {
     registerCard(legacyModule);

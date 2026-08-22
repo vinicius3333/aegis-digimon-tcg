@@ -5,7 +5,7 @@ import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import { onDiscardSecurity, whenAttacking, whenDigivolving } from "../../engine/effects/builders.js";
-import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 
 // BT22-037 Chirinmon
 //
@@ -114,5 +114,5 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard(cardId, module);
+registerIrCard(cardId, runtimeCompiledCard(cardId)!, module);
 export default module;

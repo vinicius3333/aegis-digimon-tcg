@@ -153,7 +153,7 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
+registerIrCard(cardId, module);
 
 export { module };
 export default module;

@@ -16,7 +16,7 @@ describe("BT20-087 Kota Domoto & Yuji Musya", () => {
         event: "whenAttacking",
         actions: [{
           kind: "Digivolve",
-          target: { filter: { controller: "mine", kind: ["Digimon"], zone: "battleArea" } },
+          target: { filter: { controller: "mine", kind: ["Digimon"] } },
           into: { levelComparison: { op: "lte", value: 6 }, nameOrTrait: [{ tokens: ["Chronicle"], match: "trait" }] },
           reduceCost: 1,
           cost: { kind: "suspend", target: { isSelf: true } },
