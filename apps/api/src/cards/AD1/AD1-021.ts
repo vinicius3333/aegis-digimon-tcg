@@ -20,6 +20,11 @@ const marcusTarget = {
   },
   count: 1,
 };
+const chosenMarcusTarget = {
+  filter: {},
+  count: 1,
+  fromSelectionRef: "chosenMarcus",
+};
 
 // "If you have a yellow Digimon with [Agumon] or [Greymon] in its name" (documented behavior
 // PermanentCondition gates the Marcus bundle only; the trailing attack is ungated).
@@ -42,30 +47,33 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSuspended",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "Draw",
               controller: "mine",
               amount: 1,
             },
-          ],
-        },
-        {
-          kind: "Digivolve",
-          target: {
-            filter: {
-              controller: "mine",
-              kind: ["Digimon"],
+            {
+              kind: "Digivolve",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                },
+                count: 1,
+              },
+              into: {
+                controllerDefault: "mine",
+                kind: ["Digimon"],
+                colors: ["Yellow"],
+                nameOrTrait: [{ tokens: ["Greymon"], match: "name" }],
+              },
+              from: ["hand"],
+              reduceCost: 3,
+              optional: true,
             },
-            count: 1,
-          },
-          into: {
-            controllerDefault: "mine",
-            kind: ["Digimon"],
-            colors: ["Yellow"],
-            nameOrTrait: [{ tokens: ["Greymon"], match: "name" }],
-          },
-          reduceCost: 3,
+          ],
         },
       ] as unknown as Actions,
     },
@@ -73,36 +81,37 @@ const compiled: CompiledCard = {
       trigger: "EndOfYourTurn",
       actions: [
         {
+          kind: "SelectBind",
+          target: { ...marcusTarget, bindAs: "chosenMarcus" },
+          condition: agumonGate,
+        },
+        {
           kind: "GrantStatic",
-          target: marcusTarget,
+          target: chosenMarcusTarget,
           grant: "kinds",
           tokens: ["Digimon"],
           duration: "forTheTurn",
-          condition: agumonGate,
         },
         {
           kind: "SetBaseDP",
-          target: marcusTarget,
+          target: chosenMarcusTarget,
           value: 6000,
           duration: "forTheTurn",
-          condition: agumonGate,
         },
         {
           kind: "GainKeyword",
-          target: marcusTarget,
+          target: chosenMarcusTarget,
           keyword: {
             keyword: "Rush",
             raw: "＜Rush＞",
           },
           duration: "forTheTurn",
-          condition: agumonGate,
         },
         {
           kind: "Restrict",
-          target: marcusTarget,
+          target: chosenMarcusTarget,
           restriction: "digivolve",
           duration: "forTheTurn",
-          condition: agumonGate,
         },
         {
           kind: "Attack",
@@ -115,6 +124,7 @@ const compiled: CompiledCard = {
           },
           withoutSuspending: false,
           optional: true,
+          condition: agumonGate,
         },
       ] as unknown as Actions,
       frequency: "OncePerTurn",
