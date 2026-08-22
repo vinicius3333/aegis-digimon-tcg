@@ -707,6 +707,8 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     }
     case "triggerRemovalCause":
       return ctx.trigger.removalCause === cond.removalCause;
+    case "triggerDeletedByDpZero":
+      return ctx.trigger.deletedByDpZero === true;
     case "triggerSourceNotDeletedAtSameTiming": {
       // whenDeletesInBattle fireCondition: the trigger source (the attacker that deleted the
       // opponent's Digimon) must NOT have been deleted at the same timing. The combat controller
