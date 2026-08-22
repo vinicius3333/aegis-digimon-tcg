@@ -3576,7 +3576,7 @@ describe("BT12-014 — dynamic DP deletion budget", () => {
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
     const base = digimon(0, 6000, "BT11-010");
-    base.stack.push(instance("BT1-009", 0, true));
+    base.stack.push(instance("BT1-009", 0, true), instance("BT1-010", 0, true));
     const omniShoutmon = instance("BT12-014", 0, false);
     const dp5000 = digimon(1, 5000, "AD1-001");
     const dp2000 = digimon(1, 2000, "BT1-009");
