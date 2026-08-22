@@ -19,6 +19,8 @@ describe("BT12-041 handwritten module", () => {
       permanent: () => undefined,
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.WhenDigivolving, source).length).toBeGreaterThan(0);
+    expect(module!.effectsForTiming(EffectTiming.OnDestroyedAnyone, source).length).toBeGreaterThan(0);
+    expect(module!.effectsForTiming(EffectTiming.OnUseAttack, source).length).toBeGreaterThan(0);
   });
 });
 
