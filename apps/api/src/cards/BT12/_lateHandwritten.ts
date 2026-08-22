@@ -1270,7 +1270,11 @@ export function lateBt12Module(cardId: string): EffectModule {
                 resolve: async (ctx) => {
                   const target = await choosePermanent(ctx, opposingDigimon(ctx, source));
                   if (target) await ctx.fx.deletePermanent([target], "byEffect");
-                  const self = source.permanent();
+                  const self =
+                    source.permanent() ??
+                    ctx.game.player(source.ownerSeat).battleArea.find(
+                      (permanent) => permanent.topCard?.instanceId === source.instanceId,
+                    );
                   if (!self) return;
                   const cards = ctx.game
                     .player(source.ownerSeat)
