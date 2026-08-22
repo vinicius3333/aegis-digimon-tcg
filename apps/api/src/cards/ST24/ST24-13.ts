@@ -20,8 +20,8 @@ const mainActions = [
 const compiled: CompiledCard = {
   effects: [
     { trigger: "Rule", actions: [{ kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "name", tokens: ["Marcus Damon", "Thomas H. Norstein"] }] },
-    { trigger: "OnPlay", actions: mainActions.map((action, index) => ({ ...action, optional: index === 0, abortOnDecline: index === 0 })) },
-    { trigger: "StartOfYourMainPhase", actions: mainActions.map((action, index) => ({ ...action, optional: index === 0, abortOnDecline: index === 0 })) },
+    { trigger: "OnPlay", actions: mainActions.map((action, index) => ({ ...action, optional: index === 0 })) },
+    { trigger: "StartOfYourMainPhase", actions: mainActions.map((action, index) => ({ ...action, optional: index === 0 })) },
     {
       trigger: "YourTurn",
       actions: [{

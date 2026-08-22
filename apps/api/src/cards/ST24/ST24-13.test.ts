@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -31,6 +32,14 @@ function hasKeyword(s: EngineSetup, permanentId: string, keyword: string): boole
 }
 
 describe("ST24-13 Marcus & Thomas — whenDigivolutionCardTrashed from THIS Tamer → suspend, Jamming", () => {
+  it("continues to conditional memory gain when optional placement is declined", () => {
+    const card = runtimeCompiledCard("ST24-13");
+    const onPlay = card?.effects.find((entry) => entry.trigger === "OnPlay");
+    expect(onPlay?.actions[0]).toMatchObject({ kind: "PlaceUnder", optional: true });
+    expect(onPlay?.actions[0]).not.toHaveProperty("abortOnDecline");
+    expect(onPlay?.actions[1]).toMatchObject({ kind: "GainMemory", amount: 1 });
+  });
+
   it("suspends the Tamer and grants Jamming to a DATA SQUAD Digimon when a card under this Tamer is trashed", async () => {
     const s = setupEngine(
       {
