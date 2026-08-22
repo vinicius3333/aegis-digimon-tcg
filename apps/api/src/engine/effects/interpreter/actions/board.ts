@@ -236,7 +236,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
       // player-scoped grant, rather than snapshotting only the permanents that
       // existed when the security card was revealed (ST1-13 / KB Q607).
       if (
-        ctx.trigger.securityInstanceId !== undefined &&
+        (ctx.trigger.securityInstanceId !== undefined || ctx.activeTiming === "Security") &&
         kw === "SecurityAttack" &&
         action.target?.count === "all" &&
         action.target.filter.kind?.includes("Digimon")
