@@ -13,6 +13,6 @@ describe("BT5-027 MarineDevimon", () => {
 
   it("is registered with complete, residual-free runtime coverage", () => {
     expect(getEffectModule("BT5-027")).toBeDefined();
-    expect(runtimeCompiledCard("BT5-027")).toMatchObject({ coverage: "full", residual: [] });
+    expect(runtimeCompiledCard("BT5-027")).toMatchObject({ effects: [], coverage: "full", residual: [] });
   });
 });
