@@ -15,6 +15,23 @@ describe("BT8-029 Frozomon", () => {
     expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("frozomon").permanentId, target: { kind: "player" } }).ok).toBe(false);
   });
 
+  it("can attack when the opponent's only sourced Digimon is in breeding", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT8-029", as: "frozomon" }] },
+      1: {
+        breeding: { card: "BT8-021", as: "breeding", under: ["BT8-002"] },
+        security: ["BT8-034"],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("frozomon").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[1]!.breeding?.permanentId).toBe(s.perm("breeding").permanentId);
+  });
+
   it("returns an opposing level 3 when an opponent's digivolution card is trashed", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT8-031", as: "host", under: ["BT8-029"] }, "BT8-021"], hand: [{ card: "BT8-022", as: "snowAgumon" }] },
