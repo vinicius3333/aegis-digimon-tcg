@@ -34,4 +34,11 @@ describe("ST14-07 Baalmon", () => {
     await s.ready();
     expect(s.perm("host").currentDP).toBe(baseDp + 2000);
   });
+
+  it("does not use a Wizard in the stack to qualify a non-Wizard host", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "ST14-05", as: "host", under: ["ST14-07"] }] } });
+    const baseDp = s.perm("host").currentDP;
+    await s.ready();
+    expect(s.perm("host").currentDP).toBe(baseDp);
+  });
 });
