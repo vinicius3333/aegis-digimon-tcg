@@ -48,7 +48,7 @@ describe("BT10-082 Beelzemon", () => {
       0: {
         battleArea: [{ card: "BT10-012", as: "xrosHeartBase" }],
         hand: [{ card: "BT10-082", as: "evolving" }],
-        deck: ["BT1-001", "BT1-002", "BT1-003"],
+        deck: ["BT1-009", "BT1-010", "BT1-011"],
         trash: Array.from({ length: 7 }, () => "BT1-009"),
       },
       1: { battleArea: [{ card: "BT1-015", as: "level4" }] },
