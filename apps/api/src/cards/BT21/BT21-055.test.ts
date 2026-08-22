@@ -42,9 +42,7 @@ describe("BT21-055 Sunarizamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT21-055", as: "host", under: [{ card: "BT21-055", as: "stacked" }] },
-          ],
+          battleArea: [{ card: "BT21-055", as: "host", under: [{ card: "BT21-055", as: "stacked" }] }],
         },
         1: {
           battleArea: [
@@ -56,11 +54,7 @@ describe("BT21-055 Sunarizamon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
 
-    await advance(s.engine).verb.trashDigivolutionCards(
-      s.perm("host").permanentId,
-      [s.inst("stacked").instanceId],
-      0,
-    );
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("host").permanentId, [s.inst("stacked").instanceId], 0);
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("eligible").permanentId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("tooExpensive").permanentId)).toBe(true);
