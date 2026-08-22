@@ -1,10 +1,19 @@
-import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { whenDigivolving } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
-const cardId = "ST4-12";
-const module: EffectModule = { cardId, effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] { if (timing !== EffectTiming.WhenDigivolving) return []; return [whenDigivolving({ source, effectKey: `${cardId}/disable-combat`, description: "[When Digivolving] 1 opposing Digimon can't attack or block until the end of their turn.", resolve: async (ctx) => { const candidates = ctx.game.player(ctx.game.opponentOf(source.ownerSeat)).battleArea.filter((p) => p.topCard !== undefined && isDigimon(ctx.game.definitionOf(p.topCard))).map((p) => p.permanentId); if (!candidates.length) return; const chosen = await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 }); if (chosen[0]) { ctx.fx.restrict(chosen[0], "attack", EffectDuration.UntilOpponentTurnEnd); ctx.fx.restrict(chosen[0], "block", EffectDuration.UntilOpponentTurnEnd); } } })]; } };
-registerCard(module);
-export default module;
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const compiled: CompiledCard = {
+  effects: [{
+    trigger: "WhenDigivolving",
+    actions: [{
+      kind: "Restrict",
+      target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+      restriction: "attackOrBlock",
+      duration: "untilOpponentTurnEnd",
+    }],
+  }],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard("ST4-12", compiled);
