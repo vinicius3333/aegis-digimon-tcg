@@ -23,7 +23,7 @@ describe("BT12-043 handwritten module", () => {
   });
 });
 
-it("buffs Marcus Damon cards during its controller's turn", async () => {
+it("gives Marcus cards Security Attack +1 but only gives DP to effective Digimon", async () => {
   const s = setupEngine({
     0: {
       battleArea: [
@@ -33,7 +33,7 @@ it("buffs Marcus Damon cards during its controller's turn", async () => {
     },
   });
   await s.ready();
-  expect(s.perm("marcus").currentDP).toBe(s.perm("marcus").baseDP + 3000);
+  expect(s.perm("marcus").currentDP).toBe(s.perm("marcus").baseDP);
   expect(observe(s.engine).hasKeyword(s.perm("marcus"), "SecurityAttack")).toBe(true);
 });
 

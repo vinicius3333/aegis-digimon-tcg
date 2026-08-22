@@ -1,5 +1,6 @@
 import {
   CardColor,
+  CardKind,
   EffectDuration,
   EffectTiming,
   isDigimon,
@@ -1097,7 +1098,10 @@ export function midBt12Module(cardId: string): EffectModule {
                 when: () => source.isOwnersTurn(),
                 resolve: async (ctx) => {
                   for (const p of mine(ctx, source, (d) => d.nameEn === "Marcus Damon")) {
-                    ctx.fx.modifyDP(p.permanentId, 3000, EffectDuration.Permanent);
+                    const definition = ctx.game.definitionOf(p.topCard!);
+                    const kinds = ctx.game.effectiveKinds?.(p.permanentId) ?? definition.kinds;
+                    if (kinds.includes(CardKind.Digimon))
+                      ctx.fx.modifyDP(p.permanentId, 3000, EffectDuration.Permanent);
                     ctx.fx.grantKeyword(p.permanentId, "SecurityAttack", EffectDuration.Permanent, 1);
                   }
                 },
