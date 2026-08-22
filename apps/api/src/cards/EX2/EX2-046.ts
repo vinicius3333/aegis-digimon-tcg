@@ -5,7 +5,6 @@ import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import { onPlay, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 import type { CompiledCard } from "@aegis/shared";
 
@@ -121,7 +120,6 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
 
 // The 50-copy rule is represented by the catalog's maxCountInDeck: 50. The remaining printed
 // clauses are registered as executable IR so the interpreter does not fall back to residual data.

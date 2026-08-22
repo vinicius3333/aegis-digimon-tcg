@@ -3,7 +3,6 @@ import { EffectTiming } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
-import { registerCard } from "../../engine/effects/registry.js";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 import type { CompiledCard } from "@aegis/shared";
 import { staticModifier } from "../../engine/effects/builders.js";
@@ -98,7 +97,6 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
 
 const compiled: CompiledCard = {
   effects: [

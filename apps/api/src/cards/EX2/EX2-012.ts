@@ -5,7 +5,6 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
 import type { EffectContext } from "../../engine/effects/EffectContext.js";
 import { whenDigivolving, onDeletion, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 import type { CompiledCard } from "@aegis/shared";
 
@@ -174,7 +173,6 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
 
 // Hand-authored compiled IR keeps the server-authoritative path faithful to the legacy module.
 // In particular, the deletion branch is executable rather than RawUnparsed: both named cards
