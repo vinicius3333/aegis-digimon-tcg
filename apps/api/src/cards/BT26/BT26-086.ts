@@ -3,10 +3,23 @@ import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
-const appmonStack = { controller: "mine", zone: "digivolutionCards", nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }] };
+const appmonStack = {
+  controller: "mine",
+  zone: "digivolutionCards",
+  hasLinkRequirement: true,
+  nameOrTrait: [{ tokens: ["Appmon"], match: "trait" }],
+};
 
 const linkThenAttack = [
-  { kind: "Link", target: { filter: appmonStack, count: 7, upTo: true }, differentNames: true, recipient: self, from: ["digivolutionCards"], payCost: false, optional: true },
+  {
+    kind: "Link",
+    target: { filter: appmonStack, count: 7, upTo: true },
+    differentNames: true,
+    recipient: self,
+    from: ["digivolutionCards"],
+    payCost: false,
+    optional: true,
+  },
   { kind: "Attack", target: self, withoutSuspending: true, optional: true },
 ];
 
@@ -20,10 +33,31 @@ export const compiled: CompiledCard = {
   effects: [
     { trigger: "OnPlay", actions: linkThenAttack },
     { trigger: "WhenDigivolving", actions: linkThenAttack },
-    { trigger: "AllTurns", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true }, actions: [
-      { kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, optional: true },
-      { kind: "SecurityManipulation", op: "moveTopToBottom", controller: "opponent", amount: 1, condition: { kind: "selfLinkCountAtLeast", value: 7, raw: "if this Digimon has 7 link cards" } },
-    ] }] },
+    {
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenLinked",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "Delete",
+              target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+              optional: true,
+            },
+            {
+              kind: "SecurityManipulation",
+              op: "moveTopToBottom",
+              controller: "opponent",
+              amount: 1,
+              condition: { kind: "selfLinkCountAtLeast", value: 7, raw: "if this Digimon has 7 link cards" },
+            },
+          ],
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],
