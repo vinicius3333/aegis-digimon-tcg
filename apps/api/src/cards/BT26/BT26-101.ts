@@ -21,7 +21,6 @@ export const compiled: CompiledCard = {
         [{ kind: "Unsuspend", target: { filter: ts, count: 1 }, optional: true }],
       ] },
     ] },
-    { trigger: "Security", isSecurity: true, actions: [{ kind: "PlayWithoutCost", target: { filter: tsCard, count: 1 }, from: ["hand", "trash"], payCost: false, optional: true }] },
   ],
   coverage: "full",
   residual: [],
