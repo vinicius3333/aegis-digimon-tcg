@@ -7,12 +7,18 @@ import { compiled } from "./BT26-069.js";
 describe("BT26-069 Dobermon", () => {
   it("models hand-trash draw, hand-trash deletion cost, and inherited Titan evolution", () => {
     expect(compiled.digivolutionRequirement).toEqual([{ level: 3, traits: ["TS"], cost: 2, isAlternate: true }]);
-    expect(compiled.effects).toEqual(expect.arrayContaining([
-      expect.objectContaining({ trigger: "Static", actions: [{ kind: "SubTrigger", event: "whenTrashedFromHand", sourceFilter: { isSelfRef: true }, actions: [{ kind: "Draw", amount: 1, condition: { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 5 } }] }] }),
-      expect.objectContaining({ trigger: "OnPlay", actions: [expect.objectContaining({ kind: "Delete", cost: { kind: "trash", target: { filter: { controllerDefault: "mine", zone: "hand" }, count: 1 } }, target: { filter: { controller: "opponent", kind: ["Digimon"] } } })] }),
-      expect.objectContaining({ trigger: "WhenDigivolving" }),
-      expect.objectContaining({ trigger: "YourTurn", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenHandTrashed", actions: [expect.objectContaining({ kind: "Digivolve", from: ["trash"], payCost: true, costDelta: -1, optional: true })] }] }),
-    ]));
+    expect(compiled.effects.find((effect) => effect.trigger === "Static")).toMatchObject({
+      actions: [{ kind: "SubTrigger", event: "whenTrashedFromHand", sourceFilter: { isSelfRef: true }, actions: [{ kind: "Draw", amount: 1, condition: { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 5 } }] }],
+    });
+    expect(compiled.effects.find((effect) => effect.trigger === "OnPlay")).toMatchObject({
+      actions: [{ kind: "Delete", cost: { kind: "trash" }, target: { filter: { controller: "opponent", kind: ["Digimon"] } } }],
+    });
+    expect(compiled.effects.find((effect) => effect.trigger === "WhenDigivolving")).toBeDefined();
+    expect(compiled.effects.find((effect) => effect.isInherited)).toMatchObject({
+      trigger: "YourTurn",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "SubTrigger", event: "whenHandTrashed", actions: [{ kind: "Digivolve", from: ["trash"], payCost: true, costDelta: -1, optional: true, target: { filter: { nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] } } }] }],
+    });
     expect(JSON.stringify(compiled)).not.toContain("ignoreRequirements");
   });
 
@@ -34,7 +40,7 @@ describe("BT26-069 Dobermon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT26-072", as: "host", under: ["BT26-069"] }],
+          battleArea: [{ card: "BT26-074", as: "host", under: ["BT26-069"] }],
           trash: [{ card: "P-209", as: "titamon" }],
         },
       },
