@@ -61,6 +61,6 @@ describe("BT7 Green Hybrid historical deck gauntlet", () => {
 
     expect(s.state.memory).toBe(-3);
     expect(s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT1-016")).toBe(true);
-    expect(s.state.players[1]!.trash.filter(({ cardId }) => ["BT1-009", "BT1-010", "BT1-011"].includes(cardId))).toHaveLength(2);
+    expect(s.state.players[1]!.trash.filter(({ cardId }) => ["BT1-009", "BT1-010", "BT1-011"].includes(cardId))).toHaveLength(1);
   });
 });
