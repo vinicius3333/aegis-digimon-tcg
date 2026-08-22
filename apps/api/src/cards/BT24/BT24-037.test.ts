@@ -58,7 +58,7 @@ describe("BT24-037 Silphymon", () => {
         0: { battleArea: [{ card: "BT24-037", as: "silphymon" }] },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 5000 }] },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
@@ -82,7 +82,7 @@ describe("BT24-037 Silphymon", () => {
         },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 10000 }] },
       },
-      { autoAcceptOptional: false, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("target").topCard.instanceId, s.perm("buffed").topCard.instanceId);
     s.state.memory = 3;
@@ -96,7 +96,12 @@ describe("BT24-037 Silphymon", () => {
         instanceId: s.inst("silphymon").instanceId,
       } as never),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-037"));
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-037") &&
+        s.perm("buffed").currentDP === before + 5000,
+      5000,
+    );
 
     expect(s.state.memory).toBe(3);
     expect(s.perm("buffed").currentDP).toBe(before + 5000);
@@ -143,5 +148,33 @@ describe("BT24-037 Silphymon", () => {
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("source").instanceId);
+  });
+
+  it("uses the inherited leave effect to play a qualifying card from its host's stack (Q5619)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT1-026",
+              as: "host",
+              under: [{ card: "BT24-027", as: "played" }, "BT24-037"],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(1);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("played").instanceId,
+      ),
+    );
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT24-027");
   });
 });
