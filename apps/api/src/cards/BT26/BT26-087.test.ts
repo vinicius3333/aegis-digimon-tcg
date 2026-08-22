@@ -35,8 +35,10 @@ describe("BT26-087 Toya Kuga", () => {
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("toya"));
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.deck.some((c) => c.instanceId === s.inst("tsTrash").instanceId)).toBe(true);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("handTs").instanceId })).toEqual({
-      ok: true,
-    });
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("toya"));
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("handTs").instanceId));
+
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
   });
 });
