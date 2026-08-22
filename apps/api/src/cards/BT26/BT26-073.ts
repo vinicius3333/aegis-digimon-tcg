@@ -48,6 +48,8 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ names: ["Aegiomon"], cost: 3, isAlternate: true }],
+  assemblyRequirement: [{ reduceCost: 2, materials: [{ levelMax: 4, nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }, { tokens: ["TS"], match: "trait" }], count: 1 }] }],
 };
 
 registerIrCard("BT26-073", compiled);

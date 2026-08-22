@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { EffectDuration, EffectTiming, type CardDefinition, type Seat } from "@aegis/shared";
+import { assemblyRequirementFor, digivolutionRequirementsFor } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
@@ -25,6 +26,13 @@ it("encodes BT26-073's exclusive cost choice and static clauses in IR", () => {
   expect(compiled.effects?.[2]?.actions?.[0]).toMatchObject({ kind: "PlayWithoutCost", from: ["hand", "trash"], payCost: false, optional: true });
   expect(compiled.effects?.[3]).toMatchObject({ isInherited: true, actions: [{ kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: 1 } }] });
   expect(compiled.effects?.[4]?.actions?.[0]).toMatchObject({ kind: "GrantStatic", grant: "trait", tokens: ["Wizard"] });
+});
+
+it("exposes the printed Aegiomon evolution and Chronomon-or-TS Assembly requirements", () => {
+  expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({ names: ["Aegiomon"], cost: 3, isAlternate: true });
+  expect(assemblyRequirementFor(CARD_ID)).toEqual([
+    { reduceCost: 2, materials: [{ levelMax: 4, nameOrTrait: [{ tokens: ["Chronomon"], match: "text" }, { tokens: ["TS"], match: "trait" }], count: 1 }] },
+  ]);
 });
 
 function fakeDef(over: Partial<CardDefinition> = {}): CardDefinition {
