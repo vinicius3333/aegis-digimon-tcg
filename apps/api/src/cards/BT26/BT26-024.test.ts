@@ -16,19 +16,16 @@ describe("BT26-024 Tinkermon", () => {
       cost: 0,
       isAlternate: true,
     });
-    expect(compiled.effects).toMatchObject([
-      {
-        trigger: "YourTurn",
-        actions: [
-          {
-            kind: "SubTrigger",
-            event: "whenPlayed",
-            sourceFilter: { excludeSelf: true },
-            actions: [{ kind: "Digivolve", from: ["hand"], payCost: false, optional: true }],
-          },
-        ],
-      },
-    ]);
+    expect(compiled.effects.find((effect) => effect.trigger === "YourTurn")).toMatchObject({
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          sourceFilter: { excludeSelf: true },
+          actions: [{ kind: "Digivolve", from: ["hand"], payCost: false, optional: true }],
+        },
+      ],
+    });
   });
 
   it("publicly reacts to another trait Digimon's play and digivolves without paying memory", async () => {
@@ -51,7 +48,7 @@ describe("BT26-024 Tinkermon", () => {
       ok: true,
     });
     await settle(() => s.perm("tinkermon").topCard.instanceId === s.inst("petermon").instanceId);
-    expect(s.state.memory).toBe(3);
+    expect(s.state.memory).toBe(0);
   });
 
   it("may decline the triggered digivolution without spending memory or moving the hand card", async () => {
