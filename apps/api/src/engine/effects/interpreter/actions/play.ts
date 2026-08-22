@@ -94,7 +94,11 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           ctx.lastPlayedPermanentIds = [];
           return false;
         }
-        const fromSecurity = action.from?.includes("security") === true;
+        const fromSecurity =
+          action.from?.includes("security") === true ||
+          (ctx.activeTiming === "Security" &&
+            !ctx.game.player(self.ownerSeat).trash.some((card) => card.instanceId === self.instanceId)) ||
+          ctx.game.player(self.ownerSeat).security.some((card) => card.instanceId === self.instanceId);
         if (fromSecurity) {
           const played = await ctx.fx.playFromSecurity(self.instanceId, { payCost: action.payCost });
           ctx.lastPlayedPermanentIds = played !== undefined ? [played.permanentId] : [];
@@ -308,7 +312,9 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             candidate === undefined ? undefined : ctx.game.definitionOf({ cardId: candidate.cardId } as never).playCost;
           await ctx.fx.useOptionFromHand(ctx, optionId, usedCost, {
             payCost: action.payCost,
-            ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
+            ...((action.reduceCostBy ?? action.costReduction) !== undefined
+              ? { costDelta: action.reduceCostBy ?? action.costReduction }
+              : {}),
           });
         }
         const permanentIds = chosen.filter((instanceId) => !optionIds.includes(instanceId));
@@ -319,7 +325,9 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                 breeding: action.breeding,
                 suspended: action.suspended,
                 effectSourceCardId: ctx.source.cardId,
-                ...(action.reduceCostBy !== undefined ? { costDelta: action.reduceCostBy } : {}),
+                ...((action.reduceCostBy ?? action.costReduction) !== undefined
+                  ? { costDelta: action.reduceCostBy ?? action.costReduction }
+                  : {}),
                 ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
               })
             : [];

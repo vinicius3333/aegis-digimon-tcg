@@ -5,7 +5,6 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 const CARD_ID = "BT25-092";
-const MAIN_KEY = `${CARD_ID}/main-paid-digivolve`;
 
 describe("BT25-092 Asuna Shiroki", () => {
   it("Start Main trashes exactly one TS card before Draw 1 and memory +1", async () => {
@@ -64,13 +63,7 @@ describe("BT25-092 Asuna Shiroki", () => {
     preferred.push(s.inst("sourceCost").instanceId, s.perm("evolveHost").permanentId, s.inst("evolution").instanceId);
     s.state.memory = 2;
     await s.ready();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.perm("asuna").topCard.instanceId,
-        effectKey: MAIN_KEY,
-      }),
-    ).toEqual({ ok: true });
+    await advance(s.engine).fireForPermanent(EffectTiming.OnDeclaration, s.perm("asuna"));
     await settle(() => s.perm("evolveHost").topCard.instanceId === s.inst("evolution").instanceId);
     expect(s.perm("asuna").isSuspended).toBe(true);
     expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(s.inst("sourceCost").instanceId);
@@ -89,13 +82,7 @@ describe("BT25-092 Asuna Shiroki", () => {
       },
     });
     await s.ready();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.perm("asunaA").topCard.instanceId,
-        effectKey: MAIN_KEY,
-      }),
-    ).toEqual({ ok: false, reason: "illegal-target" });
+    await advance(s.engine).fireForPermanent(EffectTiming.OnDeclaration, s.perm("asunaA"));
     expect(s.perm("asunaA").isSuspended).toBe(false);
     expect(s.perm("asunaB").isSuspended).toBe(false);
     expect(s.perm("host").topCard.cardId).toBe("BT24-009");

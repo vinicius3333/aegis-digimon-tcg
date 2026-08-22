@@ -24,6 +24,20 @@ import type { Cost, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
  */
 export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   if (cost.kind === "raw") return false;
+  if (cost.kind === "trash" && cost.target?.from?.includes("hand") && cost.target.from.includes("digivolutionCards")) {
+    const filter = { ...cost.target.filter, zone: undefined };
+    const candidates = candidateLooseInstances(ctx, { ...cost.target, filter }, ["hand", "digivolutionCards"]);
+    const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
+    return required > 0 && candidates.length >= required;
+  }
+  if (cost.kind === "trash" && cost.target?.filter.zone === "digivolutionCards" && cost.target.filter.isSelfRef === true) {
+    const self = ctx.source.permanent();
+    if (self === undefined) return false;
+    const { zone: _zone, isSelfRef: _isSelfRef, controller: _controller, ...stackCardFilter } = cost.target.filter;
+    const candidates = self.stack.filter((card) => definitionMatches(stackCardFilter, ctx.game.definitionOf(card)));
+    const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
+    return required > 0 && candidates.length >= required;
+  }
   if (cost.kind === "moveToBattleArea") {
     const self = ctx.source.permanent();
     return self !== undefined && self.inBreeding && ctx.game.player(ctx.source.ownerSeat).battleArea.length === 0;
@@ -329,6 +343,17 @@ export async function payCost(
       return true;
     }
     case "trash": {
+      if (cost.target?.from?.includes("hand") && cost.target.from.includes("digivolutionCards")) {
+        const filter = { ...cost.target.filter, zone: undefined };
+        const candidates = candidateLooseInstances(ctx, { ...cost.target, filter }, ["hand", "digivolutionCards"]);
+        const want = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
+        if (want <= 0 || candidates.length < want) return false;
+        const chosen = await pickLoose(ctx, { ...cost.target, filter, count: want }, candidates);
+        if (chosen.length !== want) return false;
+        const moved = await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
+        if (out) out.paidCount = moved.length;
+        return moved.length === want;
+      }
       if (!cost.target) return false;
       // "By trashing (the top/bottom card of) your/their security stack" — a SECURITY-trash
       // compiler does not always tag the filter with zone:"security" (BT18-082's "by trashing
@@ -513,9 +538,10 @@ export async function payCost(
           if (host === undefined) return false;
           const n = cost.target.count === "all" ? host.stack.length : cost.target.count;
           if (n <= 0) return false;
+          const { zone: _zone, isSelfRef: _isSelfRef, controller: _controller, ...stackCardFilter } = cost.target.filter;
           let eligible: LooseCandidate[] = Array.from(host.stack)
             .filter((card) => cost.target!.filter.faceDown !== true || !card.faceUp)
-            .filter((card) => definitionMatches(cost.target!.filter, ctx.game.definitionOf(card)))
+            .filter((card) => definitionMatches(stackCardFilter, ctx.game.definitionOf(card)))
             .filter((card) => ctx.fx.canTrashDigivolutionCard?.(card.instanceId) !== false)
             .map((card) => ({
               instanceId: card.instanceId,
