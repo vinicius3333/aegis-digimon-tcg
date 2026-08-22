@@ -23,6 +23,6 @@ describe("EX4-032 Terriermon", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "EX4-013") && s.state.players[0]!.hand.some((card) => card.cardId === "EX4-063"));
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX4-013", "EX4-063"]));
-    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 });

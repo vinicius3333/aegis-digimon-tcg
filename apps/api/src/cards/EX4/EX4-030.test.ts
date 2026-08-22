@@ -234,7 +234,7 @@ describe("EX4-030 Kuzuhamon", () => {
   });
 
   it("[When Digivolving] remains optional when no eligible Option is available", () => {
-    expect(runtimeCompiledCard("EX4-030")?.effects?.find((effect) => effect.trigger === "WhenDigivolving")?.optional).toBe(true);
+    expect(runtimeCompiledCard("EX4-030")?.effects?.find((effect) => effect.trigger === "WhenDigivolving")?.actions?.[0]?.optional).toBe(true);
   });
 
   it("[whenOptionUsed watcher] only fires for Option costs of 2 or more", () => {
