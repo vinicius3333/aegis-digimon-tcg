@@ -186,7 +186,7 @@ describe("A3 RevealAdd — reveal top N, add matching, rest to deck", () => {
   it("BT1-067 [On Play] reveals top 3 and adds the lone Lv.4 Digimon to hand", async () => {
     // The single matching candidate is still offered as a card selection (the client shows the
     // reveal); the harness answers it, and the assertion below is that nothing OPTIONAL was asked.
-    const s = setup({ autoSelectCards: true, autoAcceptOptional: true });
+    const s = setup({ autoSelectCards: true });
     const player = s.state.players[0] as PlayerState;
 
     const source = instance("BT1-067", 0, false); // Green Digimon, cost 3, On Play: RevealAdd 3
@@ -3572,7 +3572,7 @@ describe("EX6-060 — trash count suspends distinct eligible Digimon", () => {
 
 describe("BT12-014 — dynamic DP deletion budget", () => {
   it("adds 3000 to the 4000 deletion budget for each 2 digivolution cards", async () => {
-    const s = setup({ autoSelectCards: true });
+    const s = setup({ autoSelectCards: true, autoAcceptOptional: true });
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
     const base = digimon(0, 6000, "BT11-010");
