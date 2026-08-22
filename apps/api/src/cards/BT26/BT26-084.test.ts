@@ -19,7 +19,7 @@ describe("BT26-084 compiled behavior", () => {
 
   it("links one non-white level-four-or-lower System or Seven Code card from trash", () => {
     const linked = compiled.effects.find((effect) => effect.isLinked)!;
-    expect(linked.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true }, actions: [{ kind: "Link", from: ["trash"], payCost: false, optional: true, recipient: { isSelf: true }, target: { count: 1, filter: { zone: "trash", levelComparison: { op: "lte", value: 4 }, nameOrTrait: [
+    expect(linked.actions[0]).toMatchObject({ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true }, actions: [{ kind: "Link", from: ["trash"], payCost: false, optional: true, recipient: { isSelf: true }, target: { count: 1, filter: { zone: "trash", excludeColors: ["White"], levelComparison: { op: "lte", value: 4 }, nameOrTrait: [
       { tokens: ["System"], match: "trait" },
       { tokens: ["Seven Code"], match: "trait" },
     ] } } }] });

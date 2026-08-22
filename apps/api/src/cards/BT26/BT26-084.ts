@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const sevenCode = { nameOrTrait: [{ tokens: ["Seven Code"], match: "trait" }] };
-const linkedTrash = { controller: "mine", zone: "trash", kind: ["Digimon", "Tamer", "Option"], levelComparison: { op: "lte", value: 4 }, nameOrTrait: [
+const linkedTrash = { controller: "mine", zone: "trash", kind: ["Digimon", "Tamer", "Option"], excludeColors: ["White"], levelComparison: { op: "lte", value: 4 }, nameOrTrait: [
   { tokens: ["System"], match: "trait" },
   { tokens: ["Seven Code"], match: "trait" },
 ] };
