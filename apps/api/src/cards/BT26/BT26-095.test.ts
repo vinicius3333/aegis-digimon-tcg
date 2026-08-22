@@ -5,6 +5,12 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("BT26-095 Makoto Kuonji", () => {
+  it("requires the printed BEATBREAK placement cost", async () => {
+    const { getEffectModule } = await import("../../engine/effects/registry.js");
+    const effect = getEffectModule("BT26-095")!.effectsForTiming(EffectTiming.OnStartMainPhase, {} as never)[0]!;
+    expect(effect.optional).toBe(false);
+  });
+
   it("places the hand cost face down at the immutable stack bottom before drawing and gaining memory", async () => {
     const s = setupEngine(
       {
