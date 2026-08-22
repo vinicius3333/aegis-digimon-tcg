@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, getCompiledCard } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
@@ -24,14 +24,42 @@ import "../index.js";
 
 describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your Digimon", () => {
   it("loads the complete shared IR artifact without residual clauses", () => {
+    const definition = getCardDefinition("ST2-15");
     const compiled = getCompiledCard("ST2-15");
+    expect(definition?.effectText).toContain("play it as another Digimon without paying its memory cost");
     expect(compiled?.coverage).toBe("full");
     expect(compiled?.residual).toEqual([]);
-    expect(compiled?.effects[0]?.actions[1]).toMatchObject({
-      kind: "PlayWithoutCost",
-      from: ["digivolutionCards"],
-      payCost: false,
-    });
+    expect(compiled?.effects).toEqual([
+      {
+        trigger: "Main",
+        actions: [
+          {
+            kind: "SelectBind",
+            target: {
+              filter: { controller: "mine", kind: ["Digimon"], digivolutionCards: "hasAny" },
+              count: 1,
+              bindAs: "chosenHost",
+            },
+          },
+          {
+            kind: "PlayWithoutCost",
+            target: {
+              filter: {
+                zone: "digivolutionCards",
+                controller: "mine",
+                kind: ["Digimon"],
+                hostFilter: { boundRef: "chosenHost" },
+              },
+              count: 1,
+            },
+            from: ["digivolutionCards"],
+            payCost: false,
+            optional: true,
+          },
+        ],
+      },
+      { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },
+    ]);
   });
 
   it("plays a Digimon digi-card from under one of your Digimon without cost", async () => {
