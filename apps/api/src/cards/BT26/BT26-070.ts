@@ -30,7 +30,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       frequency: "OncePerTurn",
       actions: [{
-        kind: "PlayWithoutCost",
+        kind: "UseOptionWithoutCost",
         target: { filter: optionFromTrash, count: 1 },
         from: ["trash"],
         payCost: true,
@@ -48,6 +48,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ level: 3, traits: ["Glowing Dawn"], cost: 2, isAlternate: true }],
 };
 
 registerIrCard("BT26-070", compiled);

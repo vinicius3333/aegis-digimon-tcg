@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { CardKind, EffectTiming, type CardDefinition, type CardInstance, type Seat } from "@aegis/shared";
+import { CardKind, digivolutionRequirementsFor, EffectTiming, type CardDefinition, type CardInstance, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
@@ -41,11 +41,12 @@ function source(): CardSource {
 
 describe("BT26-070 bottom face-down Tamer cost", () => {
   it("encodes the full two-card Tamer cost and reduced Glowing Dawn Option play", () => {
+    expect(digivolutionRequirementsFor("BT26-070")).toContainEqual({ level: 3, traits: ["Glowing Dawn"], cost: 2, isAlternate: true });
     expect(compiled.effects?.[2]).toMatchObject({
       trigger: "Main",
       frequency: "OncePerTurn",
       actions: [{
-        kind: "PlayWithoutCost",
+        kind: "UseOptionWithoutCost",
         from: ["trash"],
         payCost: true,
         reduceCostBy: 2,
