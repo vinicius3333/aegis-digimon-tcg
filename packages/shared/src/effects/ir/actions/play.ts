@@ -8,6 +8,7 @@ import type { ActionBase } from "./base.js";
 
 export interface PlayWithoutCostAction extends ActionBase {
   kind: "PlayWithoutCost";
+  playedByDecode?: boolean;
   /** What is played; `isSelf` for "play this card". */
   target: Target;
   /** "from your hand or trash", "from security". */

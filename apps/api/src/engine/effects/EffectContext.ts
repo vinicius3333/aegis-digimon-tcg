@@ -149,6 +149,8 @@ export type RemovalCause = "byEffect" | "byBattle" | "byRule";
  * sections 2 and 10).
  */
 export interface TriggerInfo {
+  /** The play was initiated by an explicitly marked Decode replacement payload. */
+  playedByDecode?: boolean;
   /** Seat whose turn was active when the event occurred (preserved across deferred rule triggers). */
   turnSeat?: Seat;
   /** Controller of a deleted permanent, captured before deferred rule processing removes it. */

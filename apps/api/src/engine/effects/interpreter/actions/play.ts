@@ -369,6 +369,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
                 breeding: action.breeding,
                 suspended: action.suspended,
                 effectSourceCardId: ctx.source.cardId,
+                ...(action.playedByDecode === true ? { playedByDecode: true } : {}),
                 ...(costReduction !== undefined ? { costDelta: costReduction } : {}),
                 ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
                 hostPermanentIds,

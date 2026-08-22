@@ -2461,6 +2461,7 @@ export class GameEngine {
       playedFromZone?: ZoneRef;
       digiXrosMaterialCount?: number;
       playedByEffectSourceCardId?: string;
+      playedByDecode?: boolean;
     },
   ): Promise<void> {
     const attackerPermanentId = this.combat?.currentAttackerId;
@@ -2482,6 +2483,7 @@ export class GameEngine {
       ...(opts?.playedByEffectSourceCardId !== undefined
         ? { playedByEffectSourceCardId: opts.playedByEffectSourceCardId }
         : {}),
+      ...(opts?.playedByDecode === true ? { playedByDecode: true } : {}),
     });
     const subjectPermanentId = subjectPermanent?.permanentId;
     if (subjectPermanentId === undefined) return;

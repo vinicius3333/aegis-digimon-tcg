@@ -28,7 +28,9 @@ import type { Condition, Filter } from "@aegis/shared";
  *  unmet so the interpreter never guesses a gate it could not parse. */
 export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
   const mine = ctx.source.ownerSeat;
-  const opp = ctx.game.opponentOf(mine);
+  // Some focused IR probes evaluate local trigger predicates with a minimal game double that
+  // omits opponentOf; defer to the local seat for predicates that do not read opponent state.
+  const opp = ctx.game.opponentOf?.(mine) ?? mine;
   switch (cond.kind) {
     case "true":
       return true;
@@ -673,6 +675,12 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return ctx.source.permanent()?.enteredByEffect === true;
     case "triggerPlayedByEffectSource":
       return cond.sourceCardId !== undefined && ctx.trigger.playedByEffectSourceCardId === cond.sourceCardId;
+    case "triggerPlayedByDecode":
+      return ctx.trigger.playedByDecode === true;
+    case "lastSuspendedIsMine": {
+      const ids = ctx.lastSuspendedPermanentIds ?? [];
+      return ids.some((id) => ctx.game.permanentById(id)?.controllerSeat === mine);
+    }
     case "isDnaDigivolving":
       // WhenDigivolving: the digivolve that reached this window was a DNA digivolve (two materials
       // merged). The DNA-digivolve fire seam sets TriggerInfo.isDnaDigivolve; a single digivolve and

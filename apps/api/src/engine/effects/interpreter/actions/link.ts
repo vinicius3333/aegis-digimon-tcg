@@ -75,6 +75,17 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
       ownerSeat: ctx.source.ownerSeat,
     });
   }
+  if (
+    action.target.filter.isSelfRef === true &&
+    ctx.source.permanent() !== undefined &&
+    !candidates.some((candidate) => candidate.instanceId === ctx.source.instanceId)
+  ) {
+    candidates.push({
+      instanceId: ctx.source.instanceId,
+      cardId: ctx.source.cardId,
+      ownerSeat: ctx.source.ownerSeat,
+    });
+  }
   const eligibleCandidates = candidates.filter((cand) =>
     linkEligible(ctx.game.definitionOf({ cardId: cand.cardId } as never)),
   );
