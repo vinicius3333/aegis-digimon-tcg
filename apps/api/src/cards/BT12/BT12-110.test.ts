@@ -55,7 +55,7 @@ describe("BT12-110 handwritten module", () => {
 
   it("deletes the opposing Digimon with the lowest level from Main", async () => {
     const s = setupEngine({
-      0: { hand: [{ card: "BT12-110", as: "cluster" }] },
+      0: { hand: [{ card: "BT12-110", as: "cluster" }], battleArea: [{ card: "BT12-085", as: "purpleSource" }] },
       1: { battleArea: [{ card: "BT1-009", as: "lowest" }, { card: "BT1-015", as: "higher" }] },
     }, { autoAcceptOptional: true, autoSelectCards: true });
     await s.ready();
