@@ -9,6 +9,7 @@ import {
   type Seat,
 } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./EX4-069.js";
@@ -29,6 +30,10 @@ const definition = (id: string, cost: number): CardDefinition => ({
 });
 
 describe("EX4-069 Gaia Reactor", () => {
+  it("is represented by full residual-free IR", () => {
+    expect(runtimeCompiledCard("EX4-069")).toMatchObject({ coverage: "full", residual: [] });
+  });
+
   it("deletes every Digimon except one highest-play-cost Digimon per player", async () => {
     const self = {
       permanentId: "self",
