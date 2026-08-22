@@ -1,4 +1,4 @@
-import { Phase } from "@aegis/shared";
+import { digivolutionRequirementsFor, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -7,6 +7,9 @@ import "../index.js";
 const CARD_ID = "BT26-040";
 
 describe("BT26-040 Drimogemon", () => {
+  it("exposes the printed level-3 DM evolution", () => {
+    expect(digivolutionRequirementsFor(CARD_ID)).toContainEqual({ level: 3, traits: ["DM"], cost: 2, isAlternate: true });
+  });
   it("uses the exact off-color Lv.3 DM alternate evolution for cost 2", async () => {
     const s = setupEngine({
       0: {
