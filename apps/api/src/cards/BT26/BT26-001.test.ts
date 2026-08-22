@@ -72,6 +72,28 @@ describe("BT26-001 Yokomon", () => {
     );
   });
 
+  it("may decline the triggered digivolution without spending memory or moving the candidate", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-013", as: "host", under: [CARD_ID] }],
+          hand: [{ card: "BT26-015", as: "candidate" }],
+          trash: [{ card: "BT1-001", as: "moved" }],
+          deck: ["BT1-002"],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    await advance(s.engine).verb.returnToDeck([s.inst("moved").instanceId]);
+
+    expect(s.perm("host").topCard.cardId).toBe("BT26-013");
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("candidate").instanceId);
+  });
+
   it("spends its once-per-turn budget only after a successful evolution", async () => {
     const s = setupEngine(
       {
