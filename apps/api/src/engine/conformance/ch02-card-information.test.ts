@@ -17,9 +17,11 @@ import {
 import { cite, markNotTestable } from "./_kb.js";
 import "./not-testable.js";
 import { definitionMatches } from "../effects/interpreter.js";
+import { matchNameOrTrait } from "../effects/interpreter/matching/definition.js";
 import type { Primitives } from "../effects/EffectContext.js";
 import { MemoryGauge } from "../MemoryGauge.js";
 import { applyOverflow } from "../state/access.js";
+import { definitionOf } from "../cards/cardData.js";
 import { validateDecklist } from "../deckValidation.js";
 import { RED_DECK } from "../testDecks.js";
 import { setupEngine as setup, makeInstance as instance, makeDigimon as digimon, settle } from "../testkit/harness.js";
@@ -82,6 +84,14 @@ describe("§2-3-1 Name (comprehensive-0034)", () => {
 
     const otherDef = requireCardDefinition("AD1-001");
     expect(definitionMatches(filter, otherDef)).toBe(false);
+  });
+
+  it("matches printed 'in any trait' wording by trait substring only", () => {
+    const aquatic = definitionOf("BT15-025");
+
+    expect(matchNameOrTrait(aquatic, { tokens: ["Aqua"], match: "traitContains" })).toBe(true);
+    expect(matchNameOrTrait(aquatic, { tokens: ["Aqua"], match: "trait" })).toBe(false);
+    expect(matchNameOrTrait(definitionOf("BT1-009"), { tokens: ["Aqua"], match: "traitContains" })).toBe(false);
   });
 });
 

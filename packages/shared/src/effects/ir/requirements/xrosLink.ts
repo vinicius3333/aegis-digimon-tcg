@@ -15,7 +15,10 @@ export interface DigiXrosMaterial {
    * Disjunction ACROSS predicate kinds ("[Greymon] in name OR [Dragon] trait" — BT19-065,
    * BT21-030). A material qualifies on ANY ref, unlike the AND-combined `names`+`traits`.
    */
-  nameOrTrait?: { tokens: string[]; match: "name" | "nameExact" | "trait" | "text" | "any" }[];
+  nameOrTrait?: {
+    tokens: string[];
+    match: "name" | "nameExact" | "trait" | "traitContains" | "text" | "any";
+  }[];
   /** The "Lv.N or {lower,higher}" comparison form, distinct from exact `level`/`levelMin`/`levelMax`. */
   levelComparison?: { op: "lte" | "gte" | "eq"; value: number };
   /** Original element label when it is not a plain card name ("Lv.4 w/[Tyrannomon] in name"). */

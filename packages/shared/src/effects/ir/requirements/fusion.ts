@@ -37,7 +37,10 @@ export interface AssemblyMaterial {
    * EX12-016/-017; "[Chronomon] in text OR [TS] trait" — BT26-073). An "or" joining tokens of
    * the SAME kind folds into the already OR-matched `traits`/`names` arrays instead.
    */
-  nameOrTrait?: { tokens: string[]; match: "name" | "nameExact" | "trait" | "text" | "any" }[];
+  nameOrTrait?: {
+    tokens: string[];
+    match: "name" | "nameExact" | "trait" | "traitContains" | "text" | "any";
+  }[];
   /** Original selectMessage label when it is not a plain card name. */
   desc?: string;
   /** Default 1. */

@@ -18,7 +18,7 @@ describe("BT24-029 Whamon", () => {
       expect(action.abortOnDecline).toBe(true);
       expect(action.cost.target.filter.nameOrTrait).toEqual([
         { tokens: ["Sea Beast", "TS"], match: "trait" },
-        { tokens: ["Aqua", "Sea Animal"], match: "trait" },
+        { tokens: ["Aqua", "Sea Animal"], match: "traitContains" },
       ]);
     }
   });
@@ -57,6 +57,27 @@ describe("BT24-029 Whamon", () => {
     expect(observe(s.engine).isRestricted(s.perm("restricted"), "suspend")).toBe(true);
   });
 
+  it("accepts an Aquatic card for Q5609's [Aqua] in any trait wording", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-029", as: "whamon" }],
+          hand: [{ card: "BT15-025", as: "aquatic" }],
+        },
+        1: { battleArea: [{ card: "BT24-083", as: "restricted" }] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("aquatic").instanceId, s.perm("restricted").permanentId);
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("whamon"));
+
+    expect(s.perm("whamon").stack[0]?.instanceId).toBe(s.inst("aquatic").instanceId);
+    expect(observe(s.engine).isRestricted(s.perm("restricted"), "suspend")).toBe(true);
+  });
+
   it("does not restrict suspension when the placement cost is unavailable", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT24-029", as: "whamon" }] },
@@ -75,7 +96,7 @@ describe("BT24-029 Whamon", () => {
         0: {
           battleArea: [
             { card: "BT24-029", as: "whamon", under: [{ card: "BT24-083", as: "ownTarget" }] },
-            { card: "BT24-029", as: "other", under: [{ card: "BT24-083", as: "otherTarget" }] },
+            { card: "BT24-030", as: "other", under: [{ card: "BT24-083", as: "otherTarget" }] },
           ],
         },
       },
@@ -115,5 +136,29 @@ describe("BT24-029 Whamon", () => {
     );
 
     expect(s.perm("other").stack.map((card) => card.instanceId)).toContain(s.inst("otherTarget").instanceId);
+  });
+
+  it("digivolves from a level 4 TS card for cost 3", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-010", as: "base" }],
+        hand: [{ card: "BT24-029", as: "whamon" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("whamon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("whamon").instanceId);
+
+    expect(s.state.memory).toBe(2);
   });
 });
