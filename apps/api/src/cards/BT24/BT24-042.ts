@@ -15,6 +15,7 @@ export const compiled: CompiledCard = {
           event: "wouldDigivolve",
           sourceFilter: {
             isSelfRef: true,
+            zone: "battleArea",
           },
           into: {
             controllerDefault: "mine",
@@ -44,35 +45,23 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenHandTrashed",
+          sourceFilter: {
+            controller: "mine",
+          },
           actions: [
             {
               kind: "Digivolve",
               target: {
                 filter: {
-                  controllerDefault: "mine",
-                  kind: ["Digimon"],
-                  nameOrTrait: [
-                    {
-                      tokens: ["Demon", "Titan"],
-                      match: "trait",
-                    },
-                  ],
+                  isSelfRef: true,
                 },
                 count: 1,
+                isSelf: true,
               },
               into: {
                 controllerDefault: "mine",
                 kind: ["Digimon"],
-                nameOrTrait: [
-                  {
-                    tokens: ["Titamon"],
-                    match: "name",
-                  },
-                  {
-                    tokens: ["Titan"],
-                    match: "trait",
-                  },
-                ],
+                or: [{ namesExact: ["Titamon"] }, { nameOrTrait: [{ tokens: ["Titan"], match: "trait" }] }],
               },
               from: ["trash"],
               reduceCost: 1,
@@ -89,7 +78,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Tsunomon"],
+      namesExact: ["Tsunomon"],
       cost: 0,
       isAlternate: true,
     },
