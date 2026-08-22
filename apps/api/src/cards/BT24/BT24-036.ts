@@ -8,6 +8,24 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "OnDeletion",
+      isLinked: true,
+      actions: [
+        {
+          kind: "ModifyDP",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+            },
+            count: 1,
+          },
+          amount: -5000,
+          duration: "forTheTurn",
+        },
+      ],
+    },
+    {
       trigger: "Security",
       actions: [
         {
@@ -60,6 +78,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["Appmon"], cost: 2 }],
 };
 
 registerIrCard("BT24-036", compiled);
