@@ -55,6 +55,18 @@ const compiled: CompiledCard = {
             "isSelf": true
           },
           "optional": true
+        },
+        {
+          "kind": "Unsuspend",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [{ "tokens": ["Greymon"], "match": "name" }]
+            },
+            "count": 1
+          },
+          "optional": true
         }
       ],
       "frequency": "OncePerTurn",
@@ -88,6 +100,18 @@ const compiled: CompiledCard = {
             "isSelf": true
           },
           "optional": true
+        },
+        {
+          "kind": "Unsuspend",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [{ "tokens": ["Greymon"], "match": "name" }]
+            },
+            "count": 1
+          },
+          "optional": true
         }
       ],
       "frequency": "OncePerTurn",
@@ -119,6 +143,18 @@ const compiled: CompiledCard = {
             },
             "count": 1,
             "isSelf": true
+          },
+          "optional": true
+        },
+        {
+          "kind": "Unsuspend",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [{ "tokens": ["Greymon"], "match": "name" }]
+            },
+            "count": 1
           },
           "optional": true
         }
@@ -157,21 +193,20 @@ const compiled: CompiledCard = {
               },
               "payCost": true,
               "optional": true
-            }
-          ]
-        },
-        {
-          "kind": "RedirectAttack",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
             },
-            "count": 1
-          },
-          "optional": true
+            {
+              "kind": "RedirectAttack",
+              "target": {
+                "filter": {
+                  "controller": "mine",
+                  "kind": ["Digimon"]
+                },
+                "count": 1
+              },
+              "optional": true
+            }
+          ],
+          "frequency": "OncePerTurn"
         }
       ],
       "frequency": "OncePerTurn"
