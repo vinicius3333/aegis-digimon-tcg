@@ -1,9 +1,17 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./ST1-09.js";
+import { compiled } from "./ST1-09.js";
 import "./ST1-06.js";
 
 describe("ST1-09 MetalGreymon", () => {
+  it("registers the inherited blocked trigger as complete IR", () => {
+    expect(compiled).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [{ trigger: "WhenBlocked", isInherited: true, actions: [{ kind: "GainMemory", amount: 3 }] }],
+    });
+  });
+
   it("gains 3 memory when its host is blocked", async () => {
     const s = setupEngine(
       {

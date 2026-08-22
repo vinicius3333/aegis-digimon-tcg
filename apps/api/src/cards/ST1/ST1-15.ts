@@ -1,43 +1,25 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "dp": {
-                "op": "lte",
-                "value": 4000
-              }
-            },
-            "count": 2,
-            "upTo": true
-          }
-        }
-      ]
-    },
-    {
-      "trigger": "Security",
-      "actions": [
-        {
-          "kind": "ActivateMain"
-        }
+          kind: "Delete",
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 4000 } },
+            count: 2,
+            upTo: true,
+          },
+        },
       ],
-      "isSecurity": true
-    }
+    },
+    { trigger: "Security", actions: [{ kind: "ActivateMain" }], isSecurity: true },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST1-15", compiled);

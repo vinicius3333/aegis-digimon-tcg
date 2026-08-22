@@ -34,17 +34,16 @@ describe("ST1 WarGreymon historical deck gauntlet", () => {
     expect(wargreymon.currentDP).toBe(printedDp + 4000);
     expect(observe(s.engine).keywordAmount(wargreymon, "SecurityAttack")).toBe(3);
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: wargreymon.permanentId,
-      target: { kind: "player" },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: wargreymon.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     // Four consecutive checks each open their own security/loss timing windows. Wait for the
     // complete attack, rather than asserting against the first visible security mutation.
-    await settle(
-      () => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 1,
-      3000,
-    );
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 1, 3000);
 
     expect(s.state.players[1]!.security).toHaveLength(1);
   });

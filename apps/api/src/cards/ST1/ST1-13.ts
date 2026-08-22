@@ -1,56 +1,35 @@
-// @ts-nocheck
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const compiled: CompiledCard = {
-  "effects": [
+export const compiled: CompiledCard = {
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "ModifyDP",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": 1
-          },
-          "amount": 3000,
-          "duration": "forTheTurn"
-        }
-      ]
+          kind: "ModifyDP",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          amount: 3000,
+          duration: "forTheTurn",
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Security",
+      actions: [
         {
-          "kind": "GainKeyword",
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
-            "count": "all"
-          },
-          "keyword": {
-            "keyword": "SecurityAttack",
-            "amount": 1,
-            "raw": "＜Security Attack +1＞"
-          },
-          "playerScoped": true,
-          "duration": "untilYourTurnEnd"
-        }
+          kind: "GainKeyword",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
+          keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" },
+          duration: "untilYourTurnEnd",
+          playerWide: true,
+        },
       ],
-      "isSecurity": true
-    }
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("ST1-13", compiled);
