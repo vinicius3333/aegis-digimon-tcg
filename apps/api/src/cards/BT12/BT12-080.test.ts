@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-080.js";
 
@@ -13,6 +13,7 @@ describe("BT12-080 Wisemon", () => {
     );
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wise").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT12-071"));
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT12-071");
   });
 
@@ -22,6 +23,7 @@ describe("BT12-080 Wisemon", () => {
       { autoSelectCards: true, autoChooseOption: true },
     );
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("wise"));
+    await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT12-071"));
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT12-071");
   });
 
