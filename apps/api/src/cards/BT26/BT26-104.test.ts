@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { getCompiledCard } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import "./BT26-104.js";
+import "../index.js";
 
 describe("BT26-104 compiled fidelity", () => {
   it("registers memory, Shambala trash-to-draw, conditional Option use, and Security play", () => {
@@ -20,5 +24,20 @@ describe("BT26-104 compiled fidelity", () => {
     expect(card?.effects?.find((effect) => effect.trigger === "Security")?.actions).toMatchObject([
       { kind: "PlayWithoutCost", payCost: false },
     ]);
+  });
+
+  it("trashes a Shambala card to draw two on play", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT26-104", as: "kunlun" }],
+        hand: [{ card: "BT26-013", as: "shambalaCost" }],
+        deck: ["BT1-001", "BT1-002", "BT1-003"],
+      },
+    }, { autoSelectCards: true });
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("kunlun"));
+
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT26-013")).toBe(true);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 });
