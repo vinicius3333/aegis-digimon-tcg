@@ -44,12 +44,7 @@ export const compiled: CompiledCard = {
               filter: {
                 zone: "hand",
                 controller: "mine",
-                nameOrTrait: [
-                  {
-                    tokens: ["Shuu Yulin"],
-                    match: "name",
-                  },
-                ],
+                namesExact: ["Shuu Yulin"],
               },
               count: 1,
               from: ["hand"],
@@ -59,6 +54,8 @@ export const compiled: CompiledCard = {
             position: "bottom",
             host: "self",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },
@@ -89,12 +86,7 @@ export const compiled: CompiledCard = {
               filter: {
                 zone: "hand",
                 controller: "mine",
-                nameOrTrait: [
-                  {
-                    tokens: ["Shuu Yulin"],
-                    match: "name",
-                  },
-                ],
+                namesExact: ["Shuu Yulin"],
               },
               count: 1,
               from: ["hand"],
@@ -104,6 +96,8 @@ export const compiled: CompiledCard = {
             position: "bottom",
             host: "self",
           },
+          optional: true,
+          abortOnDecline: true,
         },
       ],
     },
@@ -113,6 +107,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSuspended",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "Suspend",
