@@ -6,7 +6,7 @@ const option = { filter: { controller: "mine", zone: "hand", kind: ["Option"], p
 export const compiled: CompiledCard = { effects: [
   { trigger: "Static", keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }], actions: [] },
   { trigger: "AllTurns", frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenAttackTargetSwitched", actions: [
-    { kind: "TrashDigivolution", target: { filter: { controller: "mine", zone: "digivolutionCards", faceDown: true, underKind: ["Tamer"] }, count: 1 }, amount: 1, fromTop: false, optional: true },
+    { kind: "TrashDigivolution", target: { filter: { controller: "mine", kind: ["Tamer"], digivolutionCards: "hasAny" }, count: 1 }, amount: 1, fromTop: false, optional: true },
     { kind: "UseOptionWithoutCost", from: ["hand"], payCost: false, optional: true, filter: option.filter },
   ] }] },
   { trigger: "None", isInherited: true, actions: [{ kind: "GainKeyword", keyword: { keyword: "Blocker" }, duration: "permanent" }] },
