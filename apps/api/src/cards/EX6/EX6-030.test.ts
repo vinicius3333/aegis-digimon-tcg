@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import "./EX6-030.js";
+import { compiled } from "./EX6-030.js";
 
 describe("EX6-030 Mastemon", () => {
   it("registers the security-search When Digivolving effect", () => {

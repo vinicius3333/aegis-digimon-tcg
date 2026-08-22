@@ -686,11 +686,13 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
       });
       if (selectedIds.length === 0) {
         ctx.lastEffectActed = false;
+        ctx.fx.shuffleSecurity(ctx.source.ownerSeat);
         return false;
       }
       const played = await ctx.fx.playInstances(selectedIds, { payCost: action.then.payCost });
       ctx.lastPlayedPermanentIds = (played ?? []).map((permanent) => permanent.permanentId);
       ctx.lastEffectActed = ctx.lastPlayedPermanentIds.length > 0;
+      ctx.fx.shuffleSecurity(ctx.source.ownerSeat);
       return false;
     }
     case "Reveal": {

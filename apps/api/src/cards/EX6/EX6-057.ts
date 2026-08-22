@@ -173,6 +173,50 @@ const module: EffectModule = {
     return [];
   },
 };
-
-registerCard(module);
-export default module;
+export const compiled: CompiledCard = {
+  effects: [
+    { trigger: "OnPlay", actions: [grant] },
+    { trigger: "WhenDigivolving", actions: [{ ...grant }] },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          mode: "prevent",
+          sourceFilter: { isSelfRef: true },
+          leaveCause: "otherThanBattle",
+          frequency: "OncePerTurn",
+          actions: [
+            {
+              kind: "Delete",
+              target: {
+                filter: { controller: "any", kind: ["Digimon"], levelComparison: { op: "lte", value: 5 } },
+                count: 1,
+              },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+    {
+      trigger: "OpponentsTurn",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          sourceFilter: { kind: ["Digimon"], excludeSelf: true },
+          actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }],
+          frequency: "OncePerTurn",
+        },
+      ],
+      frequency: "OncePerTurn",
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
+registerIrCard("EX6-057", compiled);

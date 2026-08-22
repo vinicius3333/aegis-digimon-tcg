@@ -1,7 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import "./EX6-071.js";
+import { compiled } from "./EX6-071.js";
 
 describe("EX6-071 Dark Despair", () => {
   it("registers Main and Security effects", () => {

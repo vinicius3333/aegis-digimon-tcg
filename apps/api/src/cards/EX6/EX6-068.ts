@@ -48,20 +48,24 @@ const module: EffectModule = {
               await ctx.fx.placeOptionAsPermanent(source.instanceId);
             }
           },
-        }),
-      ];
-    }
-
-    if (timing === EffectTiming.SecuritySkill) {
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security-play`,
-          description: "[Security] Play this card as a battle-area permanent.",
-          resolve: async (ctx) => {
-            if (ctx.fx.placeOptionAsPermanent) {
-              await ctx.fx.placeOptionAsPermanent(source.instanceId);
-            }
+          from: ["hand"],
+          toTop: false,
+          optional: true,
+        },
+        { kind: "PlaceInBattleAreaSelf" },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDeletionOf",
+          delayArmedIntrinsic: true,
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Angel", "Archangel", "Three Great Angels"], match: "trait" }],
           },
         }),
       ];
@@ -129,6 +133,4 @@ const module: EffectModule = {
     return [];
   },
 };
-
-registerCard(module);
-export default module;
+registerIrCard("EX6-068", compiled);

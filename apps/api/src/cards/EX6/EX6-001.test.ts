@@ -1,9 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import "./EX6-001.js";
+import { compiled } from "./EX6-001.js";
 
 describe("EX6-001 Sakuttomon", () => {
   it("registers an inherited continuous Legend-Arms add-to-stack watcher", () => {
