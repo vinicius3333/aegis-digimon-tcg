@@ -25,8 +25,9 @@ describe("EX11-001 Koromon", () => {
       }),
     ).toEqual({ ok: true });
 
-    await settle(() => s.perm("host").topCard?.cardId === "EX11-009");
-    expect(s.perm("host").topCard?.cardId).toBe("EX11-009");
-    expect(s.perm("host").stack.some((card) => card.cardId === "EX11-001")).toBe(true);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX11-009"));
+    const host = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "EX11-009");
+    expect(host?.topCard?.cardId).toBe("EX11-009");
+    expect(host?.stack.some((card) => card.cardId === "EX11-001")).toBe(true);
   });
 });
