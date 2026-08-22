@@ -14,26 +14,32 @@ const handCost = {
 
 export const compiled: CompiledCard = {
   keywords: [{ keyword: "Detach", raw: "＜Detach ([Seven Code] trait)＞" }],
-  effects: [{
-    trigger: "WhenAttacking",
-    isInherited: false,
-    actions: [{
-      kind: "Draw",
-      controller: "mine",
-      amount: 2,
-      cost: { kind: "trash", target: { filter: handCost, count: 1 } },
-    }],
-  }, {
-    trigger: "Static",
-    isLinked: true,
-    keywords: [
-      { keyword: "Progress", raw: "＜Progress＞" },
-      { keyword: "Piercing", raw: "＜Piercing＞" },
-    ],
-    actions: [],
-  }],
+  effects: [
+    {
+      trigger: "WhenAttacking",
+      isInherited: false,
+      actions: [
+        {
+          kind: "Draw",
+          controller: "mine",
+          amount: 2,
+          cost: { kind: "trash", target: { filter: handCost, count: 1 } },
+        },
+      ],
+    },
+    {
+      trigger: "Static",
+      isLinked: true,
+      keywords: [
+        { keyword: "Progress", raw: "＜Progress＞" },
+        { keyword: "Piercing", raw: "＜Piercing＞" },
+      ],
+      actions: [],
+    },
+  ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ level: 2, traits: ["Appmon"], cost: 0, isAlternate: true }],
   linkRequirement: [{ traits: ["Appmon"], cost: 3 }],
 };
 
