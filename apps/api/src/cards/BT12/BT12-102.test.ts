@@ -19,6 +19,7 @@ describe("BT12-102 handwritten module", () => {
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnUseOption, source).length).toBeGreaterThan(0);
     expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
+    expect(module!.effectsForTiming(EffectTiming.BeforePayCost, source)).toHaveLength(1);
   });
 });
 
