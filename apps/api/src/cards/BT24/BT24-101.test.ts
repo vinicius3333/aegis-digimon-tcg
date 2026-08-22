@@ -1,3 +1,4 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -87,8 +88,9 @@ describe("BT24-101 Jupitermon", () => {
     );
     expect(replacement).toMatchObject({ frequency: "OncePerTurn" });
     const replacementAction = replacement?.actions?.[0] as
-      | { sourceFilter?: unknown; actions?: Array<{ cost?: { target?: { filter?: unknown } } }> }
+      | { affectsAll?: boolean; sourceFilter?: unknown; actions?: Array<{ cost?: { target?: { filter?: unknown } } }> }
       | undefined;
+    expect(replacementAction?.affectsAll).toBe(true);
     expect(replacementAction?.sourceFilter).toMatchObject({
       controller: "mine",
       kind: ["Digimon", "Tamer"],
@@ -105,5 +107,66 @@ describe("BT24-101 Jupitermon", () => {
       optional: true,
       abortOnDecline: true,
     });
+  });
+
+  it.each(["OnPlay", "WhenDigivolving"] as const)(
+    "%s reduces DP and recovers 2 even when there was no security card to trash (Q5715)",
+    async (timing) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT24-101", as: "jupitermon" }],
+            deck: [
+              { card: "BT1-001", as: "recovery1" },
+              { card: "BT1-002", as: "recovery2" },
+            ],
+          },
+          1: { battleArea: [{ card: "BT1-080", as: "target", dp: 13000 }] },
+        },
+        { autoSelectCards: true },
+      );
+      await s.ready();
+
+      await advance(s.engine).fire(
+        timing === "OnPlay" ? EffectTiming.OnPlay : EffectTiming.WhenDigivolving,
+        s.perm("jupitermon"),
+      );
+      await settle(() => s.state.players[0]!.security.length === 2);
+
+      expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("target").instanceId);
+      expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual(
+        expect.arrayContaining([s.inst("recovery1").instanceId, s.inst("recovery2").instanceId]),
+      );
+    },
+  );
+
+  it("prevents every simultaneously leaving TS Digimon and Tamer with one security payment (Q5718)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-101", as: "jupitermon" },
+            { card: "BT24-009", as: "digimon" },
+            { card: "BT24-088", as: "tamer" },
+          ],
+          security: [
+            { card: "BT1-001", as: "payment" },
+            { card: "BT1-002", as: "remaining" },
+          ],
+        },
+        1: { security: ["BT1-003", "BT1-004"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent(
+      [s.perm("digimon").permanentId, s.perm("tamer").permanentId],
+      "byEffect",
+    );
+
+    expect(s.state.players[0]!.battleArea).toEqual(expect.arrayContaining([s.perm("digimon"), s.perm("tamer")]));
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("remaining").instanceId]);
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });

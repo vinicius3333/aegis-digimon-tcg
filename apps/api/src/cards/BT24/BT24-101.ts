@@ -127,6 +127,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
+          affectsAll: true,
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon", "Tamer"],
