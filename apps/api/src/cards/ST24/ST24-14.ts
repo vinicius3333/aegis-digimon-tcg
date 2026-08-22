@@ -30,7 +30,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenDigivolutionTrashed",
-          hostFilter: { isSelfRef: true },
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "Suspend",
