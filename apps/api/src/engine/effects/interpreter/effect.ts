@@ -82,6 +82,8 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
       return EffectTiming.OnBattleDeleteOpponent;
     case "whenTrashedFromBattleArea":
       return EffectTiming.WhenTrashedFromBattleArea;
+    case "OnSecurityCheck":
+      return EffectTiming.OnSecurityCheck;
     case "StartOfYourTurn":
     case "StartOfOpponentsTurn":
       return EffectTiming.OnStartTurn;

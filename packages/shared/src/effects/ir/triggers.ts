@@ -44,6 +44,8 @@ export type EffectTrigger =
    * normal security-check reveal.
    */
   | "OnDiscardSecurity"
+  /** Fires while a security card is revealed, before the normal battle/trash resolution. */
+  | "OnSecurityCheck"
   /**
    * Fires on THIS Digimon as attacker when it is blocked (BT7-016). Maps to
    * EffectTiming.OnBlockAnyone, fired from `switchDefenderToBlocker` for EVERY block regardless of
