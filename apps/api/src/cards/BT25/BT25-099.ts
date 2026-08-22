@@ -18,6 +18,8 @@ export const compiled: CompiledCard = {
           "condition": {
             "kind": "youHaveNone",
             "filter": {
+              "zone": "security",
+              "faceUp": true,
               "controllerDefault": "mine"
             },
             "raw": "you have no face-up security cards"
@@ -88,6 +90,7 @@ export const compiled: CompiledCard = {
           "condition": {
             "kind": "youHave",
             "filter": {
+              "zone": "battleArea",
               "controllerDefault": "mine",
               "nameOrTrait": [
                 {
@@ -148,6 +151,7 @@ export const compiled: CompiledCard = {
           "from": [
             "hand"
           ],
+          "costReduction": 3,
           "payCost": true,
           "optional": true
         },
