@@ -49,6 +49,7 @@ describe("BT26-027 Petermon", () => {
   });
 
   it("resolves again at the start of the opponent's main phase and expires at that turn end", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -59,8 +60,9 @@ describe("BT26-027 Petermon", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("cost").permanentId);
     s.state.turnSeat = 1;
 
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("petermon"));
