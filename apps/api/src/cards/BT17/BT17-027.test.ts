@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-027.js";
 
 describe("BT17-027", () => {
@@ -14,5 +17,11 @@ describe("BT17-027", () => {
 
   it("unsuspends once per turn as inherited when it has Omnimon in its name", () => {
     expect(compiled.effects?.[3]).toMatchObject({ trigger: "WhenAttacking", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "Unsuspend", condition: { kind: "selfHasNameContaining" } }] });
+  });
+
+  it("unsuspends an Omnimon host when it attacks", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT17-078", as: "host", under: ["BT17-027"], suspended: true }] } }, { autoDeclineOptional: true });
+    await advance(s.engine).fire(EffectTiming.WhenAttacking, s.perm("host"));
+    expect(s.perm("host").isSuspended).toBe(false);
   });
 });
