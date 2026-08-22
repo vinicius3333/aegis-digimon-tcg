@@ -20,7 +20,7 @@ const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [{
         kind: "GrantCanAttackUnsuspended",
-        target: { filter: { controller: "mine", kind: ["Digimon"], keywords: [{ keyword: "Retaliation" }] }, count: "all" },
+        target: { filter: { controller: "mine", kind: ["Digimon"], keywords: ["Retaliation"] }, count: "all" },
         duration: "permanent",
         defenderLevelMax: 4,
       }],
