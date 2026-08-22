@@ -61,7 +61,10 @@ const module: EffectModule = {
             }
             const rest = deckCards.filter((c) => !added.includes(c.instanceId));
             if (rest.length > 0) {
-              await ctx.fx.returnToDeck(rest.map((c) => c.instanceId), { toTop: false });
+              await ctx.fx.returnToDeck(
+                rest.map((c) => c.instanceId),
+                { toTop: false },
+              );
             }
           },
         }),
@@ -87,16 +90,21 @@ const module: EffectModule = {
               description: `${cardId}: When linked, suspend to gain memory.`,
               matches: (subCtx) => {
                 if (!subCtx.source.isOnBattleArea() || !subCtx.source.isOwnersTurn()) return false;
-                // ENGINE-GAP: linkCardInstanceId not available on TriggerInfo;
-                // check the subject permanent's linked cards for matching traits instead.
                 const subjectId = subCtx.trigger?.subjectPermanentId;
                 if (subjectId === undefined) return false;
                 const host = subCtx.game.permanentById(subjectId);
                 if (host === undefined) return false;
-                return host.linked.some((c) => {
-                  const def = subCtx.game.definitionOf(c);
-                  return hasTrait(def, SOCIAL) || hasTrait(def, CREATION) || hasTrait(def, NAVI) || hasTrait(def, TOOL);
-                });
+                const linkedIds = subCtx.trigger?.linkedCardInstanceIds ?? [];
+                return host.linked.some(
+                  (c) =>
+                    linkedIds.includes(c.instanceId) &&
+                    (() => {
+                      const def = subCtx.game.definitionOf(c);
+                      return (
+                        hasTrait(def, SOCIAL) || hasTrait(def, CREATION) || hasTrait(def, NAVI) || hasTrait(def, TOOL)
+                      );
+                    })(),
+                );
               },
               run: async (subCtx) => {
                 const selfPerm = subCtx.source.permanent();

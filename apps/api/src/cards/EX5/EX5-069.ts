@@ -23,137 +23,128 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // (declines without trashing per Q3675), can't fire the turn the card enters, and trashes
 // the source as the cost before running the payload.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Main",
-      "actions": [
+      trigger: "Main",
+      actions: [
         {
-          "kind": "Delete",
-          "target": {
-            "filter": {
-              "controller": "opponent",
-              "kind": [
-                "Digimon"
-              ],
-              "levelComparison": {
-                "op": "lte",
-                "value": 6
-              }
-            },
-            "count": 1
-          },
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine"
+          kind: "Delete",
+          target: {
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              levelComparison: {
+                op: "lte",
+                value: 6,
               },
-              "count": 1,
-              "bindAs": "trashedCard"
             },
-            "raw": "By trashing 1 card in your hand"
-          }
+            count: 1,
+          },
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+              },
+              count: 1,
+              bindAs: "trashedCard",
+            },
+            raw: "By trashing 1 card in your hand",
+          },
         },
         {
-          "kind": "PlaceInBattleAreaSelf",
-          "condition": {
-            "kind": "boundCardHasTrait",
-            "bindRef": "trashedCard",
-            "nameOrTrait": [
+          kind: "PlaceInBattleAreaSelf",
+          condition: {
+            kind: "boundCardHasTrait",
+            bindRef: "trashedCard",
+            nameOrTrait: [
               {
-                "tokens": [
-                  "Seven Great Demon Lords"
-                ],
-                "match": "trait"
-              }
+                tokens: ["Seven Great Demon Lords"],
+                match: "trait",
+              },
             ],
-            "raw": "the card trashed from your hand has the [Seven Great Demon Lords] trait"
-          }
-        }
-      ]
+            raw: "the card trashed from your hand has the [Seven Great Demon Lords] trait",
+          },
+        },
+      ],
     },
     {
-      "trigger": "AllTurns",
-      "actions": [
+      trigger: "AllTurns",
+      actions: [
         {
-          "kind": "SubTrigger",
-          "event": "whenPlayed",
-          "raw": "When an effect plays an opponent's Digimon, this Digimon gains ＜Delay＞.",
-          "sourceFilter": {
-            "controller": "opponent",
-            "kind": [
-              "Digimon"
-            ],
-            "zone": "battleArea",
-            "byEffect": true
+          kind: "SubTrigger",
+          event: "whenPlayed",
+          raw: "When an effect plays an opponent's Digimon, this Digimon gains ＜Delay＞.",
+          sourceFilter: {
+            controller: "opponent",
+            kind: ["Digimon"],
+            zone: "battleArea",
+            byEffect: true,
           },
-          "actions": [
+          actions: [
             {
-              "kind": "GainKeyword",
-              "target": {
-                "filter": {
-                  "isSelfRef": true
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  isSelfRef: true,
                 },
-                "count": 1,
-                "isSelf": true
+                count: 1,
+                isSelf: true,
               },
-              "keyword": {
-                "keyword": "Delay",
-                "raw": "＜Delay＞"
+              keyword: {
+                keyword: "Delay",
+                raw: "＜Delay＞",
               },
-              "duration": "permanent"
-            }
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "Main",
-      "keywords": [
-        {
-          "keyword": "Delay",
-          "raw": "＜Delay＞"
-        }
-      ],
-      "actions": [
-        {
-          "kind": "PlayWithoutCost",
-          "requiresDelayArmed": true,
-          "target": {
-            "filter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Leviamon"
-                  ],
-                  "match": "name"
-                }
-              ]
+              duration: "permanent",
             },
-            "count": 1
-          },
-          "from": [
-            "trash"
           ],
-          "payCost": false,
-          "optional": true
-        }
-      ]
+        },
+      ],
     },
     {
-      "trigger": "Security",
-      "actions": [
+      trigger: "Main",
+      keywords: [
         {
-          "kind": "ActivateMain"
-        }
+          keyword: "Delay",
+          raw: "＜Delay＞",
+        },
       ],
-      "isSecurity": true
-    }
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          requiresDelayArmed: true,
+          target: {
+            filter: {
+              controller: "mine",
+              kind: ["Digimon"],
+              nameOrTrait: [
+                {
+                  tokens: ["Leviamon"],
+                  match: "name",
+                },
+              ],
+            },
+            count: 1,
+          },
+          from: ["trash"],
+          payCost: false,
+          optional: true,
+        },
+      ],
+    },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "ActivateMain",
+        },
+      ],
+      isSecurity: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX5-069", compiled);

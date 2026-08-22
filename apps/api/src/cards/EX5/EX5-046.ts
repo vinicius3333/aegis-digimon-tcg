@@ -6,120 +6,108 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // registers it. To override with a hand-written module, delete the AUTO-GENERATED
 // header line above and replace the body — the generator will then preserve this file.
 export const compiled: CompiledCard = {
-  "effects": [
+  effects: [
     {
-      "trigger": "Static",
-      "actions": [],
-      "keywords": [
+      trigger: "Static",
+      actions: [],
+      keywords: [
         {
-          "keyword": "Blocker",
-          "raw": "＜Blocker＞"
-        }
-      ]
-    },
-    {
-      "trigger": "OnDeletion",
-      "actions": [
-        {
-          "kind": "Return",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "to": "hand",
-          "cost": {
-            "kind": "trash",
-            "target": {
-              "filter": {
-                "zone": "hand",
-                "controller": "mine",
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Etemon",
-                      "Sukamon"
-                    ],
-                    "match": "name"
-                  }
-                ]
-              },
-              "count": 1
-            },
-            "raw": "By trashing 1 card with [Etemon]/[Sukamon] in its name in your hand"
-          },
-          "optional": true,
-          "abortOnDecline": true
-        }
-      ]
-    },
-    {
-      "trigger": "Rule",
-      "actions": [
-        {
-          "kind": "GrantStatic",
-          "target": {
-            "filter": {
-              "isSelfRef": true
-            },
-            "count": 1,
-            "isSelf": true
-          },
-          "grant": "name",
-          "tokens": [
-            "Etemon",
-            "Sukamon"
-          ]
-        }
-      ]
-    },
-    {
-      "trigger": "AllTurns",
-      "actions": [
-        {
-          "kind": "Replacement",
-          "event": "wouldBeDeleted",
-          "sourceFilter": {
-            "isSelfRef": true
-          },
-          "actions": [
-            {
-              "kind": "Prevent",
-              "cost": {
-                "kind": "deleteOwn",
-                "target": {
-                  "filter": {
-                    "controller": "mine",
-                    "excludeSelf": true,
-                    "kind": [
-                      "Digimon"
-                    ],
-                    "nameOrTrait": [
-                      {
-                        "tokens": [
-                          "Sukamon"
-                        ],
-                        "match": "name"
-                      }
-                    ]
-                  },
-                  "count": 1
-                },
-                "raw": "by deleting 1 other Digimon with [Sukamon] in its name"
-              },
-              "optional": true,
-              "abortOnDecline": true
-            }
-          ]
-        }
+          keyword: "Blocker",
+          raw: "＜Blocker＞",
+        },
       ],
-      "isInherited": true
-    }
+    },
+    {
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "Return",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          to: "hand",
+          cost: {
+            kind: "trash",
+            target: {
+              filter: {
+                zone: "hand",
+                controller: "mine",
+                nameOrTrait: [
+                  {
+                    tokens: ["Etemon", "Sukamon"],
+                    match: "name",
+                  },
+                ],
+              },
+              count: 1,
+            },
+            raw: "By trashing 1 card with [Etemon]/[Sukamon] in its name in your hand",
+          },
+          optional: false,
+        },
+      ],
+    },
+    {
+      trigger: "Rule",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
+          grant: "name",
+          tokens: ["Etemon", "Sukamon"],
+        },
+      ],
+    },
+    {
+      trigger: "AllTurns",
+      actions: [
+        {
+          kind: "Replacement",
+          event: "wouldBeDeleted",
+          sourceFilter: {
+            isSelfRef: true,
+          },
+          actions: [
+            {
+              kind: "Prevent",
+              cost: {
+                kind: "deleteOwn",
+                target: {
+                  filter: {
+                    controller: "mine",
+                    excludeSelf: true,
+                    kind: ["Digimon"],
+                    nameOrTrait: [
+                      {
+                        tokens: ["Sukamon"],
+                        match: "name",
+                      },
+                    ],
+                  },
+                  count: 1,
+                },
+                raw: "by deleting 1 other Digimon with [Sukamon] in its name",
+              },
+              optional: false,
+            },
+          ],
+        },
+      ],
+      isInherited: true,
+    },
   ],
-  "coverage": "full",
-  "residual": []
+  coverage: "full",
+  residual: [],
 };
 
 registerIrCard("EX5-046", compiled);

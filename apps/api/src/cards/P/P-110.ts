@@ -31,6 +31,7 @@ const compiled: CompiledCard = {
             "trash"
           ],
           "payCost": false,
+          "suspended": true,
           "optional": true
         }
       ]
@@ -59,6 +60,7 @@ const compiled: CompiledCard = {
             "hand"
           ],
           "payCost": false,
+          "suspended": true,
           "optional": true
         }
       ],

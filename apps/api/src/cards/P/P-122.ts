@@ -29,7 +29,7 @@ const compiled: CompiledCard = {
           "source": "deck",
           "amount": 1,
           "condition": {
-            "kind": "ifDidOptional",
+            "kind": "ifThisEffectActed",
             "raw": "if you added cards"
           }
         },

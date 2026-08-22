@@ -44,7 +44,7 @@ const compiled: CompiledCard = {
       "actions": [
         {
           "kind": "SubTrigger",
-          "event": "onDeletionOf",
+          "event": "whenDeletesInBattle",
           "sourceFilter": {
             "controller": "opponent",
             "kind": [

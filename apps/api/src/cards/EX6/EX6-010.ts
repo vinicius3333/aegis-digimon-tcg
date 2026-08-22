@@ -109,8 +109,8 @@ const module: EffectModule = {
       ];
     }
 
-    // [Your Turn] [Inherited] When the host Digimon is [RagnaLoardmon] and it is the
-    // attacker, [Security] effects on cards it checks don't activate.
+    // Inherited Piercing is always active; RagnaLoardmon security suppression is
+    // additionally limited to the owner's turn.
     if (timing === EffectTiming.None) {
       return [
         staticModifier({
@@ -120,17 +120,15 @@ const module: EffectModule = {
             "[Your Turn] [Inherited] When this Digimon is [RagnaLoardmon] and is attacking, " +
             "the [Security] effects on cards it checks don't activate.",
           isInherited: true,
-          when: (ctx) => {
-            if (!ctx.source.isOnBattleArea() || !ctx.source.isOwnersTurn()) return false;
-            const perm = ctx.source.permanent();
-            if (perm === undefined || perm.topCard === undefined) return false;
-            const topDef = ctx.game.definitionOf(perm.topCard);
-            // Gate: top card name must contain "RagnaLoardmon".
-            return topDef.nameEn.includes("RagnaLoardmon");
-          },
+          when: (ctx) => ctx.source.isOnBattleArea(),
           resolve: async (ctx) => {
             const perm = ctx.source.permanent();
-            if (perm === undefined) return;
+            if (perm === undefined || perm.topCard === undefined) return;
+            ctx.fx.grantKeyword(perm.permanentId, "Piercing", EffectDuration.Permanent);
+            if (!ctx.source.isOwnersTurn()) return;
+            const topDef = ctx.game.definitionOf(perm.topCard);
+            // Gate: top card name must contain "RagnaLoardmon".
+            if (!topDef.nameEn.includes("RagnaLoardmon")) return;
             ctx.fx.disableSecurityEffect(perm.permanentId, "any", EffectDuration.UntilEachTurnEnd);
           },
         }),

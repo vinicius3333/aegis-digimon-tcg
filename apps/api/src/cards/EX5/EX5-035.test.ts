@@ -3,9 +3,26 @@ import { compiled } from "./EX5-035.js";
 
 describe("EX5-035 Hawkmon", () => {
   it("reveals three and adds all revealed Digimon with Fortitude", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions?.[0]).toMatchObject({ kind: "RevealAdd", revealCount: 3, rest: "deckBottom", add: [{ count: "all", filter: { kind: ["Digimon"], keywords: ["Fortitude"] } }] });
+    expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions?.[0]).toMatchObject({
+      kind: "RevealAdd",
+      revealCount: 3,
+      rest: "deckBottom",
+      add: [
+        { count: "all", to: "hand", filter: { controllerDefault: "mine", kind: ["Digimon"], keywords: ["Fortitude"] } },
+      ],
+    });
   });
   it("gets 1000 DP while suspended as an inherited effect", () => {
-    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")).toMatchObject({ isInherited: true, actions: [{ kind: "Aura", effect: { kind: "modifyDP", amount: 1000 }, while: { kind: "selfIsSuspended" } }] });
+    expect(compiled.effects?.find((entry) => entry.trigger === "AllTurns")).toMatchObject({
+      isInherited: true,
+      actions: [
+        {
+          kind: "Aura",
+          target: { filter: { isSelfRef: true }, isSelf: true },
+          effect: { kind: "modifyDP", amount: 1000 },
+          while: { kind: "selfIsSuspended" },
+        },
+      ],
+    });
   });
 });

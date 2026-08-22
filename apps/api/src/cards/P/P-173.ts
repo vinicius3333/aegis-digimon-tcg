@@ -79,7 +79,12 @@ const compiled: CompiledCard = {
               },
               "optional": true
             }
-          ]
+          ],
+          "fireCondition": {
+            "kind": "triggerRemovalCause",
+            "removalCause": "byBattle",
+            "raw": "deleted in battle"
+          }
         }
       ],
       "frequency": "OncePerTurn"
