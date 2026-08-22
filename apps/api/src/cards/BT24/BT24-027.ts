@@ -38,6 +38,7 @@ export const compiled: CompiledCard = {
           },
           restriction: "beDeletedInBattle",
           duration: "untilOpponentTurnEnd",
+          abortOnDecline: true,
           cost: {
             kind: "place",
             target: {
@@ -89,6 +90,7 @@ export const compiled: CompiledCard = {
           },
           restriction: "beDeletedInBattle",
           duration: "untilOpponentTurnEnd",
+          abortOnDecline: true,
           cost: {
             kind: "place",
             target: {
@@ -179,7 +181,7 @@ export const compiled: CompiledCard = {
   residual: [],
   digivolutionRequirement: [
     {
-      names: ["Calmaramon"],
+      namesExact: ["Calmaramon"],
       cost: 0,
       isAlternate: true,
     },
