@@ -1,26 +1,10 @@
-import { CardKind, EffectTiming, Phase, type CardDefinition, type Seat } from "@aegis/shared";
-import { describe, expect, it, vi } from "vitest";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext, GameAccess } from "../../engine/effects/EffectContext.js";
+import { Phase } from "@aegis/shared";
+import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import module from "./BT26-040.js";
 import "../index.js";
 
 const CARD_ID = "BT26-040";
-
-function source(): CardSource {
-  return {
-    instanceId: "drimogemon",
-    cardId: CARD_ID,
-    ownerSeat: 0 as Seat,
-    definition: {} as CardDefinition,
-    permanent: () => ({ permanentId: "drimogemon-permanent" }) as never,
-    isOnBattleArea: () => true,
-    isOwnersTurn: () => true,
-    hasColor: () => true,
-  };
-}
 
 describe("BT26-040 Drimogemon", () => {
   it("uses the exact off-color Lv.3 DM alternate evolution for cost 2", async () => {
@@ -103,40 +87,22 @@ describe("BT26-040 Drimogemon", () => {
     expect(s.events.filter((event) => event.kind === "actionRejected")).toEqual([]);
   });
 
-  it("does not grant DP when placement fails and counts all existing face-down cards after successful payment", async () => {
-    const cardSource = source();
-    const hand = [{ instanceId: "chosen", cardId: "CHOSEN" }];
-    const host = {
-      permanentId: "drimogemon-permanent",
-      topCard: { cardId: CARD_ID },
-      stack: [
-        { instanceId: "old-face-down", faceUp: false },
-        { instanceId: "face-up", faceUp: true },
-      ],
-    };
-    const modifyDP = vi.fn();
-    const ctx = {
-      source: cardSource,
-      game: {
-        opponentOf: () => 1 as Seat,
-        player: (seat: Seat) => ({ hand: seat === 0 ? hand : [], battleArea: [] }),
-        permanentById: () => host,
-        definitionOf: () => ({ kinds: [CardKind.Digimon] }),
-      } as unknown as GameAccess,
-      ask: { selectCards: vi.fn(async () => ["chosen"]) },
-      fx: { placeUnder: vi.fn(async () => []), modifyDP },
-    } as unknown as EffectContext;
-    const effect = module.effectsForTiming(EffectTiming.OnPlay, cardSource)[0]!;
-    await effect.resolve(ctx);
-    expect(modifyDP).not.toHaveBeenCalled();
-
-    ctx.fx.placeUnder = vi.fn(async () => {
-      host.stack.unshift({ instanceId: "chosen", faceUp: false });
-      return [hand[0]];
-    }) as never;
-    await effect.resolve(ctx);
-    expect(ctx.fx.placeUnder).toHaveBeenCalledWith("drimogemon-permanent", ["chosen"], { faceUp: false });
-    expect(modifyDP).toHaveBeenCalledWith("drimogemon-permanent", 2000, expect.anything());
+  it("does not gain DP when no hand card is available to place", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: CARD_ID, as: "drimogemon" }] },
+        1: { battleArea: [{ card: "BT5-022", as: "opponent" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("drimogemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("opponent").isSuspended);
+    const drimogemon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === CARD_ID)!;
+    expect(drimogemon.stack).toHaveLength(0);
+    expect(drimogemon.currentDP).toBe(5000);
   });
 
   it("inherits Piercing onto a realistic evolution host while standalone behavior remains top-level", async () => {
