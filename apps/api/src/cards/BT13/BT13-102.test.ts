@@ -33,16 +33,16 @@ describe("BT13-102 Keenan Crier", () => {
     });
   });
 
-  it("draws when the opponent declines the optional hand trash", async () => {
+  it("trashes an opposing Tamer through the optional hand choice", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT13-102", as: "keenan" }], deck: [{ card: "BT1-001", as: "drawn" }] },
         1: { hand: [{ card: "BT13-094", as: "opponentTamer" }] },
       },
-      { autoDeclineOptional: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("keenan"));
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001"));
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-001");
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT13-094"));
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT13-094");
   });
 });
