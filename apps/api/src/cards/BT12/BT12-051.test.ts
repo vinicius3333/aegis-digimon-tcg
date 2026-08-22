@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-051.js";
 
 describe("BT12-051 handwritten module", () => {
@@ -18,4 +20,27 @@ describe("BT12-051 handwritten module", () => {
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnPlay, source).length).toBeGreaterThan(0);
   });
+});
+
+it("plays one named Tamer from hand without paying its cost", async () => {
+  const s = setupEngine({
+    0: { battleArea: [{ card: "BT12-051", as: "yasha" }], hand: [{ card: "BT12-091", as: "airu" }] },
+  }, { autoAcceptOptional: true, autoSelectCards: true });
+  await s.ready();
+  await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("yasha"));
+  await settle(() => s.perm("airu").isOnBattleArea());
+  expect(s.perm("airu").isOnBattleArea()).toBe(true);
+});
+
+it("saves a deleted Save Digimon under one of its Tamers", async () => {
+  const s = setupEngine({
+    0: {
+      battleArea: [{ card: "BT12-051", as: "yasha" }, { card: "BT12-091", as: "airu" }],
+      trash: [{ card: "BT12-047", as: "saved" }],
+    },
+  }, { autoAcceptOptional: true, autoSelectCards: true });
+  await s.ready();
+  await advance(s.engine).verb.deletePermanent([s.perm("yasha").permanentId], "byEffect");
+  await settle(() => s.perm("airu").stack.some(({ cardId }) => cardId === "BT12-047"));
+  expect(s.perm("airu").stack.some(({ cardId }) => cardId === "BT12-047")).toBe(true);
 });
