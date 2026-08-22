@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
 
 describe("BT17-074 Eosmon — when digivolving play", () => {
