@@ -604,6 +604,8 @@ export interface Primitives {
       costOverride?: number;
       /** Choose a matching alternate digivolution requirement when printed and alternate paths both match. */
       useAlternateCost?: boolean;
+      /** Ignore only the level portion of the printed digivolution requirement. */
+      ignoreLevel?: boolean;
       ignoreRequirements?: boolean;
       beforeWhenDigivolving?: () => Promise<void>;
     },

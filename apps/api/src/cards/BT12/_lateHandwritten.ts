@@ -567,7 +567,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                   await ctx.fx.placeUnder(guilmon, [growlmon.instanceId, warGrowlmon.instanceId]);
                   const evolved = await ctx.fx.digivolveFromInstance(guilmon, gallantmon, {
                     payCost: true,
-                    ignoreRequirements: true,
+                    ignoreLevel: true,
                   });
                   if (evolved) ctx.fx.modifyDP(evolved.permanentId, 2000, EffectDuration.UntilEachTurnEnd);
                 },

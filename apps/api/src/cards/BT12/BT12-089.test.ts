@@ -19,6 +19,7 @@ describe("BT12-089 handwritten module", () => {
       permanent: () => undefined,
     } as unknown as CardSource;
     expect(module!.effectsForTiming(EffectTiming.OnStartTurn, source).length).toBeGreaterThan(0);
+    expect(module!.effectsForTiming(EffectTiming.OnUseOption, source).length).toBeGreaterThan(0);
   });
 
   it("sets memory to 3 at the start of your turn when memory is 2 or less", async () => {

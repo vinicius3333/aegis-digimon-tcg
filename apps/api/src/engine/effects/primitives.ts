@@ -907,6 +907,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       costDelta?: number;
       costOverride?: number;
       useAlternateCost?: boolean;
+      ignoreLevel?: boolean;
       ignoreRequirements?: boolean;
       beforeWhenDigivolving?: () => Promise<void>;
     },
@@ -931,7 +932,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
       // color+level gate; without it the base must still satisfy a printed EvoCost (a costOverride
       // alone keeps the requirement — BT7-051).
       let baseCost: number | undefined;
-      if (opts.ignoreRequirements) {
+      if (opts.ignoreRequirements || opts.ignoreLevel) {
         // Ignoring the color/level gate does not waive the card's printed digivolution
         // cost. Effects such as BT26-066 still say "with the cost reduced by 2" and
         // therefore need a real printed baseline. A fixed-cost effect supplies
