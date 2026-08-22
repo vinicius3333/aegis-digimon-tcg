@@ -1,24 +1,16 @@
-import { EffectTiming } from "@aegis/shared";
-import type { Effect } from "../../engine/effects/Effect.js";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { whenAttacking } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
-const module: EffectModule = {
-  cardId: "ST3-05",
-  effectsForTiming(timing, source): Effect[] {
-    if (timing !== EffectTiming.OnUseAttack) return [];
-    return [
-      whenAttacking({
-        source,
-        effectKey: "ST3-05/inherited-memory",
-        description: "Inherited: when attacking with 4+ security, gain 1 memory.",
-        isInherited: true,
-        when: (ctx) => ctx.game.player(source.ownerSeat).security.length >= 4,
-        resolve: async (ctx) => {
-          ctx.fx.gainMemory(1);
-        },
-      }),
-    ];
-  },
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const compiled: CompiledCard = {
+  effects: [{
+    trigger: "WhenAttacking",
+    actions: [{ kind: "GainMemory", amount: 1, condition: { kind: "zoneCount", seat: "mine", zone: "security", op: "gte", value: 4, raw: "you have 4 or more security cards" } }],
+    isInherited: true,
+  }],
+  coverage: "full",
+  residual: [],
 };
-registerCard(module);
+
+registerIrCard("ST3-05", compiled);
+export { compiled };
