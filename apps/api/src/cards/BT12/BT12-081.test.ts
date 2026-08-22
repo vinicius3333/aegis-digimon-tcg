@@ -36,6 +36,7 @@ describe("BT12-081 Astamon", () => {
       battleArea: [{ card: "BT12-081", as: "astamon", under: ["BT12-008", "BT12-009", "BT12-010", "BT12-011"] }],
       hand: ["BT12-057"],
     } }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 6;
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("astamon"));
     await settle(() => s.perm("astamon").topCard?.cardId === "BT12-057");
     expect(s.perm("astamon").topCard?.cardId).toBe("BT12-057");
