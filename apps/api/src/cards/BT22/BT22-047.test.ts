@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-047.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT22-047 Kuwagamon", () => {
   it("suspends one opponent Digimon and conditionally restricts unsuspension", () => {

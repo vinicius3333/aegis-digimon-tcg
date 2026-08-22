@@ -1,8 +1,9 @@
 // @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { getCompiledCard, type CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const cardId = "BT10-041";
+const compiled = getCompiledCard(cardId) as CompiledCard;
 
 function isEligibleOption(def: CardDefinition): boolean {
   if (!(def.kinds as string[]).includes(CardKind.Option as string)) return false;
@@ -114,4 +115,5 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard("BT10-041", runtimeCompiledCard("BT10-041")!, module);
+export { compiled };
+registerIrCard("BT10-041", compiled);

@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-045.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT22-045 WezenGammamon", () => {
   it("uses the Gammamon hand card as the cost for Blocker and +3000 DP", () => {

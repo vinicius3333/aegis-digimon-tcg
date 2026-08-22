@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT17-011–020 audit regressions", () => {
   it("BT17-017 deletes only an opponent Digimon at or below its DP", async () => {

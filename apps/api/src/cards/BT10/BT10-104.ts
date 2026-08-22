@@ -1,6 +1,6 @@
 // @ts-nocheck
-import type { CompiledCard } from "@aegis/shared";
-import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { getCompiledCard, type CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 /**
  * BT10-104 — Immortal Ruler (BT10, Black Option).
@@ -27,6 +27,7 @@ import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interp
  *
  */
 const cardId = "BT10-104";
+const compiled = getCompiledCard(cardId) as CompiledCard;
 
 function hasNeneAmanoInPlay(ctx: EffectContext, ownerSeat: 0 | 1): boolean {
   return Array.from(ctx.game.player(ownerSeat).battleArea).some((p) => {
@@ -152,4 +153,4 @@ const module: EffectModule = {
 };
 
 export { compiled };
-registerIrCard("BT10-104", runtimeCompiledCard("BT10-104")!, module);
+registerIrCard("BT10-104", compiled);
