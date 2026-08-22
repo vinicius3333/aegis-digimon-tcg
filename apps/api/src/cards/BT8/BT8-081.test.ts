@@ -19,6 +19,18 @@ describe("BT8-081 Rasenmon Fury Mode", () => {
     expect(s.state.memory).toBe(3);
   });
 
+  it("does not bypass Rasenmon Fury Mode's printed level-5 evolution requirement", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT8-081", as: "fury" }], hand: [{ card: "BT8-081", as: "illegal" }] },
+      1: { security: ["BT8-034"] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId: s.perm("fury").permanentId, target: { kind: "player" } })).toEqual({ ok: true });
+    await settle(() => s.events.some(event => event.kind === "effectResolved" && event.sourceCardId === "BT8-081"));
+    expect(s.state.players[0]!.hand.some(card => card.instanceId === s.inst("illegal").instanceId)).toBe(true);
+    expect(s.perm("fury").topCard.cardId).toBe("BT8-081");
+  });
+
   it("trashes the top card of your security at the end of your turn", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT8-081", as: "fury" }], security: ["BT8-034", "BT8-035"] } });
     await advance(s.engine).fireForInstance(EffectTiming.OnEndTurn, s.perm("fury").topCard);
