@@ -32,7 +32,7 @@ describe("BT13-110 Royal Knights of the Purge", () => {
       optional: true,
       underFilter: {
         controller: "mine",
-        zone: "breedingArea",
+        zone: "breeding",
         nameOrTrait: [{ match: "name", tokens: ["King Drasil_7D6"] }],
       },
     });

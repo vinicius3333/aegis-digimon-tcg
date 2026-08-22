@@ -57,8 +57,8 @@ export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef):
       if (p.breeding?.topCard) collect([p.breeding.topCard]);
       break;
     case "digivolutionCards": {
-      // "from under your Tamers/Digimon" — every digivolution card of every battle-area
-      // permanent this seat controls (the cards stacked beneath each top card).
+      // "from under your Tamers/Digimon" — every digivolution card of every permanent
+      // this seat controls, including the breeding-area permanent (BT13-110/112).
       for (const permanent of p.battleArea) {
         for (const c of permanent.stack) {
           out.push({
@@ -66,6 +66,17 @@ export function looseCardsInZone(ctx: EffectContext, seat: Seat, zone: ZoneRef):
             cardId: c.cardId,
             ownerSeat: c.ownerSeat,
             hostPermanentId: permanent.permanentId,
+            faceUp: c.faceUp,
+          });
+        }
+      }
+      if (p.breeding !== undefined) {
+        for (const c of p.breeding.stack) {
+          out.push({
+            instanceId: c.instanceId,
+            cardId: c.cardId,
+            ownerSeat: c.ownerSeat,
+            hostPermanentId: p.breeding.permanentId,
             faceUp: c.faceUp,
           });
         }
