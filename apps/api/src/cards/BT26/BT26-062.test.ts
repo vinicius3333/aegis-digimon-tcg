@@ -20,4 +20,12 @@ describe("BT26-062 Ghostmon", () => {
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.trash).toContainEqual(expect.objectContaining({ instanceId: s.inst("cost").instanceId }));
   });
+  it("gives its evolution host the inherited 2000 DP during its controller's turn", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT26-064", as: "host", under: ["BT26-062"] }] },
+    });
+    await s.ready();
+
+    expect(s.perm("host").currentDP).toBe(4000);
+  });
 });
