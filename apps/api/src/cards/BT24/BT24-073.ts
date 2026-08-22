@@ -147,23 +147,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
-          kind: "SecurityManipulation",
-          op: "trashTop",
-          controller: "mine",
-          amount: 2,
-          condition: {
-            kind: "zoneCount",
-            seat: "opponent",
-            zone: "trash",
-            op: "lte",
-            value: 10,
-            raw: "your opponent has 10 or fewer cards in their trash",
-          },
-        },
-        {
-          kind: "SecurityManipulation",
-          op: "trashTop",
-          controller: "opponent",
+          kind: "TrashTopDeck",
+          controller: "both",
           amount: 2,
           condition: {
             kind: "zoneCount",

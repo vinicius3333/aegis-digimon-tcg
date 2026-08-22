@@ -1,4 +1,8 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT24_073 } from "./BT24-073.js";
 import "../index.js";
 
@@ -11,16 +15,86 @@ describe("BT24-073 SkullSatamon", () => {
       condition: { kind: "not", condition: { kind: "zoneCount", zone: "trash", op: "lte", value: 10 } },
     });
     expect(inherited?.actions?.[1]).toMatchObject({
-      kind: "SecurityManipulation",
-      op: "trashTop",
-      controller: "mine",
+      kind: "TrashTopDeck",
+      controller: "both",
       amount: 2,
     });
-    expect(inherited?.actions?.[2]).toMatchObject({
-      kind: "SecurityManipulation",
-      op: "trashTop",
-      controller: "opponent",
-      amount: 2,
+  });
+
+  it.each([EffectTiming.WhenDigivolving, EffectTiming.OnDeletion])(
+    "mills both decks and then revives after reaching 10 opposing trash cards on %s",
+    async (timing) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT24-073", as: "skullsatamon" }],
+            deck: ["BT1-001", "BT1-002", "BT1-003"],
+            trash: [{ card: "BT1-069", as: "revive" }],
+          },
+          1: {
+            deck: ["BT1-004", "BT1-005", "BT1-006"],
+            trash: Array.from({ length: 8 }, () => "BT1-007"),
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+
+      await advance(s.engine).fire(timing, s.perm("skullsatamon"));
+      await settle(() =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId,
+        ),
+      );
+
+      expect(s.state.players[0]!.deck).toHaveLength(0);
+      expect(s.state.players[1]!.deck).toHaveLength(0);
+      expect(s.state.players[1]!.trash).toHaveLength(11);
+    },
+  );
+
+  it("inherited attack mills both decks instead of security at 10 opposing trash cards", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-074", as: "host", under: ["BT24-073"] }],
+        deck: ["BT1-001", "BT1-002", "BT1-003"],
+        security: ["BT1-004", "BT1-005", "BT1-006"],
+      },
+      1: {
+        deck: ["BT1-007", "BT1-008", "BT1-009"],
+        security: ["BT1-010", "BT1-011", "BT1-012"],
+        trash: Array.from({ length: 10 }, () => "BT1-013"),
+      },
     });
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.players[1]!.deck).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.state.players[1]!.security).toHaveLength(3);
+    expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(0);
+  });
+
+  it("inherited attack grants Security Attack +1 instead of milling above 10 opposing trash cards", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT24-074", as: "host", under: ["BT24-073"] }],
+        deck: ["BT1-001", "BT1-002"],
+      },
+      1: {
+        deck: ["BT1-003", "BT1-004"],
+        trash: Array.from({ length: 11 }, () => "BT1-005"),
+      },
+    });
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[1]!.deck).toHaveLength(2);
+    expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(1);
   });
 });
