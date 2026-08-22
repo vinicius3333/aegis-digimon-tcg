@@ -32,7 +32,10 @@ describe("ST24-15 DNA Charge", () => {
       },
       {
         trigger: "StartOfYourMainPhase",
-        actions: [{ kind: "Draw", amount: 1, cost: { kind: "place", underFilter: { controller: "mine", kind: ["Tamer"] } } }, { kind: "GainMemory", amount: 1 }],
+        actions: [
+          { kind: "Draw", amount: 1, cost: { kind: "place", underFilter: { controller: "mine", kind: ["Tamer"] } } },
+          { kind: "GainMemory", amount: 1 },
+        ],
       },
       { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
     ]);

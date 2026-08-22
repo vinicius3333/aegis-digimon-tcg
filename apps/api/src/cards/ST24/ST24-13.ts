@@ -19,27 +19,66 @@ const mainActions = [
 
 const compiled: CompiledCard = {
   effects: [
-    { trigger: "Rule", actions: [{ kind: "GrantStatic", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, grant: "name", tokens: ["Marcus Damon", "Thomas H. Norstein"] }] },
+    {
+      trigger: "Rule",
+      actions: [
+        {
+          kind: "GrantStatic",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          grant: "name",
+          tokens: ["Marcus Damon", "Thomas H. Norstein"],
+        },
+      ],
+    },
     { trigger: "OnPlay", actions: mainActions.map((action, index) => ({ ...action, optional: index === 0 })) },
-    { trigger: "StartOfYourMainPhase", actions: mainActions.map((action, index) => ({ ...action, optional: index === 0 })) },
+    {
+      trigger: "StartOfYourMainPhase",
+      actions: mainActions.map((action, index) => ({ ...action, optional: index === 0 })),
+    },
     {
       trigger: "YourTurn",
-      actions: [{
-        kind: "SubTrigger",
-        event: "onDigivolutionCardDiscarded",
-        sourceFilter: { isSelfRef: true },
-        actions: [{
-          kind: "GainKeyword",
-          target: { filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }] }, count: 1 },
-          keyword: { keyword: "Jamming", raw: "＜Jamming＞" },
-          duration: "forTheTurn",
-          optional: true,
-          abortOnDecline: true,
-          cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, raw: "by suspending this Tamer" },
-        }],
-      }],
+      actions: [
+        {
+          kind: "SubTrigger",
+          event: "onDigivolutionCardDiscarded",
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: {
+                filter: {
+                  controller: "mine",
+                  kind: ["Digimon"],
+                  nameOrTrait: [{ tokens: ["DATA SQUAD"], match: "trait" }],
+                },
+                count: 1,
+              },
+              keyword: { keyword: "Jamming", raw: "＜Jamming＞" },
+              duration: "forTheTurn",
+              optional: true,
+              abortOnDecline: true,
+              cost: {
+                kind: "suspend",
+                target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+                raw: "by suspending this Tamer",
+              },
+            },
+          ],
+        },
+      ],
     },
-    { trigger: "Security", actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, from: ["security"], payCost: false }], isSecurity: true },
+    {
+      trigger: "Security",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          from: ["security"],
+          payCost: false,
+        },
+      ],
+      isSecurity: true,
+    },
   ],
   coverage: "full",
   residual: [],

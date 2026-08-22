@@ -65,9 +65,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
-  digivolutionRequirement: [
-    { level: 4, traits: ["DATA SQUAD"], cost: 3, isAlternate: true },
-  ],
+  digivolutionRequirement: [{ level: 4, traits: ["DATA SQUAD"], cost: 3, isAlternate: true }],
 };
 
 registerIrCard("ST24-10", compiled);

@@ -25,10 +25,9 @@ function primitivesOf(s: EngineSetup): Primitives {
 }
 
 function hasKeyword(s: EngineSetup, permanentId: string, keyword: string): boolean {
-  return (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } }).continuous.hasKeyword(
-    permanentId,
-    keyword,
-  );
+  return (
+    s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } }
+  ).continuous.hasKeyword(permanentId, keyword);
 }
 
 describe("ST24-13 Marcus & Thomas — whenDigivolutionCardTrashed from THIS Tamer → suspend, Jamming", () => {
@@ -77,7 +76,13 @@ describe("ST24-13 Marcus & Thomas — whenDigivolutionCardTrashed from THIS Tame
   });
 
   it("on play places the deck top face down and gains memory when an opponent has a Digimon", async () => {
-    const s = setupEngine({ 0: { hand: [{ card: "ST24-13", as: "tamer" }], deck: [{ card: "BT1-001", as: "deckTop" }] }, 1: { battleArea: [{ card: "BT1-009", as: "opponent" }] } }, { autoAcceptOptional: true, autoSelectCards: true });
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "ST24-13", as: "tamer" }], deck: [{ card: "BT1-001", as: "deckTop" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.memory = 0;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.memory === 1);

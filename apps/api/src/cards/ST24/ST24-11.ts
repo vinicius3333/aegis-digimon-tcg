@@ -26,8 +26,20 @@ const suspendAndRestrict = {
 
 const compiled: CompiledCard = {
   effects: [
-    { trigger: "WhenDigivolving", ...suspendAndRestrict, frequency: "OncePerTurn", optional: true, sharedUseKey: "ir-shared-0" },
-    { trigger: "WhenAttacking", ...suspendAndRestrict, frequency: "OncePerTurn", optional: true, sharedUseKey: "ir-shared-0" },
+    {
+      trigger: "WhenDigivolving",
+      ...suspendAndRestrict,
+      frequency: "OncePerTurn",
+      optional: true,
+      sharedUseKey: "ir-shared-0",
+    },
+    {
+      trigger: "WhenAttacking",
+      ...suspendAndRestrict,
+      frequency: "OncePerTurn",
+      optional: true,
+      sharedUseKey: "ir-shared-0",
+    },
     {
       trigger: "AllTurns",
       frequency: "OncePerTurn",
