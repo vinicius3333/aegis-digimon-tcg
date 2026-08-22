@@ -87,6 +87,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT25-059", // 2+ suspended Digimon -> -5 (Q6306/Q6350)
   "BT25-075", // fewer Digimon than your opponent -> -5 (Q6370-Q6372)
   "BT25-077", // condition: 12+ total Digimon levels -> -5 (Q7002 effect-driven stacking)
+  "BT24-030", // opponent has 2+ Digimon -> self play cost -5
   "BT25-096", // trash the bottom face-down card under a Tamer -> Option use cost -2 (Q6456)
   "BT22-041", // condition: total cards in both security stacks <= 6 -> self play cost -6
   "BT11-096", // condition: you have a red Tamer -> Option use cost -1

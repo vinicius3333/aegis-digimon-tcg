@@ -26,7 +26,7 @@ describe("BT24-030 Neptunemon", () => {
       expect(effect?.actions?.[0]).toMatchObject({
         kind: "Return",
         to: "deckBottom",
-        target: { count: "all", filter: { superlative: "fewestDigivolutionCards" } },
+        target: { count: "all", filter: { superlative: "lowestDigivolutionCards" } },
       });
     }
   });
@@ -51,7 +51,13 @@ describe("BT24-030 Neptunemon", () => {
     });
     reduced.state.memory = 12;
     await reduced.ready();
-    await advance(reduced.engine).verb.playInstances([reduced.inst("neptunemon").instanceId]);
+    expect(
+      reduced.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: reduced.inst("neptunemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => reduced.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-030"));
     expect(reduced.state.memory).toBe(5);
 
     const full = setupEngine({
@@ -60,7 +66,13 @@ describe("BT24-030 Neptunemon", () => {
     });
     full.state.memory = 12;
     await full.ready();
-    await advance(full.engine).verb.playInstances([full.inst("neptunemon").instanceId]);
+    expect(
+      full.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: full.inst("neptunemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => full.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-030"));
     expect(full.state.memory).toBe(0);
   });
 
@@ -75,15 +87,12 @@ describe("BT24-030 Neptunemon", () => {
         ],
       },
     });
+    const morePermanentId = s.perm("more").permanentId;
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("neptunemon"));
 
-    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual(
-      expect.arrayContaining([s.inst("fewestA").instanceId, s.inst("fewestB").instanceId]),
-    );
-    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
-      s.perm("more").permanentId,
-    ]);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-009", "BT1-010"]));
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([morePermanentId]);
   });
 
   it("may unsuspend once when it suspends", async () => {
@@ -109,6 +118,7 @@ describe("BT24-030 Neptunemon", () => {
             { card: "BT24-030", as: "neptunemon" },
             { card: "BT24-020", as: "first" },
             { card: "BT24-027", as: "second" },
+            { card: "BT11-085", as: "aquatic" },
             { card: "BT1-009", as: "nonTs" },
           ],
         },
@@ -116,23 +126,57 @@ describe("BT24-030 Neptunemon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
+    const protectedIds = [
+      s.perm("neptunemon").permanentId,
+      s.perm("first").permanentId,
+      s.perm("second").permanentId,
+      s.perm("aquatic").permanentId,
+    ];
+    const nonTsId = s.perm("nonTs").permanentId;
 
     expect(
       await advance(s.engine).verb.deletePermanent(
-        [s.perm("first").permanentId, s.perm("second").permanentId, s.perm("nonTs").permanentId],
+        [
+          s.perm("first").permanentId,
+          s.perm("second").permanentId,
+          s.perm("aquatic").permanentId,
+          s.perm("nonTs").permanentId,
+        ],
         "byEffect",
       ),
     ).toBe(1);
 
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual(
-      expect.arrayContaining([
-        s.perm("neptunemon").permanentId,
-        s.perm("first").permanentId,
-        s.perm("second").permanentId,
-      ]),
+      expect.arrayContaining(protectedIds),
     );
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(
-      s.perm("nonTs").permanentId,
-    );
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(nonTsId);
+  });
+
+  it.each([
+    ["Aqua in trait", "BT10-023", 0],
+    ["Sea Animal trait", "BT7-027", 1],
+    ["TS trait", "BT24-028", 2],
+  ])("digivolves from a level 5 card with %s for cost 3", async (_label, baseCard, alternateRequirementIndex) => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: baseCard, as: "base" }],
+        hand: [{ card: "BT24-030", as: "neptunemon" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("neptunemon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("neptunemon").instanceId);
+
+    expect(s.state.memory).toBe(2);
   });
 });

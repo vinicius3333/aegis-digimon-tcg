@@ -43,7 +43,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              superlative: "fewestDigivolutionCards",
+              superlative: "lowestDigivolutionCards",
             },
             count: "all",
           },
@@ -60,7 +60,7 @@ export const compiled: CompiledCard = {
             filter: {
               controller: "opponent",
               kind: ["Digimon"],
-              superlative: "fewestDigivolutionCards",
+              superlative: "lowestDigivolutionCards",
             },
             count: "all",
           },
@@ -111,7 +111,7 @@ export const compiled: CompiledCard = {
                 },
                 {
                   tokens: ["Aqua", "Sea Animal"],
-                  match: "trait",
+                  match: "traitContains",
                 },
               ],
             },
@@ -148,7 +148,7 @@ export const compiled: CompiledCard = {
   digivolutionRequirement: [
     {
       level: 5,
-      traits: ["Aqua"],
+      traitSubstrings: ["Aqua"],
       cost: 3,
       isAlternate: true,
     },
