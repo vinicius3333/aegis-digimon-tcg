@@ -12,6 +12,7 @@ describe("ST14-09 BeelStarmon", () => {
         trash: Array.from({ length: 10 }, () => "BT1-009"),
       },
     });
+    await s.ready();
     s.state.memory = 10;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("beelstar").instanceId })).toEqual({
       ok: true,
@@ -30,6 +31,7 @@ describe("ST14-09 BeelStarmon", () => {
       },
       { autoSelectCards: true },
     );
+    await s.ready();
     await advance(s.engine).fireSubTrigger("onDiscardLibrary", {
       addedToHand: { instanceIds: [], byEffect: { ownerSeat: 0, isDigimonEffect: true } },
     });

@@ -22,6 +22,7 @@ describe("ST14-07 Baalmon", () => {
     );
 
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("baalmon"));
+    await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("baalmon").permanentId]);
 
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "ST14-08")).toBe(true);
