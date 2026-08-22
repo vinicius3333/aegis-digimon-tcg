@@ -26,7 +26,7 @@ describe("BT12-077 Arresterdramon", () => {
         deck: ["BT1-010"],
       },
     }, { autoAcceptOptional: true, autoSelectCards: true });
-    const sourceId = s.perm("host").topCard.instanceId;
+    const sourceId = s.perm("host").stack.find(({ cardId }) => cardId === "BT12-077")!.instanceId;
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
     await settle(() => s.perm("tamer").stack.some(({ instanceId }) => instanceId === sourceId));
     expect(s.perm("tamer").stack.some(({ instanceId }) => instanceId === sourceId)).toBe(true);
