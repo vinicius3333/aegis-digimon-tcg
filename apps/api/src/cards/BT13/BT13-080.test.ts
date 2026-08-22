@@ -1,4 +1,8 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./BT13-080.js";
 
 describe("BT13-080 ProtoGizmon", () => {
@@ -49,5 +53,15 @@ describe("BT13-080 ProtoGizmon", () => {
         },
       },
     });
+  });
+
+  it("draws one card and then trashes one card from hand on play", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT13-080", as: "proto" }], deck: ["BT1-001"], hand: ["BT1-002"] },
+    });
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("proto"));
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002"));
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-002")).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-001")).toBe(true);
   });
 });
