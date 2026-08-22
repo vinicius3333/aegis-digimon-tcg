@@ -1,8 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./ST16-12.js";
+import { compiled } from "./ST16-12.js";
 
 describe("ST16-12 MetalGarurumon", () => {
+  it("exposes Blast Digivolve from hand at Counter timing", () => {
+    expect(compiled.effects.find((effect) => effect.trigger === "Counter")).toMatchObject({
+      isFromHand: true,
+      keywords: [{ keyword: "BlastDigivolve" }],
+    });
+  });
+
   it("gains 1 memory for each card actually trashed by its digivolution cost", async () => {
     const s = setupEngine(
       {
