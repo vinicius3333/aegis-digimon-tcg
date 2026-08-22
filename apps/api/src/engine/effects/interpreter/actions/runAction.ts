@@ -43,6 +43,9 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   } else {
     ctx.lastActionConditionMatched = true;
   }
+  if (action.kind === "Delete" && action.cost !== undefined && (await resolvePermanentTargets(ctx, action.target)).length === 0) {
+    return action.abortOnDecline === true;
+  }
   // Bind a SelectBind target before paying a cost that refers to that selected host.
   if (action.kind === "SelectBind" && action.target.bindAs !== undefined && action.cost?.kind === "trash") {
     const boundTo =

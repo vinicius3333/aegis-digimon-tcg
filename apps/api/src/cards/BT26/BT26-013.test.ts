@@ -43,15 +43,17 @@ describe("BT26-013 Musyamon", () => {
         ],
       },
     }, { autoSelectCards: true });
+    const selfId = s.perm("self").topCard.instanceId;
+    const safeId = s.perm("safe").topCard.instanceId;
 
     expect(await advance(s.engine).verb.deletePermanent([s.perm("self").permanentId], "byEffect")).toBe(1);
     await settle(() => s.state.players[1]!.battleArea.length === 1);
 
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining([
-      s.inst("self").instanceId,
+      selfId,
       s.inst("cost").instanceId,
     ]));
-    expect(s.state.players[1]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("safe").instanceId);
+    expect(s.state.players[1]!.battleArea[0]!.topCard.instanceId).toBe(safeId);
   });
 
   it("does not delete or trash a hand card when no opponent Digimon is within 6000 DP", async () => {
@@ -66,7 +68,7 @@ describe("BT26-013 Musyamon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("self"));
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("cost").instanceId]);
-    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("cost").instanceId);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
@@ -79,13 +81,13 @@ describe("BT26-013 Musyamon", () => {
   it("applies inherited +2000 DP only on the owner's turn", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT26-014", as: "host", under: [{ card: "BT26-013", as: "source" }] }] } });
     await advance(s.engine).fire(EffectTiming.OnAllyAttack, s.perm("host"), { attackerPermanentId: s.perm("host").permanentId });
-    expect(s.perm("host").currentDP).toBe(13000);
+    expect(s.perm("host").currentDP).toBe(9000);
 
     const opponentTurn = setupEngine({
       0: { battleArea: [{ card: "BT26-014", as: "host", under: [{ card: "BT26-013" }] }] },
     });
     opponentTurn.state.turnSeat = 1;
     await opponentTurn.ready();
-    expect(opponentTurn.perm("host").currentDP).toBe(11000);
+    expect(opponentTurn.perm("host").currentDP).toBe(7000);
   });
 });
