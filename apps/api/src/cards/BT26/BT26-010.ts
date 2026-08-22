@@ -34,6 +34,7 @@ export const compiled: CompiledCard = {
   }],
   coverage: "full",
   residual: [],
+  linkRequirement: [{ traits: ["Appmon"], cost: 3 }],
 };
 
 registerIrCard("BT26-010", compiled);
