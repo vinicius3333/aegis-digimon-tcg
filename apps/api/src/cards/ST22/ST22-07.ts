@@ -16,7 +16,7 @@ const compiled: CompiledCard = {
           cost: {
             kind: "place",
             target: { filter: { zone: "hand", controller: "mine", ...option }, count: 1, from: ["hand"] },
-            underFilter: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            underFilter: { isSelfRef: true },
             destination: "digivolutionStack",
             position: "bottom",
             host: "self",
