@@ -30,7 +30,7 @@ describe("BT13-105 Full Moon Meteor Impact", () => {
   it("returns an opposing Digimon and gains one memory for every four opposing hand cards", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "BT13-105", as: "option" }] },
+        0: { battleArea: [{ card: "BT1-030", as: "blueDigimon" }], hand: [{ card: "BT13-105", as: "option" }] },
         1: {
           battleArea: [{ card: "BT13-111", as: "target" }],
           hand: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
@@ -52,7 +52,10 @@ describe("BT13-105 Full Moon Meteor Impact", () => {
   it("returns an opposing Digimon without the Main memory gain from security", async () => {
     const s = setupEngine(
       {
-        0: { security: [{ card: "BT13-105", as: "securityOption", faceUp: true }] },
+        0: {
+          battleArea: [{ card: "BT1-030", as: "blueDigimon" }],
+          security: [{ card: "BT13-105", as: "securityOption", faceUp: true }],
+        },
         1: { battleArea: [{ card: "BT13-111", as: "target" }] },
       },
       { autoSelectCards: true },
