@@ -51,7 +51,7 @@ it("scales the digivolution DP reduction for each yellow or red Tamer", async ()
       battleArea: [{ card: "BT1-009", as: "target", dp: 10000 }],
       security: ["BT1-009"],
     },
-  });
+  }, { autoSelectCards: true });
   await s.ready();
   await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("shine"));
   expect(s.perm("target").currentDP).toBe(4000);
