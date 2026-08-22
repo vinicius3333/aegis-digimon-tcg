@@ -48,4 +48,23 @@ describe("ST19-13 ShinMonzaemon", () => {
     expect(s.state.players[0]!.security[0]?.cardId).toBe("BT1-009");
     expect(s.state.players[0]!.security[0]?.faceUp).toBe(false);
   });
+
+  it("does not recover when the mandatory placement has no eligible trash card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "ST19-13", as: "shin" }],
+          trash: [{ card: "BT1-010", as: "ineligible" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shin").instanceId })).toEqual({ ok: true });
+    await s.ready();
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-010"]);
+  });
 });
