@@ -254,14 +254,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       // Generic "add N to the maximum DP you can choose with DP-based deletion effects"
       // modifiers also raise aggregate budgets (BT9-009/011 feeding BT9-014), in addition
       // to the dedicated AddToDPDeleteBudget producer used by later cards.
-      const sourcePerm =
-        ctx.source.permanent() ??
-        ctx.game.player(ctx.source.ownerSeat).battleArea.find(
-          (permanent) => permanent.topCard?.instanceId === ctx.source.instanceId,
-        ) ??
-        ctx.game.player(ctx.source.ownerSeat).battleArea.find(
-          (permanent) => permanent.topCard?.cardId === ctx.source.cardId,
-        );
+      const sourcePerm = ctx.source.permanent();
       const dedicatedBudgetBonus =
         sourcePerm !== undefined ? (ctx.fx.dpDeleteBudgetBonus?.(sourcePerm.permanentId) ?? 0) : 0;
       const genericDeletionMaxBonus = ctx.fx.deletionMaxDpBonus?.(ctx.source.ownerSeat, sourcePerm?.permanentId) ?? 0;

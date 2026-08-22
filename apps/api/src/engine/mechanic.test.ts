@@ -186,7 +186,7 @@ describe("A3 RevealAdd — reveal top N, add matching, rest to deck", () => {
   it("BT1-067 [On Play] reveals top 3 and adds the lone Lv.4 Digimon to hand", async () => {
     // The single matching candidate is still offered as a card selection (the client shows the
     // reveal); the harness answers it, and the assertion below is that nothing OPTIONAL was asked.
-    const s = setup({ autoSelectCards: true });
+    const s = setup({ autoSelectCards: true, autoAcceptOptional: true });
     const player = s.state.players[0] as PlayerState;
 
     const source = instance("BT1-067", 0, false); // Green Digimon, cost 3, On Play: RevealAdd 3
