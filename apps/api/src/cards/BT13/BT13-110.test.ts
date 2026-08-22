@@ -3,7 +3,6 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "../index.js";
 import { compiled } from "./BT13-110.js";
 
 function activatableEffects(s: ReturnType<typeof setupEngine>, instanceId: string) {
