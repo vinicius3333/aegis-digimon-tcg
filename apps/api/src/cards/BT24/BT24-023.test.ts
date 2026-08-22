@@ -36,6 +36,7 @@ describe("BT24-023 Calmaramon", () => {
       {
         0: { battleArea: [{ card: "BT24-023", as: "calmaramon" }] },
         1: {
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
           battleArea: [
             { card: "BT24-022", as: "returned" },
             { card: "BT24-083", as: "tamer" },
