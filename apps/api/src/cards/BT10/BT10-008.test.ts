@@ -155,6 +155,24 @@ describe("BT10-008 Shoutmon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === deletedInstanceId)).toBe(false);
   });
 
+  it("can decline Save and then sends itself to the trash", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT10-087", as: "tamer" },
+          { card: "BT10-008", as: "deleted" },
+        ],
+      },
+    }, { autoDeclineOptional: true, autoOrderTriggers: true });
+    const deletedInstanceId = s.perm("deleted").topCard.instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("deleted").permanentId])).toBe(1);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === deletedInstanceId));
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === deletedInstanceId)).toBe(true);
+    expect(s.perm("tamer").stack.some((card) => card.instanceId === deletedInstanceId)).toBe(false);
+  });
+
   it("grants inherited Rush only when the host has Shoutmon in its name", async () => {
     const s = setupEngine({
       0: {
