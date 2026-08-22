@@ -1,4 +1,7 @@
 import { describe, expect, it } from "vitest";
+import { CardKind, type CardDefinition } from "@aegis/shared";
+import { setupEngine } from "../../engine/testkit/harness.js";
+import { ContinuousEffectLedger } from "../../engine/effects/continuous.js";
 import { compiled } from "./BT17-014.js";
 
 describe("BT17-014", () => {
@@ -12,5 +15,13 @@ describe("BT17-014", () => {
 
   it("prevents security option effects as inherited for Hybrid or Ten Warriors", () => {
     expect(compiled.effects?.[2]).toMatchObject({ trigger: "YourTurn", isInherited: true, actions: [{ kind: "GrantStatic", grant: "noSecurityOptionEffects", duration: "permanent", condition: { kind: "selfHasTrait" } }] });
+  });
+
+  it("disables security Option effects for a Hybrid host on its controller's turn", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT17-011", as: "host", under: ["BT17-014"] }] } });
+    const option = { cardId: "TEST-OPTION", nameEn: "Test Option", kinds: [CardKind.Option], colors: [], types: [], playCost: 1, level: undefined, dp: undefined, digivolveRequirement: [] } as unknown as CardDefinition;
+    await s.ready();
+    const ledger = (s.engine as unknown as { continuous: ContinuousEffectLedger }).continuous;
+    expect(ledger.isSecurityEffectDisabled(s.perm("host").permanentId, option)).toBe(true);
   });
 });
