@@ -4,7 +4,7 @@ import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
-import "../index.js";
+import "./index.js";
 import "./BT22-006.js";
 
 describe("BT22-006 Moonmon", () => {

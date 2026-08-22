@@ -1,4 +1,4 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCompiledCard, type CompiledCard } from "@aegis/shared";
 import type { EffectModule } from "../../engine/effects/EffectModule.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Effect } from "../../engine/effects/Effect.js";
@@ -13,6 +13,11 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
  * as its bottom digivolution card, <Draw 1> and trash 1 card in your hand.
  */
 const cardId = "BT22-006";
+const compiled: CompiledCard = {
+  ...getCompiledCard(cardId)!,
+  coverage: "full",
+  residual: [],
+};
 
 const module: EffectModule = {
   cardId,
@@ -75,5 +80,5 @@ const module: EffectModule = {
   },
 };
 
-registerIrCard(cardId, module);
+registerIrCard(cardId, compiled, module);
 export default module;

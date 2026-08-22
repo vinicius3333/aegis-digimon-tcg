@@ -3,6 +3,7 @@ import {
   CardKind,
   GameState,
   PlayerState,
+  Permanent,
   EffectTiming,
   EffectDuration,
   Phase,

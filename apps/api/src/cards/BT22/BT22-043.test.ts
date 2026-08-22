@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-043.js";
-import "../index.js";
+import "./index.js";
 
 describe("BT22-043 Terriermon", () => {
   it("watches self CS digivolution-card additions before playing a CS Tamer", () => {
