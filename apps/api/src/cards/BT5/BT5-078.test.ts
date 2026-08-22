@@ -13,4 +13,12 @@ describe("BT5-078 Jokermon", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === rookieId)).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(4);
   });
+
+  it("does not play a purple Digimon at another level", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT5-078", as: "joker" }], trash: [{ card: "BT5-075", as: "wrongLevel" }] } }, { autoSelectCards: true, autoAcceptOptional: true });
+    await (s.engine as any).primitives.deletePermanent([s.perm("joker").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("wrongLevel").instanceId)).toBe(true);
+  });
 });
