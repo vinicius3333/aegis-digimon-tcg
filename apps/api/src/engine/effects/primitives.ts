@@ -2705,6 +2705,8 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     }
     const allMoved: string[] = [];
     const allStackInstanceIds: string[] = [];
+    const deletedByDpZero =
+      cause === "byRule" && toDelete.some((permanentId) => access.permanentById(permanentId)?.currentDP === 0);
     // The deleted COUNT = permanents that ACTUALLY left the field. A prevented (leave-prevention)
     // or immune permanent never enters `toDelete` / moves nothing, contributing 0 — the result a
     // gating "if this effect didn't delete" Condition reads (KB BT23-069 Q5338).
@@ -2839,6 +2841,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         deletedPermanentId: allMoved[0],
         deletedTopCardId: topCardIdsByPermanent.find((cardId) => cardId !== undefined),
         deletedEffectiveColorsByInstanceId,
+        deletedByDpZero,
         // The actually-deleted card set: the [On Deletion] trigger gate (builders.onDeletion)
         // admits only these instances as candidates at this window.
         deletedInstanceIds: allMoved,
