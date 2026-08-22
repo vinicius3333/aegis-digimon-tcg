@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./BT26-035.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -24,5 +25,16 @@ describe("BT26-035 Morphomon", () => {
 
     expect(s.perm("winner").topCard.cardId).toBe("BT26-041");
     expect(s.state.memory).toBe(0);
+  });
+
+  it("suspends one Digimon through the public On Play window", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT26-035", as: "morphomon" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+    }, { autoAcceptOptional: true, autoSelectCards: true });
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("morphomon"));
+
+    expect(s.perm("opponent").isSuspended).toBe(true);
   });
 });
