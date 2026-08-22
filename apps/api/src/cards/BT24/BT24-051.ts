@@ -179,7 +179,7 @@ export const compiled: CompiledCard = {
       trigger: "YourTurn",
       actions: [
         {
-          kind: "GainKeyword",
+          kind: "Aura",
           target: {
             filter: {
               controller: "mine",
@@ -193,14 +193,17 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
-          keyword: {
-            keyword: "Rush",
-            raw: "＜Rush＞",
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Rush",
+              raw: "＜Rush＞",
+            },
           },
-          duration: "permanent",
+          while: { kind: "true" },
         },
         {
-          kind: "GainKeyword",
+          kind: "Aura",
           target: {
             filter: {
               controller: "mine",
@@ -214,11 +217,14 @@ export const compiled: CompiledCard = {
             },
             count: "all",
           },
-          keyword: {
-            keyword: "Piercing",
-            raw: "＜Piercing＞",
+          effect: {
+            kind: "keyword",
+            keyword: {
+              keyword: "Piercing",
+              raw: "＜Piercing＞",
+            },
           },
-          duration: "permanent",
+          while: { kind: "true" },
         },
       ],
     },
