@@ -38,7 +38,8 @@ describe("ST19-11 Chaperomon", () => {
       {
         0: {
           battleArea: [
-            { card: "ST19-11", as: "chap", under: ["BT1-010"] },
+            // ST19-11's replacement is inherited: it must be beneath a host Digimon.
+            { card: "BT1-010", as: "chap", under: ["ST19-11"] },
             { card: "TOKEN-Familiar-Token", as: "fodder", dp: 3000 },
           ],
         },
@@ -56,8 +57,8 @@ describe("ST19-11 Chaperomon", () => {
         instanceId: s.inst("remover").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST19-11"));
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST19-11")).toBe(true);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-010"));
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-010")).toBe(true);
     await settle(
       () => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "TOKEN-Familiar-Token"),
     );
