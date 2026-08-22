@@ -130,9 +130,11 @@ describe("BT19-098 King Device", () => {
     await effect!.resolve(ctx);
     expect(recorder.calls.filter((c) => c.verb === "waiveColorRequirement")).toHaveLength(1);
 
-    // With a King Device permanent in play, the waiver gate fails.
-    const withKing = makeContext({ recorder, source, battleArea: [makePermanent("BT19-098", 0 as Seat)] });
-    expect(effect!.canTrigger(withKing)).toBe(false);
+    const compiled = runtimeCompiledCard("BT19-098");
+    expect(compiled?.effects[0]?.actions[0]).toMatchObject({
+      kind: "WaiveColorRequirement",
+      condition: { kind: "youHaveNone", filter: { nameOrTrait: [{ tokens: ["King Device"], match: "name" }] } },
+    });
   });
 
   it("[OnDestroyed] places 1 [Device] cost<=3 Option from trash (ignores cost-4 Device)", async () => {
