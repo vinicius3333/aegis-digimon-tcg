@@ -12,6 +12,7 @@ const compiled: CompiledCard = {
         {
           kind: "Suspend",
           target: { filter: { controller: "opponent", kind: ["Digimon", "Tamer"] }, count: 1 },
+          preventUnsuspend: "opponentNextUnsuspendPhase",
         },
         {
           kind: "Digivolve",

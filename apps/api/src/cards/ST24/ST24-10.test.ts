@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("ST24-10 Lilamon", () => {
@@ -34,6 +35,7 @@ describe("ST24-10 Lilamon", () => {
     });
     await settle(() => s.perm("opponent").isSuspended);
     expect(s.perm("opponent").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "unsuspend")).toBe(true);
     await settle(() =>
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("next").instanceId),
     );
