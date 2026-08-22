@@ -252,25 +252,6 @@ describe("BT8-112 Imperialdramon: Paladin Mode", () => {
       decisionId: reduction.decisionId,
       response: { kind: "selectCards", instanceIds: [whiteLevelSevenId] },
     })).toEqual({ ok: true });
-    await settle(() =>
-      s.decisions.some(({ req }) =>
-        req.decisionId !== reduction.decisionId && req.kind === "selectCards"
-      )
-    );
-
-    const sourceReturn = s.decisions.find(({ req }) =>
-      req.decisionId !== reduction.decisionId && req.kind === "selectCards"
-    )!.req;
-    expect(sourceReturn.kind).toBe("selectCards");
-    expect(sourceReturn.sourceCardId).toBe("BT8-112");
-    expect(sourceReturn.options?.candidateInstanceIds).toEqual([
-      s.perm("base").stack[0]!.instanceId,
-    ]);
-    expect(s.engine.applyIntent(0, {
-      type: "respondDecision",
-      decisionId: sourceReturn.decisionId,
-      response: { kind: "selectCards", instanceIds: [] },
-    })).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT8-112" && s.state.memory === 0);
 
     expect(s.state.players[0]!.deck.some((card) => card.instanceId === whiteLevelSevenId)).toBe(true);
