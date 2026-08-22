@@ -188,13 +188,15 @@ function inheritedSaveDp(cardId: string, source: CardSource): Effect {
 }
 
 function opponentDigimonWasDeletedByDpZero(ctx: EffectContext, source: CardSource): boolean {
-  if (ctx.trigger.deletedByDpZero !== true) return false;
+  const zeroDpTopCards = new Set(ctx.trigger.deletedByDpZeroInstanceIds ?? []);
+  if (zeroDpTopCards.size === 0 && ctx.trigger.deletedByDpZero !== true) return false;
   const deleted = new Set(ctx.trigger.deletedInstanceIds ?? []);
   const deletedStack = new Set(ctx.trigger.deletedWasStackInstanceIds ?? []);
   return ctx.game.player(ctx.game.opponentOf(source.ownerSeat)).trash.some(
     (instance) =>
       deleted.has(instance.instanceId) &&
       !deletedStack.has(instance.instanceId) &&
+      (zeroDpTopCards.size === 0 || zeroDpTopCards.has(instance.instanceId)) &&
       isDigimon(ctx.game.definitionOf(instance)),
   );
 }

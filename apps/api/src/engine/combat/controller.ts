@@ -99,6 +99,8 @@ export interface CombatTrigger {
   deletedInstanceIds?: string[];
   /** Subset of deletedInstanceIds that were stack cards (for inherited-effect gating). */
   deletedWasStackInstanceIds?: string[];
+  /** Top-card instance IDs that individually reached exactly 0 DP in this deletion window. */
+  deletedByDpZeroInstanceIds?: string[];
   battleOpponentPermanentIdByInstanceId?: Record<string, string>;
 }
 
