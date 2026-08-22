@@ -5,6 +5,7 @@ import { evaluateCondition } from "../conditions.js";
 import { payCost, payOneCostOption } from "../costs.js";
 import { runAction } from "../dispatch.js";
 import { unsupported } from "../errors.js";
+import { scaleFactor } from "../scaling.js";
 import { definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { getCardDefinition } from "@aegis/shared";
@@ -71,6 +72,7 @@ export async function runReplacement(
           condition?: Condition;
           cost?: Cost;
           sourceFilter?: Filter;
+          scaling?: import("@aegis/shared").Scaling;
         }[]
       | undefined
   )?.find(
@@ -91,6 +93,10 @@ export async function runReplacement(
           ? "prevent"
           : "instead");
   let amount = action.amount ?? nestedCostModifier?.amount;
+  const costScaling = action.scaling ?? action.reduceCostScaling ?? nestedCostModifier?.scaling;
+  if ((mode === "reduceCost" || mode === "increaseCost") && costScaling !== undefined && amount !== undefined) {
+    amount *= scaleFactor(ctx, costScaling);
+  }
   // Mutually-exclusive amount alternatives (EX6-006 "reduce by 3 ... reduce by 4 instead"):
   // only ONE eligible entry ever installs — never both — because `costReductionFor` SUMS every
   // active reduceCost subscription anchored to this permanent, so two simultaneously-installed

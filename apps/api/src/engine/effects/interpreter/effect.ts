@@ -187,7 +187,13 @@ function isHandResidentDigivolveCostStatic(effect: CardEffect): boolean {
   // `HandCards.Contains(card)` + `cardSource == card`), not merely on "all actions are
   // digivolve CostModifiers". An on-field digivolve-cost static (which lacks the marker)
   // must NOT lose its on-field base guard via this hand-permissive route (WR-01).
-  return actions.every((a) => a.kind === "CostModifier" && a.handResident === true);
+  return actions.every(
+    (a) =>
+      (a.kind === "CostModifier" && a.handResident === true) ||
+      (a.kind === "Replacement" &&
+        a.event === "wouldDigivolve" &&
+        a.actions?.some((nested) => nested.kind === "Replacement" && nested.mode === "reduceCost")),
+  );
 }
 
 /**
