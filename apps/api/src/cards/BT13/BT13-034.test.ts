@@ -44,7 +44,7 @@ describe("BT13-034 Kudamon", () => {
   it("adds a yellow Vaccine and Tamer from the top three cards and bottoms the rest", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT13-034", as: "kudamon" }], deck: ["BT13-036", "BT13-098", "BT1-001"] },
+        0: { battleArea: [{ card: "BT13-034", as: "kudamon" }], deck: ["BT13-036", "BT13-098", "BT1-009"] },
       },
       { autoSelectCards: true },
     );
@@ -53,6 +53,6 @@ describe("BT13-034 Kudamon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["BT13-036", "BT13-098"]),
     );
-    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT1-001");
+    expect(s.state.players[0]!.deck.at(-1)?.cardId).toBe("BT1-009");
   });
 });
