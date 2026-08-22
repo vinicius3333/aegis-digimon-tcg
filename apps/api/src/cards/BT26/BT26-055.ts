@@ -14,6 +14,6 @@ export const compiled: CompiledCard = { effects: [
   { trigger: "WhenDigivolving", frequency: "OncePerTurn", sharedUseKey: "bt26-055-place-delete", actions: body },
   { trigger: "Counter", frequency: "OncePerTurn", sharedUseKey: "bt26-055-place-delete", actions: body },
   { trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenLeavesPlay", sourceFilter: { isSelfRef: true }, actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent", amount: 1 }] }] },
-], coverage: "full", residual: [] };
+], coverage: "full", residual: [], digivolutionRequirement: [{ level: 4, traits: ["DM"], cost: 3, isAlternate: true }] };
 registerIrCard("BT26-055", compiled);
 export default compiled;
