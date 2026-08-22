@@ -325,6 +325,15 @@ export class SubTriggerRegistry {
           `permanent/instance or retain the activating resolution context.`,
       );
     }
+    const existing = this.subs.find(
+      (candidate) =>
+        candidate.event === sub.event &&
+        candidate.sourcePermanentId === sub.sourcePermanentId &&
+        candidate.sourceInstanceId === sub.sourceInstanceId &&
+        candidate.oncePerTurnKey === sub.oncePerTurnKey &&
+        candidate.description === sub.description,
+    );
+    if (existing !== undefined) return existing.id;
     const id = this.seq++;
     this.subs.push({ ...sub, id });
     return id;

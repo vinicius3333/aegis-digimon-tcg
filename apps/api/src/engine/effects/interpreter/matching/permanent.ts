@@ -367,6 +367,14 @@ export function permanentMatchesFilter(
     const { playCostLteTriggerSource: _bound, ...rest } = filter;
     filter = rest;
   }
+  if (filter.playCostLteAttackerLevel === true) {
+    const attackerId = ctx.trigger.attackerPermanentId;
+    const attacker = attackerId === undefined ? undefined : ctx.game.permanentById(attackerId);
+    const attackerLevel = attacker?.topCard === undefined ? undefined : ctx.game.definitionOf(attacker.topCard).level;
+    if (attackerLevel === undefined || def.playCost > attackerLevel) return false;
+    const { playCostLteAttackerLevel: _bound, ...rest } = filter;
+    filter = rest;
+  }
   if (filter.levelEq !== undefined) {
     const bound = typeof filter.levelEq === "string" ? ctx.namedCounts?.get(filter.levelEq) : filter.levelEq;
     if (bound === undefined || def.level === undefined || def.level !== bound) return false;

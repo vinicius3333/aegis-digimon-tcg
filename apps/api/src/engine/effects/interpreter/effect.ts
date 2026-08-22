@@ -11,6 +11,7 @@ import {
   inTrash,
   onAddHand,
   onDeletion,
+  onDiscardSecurity,
   onPlay,
   security,
   securityStatic,
@@ -76,6 +77,8 @@ function timingForTrigger(effect: CardEffect): EffectTiming | undefined {
       return EffectTiming.OnBlockAnyone;
     case "OnSecurityCheck":
       return EffectTiming.OnSecurityCheck;
+    case "OnDiscardSecurity":
+      return EffectTiming.OnDiscardSecurity;
     case "OnDeletion":
       return EffectTiming.OnDestroyedAnyone;
     case "EndOfAttack":
@@ -305,6 +308,8 @@ export function builderForTrigger(effect: CardEffect): (opts: BuilderOptions) =>
       return whenAttacking;
     case "OnDeletion":
       return onDeletion;
+    case "OnDiscardSecurity":
+      return onDiscardSecurity;
     case "whenTrashedFromBattleArea":
       return whenTrashedFromBattleArea;
     case "Main":
