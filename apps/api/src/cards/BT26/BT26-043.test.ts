@@ -20,7 +20,7 @@ describe("BT26-043 Piximon", () => {
       actions: [
         { kind: "Suspend" },
         { kind: "PlaceUnder", from: ["deck"], faceDown: true, position: "bottom" },
-        { kind: "Restrict", restriction: "unsuspend", scaling: { unit: "faceDownDigivolutionCards", per: 1 } },
+        { kind: "Restrict", restriction: "unsuspend", scaling: { unit: "selfFaceDownDigivolutionCards", per: 1 } },
       ],
     });
     expect(compiled.effects?.[0]?.actions?.[1]).not.toHaveProperty("optional");
@@ -28,13 +28,15 @@ describe("BT26-043 Piximon", () => {
   });
 
   it("plays through the public engine seam and applies the printed lock", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT26-043", as: "piximon" }], deck: ["BT1-009"] },
         1: { battleArea: [{ card: "BT1-085", as: "target" }] },
       },
-      { autoSelectCards: true, autoAcceptOptional: true },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("target").topCard.instanceId);
     s.state.memory = 7;
     await s.ready();
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("piximon").instanceId })).toEqual({
