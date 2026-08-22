@@ -45,7 +45,18 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
       { trigger: "OnPlay", frequency: "OncePerTurn", sharedUseKey: `${CARD_ID}/delete-recover` },
       { trigger: "WhenDigivolving", frequency: "OncePerTurn", sharedUseKey: `${CARD_ID}/delete-recover` },
       { trigger: "WhenAttacking", frequency: "OncePerTurn", sharedUseKey: `${CARD_ID}/delete-recover` },
-      { trigger: "Static", actions: [{ kind: "Replacement", event: "wouldLeavePlay", mode: "prevent" }] },
+      {
+        trigger: "AllTurns",
+        frequency: "OncePerTurn",
+        actions: [
+          {
+            kind: "Replacement",
+            event: "wouldLeavePlay",
+            sourceFilter: { isSelfRef: true },
+            actions: [{ kind: "Prevent", cost: { kind: "return" } }],
+          },
+        ],
+      },
     ]);
   });
 

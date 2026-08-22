@@ -50,18 +50,25 @@ export const compiled: CompiledCard = {
       actions: [deleteAndRecover, recovery],
     },
     {
-      trigger: "Static",
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
       actions: [
         {
           kind: "Replacement",
           event: "wouldLeavePlay",
-          mode: "prevent",
-          target: { filter: { isSelfRef: true }, count: 1 },
-          cost: {
-            kind: "return",
-            target: { filter: { zone: "security", controllerDefault: "mine" }, count: 1 },
-            to: "deckBottom",
-          },
+          sourceFilter: { isSelfRef: true },
+          actions: [
+            {
+              kind: "Prevent",
+              optional: true,
+              abortOnDecline: true,
+              cost: {
+                kind: "return",
+                target: { filter: { zone: "security", controllerDefault: "mine" }, count: 1 },
+                to: "deckBottom",
+              },
+            },
+          ],
         },
       ],
     },
