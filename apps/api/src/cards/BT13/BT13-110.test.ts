@@ -50,6 +50,7 @@ describe("BT13-110 Royal Knights of the Purge", () => {
       payCost: false,
       optional: true,
       suppressOnPlayEffects: true,
+      requiresDelayArmed: true,
       bindResultAs: "playedDigimon",
       target: {
         filter: {
