@@ -1,4 +1,6 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT8-103.js";
@@ -35,5 +37,17 @@ describe("BT8-103 Lightning Blade", () => {
     expect(observe(s.engine).hasPierce(s.perm("other"))).toBe(false);
     expect([...s.perm("other").keywords]).not.toContain("Piercing");
     expect(s.decisions.filter(({ req }) => req.kind === "chooseTargets")).toHaveLength(1);
+  });
+
+  it("suspends an opposing Digimon from Security", async () => {
+    const s = setupEngine({
+      0: { security: [{ card: "BT8-103", as: "option", faceUp: true }] },
+      1: { battleArea: [{ card: "BT8-032", as: "target" }] },
+    }, { autoSelectCards: true });
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    await settle(() => s.perm("target").isSuspended);
+
+    expect(s.perm("target").isSuspended).toBe(true);
   });
 });
