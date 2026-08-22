@@ -172,7 +172,7 @@ function overclockTraitFrom(compiled: CompiledCard, definition: CardDefinition |
       const fromRaw = parse(kw.raw);
       if (fromRaw) return fromRaw;
     }
-    for (const action of effect.actions) {
+    for (const action of effect.actions ?? []) {
       if (action.kind !== "GainKeyword") continue;
       const kw = (action as { keyword?: { keyword?: string; qualifier?: string; raw?: string } }).keyword;
       if (kw?.keyword !== "Overclock") continue;
