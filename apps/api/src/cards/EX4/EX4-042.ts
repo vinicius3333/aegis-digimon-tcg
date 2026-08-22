@@ -11,7 +11,7 @@ export const compiled: CompiledCard = {
       "trigger": "YourTurn",
       "actions": [
         {
-          "kind": "GrantStatic",
+          "kind": "GainKeyword",
           "target": {
             "filter": {
               "isSelfRef": true
@@ -19,13 +19,11 @@ export const compiled: CompiledCard = {
             "count": 1,
             "isSelf": true
           },
-          "grant": {
-            "keyword": "Unblockable"
-          },
+          "keyword": { "keyword": "Unblockable" },
           "duration": "forTheTurn"
         },
         {
-          "kind": "GrantStatic",
+          "kind": "GainKeyword",
           "target": {
             "filter": {
               "controllerDefault": "mine",
@@ -44,9 +42,7 @@ export const compiled: CompiledCard = {
             },
             "count": "all"
           },
-          "grant": {
-            "keyword": "Unblockable"
-          },
+          "keyword": { "keyword": "Unblockable" },
           "duration": "forTheTurn"
         }
       ]

@@ -71,9 +71,9 @@ export const compiled: CompiledCard = {
               "controller": "opponent",
               "zone": "hand"
             },
-            "count": 1,
-            "chooser": "opponent"
+            "count": 1
           },
+          "chooser": "opponent",
           "controller": "opponent",
           "condition": {
             "kind": "zoneCount",
@@ -82,7 +82,7 @@ export const compiled: CompiledCard = {
             "op": "gte",
             "value": 8,
             "raw": "your opponent has 8 or more cards in their hand"
-          }
+          },
         },
         {
           "kind": "SecurityManipulation",

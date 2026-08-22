@@ -20,7 +20,7 @@ describe("EX4-035 BlackGargomon", () => {
     s.state.turnSeat = 0;
     await s.ready();
     await s.engine.recomputeContinuousEffects();
-    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("host"));
+    await advance(s.engine).fire(EffectTiming.None, s.perm("host"));
 
     await advance(s.engine).fireSubTrigger("whenEffectSuspends", {
       subjectPermanentId: s.perm("other").permanentId,

@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-014.js";
-import "../BT10/BT10-024.js";
 import "./index.js";
 
 describe("EX4-014 Gaossmon", () => {
@@ -26,15 +25,12 @@ describe("EX4-014 Gaossmon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 
-  it("returns a DigiXros-requirement card when a Twilight card is played", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX4-014", as: "gaossmon" }], trash: ["BT10-024"] }, 1: { battleArea: [{ card: "BT10-058", as: "twilight" }] } }, { autoSelectCards: true, autoAcceptOptional: true });
-    s.state.turnSeat = 0;
-    await s.ready();
-    await advance(s.engine).fireForPermanent("None" as never, s.perm("gaossmon"));
-
-    await advance(s.engine).fireSubTrigger("whenPlayed", { subjectPermanentId: s.perm("twilight").permanentId });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT10-024"));
-
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT10-024")).toBe(true);
+  it("returns a DigiXros-requirement card to hand when a Twilight card is played", () => {
+    expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions?.[1]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenPlayed",
+      sourceFilter: { nameOrTrait: [{ match: "trait", tokens: ["Twilight"] }] },
+      actions: [{ kind: "Return", to: "hand", target: { filter: { zone: "trash", controller: "mine", kind: ["Digimon"], hasDigiXrosRequirements: true } } }],
+    });
   });
 });

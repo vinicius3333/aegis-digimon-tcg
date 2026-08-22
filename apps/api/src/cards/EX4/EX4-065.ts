@@ -11,6 +11,17 @@ export const compiled: CompiledCard = {
       "trigger": "Main",
       "actions": [
         {
+          "kind": "SubTrigger",
+          "event": "onDeletionOf",
+          "once": true,
+          "sourceFilter": {
+            "controllerDefault": "opponent",
+            "kind": ["Digimon"],
+            "dp": { "op": "gte", "value": 13000 }
+          },
+          "actions": [{ "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent", "amount": 1 }]
+        },
+        {
           "kind": "Delete",
           "target": {
             "filter": {
@@ -23,28 +34,6 @@ export const compiled: CompiledCard = {
             "count": 1
           }
         },
-        {
-          "kind": "SubTrigger",
-          "event": "onDeletionOf",
-          "sourceFilter": {
-              "controllerDefault": "opponent",
-            "kind": [
-              "Digimon"
-            ],
-            "dp": {
-              "op": "gte",
-              "value": 13000
-            }
-          },
-          "actions": [
-            {
-              "kind": "SecurityManipulation",
-              "op": "trashTop",
-              "controller": "opponent",
-              "amount": 1
-            }
-          ]
-        }
       ]
     },
     {

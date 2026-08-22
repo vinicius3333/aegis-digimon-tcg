@@ -58,6 +58,8 @@ export const compiled: CompiledCard = {
         {
           "kind": "SubTrigger",
           "event": "whenEffectSuspends",
+          "sourceFilter": { "controllerDefault": "mine", "kind": ["Digimon"], "excludeSelf": true },
+          "bySourceController": "mine",
           "actions": [
             {
               "kind": "ModifyDP",
