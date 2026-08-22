@@ -27,6 +27,22 @@ it("does not register an unprinted Security effect", () => {
   expect(module!.effectsForTiming(EffectTiming.SecuritySkill, source)).toEqual([]);
 });
 
+it("can decline the optional player attack after unsuspending Shoutmon X7", async () => {
+  const s = setupEngine(
+    {
+      0: { hand: [{ card: "BT12-100", as: "option" }], battleArea: [{ card: "BT12-112", as: "shoutmon", suspended: true }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }] },
+    },
+    { autoAcceptOptional: false, autoSelectCards: true },
+  );
+  await s.ready();
+  s.state.memory = 9;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+  await settle(() => s.perm("shoutmon").isSuspended === false);
+  expect(s.perm("shoutmon").isSuspended).toBe(false);
+  expect(s.engine.combat.isAttacking).toBe(false);
+});
+
 it("deletes an opposing Digimon and lets a Shoutmon X7: Superior Mode attack", async () => {
   const s = setupEngine({
     0: { hand: [{ card: "BT12-100", as: "option" }], battleArea: [{ card: "BT12-112", as: "shoutmon", suspended: true }] },

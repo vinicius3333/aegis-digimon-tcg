@@ -831,7 +831,8 @@ export function lateBt12Module(cardId: string): EffectModule {
             const shoutmon = myPermanents(ctx, source, (d) => d.nameEn.includes("Shoutmon X7: Superior Mode"))[0];
             if (shoutmon) {
               await ctx.fx.unsuspend([shoutmon.permanentId]);
-              await ctx.fx.forceAttack(shoutmon.permanentId, { attackPlayer: true });
+              if (await ctx.ask.optional(ctx, "Attack a player with this Digimon?"))
+                await ctx.fx.forceAttack(shoutmon.permanentId, { attackPlayer: true, attackPlayerOnly: true });
             }
           };
           if (timing === EffectTiming.OnUseOption)
