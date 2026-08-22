@@ -11,7 +11,8 @@ const compiled: CompiledCard = {
         {
           kind: "Restrict",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          restriction: "beAffectedByOpponentEffects",
+          restriction: "beAffected",
+          byOpponentEffectsOnly: true,
           duration: "forTheTurn",
           condition: { kind: "isDnaDigivolving", raw: "If DNA digivolving" },
         },
