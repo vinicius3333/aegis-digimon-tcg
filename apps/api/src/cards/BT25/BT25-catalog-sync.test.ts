@@ -2,6 +2,11 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import type { CompiledEffects } from "@aegis/shared";
+import { compiled as bt25010 } from "./BT25-010.js";
+import { compiled as bt25019 } from "./BT25-019.js";
+import { compiled as bt25020 } from "./BT25-020.js";
+import { compiled as bt25058 } from "./BT25-058.js";
+import { compiled as bt25101 } from "./BT25-101.js";
 import { compiled as bt25099 } from "./BT25-099.js";
 import { compiled as bt25102 } from "./BT25-102.js";
 
@@ -37,5 +42,17 @@ describe("BT25 persisted IR", () => {
 
     const main = effects.find((effect) => effect.trigger === "Main")!;
     expect(main.actions.some((action) => action.kind === "PlayWithoutCost" && action.costReduction === 3)).toBe(true);
+  });
+
+  it.each([
+    ["BT25-010", bt25010],
+    ["BT25-019", bt25019],
+    ["BT25-020", bt25020],
+    ["BT25-058", bt25058],
+    ["BT25-101", bt25101],
+  ] as const)("keeps the stale-gap record %s synchronized", (cardId, compiled) => {
+    expect(catalog[cardId]).toEqual(compiled);
+    expect(catalog[cardId]?.coverage).toBe("full");
+    expect(catalog[cardId]?.residual).toEqual([]);
   });
 });
