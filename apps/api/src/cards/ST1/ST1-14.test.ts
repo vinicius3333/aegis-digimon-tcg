@@ -3,9 +3,16 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import "./ST1-14.js";
+import { compiled } from "./ST1-14.js";
 
 describe("ST1-14 Starlight Explosion", () => {
+  it("registers both security DP durations as complete IR", () => {
+    expect(compiled).toMatchObject({ coverage: "full", residual: [], effects: [
+      { trigger: "Main", actions: [{ kind: "ModifySecurityDP", amount: 7000, duration: "untilOpponentTurnEnd" }] },
+      { trigger: "Security", isSecurity: true, actions: [{ kind: "ModifySecurityDP", amount: 7000, duration: "forTheTurn" }] },
+    ] });
+  });
+
   it("gives your Security Digimon +7000 DP from Main", async () => {
     const s = setupEngine({
       0: { battleArea: ["ST1-03"], hand: [{ card: "ST1-14", as: "option" }], deck: ["BT1-001"] },
