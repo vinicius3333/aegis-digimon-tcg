@@ -6,21 +6,38 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 // name moves from breeding to battle, by trashing 1 card in hand, Draw 1 and
 // gain 1 memory. The trash is a shared cost for both outcomes.
 const compiled: CompiledCard = {
-  effects: [{
-    trigger: "YourTurn",
-    actions: [{
-      kind: "SubTrigger",
-      event: "whenMovedFromBreeding",
-      sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Lucemon"], match: "name" }] },
+  effects: [
+    {
+      trigger: "YourTurn",
       actions: [
-        { kind: "Draw", controller: "mine", amount: 1, cost: { kind: "trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 }, raw: "By trashing 1 card in your hand" } },
-        { kind: "GainMemory", amount: 1, condition: { kind: "ifThisEffectActed", raw: "if you did" } },
+        {
+          kind: "SubTrigger",
+          event: "whenMovedFromBreeding",
+          sourceFilter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Lucemon"], match: "name" }],
+          },
+          actions: [
+            {
+              kind: "Draw",
+              controller: "mine",
+              amount: 1,
+              cost: {
+                kind: "trash",
+                target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+                raw: "By trashing 1 card in your hand",
+              },
+            },
+            { kind: "GainMemory", amount: 1, condition: { kind: "ifThisEffectActed", raw: "if you did" } },
+          ],
+          raw: "When one of your Digimon with [Lucemon] in its name moves from breeding to battle",
+        },
       ],
-      raw: "When one of your Digimon with [Lucemon] in its name moves from breeding to battle",
-    }],
-    isInherited: true,
-    frequency: "OncePerTurn",
-  }],
+      isInherited: true,
+      frequency: "OncePerTurn",
+    },
+  ],
   coverage: "full",
   residual: [],
 };
