@@ -9,7 +9,7 @@ const titanOption = {
   nameOrTrait: [{ tokens: ["Titan"], match: "trait" }],
 };
 const ownHand = { controllerDefault: "mine", zone: "hand" };
-const currentTurn = { kind: "raw", raw: "if it is your turn" };
+const currentTurn = { kind: "isYourTurn", raw: "if it is your turn" };
 const useTitanOption = {
   kind: "UseOptionWithoutCost",
   target: { filter: titanOption, count: 1 },
@@ -48,9 +48,8 @@ export const compiled: CompiledCard = {
         {
           kind: "Delete",
           target: {
-            filter: { controllerDefault: "opponent", kind: ["Digimon"] },
+            filter: { controllerDefault: "opponent", kind: ["Digimon"], superlative: "lowestLevel" },
             count: 1,
-            superlative: "lowestLevel",
           },
         },
       ],
