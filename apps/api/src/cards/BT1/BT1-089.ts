@@ -1,88 +1,22 @@
-import { CardColor, EffectTiming, isDigimon } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { activated, security, turnTiming } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
-const cardId = "BT1-089";
-const hasGreenLevelFive = (ctx: Parameters<Effect["canTrigger"]>[0], source: CardSource): boolean =>
-  ctx.game
-    .player(source.ownerSeat)
-    .battleArea.some(
-      (p) =>
-        p.topCard !== undefined &&
-        isDigimon(ctx.game.definitionOf(p.topCard)) &&
-        (ctx.game.definitionOf(p.topCard).level ?? 0) >= 5 &&
-        ctx.game.definitionOf(p.topCard).colors.includes(CardColor.Green),
-    );
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const hasBreedingAction = (ctx: Parameters<Effect["canTrigger"]>[0], source: CardSource): boolean => {
-  const player = ctx.game.player(source.ownerSeat);
-  if (player.breeding === undefined) return player.eggDeck.length > 0;
-  return (
-    player.breeding.topCard !== undefined &&
-    isDigimon(ctx.game.definitionOf(player.breeding.topCard)) &&
-    (ctx.game.definitionOf(player.breeding.topCard).level ?? 0) >= 3
-  );
+const compiled: CompiledCard = {
+  effects: [
+    { trigger: "StartOfYourTurn", actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } }] },
+    { trigger: "Main", actions: [{ kind: "Modal", choose: 1, options: [
+      [{ kind: "Hatch" }],
+      [{ kind: "MovePermanent", direction: "toBattle", target: { filter: { controller: "mine", zone: "breeding", kind: ["Digimon"], levelComparison: { op: "gte", value: 3 } }, count: 1 } }],
+    ], optionConditions: [
+      { kind: "breedingAreaEmpty" },
+      { kind: "youHave", filter: { controllerDefault: "mine", zone: "breeding", kind: ["Digimon"], levelComparison: { op: "gte", value: 3 } },
+    ], cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, raw: "by suspending this Tamer" }, optional: true, abortOnDecline: true }] },
+    { trigger: "Security", actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, payCost: false }], isSecurity: true },
+  ],
+  coverage: "full",
+  residual: [],
 };
 
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
-    if (timing === EffectTiming.OnStartTurn)
-      return [
-        turnTiming({
-          source,
-          effectKey: `${cardId}/memory`,
-          description: "[Start of Your Turn] Set memory to 3 if it is 2 or less.",
-          when: (ctx) => source.isOwnersTurn() && ctx.game.state.memory <= 2,
-          resolve: async (ctx) => {
-            ctx.fx.setMemory(3);
-          },
-        }),
-      ];
-    if (timing === EffectTiming.OnDeclaration)
-      return [
-        activated({
-          source,
-          effectKey: `${cardId}/breeding`,
-          description: "[Main] Suspend this Tamer to hatch or move a level 3+ Digimon from breeding.",
-          optional: true,
-          canActivate: (ctx) =>
-            source.permanent()?.isSuspended === false &&
-            hasGreenLevelFive(ctx, source) &&
-            hasBreedingAction(ctx, source),
-          resolve: async (ctx) => {
-            const self = source.permanent();
-            if (!self || !ctx.fx.payActivationCost?.(self.permanentId, "suspend")) return;
-            const player = ctx.game.player(source.ownerSeat);
-            const canHatch = player.breeding === undefined && player.eggDeck.length > 0;
-            const canMove =
-              player.breeding?.topCard !== undefined &&
-              (ctx.game.definitionOf(player.breeding.topCard).level ?? 0) >= 3;
-            const choices: string[] = [];
-            if (canHatch) choices.push("Hatch");
-            if (canMove) choices.push("Move from breeding");
-            if (!choices.length) return;
-            const choice = choices.length === 1 ? 0 : await ctx.ask.chooseOption(ctx, choices);
-            if (choices[choice] === "Hatch") ctx.fx.hatch(source.ownerSeat);
-            else if (player.breeding) await ctx.fx.movePermanentZone(player.breeding.permanentId, "toBattle");
-          },
-        }),
-      ];
-    if (timing === EffectTiming.SecuritySkill)
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security`,
-          description: "[Security] Play this card without paying its cost.",
-          resolve: async (ctx) => {
-            await ctx.fx.playInstances([source.instanceId], { payCost: false });
-          },
-        }),
-      ];
-    return [];
-  },
-};
-registerCard(module);
-export default module;
+registerIrCard("BT1-089", compiled);
+export default compiled;
