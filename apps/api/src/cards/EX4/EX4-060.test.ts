@@ -109,7 +109,7 @@ describe("EX4-060 Omnimon Alter-S", () => {
     const effect = getEffectModule("EX4-060")!.effectsForTiming(EffectTiming.WhenDigivolving, source)[0]!;
     await effect.resolve({ source, trigger: {}, game, fx, ask } as unknown as EffectContext);
     expect(deleted).toEqual([["low"]]);
-    expect(returned).toEqual([[["high"], { toTop: false }]]);
+    expect(returned).toEqual([[[high.topCard!.instanceId], { toTop: false }]]);
   });
 
   it("plays both named evolution cards when possible and places itself face-down in security", async () => {
@@ -150,7 +150,7 @@ describe("EX4-060 Omnimon Alter-S", () => {
       isOwnersTurn: () => true,
       hasColor: () => true,
     };
-    const effect = getEffectModule("EX4-060")!.effectsForTiming(EffectTiming.OnLeaveFieldAnyone, source)[0]!;
+    const effect = getEffectModule("EX4-060")!.effectsForTiming(EffectTiming.None, source)[0]!;
     await effect.resolve({
       source,
       trigger: {},

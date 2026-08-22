@@ -25,7 +25,7 @@ describe("EX4-073 Omnimon Alter-B", () => {
     } as never;
     const module = getEffectModule("EX4-073")!;
     const digivolving = module.effectsForTiming(EffectTiming.WhenDigivolving, source);
-    const attacking = module.effectsForTiming(EffectTiming.OnAllyAttack, source);
+    const attacking = module.effectsForTiming(EffectTiming.OnUseAttack, source);
     expect(digivolving).toHaveLength(1);
     expect(digivolving[0]?.optional).toBe(false);
     expect(attacking).toHaveLength(1);
@@ -111,7 +111,7 @@ describe("EX4-073 Omnimon Alter-B", () => {
       isOwnersTurn: () => true,
       hasColor: () => true,
     } as never;
-    const effect = getEffectModule("EX4-073")!.effectsForTiming(EffectTiming.OnAllyAttack, source)[0]!;
+    const effect = getEffectModule("EX4-073")!.effectsForTiming(EffectTiming.OnUseAttack, source)[0]!;
     await effect.resolve({
       source,
       trigger: {},
