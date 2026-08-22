@@ -53,6 +53,23 @@ describe("BT13-110 Royal Knights of the Purge", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-110")).toBe(true);
   });
 
+  it("may decline placing a Digimon under King Drasil while still placing itself", async () => {
+    const s = setupEngine(
+      { 0: {
+        breeding: { card: "BT13-007", as: "drasil" },
+        hand: [{ card: "BT13-110", as: "option" }, { card: "BT1-045", as: "material" }],
+        deck: ["BT1-001"],
+      } },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT13-110"));
+
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-045")).toBe(true);
+    expect(s.perm("drasil").stack.some((card) => card.cardId === "BT1-045")).toBe(false);
+  });
+
   it("uses Delay to play a Royal Knight from breeding materials without its On Play effect and grants Rush", async () => {
     const s = setupEngine({ 0: {
       battleArea: [{ card: "BT13-110", as: "option" }],
