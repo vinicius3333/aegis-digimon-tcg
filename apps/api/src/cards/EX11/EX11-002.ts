@@ -15,7 +15,8 @@ const compiled: CompiledCard = {
               "nameOrTrait": [{ "tokens": ["Ice-Snow"], "match": "trait" }]
             },
             "count": 1,
-            "isSelf": true
+            "isSelf": true,
+            "noDigivolutionCards": true
           },
           "duration": "permanent",
           "condition": {
