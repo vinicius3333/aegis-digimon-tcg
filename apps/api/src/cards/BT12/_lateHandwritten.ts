@@ -410,7 +410,7 @@ export function lateBt12Module(cardId: string): EffectModule {
                     ?.stack.some(
                       (item) =>
                         ctx.game.definitionOf(item).nameEn.includes("Beelzemon") ||
-                        hasText(ctx.game.definitionOf(item), "x antibody"),
+                        cardHasTrait(ctx.game.definitionOf(item), "X Antibody"),
                     ) ?? false,
                 resolve: async (ctx) => {
                   const amount = Math.floor(ctx.game.player(source.ownerSeat).trash.length / 10);
