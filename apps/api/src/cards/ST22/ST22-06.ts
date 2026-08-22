@@ -33,27 +33,10 @@ const compiled: CompiledCard = {
             filter: {
               kind: ["Option"],
               playCostLte: 99,
-              nameOrTrait: [
-                {
-                  tokens: ["Onmyōjutsu"],
-                  match: "trait",
-                },
-              ],
+              nameOrTrait: [{ tokens: ["Onmyōjutsu", "Plug-In"], match: "trait" }],
             },
             count: 1,
             from: ["hand", "digivolutionCards"],
-            orFilters: [
-              {
-                kind: ["Option"],
-                playCostLte: 99,
-                nameOrTrait: [
-                  {
-                    tokens: ["Plug-In"],
-                    match: "trait",
-                  },
-                ],
-              },
-            ],
           },
           payCost: false,
           optional: true,
@@ -69,27 +52,10 @@ const compiled: CompiledCard = {
             filter: {
               kind: ["Option"],
               playCostLte: 99,
-              nameOrTrait: [
-                {
-                  tokens: ["Onmyōjutsu"],
-                  match: "trait",
-                },
-              ],
+              nameOrTrait: [{ tokens: ["Onmyōjutsu", "Plug-In"], match: "trait" }],
             },
             count: 1,
             from: ["hand", "digivolutionCards"],
-            orFilters: [
-              {
-                kind: ["Option"],
-                playCostLte: 99,
-                nameOrTrait: [
-                  {
-                    tokens: ["Plug-In"],
-                    match: "trait",
-                  },
-                ],
-              },
-            ],
           },
           payCost: false,
           optional: true,
