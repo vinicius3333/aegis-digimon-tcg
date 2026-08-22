@@ -73,6 +73,27 @@ describe("ST17-13 Magnamon [When Digivolving] — trash digi-cards per color, bo
     expect(p1.battleArea.some((p) => p.permanentId === bounceTarget.permanentId)).toBe(false);
     expect(p1.hand.some((c) => c.cardId === "AD1-001")).toBe(true);
   });
+
+  it("trashes exactly one top digi-card from a one-color target", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT11-023", as: "veemon" }], hand: [{ card: "ST17-13", as: "magnamon" }] },
+        1: {
+          battleArea: [{ card: "AD1-001", as: "oneColor", under: ["BT1-001", "BT1-002"] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const target = s.perm("oneColor");
+    const before = target.stack.length;
+
+    await primitivesOf(s).digivolveFromInstance(s.perm("veemon").permanentId, s.inst("magnamon").instanceId, {
+      payCost: false,
+    });
+    await settle(() => target.stack.length < before);
+
+    expect(target.stack).toHaveLength(before - 1);
+  });
 });
 
 describe("ST17-13 Magnamon [Security] — end of security battle digivolution", () => {
