@@ -1,10 +1,14 @@
 import { describe, expect, it } from "vitest";
+import { digivolutionRequirementsFor } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-044.js";
 import "../index.js";
 
 describe("BT26-044 Lilamon", () => {
+  it("exposes the printed level-4 DATA SQUAD evolution", () => {
+    expect(digivolutionRequirementsFor("BT26-044")).toContainEqual({ level: 4, traits: ["DATA SQUAD"], cost: 3, isAlternate: true });
+  });
   it("encodes the optional suspend, independent lock, reactive reduced-cost evolution, and leave replacement", () => {
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "OnPlay", actions: [{ kind: "Suspend", optional: true }, { kind: "Restrict", restriction: "unsuspend" }] });
     expect(compiled.effects?.[1]).toMatchObject({ trigger: "WhenDigivolving" });

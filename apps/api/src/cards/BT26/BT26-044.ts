@@ -34,6 +34,6 @@ export const compiled: CompiledCard = { effects: [
       { tokens: ["Rosemon"], match: "name" }, { tokens: ["DATA SQUAD"], match: "trait" },
     ] }, cost: { kind: "trashBottomFaceDownUnderTamer", controller: "mine", count: 1 } }],
   }] },
-], coverage: "full", residual: [] };
+], coverage: "full", residual: [], digivolutionRequirement: [{ level: 4, traits: ["DATA SQUAD"], cost: 3, isAlternate: true }] };
 registerIrCard("BT26-044", compiled);
 export default compiled;
