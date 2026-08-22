@@ -10,7 +10,7 @@ export const compiled: CompiledCard = {
         kind: "TrashDigivolution",
         target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" }, count: 1 },
         amount: 1,
-        position: "bottom",
+        fromTop: false,
       },
       { kind: "Draw", amount: 1, condition: { kind: "ifThisEffectActed" } },
       { kind: "GainMemory", amount: 1, condition: { kind: "ifThisEffectActed" } },

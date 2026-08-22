@@ -14,18 +14,18 @@ const mainActions = [
   { kind: "SelectBind", target },
   {
     kind: "TrashDigivolution",
-    target: { fromSelectionRef: "fullMoonTarget" },
+    target: { filter: {}, count: 1, fromSelectionRef: "fullMoonTarget" },
     amount: 99,
   },
   {
     kind: "Return",
-    target: { fromSelectionRef: "fullMoonTarget" },
+    target: { filter: {}, count: 1, fromSelectionRef: "fullMoonTarget" },
     to: "deckBottom",
     condition: { kind: "zoneCount", seat: "opponent", zone: "hand", op: "gte", value: 8 },
   },
   {
     kind: "Return",
-    target: { fromSelectionRef: "fullMoonTarget" },
+    target: { filter: {}, count: 1, fromSelectionRef: "fullMoonTarget" },
     to: "hand",
     condition: { kind: "zoneCount", seat: "opponent", zone: "hand", op: "lt", value: 8 },
   },

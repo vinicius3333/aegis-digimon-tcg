@@ -26,7 +26,7 @@ export const compiled: CompiledCard = {
     },
     {
       trigger: "Security",
-      actions: [{ kind: "PlayWithoutCost", from: ["security"], payCost: false }],
+      actions: [{ kind: "PlayWithoutCost", target: { filter: { isSelfRef: true }, count: 1 }, from: ["security"], payCost: false }],
       isSecurity: true,
     },
   ],

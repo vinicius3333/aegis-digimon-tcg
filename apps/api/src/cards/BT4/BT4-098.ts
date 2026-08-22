@@ -37,6 +37,7 @@ export const compiled: CompiledCard = {
         target: { filter: { controller: "mine", kind: ["Digimon"] }, count: "all" },
         effect: { kind: "keyword", keyword: { keyword: "SecurityAttack", amount: 1, raw: "＜Security Attack +1＞" } },
         duration: "untilOwnerTurnEnd",
+        while: { kind: "true" },
       }],
       isSecurity: true,
     },
