@@ -24,7 +24,7 @@ export const compiled: CompiledCard = {
     {
       trigger: "Main",
       actions: [
-        { kind: "Trash", chooser: "opponent", target: { filter: opponentHand, count: 1 }, condition: { kind: "handAtLeast", seat: "opponent", value: 5 } },
+        { kind: "Trash", chooser: "opponent", target: { filter: opponentHand, count: 1 }, condition: { kind: "zoneCount", seat: "opponent", zone: "hand", op: "gte", value: 5 } },
         { kind: "Delete", target: { filter: opponentDigimon, count: 1 } },
       ],
     },
