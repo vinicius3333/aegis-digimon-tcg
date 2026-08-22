@@ -80,7 +80,7 @@ describe("BT24-024 Submarimon", () => {
       {
         0: { battleArea: [{ card: "BT24-024", as: "submarimon", under: ["BT24-020"] }] },
       },
-      { autoAcceptOptional: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
 
@@ -92,9 +92,9 @@ describe("BT24-024 Submarimon", () => {
   });
 
   it.each([
-    ["Armadillomon", "BT1-027"],
-    ["level 3 TS", "BT24-020"],
-  ])("digivolves from %s for cost 2", async (_label, baseCard) => {
+    ["Armadillomon", "BT1-027", 0],
+    ["level 3 TS", "BT24-020", 1],
+  ])("digivolves from %s for cost 2", async (_label, baseCard, alternateRequirementIndex) => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: baseCard, as: "base" }],
@@ -109,6 +109,8 @@ describe("BT24-024 Submarimon", () => {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("submarimon").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("submarimon").instanceId);
