@@ -6,6 +6,7 @@ import "../index.js";
 
 describe("BT26-043 Piximon", () => {
   it("encodes mandatory suspend, deck-top face-down payment, scaled locks, and inherited watcher", () => {
+    expect(compiled.keywords).toEqual([{ keyword: "Blocker", raw: "＜Blocker＞" }]);
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "OnPlay", actions: [
       { kind: "Suspend" }, { kind: "PlaceUnder", from: ["deck"], faceDown: true, position: "bottom" },
       { kind: "Restrict", restriction: "unsuspend", scaling: { unit: "faceDownDigivolutionCards", per: 1 } },

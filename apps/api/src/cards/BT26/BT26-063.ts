@@ -6,6 +6,7 @@ const linkedSelf = { isSelfRef: true };
 const opponentDigimon = { controllerDefault: "opponent", kind: ["Digimon"] };
 
 export const compiled: CompiledCard = {
+  keywords: [{ keyword: "Detach", raw: "＜Detach ([Seven Code] trait)＞" }],
   effects: [
     {
       trigger: "YourTurn",

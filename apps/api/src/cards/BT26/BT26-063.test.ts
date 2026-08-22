@@ -58,6 +58,9 @@ async function installedWatcher(cardSource: CardSource): Promise<SubTriggerInsta
 }
 
 describe("BT26-063 Tellermon", () => {
+  it("exposes the printed Detach keyword", () => {
+    expect(compiled.keywords).toEqual([{ keyword: "Detach", raw: "＜Detach ([Seven Code] trait)＞" }]);
+  });
   it("exposes the Appmon evolution and Link requirements", () => {
     expect(digivolutionRequirementsFor("BT26-063")).toContainEqual({ level: 2, traits: ["Appmon"], cost: 0, isAlternate: true });
     expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 3 }]);

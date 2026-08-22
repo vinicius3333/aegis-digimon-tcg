@@ -8,7 +8,7 @@ const setup = [
   { kind: "PlaceUnder", target: { filter: { zone: "deck", controller: "mine" }, count: 1 }, from: ["deck"], underFilter: { isSelfRef: true }, position: "bottom", faceDown: true },
   { kind: "Restrict", target: opponentTarget, restriction: "unsuspend", duration: "untilOpponentTurnEnd", scaling: { unit: "faceDownDigivolutionCards", per: 1 } },
 ];
-export const compiled: CompiledCard = { effects: [
+export const compiled: CompiledCard = { keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }], effects: [
   { trigger: "OnPlay", actions: setup },
   { trigger: "WhenDigivolving", actions: setup },
   { trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn", actions: [{
