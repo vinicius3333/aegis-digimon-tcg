@@ -59,11 +59,9 @@ describe("ST22/ST24 remaining complex clauses", () => {
             {
               card: "ST24-13",
               as: "tamer",
-              under: [
-                { card: "BT1-001", as: "underA", faceUp: false },
-                { card: "BT1-002", as: "underB", faceUp: false },
-              ],
+              under: [{ card: "BT1-001", as: "underA", faceUp: false }],
             },
+            { card: "ST24-14", as: "tamer2", under: [{ card: "BT1-002", as: "underB", faceUp: false }] },
           ],
         },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
@@ -80,6 +78,7 @@ describe("ST22/ST24 remaining complex clauses", () => {
     expect(observe(s.engine).isRestricted(opponent!, "unsuspend")).toBe(true);
     expect(s.perm("lilamon").topCard?.cardId).toBe("BT26-049");
     expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.perm("tamer2").stack).toHaveLength(0);
     expect(st24Lilamon.cardId).toBe("ST24-10");
   });
 });
