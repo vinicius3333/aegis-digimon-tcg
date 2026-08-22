@@ -170,6 +170,13 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       if (countMax !== undefined) return count <= countMax;
       return count >= (cond.count ?? 1);
     }
+    case "youHaveGreenLevelAtLeastInBattle":
+      return ctx.game.player(mine).battleArea.some((permanent) => {
+        const top = permanent.topCard;
+        if (top === undefined) return false;
+        const definition = ctx.game.definitionOf(top);
+        return definition.kinds.includes(CardKind.Digimon) && definition.colors.includes(CardColor.Green) && (definition.level ?? 0) >= (cond.value ?? 5);
+      });
     case "opponentHas": {
       const threshold = cond.countMin ?? cond.count ?? 1;
       const count = cond.filter ? countMatching(ctx, { controller: "opponent", ...cond.filter }) : 0;

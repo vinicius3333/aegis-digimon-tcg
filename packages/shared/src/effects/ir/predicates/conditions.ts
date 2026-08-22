@@ -11,6 +11,7 @@ export interface Condition {
   kind:
     | "true" // for Aura records whose target filter already carries the condition
     | "youHave"
+    | "youHaveGreenLevelAtLeastInBattle"
     | "opponentHas"
     | "youHaveNone"
     | "opponentHasNone"

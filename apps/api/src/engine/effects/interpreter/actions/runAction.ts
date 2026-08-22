@@ -125,7 +125,7 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     // A Return confirmation is actionable only when at least one legal source exists.
     // This covers optional recovery from trash (EX3-068) as well as optional bounce:
     // never ask the player to confirm a move that has no selectable card or permanent.
-    if (action.kind === "Return" && !action.target.isSelf && action.target.filter.isSelfRef !== true) {
+    if (action.kind === "Return" && !action.target.isSelf && action.target.filter.isSelfRef !== true && !(action.from ?? []).includes("digivolutionCards")) {
       const zone = action.target.filter.zone;
       const looseZones = action.from ?? (zone !== undefined && zone !== "battleArea" ? [zone] : undefined);
       // Only preflight loose-zone recovery here. A battle-area Return may have an
