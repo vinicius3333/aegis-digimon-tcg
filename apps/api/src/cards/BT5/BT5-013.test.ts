@@ -13,6 +13,6 @@ describe("BT5-013 Triceramon", () => {
 
   it("is registered with complete, residual-free runtime coverage", () => {
     expect(getEffectModule("BT5-013")).toBeDefined();
-    expect(runtimeCompiledCard("BT5-013")).toMatchObject({ coverage: "full", residual: [] });
+    expect(runtimeCompiledCard("BT5-013")).toMatchObject({ effects: [], coverage: "full", residual: [] });
   });
 });
