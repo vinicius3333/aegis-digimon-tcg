@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, type Seat } from "@aegis/shared";
 import { setupEngine, type BoardSpec, type EngineSetup } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT20-089.js";
 import "../index.js";
 import module from "./BT20-089.js";
 

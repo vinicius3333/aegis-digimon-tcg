@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import type { PlayerState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { compiled } from "./BT20-056.js";
 import "../index.js";
 import { module as alphamonModule } from "./BT20-056.js";
 

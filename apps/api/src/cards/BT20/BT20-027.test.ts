@@ -273,17 +273,73 @@ describe("BT20-027 Slayerdramon", () => {
       ["EX", { nameEn: "Examon" }],
       ["PLAIN", { nameEn: "Agumon" }],
     ]);
-    const protectCtx = makeContext({ recorder, source, perms: [ownExamon, oppExamon, ownPlain], defs });
-    expect(sub.protects!(protectCtx, "OWN-EX")).toBe(true);
-    expect(sub.protects!(protectCtx, "OPP-EX")).toBe(false);
-    expect(sub.protects!(protectCtx, "OWN-PLAIN")).toBe(false);
+    expect(compiled.effects[0]).toMatchObject({ trigger: "Static", keywords: [{ keyword: "Piercing" }] });
+    expect(compiled.effects.filter((effect) => ["OnPlay", "WhenDigivolving"].includes(effect.trigger))).toHaveLength(2);
+    expect(compiled.effects[3]).toMatchObject({
+      trigger: "AllTurns",
+      frequency: "OncePerTurn",
+      actions: [{ kind: "SubTrigger", event: "whenSecurityRemoved", sourceFilter: { controller: "opponent" } }],
+    });
+    expect(compiled.effects[4]).toMatchObject({
+      trigger: "AllTurns",
+      isInherited: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Replacement",
+          mode: "prevent",
+          affectsAll: true,
+          leaveCause: "otherThanBattle",
+          cost: { kind: "suspend", target: { isSelf: true } },
+        },
+      ],
+    });
+  });
 
-    // preventCheck pays by suspending the host.
-    const ok = await sub.preventCheck(protectCtx, "OWN-EX");
-    expect(ok).toBe(true);
-    const pay = recorder.calls.filter((c) => c.verb === "payActivationCost");
-    expect(pay).toHaveLength(1);
-    expect(pay[0]!.args[0]).toBe(SELF_PERM);
-    expect(pay[0]!.args[1]).toBe("suspend");
+  it("on play trashes exactly 3 cards from one opposing stack, then deletes a stackless Digimon", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT20-027", as: "slayerdramon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-012", as: "stacked", under: ["BT1-010", "BT1-010", "BT1-010", "BT1-010"] },
+            { card: "BT1-010", as: "bare" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    const stacked = s.perm("stacked");
+    const bare = s.perm("bare");
+    preferred.push(stacked.permanentId, bare.permanentId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("slayerdramon").instanceId }).ok).toBe(true);
+    await settle(
+      () =>
+        s.perm("stacked").stack.length === 1 &&
+        !s.state.players[1]!.battleArea.some((card) => card.permanentId === bare.permanentId),
+    );
+
+    expect(s.perm("stacked").stack).toHaveLength(1);
+    expect(s.state.players[1]!.trash.filter((card) => card.cardId === "BT1-010")).toHaveLength(4);
+  });
+
+  it("does not delete a Digimon that retains a digivolution card after trashing 3", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT20-027", as: "slayerdramon" }] },
+        1: { battleArea: [{ card: "BT1-012", as: "stacked", under: ["BT1-010", "BT1-010", "BT1-010", "BT1-010"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const stackedId = s.perm("stacked").permanentId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("slayerdramon").instanceId }).ok).toBe(true);
+    await settle(() => s.perm("stacked").stack.length === 1);
+
+    expect(s.state.players[1]!.battleArea.some((card) => card.permanentId === stackedId)).toBe(true);
+    expect(s.perm("stacked").stack).toHaveLength(1);
   });
 });

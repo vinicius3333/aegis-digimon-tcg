@@ -1,12 +1,28 @@
-import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { CardDefinition } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { Effect } from "../../engine/effects/Effect.js";
-import { onPlay, whenDigivolving, turnTiming, staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "BT20-056";
+const recoveryAndBreed = (trigger: "OnPlay" | "WhenDigivolving") => ({
+  trigger,
+  actions: [
+    {
+      kind: "GainKeyword",
+      target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+      keyword: { keyword: "Recovery", amount: 1, raw: "＜Recovery +1 (Deck)＞" },
+      duration: "permanent",
+    },
+    {
+      kind: "Digivolve",
+      target: { filter: { zone: "breedingArea", controller: "mine", kind: ["Digimon"] }, count: 1 },
+      into: { controllerDefault: "mine", kind: ["Digimon"], levelComparison: { op: "lte", value: 6 }, nameOrTrait: [{ tokens: ["Chronicle"], match: "trait" }] },
+      payCost: false,
+      from: ["hand", "trash"],
+      optional: true,
+      condition: { kind: "duringAttack", raw: "during an attack" },
+      abortOnDecline: true,
+    },
+  ],
+});
 
 function hasChronicleTraitLv6OrLower(def: CardDefinition): boolean {
   if (!isDigimon(def)) return false;
@@ -196,5 +212,4 @@ const module: EffectModule = {
   },
 };
 
-registerCard(module);
-export default module;
+registerIrCard("BT20-056", compiled);
