@@ -38,4 +38,13 @@ describe("BT12-096 handwritten module", () => {
     await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("tagiru"));
     expect(s.state.memory).toBe(3);
   });
+
+  it("plays Tagiru from security without paying its memory cost", async () => {
+    const s = setupEngine({ 0: { security: [{ card: "BT12-096", as: "tagiru", faceUp: true }] } });
+    await s.ready();
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("tagiru"));
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT12-096")).toBe(true);
+  });
 });
