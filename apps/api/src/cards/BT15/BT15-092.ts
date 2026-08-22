@@ -20,34 +20,22 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   "effects": [
     {
-      "trigger": "Static",
+      "trigger": "OnDiscardSecurity",
       "actions": [
         {
-          "kind": "SubTrigger",
-          "event": "whenSecurityRemoved",
-          "actions": [
-            {
-              "kind": "ModifyDP",
-              "target": {
-                "filter": {
-                  "controller": "opponent",
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": "all"
-              },
-              "amount": -5000,
-              "duration": "untilYourTurnEnd"
-            },
-            {
-              "kind": "ModifySecurityDP",
-              "controller": "opponent",
-              "amount": -5000,
-              "duration": "untilYourTurnEnd"
-            }
-          ],
-          "raw": "When an effect trashes this card from the security stack, activate this card's [Security] effects"
+          "kind": "ModifyDP",
+          "target": {
+            "filter": { "controller": "opponent", "kind": ["Digimon"] },
+            "count": "all"
+          },
+          "amount": -5000,
+          "duration": "untilYourTurnEnd"
+        },
+        {
+          "kind": "ModifySecurityDP",
+          "controller": "opponent",
+          "amount": -5000,
+          "duration": "untilYourTurnEnd"
         }
       ]
     },
