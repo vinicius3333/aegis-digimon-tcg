@@ -11,11 +11,13 @@ describe("ST16-04 Tapirmon inherited Retaliation", () => {
     const hostId = s.perm("host").permanentId;
     const targetId = s.perm("target").permanentId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: hostId,
-      target: { kind: "permanent", permanentId: targetId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: targetId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.players[1]!.battleArea.length === 0);
 
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "ST16-02")).toBe(true);

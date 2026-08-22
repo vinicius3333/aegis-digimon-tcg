@@ -8,7 +8,10 @@ describe("ST16-08 Garurumon", () => {
       {
         0: {
           battleArea: [{ card: "ST16-03", as: "gabumon" }],
-          hand: [{ card: "ST16-08", as: "garurumon" }, { card: "BT1-001", as: "discard" }],
+          hand: [
+            { card: "ST16-08", as: "garurumon" },
+            { card: "BT1-001", as: "discard" },
+          ],
           deck: [{ card: "BT1-002", as: "drawn" }],
         },
       },
@@ -17,11 +20,13 @@ describe("ST16-08 Garurumon", () => {
     s.state.memory = 10;
     const discardId = s.inst("discard").instanceId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "digivolve",
-      permanentId: s.perm("gabumon").permanentId,
-      instanceId: s.inst("garurumon").instanceId,
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gabumon").permanentId,
+        instanceId: s.inst("garurumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === discardId));
 
     expect(s.perm("gabumon").topCard.cardId).toBe("ST16-08");

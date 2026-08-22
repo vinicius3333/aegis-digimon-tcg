@@ -17,11 +17,13 @@ describe("ST16-01 Tsunomon inherited [When Attacking]", () => {
     const targetId = s.perm("target").permanentId;
     const drawnId = s.inst("drawn").instanceId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "permanent", permanentId: targetId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: targetId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === drawnId));
 
     expect(s.state.players[0]!.hand).toHaveLength(7);
@@ -37,11 +39,13 @@ describe("ST16-01 Tsunomon inherited [When Attacking]", () => {
       1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }] },
     });
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("host").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => false, 100);
 
     expect(s.state.players[0]!.hand).toHaveLength(7);

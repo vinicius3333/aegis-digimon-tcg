@@ -21,11 +21,13 @@ describe("ST16-12 MetalGarurumon", () => {
     );
     const costId = s.inst("cost").instanceId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("metalgarurumon").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("higher").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("metalgarurumon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("higher").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "ST16-08"));
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === costId)).toBe(true);

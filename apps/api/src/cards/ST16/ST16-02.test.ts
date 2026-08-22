@@ -9,7 +9,10 @@ describe("ST16-02 Elecmon", () => {
     const s = setupEngine(
       {
         0: {
-          hand: [{ card: CARD_ID, as: "elecmon" }, { card: "BT1-001", as: "discard" }],
+          hand: [
+            { card: CARD_ID, as: "elecmon" },
+            { card: "BT1-001", as: "discard" },
+          ],
           deck: [{ card: "BT1-002", as: "drawn" }],
         },
       },
@@ -18,7 +21,9 @@ describe("ST16-02 Elecmon", () => {
     const drawnId = s.inst("drawn").instanceId;
     const discardId = s.inst("discard").instanceId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("elecmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("elecmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === discardId));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === drawnId)).toBe(true);
@@ -34,7 +39,9 @@ describe("ST16-02 Elecmon", () => {
       },
     });
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("elecmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("elecmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
 
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-002"]);

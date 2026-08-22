@@ -15,7 +15,9 @@ describe("ST16-09 Pumpkinmon", () => {
     );
     s.state.memory = 10;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pumpkinmon").instanceId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pumpkinmon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST16-05"));
 
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["ST16-09", "ST16-05"]);

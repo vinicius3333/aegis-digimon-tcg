@@ -16,11 +16,13 @@ describe("ST16-11 WereGarurumon", () => {
     );
     const handCostId = s.inst("cost").instanceId;
 
-    expect(s.engine.applyIntent(0, {
-      type: "attack",
-      attackerPermanentId: s.perm("weregarurumon").permanentId,
-      target: { kind: "permanent", permanentId: s.perm("target").permanentId },
-    })).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("weregarurumon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => !s.perm("weregarurumon").isSuspended);
 
     expect(s.perm("weregarurumon").isSuspended).toBe(false);
