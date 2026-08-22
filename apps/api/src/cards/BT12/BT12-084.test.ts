@@ -31,7 +31,7 @@ it("applies both Blocker and return restriction when Sparrowmon is in its stack"
         { card: "BT1-009", as: "ally" },
       ],
     },
-  });
+  }, { autoAcceptOptional: true, autoSelectCards: true });
   await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("jet"));
   expect(observe(s.engine).hasKeyword(s.perm("ally"), "Blocker")).toBe(true);
   const { runtimeCompiledCard } = await import("../../engine/effects/interpreter/compiledCards.js");
