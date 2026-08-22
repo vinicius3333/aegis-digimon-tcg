@@ -1150,7 +1150,7 @@ export interface Primitives {
     targetPermanentId: string,
     stackInstanceId: string,
     duration: EffectDuration,
-    opts?: { trigger?: string },
+    opts?: { trigger?: string; inheritedOnly?: boolean },
   ): void;
 
   // --- security-stack manipulation -------------------------------------------

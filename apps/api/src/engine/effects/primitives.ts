@@ -3980,11 +3980,12 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     targetPermanentId: string,
     stackInstanceId: string,
     _duration: EffectDuration,
-    opts?: { trigger?: string },
+    opts?: { trigger?: string; inheritedOnly?: boolean },
   ): void => {
     continuous.conferStackEffects(targetPermanentId, stackInstanceId, {
       ...continuousOpt(),
       trigger: opts?.trigger,
+      inheritedOnly: opts?.inheritedOnly,
     });
   };
 
