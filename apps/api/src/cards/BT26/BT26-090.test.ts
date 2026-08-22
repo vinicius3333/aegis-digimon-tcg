@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./BT26-090.js";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("BT26-090 compiled behavior", () => {
@@ -56,5 +56,26 @@ describe("BT26-090 compiled behavior", () => {
     high.state.memory = 5;
     await advance(high.engine).fire(EffectTiming.OnStartMainPhase, high.perm("kanan"));
     expect(high.state.memory).toBe(5);
+  });
+
+  it("suspends itself and reduces a TS Option's paid cost by the opponent's memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-090", as: "kanan" }],
+          hand: [{ card: "BT25-093", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = -3;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("kanan"));
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+
+    expect(s.perm("kanan").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(-5);
   });
 });
