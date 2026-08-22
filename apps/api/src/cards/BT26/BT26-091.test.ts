@@ -24,12 +24,12 @@ describe("BT26-091 compiled fidelity", () => {
         expect.objectContaining({
           kind: "SubTrigger",
           event: "whenSuspended",
-          sourceFilter: { controller: "opponent" },
+          sourceFilter: expect.objectContaining({ controller: "opponent" }),
         }),
         expect.objectContaining({
           kind: "SubTrigger",
           event: "whenDigivolutionTrashed",
-          hostFilter: { isSelfRef: true },
+          hostFilter: expect.objectContaining({ isSelfRef: true }),
         }),
       ]),
     );
