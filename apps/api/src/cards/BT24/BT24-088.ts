@@ -15,12 +15,7 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Asuna Shiroki"],
-                  match: "name",
-                },
-              ],
+              namesExact: ["Asuna Shiroki"],
             },
             orFilters: [
               {
