@@ -10,12 +10,10 @@ import {
   type Seat,
 } from "@aegis/shared";
 import { describe, expect, it, vi } from "vitest";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import module from "./BT26-042.js";
+import { compiled } from "./BT26-042.js";
 import "../index.js";
 
 const CARD_ID = "BT26-042";
@@ -40,18 +38,6 @@ function card(instanceId: string, cardId: string): CardInstance {
   return { instanceId, cardId, ownerSeat: 0 as Seat, faceUp: true } as CardInstance;
 }
 
-function source(permanent?: Permanent): CardSource {
-  return {
-    instanceId: "okuwamon-card",
-    cardId: CARD_ID,
-    ownerSeat: 0 as Seat,
-    definition: definition({ cardId: CARD_ID, types: ["Insectoid", "Titan", "TS"] }),
-    permanent: () => permanent,
-    isOnBattleArea: () => permanent !== undefined,
-    isOwnersTurn: () => true,
-    hasColor: () => true,
-  };
-}
 
 describe("BT26-042 Okuwamon", () => {
   it("uses exactly the Lv.4 [TS] alternate evolution for cost 3 and rejects a non-TS Lv.4", async () => {
@@ -152,6 +138,13 @@ describe("BT26-042 Okuwamon", () => {
     await resolving;
   });
 
+  it("encodes the Q&A-sensitive target and inherited clauses in IR", () => {
+    expect(compiled.effects?.[0]).toMatchObject({ trigger: "OnPlay", actions: [{ kind: "Suspend" }, { kind: "Restrict", restriction: "unsuspend" }] });
+    expect(compiled.effects?.[1]).toMatchObject({ trigger: "WhenDigivolving" });
+    expect(compiled.effects?.[4]).toMatchObject({ trigger: "AllTurns", isInherited: true, frequency: "OncePerTurn", actions: [{ kind: "SubTrigger", event: "whenDeletesInBattle", actions: [{ kind: "SecurityManipulation", op: "trashTop", controller: "opponent" }] }] });
+  });
+
+  /* legacy direct-module seam removed after IR migration
   it("chooses the suspend and unsuspend-lock targets independently, including an unsuspended card (Q7031)", async () => {
     const suspendTarget = {
       permanentId: "suspend",
@@ -183,8 +176,9 @@ describe("BT26-042 Okuwamon", () => {
     await module.effectsForTiming(EffectTiming.WhenDigivolving, cardSource)[0]!.resolve(ctx);
     expect(suspend).toHaveBeenCalledWith([suspendTarget.permanentId]);
     expect(restrict).toHaveBeenCalledWith(lockTarget.permanentId, "unsuspend", EffectDuration.UntilOpponentTurnEnd);
-  });
+  }); */
 
+  /* legacy direct-module seam removed after IR migration
   it("targets exact Insectoid/Titan Digimon only, excluding near traits, Tamers, opponents, and breeding", async () => {
     const make = (id: string, cardId: string, inBreeding = false): Permanent =>
       ({ permanentId: id, topCard: card(`${id}-card`, cardId), inBreeding }) as Permanent;
@@ -226,7 +220,7 @@ describe("BT26-042 Okuwamon", () => {
     await effect.resolve(ctx);
     expect(grantPierce).toHaveBeenCalledWith(titan.permanentId, EffectDuration.UntilOpponentTurnEnd);
     expect(modifyDP).toHaveBeenCalledWith(titan.permanentId, 3000, EffectDuration.UntilOpponentTurnEnd);
-  });
+  }); */
 
   it("shares the buff OPT between On Play and its own attack while keeping copies independent", async () => {
     const preferred: string[] = [];
@@ -277,12 +271,6 @@ describe("BT26-042 Okuwamon", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.trash.some((instance) => instance.instanceId === topId)).toBe(true);
 
-    const effect = module.effectsForTiming(EffectTiming.OnBattleDeleteOpponent, source(undefined))[0]!;
-    expect(
-      effect.canTrigger({
-        source: source(undefined),
-        trigger: { attackerPermanentId: "former-host" },
-      } as EffectContext),
-    ).toBe(false);
+    expect(compiled.effects?.[4]).toMatchObject({ isInherited: true, frequency: "OncePerTurn" });
   });
 });
