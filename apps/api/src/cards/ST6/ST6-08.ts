@@ -1,6 +1,20 @@
-import base from "../ST4/ST4-08.js";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { registerCard } from "../../engine/effects/registry.js";
-const module: EffectModule = { ...base, cardId: "ST6-08" };
-registerCard(module);
-export default module;
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+const compiled: CompiledCard = {
+  effects: [
+    {
+      trigger: "Static",
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
+    },
+    {
+      trigger: "WhenAttacking",
+      actions: [{ kind: "GainMemory", amount: -2 }],
+    },
+  ],
+  coverage: "full",
+  residual: [],
+};
+
+registerIrCard("ST6-08", compiled);
