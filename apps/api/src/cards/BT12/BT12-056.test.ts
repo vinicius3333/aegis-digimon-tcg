@@ -3,7 +3,7 @@ import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-056.js";
 
 describe("BT12-056 handwritten module", () => {
@@ -29,9 +29,8 @@ it("gains memory when an opposing Digimon becomes suspended during its turn", as
   });
   await s.ready();
   s.state.memory = 0;
-  await advance(s.engine).fireForPermanent(EffectTiming.OnTappedAnyone, s.perm("gran"), {
-    suspendedPermanentId: s.perm("target").permanentId,
-  });
+  await advance(s.engine).verb.suspend([s.perm("target").permanentId]);
+  await settle(() => s.state.memory === 1);
   expect(s.state.memory).toBe(1);
 });
 
