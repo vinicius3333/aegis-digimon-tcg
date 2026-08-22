@@ -17,7 +17,9 @@ describe("BT13-111 Gallantmon", () => {
     });
     await settle(() => s.state.memory === 0);
     expect(s.state.memory).toBe(0);
-    expect(observe(s.engine).hasKeyword(s.perm("gallantmon"), "Rush")).toBe(true);
+    const gallantmon = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT13-111");
+    expect(gallantmon).toBeDefined();
+    expect(observe(s.engine).hasKeyword(gallantmon!.permanentId, "Rush")).toBe(true);
 
     const blocked = setupEngine({
       0: {

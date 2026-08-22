@@ -29,8 +29,8 @@ const modalEffect = () => ({
         bindResultAs: "playedRoyalKnights",
       },
       {
-        kind: "Trash",
-        target: { filter: { controller: "mine", zone: "breedingArea", kind: ["Digimon"] }, count: 1 },
+        kind: "Delete",
+        target: { filter: { controller: "mine", zone: "breeding", kind: ["Digimon"] }, count: 1 },
         condition: { kind: "bindingExists", ref: "playedRoyalKnights" },
       },
       {

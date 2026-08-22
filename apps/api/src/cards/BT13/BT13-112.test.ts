@@ -28,7 +28,7 @@ describe("BT13-112 Omnimon", () => {
         [{ kind: "Delete", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 } }],
         [
           expect.objectContaining({ kind: "PlayWithoutCost", bindResultAs: "playedRoyalKnights" }),
-          expect.objectContaining({ kind: "Trash" }),
+          expect.objectContaining({ kind: "Delete" }),
           expect.objectContaining({ kind: "GainKeyword" }),
         ],
       ],

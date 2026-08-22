@@ -27,7 +27,7 @@ export const compiled: CompiledCard = {
           from: ["hand"],
           underFilter: {
             controller: "mine",
-            zone: "breedingArea",
+            zone: "breeding",
             nameOrTrait: [
               {
                 tokens: ["King Drasil_7D6"],
@@ -56,7 +56,7 @@ export const compiled: CompiledCard = {
                   match: "trait",
                 },
               ],
-              location: "breedingArea",
+              hostFilter: { zone: "breeding" },
             },
             count: 1,
           },

@@ -54,7 +54,7 @@ describe("BT13-110 Royal Knights of the Purge", () => {
       target: {
         filter: {
           controller: "mine",
-          location: "breedingArea",
+          hostFilter: { zone: "breeding" },
           nameOrTrait: [{ match: "trait", tokens: ["Royal Knight"] }],
         },
         count: 1,
@@ -77,7 +77,7 @@ describe("BT13-110 Royal Knights of the Purge", () => {
             { card: "BT13-110", as: "option" },
             { card: "BT1-045", as: "material" },
           ],
-          deck: ["BT1-001"],
+          deck: [],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -107,7 +107,7 @@ describe("BT13-110 Royal Knights of the Purge", () => {
             { card: "BT13-110", as: "option" },
             { card: "BT1-045", as: "material" },
           ],
-          deck: ["BT1-001"],
+          deck: [],
         },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
