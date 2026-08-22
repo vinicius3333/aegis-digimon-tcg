@@ -24,7 +24,14 @@ describe("BT24-013 Fugamon", () => {
     const action = inherited.actions[0].actions[0];
     expect(action.target).toMatchObject({ filter: { isSelfRef: true }, isSelf: true });
     expect(action.condition).toMatchObject({ kind: "selfHasTrait" });
-    expect(action).toMatchObject({ kind: "Digivolve", from: ["trash"], reduceCost: 1, optional: true });
+    expect(action).toMatchObject({
+      kind: "Digivolve",
+      from: ["trash"],
+      payCost: true,
+      useAlternateCost: true,
+      reduceCost: 1,
+      optional: true,
+    });
   });
 
   it("draws when this card is trashed from a hand that then has 5 cards", async () => {
@@ -135,6 +142,7 @@ describe("BT24-013 Fugamon", () => {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
         instanceId: s.inst("fugamon").instanceId,
+        useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.instanceId === s.inst("fugamon").instanceId);
