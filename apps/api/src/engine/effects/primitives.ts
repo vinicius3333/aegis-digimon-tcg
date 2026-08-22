@@ -1904,10 +1904,13 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
     }
     // Fire once per seat whose hand actually lost a card (the move may have skipped some ids).
     for (const seat of handTrashedSeats) {
-      const trashedThisSeat = moved.some((c) => c.ownerSeat === seat);
-      if (trashedThisSeat)
+      const handTrashedInstanceIds = fromHand
+        .filter((entry) => entry.seat === seat && movedIds.has(entry.instanceId))
+        .map((entry) => entry.instanceId);
+      if (handTrashedInstanceIds.length > 0)
         await engine.fireSubTrigger!("whenHandTrashed", {
           handTrashedSeat: seat,
+          handTrashedInstanceIds,
           ...(opts?.byEffectSeat !== undefined ? { byEffectSeat: opts.byEffectSeat } : {}),
         });
     }

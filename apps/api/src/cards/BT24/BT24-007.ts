@@ -28,6 +28,7 @@ export const compiled: CompiledCard = {
                 count: 1,
               },
               from: ["trash"],
+              fromTriggerHandTrash: true,
               payCost: true,
               reduceCostBy: 2,
               optional: true,

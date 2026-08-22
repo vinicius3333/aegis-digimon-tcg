@@ -8,6 +8,8 @@ import type { ActionBase } from "./base.js";
 
 export interface PlayWithoutCostAction extends ActionBase {
   kind: "PlayWithoutCost";
+  /** Restrict trash candidates to the cards moved by the current whenHandTrashed batch. */
+  fromTriggerHandTrash?: boolean;
   playedByDecode?: boolean;
   /** What is played; `isSelf` for "play this card". */
   target: Target;

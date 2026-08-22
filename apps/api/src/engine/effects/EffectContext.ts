@@ -311,6 +311,8 @@ export interface TriggerInfo {
    * in one action triggers once; trashing 1 twice triggers twice).
    */
   handTrashedSeat?: Seat;
+  /** Exact instances moved from that hand by the single trash action. */
+  handTrashedInstanceIds?: string[];
   /**
    * The card ID of a card directly trashed from its owner's hand by an effect. Fired once per
    * moved hand card. Use `trashedFromHandInstanceId` for "this card" identity; duplicate copies

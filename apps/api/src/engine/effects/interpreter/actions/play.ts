@@ -248,6 +248,10 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       })();
       const zones = action.from && action.from.length > 0 ? action.from : DEFAULT_PLAY_ZONES;
       let candidates = candidateLooseInstances(ctx, playCostAdjustedTarget, zones);
+      if (action.fromTriggerHandTrash === true) {
+        const triggeringIds = new Set(ctx.trigger.handTrashedInstanceIds ?? []);
+        candidates = candidates.filter((candidate) => triggeringIds.has(candidate.instanceId));
+      }
       // Seat-level RestrictPlay: drop candidates the resolving effect's owner is forbidden
       // from playing (the effect is attributed to ctx.source.ownerSeat, so the prohibition on
       // THAT seat applies — Q4676; the source player's own effects are unaffected — Q4675).
