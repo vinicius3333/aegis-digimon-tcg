@@ -41,8 +41,8 @@ it("draws from its inherited Save attack effect at most once per turn", async ()
     0: { battleArea: [{ card: "BT12-077", as: "host", under: ["BT12-075"] }], deck: ["BT1-010", "BT1-011"] },
   });
   await s.ready();
-  await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-  await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+  await advance(s.engine).fire(EffectTiming.OnAllyAttack, s.perm("host"));
+  await advance(s.engine).fire(EffectTiming.OnAllyAttack, s.perm("host"));
   expect(s.state.players[0]!.hand).toHaveLength(1);
 });
 });
