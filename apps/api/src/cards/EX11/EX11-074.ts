@@ -25,16 +25,26 @@ const compiled: CompiledCard = {
     {
       trigger: "Static",
       actions: [],
-      keywords: [
-        { keyword: "Piercing", raw: "＜Piercing＞" },
-        { keyword: "Vortex", raw: "＜Vortex＞" },
-        { keyword: "Blocker", raw: "＜Blocker＞" }
-      ]
+      effectKey: "EX11-074/piercing",
+      keywords: [{ keyword: "Piercing", raw: "＜Piercing＞" }]
     },
-    { trigger: "WhenDigivolving", actions: [suspendChoice] },
-    { trigger: "WhenAttacking", actions: [suspendChoice] },
+    {
+      trigger: "Static",
+      actions: [],
+      effectKey: "EX11-074/vortex",
+      keywords: [{ keyword: "Vortex", raw: "＜Vortex＞" }]
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      effectKey: "EX11-074/blocker",
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }]
+    },
+    { trigger: "WhenDigivolving", optional: true, actions: [suspendChoice] },
+    { trigger: "WhenAttacking", optional: true, actions: [suspendChoice] },
     {
       trigger: "AllTurns",
+      timingOverride: "OnTappedAnyone",
       actions: [
         {
           kind: "SubTrigger",
@@ -52,4 +62,4 @@ const compiled: CompiledCard = {
   residual: []
 };
 
-registerIrCard("EX11-074", compiled);
+export default registerIrCard("EX11-074", compiled);
