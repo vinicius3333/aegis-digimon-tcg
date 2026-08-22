@@ -1,45 +1,55 @@
-import { EffectDuration, EffectTiming, isDigimon } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { activated, security } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "ST1-13";
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing, source) {
-    if (timing === EffectTiming.OnUseOption)
-      return [
-        activated({
-          source,
-          effectKey: `${cardId}/main`,
-          description: "One of your Digimon gets +3000 DP for the turn.",
-          resolve: async (ctx) => {
-            const candidates = ctx.game
-              .player(source.ownerSeat)
-              .battleArea.filter(
-                (permanent) => permanent.topCard && isDigimon(ctx.game.definitionOf(permanent.topCard)),
-              )
-              .map(({ permanentId }) => permanentId);
-            if (!candidates.length) return;
-            const [picked] =
-              candidates.length === 1 ? candidates : await ctx.ask.chooseTargets(ctx, { candidates, min: 1, max: 1 });
-            if (picked) ctx.fx.modifyDP(picked, 3000, EffectDuration.UntilEachTurnEnd);
+const compiled: CompiledCard = {
+  "effects": [
+    {
+      "trigger": "Main",
+      "actions": [
+        {
+          "kind": "ModifyDP",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ]
+            },
+            "count": 1
           },
-        }),
-      ];
-    if (timing === EffectTiming.SecuritySkill)
-      return [
-        security({
-          source,
-          effectKey: `${cardId}/security`,
-          description: "All of your Digimon gain Security Attack +1 until the end of your next turn.",
-          resolve: async (ctx) => {
-            ctx.fx.grantPlayerKeyword(source.ownerSeat, "SecurityAttack", EffectDuration.UntilOwnerTurnEnd, 1);
+          "amount": 3000,
+          "duration": "forTheTurn"
+        }
+      ]
+    },
+    {
+      "trigger": "Security",
+      "actions": [
+        {
+          "kind": "GainKeyword",
+          "target": {
+            "filter": {
+              "controller": "mine",
+              "kind": [
+                "Digimon"
+              ]
+            },
+            "count": "all"
           },
-        }),
-      ];
-    return [];
-  },
+          "keyword": {
+            "keyword": "SecurityAttack",
+            "amount": 1,
+            "raw": "＜Security Attack +1＞"
+          },
+          "duration": "untilYourTurnEnd"
+        }
+      ],
+      "isSecurity": true
+    }
+  ],
+  "coverage": "full",
+  "residual": []
 };
-registerCard(module);
-export default module;
+
+registerIrCard("ST1-13", compiled);

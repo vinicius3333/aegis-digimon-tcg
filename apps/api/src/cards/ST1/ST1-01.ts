@@ -1,27 +1,37 @@
-import { EffectDuration, EffectTiming } from "@aegis/shared";
-import type { EffectModule } from "../../engine/effects/EffectModule.js";
-import { staticModifier } from "../../engine/effects/builders.js";
-import { registerCard } from "../../engine/effects/registry.js";
+// @ts-nocheck
+import type { CompiledCard } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const cardId = "ST1-01";
-const module: EffectModule = {
-  cardId,
-  effectsForTiming(timing, source) {
-    if (timing !== EffectTiming.None) return [];
-    return [
-      staticModifier({
-        source,
-        effectKey: `${cardId}/inherited-dp`,
-        description: "[Your Turn] With 4 or more digivolution cards, this Digimon gets +1000 DP.",
-        isInherited: true,
-        when: () => source.isOwnersTurn() && (source.permanent()?.stack.length ?? 0) >= 4,
-        resolve: async (ctx) => {
-          const host = source.permanent();
-          if (host) ctx.fx.modifyDP(host.permanentId, 1000, EffectDuration.Permanent);
-        },
-      }),
-    ];
-  },
+const compiled: CompiledCard = {
+  "effects": [
+    {
+      "trigger": "YourTurn",
+      "actions": [
+        {
+          "kind": "Aura",
+          "target": {
+            "filter": {
+              "isSelfRef": true
+            },
+            "count": 1,
+            "isSelf": true
+          },
+          "effect": {
+            "kind": "modifyDP",
+            "amount": 1000
+          },
+          "while": {
+            "kind": "selfDigivolutionCountAtLeast",
+            "value": 4,
+            "raw": "this Digimon has 4 or more digivolution cards"
+          }
+        }
+      ],
+      "isInherited": true
+    }
+  ],
+  "coverage": "full",
+  "residual": []
 };
-registerCard(module);
-export default module;
+
+registerIrCard("ST1-01", compiled);
