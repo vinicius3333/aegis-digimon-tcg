@@ -465,11 +465,17 @@ export interface GameAccess {
    * (HARD-01). Optional so lightweight test GameAccess literals fall back to static
    * kinds; the live engine always provides it via createGameAccess.
    */
-  effectiveKinds?(permanentId: string): import("@aegis/shared").CardKind[];
+  effectiveKinds?(
+    permanentId: string,
+    printedKinds?: readonly import("@aegis/shared").CardKind[],
+  ): import("@aegis/shared").CardKind[];
   /** A permanent's printed traits plus active runtime trait grants. */
   effectiveTraits?(permanentId: string): string[];
   /** A permanent's printed kinds plus active runtime kind grants. */
-  effectiveKinds?(permanentId: string): import("@aegis/shared").CardKind[];
+  effectiveKinds?(
+    permanentId: string,
+    printedKinds?: readonly import("@aegis/shared").CardKind[],
+  ): import("@aegis/shared").CardKind[];
   /** Effective printed-plus-granted colors used by Option color requirements. */
   effectiveColors?(permanent: Permanent): import("@aegis/shared").CardColor[];
   /** Current DP including active continuous modifiers during effect recomputation. */
