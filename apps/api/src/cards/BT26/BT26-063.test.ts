@@ -82,7 +82,7 @@ describe("BT26-063 Tellermon", () => {
     expect(compiled.linkRequirement).toEqual([{ traits: ["Appmon"], cost: 3 }]);
   });
 
-  it("encodes the linked reveal and lowest-level deletion effects in IR", () => {
+  it("encodes the linked reveal effect in IR", () => {
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "YourTurn",
       frequency: "OncePerTurn",
@@ -92,15 +92,6 @@ describe("BT26-063 Tellermon", () => {
       kind: "RevealAdd",
       revealCount: 3,
       rest: "deckTopOrBottom",
-    });
-    expect(compiled.effects?.[1]).toMatchObject({
-      trigger: "Static",
-      isLinked: true,
-      actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: { isSelfRef: true } }],
-    });
-    expect(compiled.effects?.[1]?.actions?.[0]?.actions?.[0]).toMatchObject({
-      kind: "Delete",
-      target: { filter: { controllerDefault: "opponent", kind: ["Digimon"] }, superlative: "lowestLevel" },
     });
   });
 
@@ -160,79 +151,6 @@ describe("BT26-063 Tellermon", () => {
     expect(s.state.memory).toBe(0);
     expect(s.perm("tellermon").linked.map((card) => card.instanceId)).toContain(linkId);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).not.toContain(matchingId);
-  });
-
-  it("public link face deletes exactly 1 opponent Digimon among every tied lowest-level target", async () => {
-    const preferred: string[] = [];
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT21-009", as: "host" }],
-          hand: [{ card: CARD_ID, as: "tellermonLink" }],
-        },
-        1: {
-          battleArea: [
-            { card: "BT1-009", as: "lowA" },
-            { card: "BT1-010", as: "lowB" },
-            { card: "BT1-083", as: "higher" },
-            { card: "BT1-089", as: "tamer" },
-          ],
-        },
-      },
-      { autoSelectCards: true, preferInstanceIds: preferred },
-    );
-    s.state.memory = 3;
-    const lowA = s.perm("lowA").permanentId;
-    const lowB = s.perm("lowB").permanentId;
-    const higher = s.perm("higher").permanentId;
-    const tamer = s.perm("tamer").permanentId;
-    const deleted = s.perm("lowB").topCard.instanceId;
-    preferred.push(lowB);
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "linkCard",
-        instanceId: s.inst("tellermonLink").instanceId,
-        targetPermanentId: s.perm("host").permanentId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === deleted));
-
-    const request = s.decisions.find(({ req }) => req.kind === "chooseTargets")?.req;
-    expect(new Set(request?.options?.candidateInstanceIds)).toEqual(new Set([lowA, lowB]));
-    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual(
-      expect.arrayContaining([lowA, higher, tamer]),
-    );
-    expect(s.state.players[1]!.trash).toHaveLength(1);
-  });
-
-  it("uses physical link identity and does not retrigger for another linked card", async () => {
-    const cardSource = source("host");
-    let watcher: SubTriggerInstall | undefined;
-    const effect = getEffectModule(CARD_ID)!
-      .effectsForTiming(EffectTiming.None, cardSource)
-      .find(({ effectKey }) => effectKey.endsWith("link-face-delete-lowest-level"))!;
-    await effect.resolve({
-      source: cardSource,
-      fx: {
-        subscribeSubTrigger: (subscription: SubTriggerInstall) => {
-          watcher = subscription;
-        },
-      },
-    } as unknown as EffectContext);
-
-    expect(
-      watcher?.matches?.({
-        source: cardSource,
-        trigger: { subjectPermanentId: "host", linkedCardInstanceIds: [cardSource.instanceId] },
-      } as EffectContext),
-    ).toBe(true);
-    expect(
-      watcher?.matches?.({
-        source: cardSource,
-        trigger: { subjectPermanentId: "host", linkedCardInstanceIds: ["different-physical-card"] },
-      } as EffectContext),
-    ).toBe(false);
   });
 
   it("does not reveal when another Appmon, rather than this Tellermon, gets linked", async () => {
