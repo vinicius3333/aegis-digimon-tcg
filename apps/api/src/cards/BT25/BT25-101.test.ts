@@ -178,7 +178,9 @@ describe("BT25-101 Divine Arms Version Ω", () => {
         target: { kind: "permanent", permanentId: s.perm("equalDpOpponent").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(() =>
+      s.state.players[1]!.battleArea.length === 0 && !observe(s.engine).hasPierce(s.perm("vulcanus")),
+    );
 
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("vulcanus").permanentId)).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("piercingLink").instanceId);
