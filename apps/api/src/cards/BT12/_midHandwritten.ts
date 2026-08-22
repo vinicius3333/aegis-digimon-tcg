@@ -946,13 +946,11 @@ export function midBt12Module(cardId: string): EffectModule {
                           isDigimon(ctx.game.definitionOf(item)) && contains(ctx.game.definitionOf(item), "save"),
                       ),
                     1,
-                    true,
                   );
                   const [tamer] = await permanent(
                     ctx,
                     mine(ctx, source, (definition) => isTamer(definition)),
                     1,
-                    true,
                   );
                   if (saved && tamer) await ctx.fx.placeUnder(tamer, [saved]);
                 },
