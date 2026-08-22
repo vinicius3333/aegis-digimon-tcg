@@ -320,8 +320,8 @@ export function registerDigisorptionRedirectorFromEffects(cardId: string, effect
 export function isIntrinsicDigisorptionMarker(effect: CardEffect): boolean {
   return (
     effect.trigger === "Static" &&
-    effect.actions.length > 0 &&
-    effect.actions.every(
+    (effect.actions?.length ?? 0) > 0 &&
+    (effect.actions ?? []).every(
       (action) =>
         action.kind === "Replacement" &&
         action.event === "wouldDigivolve" &&
