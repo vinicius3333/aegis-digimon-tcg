@@ -25,6 +25,7 @@ export const compiled: CompiledCard = {
     {
       trigger: "Static",
       isLinked: true,
+      sharedUseKey: "link-face-delete-lowest-level",
       actions: [{ kind: "SubTrigger", event: "whenLinked", sourceFilter: linkedSelf, actions: [{
         kind: "Delete",
         target: { filter: opponentDigimon, count: 1, superlative: "lowestLevel" },

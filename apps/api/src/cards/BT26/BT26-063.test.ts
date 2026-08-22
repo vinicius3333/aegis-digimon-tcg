@@ -44,7 +44,7 @@ async function installedWatcher(cardSource: CardSource): Promise<SubTriggerInsta
   const ctx = {
     source: cardSource,
     trigger: {},
-    game: {},
+    game: { opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) },
     ask: {},
     fx: {
       subscribeSubTrigger: (subscription: SubTriggerInstall) => {
@@ -351,7 +351,7 @@ describe("BT26-063 Tellermon", () => {
     const ctx = {
       source: cardSource,
       trigger: { subjectPermanentId: "tellermon" },
-      game: { definitionOf: (card: { cardId: string }) => defs[card.cardId]! } as unknown as GameAccess,
+      game: { opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0), definitionOf: (card: { cardId: string }) => defs[card.cardId]! } as unknown as GameAccess,
       ask: { selectCards, chooseOption: vi.fn(async () => choice) },
       fx: { reveal: vi.fn(async () => revealed), returnToHand, returnToDeck } as unknown as Primitives,
     } as unknown as EffectContext;
@@ -377,6 +377,7 @@ describe("BT26-063 Tellermon", () => {
       source: cardSource,
       trigger: { subjectPermanentId: "tellermon" },
       game: {
+        opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0),
         definitionOf: (card: { cardId: string }) =>
           definition({ cardId: card.cardId, types: card.cardId === "NEAR" ? ["Seven Codes"] : [] }),
       },
