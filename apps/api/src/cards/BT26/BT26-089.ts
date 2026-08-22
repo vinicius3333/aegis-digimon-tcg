@@ -109,7 +109,7 @@ const module: EffectModule = {
           description:
             "[Start of Your Main Phase] By placing 1 [BEATBREAK] trait card from your hand " +
             "face down under this Tamer, <Draw 1> and gain 1 memory.",
-          optional: true,
+          optional: false,
           when: (ctx) => ctx.source.isOnBattleArea() && ctx.source.isOwnersTurn(),
           canActivate: (ctx) => {
             const owner = ctx.game.player(ctx.source.ownerSeat);
@@ -127,7 +127,7 @@ const module: EffectModule = {
 
             const chosen = await ctx.ask.selectCards(ctx, {
               candidates,
-              min: 0,
+              min: 1,
               max: 1,
             });
             if (chosen.length === 0) return;

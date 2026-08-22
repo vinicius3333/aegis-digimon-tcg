@@ -11,6 +11,12 @@ function primitives(s: ReturnType<typeof setupEngine>): Primitives {
 }
 
 describe("BT26-089 Kyo Sawashiro", () => {
+  it("requires the printed BEATBREAK placement cost", async () => {
+    const effect = (await import("../../engine/effects/registry.js")).getEffectModule("BT26-089")!
+      .effectsForTiming(EffectTiming.OnStartMainPhase, {} as never)[0]!;
+    expect(effect.optional).toBe(false);
+  });
+
   it("places the BEATBREAK cost face down at the bottom, then draws and gains memory (Q7137)", async () => {
     const s = setupEngine(
       {
