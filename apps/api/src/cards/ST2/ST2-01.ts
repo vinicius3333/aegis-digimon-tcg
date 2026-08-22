@@ -4,6 +4,20 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "WhenAttacking",
+      isInherited: true,
+      actions: [{
+        kind: "ModifyDP",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        amount: 1000,
+        duration: "untilEndOfBattle",
+        condition: {
+          kind: "triggerDefenderMatchesFilter",
+          filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "none" },
+        },
+      }],
+    },
+    {
       trigger: "YourTurn",
       isInherited: true,
       actions: [
