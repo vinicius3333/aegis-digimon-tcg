@@ -46,7 +46,7 @@ it("gains 1 memory when digivolving with a yellow or red Tamer in play", async (
     },
   });
   await s.ready();
-  s.state.memory = 3;
+  s.state.memory = 4;
   await advance(s.engine).verb.digivolveFromInstance(s.perm("geo").permanentId, s.inst("rize").instanceId, { payCost: true });
   await settle(() => s.perm("geo").topCard?.cardId === "BT12-042" && s.state.memory === 1);
   expect(s.state.memory).toBe(1);
