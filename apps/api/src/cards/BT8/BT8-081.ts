@@ -90,8 +90,7 @@ const compiled: CompiledCard = {
               "target": {
               "filter": {},
               "count": 1,
-                "fromSelectionRef": "unsuspendedTarget",
-                "sameTarget": true
+                "fromSelectionRef": "unsuspendedTarget"
               },
               "amount": 3000,
               "duration": "forTheTurn"
