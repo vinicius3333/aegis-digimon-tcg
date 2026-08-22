@@ -94,7 +94,8 @@ export async function runReplacement(
           : "instead");
   let amount = action.amount ?? nestedCostModifier?.amount;
   const costScaling = action.scaling ?? action.reduceCostScaling ?? nestedCostModifier?.scaling;
-  if ((mode === "reduceCost" || mode === "increaseCost") && costScaling !== undefined && amount !== undefined) {
+  const scalesIntoColors = event === "wouldDigivolve" && costScaling?.unit === "colors";
+  if ((mode === "reduceCost" || mode === "increaseCost") && costScaling !== undefined && amount !== undefined && !scalesIntoColors) {
     amount *= scaleFactor(ctx, costScaling);
   }
   // Mutually-exclusive amount alternatives (EX6-006 "reduce by 3 ... reduce by 4 instead"):
@@ -247,6 +248,7 @@ export async function runReplacement(
       sourcePermanentId: self?.permanentId,
       mode: "reduceCost",
       amount: mode === "increaseCost" ? -(amount ?? 0) : amount,
+      ...(scalesIntoColors ? { amountForInto: (def: import("@aegis/shared").CardDefinition) => (amount ?? 0) * def.colors.length } : {}),
       description: action.raw,
       digisorptionRedirect: action.digisorptionRedirect,
       // "when this Digimon would digivolve INTO a card with [X] trait/name": restrict the
