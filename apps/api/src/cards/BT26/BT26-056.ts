@@ -12,6 +12,9 @@ export const compiled: CompiledCard = { effects: [
     { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 }, optional: true },
     { kind: "DeDigivolve", target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 }, amount: 3 },
   ] },
-], coverage: "full", residual: [] };
+], coverage: "full", residual: [], digivolutionRequirement: [
+  { names: ["Cerberusmon"], cost: 1, isAlternate: true },
+  { level: 4, traits: ["TS"], cost: 3, isAlternate: true },
+] };
 registerIrCard("BT26-056", compiled);
 export default compiled;
