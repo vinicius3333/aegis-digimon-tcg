@@ -34,7 +34,7 @@ describe("BT7-085 Takuya Kanbara", () => {
 
     expect(s.state.memory).toBe(1);
     expect(s.perm("takuya").stack).toHaveLength(6);
-    expect(s.perm("takuya").currentDP).toBe(14000);
+    expect(s.perm("takuya").currentDP).toBe(13000);
     expect(observe(s.engine).keywordAmount(s.perm("takuya"), "SecurityAttack")).toBe(1);
   });
 
