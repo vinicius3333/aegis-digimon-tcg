@@ -2725,6 +2725,7 @@ export function createPrimitives(engine: PrimitivesEngine): Primitives {
         await engine.fireSubTrigger("onDeletionOf", {
           deletedPermanentId: permanentId,
           deletedPermanentIds: toDelete,
+          deletedTopCardId: access.permanentById(permanentId)?.topCard?.cardId,
           removalCause: cause,
           deletedByDpZero,
         });

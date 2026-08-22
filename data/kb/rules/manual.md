@@ -1897,14 +1897,14 @@ target to 1 of your opponent's unsuspended Digimon
 When this Digimon attacks, you may change the attack
 with the highest DP.
 25. Reboot
-25. Ascension
+38. Ascension
 This Digimon also unsuspends in your opponent's
 unsuspend phase.
 When this Digimon is deleted, you may place this card
 as the top security card.
 26. De-Digivolve X
 Trash the/up to X top stacked card(s).
-26. Use Reg. < XX
+39. Use Req. < XX
 You can't trash past level 3 cards.
 Specified cards let you ignore color requirements.
 Decoy XX
@@ -1913,9 +1913,9 @@ those Digimon isn't deleted.
 other specified Digimon, by deleting this Digimon, 1 of
 •Rules
 28. Collision
+Digimon Blocker, and the opponent blocks if able.
 During this Digimon's attack, give all of your opponent's
 1. Overflow (-XI
-Digimon Blocker, and the opponent blocks if able.
 area other than those, lose X memory.
 As this card moves from the field or under a card to an
 Fragment <X»
