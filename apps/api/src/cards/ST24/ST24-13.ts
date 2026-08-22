@@ -41,7 +41,7 @@ const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onDigivolutionCardDiscarded",
-          sourceFilter: { isSelfRef: true },
+          hostFilter: { isSelfRef: true },
           actions: [
             {
               kind: "GainKeyword",
