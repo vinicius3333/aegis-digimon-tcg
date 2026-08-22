@@ -9,6 +9,7 @@ import "./ST3-06.js";
 import "./ST3-07.js";
 import "./ST3-08.js";
 import "./ST3-09.js";
+import "./ST3-10.js";
 import "./ST3-11.js";
 import "./ST3-12.js";
 import "./ST3-13.js";
