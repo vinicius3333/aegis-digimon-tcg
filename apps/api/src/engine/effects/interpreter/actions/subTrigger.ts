@@ -10,6 +10,7 @@ import { matchingSubjectPermanentIds, subjectMatchesFilter, triggerAddedSecurity
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import type { Action, Cost, Filter } from "@aegis/shared";
 
 export const SUBTRIGGER_EVENT_MAP: Record<string, SubTriggerEventName | undefined> = {
@@ -657,6 +658,10 @@ export async function runSubTrigger(
     ...(matches ? { matches } : {}),
     ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
     ...(action.oncePerTiming ? { oncePerTiming: true } : {}),
+    // Persistent [All Turns]/Static effects are re-derived on every continuous
+    // recompute. Mark their subscriptions so the registry removes the previous
+    // copy before installing the fresh one; otherwise watcher effects accumulate.
+    continuous: ctx.activeTiming === EffectTiming.None,
     ...(action.oncePerTiming
       ? {
           oncePerTimingIdentity: `${ctx.source.instanceId}/${event}/${JSON.stringify({
