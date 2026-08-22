@@ -165,9 +165,9 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
               // the payload if it was actually trashed.
               const self = ctx.source.permanent();
               if (self === undefined) return;
-              const hasArmedDelayAction = (effect.actions ?? []).some((action) => {
-                return action.kind === "PlayWithoutCost" && action.requiresDelayArmed === true;
-              });
+              const hasArmedDelayAction = (effect.actions ?? []).some(
+                (action) => "requiresDelayArmed" in action && action.requiresDelayArmed === true,
+              );
               let delayArmedConsumed = false;
               if (hasArmedDelayAction) {
                 const hasDelay = (ctx.fx.grantedKeywords?.(self.permanentId) ?? []).some((g) => g.keyword === "Delay");

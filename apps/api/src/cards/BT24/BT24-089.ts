@@ -15,12 +15,7 @@ export const compiled: CompiledCard = {
           target: {
             filter: {
               controller: "mine",
-              nameOrTrait: [
-                {
-                  tokens: ["Elizamon", "Owen Dreadnought"],
-                  match: "name",
-                },
-              ],
+              namesExact: ["Elizamon", "Owen Dreadnought"],
             },
             count: 1,
           },
@@ -41,12 +36,7 @@ export const compiled: CompiledCard = {
           event: "whenSuspended",
           sourceFilter: {
             controller: "mine",
-            nameOrTrait: [
-              {
-                tokens: ["Owen Dreadnought"],
-                match: "name",
-              },
-            ],
+            namesExact: ["Owen Dreadnought"],
           },
           actions: [
             {
@@ -74,6 +64,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "Digivolve",
+          requiresDelayArmed: true,
           target: {
             filter: {
               controller: "mine",
@@ -85,9 +76,14 @@ export const compiled: CompiledCard = {
           into: {
             controllerDefault: "mine",
             kind: ["Digimon"],
-            nameOrTrait: [
-              { tokens: ["Reptile", "Dragonkin"], match: "trait" },
-              { tokens: ["LIBERATOR"], match: "trait" },
+            or: [
+              { nameOrTrait: [{ tokens: ["Reptile"], match: "trait" }] },
+              {
+                and: [
+                  { nameOrTrait: [{ tokens: ["Dragonkin"], match: "trait" }] },
+                  { nameOrTrait: [{ tokens: ["LIBERATOR"], match: "trait" }] },
+                ],
+              },
             ],
           },
           from: ["hand"],
