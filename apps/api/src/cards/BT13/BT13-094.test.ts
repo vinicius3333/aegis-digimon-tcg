@@ -1,8 +1,28 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import { GRANTED_EFFECT_LIBRARY } from "../../engine/effects/interpreter/grantedEffects.js";
 import { compiled } from "./BT13-094.js";
 
 describe("BT13-094 BT13-094", () => {
+  it("registers the exact Biyomon deletion grant in the public effect library", () => {
+    const effectText = compiled.effects[1]?.actions[0]?.effectText;
+    expect(GRANTED_EFFECT_LIBRARY[effectText!]).toMatchObject({
+      trigger: "OnDeletion",
+      actions: [
+        {
+          kind: "PlayWithoutCost",
+          from: ["hand", "trash"],
+          payCost: false,
+          optional: true,
+          target: {
+            filter: { kind: ["Digimon"], nameOrTrait: [{ match: "name", tokens: ["Biyomon"] }] },
+            count: 1,
+          },
+        },
+      ],
+    });
+  });
+
   it("matches Kristy Damon's printed phase, aura, and security effects", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);

@@ -231,6 +231,25 @@ export const GRANTED_EFFECT_LIBRARY: Record<string, CardEffect> = {
       } as Action,
     ],
   },
+  "[On Deletion] You may play 1 [Biyomon] from your hand or trash without paying the cost.": {
+    trigger: "OnDeletion",
+    actions: [
+      {
+        kind: "PlayWithoutCost",
+        target: {
+          filter: {
+            controller: "mine",
+            kind: ["Digimon"],
+            nameOrTrait: [{ tokens: ["Biyomon"], match: "name" }],
+          },
+          count: 1,
+        },
+        from: ["hand", "trash"],
+        payCost: false,
+        optional: true,
+      } as Action,
+    ],
+  },
   "[When Attacking] Lose 1 memory.": {
     trigger: "WhenAttacking",
     actions: [
