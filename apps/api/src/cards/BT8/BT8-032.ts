@@ -71,7 +71,16 @@ const compiled: CompiledCard = {
     }
   ],
   "coverage": "full",
-  "residual": []
+  "residual": [],
+  "digivolutionRequirement": [
+    {
+      "names": [
+        "Dragon Mode"
+      ],
+      "cost": 2,
+      "isAlternate": true
+    }
+  ]
 };
 
 registerIrCard("BT8-032", compiled);
